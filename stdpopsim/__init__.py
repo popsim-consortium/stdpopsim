@@ -7,3 +7,5 @@ try:
     __version__ = _version.version
 except ImportError:
     pass
+
+from . import h_sapiens
