@@ -3,14 +3,12 @@ Example of using the stdpopsim library with msprime.
 """
 import msprime
 import stdpopsim.h_sapiens as h_sap
-import stdpopsim.pongo as pongo
 
-
-model = pongo.LockeEtAlPongoIM()
-model.debug()
+# import stdpopsim.pongo as pongo
+# model = pongo.LockeEtAlPongoIM()
+# model.debug()
 
 model = h_sap.GutenkunstThreePopOutOfAfrica()
-
 model.debug()
 
 # One sample each from YRI, CEU and CHB. There's no point in pushing
@@ -22,8 +20,9 @@ samples = [
 
 ts = msprime.simulate(
     samples=samples,
-    length=h_sap.chr22.length,
-    recombination_rate=h_sap.chr22.mean_recombination_rate,
+    recombination_map=h_sap.chr22.recombination_map(),
+    # length=h_sap.chr22.length,
+    # recombination_rate=h_sap.chr22.mean_recombination_rate,
     mutation_rate=h_sap.chr22.mean_mutation_rate,
     **model.asdict())
 

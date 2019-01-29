@@ -13,6 +13,7 @@ import stdpopsim.chromosomes as chromosomes
 # some information but not all.
 # E.g. If you want mean mutation rate and recomb rates, but user-def length
 chrom = chromosomes.Chromosome(
+    name="chr22",
     length=50818468,  # from H.sapiens chr22, Wikipedia
     mean_mutation_rate=2e-8,  # assumption from Locke etal
     mean_recombination_rate=.95*1e-8)  # from Locke etal

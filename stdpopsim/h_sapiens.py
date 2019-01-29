@@ -10,7 +10,15 @@ import stdpopsim.chromosomes as chromosomes
 
 # Define the chromosomes.
 
-chr22 = chromosomes.Chromosome(
+class HumanChromosome(chromosomes.Chromosome):
+    default_recombination_map = "HapmapII_GRCh37"
+
+    def recombination_map(self):
+        return self._get_recombination_map(self.default_recombination_map, self.name)
+
+
+chr22 = HumanChromosome(
+    name="chr22",
     length=50818468,  # Taken from wikipedia, but should really be based on GRCh38.
     mean_mutation_rate=1e-8,  # WRONG!
     mean_recombination_rate=1e-8)  # WRONG!
