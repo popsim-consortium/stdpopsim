@@ -5,7 +5,7 @@ import msprime
 import stdpopsim.h_sapiens as h_sap
 
 
-model = h_sap.models.GutenkunstThreePopOutOfAfrica()
+model = h_sap.GutenkunstThreePopOutOfAfrica()
 
 model.debug()
 

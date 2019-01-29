@@ -1,38 +1,22 @@
 """
-Simulation models for Homo Sapiens.
+Humans.
 """
 import math
 
 import msprime
 
+import stdpopsim.models as models
+import stdpopsim.chromosomes as chromosomes
 
-class Model(object):
-    """
-    Class representing a simulation model that can be run in msprime.
-    """
-    def __init__(self):
-        self.population_configurations = None
-        self.migration_matrix = None
-        self.demographic_events = None
+# Define the chromosomes.
 
-    def debug(self):
-        # Use the demography debugger to print out the demographic history
-        # that we have just described.
-        dd = msprime.DemographyDebugger(
-            population_configurations=self.population_configurations,
-            migration_matrix=self.migration_matrix,
-            demographic_events=self.demographic_events)
-        dd.print_history()
-
-    def asdict(self):
-        return {
-            "population_configurations": self.population_configurations,
-            "migration_matrix": self.migration_matrix,
-            "demographic_events": self.demographic_events}
+chr22 = chromosomes.Chromosome(
+    length=50818468,  # Taken from wikipedia, but should really be based on GRCh38.
+    mean_mutation_rate=1e-8,  # WRONG!
+    mean_recombination_rate=1e-8)  # WRONG!
 
 
-
-class GutenkunstThreePopOutOfAfrica(Model):
+class GutenkunstThreePopOutOfAfrica(models.Model):
     """
     The three population Out-of-Africa model from Gutenkunst et al.
 
