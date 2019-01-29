@@ -8,4 +8,4 @@ try:
 except ImportError:
     pass
 
-from . import h_sapiens
+from . import h_sapiens, pongo
