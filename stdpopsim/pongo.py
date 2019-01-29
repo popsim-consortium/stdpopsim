@@ -1,36 +1,28 @@
 """
-Simulation models for Pongo.
+Orangutans.
 """
 import math
 
 import msprime
 
+import stdpopsim.models as models
+import stdpopsim.chromosomes as chromosomes
 
-class Model(object):
-    """
-    Class representing a simulation model that can be run in msprime.
-    """
-    def __init__(self):
-        self.population_configurations = None
-        self.migration_matrix = None
-        self.demographic_events = None
 
-    def debug(self):
-        # Use the demography debugger to print out the demographic history
-        # that we have just described.
-        dd = msprime.DemographyDebugger(
-            population_configurations=self.population_configurations,
-            migration_matrix=self.migration_matrix,
-            demographic_events=self.demographic_events)
-        dd.print_history()
+# Maybe good to package this part differently if wanting to use
+# some information but not all.
+# E.g. If you want mean mutation rate and recomb rates, but user-def length
+chrom = chromosomes.Chromosome(
+    name="chr22",
+    length=50818468,  # from H.sapiens chr22, Wikipedia
+    mean_mutation_rate=2e-8,  # assumption from Locke etal
+    mean_recombination_rate=.95*1e-8)  # from Locke etal
 
-    def asdict(self):
-        return {
-            "population_configurations": self.population_configurations,
-            "migration_matrix": self.migration_matrix,
-            "demographic_events": self.demographic_events}
 
-class Locke_etal_PongoIM(Model):
+# ETC
+
+
+class LockeEtAlPongoIM(models.Model):
     '''
     http://doi.org/10.1038/nature09687
     '''
@@ -70,12 +62,12 @@ class Locke_etal_PongoIM(Model):
         # configuration array. Therefore, we have 0=B and 1=S
         # initially.
         self.population_configurations = [
-            msprime.PopulationConfiguration(initial_size=N_B,growth_rate=r_B),
+            msprime.PopulationConfiguration(initial_size=N_B, growth_rate=r_B),
             msprime.PopulationConfiguration(initial_size=N_S, growth_rate=r_S),
         ]
         self.migration_matrix = [
-            [      0, m_B_S],
-            [m_S_B,       0],
+            [      0, m_B_S],  # NOQA
+            [m_S_B,       0],  # NOQA
         ]
         self.demographic_events = [
             # CEU and CHB merge into B with rate changes at T_EU_AS
