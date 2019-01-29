@@ -3,7 +3,11 @@ Example of using the stdpopsim library with msprime.
 """
 import msprime
 import stdpopsim.h_sapiens as h_sap
+import stdpopsim.pongo as pongo
 
+
+model = pongo.LockeEtAlPongoIM()
+model.debug()
 
 model = h_sap.GutenkunstThreePopOutOfAfrica()
 

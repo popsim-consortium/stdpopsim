@@ -1,4 +1,3 @@
-
 # Main entry point for stdpopsim
 
 __version__ = "undefined"
@@ -8,4 +7,5 @@ try:
 except ImportError:
     pass
 
-from . import h_sapiens, pongo
+from . import h_sapiens  # NOQA
+from . import pongo  # NOQA
