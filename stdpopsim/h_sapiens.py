@@ -8,13 +8,36 @@ import msprime
 import stdpopsim.models as models
 import stdpopsim.chromosomes as chromosomes
 
-# Define the chromosomes.
+
+# Define the genetic maps.
+
+class HumanGeneticMap(chromosomes.GeneticMap):
+    species = "h_sapiens"
+
+
+class HapmapII_GRCh37(HumanGeneticMap):
+    """
+    The Phase II HapMap Genetic map lifted over to GRCh37. See
+
+    ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/20110106_recombination_hotspots/README_hapmapII_GRCh37_map
+    """
+    name = "HapmapII_GRCh37"
+    url = (
+        "http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
+        "20110106_recombination_hotspots/"
+        "HapmapII_GRCh37_RecombinationHotspots.tar.gz")
+    file_pattern = "genetic_map_GRCh37_{name}.txt"
+
+
+chromosomes.register_genetic_map(HapmapII_GRCh37())
+
 
 class HumanChromosome(chromosomes.Chromosome):
-    default_recombination_map = "HapmapII_GRCh37"
+    default_recombination_map = HapmapII_GRCh37.name
 
     def recombination_map(self):
-        return self._get_recombination_map(self.default_recombination_map, self.name)
+        return self._get_recombination_map(
+            HumanGeneticMap.species, self.default_recombination_map, self.name)
 
 
 chr22 = HumanChromosome(
