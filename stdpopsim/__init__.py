@@ -7,5 +7,6 @@ try:
 except ImportError:
     pass
 
+from . chromosomes import *  # NOQA
 from . import h_sapiens  # NOQA
 from . import pongo  # NOQA
