@@ -1,0 +1,57 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/python:3.6-stretch
+    working_directory: /home/circleci/stdpopsim
+    steps:
+      - checkout
+      - run: sudo chown -R circleci:circleci *
+      - restore_cache:
+          key: stdpopsim-{{ .Branch }}
+      - run:
+          name: Install dependencies and set path
+          command: |
+            sudo apt-get install libgsl-dev # Needed for msprime
+            pip install --user -r requirements/development.txt
+            pip install twine --user
+            echo 'export PATH=/home/circleci/.local/bin:$PATH' >> $BASH_ENV
+      - save_cache:
+          key: stdpopsim-{{ .Branch }}
+          paths:
+            - "/home/circleci/.local"
+
+      - run:
+          name: Lint Python
+          command: |
+            flake8 --max-line-length 89 stdpopsim setup.py tests
+
+      - run:
+          name: Run Python tests 
+          command: |
+            nosetests -v --with-coverage --cover-package stdpopsim \
+              --cover-branches --cover-erase --cover-xml \
+              --cover-inclusive tests
+            python3 -m codecov 
+            rm .coverage
+
+      - run:
+          name: Build Python package
+          command: |
+            rm -fR build
+            python setup.py sdist
+            python setup.py check
+            python -m twine check dist/*.tar.gz
+            python -m venv venv
+            source venv/bin/activate 
+            pip install --upgrade setuptools pip wheel
+            python setup.py build_ext
+            python setup.py egg_info
+            python setup.py bdist_wheel
+            pip install dist/*.tar.gz 
+
+# TODO Enable when we make the docs
+#       - run:
+#           name: Build docs
+#           command: |
+#             cd docs && make

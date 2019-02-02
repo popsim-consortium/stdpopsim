@@ -1,0 +1,11 @@
+codecov
+coverage
+flake8
+nose
+setuptools_scm
+sphinx
+sphinx-argparse
+sphinx_rtd_theme
+msprime
+appdirs
+requests

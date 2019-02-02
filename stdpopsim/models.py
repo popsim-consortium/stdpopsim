@@ -4,6 +4,7 @@ Common infrastructure for specifying demographic models.
 
 import msprime
 
+
 class Model(object):
     """
     Class representing a simulation model that can be run in msprime.
@@ -27,4 +28,3 @@ class Model(object):
             "population_configurations": self.population_configurations,
             "migration_matrix": self.migration_matrix,
             "demographic_events": self.demographic_events}
-

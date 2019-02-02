@@ -68,6 +68,15 @@ class GeneticMap(object):
         self.species_cache_dir = os.path.join(self.cache_dir, self.species)
         self.map_cache_dir = os.path.join(self.species_cache_dir, self.name)
 
+    def __str__(self):
+        s = "GeneticMap: \n"
+        s += "\tspecies   = {}\n".format(self.species)
+        s += "\tname      = {}\n".format(self.name)
+        s += "\turl       = {}\n".format(self.url)
+        s += "\tcached    = {}\n".format(self.is_cached())
+        s += "\tcache_dir = {}\n".format(self.map_cache_dir)
+        return s
+
     def is_cached(self):
         """
         Returns True if this map is cached locally.
@@ -87,16 +96,24 @@ class GeneticMap(object):
         os.makedirs(self.species_cache_dir, exist_ok=True)
 
         logger.debug("Downloading genetic map '{}' from {}".format(self.name, self.url))
-        r = requests.get(self.url, stream=True)
+        response = requests.get(self.url, stream=True)
         with tempfile.TemporaryDirectory() as tempdir:
             download_file = os.path.join(tempdir, "downloaded")
             extract_dir = os.path.join(tempdir, "extracted")
             with open(download_file, 'wb') as f:
-                for chunk in r.iter_content(chunk_size=1024):
+                for chunk in response.iter_content(chunk_size=1024):
                     f.write(chunk)
             logger.debug("Extracting genetic map")
             os.makedirs(extract_dir)
             with tarfile.open(download_file, 'r') as tf:
+                for info in tf.getmembers():
+                    # TODO test for any prefixes on the name; we should just
+                    # expand to a normal file. See  the warning here:
+                    # https://docs.python.org/3.5/library/tarfile.html#tarfile.TarFile.extractall
+                    if not info.isfile():
+                        raise ValueError(
+                            "Tarball format error: member {} not a file".format(
+                                info.name))
                 with cd(extract_dir):
                     tf.extractall()
             # If this has all gone OK up to here we can now move the
