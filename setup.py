@@ -10,9 +10,9 @@ setup(
     name='stdpopsim',
     description='Standard simulation models for msprime',
     long_description=long_description,
-    # FIXME change these if/when we move to
-    author='Jerome Kelleher',
-    author_email='jerome.kelleher@well.ox.ac.uk',
+    author='PopSim Consortium',
+    # TODO probably should have a different email address?
+    author_email='popgen_benchmark@lists.uoregon.edu',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
@@ -26,13 +26,12 @@ setup(
     keywords='simulations, recombination map, models',
     packages=['stdpopsim'],
     include_package_data=True,
-    install_requires=["msprime"],
-    # FIXME change these when we move to a permanaent location.
-    # url='https://github.com/tskit-dev/tsconvert',
-    # project_urls={
-    #     'Bug Reports': 'https://github.com/tskit-dev/tsconvert/issues',
-    #     'Source': 'https://github.com/tsckit-dev/tsconvert',
-    # },
+    install_requires=["msprime", "requests", "appdirs"],
+    url='https://github.com/popgensims/stdpopsim',
+    project_urls={
+        'Bug Reports': 'https://github.com/popgensims/stdpopsim/issues',
+        'Source': 'https://github.com/tsckit-dev/stdpopsim',
+    },
     license="MIT",
     platforms=["POSIX", "MacOS X", "Windows"],
     setup_requires=['setuptools_scm'],
