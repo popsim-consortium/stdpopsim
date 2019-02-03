@@ -1,5 +1,5 @@
 """
-Humans.
+Genome, genetic map and demographic model definitions for humans.
 """
 import math
 
@@ -9,7 +9,7 @@ import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
 
-SPECIES_ID = "h_sapiens"
+SPECIES_ID = "homo_sapiens"
 
 
 ###########################################################

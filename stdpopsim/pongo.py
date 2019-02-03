@@ -6,20 +6,10 @@ import math
 import msprime
 
 import stdpopsim.models as models
-# import stdpopsim.chromosomes as chromosomes
 
 
-# # Maybe good to package this part differently if wanting to use
-# # some information but not all.
-# # E.g. If you want mean mutation rate and recomb rates, but user-def length
-# chrom = chromosomes.Chromosome(
-#     name="chr22",
-#     length=50818468,  # from H.sapiens chr22, Wikipedia
-#     mean_mutation_rate=2e-8,  # assumption from Locke etal
-#     mean_recombination_rate=.95*1e-8)  # from Locke etal
-
-
-# ETC
+# TODO: how do we define the Orangutan genome here? Are they similar enough to
+# humans that we just use humans? What about the different species of pongo?
 
 
 class LockeEtAlPongoIM(models.Model):
