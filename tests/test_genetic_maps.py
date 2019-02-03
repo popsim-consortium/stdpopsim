@@ -1,7 +1,6 @@
 """
 Tests for the genetic maps management.
 """
-
 import unittest
 from unittest import mock
 import tarfile
@@ -12,7 +11,7 @@ import shutil
 import appdirs
 import msprime
 
-from stdpopsim import chromosomes
+from stdpopsim import genetic_maps
 
 _cachedir = None
 
@@ -27,7 +26,7 @@ def tearDownModule():
     del _cachedir
 
 
-class GeneticMapTestClass(chromosomes.GeneticMap):
+class GeneticMapTestClass(genetic_maps.GeneticMap):
     species = "test_species"
     name = "test_map"
     url = "http://example.com/genetic_map.tar.gz"
@@ -59,7 +58,7 @@ def get_genetic_map_tarball():
                 print("chr1        82571   2.082414        0.080572", file=f)
                 print("chr1        88169   0               0.092229", file=f)
         # For the tarfile to be in the right format, we must be in the right directory.
-        with chromosomes.cd(map_dir):
+        with genetic_maps.cd(map_dir):
             # Now tar up this map_directory
             with tempfile.TemporaryFile('wb+') as tmp_file:
                 with tarfile.open(fileobj=tmp_file, mode="w:gz") as tar_file:
@@ -82,7 +81,7 @@ class TestGeneticMapTarball(unittest.TestCase):
             f.seek(0)
             with tarfile.open(fileobj=f, mode='r') as tar_file:
                 with tempfile.TemporaryDirectory() as extract_dir:
-                    with chromosomes.cd(extract_dir):
+                    with genetic_maps.cd(extract_dir):
                         tar_file.extractall()
                         for fn in os.listdir(extract_dir):
                             maps[fn] = msprime.RecombinationMap.read_hapmap(fn)

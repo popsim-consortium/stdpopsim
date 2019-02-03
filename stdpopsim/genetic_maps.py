@@ -1,5 +1,5 @@
 """
-Infrastructure for defining chromosome information for different species.
+Infrastructure for managing genetic maps.
 """
 import os.path
 import tempfile
@@ -16,7 +16,7 @@ import msprime
 logger = logging.getLogger(__name__)
 
 
-genetic_maps = {}
+registered_maps = {}
 
 
 def get_genetic_map(species, name):
@@ -25,9 +25,9 @@ def get_genetic_map(species, name):
     Raises a ValueError if the map has not been registered.
     """
     key = "{}/{}".format(species, name)
-    if key not in genetic_maps:
+    if key not in registered_maps:
         raise ValueError("Unknown genetic map '{}'".format(key))
-    return genetic_maps[key]
+    return registered_maps[key]
 
 
 def register_genetic_map(genetic_map):
@@ -36,7 +36,7 @@ def register_genetic_map(genetic_map):
     """
     key = "{}/{}".format(genetic_map.species, genetic_map.name)
     logger.debug("Registering genetic map '{}'".format(key))
-    genetic_maps[key] = genetic_map
+    registered_maps[key] = genetic_map
 
 
 @contextlib.contextmanager
@@ -95,7 +95,7 @@ class GeneticMap(object):
         logger.debug("Making species cache directory {}".format(self.species_cache_dir))
         os.makedirs(self.species_cache_dir, exist_ok=True)
 
-        logger.debug("Downloading genetic map '{}' from {}".format(self.name, self.url))
+        logger.info("Downloading genetic map '{}' from {}".format(self.name, self.url))
         response = requests.get(self.url, stream=True)
         with tempfile.TemporaryDirectory() as tempdir:
             download_file = os.path.join(tempdir, "downloaded")
@@ -131,16 +131,3 @@ class GeneticMap(object):
             self.download()
         map_file = os.path.join(self.map_cache_dir, self.file_pattern.format(name=name))
         return msprime.RecombinationMap.read_hapmap(map_file)
-
-
-class Chromosome(object):
-
-    def __init__(self, name, length, mean_recombination_rate, mean_mutation_rate):
-        self.name = name
-        self.length = length
-        self.mean_recombination_rate = mean_recombination_rate
-        self.mean_mutation_rate = mean_mutation_rate
-
-    def _get_recombination_map(self, species, map_name, chr_name):
-        genetic_map = get_genetic_map(species, map_name)
-        return genetic_map.get_chromosome_map(chr_name)

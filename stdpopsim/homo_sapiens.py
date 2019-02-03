@@ -1,18 +1,25 @@
 """
-Humans.
+Genome, genetic map and demographic model definitions for humans.
 """
 import math
 
 import msprime
 
 import stdpopsim.models as models
-import stdpopsim.chromosomes as chromosomes
+import stdpopsim.genomes as genomes
+import stdpopsim.genetic_maps as genetic_maps
+
+SPECIES_ID = "homo_sapiens"
 
 
-# Define the genetic maps.
+###########################################################
+#
+# Genetic maps
+#
+###########################################################
 
-class HumanGeneticMap(chromosomes.GeneticMap):
-    species = "h_sapiens"
+class HumanGeneticMap(genetic_maps.GeneticMap):
+    species = SPECIES_ID
 
 
 class HapmapII_GRCh37(HumanGeneticMap):
@@ -29,22 +36,66 @@ class HapmapII_GRCh37(HumanGeneticMap):
     file_pattern = "genetic_map_GRCh37_{name}.txt"
 
 
-chromosomes.register_genetic_map(HapmapII_GRCh37())
+genetic_maps.register_genetic_map(HapmapII_GRCh37())
 
 
-class HumanChromosome(chromosomes.Chromosome):
-    default_recombination_map = HapmapII_GRCh37.name
+###########################################################
+#
+# Genome definition
+#
+###########################################################
 
-    def recombination_map(self):
-        return self._get_recombination_map(
-            HumanGeneticMap.species, self.default_recombination_map, self.name)
+# List of chromosomes. Data for length information based on GRCh38,
+# https://www.ncbi.nlm.nih.gov/grc/human/data
+
+# FIXME: add mean mutation and recombination rate data to this table.
+_chromosome_data = """\
+chr1   248956422
+chr2   242193529
+chr3   198295559
+chr4   190214555
+chr5   181538259
+chr6   170805979
+chr7   159345973
+chr8   145138636
+chr9   138394717
+chr10  133797422
+chr11  135086622
+chr12  133275309
+chr13  114364328
+chr14  107043718
+chr15  101991189
+chr16  90338345
+chr17  83257441
+chr18  80373285
+chr19  58617616
+chr20  64444167
+chr21  46709983
+chr22  50818468
+chrX   156040895
+chrY   57227415
+"""
+
+_chromosomes = []
+for line in _chromosome_data.splitlines():
+    name, length = line.split()[:2]
+    _chromosomes.append(genomes.Chromosome(
+        name=name, length=int(length),
+        mean_mutation_rate=1e-8,  # WRONG!,
+        mean_recombination_rate=1e-8))  # WRONG!
 
 
-chr22 = HumanChromosome(
-    name="chr22",
-    length=50818468,  # Taken from wikipedia, but should really be based on GRCh38.
-    mean_mutation_rate=1e-8,  # WRONG!
-    mean_recombination_rate=1e-8)  # WRONG!
+genome = genomes.Genome(
+    species=SPECIES_ID,
+    chromosomes=_chromosomes,
+    default_genetic_map=HapmapII_GRCh37.name)
+
+
+###########################################################
+#
+# Demographic models
+#
+###########################################################
 
 
 class GutenkunstThreePopOutOfAfrica(models.Model):
