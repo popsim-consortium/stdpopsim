@@ -81,7 +81,7 @@ for line in _chromosome_data.splitlines():
     name, length = line.split()[:2]
     _chromosomes.append(genomes.Chromosome(
         name=name, length=int(length),
-        mean_mutation_rate=1e-8, # WRONG!,
+        mean_mutation_rate=1e-8,  # WRONG!,
         mean_recombination_rate=1e-8))  # WRONG!
 
 
