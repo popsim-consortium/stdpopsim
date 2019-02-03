@@ -15,15 +15,13 @@ import stdpopsim.h_sapiens as h_sap
 # model = pongo.LockeEtAlPongoIM()
 # model.debug()
 
-# genetic_map = stdpopsim.get_genetic_map("h_sapiens", "HapmapII_GRCh37")
-# # genetic_map.download()
-
-# recomb_map = genetic_map.get_chromosome_map("chr20")
+genetic_map = stdpopsim.get_genetic_map("h_sapiens", "HapmapII_GRCh37")
+recomb_map = genetic_map.get_chromosome_map("chr20")
 # print(recomb_map)
 
 
 model = h_sap.GutenkunstThreePopOutOfAfrica()
-model.debug()
+# model.debug()
 
 # One sample each from YRI, CEU and CHB. There's no point in pushing
 # the sampling strategy into the model generation
@@ -37,12 +35,12 @@ samples = [
 
 ts = msprime.simulate(
     samples=samples,
-    recombination_map=h_sap.chr22.recombination_map(),
-    # length=h_sap.chr22.length,
-    # recombination_rate=h_sap.chr22.mean_recombination_rate,
+    # recombination_map=h_sap.chr22.recombination_map(),
+    length=h_sap.chr22.length,
+    recombination_rate=h_sap.chr22.mean_recombination_rate,
     mutation_rate=h_sap.chr22.mean_mutation_rate,
     **model.asdict())
 
-# # print(ts.tables)
-# print("simulated:", ts.num_trees, ts.num_sites)
+# print(ts.tables)
+print("simulated:", ts.num_trees, ts.num_sites)
 

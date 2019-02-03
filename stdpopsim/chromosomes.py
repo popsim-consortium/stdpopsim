@@ -95,7 +95,7 @@ class GeneticMap(object):
         logger.debug("Making species cache directory {}".format(self.species_cache_dir))
         os.makedirs(self.species_cache_dir, exist_ok=True)
 
-        logger.debug("Downloading genetic map '{}' from {}".format(self.name, self.url))
+        logger.info("Downloading genetic map '{}' from {}".format(self.name, self.url))
         response = requests.get(self.url, stream=True)
         with tempfile.TemporaryDirectory() as tempdir:
             download_file = os.path.join(tempdir, "downloaded")
