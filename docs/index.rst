@@ -10,7 +10,10 @@ Welcome to stdpopsim's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   introduction
+   installation
+   development
+   changelogs
 
 Indices and tables
 ==================

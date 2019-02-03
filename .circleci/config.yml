@@ -50,8 +50,7 @@ jobs:
             python setup.py bdist_wheel
             pip install dist/*.tar.gz 
 
-# TODO Enable when we make the docs
-#       - run:
-#           name: Build docs
-#           command: |
-#             cd docs && make
+      - run:
+          name: Build docs
+          command: |
+            cd docs && make
