@@ -7,6 +7,8 @@ try:
 except ImportError:
     pass
 
-from . chromosomes import *  # NOQA
+from . genetic_maps import *  # NOQA
+from . models import *  # NOQA
+from . genomes import *  # NOQA
 from . import h_sapiens  # NOQA
 from . import pongo  # NOQA

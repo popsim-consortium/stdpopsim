@@ -6,7 +6,8 @@ import math
 import msprime
 
 import stdpopsim.models as models
-import stdpopsim.chromosomes as chromosomes
+import stdpopsim.genomes as genomes
+import stdpopsim.genetic_maps as genetic_maps
 
 SPECIES_ID = "h_sapiens"
 
@@ -17,7 +18,7 @@ SPECIES_ID = "h_sapiens"
 #
 ###########################################################
 
-class HumanGeneticMap(chromosomes.GeneticMap):
+class HumanGeneticMap(genetic_maps.GeneticMap):
     species = SPECIES_ID
 
 
@@ -35,7 +36,7 @@ class HapmapII_GRCh37(HumanGeneticMap):
     file_pattern = "genetic_map_GRCh37_{name}.txt"
 
 
-chromosomes.register_genetic_map(HapmapII_GRCh37())
+genetic_maps.register_genetic_map(HapmapII_GRCh37())
 
 
 ###########################################################
@@ -78,13 +79,13 @@ chrY   57227415
 _chromosomes = []
 for line in _chromosome_data.splitlines():
     name, length = line.split()[:2]
-    _chromosomes.append(chromosomes.Chromosome(
+    _chromosomes.append(genomes.Chromosome(
         name=name, length=int(length),
         mean_mutation_rate=1e-8, # WRONG!,
         mean_recombination_rate=1e-8))  # WRONG!
 
 
-genome = chromosomes.Genome(
+genome = genomes.Genome(
     species=SPECIES_ID,
     chromosomes=_chromosomes,
     default_genetic_map=HapmapII_GRCh37.name)
