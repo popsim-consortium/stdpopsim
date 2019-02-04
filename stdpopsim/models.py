@@ -9,6 +9,8 @@ import msprime
 class Model(object):
     """
     Class representing a simulation model that can be run in msprime.
+
+    .. todo:: Document this class.
     """
     def __init__(self):
         self.population_configurations = None

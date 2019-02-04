@@ -12,6 +12,7 @@ Welcome to stdpopsim's documentation!
 
    introduction
    installation
+   api
    development
    changelogs
 
