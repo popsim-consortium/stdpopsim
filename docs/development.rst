@@ -19,7 +19,7 @@ install the packages required for development using::
     $ python3 -m pip install requirements/development.txt
 
 We do require ``msprime``, so please see the the `installation notes
-<https://msprime.readthedocs.io/en/stable/installation.html>` if you
+<https://msprime.readthedocs.io/en/stable/installation.html>`_ if you
 encounter problems with it. Conda users should be able to install the
 development requirements using::
 
@@ -107,5 +107,8 @@ Documentation
 Documentation is written using `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
 markup and the `sphinx <http://www.sphinx-doc.org/en/master/>`_ documentation system.
 It is defined in the ``docs`` directory.
+
+To build the documentation type ``make`` in the ``docs`` directory. This should build
+HTML output in the ``_build/html/`` directory.
 
 

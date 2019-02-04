@@ -7,6 +7,7 @@ import tarfile
 import logging
 import contextlib
 import shutil
+import inspect
 
 import appdirs
 import requests
@@ -33,6 +34,9 @@ def get_genetic_map(species, name):
 def register_genetic_map(genetic_map):
     """
     Registers the specified recombination map so that it can be loaded on demand.
+
+    A key is generated from each genetic map based on its class and module names,
+    giving the name of the map and species, respectively.
     """
     key = "{}/{}".format(genetic_map.species, genetic_map.name)
     logger.debug("Registering genetic map '{}'".format(key))
@@ -53,23 +57,66 @@ def cd(path):
         os.chdir(old_dir)
 
 
+class classproperty(object):
+    """
+    Define a 'class property'. Used below for defining GeneticMap name and species.
+
+    https://stackoverflow.com/questions/5189699/how-to-make-a-class-property
+    """
+    def __init__(self, f):
+        self.f = f
+
+    def __get__(self, obj, owner):
+        return self.f(owner)
+
+
 class GeneticMap(object):
     """
     Class representing a genetic map for a species. Provides functionality for
     downloading and cacheing recombination maps from a remote URL.
+
+    Specific genetic maps are defined by subclassing this abstract superclass
+    and registering the map.
     """
-    species = None
-    name = None
+
     url = None
+    """
+    The URL where this genetic map can be obtained.
+    """
+
     file_pattern = None
+    """
+    The pattern used to map name individual chromosome to files, suitable for use
+    with Python's :meth:`str.format` method.
+    """
 
     def __init__(self):
         self.cache_dir = appdirs.user_cache_dir("stdpopsim", "popgensims")
         self.species_cache_dir = os.path.join(self.cache_dir, self.species)
         self.map_cache_dir = os.path.join(self.species_cache_dir, self.name)
 
+    # We use a bit of trickery here to dynamically get the species name and
+    # map ID from the subclass.
+    @classproperty
+    def name(cls):
+        """
+        The name of this GeneticMap. This is equal to the name of the class
+        defining it.
+        """
+        return cls.__name__
+
+    @classproperty
+    def species(cls):
+        """
+        The species that this GeneticMap subclass is for. Equal to the name
+        of the module in which the class is defined.
+        """
+        mod = inspect.getmodule(cls).__name__
+        species = mod.split(".")[-1]
+        return species
+
     def __str__(self):
-        s = "GeneticMap: \n"
+        s = "GeneticMap:\n"
         s += "\tspecies   = {}\n".format(self.species)
         s += "\tname      = {}\n".format(self.name)
         s += "\turl       = {}\n".format(self.url)

@@ -9,8 +9,6 @@ import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
 
-SPECIES_ID = "homo_sapiens"
-
 
 ###########################################################
 #
@@ -18,17 +16,14 @@ SPECIES_ID = "homo_sapiens"
 #
 ###########################################################
 
-class HumanGeneticMap(genetic_maps.GeneticMap):
-    species = SPECIES_ID
 
-
-class HapmapII_GRCh37(HumanGeneticMap):
+class HapmapII_GRCh37(genetic_maps.GeneticMap):
     """
-    The Phase II HapMap Genetic map lifted over to GRCh37. See
-
-    ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/20110106_recombination_hotspots/README_hapmapII_GRCh37_map
+    The Phase II HapMap Genetic map (lifted over to GRCh37) used in
+    1000 Genomes. Please see the `README
+    <ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/20110106_recombination_hotspots/README_hapmapII_GRCh37_map>`_
+    for more details.
     """
-    name = "HapmapII_GRCh37"
     url = (
         "http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
         "20110106_recombination_hotspots/"
@@ -86,7 +81,7 @@ for line in _chromosome_data.splitlines():
 
 
 genome = genomes.Genome(
-    species=SPECIES_ID,
+    species="homo_sapiens",
     chromosomes=_chromosomes,
     default_genetic_map=HapmapII_GRCh37.name)
 
