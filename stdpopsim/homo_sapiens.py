@@ -80,6 +80,8 @@ for line in _chromosome_data.splitlines():
         mean_recombination_rate=1e-8))  # WRONG!
 
 
+#: :class:`stdpopsim.Genome` definition for humans. Chromosome length data is
+#: based on GRCh38.
 genome = genomes.Genome(
     species="homo_sapiens",
     chromosomes=_chromosomes,
@@ -97,9 +99,10 @@ class GutenkunstThreePopOutOfAfrica(models.Model):
     """
     The three population Out-of-Africa model from Gutenkunst et al.
 
-    TODO:
+    .. todo:: document this model, including the original publications
+        and clear information about what the different population indexes
+        mean.
 
-    Clearly document that the different population indexes are.
     """
 
     def __init__(self):

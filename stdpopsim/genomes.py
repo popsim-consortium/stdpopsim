@@ -9,6 +9,8 @@ import stdpopsim.genetic_maps as genetic_maps
 class Genome(object):
     """
     Class representing the genome for a species.
+
+    .. todo:: Define the facilities that this object provides.
     """
     def __init__(self, species, chromosomes, default_genetic_map=None):
         self.species = species
@@ -31,8 +33,9 @@ class Genome(object):
 class Chromosome(object):
     """
     Class representing a single chromosome for a species.
-    """
 
+    .. todo:: Define the facilities that this object provides.
+    """
     def __init__(self, name, length, mean_recombination_rate, mean_mutation_rate):
         self.name = name
         self.length = length
