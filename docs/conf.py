@@ -31,6 +31,9 @@ release = '0.1'
 
 # -- General configuration ---------------------------------------------------
 
+# Mock out msprime as it needs binary installations.
+autodoc_mock_imports = ["msprime"]
+
 # If your documentation needs a minimal Sphinx version, state it here.
 #
 # needs_sphinx = '1.0'
