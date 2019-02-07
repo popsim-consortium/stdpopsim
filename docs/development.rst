@@ -20,9 +20,11 @@ install the packages required for development using::
 
 We do require ``msprime``, so please see the the `installation notes
 <https://msprime.readthedocs.io/en/stable/installation.html>`_ if you
-encounter problems with it. Conda users should be able to install the
+encounter problems with it. Conda users will need to add the `conda-forge`
+channel to their conda environment and then should be able to install the
 development requirements using::
-
+    
+    $ conda config --add channels conda-forge 
     $ conda install --file=requirements/development.txt
 
 ***************
