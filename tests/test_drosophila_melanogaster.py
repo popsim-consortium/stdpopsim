@@ -44,8 +44,10 @@ class TestSheehanSongThreeEpoch(unittest.TestCase):
 
     def test_simulation_runs(self):
         model = drosophila_melanogaster.SheehanSongThreeEpoch()
+        samples = [msprime.Sample(population=0, time=0),
+                                      msprime.Sample(population=0, time=0)]
         ts = msprime.simulate(
-            sample_size=2,
+            samples = samples,
             **model.asdict())
         self.assertEqual(ts.num_populations, 1)
 
