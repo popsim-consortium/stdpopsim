@@ -7,7 +7,7 @@ import msprime
 import stdpopsim
 from stdpopsim import drosophila_melanogaster
 
-chrom = drosophila_melanogaster.genome.chromosomes["chr2L"]
+chrom = drosophila_melanogaster.genome.chromosomes["chrX"]
 recomb_map = chrom.recombination_map()
 
 model = drosophila_melanogaster.SheehanSongThreeEpoch()
