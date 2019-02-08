@@ -1,7 +1,6 @@
 """
 Genome, genetic map and demographic model definitions for humans.
 """
-import math
 
 import msprime
 
@@ -20,7 +19,7 @@ import stdpopsim.genetic_maps as genetic_maps
 class Comeron2012_dm6(genetic_maps.GeneticMap):
     """
     Comeron et al. (2012) maps (lifted over to dm6) used in
-    Currently needs a readme as to the lift over, etc. 
+    Currently needs a readme as to the lift over, etc.
     """
     url = (
         "http://sesame.uoregon.edu/~adkern/dmel_recombination_map/"

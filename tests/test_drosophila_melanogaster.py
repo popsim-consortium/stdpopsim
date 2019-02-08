@@ -14,7 +14,7 @@ class TestGenome(unittest.TestCase):
     Tests for the drosophila_melanogaster genome.
     """
     def test_basic_attributes(self):
-        genome = homo_sapiens.genome
+        genome = drosophila_melanogaster.genome
         self.assertEqual(genome.species, "drosophila_melanogaster")
         self.assertEqual(genome.default_genetic_map, "Comeron2012_dm6")
         self.assertEqual(len(genome.chromosomes), 8)
@@ -25,7 +25,7 @@ class TestGenome(unittest.TestCase):
         self.assertIsInstance(s, str)
 
     def test_chromosome_lengths(self):
-        genome = homo_sapiens.genome
+        genome = drosophila_melanogaster.genome
         # Numbers from https://www.ncbi.nlm.nih.gov/grc/human/data
         # DM6
         self.assertEqual(genome.chromosomes["chr2L"].length, 23513712)
@@ -35,8 +35,6 @@ class TestGenome(unittest.TestCase):
         self.assertEqual(genome.chromosomes["chrX"].length, 23542271)
         self.assertEqual(genome.chromosomes["chr4"].length, 1348131)
         self.assertEqual(genome.chromosomes["chrY"].length, 3667352)
-
-
 
 class TestSheehanSongThreeEpoch(unittest.TestCase):
     """
