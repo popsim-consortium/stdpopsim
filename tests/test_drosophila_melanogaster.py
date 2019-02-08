@@ -36,6 +36,7 @@ class TestGenome(unittest.TestCase):
         self.assertEqual(genome.chromosomes["chr4"].length, 1348131)
         self.assertEqual(genome.chromosomes["chrY"].length, 3667352)
 
+
 class TestSheehanSongThreeEpoch(unittest.TestCase):
     """
     Basic tests for the SheehanSongThreeEpoch model.
