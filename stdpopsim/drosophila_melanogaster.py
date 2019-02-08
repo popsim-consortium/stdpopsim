@@ -17,21 +17,18 @@ import stdpopsim.genetic_maps as genetic_maps
 ###########################################################
 
 
-class HapmapII_GRCh37(genetic_maps.GeneticMap):
+class Comeron2012_dm6(genetic_maps.GeneticMap):
     """
-    The Phase II HapMap Genetic map (lifted over to GRCh37) used in
-    1000 Genomes. Please see the `README
-    <ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/20110106_recombination_hotspots/README_hapmapII_GRCh37_map>`_
-    for more details.
+    Comeron et al. (2012) maps (lifted over to dm6) used in
+    Currently needs a readme as to the lift over, etc. 
     """
     url = (
-        "http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
-        "20110106_recombination_hotspots/"
-        "HapmapII_GRCh37_RecombinationHotspots.tar.gz")
-    file_pattern = "genetic_map_GRCh37_{name}.txt"
+        "http://sesame.uoregon.edu/~adkern/dmel_recombination_map/"
+        "comeron2012_maps.tar.gz")
+    file_pattern = "genetic_map_comeron2012_dm6_{name}.txt"
 
 
-genetic_maps.register_genetic_map(HapmapII_GRCh37())
+genetic_maps.register_genetic_map(Comeron2012_dm6())
 
 ###########################################################
 #
@@ -59,7 +56,7 @@ for line in _chromosome_data.splitlines():
     _chromosomes.append(genomes.Chromosome(
         name=name, length=int(length),
         mean_mutation_rate=8.4e-9,  # WRONG!, underestimate used in S&S
-        mean_recombination_rate=1e-8))  # WRONG!
+        mean_recombination_rate=8.4e-9))  # WRONG, underestimate used in S&S!
 
 
 #: :class:`stdpopsim.Genome` definition for D. melanogaster. Chromosome length data is
@@ -67,7 +64,7 @@ for line in _chromosome_data.splitlines():
 genome = genomes.Genome(
     species="drosophila_melanogaster",
     chromosomes=_chromosomes,
-    default_genetic_map=None)
+    default_genetic_map=Comeron2012_dm6.name)
 
 
 ###########################################################
@@ -116,3 +113,4 @@ class SheehanSongThreeEpoch(models.Model):
             msprime.PopulationParametersChange(
                 time=t_2, initial_size=N_A, population_id=0)
         ]
+        self.migration_matrix = [[0]]
