@@ -59,7 +59,7 @@ for line in _chromosome_data.splitlines():
 
 
 #: :class:`stdpopsim.Genome` definition for D. melanogaster. Chromosome length data is
-# based on DM6
+#: based on `dm6 <https://www.ncbi.nlm.nih.gov/assembly/GCF_000001215.4/>`_.
 genome = genomes.Genome(
     species="drosophila_melanogaster",
     chromosomes=_chromosomes,
