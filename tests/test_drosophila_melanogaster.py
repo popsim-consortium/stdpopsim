@@ -26,8 +26,8 @@ class TestGenome(unittest.TestCase):
 
     def test_chromosome_lengths(self):
         genome = drosophila_melanogaster.genome
-        # Numbers from https://www.ncbi.nlm.nih.gov/grc/human/data
-        # DM6
+        # Numbers from DM6 release
+        #`dm6 <https://www.ncbi.nlm.nih.gov/assembly/GCF_000001215.4/>`_.
         self.assertEqual(genome.chromosomes["chr2L"].length, 23513712)
         self.assertEqual(genome.chromosomes["chr2R"].length, 25286936)
         self.assertEqual(genome.chromosomes["chr3L"].length, 28110227)
