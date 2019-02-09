@@ -98,9 +98,7 @@ class SheehanSongThreeEpoch(models.Model):
         # generation_time = 10 / year
         t_1 = t_1_coal * 4 * N_ref
         t_2 = t_2_coal * 4 * N_ref
-        # Population IDs correspond to their indexes in the population
-        # configuration array. Therefore, we have 0=YRI, 1=CEU and 2=CHB
-        # initially.
+        # Single population in this model
         self.population_configurations = [
             msprime.PopulationConfiguration(initial_size=N_R),
         ]
