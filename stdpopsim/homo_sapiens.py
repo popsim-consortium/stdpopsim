@@ -81,7 +81,7 @@ for line in _chromosome_data.splitlines():
 
 
 #: :class:`stdpopsim.Genome` definition for humans. Chromosome length data is
-#: based on GRCh38.
+#: based on `GRCh38 <https://www.ncbi.nlm.nih.gov/grc/human/data>`_.
 genome = genomes.Genome(
     species="homo_sapiens",
     chromosomes=_chromosomes,

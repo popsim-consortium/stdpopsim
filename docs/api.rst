@@ -108,3 +108,24 @@ Demographic models
 
 .. autoclass:: stdpopsim.homo_sapiens.GutenkunstThreePopOutOfAfrica
     :members:
+
+
+***********************
+Drosophila Melanogaster
+***********************
+
+.. autodata:: stdpopsim.drosophila_melanogaster.genome
+
+++++++++++++
+Genetic Maps
+++++++++++++
+
+.. autoclass:: stdpopsim.drosophila_melanogaster.Comeron2012_dm6
+    :members:
+
+++++++++++++++++++
+Demographic models
+++++++++++++++++++
+
+.. autoclass:: stdpopsim.drosophila_melanogaster.SheehanSongThreeEpoch
+    :members:
