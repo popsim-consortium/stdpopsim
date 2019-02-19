@@ -106,7 +106,7 @@ class GutenkunstThreePopOutOfAfrica(models.Model):
     """
 
     def __init__(self):
-
+        super().__init__()
         # First we set out the maximum likelihood values of the various parameters
         # given in Table 1.
         N_A = 7300
@@ -160,4 +160,47 @@ class GutenkunstThreePopOutOfAfrica(models.Model):
             # Size changes to N_A at T_AF
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0)
+        ]
+
+
+class TennessenEuropean(models.Model):
+    """
+    The model is derived from the Tennesen et al.
+    `analysis <https://doi.org/10.1126/science.1219240>`_  of the jSFS from
+    European Americans and African Americans.
+
+    .. todo:: document this model, including the original publications
+        and clear information about what the different population indexes
+        mean.
+
+    """
+    def __init__(self):
+        super().__init__()
+        # Population sizes
+        N_A = 7310
+        N_AF = 14474
+        N_B = 1861
+        N_EU1 = 9475
+        # Times
+        generation_time = 25
+        T_AF = 148000 / generation_time
+        T_B = 51000 / generation_time
+        T_EU0 = 23000 / generation_time
+        T_EU1 = 5115 / generation_time
+        # Rates and Present Ne
+        r_EU0 = 0.00307
+        r_EU1 = 0.0195
+        N_EU = N_EU1 / math.exp(-r_EU1 * T_EU1)
+        self.population_configurations = [
+            msprime.PopulationConfiguration(initial_size=N_EU, growth_rate=r_EU1)
+        ]
+        self.demographic_events = [
+            msprime.PopulationParametersChange(
+                time=T_EU1, initial_size=N_EU1, growth_rate=r_EU0, population_id=0),
+            msprime.PopulationParametersChange(
+                time=T_EU0, initial_size=N_B, growth_rate=0, population_id=0),
+            msprime.PopulationParametersChange(
+                time=T_B, initial_size=N_AF, growth_rate=0, population_id=0),
+            msprime.PopulationParametersChange(
+                time=T_AF, initial_size=N_A, growth_rate=0, population_id=0)
         ]
