@@ -111,3 +111,47 @@ class SheehanSongThreeEpoch(models.Model):
                 time=t_2, initial_size=N_A, population_id=0)
         ]
         self.migration_matrix = [[0]]
+
+
+class LiStephanTwoPopulation(models.Model):
+    """
+    two population model of Li and Stephan (2006) for
+    African and European divergence
+
+    .. todo:: document this model, including the original publications
+        and clear information about what the different population indexes
+        mean.
+
+    """
+
+    def __init__(self):
+
+        # African Parameter values from "Demographic History of the African
+        # Population" section
+        N_A0 = 8.603e06
+        t_A0 = 6000  # generations
+        N_A1 = N_A0 / 5.0
+        # European Parameter values from "Demo History of Euro Population"
+        N_E0 = 1.075e06
+        N_E1 = 2200
+        t_AE = 1580  # generations
+        t_E1 = 1580 - 34
+        self.population_configurations = [
+            msprime.PopulationConfiguration(initial_size=N_A0),
+            msprime.PopulationConfiguration(initial_size=N_E0)
+        ]
+        self.demographic_events = [
+            # Size change at Euro bottleneck
+            msprime.PopulationParametersChange(
+                time=t_E1, initial_size=N_E1, population_id=1),
+            # Split
+            msprime.MassMigration(
+                time=t_AE, source=1, destination=0, proportion=1.0),
+            # African bottleneck
+            msprime.PopulationParametersChange(
+                time=t_A0, initial_size=N_A1, population_id=0)
+        ]
+        self.migration_matrix = [
+            [0, 0],
+            [0, 0],
+        ]
