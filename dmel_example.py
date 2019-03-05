@@ -22,7 +22,7 @@ samples = [msprime.Sample(population=0, time=0),
 
 ts = msprime.simulate(
     samples=samples,
-#    recombination_map=chrom.recombination_map(),
+    # recombination rate placeholder for quick runtime
     recombination_rate=1e-09,
     mutation_rate=chrom.mean_mutation_rate,
     **model.asdict())
@@ -40,7 +40,7 @@ samples = [msprime.Sample(population=0, time=0),
 
 ts = msprime.simulate(
     samples=samples,
-#    recombination_map=chrom.recombination_map(),
+    # recombination rate placeholder for quick runtime
     recombination_rate=1e-09,
     mutation_rate=chrom.mean_mutation_rate,
     **model.asdict())
@@ -59,6 +59,7 @@ samples = [msprime.Sample(population=0, time=0),
 
 ts = msprime.simulate(
     samples=samples,
+    # actual recombination map; slow
     recombination_map=chrom.recombination_map(),
     mutation_rate=chrom.mean_mutation_rate,
     **model.asdict())
