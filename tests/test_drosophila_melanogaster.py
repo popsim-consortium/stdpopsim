@@ -56,3 +56,24 @@ class TestSheehanSongThreeEpoch(unittest.TestCase):
         model.debug(output)
         s = output.getvalue()
         self.assertGreater(len(s), 0)
+
+
+class TestLiStephanTwoPopulation(unittest.TestCase):
+    """
+    Basic tests for the LiStephanTwoPopulation model.
+    """
+
+    def test_simulation_runs(self):
+        model = drosophila_melanogaster.LiStephanTwoPopulation()
+        samples = [msprime.Sample(population=0, time=0),
+                   msprime.Sample(population=1, time=0)]
+        ts = msprime.simulate(
+            samples=samples, **model.asdict())
+        self.assertEqual(ts.num_populations, 2)
+
+    def test_debug_runs(self):
+        model = drosophila_melanogaster.LiStephanTwoPopulation()
+        output = io.StringIO()
+        model.debug(output)
+        s = output.getvalue()
+        self.assertGreater(len(s), 0)
