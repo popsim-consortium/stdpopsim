@@ -7,6 +7,7 @@ import io
 import msprime
 
 from stdpopsim import homo_sapiens
+from stdpopsim import genetic_maps
 
 
 class TestGenome(unittest.TestCase):
@@ -52,6 +53,59 @@ class TestGenome(unittest.TestCase):
         self.assertEqual(genome.chromosomes["chr22"].length, 50818468)
         self.assertEqual(genome.chromosomes["chrX"].length, 156040895)
         self.assertEqual(genome.chromosomes["chrY"].length, 57227415)
+
+    def test_chromosome_recombination_maps(self):
+        # This test is to ensure every chromosome in the homosapien
+        # genome will be able to call self.recombination_map()
+        # with no ValueError
+        with self.assertWarns(Warning):
+            for chrom in homo_sapiens.genome.chromosomes:
+                chrom = homo_sapiens.genome.chromosomes[chrom]
+                cm = chrom.recombination_map()
+                self.assertIsInstance(cm, msprime.RecombinationMap)
+
+    def test_warning_from_no_mapped_chromosome(self):
+        # Test that a known chromosome throws a warning
+        # if there is no recombination map associated
+        with self.assertWarns(Warning):
+            chrom = homo_sapiens.genome.chromosomes["chrY"]
+            cm = chrom.recombination_map()
+            self.assertIsInstance(cm, msprime.RecombinationMap)
+
+    def test_warning_from_mapped_chromosome(self):
+        # Test that a known chromosome can get a
+        # recombination map associated with it
+        chrom = homo_sapiens.genome.chromosomes["chr1"]
+        cm = chrom.recombination_map()
+        self.assertIsInstance(cm, msprime.RecombinationMap)
+
+    def test_chromosome_errors(self):
+        # Assert that unknown chromosomes throw a KeyError
+        with self.assertRaises(KeyError):
+            homo_sapiens.genome.chromosomes["jibberish"]
+
+
+class TestGeneticMap(unittest.TestCase):
+    """
+    Basic tests for the GeneticMap class
+    """
+
+    def test_get_genetic_map(self):
+        default_map = homo_sapiens.genome.default_genetic_map
+        HapmapII_GRCh37 = genetic_maps.get_genetic_map("homo_sapiens", default_map)
+        self.assertIsInstance(HapmapII_GRCh37, genetic_maps.GeneticMap)
+
+    def test_unknown_get_chromosome_map(self):
+        default_map = homo_sapiens.genome.default_genetic_map
+        HapmapII_GRCh37 = genetic_maps.get_genetic_map("homo_sapiens", default_map)
+        with self.assertRaises(ValueError):
+            HapmapII_GRCh37.get_chromosome_map("jibberish")
+
+    def test_known_get_chromosome_map(self):
+        default_map = homo_sapiens.genome.default_genetic_map
+        HapmapII_GRCh37 = genetic_maps.get_genetic_map("homo_sapiens", default_map)
+        recombination_map = HapmapII_GRCh37.get_chromosome_map("chr1")
+        self.assertIsInstance(recombination_map, msprime.RecombinationMap)
 
 
 class TestGutenkunstOutOfAfrica(unittest.TestCase):

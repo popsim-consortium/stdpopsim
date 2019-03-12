@@ -4,6 +4,8 @@ species.
 """
 
 import stdpopsim.genetic_maps as genetic_maps
+import msprime
+import warnings
 
 
 class Genome(object):
@@ -65,4 +67,12 @@ class Chromosome(object):
         if map_name is None:
             map_name = self.default_genetic_map
         genetic_map = genetic_maps.get_genetic_map(self.species, map_name)
-        return genetic_map.get_chromosome_map(self.name)
+        if genetic_map.contains_chromosome_map(self.name):
+            ret = genetic_map.get_chromosome_map(self.name)
+        else:
+            warnings.warn(
+                "Warning: recombination map not found for chromosome: '{}'"
+                " on map: '{}', substituting a zero"
+                "-recombination map.".format(self.name, map_name))
+            ret = msprime.RecombinationMap.uniform_map(self.length, 0)
+        return ret
