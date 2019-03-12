@@ -54,8 +54,8 @@ for line in _chromosome_data.splitlines():
     name, length = line.split()[:2]
     _chromosomes.append(genomes.Chromosome(
         name=name, length=int(length),
-        mean_mutation_rate=8.4e-9,  # WRONG!, underestimate used in S&S
-        mean_recombination_rate=8.4e-9))  # WRONG, underestimate used in S&S!
+        default_mutation_rate=8.4e-9,  # WRONG!, underestimate used in S&S
+        default_recombination_rate=8.4e-9))  # WRONG, underestimate used in S&S!
 
 
 #: :class:`stdpopsim.Genome` definition for D. melanogaster. Chromosome length data is
