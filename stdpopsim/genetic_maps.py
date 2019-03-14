@@ -169,6 +169,14 @@ class GeneticMap(object):
             logger.info("Storing map in {}".format(self.map_cache_dir))
             shutil.move(extract_dir, self.map_cache_dir)
 
+    def contains_chromosome_map(self, name):
+        """
+        Just a quick check to see whether of not
+        this genetic map contains a genetic map for `name`
+        """
+        map_file = os.path.join(self.map_cache_dir, self.file_pattern.format(name=name))
+        return os.path.exists(map_file)
+
     def get_chromosome_map(self, name):
         """
         Returns the genetic map for the chromosome with the specified name.
@@ -176,5 +184,7 @@ class GeneticMap(object):
         # TODO look up a list of known names to give a good error message.
         if not self.is_cached():
             self.download()
+        if not self.contains_chromosome_map(name=name):
+            raise ValueError("Chromosome map for '{}' not found".format(name))
         map_file = os.path.join(self.map_cache_dir, self.file_pattern.format(name=name))
         return msprime.RecombinationMap.read_hapmap(map_file)
