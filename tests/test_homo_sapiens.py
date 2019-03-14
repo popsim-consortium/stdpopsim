@@ -54,16 +54,6 @@ class TestGenome(unittest.TestCase):
         self.assertEqual(genome.chromosomes["chrX"].length, 156040895)
         self.assertEqual(genome.chromosomes["chrY"].length, 57227415)
 
-    def test_chromosome_recombination_maps(self):
-        # This test is to ensure every chromosome in the homosapien
-        # genome will be able to call self.recombination_map()
-        # with no ValueError
-        with self.assertWarns(Warning):
-            for chrom in homo_sapiens.genome.chromosomes:
-                chrom = homo_sapiens.genome.chromosomes[chrom]
-                cm = chrom.recombination_map()
-                self.assertIsInstance(cm, msprime.RecombinationMap)
-
     def test_warning_from_no_mapped_chromosome(self):
         # Test that a known chromosome throws a warning
         # if there is no recombination map associated
