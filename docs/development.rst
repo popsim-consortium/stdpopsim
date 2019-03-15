@@ -398,6 +398,25 @@ The unit test suite is in the ``tests`` directory. Tests are run using the
 
 from the project root to run the full test suite.
 
+It's useful to run the ``flake8`` CI tests *locally* before pushing a commit.
+To set this up use either ``pip`` or ``conda`` to install ``flake8``
+
+To run the test simply use::
+
+    $ flake8 --max-line-length 89 stdpopsim tests
+
+If you would like to automatically run this test before a commit is permitted,
+add the following line in the file ``stdpopsim/.git/hooks/pre-commit.sample``::
+
+    exec flake8 --max-line-length 89 setup.py stdpopsim tests 
+ 
+before::
+
+    # If there are whitespace errors, print the offending file names and fail.
+    exec git diff-index --check --cached $against --
+
+Finally, rename ``pre-commit.sample`` to simply ``pre-commit``
+
 *************
 Documentation
 *************
