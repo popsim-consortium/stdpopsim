@@ -6,8 +6,8 @@ import tempfile
 import tarfile
 import logging
 import contextlib
-import shutil
 import inspect
+import warnings
 
 import appdirs
 import requests
@@ -138,13 +138,19 @@ class GeneticMap(object):
         """
         if self.is_cached():
             logger.info("Clearing cache {}".format(self.map_cache_dir))
-            shutil.rmtree(self.map_cache_dir)
+            with tempfile.TemporaryDirectory(dir=self.species_cache_dir) as tempdir:
+                # Atomically move to a temporary directory, which will be automatically
+                # deleted on exit.
+                os.rename(self.map_cache_dir, tempdir)
         logger.debug("Making species cache directory {}".format(self.species_cache_dir))
         os.makedirs(self.species_cache_dir, exist_ok=True)
 
         logger.info("Downloading genetic map '{}' from {}".format(self.name, self.url))
         response = requests.get(self.url, stream=True)
-        with tempfile.TemporaryDirectory() as tempdir:
+        # os.rename will not work on some Unixes if the source and dest are on
+        # different file systems. Keep the tempdir in the same directory as
+        # the destination to ensure it's on the same file system.
+        with tempfile.TemporaryDirectory(dir=self.species_cache_dir) as tempdir:
             download_file = os.path.join(tempdir, "downloaded")
             extract_dir = os.path.join(tempdir, "extracted")
             with open(download_file, 'wb') as f:
@@ -167,7 +173,16 @@ class GeneticMap(object):
             # extracted directory into the cache location. This should
             # minimise the chances of having malformed maps in the cache.
             logger.info("Storing map in {}".format(self.map_cache_dir))
-            shutil.move(extract_dir, self.map_cache_dir)
+            # os.rename is atomic, and will raise an OSError if the directory
+            # already exists. Therefore, if we see the map exists we assume
+            # that some other thread has already dowloaded it and raise a
+            # warning.
+            try:
+                os.rename(extract_dir, self.map_cache_dir)
+            except OSError:
+                warnings.warn(
+                    "Error occured renaming map directory. Are several threads/processes"
+                    "downloading this map at the same time?")
 
     def contains_chromosome_map(self, name):
         """
