@@ -59,8 +59,8 @@ for line in _chromosome_data.splitlines():
     name, length = line.split()[:2]
     _chromosomes.append(genomes.Chromosome(
         name=name, length=int(length),
-        mean_mutation_rate=7e-9,
-        mean_recombination_rate=8.1e-9))
+        default_mutation_rate=7e-9,
+        default_recombination_rate=8.1e-9))
 
 genome = genomes.Genome(
     species="arabidopsis_thaliana",
