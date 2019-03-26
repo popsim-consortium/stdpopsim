@@ -2,12 +2,15 @@
 Genome, genetic map and demographic model definitions for humans.
 """
 import math
+import logging
 
 import msprime
 
 import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
+
+logger = logging.getLogger(__name__)
 
 
 ###########################################################
@@ -32,6 +35,7 @@ class HapmapII_GRCh37(genetic_maps.GeneticMap):
         "20110106_recombination_hotspots/"
         "HapmapII_GRCh37_RecombinationHotspots.tar.gz")
     file_pattern = "genetic_map_GRCh37_{name}.txt"
+    doi = "https://doi.org/10.1038/nature06258"
 
 
 genetic_maps.register_genetic_map(HapmapII_GRCh37())
@@ -52,6 +56,7 @@ class Decode_2010_sex_averaged(genetic_maps.GeneticMap):
         "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
         "decode_2010_sex-averaged_map.tar.gz")
     file_pattern = "genetic_map_decode_2010_sex-averaged_{name}.txt"
+    doi = "https://doi.org/10.1038/nature09525"
 
 
 genetic_maps.register_genetic_map(Decode_2010_sex_averaged())
@@ -114,6 +119,41 @@ genome = genomes.Genome(
     chromosomes=_chromosomes,
     default_genetic_map=HapmapII_GRCh37.name)
 
+#
+# Experimental interface used to develop the CLI.
+#
+
+
+class TempChromosome(object):
+    """
+    Temporary class while figuring out the best way to do this.
+    """
+    def __init__(self):
+        self.length = None
+        self.recombination_map = None
+        self.mutation_rate = None
+
+
+def chromosome_factory(name, genetic_map=None, length_multiplier=1):
+    """
+    Temporary function to help figure out the right interface for getting
+    chromosome information.
+    """
+    chrom = genome.chromosomes[name]
+    if genetic_map is None:
+        logging.debug(f"Making flat chromosome {length_multiplier} * {chrom.name}")
+        recomb_map = msprime.RecombinationMap.uniform_map(
+            chrom.length * length_multiplier, chrom.default_recombination_rate)
+    else:
+        if length_multiplier != 1:
+            raise ValueError("Cannot use length multiplier with empirical maps")
+        logging.debug(f"Getting map for {chrom.name} from {genetic_map}")
+        recomb_map = chrom.recombination_map(genetic_map)
+
+    ret = TempChromosome()
+    ret.recombination_map = recomb_map
+    ret.mutation_rate = chrom.default_mutation_rate
+    return ret
 
 ###########################################################
 #
@@ -131,6 +171,9 @@ class GutenkunstThreePopOutOfAfrica(models.Model):
         mean.
 
     """
+    author = "Gutenkunst et al."
+    year = 2009
+    doi = "https://doi.org/10.1371/journal.pgen.1000695"
 
     def __init__(self):
         super().__init__()
@@ -204,6 +247,11 @@ class TennessenTwoPopOutOfAfrica(models.Model):
         mean.
 
     """
+    # NOTE choosing the first publication above the 'the' paper to reference.
+    # Should we allow for multiple references??
+    author = "Tennessen et al."
+    year = "2012"
+    doi = "https://doi.org/10.1126/science.1219240"
 
     def __init__(self):
         super().__init__()
@@ -277,6 +325,10 @@ class BrowningAmerica(models.Model):
     This code was ported over from
     `Supplementary File 1 <https://doi.org/10.1371/journal.pgen.1007385.s005>`_
     """
+    author = "Browning et al."
+    year = "2011"
+    doi = "http://dx.doi.org/10.1371/journal.pgen.1007385"
+
     def __init__(self):
         super().__init__()
         N0 = 7310  # initial population size

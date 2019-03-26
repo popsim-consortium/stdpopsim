@@ -14,6 +14,7 @@ import urllib.request
 import msprime
 
 import stdpopsim
+import stdpopsim.citations as citations
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ class classproperty(object):
         return self.f(owner)
 
 
-class GeneticMap(object):
+class GeneticMap(citations.CitableMixin):
     """
     Class representing a genetic map for a species. Provides functionality for
     downloading and cacheing recombination maps from a remote URL.

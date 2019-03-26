@@ -26,6 +26,11 @@ setup(
     keywords='simulations, recombination map, models',
     packages=['stdpopsim'],
     include_package_data=True,
+    entry_points={
+        'console_scripts': [
+            'stdpopsim=stdpopsim.cli:stdpopsim_main',
+        ]
+    },
     install_requires=["msprime", "appdirs"],
     url='https://github.com/popgensims/stdpopsim',
     project_urls={

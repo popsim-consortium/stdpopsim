@@ -207,3 +207,23 @@ class TestBrowningAmerica(unittest.TestCase):
     def test_qc_model_equal(self):
         model = homo_sapiens.BrowningAmerica()
         self.assertTrue(model.equals(homo_sapiens_qc.BrowningAmerica()))
+
+
+class TestChromosomeFactory(unittest.TestCase):
+    """
+    Simple tests for the temporary chromosome factory object.
+
+    TODO move these into the appropriate location later.
+    """
+    def test_length_multiplier(self):
+        chrom1 = homo_sapiens.chromosome_factory("chr22")
+        for x in [0.125, 1.0, 2.0]:
+            chrom2 = homo_sapiens.chromosome_factory("chr22", length_multiplier=x)
+            self.assertEqual(
+                chrom1.recombination_map.get_positions()[-1] * x,
+                chrom2.recombination_map.get_positions()[-1])
+
+    def test_length_multiplier_on_empirical_map(self):
+        with self.assertRaises(ValueError):
+            homo_sapiens.chromosome_factory(
+                "chr1", "HapmapII_GRCh37", length_multiplier=2)
