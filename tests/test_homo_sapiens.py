@@ -159,20 +159,20 @@ class TestGutenkunstOutOfAfrica(unittest.TestCase):
         self.assertGreater(len(s), 0)
 
 
-class TestTennessenEuropean(unittest.TestCase):
+class TestTennessenOutOfAfrica(unittest.TestCase):
     """
-    Basic tests for the TennessenEuropean model.
+    Basic tests for the TennessenTwoPopOutOfAfrica model.
     """
 
     def test_simulation_runs(self):
-        model = homo_sapiens.TennessenEuropean()
+        model = homo_sapiens.TennessenTwoPopOutOfAfrica()
         ts = msprime.simulate(
-            samples=[msprime.Sample(0, 0) for _ in range(10)],
+            samples=[msprime.Sample(pop, 0) for pop in range(2)],
             **model.asdict())
-        self.assertEqual(ts.num_populations, 1)
+        self.assertEqual(ts.num_populations, 2)
 
     def test_debug_runs(self):
-        model = homo_sapiens.TennessenEuropean()
+        model = homo_sapiens.TennessenTwoPopOutOfAfrica()
         output = io.StringIO()
         model.debug(output)
         s = output.getvalue()
