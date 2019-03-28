@@ -15,3 +15,6 @@ from . genomes import *  # NOQA
 # Species definitions.
 from . import homo_sapiens  # NOQA
 from . import pongo  # NOQA
+from . import arabidopsis_thaliana  # NOQA
+from . import e_coli  # NOQA
+from . import drosophila_melanogaster  # NOQA
