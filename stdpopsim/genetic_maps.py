@@ -1,18 +1,19 @@
 """
 Infrastructure for managing genetic maps.
 """
-import os.path
+import pathlib
 import tempfile
 import tarfile
 import logging
 import contextlib
 import inspect
 import warnings
+import os
+import urllib.request
 
-import appdirs
-import requests
 import msprime
 
+import stdpopsim
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,13 @@ def register_genetic_map(genetic_map):
     key = "{}/{}".format(genetic_map.species, genetic_map.name)
     logger.debug("Registering genetic map '{}'".format(key))
     registered_maps[key] = genetic_map
+
+
+def all_genetic_maps():
+    """
+    Returns all registered genetic maps.
+    """
+    return list(registered_maps.values())
 
 
 @contextlib.contextmanager
@@ -91,9 +99,9 @@ class GeneticMap(object):
     """
 
     def __init__(self):
-        self.cache_dir = appdirs.user_cache_dir("stdpopsim", "popgensims")
-        self.species_cache_dir = os.path.join(self.cache_dir, self.species)
-        self.map_cache_dir = os.path.join(self.species_cache_dir, self.name)
+        self.cache_dir = pathlib.Path(stdpopsim.get_cache_dir()) / "genetic_maps"
+        self.species_cache_dir = self.cache_dir / self.species
+        self.map_cache_dir = self.species_cache_dir / self.name
 
     # We use a bit of trickery here to dynamically get the species name and
     # map ID from the subclass.
@@ -146,16 +154,13 @@ class GeneticMap(object):
         os.makedirs(self.species_cache_dir, exist_ok=True)
 
         logger.info("Downloading genetic map '{}' from {}".format(self.name, self.url))
-        response = requests.get(self.url, stream=True)
         # os.rename will not work on some Unixes if the source and dest are on
         # different file systems. Keep the tempdir in the same directory as
         # the destination to ensure it's on the same file system.
         with tempfile.TemporaryDirectory(dir=self.species_cache_dir) as tempdir:
             download_file = os.path.join(tempdir, "downloaded")
             extract_dir = os.path.join(tempdir, "extracted")
-            with open(download_file, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=1024):
-                    f.write(chunk)
+            urllib.request.urlretrieve(self.url, filename=download_file)
             logger.debug("Extracting genetic map")
             os.makedirs(extract_dir)
             with tarfile.open(download_file, 'r') as tf:

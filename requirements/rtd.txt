@@ -1,4 +1,3 @@
 # Requirements needed when building on readthedocs.
 setuptools_scm
 appdirs
-requests
