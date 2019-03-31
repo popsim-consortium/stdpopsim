@@ -8,12 +8,6 @@ import numpy as np
 import msprime
 
 from stdpopsim import models
-from stdpopsim import homo_sapiens
-from stdpopsim import drosophila_melanogaster
-from stdpopsim import pongo
-from stdpopsim import e_coli
-# FIXME getting 'cannot import name 'arabadopsis_thaliana' errors here
-# from stdpopsim import arabadopsis_thaliana
 
 
 class TestPopulationConfigsEqual(unittest.TestCase):
@@ -200,21 +194,24 @@ class TestDemographicEventsEqual(unittest.TestCase):
             self.assertTrue(models.demographic_events_equal([b], [b], 1))
 
 
+class TestAllModels(unittest.TestCase):
+    """
+    Tests that we can get all known simulation models.
+    """
+    def test_non_empty(self):
+        self.assertGreater(len(models.all_models()), 0)
+
+    def test_all_instances(self):
+        for model in models.all_models():
+            self.assertIsInstance(model, models.Model)
+
+
 class TestModelsEqual(unittest.TestCase):
     """
     Tests Model object equality comparison.
     """
     def test_known_models(self):
-        # TODO this should be available via a function at the top level,
-        # in __init__.py
-        known_models = [
-            homo_sapiens.GutenkunstThreePopOutOfAfrica(),
-            homo_sapiens.TennessenEuropean(),
-            drosophila_melanogaster.SheehanSongThreeEpoch(),
-            drosophila_melanogaster.LiStephanTwoPopulation(),
-            # arabadopsis_thaliana.Durvasula2017MSMC(),
-            pongo.LockeEtAlPongoIM(),
-            e_coli.LapierreConstant()]
+        known_models = models.all_models()
         n = len(known_models)
         for j in range(n):
             for k in range(n):

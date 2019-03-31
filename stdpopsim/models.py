@@ -122,3 +122,10 @@ class Model(object):
             # Anything that's not duck-typeable to a Model is considered not equal
             pass
         return ret
+
+
+def all_models():
+    """
+    Returns the list of all Model classes that have been defined.
+    """
+    return [cls() for cls in Model.__subclasses__()]
