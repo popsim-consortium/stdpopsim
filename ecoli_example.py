@@ -17,7 +17,7 @@ samples=[msprime.Sample(population=0, time=0)]*100
 
 ts = msprime.simulate(
     samples=samples,
-    mutation_rate=chrom.mean_mutation_rate,
+    mutation_rate=chrom.default_mutation_rate,
     **model.asdict())
 print("simulated:", ts.num_trees, ts.num_sites)
-print("mean mut rate", chrom.mean_mutation_rate)
+print("mean mut rate", chrom.default_mutation_rate)

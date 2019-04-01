@@ -25,10 +25,14 @@ might have:
     chrom = homo_sapiens.genome.chromosomes["chr22"]
     ts = msprime.simulate(
         sample_size=10,
-        recombination_rate=chrom.mean_recombination_rate,
-        mutation_rate=chrom.mean_mutation_rate,
+        recombination_rate=chrom.default_recombination_rate,
+        mutation_rate=chrom.default_mutation_rate,
         length=chrom.length)
 
+(This should be a very quick simulation, and the result will have very few
+variants, because although it performs a coalescent simulation of
+a 51,304,566bp chromosome, it does this with the effective population size of
+`Ne=1`.)
 
 The chromosome definitions also aware of recombination maps, so we can run
 more complex simulations like:
@@ -38,7 +42,7 @@ more complex simulations like:
     chrom = homo_sapiens.genome.chromosomes["chr22"]
     ts = msprime.simulate(
         sample_size=10,
-        mutation_rate=chrom.mean_mutation_rate,
+        mutation_rate=chrom.default_mutation_rate,
         recombination_map=chrom.recombination_map())
 
 Recombination maps will be downloaded on demand and cached in a
@@ -51,7 +55,7 @@ API will use the default. We can also ask for specific maps, if we want:
     chrom = homo_sapiens.genome.chromosomes["chr22"]
     ts = msprime.simulate(
         sample_size=10,
-        mutation_rate=chrom.mean_mutation_rate,
+        mutation_rate=chrom.default_mutation_rate,
         recombination_map=chrom.recombination_map("HapmapII_GRCh37"))
 
 
@@ -69,9 +73,11 @@ Demographic models can also be used. For example
     ts = msprime.simulate(
         samples=samples,
         recombination_map=chrom.recombination_map(),
-        mutation_rate=chrom.mean_mutation_rate,
+        mutation_rate=chrom.default_mutation_rate,
         **model.asdict())
 
+(This simulation now has a realistic effective population size,
+so will produce thousands of variant sties, but still runs very fast.)
 
 *****************
 General utilities
