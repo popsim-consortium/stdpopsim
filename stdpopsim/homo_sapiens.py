@@ -19,6 +19,9 @@ import stdpopsim.genetic_maps as genetic_maps
 
 class HapmapII_GRCh37(genetic_maps.GeneticMap):
     """
+    Usage: `hapmap = homo_sapiens.HapmapII_GRCh37()` (note the
+    parentheses).
+
     The Phase II HapMap Genetic map (lifted over to GRCh37) used in
     1000 Genomes. Please see the `README
     <ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/20110106_recombination_hotspots/README_hapmapII_GRCh37_map>`_

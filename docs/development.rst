@@ -16,7 +16,7 @@ Overview
 The ``stdpopsim`` library requires Python 3.4 or later. For ``pip`` users,
 install the packages required for development using::
 
-    $ python3 -m pip install requirements/development.txt
+    $ python3 -m pip install -r requirements/development.txt
 
 We do require ``msprime``, so please see the the `installation notes
 <https://msprime.readthedocs.io/en/stable/installation.html>`_ if you

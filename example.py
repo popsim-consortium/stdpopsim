@@ -26,6 +26,6 @@ samples = [
 ts = msprime.simulate(
     samples=samples,
     recombination_map=chrom.recombination_map(),
-    mutation_rate=chrom.mean_mutation_rate,
+    mutation_rate=chrom.default_mutation_rate,
     **model.asdict())
 print("simulated:", ts.num_trees, ts.num_sites)
