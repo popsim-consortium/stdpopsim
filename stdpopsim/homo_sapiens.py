@@ -171,44 +171,77 @@ class GutenkunstThreePopOutOfAfrica(models.Model):
         ]
 
 
-class TennessenEuropean(models.Model):
+class TennessenTwoPopOutOfAfrica(models.Model):
     """
     The model is derived from the Tennesen et al.
     `analysis <https://doi.org/10.1126/science.1219240>`_  of the jSFS from
     European Americans and African Americans.
+
+    Model parameters are taken from Fig. S5 in
+    `Fu et al. (2013) <https://doi.org/10.1038/nature11690>`_.
 
     .. todo:: document this model, including the original publications
         and clear information about what the different population indexes
         mean.
 
     """
+
     def __init__(self):
         super().__init__()
-        # Population sizes
+
+        generation_time = 25
+        T_AF = 148e3 / generation_time
+        T_OOA = 51e3 / generation_time
+        T_EU0 = 23e3 / generation_time
+        T_EG = 5115 / generation_time
+
+        # Growth rates
+        r_EU0 = 0.00307
+        r_EU = 0.0195
+        r_AF = 0.0166
+
+        # population sizes
         N_A = 7310
         N_AF = 14474
         N_B = 1861
-        N_EU1 = 9475
-        # Times
-        generation_time = 25
-        T_AF = 148000 / generation_time
-        T_B = 51000 / generation_time
-        T_EU0 = 23000 / generation_time
-        T_EU1 = 5115 / generation_time
-        # Rates and Present Ne
-        r_EU0 = 0.00307
-        r_EU1 = 0.0195
-        N_EU = N_EU1 / math.exp(-r_EU1 * T_EU1)
+        N_EU0 = 1032
+        N_EU1 = N_EU0 / math.exp(-r_EU0 * (T_EU0-T_EG))
+
+        # migration rates
+        m_AF_B = 15e-5
+        m_AF_EU = 2.5e-5
+
+        # present Ne
+        N_EU = N_EU1 / math.exp(-r_EU * T_EG)
+        N_AF = N_AF / math.exp(-r_AF * T_EG)
+
         self.population_configurations = [
-            msprime.PopulationConfiguration(initial_size=N_EU, growth_rate=r_EU1)
+            msprime.PopulationConfiguration(initial_size=N_AF, growth_rate=r_AF),
+            msprime.PopulationConfiguration(initial_size=N_EU, growth_rate=r_EU)
         ]
+
+        self.migration_matrix = [
+            [0, 0],
+            [0, 0],
+        ]
+
         self.demographic_events = [
+            msprime.MigrationRateChange(
+                time=T_EG, rate=m_AF_EU, matrix_index=(0, 1)),
+            msprime.MigrationRateChange(
+                time=T_EG, rate=m_AF_EU, matrix_index=(1, 0)),
             msprime.PopulationParametersChange(
-                time=T_EU1, initial_size=N_EU1, growth_rate=r_EU0, population_id=0),
+                time=T_EG, growth_rate=r_EU0, initial_size=N_EU1, population_id=1),
             msprime.PopulationParametersChange(
-                time=T_EU0, initial_size=N_B, growth_rate=0, population_id=0),
+                time=T_EG, growth_rate=0, initial_size=N_AF, population_id=0),
+            msprime.MigrationRateChange(
+                time=T_EU0, rate=m_AF_B, matrix_index=(0, 1)),
+            msprime.MigrationRateChange(
+                time=T_EU0, rate=m_AF_B, matrix_index=(1, 0)),
             msprime.PopulationParametersChange(
-                time=T_B, initial_size=N_AF, growth_rate=0, population_id=0),
+                time=T_EU0, initial_size=N_B, growth_rate=0, population_id=1),
+            msprime.MassMigration(
+                time=T_OOA, source=1, destination=0, proportion=1.0),
             msprime.PopulationParametersChange(
-                time=T_AF, initial_size=N_A, growth_rate=0, population_id=0)
+                time=T_AF, initial_size=N_A, population_id=0)
         ]
