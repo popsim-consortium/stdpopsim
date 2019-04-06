@@ -177,3 +177,23 @@ class TestTennessenEuropean(unittest.TestCase):
         model.debug(output)
         s = output.getvalue()
         self.assertGreater(len(s), 0)
+
+
+class TestBrowningAmerica(unittest.TestCase):
+    """
+    Basic tests for the BrowningAmerica model.
+    """
+
+    def test_simulation_runs(self):
+        model = homo_sapiens.BrowningAmerica()
+        ts = msprime.simulate(
+            samples=[msprime.Sample(pop, 0) for pop in range(4)],
+            **model.asdict())
+        self.assertEqual(ts.num_populations, 4)
+
+    def test_debug_runs(self):
+        model = homo_sapiens.BrowningAmerica()
+        output = io.StringIO()
+        model.debug(output)
+        s = output.getvalue()
+        self.assertGreater(len(s), 0)
