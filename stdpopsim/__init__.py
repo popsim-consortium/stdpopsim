@@ -7,6 +7,9 @@ try:
 except ImportError:
     pass
 
+# Cache handling for downloaded data.
+from . cache import *  # NOQA
+
 # Internal modules. Import here to flatten the namespace.
 from . genetic_maps import *  # NOQA
 from . models import *  # NOQA
