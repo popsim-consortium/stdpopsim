@@ -202,7 +202,7 @@ class TennessenTwoPopOutOfAfrica(models.Model):
 
         # population sizes
         N_A = 7310
-        N_AF = 14474
+        N_AF1 = 14474
         N_B = 1861
         N_EU0 = 1032
         N_EU1 = N_EU0 / math.exp(-r_EU0 * (T_EU0-T_EG))
@@ -213,7 +213,7 @@ class TennessenTwoPopOutOfAfrica(models.Model):
 
         # present Ne
         N_EU = N_EU1 / math.exp(-r_EU * T_EG)
-        N_AF = N_AF / math.exp(-r_AF * T_EG)
+        N_AF = N_AF1 / math.exp(-r_AF * T_EG)
 
         self.population_configurations = [
             msprime.PopulationConfiguration(initial_size=N_AF, growth_rate=r_AF),
@@ -233,7 +233,7 @@ class TennessenTwoPopOutOfAfrica(models.Model):
             msprime.PopulationParametersChange(
                 time=T_EG, growth_rate=r_EU0, initial_size=N_EU1, population_id=1),
             msprime.PopulationParametersChange(
-                time=T_EG, growth_rate=0, initial_size=N_AF, population_id=0),
+                time=T_EG, growth_rate=0, initial_size=N_AF1, population_id=0),
             msprime.MigrationRateChange(
                 time=T_EU0, rate=m_AF_B, matrix_index=(0, 1)),
             msprime.MigrationRateChange(
