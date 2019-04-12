@@ -245,3 +245,90 @@ class TennessenTwoPopOutOfAfrica(models.Model):
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0)
         ]
+
+
+class BrowningAmerica(models.Model):
+    """
+    Demographic model for American admixture, taken from
+    `Browning et al. <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.
+    This model extends the Gravel et al. (2011) model to simulate an admixed
+    population with admixture occurring 12 generations ago. The admixed population
+    had an initial size of 30,000 and grew at a rate of 5% per generation,
+    with 1/6 of the population of African ancestry, 1/3 European, and 1/2 Asian.
+    This code was ported over from
+    `Supplementary File 1 <https://doi.org/10.1371/journal.pgen.1007385.s005>`_
+    """
+    def __init__(self):
+        super().__init__()
+        N0 = 7310  # initial population size
+        Thum = 5920  # time (gens) of advent of modern humans
+        Naf = 14474  # size of african population
+        Tooa = 2040  # number of generations back to Out of Africa
+        Nb = 1861  # size of out of Africa population
+        mafb = 1.5e-4  # migration rate Africa and Out-of-Africa
+        Teu = 920  # number generations back to Asia-Europe split
+        Neu = 1032  # bottleneck population sizes
+        Nas = 554
+        mafeu = 2.5e-5  # mig. rates
+        mafas = 7.8e-6
+        meuas = 3.11e-5
+        reu = 0.0038  # growth rate per generation in Europe
+        ras = 0.0048  # growth rate per generation in Asia
+        Tadmix = 12  # time of admixture
+        Nadmix = 30000  # initial size of admixed population
+        radmix = .05  # growth rate of admixed population
+        # pop0 is Africa, pop1 is Europe, pop2 is Asia,  pop3 is admixed
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=Naf, growth_rate=0.0),
+            msprime.PopulationConfiguration(
+                initial_size=Neu*math.exp(reu*Teu), growth_rate=reu),
+            msprime.PopulationConfiguration(
+                initial_size=Nas*math.exp(ras*Teu), growth_rate=ras),
+            msprime.PopulationConfiguration(
+                initial_size=Nadmix*math.exp(radmix*Tadmix), growth_rate=radmix)
+        ]
+
+        self.migration_matrix = [
+            [0, mafeu, mafas, 0],
+            [mafeu, 0, meuas, 0],
+            [mafas, meuas, 0, 0],
+            [0, 0, 0, 0]
+        ]
+        # Admixture event, 1/6 Africa, 2/6 Europe, 3/6 Asia
+        admixture_event = [
+            msprime.MassMigration(
+                time=Tadmix, source=3, destination=0, proportion=1.0/6.0),
+            msprime.MassMigration(
+                time=Tadmix+0.0001, source=3, destination=1, proportion=2.0/5.0),
+            msprime.MassMigration(
+                time=Tadmix+0.0002, source=3, destination=2, proportion=1.0)
+        ]
+        # Asia and Europe split
+        eu_event = [
+            msprime.MigrationRateChange(
+                time=Teu, rate=0.0),
+            msprime.MassMigration(
+                time=Teu+0.0001, source=2, destination=1, proportion=1.0),
+            msprime.PopulationParametersChange(
+                time=Teu+0.0002, initial_size=Nb, growth_rate=0.0, population_id=1),
+            msprime.MigrationRateChange(
+                time=Teu+0.0003, rate=mafb, matrix_index=(0, 1)),
+            msprime.MigrationRateChange(
+                time=Teu+0.0003, rate=mafb, matrix_index=(1, 0))
+        ]
+        # Out of Africa event
+        ooa_event = [
+            msprime.MigrationRateChange(
+                time=Tooa, rate=0.0),
+            msprime.MassMigration(
+                time=Tooa+0.0001, source=1, destination=0, proportion=1.0)
+        ]
+        # initial population size
+        init_event = [
+            msprime.PopulationParametersChange(
+                time=Thum,
+                initial_size=N0,
+                population_id=0)
+        ]
+        self.demographic_events = admixture_event + eu_event + ooa_event + init_event

@@ -44,6 +44,8 @@ class TestPopulationConfigsEqual(unittest.TestCase):
         self.assertFalse(models.population_configurations_equal([pc, pc], [pc]))
         self.assertFalse(models.population_configurations_equal([pc], [pc, pc]))
         self.assertTrue(models.population_configurations_equal([pc], [pc]))
+        with self.assertRaises(models.UnequalModelsError):
+            models.verify_population_configurations_equal([pc], [pc, pc])
 
     def test_initial_sizes(self):
         test_sizes = [
@@ -62,6 +64,8 @@ class TestPopulationConfigsEqual(unittest.TestCase):
             self.assertFalse(models.population_configurations_equal(pc_list2, pc_list1))
             self.assertTrue(models.population_configurations_equal(pc_list1, pc_list1))
             self.assertTrue(models.population_configurations_equal(pc_list2, pc_list2))
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_population_configurations_equal(pc_list2, pc_list1)
 
     def test_growth_rates(self):
         test_rates = [
@@ -81,6 +85,8 @@ class TestPopulationConfigsEqual(unittest.TestCase):
             self.assertFalse(models.population_configurations_equal(pc_list2, pc_list1))
             self.assertTrue(models.population_configurations_equal(pc_list1, pc_list1))
             self.assertTrue(models.population_configurations_equal(pc_list2, pc_list2))
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_population_configurations_equal(pc_list2, pc_list1)
 
 
 class TestDemographicEventsEqual(unittest.TestCase):
@@ -96,6 +102,8 @@ class TestDemographicEventsEqual(unittest.TestCase):
         self.assertFalse(models.demographic_events_equal([], events[:1], 1))
         self.assertFalse(models.demographic_events_equal(events, [], 1))
         self.assertFalse(models.demographic_events_equal([], events, 1))
+        with self.assertRaises(models.UnequalModelsError):
+            models.verify_demographic_events_equal([], events, 1)
 
     def test_different_times(self):
         n = 10
@@ -108,6 +116,10 @@ class TestDemographicEventsEqual(unittest.TestCase):
         for j in range(1, n):
             self.assertFalse(models.demographic_events_equal(e1[:j], e2[:j], 1))
             self.assertFalse(models.demographic_events_equal(e2[:j], e1[:j], 1))
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_demographic_events_equal(e1[:j], e2[:j], 1)
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_demographic_events_equal(e2[:j], e1[:j], 1)
 
     def test_different_types(self):
         events = [
@@ -120,6 +132,10 @@ class TestDemographicEventsEqual(unittest.TestCase):
             self.assertFalse(models.demographic_events_equal([b], [a], 1))
             self.assertTrue(models.demographic_events_equal([a], [a], 1))
             self.assertTrue(models.demographic_events_equal([b], [b], 1))
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_demographic_events_equal([b], [a], 1)
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_demographic_events_equal([a], [b], 1)
 
     def test_population_parameters_change(self):
 
@@ -139,6 +155,10 @@ class TestDemographicEventsEqual(unittest.TestCase):
             self.assertFalse(models.demographic_events_equal([b], [a], 1))
             self.assertTrue(models.demographic_events_equal([a], [a], 1))
             self.assertTrue(models.demographic_events_equal([b], [b], 1))
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_demographic_events_equal([b], [a], 1)
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_demographic_events_equal([a], [b], 1)
 
     def test_migration_rate_change(self):
 
@@ -157,6 +177,10 @@ class TestDemographicEventsEqual(unittest.TestCase):
             self.assertFalse(models.demographic_events_equal([b], [a], 1))
             self.assertTrue(models.demographic_events_equal([a], [a], 1))
             self.assertTrue(models.demographic_events_equal([b], [b], 1))
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_demographic_events_equal([b], [a], 1)
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_demographic_events_equal([a], [b], 1)
 
     def test_mass_migration(self):
 
@@ -175,6 +199,10 @@ class TestDemographicEventsEqual(unittest.TestCase):
             self.assertFalse(models.demographic_events_equal([b], [a], 1))
             self.assertTrue(models.demographic_events_equal([a], [a], 1))
             self.assertTrue(models.demographic_events_equal([b], [b], 1))
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_demographic_events_equal([b], [a], 1)
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_demographic_events_equal([a], [b], 1)
 
     def test_simple_bottleneck(self):
 
@@ -192,6 +220,10 @@ class TestDemographicEventsEqual(unittest.TestCase):
             self.assertFalse(models.demographic_events_equal([b], [a], 1))
             self.assertTrue(models.demographic_events_equal([a], [a], 1))
             self.assertTrue(models.demographic_events_equal([b], [b], 1))
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_demographic_events_equal([b], [a], 1)
+            with self.assertRaises(models.UnequalModelsError):
+                models.verify_demographic_events_equal([a], [b], 1)
 
 
 class TestAllModels(unittest.TestCase):
