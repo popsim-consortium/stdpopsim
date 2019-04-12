@@ -10,6 +10,7 @@ import numpy as np
 from stdpopsim import homo_sapiens
 from stdpopsim import genetic_maps
 
+from qc import homo_sapiens_qc
 
 class TestGenome(unittest.TestCase):
     """
@@ -178,6 +179,9 @@ class TestTennessenOutOfAfrica(unittest.TestCase):
         s = output.getvalue()
         self.assertGreater(len(s), 0)
 
+    def test_qc_model_equal(self):
+        model = homo_sapiens.TennessenTwoPopOutOfAfrica()
+        self.assertTrue(model.equals(homo_sapiens_qc.TennessenTwoPopOutOfAfrica()))
 
 class TestBrowningAmerica(unittest.TestCase):
     """
