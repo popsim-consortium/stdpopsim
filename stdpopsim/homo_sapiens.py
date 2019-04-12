@@ -221,8 +221,8 @@ class TennessenTwoPopOutOfAfrica(models.Model):
         ]
 
         self.migration_matrix = [
-            [0, 0],
-            [0, 0],
+            [0, m_AF_EU],
+            [m_AF_EU, 0],
         ]
 
         self.demographic_events = [
