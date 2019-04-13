@@ -2,6 +2,7 @@
 Common infrastructure for specifying demographic models.
 """
 import sys
+import inspect
 
 import msprime
 import numpy as np
@@ -172,6 +173,12 @@ class Model(object):
 
 def all_models():
     """
-    Returns the list of all Model classes that have been defined.
+    Returns the list of all Model classes that are defined within the stdpopsim
+    module.
     """
-    return [cls() for cls in Model.__subclasses__()]
+    ret = []
+    for cls in Model.__subclasses__():
+        mod = inspect.getmodule(cls).__name__
+        if mod.startswith("stdpopsim"):
+            ret.append(cls())
+    return ret
