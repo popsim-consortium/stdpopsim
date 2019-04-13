@@ -226,6 +226,12 @@ class TestDemographicEventsEqual(unittest.TestCase):
                 models.verify_demographic_events_equal([a], [b], 1)
 
 
+class DummyModel(models.Model):
+    """
+    Dummy subclass to make sure we're filtering models correctly.
+    """
+
+
 class TestAllModels(unittest.TestCase):
     """
     Tests that we can get all known simulation models.
@@ -237,12 +243,18 @@ class TestAllModels(unittest.TestCase):
         for model in models.all_models():
             self.assertIsInstance(model, models.Model)
 
+    def test_filtering_outside_classes(self):
+        for model in models.all_models():
+            self.assertNotIsInstance(model, DummyModel)
+
 
 class TestModelsEqual(unittest.TestCase):
     """
     Tests Model object equality comparison.
     """
     def test_known_models(self):
+        # This assumes that every model should be equal to itself and should be
+        # different to every other model.
         known_models = models.all_models()
         n = len(known_models)
         for j in range(n):
