@@ -64,25 +64,25 @@ class TennessenTwoPopOutOfAfrica(models.Model):
         # Now we add the demographic events working backwards in time. Starting with the growth
         # slowdown in Europeans and the transition to a fixed population size in Africans.
         self.demographic_events = [
-            # Reversion to fixed population size in Africans
-            msprime.PopulationParametersChange(
-                time=T_AG, initial_size=N_AF0, growth_rate=0, population_id=0),
-            # Growth slowdown in Europeans
-            msprime.PopulationParametersChange(
-                time=T_AG, initial_size=N_EU1, growth_rate=r_EU0, population_id=1),
             # Set the migration rate for 1st CEU growth period (for now stays same)
             msprime.MigrationRateChange(
                 time=T_AG, rate=m_AF1_EU1, matrix_index=(0, 1)),
             msprime.MigrationRateChange(
                 time=T_AG, rate=m_AF1_EU1, matrix_index=(1, 0)),
-            # Reversion to fixed population size at the time of the CHB/CEU split
+            # Growth slowdown in Europeans
             msprime.PopulationParametersChange(
-                time=T_EU_AS, initial_size=N_B, growth_rate=0, population_id=1),
+                time=T_AG, initial_size=N_EU1, growth_rate=r_EU0, population_id=1),
+            # Reversion to fixed population size in Africans
+            msprime.PopulationParametersChange(
+                time=T_AG, initial_size=N_AF0, growth_rate=0, population_id=0),    
             # Set the migration rate for pre CEU/CHB split
             msprime.MigrationRateChange(
                 time=T_EU_AS, rate=m_AF0_B, matrix_index=(0, 1)),
             msprime.MigrationRateChange(
                 time=T_EU_AS, rate=m_AF0_B, matrix_index=(1, 0)),
+            # Reversion to fixed population size at the time of the CHB/CEU split
+            msprime.PopulationParametersChange(
+                time=T_EU_AS, initial_size=N_B, growth_rate=0, population_id=1),
             # Coalescence between the OOA and YRI pops
             msprime.MassMigration(
                 time=T_B, source=1, destination=0, proportion=1.0),
