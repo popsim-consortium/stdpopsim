@@ -6,7 +6,7 @@ import inspect
 
 import msprime
 import numpy as np
-
+import scipy.linalg
 
 # Defaults taken from np.allclose
 DEFAULT_ATOL = 1e-05
@@ -136,6 +136,155 @@ class Model(object):
             "population_configurations": self.population_configurations,
             "migration_matrix": self.migration_matrix,
             "demographic_events": self.demographic_events}
+
+# ###############################################################
+# UNDER CONSTRUCTION - GROUND TRUTH N_t
+# ###############################################################
+
+    def population_size_trajectory(self, end, num_steps=10):
+        """
+        This function computes the defined effective population size
+        for each sub-population, for any demographic model.
+
+        `end` specifies at which generation to stop
+        collecting effective population sizes among subpopulations.
+        The sampling will always begin at generation 0
+
+        `num_steps` parameter will determine how many points from
+        0 to `end` to sample.
+
+        Returns a tuple where the first value
+        is the steps (in generations) and the second is a
+        num_steps-by-num_pops ndarray that will contain the effective
+        population sizes for each subpopulation individually, for each step,
+        as defined by the model which inherits from this class.
+        """
+
+        num_pops = self.num_pops()
+        N_t = np.zeros([num_steps, num_pops])
+        steps = np.linspace(0, end, num_steps)
+        for j, t in enumerate(steps):
+            N = self.pop_size_and_migration_at_t(t)["population_sizes"]
+            N_t[j] = N
+        return steps, N_t
+
+    def coalescence_rate_trajectory(self, end, num_samples, num_steps=10, min_pop_size=1):
+        """
+        This function will calculate the ground truth
+        coalescent rate trajectory, r (Ne = 1 / 2r), for a population with
+        multiple sub-populations. This takes a
+        demographic model and returns a
+        function of time that gives haploid coalescence rate.
+
+        `num_samples` should be a list of the same length as the number
+        of populations, so that num_samples[j] is the number of
+        samples in subpopulation j.
+
+        `num_steps` parameter will determine how many points along the
+        time axis are returned.
+
+        `min_pop_size` is the smallest a population size can be represented as during 
+        the computation of coalescent rates. In models where populations 
+        grow exponentially, very small effective population sizes skew the
+        calculation when we want to compute coalescent rates within a population (1/2Ne)
+
+        Returns a tuple where the first value
+        is the steps (in generations) and the second
+        is an array whose jth element is the coalescence rate at time
+        steps[j], i.e., the probability per unit time that a randomly
+        chosen pair of lineages from the original samples coalesces
+        around that time, conditioned on the pair not having yet coalesced.
+        The third is the probablility that the pair of lineages 
+        has not yet coalesced.
+        """
+        
+        num_pops = self.num_pops()
+        assert(len(num_samples) == num_pops)
+        P = np.zeros([num_pops**2, num_pops**2])
+        IA = np.array(range(num_pops**2)).reshape([num_pops, num_pops])
+        Identity = np.eye(num_pops)
+        for x in range(num_pops):
+            for y in range(num_pops):
+                K_x = num_samples[x]
+                K_y = num_samples[y]
+                P[IA[x, y], IA[x, y]] = K_x * (K_y - (x == y))
+        P = P / np.sum(P)
+        r = np.zeros(num_steps)
+        p_t = np.zeros(num_steps)
+        steps = np.linspace(0, end, num_steps)
+        dt = steps[1] - steps[0]
+        mass_migration_objects = []
+        mass_migration_steps = []
+        for demo in self.demographic_events:
+            if type(demo) == msprime.simulations.MassMigration:
+                mass_migration_objects.append(demo)
+                mass_migration_steps.append(int(demo.time/dt))
+        for j in range(num_steps):
+            N_M = self.pop_size_and_migration_at_t(steps[j])
+            N = N_M["population_sizes"]
+            M = N_M["migration_matrix"]
+            C = np.zeros([num_pops**2, num_pops**2])
+            for idx in range(num_pops):
+                C[IA[idx, idx], IA[idx, idx]] = 1 / (2 * max(min_pop_size,N[idx]))
+            for idx, row in enumerate(M):
+                M[idx][idx] = -1 * sum(row)
+            G = (np.kron(M, Identity) + np.kron(Identity, M)) - C
+            if j in mass_migration_steps:
+                idx = mass_migration_steps.index(j)
+                ds = mass_migration_objects[idx].time - (j * dt)
+                a = mass_migration_objects[idx].source
+                b = mass_migration_objects[idx].dest
+                p = mass_migration_objects[idx].proportion
+                S = np.eye(num_pops**2, num_pops**2)
+                for x in range(num_pops):
+                    if x == a:
+                        S[IA[a, a], IA[a, b]] = S[IA[a, a], IA[b, a]] = p * (1 - p)
+                        S[IA[a, a], IA[b, b]] = p ** 2
+                        S[IA[a, a], IA[a, a]] = (1 - p) ** 2
+                    else:
+                        S[IA[x, a], IA[x, b]] = S[IA[a, x], IA[b, x]] = p
+                        S[IA[x, a], IA[x, a]] = S[IA[a, x], IA[a, x]] = 1 - p
+                P = np.matmul(P, scipy.linalg.expm(ds * G))
+                P = np.matmul(P, S)
+                P = np.matmul(P, scipy.linalg.expm((dt - ds) * G))
+            else: 
+                P = np.matmul(P, scipy.linalg.expm(dt * G))
+            p_t[j] = np.sum(P)
+            r[j] = np.sum(np.matmul(P, C)) / np.sum(P)
+        return steps, r, p_t
+
+    def num_pops(self):
+        """
+        This function returns the number populations
+        defined by the demographic model
+        """
+        ddb = msprime.DemographyDebugger(**self.asdict())
+        return len(ddb.epochs[0].populations)
+
+    def pop_size_and_migration_at_t(self, t):
+        """
+        Given a time, t (in generations), find and return
+        a dictionary containing:
+        1: "population_sizes" the vector N which should represent effective
+        population size for each populations at time t and,
+        2: "migration_matrix" The migration matrix for for the populations at time t
+        """
+
+        ddb = msprime.DemographyDebugger(**self.asdict())
+        epochs = ddb.epochs
+        j = 0
+        while epochs[j].end_time <= t:
+            j += 1
+        N = ddb.population_size_history[:, j]
+        for i, pop in enumerate(epochs[j].populations):
+            s = t - epochs[j].start_time
+            g = pop.growth_rate
+            N[i] *= np.exp(-1 * g * s)
+        return {"population_sizes": N, "migration_matrix": epochs[j].migration_matrix}
+
+# ###############################################################
+# END CONSTRUCTION - GROUND TRUTH N_t
+# ###############################################################
 
     def equals(self, other, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
         """
