@@ -364,7 +364,49 @@ beware!
 Model review process
 ********************
 
-.. todo:: Document the review process for adding models.
+When Developer A creates a new demographic model on their local fork they must
+follow these steps for it to be officially supported by stdpopsim:
+
+    1. Developer A submits PR to add a new model. This must include basic unit
+       tests and full documentation (i.e., the documentation that will be
+       rendered on rtd). The code is checked for any obvious problems/style
+       issues etc by maintainer M and merged when it meets these basic
+       standards. The model is considered 'preliminary' and not linked from the
+       online documentation and not included in the CLI.
+
+    2. Developer A creates an issue tracking the QC for the model which includes
+       information about the primary sources used to create the model and the
+       population indices used for their msprime implementation. Developer B is
+       then assigned/volunteers to do a blind implementation of the model. 
+
+    3. M creates an issue for the CLI implementation of the model.
+
+    4. Developer B creates a blind implementation of the model as PR within the
+       unit testing module, and adds the automatic checking of this model for
+       equality with the production model to the suite of unit tests. All being
+       good, this PR is merged and the QC issue is closed.
+
+    5. Someone then makes a PR updating the CLI, checking that the
+       documentation, citations etc all work properly, and adds the model to
+       the list of documented models.
+
+------------------------
+Arbitration
+------------------------
+
+When developers A and B disagree on the model implementation, the process is to:
+
+    1. Try to hash out the details between them on the original issue thread
+
+    2. If this fails, contact the authors of the original publication to resolve
+       ambiguities.
+
+    3. If changes have to be made to the production model Developer A submits a
+       PR with the hotfix for the production model. Developer B then rebases
+       the branch containing their PR against master to check for model
+       equality. Repeat steps 1-3 until this is achieved. If changes have to be
+       made to the QC model they are committed to the branch where the QC PR
+       originates from.
 
 ****************
 Coding standards
