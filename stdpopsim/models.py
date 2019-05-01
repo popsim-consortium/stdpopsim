@@ -168,7 +168,8 @@ class Model(object):
             N_t[j] = N
         return steps, N_t
 
-    def coalescence_rate_trajectory(self, end, num_samples, num_steps=10, min_pop_size=1):
+    def coalescence_rate_trajectory(self, end, num_samples,
+                                    num_steps=10, min_pop_size=1):
         """
         This function will calculate the ground truth
         coalescent rate trajectory, r (Ne = 1 / 2r), for a population with
@@ -183,10 +184,10 @@ class Model(object):
         `num_steps` parameter will determine how many points along the
         time axis are returned.
 
-        `min_pop_size` is the smallest a population size can be represented as during 
-        the computation of coalescent rates. In models where populations 
+        `min_pop_size` is the smallest a population size can be represented as during
+        the computation of coalescent rates. In models where populations
         grow exponentially, very small effective population sizes skew the
-        calculation when we want to compute coalescent rates within a population (1/2Ne)
+        calculation when we want to compute coalescent rates within a population (1/2Ne).
 
         Returns a tuple where the first value
         is the steps (in generations) and the second
@@ -194,10 +195,10 @@ class Model(object):
         steps[j], i.e., the probability per unit time that a randomly
         chosen pair of lineages from the original samples coalesces
         around that time, conditioned on the pair not having yet coalesced.
-        The third is the probablility that the pair of lineages 
+        The third is the probablility that the pair of lineages
         has not yet coalesced.
         """
-        
+
         num_pops = self.num_pops()
         assert(len(num_samples) == num_pops)
         P = np.zeros([num_pops**2, num_pops**2])
@@ -225,7 +226,7 @@ class Model(object):
             M = N_M["migration_matrix"]
             C = np.zeros([num_pops**2, num_pops**2])
             for idx in range(num_pops):
-                C[IA[idx, idx], IA[idx, idx]] = 1 / (2 * max(min_pop_size,N[idx]))
+                C[IA[idx, idx], IA[idx, idx]] = 1 / (2 * max(min_pop_size, N[idx]))
             for idx, row in enumerate(M):
                 M[idx][idx] = -1 * sum(row)
             G = (np.kron(M, Identity) + np.kron(Identity, M)) - C
@@ -247,7 +248,7 @@ class Model(object):
                 P = np.matmul(P, scipy.linalg.expm(ds * G))
                 P = np.matmul(P, S)
                 P = np.matmul(P, scipy.linalg.expm((dt - ds) * G))
-            else: 
+            else:
                 P = np.matmul(P, scipy.linalg.expm(dt * G))
             p_t[j] = np.sum(P)
             r[j] = np.sum(np.matmul(P, C)) / np.sum(P)
