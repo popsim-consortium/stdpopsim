@@ -90,3 +90,97 @@ class TennessenTwoPopOutOfAfrica(models.Model):
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0)
         ]
+
+
+class BrowningAmerica(models.Model):
+    def __init__(self):
+        super().__init__()
+        # Parameters are taken from the Methods - Simulated data section
+        # Population sizes
+        N_AF0 = 7310 # Initial african population size
+        N_AF1 = 14474 # Second african pop. size
+        N_OOA = 1861 # OOA population size
+        N_CEU0 = 1032 # European population size at CEU/CHB split
+        N_CHB0 = 554 # Asian population size at CEU/CHB split
+        N_ADMIX0 = 30000 # Initial size of admixed population
+
+        # Epoch times
+        T_AF0_AF1 = 5920 # initial increase in african pop. size
+        T_AF1_OOA = 2040 # Time of OOA event
+        T_CEU_CHB = 920 # Time of european/asian split
+        T_ADMIX0 = 12
+
+        # Migration rates
+        m_AF1_OOA = 1.5e-4 # Bidirectional migration rate between african and OOA pops.
+        m_AF1_CEU0 = 2.5e-5 # Migration rates between AF1 and CEU0
+        m_AF1_CHB0 = 7.8e-6 # Migration rates between AF1 and CHB0
+        m_CEU0_CHB0 = 3.11e-5 # Migration rates between CEU0 and CHB0
+
+        # Mass migration to create admixed populations
+        mm_AF1 = 1/6
+        mm_CEU0 = 2/5 # Adjusted fraction for remaining population after AF migration (5/6 * 2/5 = 1/3)
+        mm_CHB0 = 1.0 # Adjusted fraction for remaining population (1/2 * 1 = 1/2)
+
+        # Growth rates
+        r_CEU0 =3.8e-3
+        r_CHB0 = 4.8e-3
+        r_ADMIX0 = 0.05
+
+        # Calculate population sizes at modern (T=0) time
+        N_CEU1 = N_CEU0 * math.exp(r_CEU0 * T_CEU_CHB)
+        N_CHB1 = N_CHB0 * math.exp(r_CHB0 * T_CEU_CHB)
+        N_ADMIX1 = N_ADMIX0 * math.exp(r_ADMIX0 * T_ADMIX0)
+
+        # Set population sizes at T=0
+        # pop0 is Africa, pop1 is Europe, pop2 is Asia, pop3 is admixed
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N_AF1, growth_rate=0),
+            msprime.PopulationConfiguration(
+                initial_size=N_CEU1, growth_rate=r_CEU0),
+            msprime.PopulationConfiguration(
+                initial_size=N_CHB1, growth_rate=r_CHB0),
+            msprime.PopulationConfiguration(
+                initial_size=N_ADMIX1, growth_rate=r_ADMIX0)
+        ]
+
+        # Migration matrix, all migrations to admixed population are 0
+        self.migration_matrix = [
+            [0, m_AF1_CEU0, m_AF1_CHB0, 0],
+            [m_AF1_CEU0, 0, m_CEU0_CHB0, 0],
+            [m_AF1_CHB0, m_CEU0_CHB0, 0, 0],
+            [0, 0, 0, 0]
+        ]
+
+        # Now we add the demographic events working backwards in time. 
+        self.demographic_events = [
+            # Admixed population recoalesces with origin populations (T_ADMIX0)
+            msprime.MassMigration(
+                time=T_ADMIX0, source=3, destination=0, proportion=mm_AF1),
+            msprime.MassMigration(
+                time=T_ADMIX0 + 0.0001, source=3, destination=1, proportion=mm_CEU0),
+            msprime.MassMigration(
+                time=T_ADMIX0 + 0.0002, source=3, destination=2, proportion=mm_CHB0),
+            # Zero out migration rate (desn't matter but added for equality to prod.)
+            msprime.MigrationRateChange(
+                time=T_CEU_CHB, rate=0.0),
+            # CEU and CHB coalesce and set population to OOA size (T_CEU_CHB)
+            msprime.MassMigration(
+                time=T_CEU_CHB+0.0001, source=2, destination=1, proportion= 1.0),
+            msprime.PopulationParametersChange(
+                time=T_CEU_CHB+0.0002, initial_size=N_OOA, growth_rate=0.0, population_id=1),
+            ## Set OOA <--> AF migration rate (T_CEU_CHB)
+            msprime.MigrationRateChange(
+                time=T_CEU_CHB+0.0003, rate=m_AF1_OOA, matrix_index=(0, 1)),
+            msprime.MigrationRateChange(
+                time=T_CEU_CHB+0.0003, rate=m_AF1_OOA, matrix_index=(1, 0)),
+            # Zero out migration rate (desn't matter but added for equality to prod.)
+            msprime.MigrationRateChange(
+                time=T_AF1_OOA, rate=0.0),
+            ## OOA and AF1 coalesce (T_OOA)
+            msprime.MassMigration(
+                time=T_AF1_OOA+0.0001, source=1, destination=0, proportion= 1.0),
+            ## AF1 -> AF0 population size change (T_AF0_AF1)
+            msprime.PopulationParametersChange(
+                time=T_AF0_AF1, initial_size=N_AF0, population_id=0),
+        ]
