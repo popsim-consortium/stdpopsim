@@ -203,3 +203,7 @@ class TestBrowningAmerica(unittest.TestCase):
         model.debug(output)
         s = output.getvalue()
         self.assertGreater(len(s), 0)
+
+    def test_qc_model_equal(self):
+        model = homo_sapiens.BrowningAmerica()
+        self.assertTrue(model.equals(homo_sapiens_qc.BrowningAmerica()))
