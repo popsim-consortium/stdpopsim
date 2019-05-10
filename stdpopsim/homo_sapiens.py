@@ -37,6 +37,25 @@ class HapmapII_GRCh37(genetic_maps.GeneticMap):
 genetic_maps.register_genetic_map(HapmapII_GRCh37())
 
 
+class Decode_2010_sex_averaged(genetic_maps.GeneticMap):
+    """
+    Usage: `decode = homo_sapiens.Decode_2010()` (note the
+    parentheses).
+
+    Decode fine scale genetic map from Kong, A et al. Fine scale
+    recombination rate differences
+    between sexes, populations and individuals. Nature (28 October 2010).
+    (http://www.nature.com/nature/journal/v467/n7319/full/nature09525.html)
+    Please see https://www.decode.com/addendum/ for more details.
+    """
+    url = (
+        "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
+        "decode_2010_sex-averaged_map.tar.gz")
+    file_pattern = "genetic_map_decode_2010_sex-averaged_{name}.txt"
+
+
+genetic_maps.register_genetic_map(Decode_2010_sex_averaged())
+
 ###########################################################
 #
 # Genome definition
