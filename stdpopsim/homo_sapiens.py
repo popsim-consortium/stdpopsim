@@ -115,6 +115,10 @@ genome = genomes.Genome(
     default_genetic_map=HapmapII_GRCh37.name)
 
 
+# generation time in year / gen.
+generation_time = 25.0
+
+
 ###########################################################
 #
 # Demographic models

@@ -68,6 +68,10 @@ genome = genomes.Genome(
     default_genetic_map=Salome2012.name)
 
 
+# generation time in years / gen
+generation_time = 1.0
+
+
 ###########################################################
 #
 # Demographic models

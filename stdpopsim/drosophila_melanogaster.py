@@ -66,6 +66,10 @@ genome = genomes.Genome(
     default_genetic_map=Comeron2012_dm6.name)
 
 
+# generation time in year / gen.
+generation_time = 0.0666
+
+
 ###########################################################
 #
 # Demographic models
