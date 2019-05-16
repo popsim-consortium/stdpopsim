@@ -381,12 +381,23 @@ follow these steps for it to be officially supported by stdpopsim:
 
     3. M creates an issue for the CLI implementation of the model.
 
-    4. Developer B creates a blind implementation of the model as PR within the
-       unit testing module, and adds the automatic checking of this model for
-       equality with the production model to the suite of unit tests. All being
-       good, this PR is merged and the QC issue is closed.
+    4. Developer B creates a blind implementation of the model in the
+       ``qc/species_name_qc.py`` file. Note that if you are adding a new species
+       you will have to add a new import to ``qc/__init__.py``.
+    
+    5. Developer B adds the automatic checking of this model for
+       equality with the production model to the suite of unit tests in for the
+       demograpic model in ``tests/test_species_name_.py`` following the
+       template below::
 
-    5. Someone then makes a PR updating the CLI, checking that the
+        def test_qc_model_equal(self):
+            model = homo_sapiens.BrowningAmerica()
+            self.assertTrue(model.equals(homo_sapiens_qc.BrowningAmerica()))
+
+       Developer B then creates a PR, and all being good, this PR is merged and
+       the QC issue is closed. 
+
+    6. Someone then makes a PR updating the CLI, checking that the
        documentation, citations etc all work properly, and adds the model to
        the list of documented models.
 
