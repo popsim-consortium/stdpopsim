@@ -84,6 +84,10 @@ class TestGenome(unittest.TestCase):
                 self.assertTrue(np.allclose(default_rr, numpy_rr))
 
     def test_default_recombination_rate(self):
+        """
+        Simply test that the mean recombination rate
+        lies between the max and min values
+        """
         genome = homo_sapiens.genome
         highest_rr = 0
         lowest_rr = 10000
@@ -92,8 +96,24 @@ class TestGenome(unittest.TestCase):
             lowest_rr = min(lowest_rr, rr)
             highest_rr = max(highest_rr, rr)
         mean_genome_rr = genome.mean_recombination_rate
-        self.assertGreater(mean_genome_rr, lowest_rr)
-        self.assertGreater(highest_rr, mean_genome_rr)
+        self.assertGreaterEqual(mean_genome_rr, lowest_rr)
+        self.assertGreaterEqual(highest_rr, mean_genome_rr)
+
+    def test_default_mutation_rate(self):
+        """
+        Simply test that the mean mutation rate
+        lies between the max and min values
+        """
+        genome = homo_sapiens.genome
+        highest_mr = 0
+        lowest_mr = 10000
+        for chrom in genome.chromosomes.values():
+            mr = chrom.default_mutation_rate
+            lowest_mr = min(lowest_mr, mr)
+            highest_mr = max(highest_mr, mr)
+        mean_genome_mr = genome.mean_mutation_rate
+        self.assertGreaterEqual(mean_genome_mr, lowest_mr)
+        self.assertGreaterEqual(highest_mr, mean_genome_mr)
 
     def test_warning_from_no_mapped_chromosome(self):
         """
