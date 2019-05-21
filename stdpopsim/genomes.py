@@ -47,6 +47,20 @@ class Genome(object):
             mean_recombination_rate += cont
         return mean_recombination_rate
 
+    @property
+    def mean_mutation_rate(self):
+        """
+        This method return the weighted mean mutation rate
+        across all chomosomes in the genome.
+        :rtype: float
+        """
+        mean_mutation_rate = 0
+        for chrom in self.chromosomes.values():
+            normalized_weight = chrom.length / self.length
+            cont = chrom.default_mutation_rate*normalized_weight
+            mean_mutation_rate += cont
+        return mean_mutation_rate
+
 
 class Chromosome(object):
     """
