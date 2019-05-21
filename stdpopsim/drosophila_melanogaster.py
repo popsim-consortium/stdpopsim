@@ -129,13 +129,13 @@ class LiStephanTwoPopulation(models.Model):
         # African Parameter values from "Demographic History of the African
         # Population" section
         N_A0 = 8.603e06
-        t_A0 = 6000  # generations
+        t_A0 = 600000  # assuming 10 generations / year
         N_A1 = N_A0 / 5.0
         # European Parameter values from "Demo History of Euro Population"
         N_E0 = 1.075e06
         N_E1 = 2200
-        t_AE = 1580  # generations
-        t_E1 = 1580 - 34
+        t_AE = 158000  # generations
+        t_E1 = t_AE - 3400
         self.population_configurations = [
             msprime.PopulationConfiguration(initial_size=N_A0),
             msprime.PopulationConfiguration(initial_size=N_E0)
