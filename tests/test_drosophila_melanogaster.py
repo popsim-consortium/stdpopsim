@@ -7,6 +7,7 @@ import io
 import msprime
 
 from stdpopsim import drosophila_melanogaster
+from qc import drosophlia_melanogaster_qc
 
 
 class TestGenome(unittest.TestCase):
@@ -77,3 +78,8 @@ class TestLiStephanTwoPopulation(unittest.TestCase):
         model.debug(output)
         s = output.getvalue()
         self.assertGreater(len(s), 0)
+
+    def test_qc_model_equal(self):
+        model = drosophila_melanogaster.LiStephanTwoPopulation()
+        model_qc = drosophlia_melanogaster_qc.LiStephanTwoPopulation()
+        self.assertTrue(model.equals(model_qc))
