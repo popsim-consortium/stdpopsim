@@ -7,6 +7,8 @@ import inspect
 import msprime
 import numpy as np
 
+import stdpopsim.citations as citations
+
 
 # Defaults taken from np.allclose
 DEFAULT_ATOL = 1e-05
@@ -110,17 +112,25 @@ def verify_demographic_events_equal(
                         key, value1, value2))
 
 
-class Model(object):
+class Model(citations.CitableMixin):
     """
     Class representing a simulation model that can be run in msprime.
 
     .. todo:: Document this class.
     """
+
     def __init__(self):
         self.population_configurations = []
         self.demographic_events = []
         # Defaults to a single population
         self.migration_matrix = [[0]]
+
+    @property
+    def name(self):
+        """
+        The name of this model.
+        """
+        return self.__class__.__name__
 
     def debug(self, out_file=sys.stdout):
         # Use the demography debugger to print out the demographic history
