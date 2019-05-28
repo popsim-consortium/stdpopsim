@@ -97,7 +97,7 @@ class SheehanSongThreeEpoch(models.Model):
         # Times are provided in 4N_ref generations, so we convert into generations.
         # generation_time = 10 / year
         t_1 = t_1_coal * 4 * N_ref
-        t_2 = t_2_coal * 4 * N_ref
+        t_2 = (t_1_coal + t_2_coal) * 4 * N_ref
         # Single population in this model
         self.population_configurations = [
             msprime.PopulationConfiguration(initial_size=N_R),
