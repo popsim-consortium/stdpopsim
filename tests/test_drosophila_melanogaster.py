@@ -58,6 +58,11 @@ class TestSheehanSongThreeEpoch(unittest.TestCase):
         s = output.getvalue()
         self.assertGreater(len(s), 0)
 
+    def test_qc_model_equal(self):
+        model = drosophila_melanogaster.SheehanSongThreeEpoch()
+        model_qc = drosophlia_melanogaster_qc.SheehanSongThreeEpic()
+        self.assertTrue(model.equals(model_qc))
+
 
 class TestLiStephanTwoPopulation(unittest.TestCase):
     """
