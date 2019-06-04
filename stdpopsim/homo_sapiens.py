@@ -314,6 +314,61 @@ class TennessenTwoPopOutOfAfrica(models.Model):
         ]
 
 
+class TennessenOnePopAfrica(models.Model):
+    """
+    The model is derived from the Tennesen et al.
+    `analysis <https://doi.org/10.1126/science.1219240>`_  of the jSFS from
+    European Americans and African Americans.
+
+    Model parameters are taken from Fig. S5 in
+    `Fu et al. (2013) <https://doi.org/10.1038/nature11690>`_.
+
+    Here we are modeling the African population in isolation.
+
+    .. todo:: document this model, including the original publications
+        and clear information about what the different population indexes
+        mean.
+
+    """
+    # NOTE choosing the first publication above the 'the' paper to reference.
+    # Should we allow for multiple references??
+    author = "Tennessen et al."
+    year = "2012"
+    doi = "https://doi.org/10.1126/science.1219240"
+
+    def __init__(self):
+        super().__init__()
+
+        generation_time = 25
+        T_AF = 148e3 / generation_time
+        T_EG = 5115 / generation_time
+
+        # Growth rate
+        r_AF = 0.0166
+
+        # population sizes
+        N_A = 7310
+        N_AF1 = 14474
+
+        # present Ne
+        N_AF = N_AF1 / math.exp(-r_AF * T_EG)
+
+        self.population_configurations = [
+            msprime.PopulationConfiguration(initial_size=N_AF, growth_rate=r_AF),
+        ]
+
+        self.migration_matrix = [
+            [0]
+        ]
+
+        self.demographic_events = [
+            msprime.PopulationParametersChange(
+                time=T_EG, growth_rate=0, initial_size=N_AF1, population_id=0),
+            msprime.PopulationParametersChange(
+                time=T_AF, initial_size=N_A, population_id=0)
+        ]
+
+
 class BrowningAmerica(models.Model):
     """
     Demographic model for American admixture, taken from
