@@ -205,6 +205,31 @@ class TestTennessenOutOfAfrica(unittest.TestCase):
         self.assertTrue(model.equals(homo_sapiens_qc.TennessenTwoPopOutOfAfrica()))
 
 
+class TestTennessenOnePopAfrica(unittest.TestCase):
+    """
+    Basic tests for the TennessenOnePopAfrica model.
+    """
+
+    def test_simulation_runs(self):
+        model = homo_sapiens.TennessenOnePopAfrica()
+        ts = msprime.simulate(
+            samples=[msprime.Sample(0, 0), msprime.Sample(0, 0)],
+            **model.asdict())
+        self.assertEqual(ts.num_populations, 1)
+
+    def test_debug_runs(self):
+        model = homo_sapiens.TennessenOnePopAfrica()
+        output = io.StringIO()
+        model.debug(output)
+        s = output.getvalue()
+        self.assertGreater(len(s), 0)
+
+    def test_qc_model_equal(self):
+        model = homo_sapiens.TennessenOnePopAfrica()
+        print(model)
+        # self.assertTrue(model.equals(homo_sapiens_qc.TennessenOnePopAfrica()))
+
+
 class TestBrowningAmerica(unittest.TestCase):
     """
     Basic tests for the BrowningAmerica model.
