@@ -4,6 +4,59 @@ import numpy as np
 import math
 import stdpopsim.models as models
 
+class TennessenOnePopAfrica(models.Model):
+    def __init__(self):
+        super().__init__()
+        # This model is the same as the Tennessen two population model except
+        # the European population has been removed.
+
+        # Since the Tennessen one population model largely uses parameters from
+        # the Gravel et al 2001, we begin by taking the maximum likelihood value
+        # from the table 2 of Gravel et al. 2011 using the Low-coverage + exons
+        # data. Initially we copy over the pre- exponential growth population
+        # size estimates, migration rates, and epoch times:
+        generation_time = 25
+        
+        N_A = 7310  # Ancient population size
+        N_AF0 = 14474  # Pre-modern african population size (pre and post OOA)
+
+        T_AF = 148000 / generation_time  # Epoch transition from ancient to AF0
+        T_AG = 5115 / generation_time  # start of 2nd european growth epoch
+
+        # Next we include the additional parameters from Tennessen et al 2012
+        # which include all exponential growth rates. These parameters are
+        # copied from the section titled "Abundance of rare variation explained
+        # by human demographic history" in Tennessen et al.
+
+        r_AF0 = 1.66e-2  # The growth rate for the 1st african expansion
+
+        # For the post exponenential growth popuation sizes we can calcuate the
+        # population sizes at the start of the epoch using the formula f(t) =
+        # x_0 * exp(r * (t_0-t))
+
+        # African population size after 1st expansion
+        N_AF1 = N_AF0 * math.exp(r_AF0 * T_AG)
+
+        # Now we set up the population configurations. The population IDs are 0=YRI. This
+        # includes both the inital sizes, growth rates, and migration rates.
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N_AF1, growth_rate=r_AF0),
+        ]
+
+        self.migration_matrix = [[0]]
+
+        # Now we add the demographic events working backwards in time. Starting with the growth
+        # slowdown in Europeans and the transition to a fixed population size in Africans.
+        self.demographic_events = [
+            # Reversion to fixed population size in Africans
+            msprime.PopulationParametersChange(
+                time=T_AG, initial_size=N_AF0, growth_rate=0, population_id=0),    
+            # Change to ancestral population size pre OOA
+            msprime.PopulationParametersChange(
+                time=T_AF, initial_size=N_A, population_id=0)
+        ]
+
 class TennessenTwoPopOutOfAfrica(models.Model):
     def __init__(self):
         super().__init__()
