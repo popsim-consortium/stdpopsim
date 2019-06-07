@@ -1,0 +1,17 @@
+Population size,"7,310",Ancestral pop. size
+Population size,"14,474",AFR pop. size
+Population size,"1,861",OOA pop. size
+Population size,"1,032",EU pop. size after EU/AS divergence
+Population size,"9,279",EU pop. size after 1st expansion
+Population size,"501,436",EU pop. size after 2nd expansion
+Population size,"432,125",AFR pop. size after 1st expansion
+Growth rate (per gen.),0.00307,EU pop. growth rate 1st expansion
+Growth rate (per gen.),0.0195,EU pop. growth rate 2st expansion
+Growth rate (per gen.),0.0166,AFR pop. growth rate 1st expansion
+Migration rate (x10^-5 per gen.),15,AFR-OOA migration rate 
+Migration rate (x10^-5 per gen.),2.5,AFR-EU migration rate (both expansions)
+Epoch Time (gen.),"5,920",Expansion time of ancestral pop.
+Epoch Time (gen.),"2,040",Time of OOA event
+Epoch Time (gen.),920,Beginning of 1st EU growth period
+Epoch Time (gen.),204.6,Beginning of 2nd EU/1st AFR growth period
+Generation time (yrs.),25,Generation time

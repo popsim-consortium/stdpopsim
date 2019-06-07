@@ -1,0 +1,15 @@
+Population size,"7,300",Ancestral pop. size
+Population size,"12,300",YRI pop. size
+Population size,"2,100",OOA pop. size
+Population size,"1,000",CEU pop. size after EU/AS divergence
+Population size,510,CHB pop. size after EU/AS divergence
+Growth rate (per gen.),0.4,CEU pop. growth rate (per gen.)
+Growth rate (per gen.),0.55,CHB pop. growth rate (per gen.)
+Migration rate (x10^-5),25,YRI-OOA migration rate (per gen.)
+Migration rate (x10^-5),3,YRI-CEU migration rate (per gen.)
+Migration rate (x10^-5),1.9,YRI-CHB migration rate (per gen.)
+Migration rate (x10^-5),9.6,CEU-CHB migration rate (per gen.)
+Epoch Time (gen.),"8,800",Expansion time of ancestral pop.
+Epoch Time (gen.),"5,600",Time of OOA event
+Epoch Time (gen.),848,Time of CEU-CHB split
+Generation time (yrs.),25,Generation time
