@@ -164,13 +164,36 @@ def chromosome_factory(name, genetic_map=None, length_multiplier=1):
 
 class GutenkunstThreePopOutOfAfrica(models.Model):
     """
-    The three population Out-of-Africa model from Gutenkunst et al.
+    Model Name:
+        GutenkunstThreePopOutOfAfrica
 
-    .. todo:: document this model, including the original publications
-        and clear information about what the different population indexes
-        mean.
+    Model Description:
+        The three population Out-of-Africa model from `Gutenkunst et al. <https://
+        doi.org/10.1371/journal.pgen.1000695>`_ It describes the ancestral human
+        population in Africa, the out of Africa event, and the subsequent European-Asian
+        population split. Model parameters are the maximum likelihood values of the
+        various parameters given in Table 1 of Gutenkunst et al.
 
-    """
+    Model population indexes:
+        - African (YRI): 0
+        - European (CEU): 1
+        - Asian (CHB): 2
+
+    Parameter Table:
+        .. csv-table::
+            :widths: 15 8 20
+            :header: "Parameter Type (units)", "Value", "Description"
+            :file: ../docs/parameter_tables/homo_sapiens/GutenkunstThreePopOutOfAfrica_params.csv
+
+    CLI help:
+        python -m stdpopsim homo-sapiens GutenkunstThreePopOutOfAfrica -h
+
+    Citation:
+        Gutenkunst, R. N., Hernandez, R. D., Williamson, S. H. & Bustamante, C. D.
+        Inferring the Joint Demographic History of Multiple Populations from
+        Multidimensional SNP Frequency Data. PLOS Genetics 5, e1000695 (2009).
+
+    """  # noqa: E501
     author = "Gutenkunst et al."
     year = 2009
     doi = "https://doi.org/10.1371/journal.pgen.1000695"
@@ -235,18 +258,36 @@ class GutenkunstThreePopOutOfAfrica(models.Model):
 
 class TennessenTwoPopOutOfAfrica(models.Model):
     """
-    The model is derived from the Tennesen et al.
-    `analysis <https://doi.org/10.1126/science.1219240>`_  of the jSFS from
-    European Americans and African Americans.
+    Model Name:
+        TennessenTwoPopOutOfAfrica
 
-    Model parameters are taken from Fig. S5 in
-    `Fu et al. (2013) <https://doi.org/10.1038/nature11690>`_.
+    Model Description:
+        The model is derived from the Tennesen et al. `analysis <https://doi.org/10.1126/
+        science.1219240>`_  of the jSFS from European Americans and African Americans.
+        It describes the ancestral human population in Africa, the out of Africa event,
+        and two distinct periods of subsequent European population growth over the past
+        23kya. Model parameters are taken from Fig. S5 in `Fu et al. (2013) <https://
+        doi.org/10.1038 nature11690>`_.
 
-    .. todo:: document this model, including the original publications
-        and clear information about what the different population indexes
-        mean.
+    Model population indexes:
+        - African (AFR): 0
+        - European (EU): 1
 
-    """
+    Parameter Table:
+        .. csv-table::
+            :widths: 15 8 20
+            :header: "Parameter Type (units)", "Value", "Description"
+            :file: ../docs/parameter_tables/homo_sapiens/TennessenTwoPopOutOfAfrica_params.csv
+
+    CLI help:
+        python -m stdpopsim homo-sapiens TennessenTwoPopOutOfAfrica -h
+
+    Citation:
+        Tennessen, J. A. et al. Evolution and Functional Impact of Rare Coding
+        Variation from Deep Sequencing of Human Exomes. Science 337, 64–69
+        (2012).
+
+    """  # noqa: E501
     # NOTE choosing the first publication above the 'the' paper to reference.
     # Should we allow for multiple references??
     author = "Tennessen et al."
@@ -316,20 +357,32 @@ class TennessenTwoPopOutOfAfrica(models.Model):
 
 class TennessenOnePopAfrica(models.Model):
     """
-    The model is derived from the Tennesen et al.
-    `analysis <https://doi.org/10.1126/science.1219240>`_  of the jSFS from
-    European Americans and African Americans.
+    Model Name:
+        TennessenOnePopAfrica
 
-    Model parameters are taken from Fig. S5 in
-    `Fu et al. (2013) <https://doi.org/10.1038/nature11690>`_.
+    Model Description:
+        The model is a simplification of the two population Tennesen et al.
+        `model <https://doi.org/10.1126/science.1219240>`_ with the European-American
+        population removed so that we are modeling the African population in isolation.
 
-    Here we are modeling the African population in isolation.
+    Model population indexes:
+        - African (AFR): 0
 
-    .. todo:: document this model, including the original publications
-        and clear information about what the different population indexes
-        mean.
+    Parameter Table:
+        .. csv-table::
+            :widths: 15 8 20
+            :header: "Parameter Type (units)", "Value", "Description"
+            :file: ../docs/parameter_tables/homo_sapiens/TennessenOnePopAfrica_params.csv
 
-    """
+    CLI help:
+        python -m stdpopsim homo-sapiens TennessenOnePopAfrica -h
+
+    Citation:
+        Tennessen, J. A. et al. Evolution and Functional Impact of Rare Coding
+        Variation from Deep Sequencing of Human Exomes. Science 337, 64–69
+        (2012).
+
+    """  # noqa: E501
     # NOTE choosing the first publication above the 'the' paper to reference.
     # Should we allow for multiple references??
     author = "Tennessen et al."
@@ -371,15 +424,39 @@ class TennessenOnePopAfrica(models.Model):
 
 class BrowningAmerica(models.Model):
     """
-    Demographic model for American admixture, taken from
-    `Browning et al. <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.
-    This model extends the Gravel et al. (2011) model to simulate an admixed
-    population with admixture occurring 12 generations ago. The admixed population
-    had an initial size of 30,000 and grew at a rate of 5% per generation,
-    with 1/6 of the population of African ancestry, 1/3 European, and 1/2 Asian.
-    This code was ported over from
-    `Supplementary File 1 <https://doi.org/10.1371/journal.pgen.1007385.s005>`_
-    """
+    Model Name:
+        BrowningAmerica
+
+    Model Description:
+        Demographic model for American admixture, taken from
+        `Browning et al. <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.
+        This model extends the `Gravel et al. (2011) <https://doi.org/10.1073/
+        pnas.1019276108>`_ model of African/European/Asian demographic history to
+        simulate an admixed population with admixture occurring 12 generations ago. The
+        admixed population had an initial size of 30,000 and grew at a rate of 5% per
+        generation, with 1/6 of the population of African ancestry, 1/3 European, and 1
+        2 Asian. This code was ported over from `Supplementary File 1 <https://doi.org/10.1371/journal.pgen.1007385.s005>`_
+
+    Model population indexes:
+        - African (AFR): 0
+        - European (EU): 1
+        - Asian (ASN): 2
+        - Admixed (ADMIX): 3
+
+    Parameter Table:
+        .. csv-table::
+            :widths: 15 8 20
+            :header: "Parameter Type (units)", "Value", "Description"
+            :file: ../docs/parameter_tables/homo_sapiens/BrowningAmerica_params.csv
+
+    CLI help:
+        python -m stdpopsim homo-sapiens BrowningAmerica -h
+
+    Citation:
+        Browning, S. R. et al. Ancestry-specific recent effective population size in the
+        Americas. PLOS Genetics 14, e1007385 (2018).
+
+    """  # noqa: E501
     author = "Browning et al."
     year = "2011"
     doi = "http://dx.doi.org/10.1371/journal.pgen.1007385"

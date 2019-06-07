@@ -114,7 +114,12 @@ Demographic models
 
 .. autoclass:: stdpopsim.homo_sapiens.GutenkunstThreePopOutOfAfrica
     :members:
-
+.. autoclass:: stdpopsim.homo_sapiens.TennessenTwoPopOutOfAfrica
+    :members:
+.. autoclass:: stdpopsim.homo_sapiens.TennessenOnePopAfrica
+    :members:
+.. autoclass:: stdpopsim.homo_sapiens.BrowningAmerica
+    :members:
 
 ***********************
 Drosophila Melanogaster
