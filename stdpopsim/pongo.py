@@ -11,6 +11,7 @@ import stdpopsim.models as models
 # TODO: how do we define the Orangutan genome here? Are they similar enough to
 # humans that we just use humans? What about the different species of pongo?
 
+# TODO: add a default generation time to the species
 
 class LockeEtAlPongoIM(models.Model):
     '''
@@ -18,6 +19,7 @@ class LockeEtAlPongoIM(models.Model):
     '''
 
     def __init__(self):
+        super().__init__()
 
         # Parameters from paper:
         # ancestral size, before split

@@ -72,6 +72,8 @@ genome = genomes.Genome(
 #
 ###########################################################
 
+default_generation_time = 0.1
+
 
 class SheehanSongThreeEpoch(models.Model):
     """
@@ -98,6 +100,7 @@ class SheehanSongThreeEpoch(models.Model):
         # generation_time = 10 / year
         t_1 = t_1_coal * 4 * N_ref
         t_2 = (t_1_coal + t_2_coal) * 4 * N_ref
+        self.generation_time = default_generation_time
         # Single population in this model
         self.population_configurations = [
             msprime.PopulationConfiguration(initial_size=N_R),
@@ -131,6 +134,7 @@ class LiStephanTwoPopulation(models.Model):
         N_A0 = 8.603e06
         t_A0 = 600000  # assuming 10 generations / year
         N_A1 = N_A0 / 5.0
+        self.generation_time = default_generation_time
         # European Parameter values from "Demo History of Euro Population"
         N_E0 = 1.075e06
         N_E1 = 2200
