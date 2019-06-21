@@ -36,6 +36,8 @@ genome = genomes.Genome(
 #
 ###########################################################
 
+# TODO add a generation time here
+# default_generation_time = -1
 
 class LapierreConstant(models.Model):
     """
@@ -44,6 +46,7 @@ class LapierreConstant(models.Model):
     """
 
     def __init__(self):
+        super().__init__()
 
         N_e = 1.8e8
         # Single population

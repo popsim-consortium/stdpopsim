@@ -162,6 +162,10 @@ def chromosome_factory(name, genetic_map=None, length_multiplier=1):
 ###########################################################
 
 
+# species wide default generation time
+default_generation_time = 25
+
+
 class GutenkunstThreePopOutOfAfrica(models.Model):
     """
     Model Name:
@@ -208,10 +212,10 @@ class GutenkunstThreePopOutOfAfrica(models.Model):
         N_EU0 = 1000
         N_AS0 = 510
         # Times are provided in years, so we convert into generations.
-        generation_time = 25
-        T_AF = 220e3 / generation_time
-        T_B = 140e3 / generation_time
-        T_EU_AS = 21.2e3 / generation_time
+        self.generation_time = default_generation_time
+        T_AF = 220e3 / self.generation_time
+        T_B = 140e3 / self.generation_time
+        T_EU_AS = 21.2e3 / self.generation_time
         # We need to work out the starting (diploid) population sizes based on
         # the growth rates provided for these two populations
         r_EU = 0.004
@@ -297,11 +301,11 @@ class TennessenTwoPopOutOfAfrica(models.Model):
     def __init__(self):
         super().__init__()
 
-        generation_time = 25
-        T_AF = 148e3 / generation_time
-        T_OOA = 51e3 / generation_time
-        T_EU0 = 23e3 / generation_time
-        T_EG = 5115 / generation_time
+        self.generation_time = default_generation_time
+        T_AF = 148e3 / self.generation_time
+        T_OOA = 51e3 / self.generation_time
+        T_EU0 = 23e3 / self.generation_time
+        T_EG = 5115 / self.generation_time
 
         # Growth rates
         r_EU0 = 0.00307
@@ -392,9 +396,9 @@ class TennessenOnePopAfrica(models.Model):
     def __init__(self):
         super().__init__()
 
-        generation_time = 25
-        T_AF = 148e3 / generation_time
-        T_EG = 5115 / generation_time
+        self.generation_time = default_generation_time
+        T_AF = 148e3 / self.generation_time
+        T_EG = 5115 / self.generation_time
 
         # Growth rate
         r_AF = 0.0166

@@ -247,6 +247,10 @@ class TestAllModels(unittest.TestCase):
         for model in models.all_models():
             self.assertNotIsInstance(model, DummyModel)
 
+    def test_generation_times_non_empty(self):
+        self.assertGreater(len([model.generation_time for model in
+                                models.all_models()]), 0)
+
 
 class TestModelsEqual(unittest.TestCase):
     """
@@ -291,3 +295,12 @@ class TestModelsEqual(unittest.TestCase):
         self.assertTrue(m1.equals(m2))
         # If we have higher tolerances we catch the differences
         self.assertFalse(m1.equals(m2, atol=1e-10, rtol=1e-9))
+
+
+class TestModelProperties(unittest.TestCase):
+    def test_model_generation_time(self):
+        self.assertTrue(models.Model().generation_time == -1)
+        known_models = models.all_models()
+        n = len(known_models)
+        for j in range(n):
+            self.assertTrue(known_models[j].generation_time > -2)

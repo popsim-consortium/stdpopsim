@@ -124,6 +124,7 @@ class Model(citations.CitableMixin):
         self.demographic_events = []
         # Defaults to a single population
         self.migration_matrix = [[0]]
+        self.generation_time = -1
 
     @property
     def name(self):

@@ -74,6 +74,8 @@ genome = genomes.Genome(
 #
 ###########################################################
 
+default_generation_time = 1.0
+
 
 class Durvasula2017MSMC(models.Model):
     """
@@ -102,6 +104,8 @@ class Durvasula2017MSMC(models.Model):
         # set the last 2 entries equal
         # to the size at 30 (~1.6Mya)
         self.sizes[30:32] = self.sizes[30]
+        # generation time is 1 year
+        self.generation_time = default_generation_time
         self.demographic_events = []
         for idx, t in enumerate(self.times):
             self.demographic_events.append(
