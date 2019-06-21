@@ -142,3 +142,20 @@ Demographic models
     :members:
 .. autoclass:: stdpopsim.drosophila_melanogaster.LiStephanTwoPopulation
     :members:
+
+***********************
+E. coli
+***********************
+
+.. autodata:: stdpopsim.e_coli.genome
+
+++++++++++++
+Genetic Maps
+++++++++++++
+
+++++++++++++++++++
+Demographic models
+++++++++++++++++++
+
+.. autoclass:: stdpopsim.e_coli.LapierreConstant
+    :members:

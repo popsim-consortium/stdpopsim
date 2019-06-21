@@ -41,9 +41,38 @@ genome = genomes.Genome(
 
 class LapierreConstant(models.Model):
     """
-    The constant population size model from Lapierre et al. 2016
-    https://doi.org/10.1093/molbev/msw048
-    """
+    Model Name:
+        LapierreConstant
+
+    Model Description:
+        The constant population size model from `Lapierre et al. 2016 <https://doi.org/
+        10.1093/molbev/msw048>`_. The population does not undergo growth or size changes
+        making it a simple scenario in which to study the effects of recombination and/
+        or mutation on a variety of inference methods.
+
+    Model population indexes:
+        - E. coli: 0
+
+    Parameter Table:
+        .. csv-table::
+            :widths: 15 8 20
+            :header: "Parameter Type (units)", "Value", "Description"
+            :file: ../docs/parameter_tables/e_coli/LapierreConstant_params.csv
+
+    CLI help:
+        python -m stdpopsim e-coli LapierreConstant -h
+
+    Citation:
+        Lapierre, M., Blin, C., Lambert, A., Achaz, G. & Rocha, E. P. C. The Impact of
+        Selection, Gene Conversion, and Biased Sampling on the Assessment of Microbial
+        Demography. Mol Biol Evol 33, 1711–1725 (2016).
+
+
+    """  # noqa: E501
+
+    author = "Lapierre et al."
+    year = "2016"
+    doi = "https://doi.org/10.1093/molbev/msw048"
 
     def __init__(self):
         super().__init__()
