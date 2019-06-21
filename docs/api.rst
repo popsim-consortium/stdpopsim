@@ -140,3 +140,5 @@ Demographic models
 
 .. autoclass:: stdpopsim.drosophila_melanogaster.SheehanSongThreeEpoch
     :members:
+.. autoclass:: stdpopsim.drosophila_melanogaster.LiStephanTwoPopulation
+    :members:

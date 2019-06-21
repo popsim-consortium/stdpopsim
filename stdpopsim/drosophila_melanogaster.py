@@ -77,16 +77,41 @@ default_generation_time = 0.1
 
 class SheehanSongThreeEpoch(models.Model):
     """
-    The three epoch model estimated for African samples from Sheehan and Song
+    Model Name:
+        SheehanSongThreeEpoch
 
-    .. todo:: document this model, including the original publications
-        and clear information about what the different population indexes
-        mean.
+    Model Description:
+        The three epoch (modern, bottleneck, ancestral) model estimated for a
+        single African Drosophila Melanogaster population from `Sheehan and Song <https:/
+        /doi.org/10.1371/journal.pcbi.1004845>`_ . Population sizes are estimated by a
+        deep learning model trained on simulation data. NOTE: Due to differences in
+        coalescence units between PSMC (2N) and msms (4N) the number of generations were
+        doubled from PSMC estimates when simulating data from msms in the original
+        publication. We have faithfully represented the published model here.
 
-    """
+    Model population indexes:
+        - African D. melanogaster: 0
+
+    Parameter Table:
+        .. csv-table::
+            :widths: 15 8 20
+            :header: "Parameter Type (units)", "Value", "Description"
+            :file: ../docs/parameter_tables/drosophila_melanogaster/SheehanSongThreeEpoch_params.csv
+
+    CLI help:
+        python -m stdpopsim drosophila-melanogaster SheehanSongThreeEpoch -h
+
+    Citation:
+        Sheehan, S. & Song, Y. S. Deep Learning for Population Genetic Inference. PLOS
+        Computational Biology 12, e1004845 (2016).
+
+    """  # noqa: E501
+
+    author = "Sheehan et al."
+    year = 2016
+    doi = "https://doi.org/10.1371/journal.pcbi.1004845"
 
     def __init__(self):
-
         # Parameter values from "Simulating Data" section
         # these are assumptions, not estimates
         N_ref = 100000
@@ -101,9 +126,16 @@ class SheehanSongThreeEpoch(models.Model):
         t_1 = t_1_coal * 4 * N_ref
         t_2 = (t_1_coal + t_2_coal) * 4 * N_ref
         self.generation_time = default_generation_time
+
+        # Population metadata
+        metadata_afr = {
+            "name": "AFR_dmel",
+            "description": "African D. melanogaster population"
+        }
+
         # Single population in this model
         self.population_configurations = [
-            msprime.PopulationConfiguration(initial_size=N_R),
+            msprime.PopulationConfiguration(initial_size=N_R, metadata=metadata_afr),
         ]
         self.demographic_events = [
             # Size change at bottleneck (back in time; BIT)
@@ -118,14 +150,35 @@ class SheehanSongThreeEpoch(models.Model):
 
 class LiStephanTwoPopulation(models.Model):
     """
-    two population model of Li and Stephan (2006) for
-    African and European divergence
+    Model Name:
+        LiStephanTwoPopulation
 
-    .. todo:: document this model, including the original publications
-        and clear information about what the different population indexes
-        mean.
+    Model Description:
+        The three epoch (modern, bottleneck, ancestral) model estimated for two
+        Drosophila Melanogaster populations: African (ancestral) and European (derived)
+        from `Li and Stephan <https://doi.org/10.1371/journal.pgen.0020166>`_ .
 
-    """
+    Model population indexes:
+        - African D. melanogaster: 0
+        - European D. melanogaster: 1
+
+    Parameter Table:
+        .. csv-table::
+            :widths: 15 8 20
+            :header: "Parameter Type (units)", "Value", "Description"
+            :file: ../docs/parameter_tables/drosophila_melanogaster/LiStephanTwoPopulation_params.csv
+
+    CLI help:
+        python -m stdpopsim drosophila-melanogaster LiStephanTwoPopulation -h
+
+    Citation:
+        Li, H. & Stephan, W. Inferring the Demographic History and Rate of Adaptive      Substitution in Drosophila. PLOS Genetics 2, e166 (2006).
+
+    """  # noqa: E501
+
+    author = "Li et al."
+    year = 2006
+    doi = "https://doi.org/10.1371/journal.pgen.0020166"
 
     def __init__(self):
 
@@ -135,14 +188,25 @@ class LiStephanTwoPopulation(models.Model):
         t_A0 = 600000  # assuming 10 generations / year
         N_A1 = N_A0 / 5.0
         self.generation_time = default_generation_time
+
         # European Parameter values from "Demo History of Euro Population"
         N_E0 = 1.075e06
         N_E1 = 2200
         t_AE = 158000  # generations
         t_E1 = t_AE - 3400
+
+        metadata_afr = {
+            "name": "AFR_dmel",
+            "description": "African D. melanogaster population"
+        }
+        metadata_eu = {
+            "name": "EU_dmel",
+            "description": "European D. melanogaster population"
+        }
+
         self.population_configurations = [
-            msprime.PopulationConfiguration(initial_size=N_A0),
-            msprime.PopulationConfiguration(initial_size=N_E0)
+            msprime.PopulationConfiguration(initial_size=N_A0, metadata=metadata_afr),
+            msprime.PopulationConfiguration(initial_size=N_E0, metadata=metadata_eu)
         ]
         self.demographic_events = [
             # Size change at Euro bottleneck
