@@ -8,4 +8,3 @@ sphinx-argparse
 sphinx_rtd_theme
 msprime
 appdirs
-daiquiri
