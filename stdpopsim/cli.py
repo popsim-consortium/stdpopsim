@@ -96,32 +96,31 @@ def write_output(ts, args):
     ts.dump(args.output)
 
 
-def write_citations(chromosome, model, args):
+def write_citations(chromosome, model):
     """
     Write out citation information so that the user knows what papers to cite
     for the simulation engine, the model and the mutation/recombination rate
     information.
     """
-    if not args.quiet:
-        # TODO say this better
-        print(
-            "If you use this simulation in published work, please cite the following "
-            "papers:")
-        print("******************")
-        print("Simulation engine:")
-        print("******************")
-        print(
-            "\tmsprime: Kelleher et al. 2016: "
-            "https://doi.org/10.1371/journal.pcbi.1004842")
-        print("******************")
-        print("Genetic map:")
-        print("******************")
-        print("\tTODO")
-        # TODO need some way to get a GeneticMap instance from the chromosome. We'll also
-        # want to be able to output mutation map, and perhaps other information too, so
-        # we want to keep some flexibility for this in mind.
-        print("Simulation model:")
-        print(f"\t{model.name}: {model.author} {model.year} {model.doi}")
+    # TODO say this better
+    print(
+        "If you use this simulation in published work, please cite the following "
+        "papers:")
+    print("******************")
+    print("Simulation engine:")
+    print("******************")
+    print(
+        "\tmsprime: Kelleher et al. 2016: "
+        "https://doi.org/10.1371/journal.pcbi.1004842")
+    print("******************")
+    print("Genetic map:")
+    print("******************")
+    print("\tTODO")
+    # TODO need some way to get a GeneticMap instance from the chromosome. We'll also
+    # want to be able to output mutation map, and perhaps other information too, so
+    # we want to keep some flexibility for this in mind.
+    print("Simulation model:")
+    print(f"\t{model.name}: {model.author} {model.year} {model.doi}")
 
 
 def add_output_argument(parser):
@@ -145,12 +144,12 @@ def add_model_runner(top_parser, model):
     """
     parser = top_parser.add_parser(
         model.name,
+        description=model.description,
         help=model.short_description)
     add_output_argument(parser)
     sample_arg_names = []
-    for pop_config in model.population_configurations:
-        md = pop_config.metadata
-        name = md["name"]
+    for population in model.populations:
+        name = population.name
         help_text = f"The number of samples to take from the {name} population"
         parser.add_argument(f"--num-{name}", help=help_text, default=0, type=int)
         sample_arg_names.append("num_{}".format(name))
@@ -171,7 +170,8 @@ def add_model_runner(top_parser, model):
         ts = model.run(chromosome, samples)
         summarise_usage()
         write_output(ts, args)
-        write_citations(chromosome, model, args)
+        if not args.quiet:
+            write_citations(chromosome, model)
 
     parser.set_defaults(runner=run_simulation)
 
@@ -214,6 +214,7 @@ def stdpopsim_cli_parser():
     add_model_runner(subsubparsers, homo_sapiens.GutenkunstThreePopOutOfAfrica())
     add_model_runner(subsubparsers, homo_sapiens.TennessenTwoPopOutOfAfrica())
     add_model_runner(subsubparsers, homo_sapiens.BrowningAmerica())
+    add_model_runner(subsubparsers, homo_sapiens.RagsdaleArchaic())
 
     # Add stubs for discussion
     species_parser = subparsers.add_parser(

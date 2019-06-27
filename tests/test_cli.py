@@ -15,6 +15,8 @@ import msprime
 
 import stdpopsim
 import stdpopsim.cli as cli
+import stdpopsim.models as models
+import stdpopsim.homo_sapiens as homo_sapiens
 
 
 class TestException(Exception):
@@ -213,3 +215,16 @@ class TestErrors(unittest.TestCase):
 
     def test_browning_america(self):
         self.verify_bad_samples("-q homo-sapiens BrowningAmerica tmp.trees")
+
+
+@unittest.skip("Non-human models missing 'name' attribute")
+class TestWriteCitations(unittest.TestCase):
+    """
+    Make sure all models can write citation information.
+    """
+    def test_all_models(self):
+        chromosome = homo_sapiens.chromosome_factory("chr22")
+        for model in models.all_models():
+            stdout, stderr = capture_output(cli.write_citations, chromosome, model)
+            self.assertEqual(len(stderr), 0)
+            self.assertGreater(len(stdout), 0)

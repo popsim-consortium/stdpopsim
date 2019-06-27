@@ -132,6 +132,8 @@ Demographic models
     :members:
 .. autoclass:: stdpopsim.homo_sapiens.BrowningAmerica
     :members:
+.. autoclass:: stdpopsim.homo_sapiens.RagsdaleArchaic
+    :members:
 
 ***********************
 Drosophila Melanogaster
