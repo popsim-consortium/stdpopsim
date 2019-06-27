@@ -7,15 +7,18 @@ import json
 import logging
 import platform
 import sys
+import resource
+
 import msprime
 import tskit
+import humanize
+import daiquiri
 
 import stdpopsim
 from stdpopsim import homo_sapiens
 
 
 logger = logging.getLogger(__name__)
-log_format = '%(asctime)s %(levelname)s %(message)s'
 
 
 def exit(message):
@@ -31,7 +34,7 @@ def setup_logging(args):
         log_level = "INFO"
     if args.verbosity > 1:
         log_level = "DEBUG"
-    logging.basicConfig(level=log_level, format=log_format)
+    daiquiri.setup(level=log_level)
 
 
 def get_environment():
@@ -121,94 +124,56 @@ def write_citations(chromosome, model, args):
         print(f"\t{model.name}: {model.author} {model.year} {model.doi}")
 
 
-# TODO This setup is quite repetive and we can clearly abstract some of this
-# logic about sampling into the model object. What we want is for the model
-# to contain the names of the populations plus some documtation descriptions
-# from which we automatically generate the CLI and this runner inferface
-# can then be entirely generic.
-
-def run_human_gutenkunst_three_pop_ooa(args):
-    if args.num_yri_samples + args.num_ceu_samples + args.num_chb_samples < 2:
-        exit("Must specify at least 2 samples from YRI, CEU or CHB populations")
-
-    chromosome = homo_sapiens.chromosome_factory(
-            args.chromosome, genetic_map=args.genetic_map,
-            length_multiplier=args.length_multiplier)
-    logger.info(
-        f"Running GutenkunstThreePopOutOfAfrica with YRI={args.num_yri_samples}"
-        f" CEU={args.num_ceu_samples} CHB={args.num_chb_samples}")
-    samples = (
-        [msprime.Sample(population=0, time=0)] * args.num_yri_samples +
-        [msprime.Sample(population=1, time=0)] * args.num_ceu_samples +
-        [msprime.Sample(population=2, time=0)] * args.num_chb_samples)
-    model = homo_sapiens.GutenkunstThreePopOutOfAfrica()
-    ts = msprime.simulate(
-        samples=samples,
-        recombination_map=chromosome.recombination_map,
-        mutation_rate=chromosome.mutation_rate,
-        **model.asdict())
-    write_output(ts, args)
-    write_citations(chromosome, model, args)
-
-
-def run_tennessen_two_pop_ooa(args):
-    if args.num_european_samples + args.num_african_samples < 2:
-        exit("Must specify at least 2 samples")
-
-    chromosome = homo_sapiens.chromosome_factory(
-            args.chromosome, genetic_map=args.genetic_map,
-            length_multiplier=args.length_multiplier)
-    model = homo_sapiens.TennessenTwoPopOutOfAfrica()
-    logger.info(
-        f"Running TennessenTwoPopOutOfAfrica with European={args.num_european_samples}"
-        f" African={args.num_african_samples}")
-    samples = (
-        [msprime.Sample(population=0, time=0)] * args.num_european_samples +
-        [msprime.Sample(population=1, time=0)] * args.num_african_samples)
-    ts = msprime.simulate(
-        samples=samples,
-        recombination_map=chromosome.recombination_map,
-        mutation_rate=chromosome.mutation_rate,
-        **model.asdict())
-    write_output(ts, args)
-    write_citations(chromosome, model, args)
-
-
-def run_browning_america(args):
-    total_samples = (
-        args.num_european_samples + args.num_african_samples
-        + args.num_asian_samples + args.num_american_samples)
-    if total_samples < 2:
-        exit("Must specify at least 2 samples")
-
-    chromosome = homo_sapiens.chromosome_factory(
-            args.chromosome, genetic_map=args.genetic_map,
-            length_multiplier=args.length_multiplier)
-    logger.info(
-        f"Running BrowningAmerica with European={args.num_european_samples} "
-        f"African={args.num_african_samples}, Asian={args.num_asian_samples} "
-        f"African={args.num_american_samples}")
-
-    samples = (
-        [msprime.Sample(population=0, time=0)] * args.num_european_samples +
-        [msprime.Sample(population=1, time=0)] * args.num_african_samples +
-        [msprime.Sample(population=2, time=0)] * args.num_asian_samples +
-        [msprime.Sample(population=3, time=0)] * args.num_american_samples)
-
-    model = homo_sapiens.BrowningAmerica()
-    ts = msprime.simulate(
-        samples=samples,
-        recombination_map=chromosome.recombination_map,
-        mutation_rate=chromosome.mutation_rate,
-        **model.asdict())
-    write_output(ts, args)
-    write_citations(chromosome, model, args)
-
-
 def add_output_argument(parser):
     parser.add_argument(
         "output",
         help="The file to write simulated tree sequence to")
+
+
+def summarise_usage():
+    rusage = resource.getrusage(resource.RUSAGE_SELF)
+    user_time = humanize.naturaldelta(rusage.ru_utime)
+    sys_time = rusage.ru_stime
+    max_rss = humanize.naturalsize(rusage.ru_maxrss * 1024, binary=True)
+    logger.info("rusage: user={}; sys={:.2f}s; max_rss={}".format(
+        user_time, sys_time, max_rss))
+
+
+def add_model_runner(top_parser, model):
+    """
+    Adds CLI options and registers the runner callback for the specified model.
+    """
+    parser = top_parser.add_parser(
+        model.name,
+        help=model.short_description)
+    add_output_argument(parser)
+    sample_arg_names = []
+    for pop_config in model.population_configurations:
+        md = pop_config.metadata
+        name = md["name"]
+        help_text = f"The number of samples to take from the {name} population"
+        parser.add_argument(f"--num-{name}", help=help_text, default=0, type=int)
+        sample_arg_names.append("num_{}".format(name))
+
+    def run_simulation(args):
+        args_dict = vars(args)
+        samples = []
+        for pop_index, sample_arg in enumerate(sample_arg_names):
+            num_samples = args_dict[sample_arg]
+            samples.extend([msprime.Sample(population=pop_index, time=0)] * num_samples)
+        if len(samples) < 2:
+            exit("Must specify at least 2 samples")
+
+        chromosome = homo_sapiens.chromosome_factory(
+                args.chromosome, genetic_map=args.genetic_map,
+                length_multiplier=args.length_multiplier)
+        logger.info(f"Running {model.name} on {chromosome} with {len(samples)} samples")
+        ts = model.run(chromosome, samples)
+        summarise_usage()
+        write_output(ts, args)
+        write_citations(chromosome, model, args)
+
+    parser.set_defaults(runner=run_simulation)
 
 
 def stdpopsim_cli_parser():
@@ -246,50 +211,9 @@ def stdpopsim_cli_parser():
     subsubparsers = species_parser.add_subparsers(dest="subcommand")
     subsubparsers.required = True
 
-    parser = subsubparsers.add_parser(
-        "GutenkunstThreePopOutOfAfrica",
-        help="Runs the three population out-of-Africa model")
-    parser.set_defaults(runner=run_human_gutenkunst_three_pop_ooa)
-    add_output_argument(parser)
-    parser.add_argument(
-        "--num-yri-samples", default=0, type=int,
-        help="The number of samples to take from the YRI population")
-    parser.add_argument(
-        "--num-ceu-samples", default=0, type=int,
-        help="The number of samples to take from the CEU population")
-    parser.add_argument(
-        "--num-chb-samples", default=0, type=int,
-        help="The number of samples to take from the CHB population")
-
-    parser = subsubparsers.add_parser(
-        "TennessenTwoPopOutOfAfrica",
-        help="Runs the TennessenTwoPopOutOfAfrica model.")
-    add_output_argument(parser)
-    parser.add_argument(
-        "--num-african-samples", default=0, type=int,
-        help="The number of samples to take from the African population")
-    parser.add_argument(
-        "--num-european-samples", default=0, type=int,
-        help="The number of samples to take from the European population")
-    parser.set_defaults(runner=run_tennessen_two_pop_ooa)
-
-    parser = subsubparsers.add_parser(
-        "BrowningAmerica",
-        help="Runs the BrowningAmerica model.")
-    add_output_argument(parser)
-    parser.add_argument(
-        "--num-african-samples", default=0, type=int,
-        help="The number of samples to take from the African population")
-    parser.add_argument(
-        "--num-european-samples", default=0, type=int,
-        help="The number of samples to take from the European population")
-    parser.add_argument(
-        "--num-asian-samples", default=0, type=int,
-        help="The number of samples to take from the Asian population")
-    parser.add_argument(
-        "--num-american-samples", default=0, type=int,
-        help="The number of samples to take from Admixed American population")
-    parser.set_defaults(runner=run_browning_america)
+    add_model_runner(subsubparsers, homo_sapiens.GutenkunstThreePopOutOfAfrica())
+    add_model_runner(subsubparsers, homo_sapiens.TennessenTwoPopOutOfAfrica())
+    add_model_runner(subsubparsers, homo_sapiens.BrowningAmerica())
 
     # Add stubs for discussion
     species_parser = subparsers.add_parser(

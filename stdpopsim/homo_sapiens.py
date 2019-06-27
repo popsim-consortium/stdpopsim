@@ -142,13 +142,13 @@ def chromosome_factory(name, genetic_map=None, length_multiplier=1):
     """
     chrom = genome.chromosomes[name]
     if genetic_map is None:
-        logging.debug(f"Making flat chromosome {length_multiplier} * {chrom.name}")
+        logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.name}")
         recomb_map = msprime.RecombinationMap.uniform_map(
             chrom.length * length_multiplier, chrom.default_recombination_rate)
     else:
         if length_multiplier != 1:
             raise ValueError("Cannot use length multiplier with empirical maps")
-        logging.debug(f"Getting map for {chrom.name} from {genetic_map}")
+        logger.debug(f"Getting map for {chrom.name} from {genetic_map}")
         recomb_map = chrom.recombination_map(genetic_map)
 
     ret = TempChromosome()
@@ -226,6 +226,16 @@ class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
         Multidimensional SNP Frequency Data. PLOS Genetics 5, e1000695 (2009).
 
     """  # noqa: E501
+    name = "GutenkunstThreePopOutOfAfrica"
+    short_description = "Three population out-of-Africa model"
+    description = """
+        The three population Out-of-Africa model from `Gutenkunst et al. <https://
+        doi.org/10.1371/journal.pgen.1000695>`_ It describes the ancestral human
+        population in Africa, the out of Africa event, and the subsequent European-Asian
+        population split. Model parameters are the maximum likelihood values of the
+        various parameters given in Table 1 of Gutenkunst et al.
+    """
+
     author = "Gutenkunst et al."
     year = 2009
     doi = "https://doi.org/10.1371/journal.pgen.1000695"
@@ -255,13 +265,25 @@ class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
         m_AF_EU = 3e-5
         m_AF_AS = 1.9e-5
         m_EU_AS = 9.6e-5
+
+        yri_metadata = models.population_metadata(
+            name="YRI", description="1000 Genomes YRI (Yorubans)")
+        ceu_metadata = models.population_metadata(
+            name="CEU", description=(
+                "1000 Genomes CEU (Utah Residents (CEPH) with Northern and "
+                "Western European Ancestry"))
+        chb_metadata = models.population_metadata(
+            name="CHB", description="1000 Genomes CHB (Han Chinese in Beijing, China)")
+
         # Population IDs correspond to their indexes in the population
         # configuration array. Therefore, we have 0=YRI, 1=CEU and 2=CHB
         # initially.
         self.population_configurations = [
-            msprime.PopulationConfiguration(initial_size=N_AF),
-            msprime.PopulationConfiguration(initial_size=N_EU, growth_rate=r_EU),
-            msprime.PopulationConfiguration(initial_size=N_AS, growth_rate=r_AS)
+            msprime.PopulationConfiguration(initial_size=N_AF, metadata=yri_metadata),
+            msprime.PopulationConfiguration(
+                initial_size=N_EU, growth_rate=r_EU, metadata=ceu_metadata),
+            msprime.PopulationConfiguration(
+                initial_size=N_AS, growth_rate=r_AS, metadata=chb_metadata),
         ]
         self.migration_matrix = [
             [      0, m_AF_EU, m_AF_AS],  # noqa
@@ -320,6 +342,16 @@ class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
         (2012).
 
     """  # noqa: E501
+    name = "TennessenTwoPopOutOfAfrica"
+    short_description = "Two population out-of-Africa model"
+    description = """
+        The model is derived from the Tennesen et al. `analysis <https://doi.org/10.1126/
+        science.1219240>`_  of the jSFS from European Americans and African Americans.
+        It describes the ancestral human population in Africa, the out of Africa event,
+        and two distinct periods of subsequent European population growth over the past
+        23kya. Model parameters are taken from Fig. S5 in `Fu et al. (2013) <https://
+        doi.org/10.1038 nature11690>`_.
+    """
     # NOTE choosing the first publication above the 'the' paper to reference.
     # Should we allow for multiple references??
     author = "Tennessen et al."
@@ -354,9 +386,16 @@ class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
         N_EU = N_EU1 / math.exp(-r_EU * T_EG)
         N_AF = N_AF1 / math.exp(-r_AF * T_EG)
 
+        afr_metadata = models.population_metadata(
+            name="AFR", description="African Americans")
+        eur_metadata = models.population_metadata(
+            name="EUR", description="European Americans")
+
         self.population_configurations = [
-            msprime.PopulationConfiguration(initial_size=N_AF, growth_rate=r_AF),
-            msprime.PopulationConfiguration(initial_size=N_EU, growth_rate=r_EU)
+            msprime.PopulationConfiguration(
+                initial_size=N_AF, growth_rate=r_AF, metadata=afr_metadata),
+            msprime.PopulationConfiguration(
+                initial_size=N_EU, growth_rate=r_EU, metadata=eur_metadata)
         ]
 
         self.migration_matrix = [
@@ -487,6 +526,19 @@ class BrowningAmerica(HomoSapiensModel):
         Americas. PLOS Genetics 14, e1007385 (2018).
 
     """  # noqa: E501
+    name = "BrowningAmerica"
+    short_description = "American admixture model"
+    description = """
+        Demographic model for American admixture, taken from
+        `Browning et al. <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.
+        This model extends the `Gravel et al. (2011) <https://doi.org/10.1073/
+        pnas.1019276108>`_ model of African/European/Asian demographic history to
+        simulate an admixed population with admixture occurring 12 generations ago. The
+        admixed population had an initial size of 30,000 and grew at a rate of 5% per
+        generation, with 1/6 of the population of African ancestry, 1/3 European, and 1
+        2 Asian. This code was ported over from `Supplementary File 1
+        <https://doi.org/10.1371/journal.pgen.1007385.s005>`_
+    """
     author = "Browning et al."
     year = "2011"
     doi = "http://dx.doi.org/10.1371/journal.pgen.1007385"
@@ -511,15 +563,28 @@ class BrowningAmerica(HomoSapiensModel):
         Nadmix = 30000  # initial size of admixed population
         radmix = .05  # growth rate of admixed population
         # pop0 is Africa, pop1 is Europe, pop2 is Asia,  pop3 is admixed
+
+        afr_metadata = models.population_metadata(
+            name="AFR", description="Contemporary African population")
+        eur_metadata = models.population_metadata(
+            name="EUR", description="Contemporary European population")
+        asia_metadata = models.population_metadata(
+            name="ASIA", description="Contemporary Asian population")
+        admix_metadata = models.population_metadata(
+            name="ADMIX", description="Ancient admixed population")
+
         self.population_configurations = [
             msprime.PopulationConfiguration(
-                initial_size=Naf, growth_rate=0.0),
+                initial_size=Naf, growth_rate=0.0, metadata=afr_metadata),
             msprime.PopulationConfiguration(
-                initial_size=Neu*math.exp(reu*Teu), growth_rate=reu),
+                initial_size=Neu*math.exp(reu*Teu), growth_rate=reu,
+                metadata=eur_metadata),
             msprime.PopulationConfiguration(
-                initial_size=Nas*math.exp(ras*Teu), growth_rate=ras),
+                initial_size=Nas*math.exp(ras*Teu), growth_rate=ras,
+                metadata=asia_metadata),
             msprime.PopulationConfiguration(
-                initial_size=Nadmix*math.exp(radmix*Tadmix), growth_rate=radmix)
+                initial_size=Nadmix*math.exp(radmix*Tadmix), growth_rate=radmix,
+                metadata=admix_metadata)
         ]
 
         self.migration_matrix = [

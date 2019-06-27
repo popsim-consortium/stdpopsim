@@ -84,10 +84,7 @@ class TestGenome(unittest.TestCase):
                 self.assertTrue(np.allclose(default_rr, numpy_rr))
 
     def test_default_recombination_rate(self):
-        """
-        Simply test that the mean recombination rate
-        lies between the max and min values
-        """
+        # test that the mean recombination rate lies between the max and min values
         genome = homo_sapiens.genome
         highest_rr = 0
         lowest_rr = 10000
@@ -100,10 +97,7 @@ class TestGenome(unittest.TestCase):
         self.assertGreaterEqual(highest_rr, mean_genome_rr)
 
     def test_default_mutation_rate(self):
-        """
-        Simply test that the mean mutation rate
-        lies between the max and min values
-        """
+        # test that the mean mutation rate lies between the max and min values
         genome = homo_sapiens.genome
         highest_mr = 0
         lowest_mr = 10000
@@ -226,7 +220,6 @@ class TestTennessenOnePopAfrica(unittest.TestCase):
 
     def test_qc_model_equal(self):
         model = homo_sapiens.TennessenOnePopAfrica()
-        print(model)
         self.assertTrue(model.equals(homo_sapiens_qc.TennessenOnePopAfrica()))
 
 

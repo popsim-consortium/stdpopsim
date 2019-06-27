@@ -112,6 +112,14 @@ def verify_demographic_events_equal(
                         key, value1, value2))
 
 
+def population_metadata(name, description):
+    """
+    Returns a dictionary used to defined the metadata for population defined in the
+    ``population_configurations`` instance variable of a Model object.
+    """
+    return {"name": name, "description": description}
+
+
 class Model(citations.CitableMixin):
     """
     Class representing a simulation model that can be run in msprime.
@@ -180,6 +188,18 @@ class Model(citations.CitableMixin):
             self.demographic_events, other.demographic_events,
             len(self.population_configurations),
             rtol=rtol, atol=atol)
+
+    def run(self, chromosome, samples):
+        """
+        Runs this model for the specified chromosome (defining the recombination
+        map and mutation rate) and samples.
+        """
+        ts = msprime.simulate(
+            samples=samples,
+            recombination_map=chromosome.recombination_map,
+            mutation_rate=chromosome.mutation_rate,
+            **self.asdict())
+        return ts
 
 
 def all_models():
