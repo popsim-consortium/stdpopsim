@@ -273,6 +273,10 @@ class TestRagsdaleArchaic(unittest.TestCase):
         s = output.getvalue()
         self.assertGreater(len(s), 0)
 
+    def test_qc_model_equal(self):
+        model = homo_sapiens.RagsdaleArchaic()
+        self.assertTrue(model.equals(homo_sapiens_qc.RagsdaleArchaic()))
+
 
 class TestChromosomeFactory(unittest.TestCase):
     """
