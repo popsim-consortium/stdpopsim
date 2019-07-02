@@ -237,3 +237,133 @@ class BrowningAmerica(models.Model):
             msprime.PopulationParametersChange(
                 time=T_AF0_AF1, initial_size=N_AF0, population_id=0),
         ]
+
+
+class RagsdaleArchaic(models.Model):
+    def __init__(self):
+        super().__init__()
+
+        # All parameters were taken from table 1 of Ragsdale et al. (2019)
+        generation_time = 29
+        
+        # Population sizes
+        N_0 = 3600 # Size of archaic populations
+        N_YRI = 13900 # Fixed size of YRI population
+        N_B = 880 # Size of OOA population
+        N_CEU0 = 2300 # Size of CEU population at CEU-CHB split
+        N_CHB0 = 650 # Size of CHB population at CEU-CHB split
+
+        # Population growth parameters
+        r_CEU = 0.125e-2
+        r_CHB = 0.372e-2
+
+        # Migration parameters
+        m_AF_B = 52.2e-5
+        m_YRI_CEU = 2.48e-5
+        m_YRI_CHB = 0
+        m_CEU_CHB = 11.3e-5
+        m_AF_ARCHAF = 1.98e-5
+        m_OOA_NEAN =  0.825e-5
+
+        # Epoch times
+        T_AF = 300e3/generation_time
+        T_OOA = 60.7e3/generation_time
+        T_CEU_CHB  = 36e3/generation_time
+        T_ARCHAF_split = 499e3/generation_time
+        T_ARCHAF_mig = 125e3/generation_time
+        T_NEAN_split = 559e3/generation_time
+        T_ARCH_ADMIX_end = 18.7e3/generation_time
+
+        # Calculate population sizes at modern (T=0) time
+        N_CEU1 = N_CEU0 * math.exp(r_CEU * T_CEU_CHB)
+        N_CHB1 = N_CHB0 * math.exp(r_CHB * T_CEU_CHB)
+
+        # Set population sizes at T=0
+        # pop0 is Africa, pop1 is Europe, pop2 is Asia, pop3 is Neanderthal, pop4 is
+        # archaic african
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N_YRI, growth_rate=0),
+            msprime.PopulationConfiguration(
+                initial_size=N_CEU1, growth_rate=r_CEU),
+            msprime.PopulationConfiguration(
+                initial_size=N_CHB1, growth_rate=r_CHB),
+            msprime.PopulationConfiguration(
+                initial_size=N_0, growth_rate=0),
+            msprime.PopulationConfiguration(
+                initial_size=N_0, growth_rate=0)
+        ]
+
+        # Setup initial migration matrix
+        self.migration_matrix = [
+            [0,         m_YRI_CEU,  m_YRI_CHB, 0, 0], # noqa
+            [m_YRI_CEU, 0,          m_CEU_CHB, 0, 0], # noqa
+            [m_YRI_CHB, m_CEU_CHB,  0,         0, 0], # noqa
+            [0,         0,          0,         0, 0], # noqa
+            [0,         0,          0,         0, 0] # noqa
+        ]
+
+        self.demographic_events = [
+            # Migration between YRI and ARCHAF(E1)
+            msprime.MigrationRateChange(
+                time=T_ARCH_ADMIX_end, rate=m_AF_ARCHAF, matrix_index=(0, 4)),
+            msprime.MigrationRateChange(
+                time=T_ARCH_ADMIX_end, rate=m_AF_ARCHAF, matrix_index=(4, 0)),
+            # Migration between CEU and NEAN(E1)
+            msprime.MigrationRateChange(
+                time=T_ARCH_ADMIX_end, rate=m_OOA_NEAN, matrix_index=(1, 3)),
+            msprime.MigrationRateChange(
+                time=T_ARCH_ADMIX_end, rate=m_OOA_NEAN, matrix_index=(3, 1)),
+            # Migration between CHB and NEAN(E1)
+            msprime.MigrationRateChange(
+                time=T_ARCH_ADMIX_end, rate=m_OOA_NEAN, matrix_index=(2, 3)),
+            msprime.MigrationRateChange(
+                time=T_ARCH_ADMIX_end, rate=m_OOA_NEAN, matrix_index=(3, 2)),
+            # Coalescence of CHB into CEU (E2)
+            msprime.MassMigration(
+                time=T_CEU_CHB, source=2, dest=1, proportion=1.0),
+            # Reset migration rates (E2)(redundant)*
+            msprime.MigrationRateChange(
+                time=T_CEU_CHB, rate=0.0),
+            # Migration rate change between OOA(CEU) and AF(YRI)(E2)
+            msprime.MigrationRateChange(
+                time=T_CEU_CHB, rate=m_AF_B, matrix_index=(0, 1)),
+            msprime.MigrationRateChange(
+                time=T_CEU_CHB, rate=m_AF_B, matrix_index=(1, 0)),    
+            # Migration between YRI and ARCHAF (E2)(redundant without mig. rate reset)*
+            msprime.MigrationRateChange(
+                time=T_CEU_CHB, rate=m_AF_ARCHAF, matrix_index=(0, 4)),
+            msprime.MigrationRateChange(
+                time=T_CEU_CHB, rate=m_AF_ARCHAF, matrix_index=(4, 0)),
+            # Migration between CEU and NEAN (E2)(redundant without mig. rate reset)*
+            msprime.MigrationRateChange(
+                time=T_CEU_CHB, rate=m_OOA_NEAN, matrix_index=(1, 3)),
+            msprime.MigrationRateChange(
+                time=T_CEU_CHB, rate=m_OOA_NEAN, matrix_index=(3, 1)),
+            # CEU change to fixed population size at the time of the CHB/CEU coal. (E2)
+            msprime.PopulationParametersChange(
+                time=T_CEU_CHB, initial_size=N_B, growth_rate=0, population_id=1),
+            # Coalescence between the OOA and AF pops (E3)
+            msprime.MassMigration(
+                time=T_OOA, source=1, destination=0, proportion=1.0),
+            # Reset migration rates (E3)
+            msprime.MigrationRateChange(
+                time=T_OOA, rate=0.0),
+            # Migration between YRI and ARCHAF (E3)
+            msprime.MigrationRateChange(
+                time=T_OOA, rate=m_AF_ARCHAF, matrix_index=(0, 4)),
+            msprime.MigrationRateChange(
+                time=T_OOA, rate=m_AF_ARCHAF, matrix_index=(4, 0)),
+            # Migration between archaic african and african pop. "ends" (E4)
+            msprime.MigrationRateChange(
+                time=T_ARCHAF_mig, rate=0),
+            # AF reverts to ancestral population size pre OOA (E5)
+            msprime.PopulationParametersChange(
+                time=T_AF, initial_size=N_0, population_id=0),
+            # Archaic AF population coalesces into AF (E6)
+            msprime.MassMigration(
+                time=T_ARCHAF_split, source = 4, dest = 0, proportion=1.0),
+            # NEAN pop. coalesces into AF (E7)
+            msprime.MassMigration(
+                time=T_NEAN_split, source = 3, dest = 0, proportion=1.0)
+        ]
