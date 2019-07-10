@@ -34,8 +34,20 @@ variants, because although it performs a coalescent simulation of
 a 51,304,566bp chromosome, it does this with the effective population size of
 `Ne=1`.)
 
-The chromosome definitions also aware of recombination maps, so we can run
-more complex simulations like:
+The chromosome definitions also aware of recombination maps,
+which must be first downloaded. The default for ``homo_sapiens`` is ``HapmapII_GRCh37``,
+which we can find out, then download it as follows 
+(the maps are stored in your ``~/.cache/stdpopsim/`` directory):
+
+.. code-block:: python
+
+   homo_sapiens.genome.default_genetic_map
+   # 'HapmapII_GRCh37'
+   gmap = homo_sapiens.HapmapII_GRCh37()
+   gmap.download()
+   
+
+After this has been done (once only), we can run simulations using this genetic map as follows:
 
 .. code-block:: python
 
