@@ -696,3 +696,95 @@ class RagsdaleArchaic(models.Model):
             msprime.MassMigration(
                 time=T_nean_split, source=3, destination=0, proportion=1.0)
         ]
+
+
+class SchiffelsZigzag(models.Model):
+    """
+    Model Name:
+        SchiffelsZigzag
+
+    Model Description:
+        A validation model used by Schiffels and Durbin (2014) and Terhorst and Terhorst, Kamm, and Song (2017) with periods
+        of exponential growth and decline in a single population.
+        The original SCRM command for this model was:
+
+        .. code_block::
+
+            scrm 8 1 -N0 14312 -t 1431200 -r 400736 2000000000
+            -eN 0 1 -eG 0.000582262 1318.18 -eG 0.00232905 -329.546 -eG 0.00931619 82.3865
+            -eG 0.0372648 -20.5966 -eG 0.149059 5.14916 -eN 0.596236 0.1 -seed 1 -T -L -p 10 -l 300000.
+
+    Model population indexes:
+        - Single population: 0
+
+    CLI help:
+        python -m stdpopsim homo-sapiens SchiffelsZigzag -h
+
+    Citation:
+       Schiffels, S., & Durbin, R. (2014). Inferring human population size and separation history from multiple genome sequences. Nature Genetics. https://doi.org/10.1038/ng.3015
+    """  # noqa: E501
+    author = "Schiffels and Durbin"
+    year = 2014
+    doi = "https://doi.org/10.1038/ng.3015"
+
+    def ms2msp_nt(self, n0, s, a, N0=14312):
+        """
+        Convert the ms growth rates to those more appropriate for
+        msprime and calculate n(t) according to them.
+        The 4N0 correction is relative to the absolute N0, rather
+        than the epoch specific one. """
+        return n0 * math.exp(-(s / (4 * N0))*a)
+
+    def __init__(self):
+        super().__init__()
+
+        self.generation_time = 29
+        N0 = 14312
+        scale = 4 * N0
+
+        g_1 = 1318.18 / scale
+        t_1 = 0.000582262 * scale  # (generations)
+        n_1 = N0
+
+        g_2 = -329.546 / scale
+        t_2 = 0.00232905 * scale
+        n_2 = self.ms2msp_nt(n_1, t_2 - t_1, g_1)
+
+        g_3 = 82.3865 / scale
+        t_3 = 0.00931619 * scale
+        n_3 = self.ms2msp_nt(n_2, t_3 - t_2, g_2)
+
+        g_4 = -20.5966 / scale
+        t_4 = 0.0372648 * scale
+        n_4 = self.ms2msp_nt(n_3, t_4 - t_3, g_3)
+
+        g_5 = 5.14916 / scale
+        t_5 = 0.149059 * scale
+        n_5 = self.ms2msp_nt(n_4, t_5 - t_4, g_4)
+
+        n_ancient = 0.1 * N0
+        t_ancient = 0.596236 * scale
+
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N0)
+        ]
+
+        self.migration_matrix = [
+            [0]
+        ]
+
+        self.demographic_events = [
+                msprime.PopulationParametersChange(
+                    initial_size=n_1, time=t_1, growth_rate=g_1),
+                msprime.PopulationParametersChange(
+                    initial_size=n_2, time=t_2, growth_rate=g_2),
+                msprime.PopulationParametersChange(
+                    initial_size=n_3, time=t_3, growth_rate=g_3),
+                msprime.PopulationParametersChange(
+                    initial_size=n_4, time=t_4, growth_rate=g_4),
+                msprime.PopulationParametersChange(
+                    initial_size=n_5, time=t_5, growth_rate=g_5),
+                msprime.PopulationParametersChange(
+                    time=t_ancient, initial_size=n_ancient, growth_rate=0)
+        ]
