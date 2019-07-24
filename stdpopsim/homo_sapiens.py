@@ -733,7 +733,7 @@ class SchiffelsZigzag(models.Model):
         msprime and calculate n(t) according to them.
         The 4N0 correction is relative to the absolute N0, rather
         than the epoch specific one. """
-        return n0 * math.exp(-(s / (4 * N0))*a)
+        return n0 * math.exp(-s*a)
 
     def __init__(self):
         super().__init__()
