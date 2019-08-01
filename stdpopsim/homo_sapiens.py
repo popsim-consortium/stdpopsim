@@ -696,3 +696,82 @@ class RagsdaleArchaic(models.Model):
             msprime.MassMigration(
                 time=T_nean_split, source=3, destination=0, proportion=1.0)
         ]
+
+
+class SchiffelsZigzag(models.Model):
+    """
+    Model Name:
+        SchiffelsZigzag
+
+    Model Description:
+        A validation model used by Schiffels and Durbin (2014) and
+        Terhorst and Terhorst, Kamm, and Song (2017) with periods
+        of exponential growth and decline in a single population.
+
+    Model population indexes:
+        - Single population: 0
+
+    CLI help:
+        python -m stdpopsim homo-sapiens SchiffelsZigzag -h
+
+    Citation:
+       Schiffels, S., & Durbin, R. (2014). Inferring human population size and
+       separation history from multiple genome sequences. Nature Genetics.
+       https://doi.org/10.1038/ng.3015
+    """
+    author = "Schiffels and Durbin"
+    year = 2014
+    doi = "https://doi.org/10.1038/ng.3015"
+
+    def __init__(self):
+        super().__init__()
+
+        self.generation_time = 29
+        N0 = 14312
+
+        g_1 = 0.023025
+        t_1 = 33.333
+        n_1 = N0
+
+        g_2 = -0.005756
+        t_2 = 133.33
+        n_2 = N0/10
+
+        g_3 = 0.0014391
+        t_3 = 533.33
+        n_3 = N0
+
+        g_4 = -0.00035977
+        t_4 = 2133.33
+        n_4 = N0/10
+
+        g_5 = 8.99448e-5
+        t_5 = 8533.33
+        n_5 = N0
+
+        n_ancient = N0/10
+        t_ancient = 34133.31
+
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N0)
+        ]
+
+        self.migration_matrix = [
+            [0]
+        ]
+
+        self.demographic_events = [
+                msprime.PopulationParametersChange(
+                    initial_size=n_1, time=t_1, growth_rate=g_1),
+                msprime.PopulationParametersChange(
+                    initial_size=n_2, time=t_2, growth_rate=g_2),
+                msprime.PopulationParametersChange(
+                    initial_size=n_3, time=t_3, growth_rate=g_3),
+                msprime.PopulationParametersChange(
+                    initial_size=n_4, time=t_4, growth_rate=g_4),
+                msprime.PopulationParametersChange(
+                    initial_size=n_5, time=t_5, growth_rate=g_5),
+                msprime.PopulationParametersChange(
+                    time=t_ancient, initial_size=n_ancient, growth_rate=0)
+        ]
