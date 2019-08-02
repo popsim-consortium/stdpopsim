@@ -5,7 +5,7 @@ import msprime
 
 import stdpopsim.models as models
 import stdpopsim.genomes as genomes
-
+import stdpopsim.generic_models as generics # NOQA
 
 ###########################################################
 #

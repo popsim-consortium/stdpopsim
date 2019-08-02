@@ -7,7 +7,7 @@ import msprime
 import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
-
+import stdpopsim.generic_models as generics # NOQA
 
 ###########################################################
 #
@@ -129,8 +129,8 @@ class SheehanSongThreeEpoch(models.Model):
 
         # Population metadata
         metadata_afr = {
-            "name": "AFR_dmel",
-            "description": "African D. melanogaster population"
+           "name": "AFR_dmel",
+           "description": "African D. melanogaster population"
         }
 
         # Single population in this model

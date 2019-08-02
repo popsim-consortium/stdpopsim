@@ -9,7 +9,7 @@ import msprime
 import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
-
+import stdpopsim.generic_models as generic_models
 logger = logging.getLogger(__name__)
 
 
@@ -119,6 +119,7 @@ genome = genomes.Genome(
     chromosomes=_chromosomes,
     default_genetic_map=HapmapII_GRCh37.name)
 
+
 #
 # Experimental interface used to develop the CLI.
 #
@@ -166,7 +167,34 @@ def chromosome_factory(name, genetic_map=None, length_multiplier=1):
 default_generation_time = 25
 
 
-class GutenkunstThreePopOutOfAfrica(models.Model):
+class HomoSapiensModel(models.Model):
+    """
+    TODO: documentation
+    """
+    def __init__(self):
+        super().__init__()
+        self.generation_time = default_generation_time
+        self.default_population_size = 10000
+
+
+class GenericConstantSize(HomoSapiensModel, generic_models.ConstantSizeMixin):
+    def __init__(self):
+        HomoSapiensModel.__init__(self)
+        generic_models.ConstantSizeMixin.__init__(self, self.default_population_size)
+
+
+class GenericTwoEpoch(HomoSapiensModel, generic_models.TwoEpochMixin):
+    def __init__(self, n2=None, t=None):
+        HomoSapiensModel.__init__(self)
+        n1 = self.default_population_size
+        if n2 is None:
+            n2 = n1 / 2.0
+        if t is None:
+            t = n1 / 100
+        generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
+
+
+class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
     """
     Model Name:
         GutenkunstThreePopOutOfAfrica
@@ -212,7 +240,7 @@ class GutenkunstThreePopOutOfAfrica(models.Model):
         N_EU0 = 1000
         N_AS0 = 510
         # Times are provided in years, so we convert into generations.
-        self.generation_time = default_generation_time
+        # self.generation_time = default_generation_time
         T_AF = 220e3 / self.generation_time
         T_B = 140e3 / self.generation_time
         T_EU_AS = 21.2e3 / self.generation_time
@@ -260,7 +288,7 @@ class GutenkunstThreePopOutOfAfrica(models.Model):
         ]
 
 
-class TennessenTwoPopOutOfAfrica(models.Model):
+class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
     """
     Model Name:
         TennessenTwoPopOutOfAfrica
@@ -301,7 +329,6 @@ class TennessenTwoPopOutOfAfrica(models.Model):
     def __init__(self):
         super().__init__()
 
-        self.generation_time = default_generation_time
         T_AF = 148e3 / self.generation_time
         T_OOA = 51e3 / self.generation_time
         T_EU0 = 23e3 / self.generation_time
@@ -359,7 +386,7 @@ class TennessenTwoPopOutOfAfrica(models.Model):
         ]
 
 
-class TennessenOnePopAfrica(models.Model):
+class TennessenOnePopAfrica(HomoSapiensModel):
     """
     Model Name:
         TennessenOnePopAfrica
@@ -396,7 +423,6 @@ class TennessenOnePopAfrica(models.Model):
     def __init__(self):
         super().__init__()
 
-        self.generation_time = default_generation_time
         T_AF = 148e3 / self.generation_time
         T_EG = 5115 / self.generation_time
 
@@ -426,7 +452,7 @@ class TennessenOnePopAfrica(models.Model):
         ]
 
 
-class BrowningAmerica(models.Model):
+class BrowningAmerica(HomoSapiensModel):
     """
     Model Name:
         BrowningAmerica
@@ -541,7 +567,7 @@ class BrowningAmerica(models.Model):
         self.demographic_events = admixture_event + eu_event + ooa_event + init_event
 
 
-class RagsdaleArchaic(models.Model):
+class RagsdaleArchaic(HomoSapiensModel):
     """
     Model Name:
         RagsdaleArchaic
@@ -698,7 +724,7 @@ class RagsdaleArchaic(models.Model):
         ]
 
 
-class SchiffelsZigzag(models.Model):
+class SchiffelsZigzag(HomoSapiensModel):
     """
     Model Name:
         SchiffelsZigzag
