@@ -6,12 +6,14 @@ import math
 import msprime
 
 import stdpopsim.models as models
+import stdpopsim.generic_models as generics # NOQA
 
 
 # TODO: how do we define the Orangutan genome here? Are they similar enough to
 # humans that we just use humans? What about the different species of pongo?
 
 # TODO: add a default generation time to the species
+
 
 class LockeEtAlPongoIM(models.Model):
     '''

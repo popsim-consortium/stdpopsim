@@ -7,7 +7,7 @@ import numpy as np
 import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
-
+import stdpopsim.generic_models as generics # NOQA
 
 ###########################################################
 #
