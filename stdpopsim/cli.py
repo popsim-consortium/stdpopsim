@@ -149,10 +149,11 @@ def add_model_runner(top_parser, model):
     add_output_argument(parser)
     sample_arg_names = []
     for population in model.populations:
-        name = population.name
-        help_text = f"The number of samples to take from the {name} population"
-        parser.add_argument(f"--num-{name}", help=help_text, default=0, type=int)
-        sample_arg_names.append("num_{}".format(name))
+        if population.allow_samples:
+            name = population.name
+            help_text = f"The number of samples to take from the {name} population"
+            parser.add_argument(f"--num-{name}", help=help_text, default=0, type=int)
+            sample_arg_names.append("num_{}".format(name))
 
     def run_simulation(args):
         args_dict = vars(args)

@@ -476,7 +476,9 @@ class BrowningAmerica(HomoSapiensModel):
         models.Population(name="AFR", description="Contemporary African population"),
         models.Population(name="EUR", description="Contemporary European population"),
         models.Population(name="ASIA", description="Contemporary Asian population"),
-        models.Population(name="ADMIX", description="Ancient admixed population"),
+        models.Population(
+            name="ADMIX", description="Ancient admixed population",
+            allow_samples=False),
     ]
 
     citations = [
@@ -590,8 +592,10 @@ class RagsdaleArchaic(HomoSapiensModel):
         _yri_population,
         _ceu_population,
         _chb_population,
-        models.Population("Neanderthal", "Putative Neanderthals"),
-        models.Population("ArchaicAFR", "Putative Archaic Africans"),
+        models.Population(
+            "Neanderthal", "Putative Neanderthals", allow_samples=False),
+        models.Population(
+            "ArchaicAFR", "Putative Archaic Africans", allow_samples=False),
     ]
 
     citations = [
@@ -751,7 +755,6 @@ class SchiffelsZigzag(HomoSapiensModel):
         Schiffels, S., & Durbin, R. (2014). Inferring human population size and
         separation history from multiple genome sequences. Nature Genetics.
         """
-
     ]
     author = "Schiffels and Durbin"
     year = 2014

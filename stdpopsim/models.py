@@ -142,9 +142,10 @@ class Population(object):
     """
     Class recording metadata representing a population in a simulation.
     """
-    def __init__(self, name, description):
+    def __init__(self, name, description, allow_samples=True):
         self.name = name
         self.description = description
+        self.allow_samples = allow_samples
 
     def asdict(self):
         """
