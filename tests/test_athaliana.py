@@ -2,6 +2,7 @@ import unittest
 import io
 
 from stdpopsim import arabidopsis_thaliana
+from qc import arabidopsis_thaliana_qc
 
 
 class TestGenome(unittest.TestCase):
@@ -40,3 +41,7 @@ class TestDurvasula2017MSMC(unittest.TestCase):
         model.debug(output)
         s = output.getvalue()
         self.assertGreater(len(s), 0)
+
+    def test_qc_model_equal(self):
+        model = arabidopsis_thaliana.Durvasula2017MSMC()
+        self.assertTrue(model.equals(arabidopsis_thaliana_qc.Durvasula2017MSMC()))
