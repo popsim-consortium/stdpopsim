@@ -148,12 +148,18 @@ def add_model_runner(top_parser, model):
         help=model.short_description)
     add_output_argument(parser)
     sample_arg_names = []
-    for population in model.populations:
-        if population.allow_samples:
-            name = population.name
-            help_text = f"The number of samples to take from the {name} population"
-            parser.add_argument(f"--num-{name}", help=help_text, default=0, type=int)
-            sample_arg_names.append("num_{}".format(name))
+    if len(model.populations) == 1:
+        assert model.populations[0].allow_samples
+        help_text = f"The number of samples"
+        parser.add_argument(f"--num-samples", help=help_text, default=0, type=int)
+        sample_arg_names.append("num_samples")
+    else:
+        for population in model.populations:
+            if population.allow_samples:
+                name = population.name
+                help_text = f"The number of samples to take from the {name} population"
+                parser.add_argument(f"--num-{name}", help=help_text, default=0, type=int)
+                sample_arg_names.append("num_{}".format(name))
 
     def run_simulation(args):
         args_dict = vars(args)
@@ -216,6 +222,7 @@ def stdpopsim_cli_parser():
     add_model_runner(subsubparsers, homo_sapiens.TennessenTwoPopOutOfAfrica())
     add_model_runner(subsubparsers, homo_sapiens.BrowningAmerica())
     add_model_runner(subsubparsers, homo_sapiens.RagsdaleArchaic())
+    add_model_runner(subsubparsers, homo_sapiens.SchiffelsZigzag())
 
     # Add stubs for discussion
     species_parser = subparsers.add_parser(

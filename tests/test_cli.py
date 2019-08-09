@@ -128,6 +128,14 @@ class TestEndToEnd(unittest.TestCase):
         cmd = "homo-sapiens -c chr1 -l0.01 BrowningAmerica --num-ASIA=10"
         self.verify(cmd, num_samples=10)
 
+    def test_ragsdale_archaic(self):
+        cmd = "homo-sapiens -c chr1 -l0.01 RagsdaleArchaic --num-CEU=10"
+        self.verify(cmd, num_samples=10)
+
+    def test_schiffels_zigzag(self):
+        cmd = "homo-sapiens -c chr1 -l0.01 SchiffelsZigzag --num-samples=2"
+        self.verify(cmd, num_samples=2)
+
 
 class TestEndToEndSubprocess(TestEndToEnd):
     """
