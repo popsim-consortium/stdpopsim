@@ -2,10 +2,35 @@
 Infrastructure for defining basic information about the genomes of
 species.
 """
+import warnings
+import logging
+
+import msprime
 
 import stdpopsim.genetic_maps as genetic_maps
-import msprime
-import warnings
+
+logger = logging.getLogger(__name__)
+
+registered_genomes = {}
+
+
+def get_genome(species):
+    """
+    Returns the genome definition for the specified species.
+    Raises a ValueError if the species has not been registered.
+    """
+    if species not in registered_genomes:
+        raise ValueError("Unknown species '{}'".format(species))
+    return registered_genomes[species]
+
+
+def register_genome(genome):
+    """
+    Registers the genome definition that it can be loaded.
+    """
+    key = genome.species
+    logger.debug("Registering genome '{}'".format(key))
+    registered_genomes[key] = genome
 
 
 class Genome(object):
@@ -106,3 +131,52 @@ class Chromosome(object):
                 "-recombination map.".format(self.name, map_name))
             ret = msprime.RecombinationMap.uniform_map(self.length, 0)
         return ret
+
+
+class Contig(object):
+    """
+    Class representing a contiguous region of genome that is to be
+    simulated. This contains all information required to simulate
+    the region, including mutation, recombination rates, etc.
+
+    See :func:`.contig_factory` function for information on how to
+    populate this
+    """
+    def __init__(self):
+        self.recombination_map = None
+        self.mutation_rate = None
+
+
+def contig_factory(species, chromosome, genetic_map=None, length_multiplier=1):
+    """
+    Returns a :class:`.Contig` instance describing a section of genome that
+    is to be simulated based on empirical information for a given species
+    and chromosome.
+
+    :param str species: The name of the species to simulate.
+    :param str chromosome: The name of the chromosome to simulate.
+    :param str genetic_map: If specified, obtain recombination rate information
+        from the genetic map with the specified name. If None, simulate
+        a flat recombination rate on a region with the length of the specified
+        chromosome. (Default: None)
+    :param float length_multiplier: If specified simulate a contig of length
+        length_multiplier times the length of the specified chromosome.
+    :rtype: Contig
+    :return: A Contig describing a simulation of the section of genome.
+    """
+    genome = get_genome(species)
+    chrom = genome.chromosomes[chromosome]
+    if genetic_map is None:
+        logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.name}")
+        recomb_map = msprime.RecombinationMap.uniform_map(
+            chrom.length * length_multiplier, chrom.default_recombination_rate)
+    else:
+        if length_multiplier != 1:
+            raise ValueError("Cannot use length multiplier with empirical maps")
+        logger.debug(f"Getting map for {chrom.name} from {genetic_map}")
+        recomb_map = chrom.recombination_map(genetic_map)
+
+    ret = Contig()
+    ret.recombination_map = recomb_map
+    ret.mutation_rate = chrom.default_mutation_rate
+    return ret

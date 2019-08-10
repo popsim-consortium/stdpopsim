@@ -15,6 +15,7 @@ import humanize
 import daiquiri
 
 import stdpopsim
+from stdpopsim import genomes
 from stdpopsim import homo_sapiens
 
 
@@ -96,7 +97,7 @@ def write_output(ts, args):
     ts.dump(args.output)
 
 
-def write_citations(chromosome, model):
+def write_citations(contig, model):
     """
     Write out citation information so that the user knows what papers to cite
     for the simulation engine, the model and the mutation/recombination rate
@@ -170,15 +171,15 @@ def add_model_runner(top_parser, model):
         if len(samples) < 2:
             exit("Must specify at least 2 samples")
 
-        chromosome = homo_sapiens.chromosome_factory(
-                args.chromosome, genetic_map=args.genetic_map,
-                length_multiplier=args.length_multiplier)
-        logger.info(f"Running {model.name} on {chromosome} with {len(samples)} samples")
-        ts = model.run(chromosome, samples)
+        contig = genomes.contig_factory(
+            args.species, args.chromosome, genetic_map=args.genetic_map,
+            length_multiplier=args.length_multiplier)
+        logger.info(f"Running {model.name} on {contig} with {len(samples)} samples")
+        ts = model.run(contig, samples)
         summarise_usage()
         write_output(ts, args)
         if not args.quiet:
-            write_citations(chromosome, model)
+            write_citations(contig, model)
 
     parser.set_defaults(runner=run_simulation)
 
@@ -204,6 +205,7 @@ def stdpopsim_cli_parser():
     species_parser = subparsers.add_parser(
         "homo-sapiens",
         help="Run simulations of human history.")
+    species_parser.set_defaults(species="homo_sapiens")
     species_parser.add_argument(
         "-g", "--genetic-map", default=None,
         # TODO use the genetic map registry

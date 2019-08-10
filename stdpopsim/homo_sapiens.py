@@ -120,42 +120,8 @@ genome = genomes.Genome(
     chromosomes=_chromosomes,
     default_genetic_map=HapmapII_GRCh37.name)
 
+genomes.register_genome(genome)
 
-#
-# Experimental interface used to develop the CLI.
-#
-
-
-class TempChromosome(object):
-    """
-    Temporary class while figuring out the best way to do this.
-    """
-    def __init__(self):
-        self.length = None
-        self.recombination_map = None
-        self.mutation_rate = None
-
-
-def chromosome_factory(name, genetic_map=None, length_multiplier=1):
-    """
-    Temporary function to help figure out the right interface for getting
-    chromosome information.
-    """
-    chrom = genome.chromosomes[name]
-    if genetic_map is None:
-        logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.name}")
-        recomb_map = msprime.RecombinationMap.uniform_map(
-            chrom.length * length_multiplier, chrom.default_recombination_rate)
-    else:
-        if length_multiplier != 1:
-            raise ValueError("Cannot use length multiplier with empirical maps")
-        logger.debug(f"Getting map for {chrom.name} from {genetic_map}")
-        recomb_map = chrom.recombination_map(genetic_map)
-
-    ret = TempChromosome()
-    ret.recombination_map = recomb_map
-    ret.mutation_rate = chrom.default_mutation_rate
-    return ret
 
 ###########################################################
 #

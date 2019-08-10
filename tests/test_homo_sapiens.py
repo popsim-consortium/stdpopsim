@@ -9,6 +9,7 @@ import numpy as np
 
 from stdpopsim import homo_sapiens
 from stdpopsim import genetic_maps
+from stdpopsim import genomes
 
 from qc import homo_sapiens_qc
 
@@ -338,21 +339,22 @@ class TestGenericTwoEpoch(unittest.TestCase):
         self.assertGreater(len(s), 0)
 
 
-class TestChromosomeFactory(unittest.TestCase):
+class TestContigFactory(unittest.TestCase):
     """
-    Simple tests for the temporary chromosome factory object.
+    Tests for the contig_factory function.
 
-    TODO move these into the appropriate location later.
+    TODO move these into the appropriate location.
     """
     def test_length_multiplier(self):
-        chrom1 = homo_sapiens.chromosome_factory("chr22")
+        contig1 = genomes.contig_factory("homo_sapiens", "chr22")
         for x in [0.125, 1.0, 2.0]:
-            chrom2 = homo_sapiens.chromosome_factory("chr22", length_multiplier=x)
+            contig2 = genomes.contig_factory(
+                "homo_sapiens", "chr22", length_multiplier=x)
             self.assertEqual(
-                chrom1.recombination_map.get_positions()[-1] * x,
-                chrom2.recombination_map.get_positions()[-1])
+                contig1.recombination_map.get_positions()[-1] * x,
+                contig2.recombination_map.get_positions()[-1])
 
     def test_length_multiplier_on_empirical_map(self):
         with self.assertRaises(ValueError):
-            homo_sapiens.chromosome_factory(
-                "chr1", "HapmapII_GRCh37", length_multiplier=2)
+            genomes.contig_factory(
+                "homo_sapiens", "chr1", "HapmapII_GRCh37", length_multiplier=2)
