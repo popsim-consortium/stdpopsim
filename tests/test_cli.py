@@ -15,6 +15,8 @@ import msprime
 
 import stdpopsim
 import stdpopsim.cli as cli
+import stdpopsim.models as models
+import stdpopsim.homo_sapiens as homo_sapiens
 
 
 class TestException(Exception):
@@ -92,9 +94,9 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
         output = "test.trees"
         args = parser.parse_args([cmd, model, output])
         self.assertEqual(args.output, output)
-        self.assertEqual(args.num_ceu_samples, 0)
-        self.assertEqual(args.num_chb_samples, 0)
-        self.assertEqual(args.num_yri_samples, 0)
+        self.assertEqual(args.num_CEU, 0)
+        self.assertEqual(args.num_CHB, 0)
+        self.assertEqual(args.num_YRI, 0)
 
 
 class TestEndToEnd(unittest.TestCase):
@@ -105,26 +107,34 @@ class TestEndToEnd(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
             full_cmd = cmd + f" {filename}"
-            stdout, stderr = capture_output(cli.stdpopsim_main, full_cmd.split())
+            with mock.patch("stdpopsim.cli.setup_logging"):
+                stdout, stderr = capture_output(cli.stdpopsim_main, full_cmd.split())
             self.assertEqual(len(stderr), 0)
             self.assertGreater(len(stdout), 0)
-            # TODO converting to str isn't necessary in tskit 0.1.5. Remove.
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)
 
     def test_tennessen_two_pop_ooa(self):
         cmd = (
-            "homo-sapiens -c chr22 -l0.1 TennessenTwoPopOutOfAfrica --num-african=2 "
-            "--num-european=3")
+            "homo-sapiens -c chr22 -l0.1 TennessenTwoPopOutOfAfrica --num-AFR=2 "
+            "--num-EUR=3")
         self.verify(cmd, num_samples=5)
 
     def test_gutenkunst_three_pop_ooa(self):
-        cmd = "homo-sapiens -c chr1 -l0.01 GutenkunstThreePopOutOfAfrica --num-ceu=10"
+        cmd = "homo-sapiens -c chr1 -l0.01 GutenkunstThreePopOutOfAfrica --num-CEU=10"
         self.verify(cmd, num_samples=10)
 
     def test_browning_america(self):
-        cmd = "homo-sapiens -c chr1 -l0.01 BrowningAmerica --num-asian=10"
+        cmd = "homo-sapiens -c chr1 -l0.01 BrowningAmerica --num-ASIA=10"
         self.verify(cmd, num_samples=10)
+
+    def test_ragsdale_archaic(self):
+        cmd = "homo-sapiens -c chr1 -l0.01 RagsdaleArchaic --num-CEU=10"
+        self.verify(cmd, num_samples=10)
+
+    def test_schiffels_zigzag(self):
+        cmd = "homo-sapiens -c chr1 -l0.01 SchiffelsZigzag --num-samples=2"
+        self.verify(cmd, num_samples=2)
 
 
 class TestEndToEndSubprocess(TestEndToEnd):
@@ -137,7 +147,6 @@ class TestEndToEndSubprocess(TestEndToEnd):
             filename = pathlib.Path(tmpdir) / "output.trees"
             full_cmd = "python3 -m stdpopsim -q " + cmd + f" {filename}"
             subprocess.run(full_cmd, shell=True, check=True)
-            # TODO converting to str isn't necessary in tskit 0.1.5. Remove.
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)
         provenance = json.loads(ts.provenance(ts.num_provenances - 1).record)
@@ -152,28 +161,28 @@ class TestSetupLogging(unittest.TestCase):
     Tests that setup logging has the desired effect.
     """
     basic_cmd = [
-        "homo-sapiens", "GutenkunstThreePopOutOfAfrica", "tmp.trees", "--num-ceu=10"]
+        "homo-sapiens", "GutenkunstThreePopOutOfAfrica", "tmp.trees", "--num-CEU=10"]
 
     def test_default(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(self.basic_cmd)
-        with mock.patch("logging.basicConfig") as mocked_setup:
+        with mock.patch("daiquiri.setup") as mocked_setup:
             cli.setup_logging(args)
-            mocked_setup.assert_called_once_with(level="WARN", format=cli.log_format)
+            mocked_setup.assert_called_once_with(level="WARN")
 
     def test_verbose(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["-v"] + self.basic_cmd)
-        with mock.patch("logging.basicConfig") as mocked_setup:
+        with mock.patch("daiquiri.setup") as mocked_setup:
             cli.setup_logging(args)
-            mocked_setup.assert_called_once_with(level="INFO", format=cli.log_format)
+            mocked_setup.assert_called_once_with(level="INFO")
 
     def test_very_verbose(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["-vv"] + self.basic_cmd)
-        with mock.patch("logging.basicConfig") as mocked_setup:
+        with mock.patch("daiquiri.setup") as mocked_setup:
             cli.setup_logging(args)
-            mocked_setup.assert_called_once_with(level="DEBUG", format=cli.log_format)
+            mocked_setup.assert_called_once_with(level="DEBUG")
 
 
 class TestErrors(unittest.TestCase):
@@ -196,7 +205,10 @@ class TestErrors(unittest.TestCase):
             self.assertEqual(len(args), 1)
             self.assertTrue(args[0].endswith("XXX"))
 
-    def verify_bad_samples(self, cmd):
+    # Need to mock out setup_logging here or we spew logging to the console
+    # in later tests.
+    @mock.patch("stdpopsim.cli.setup_logging")
+    def verify_bad_samples(self, cmd, mock_setup_logging):
         with mock.patch("stdpopsim.cli.exit", side_effect=TestException) as mocked_exit:
             with self.assertRaises(TestException):
                 cli.stdpopsim_main(cmd.split())
@@ -211,3 +223,16 @@ class TestErrors(unittest.TestCase):
 
     def test_browning_america(self):
         self.verify_bad_samples("-q homo-sapiens BrowningAmerica tmp.trees")
+
+
+@unittest.skip("Non-human models missing 'name' attribute")
+class TestWriteCitations(unittest.TestCase):
+    """
+    Make sure all models can write citation information.
+    """
+    def test_all_models(self):
+        chromosome = homo_sapiens.chromosome_factory("chr22")
+        for model in models.all_models():
+            stdout, stderr = capture_output(cli.write_citations, chromosome, model)
+            self.assertEqual(len(stderr), 0)
+            self.assertGreater(len(stdout), 0)

@@ -10,6 +10,7 @@ import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
 import stdpopsim.generic_models as generic_models
+
 logger = logging.getLogger(__name__)
 
 
@@ -142,13 +143,13 @@ def chromosome_factory(name, genetic_map=None, length_multiplier=1):
     """
     chrom = genome.chromosomes[name]
     if genetic_map is None:
-        logging.debug(f"Making flat chromosome {length_multiplier} * {chrom.name}")
+        logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.name}")
         recomb_map = msprime.RecombinationMap.uniform_map(
             chrom.length * length_multiplier, chrom.default_recombination_rate)
     else:
         if length_multiplier != 1:
             raise ValueError("Cannot use length multiplier with empirical maps")
-        logging.debug(f"Getting map for {chrom.name} from {genetic_map}")
+        logger.debug(f"Getting map for {chrom.name} from {genetic_map}")
         recomb_map = chrom.recombination_map(genetic_map)
 
     ret = TempChromosome()
@@ -165,6 +166,19 @@ def chromosome_factory(name, genetic_map=None, length_multiplier=1):
 
 # species wide default generation time
 default_generation_time = 25
+
+# population definitions that are reused.
+_yri_population = models.Population(
+    name="YRI",
+    description="1000 Genomes YRI (Yorubans)")
+_ceu_population = models.Population(
+    name="CEU",
+    description=(
+        "1000 Genomes CEU (Utah Residents (CEPH) with Northern and "
+        "Western European Ancestry"))
+_chb_population = models.Population(
+    name="CHB",
+    description="1000 Genomes CHB (Han Chinese in Beijing, China)")
 
 
 class HomoSapiensModel(models.Model):
@@ -195,37 +209,28 @@ class GenericTwoEpoch(HomoSapiensModel, generic_models.TwoEpochMixin):
 
 
 class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
-    """
-    Model Name:
-        GutenkunstThreePopOutOfAfrica
-
-    Model Description:
+    name = "GutenkunstThreePopOutOfAfrica"
+    short_description = "Three population out-of-Africa model"
+    description = """
         The three population Out-of-Africa model from `Gutenkunst et al. <https://
         doi.org/10.1371/journal.pgen.1000695>`_ It describes the ancestral human
         population in Africa, the out of Africa event, and the subsequent European-Asian
         population split. Model parameters are the maximum likelihood values of the
         various parameters given in Table 1 of Gutenkunst et al.
-
-    Model population indexes:
-        - African (YRI): 0
-        - European (CEU): 1
-        - Asian (CHB): 2
-
-    Parameter Table:
-        .. csv-table::
-            :widths: 15 8 20
-            :header: "Parameter Type (units)", "Value", "Description"
-            :file: ../docs/parameter_tables/homo_sapiens/GutenkunstThreePopOutOfAfrica_params.csv
-
-    CLI help:
-        python -m stdpopsim homo-sapiens GutenkunstThreePopOutOfAfrica -h
-
-    Citation:
+    """
+    citations = [
+        """
         Gutenkunst, R. N., Hernandez, R. D., Williamson, S. H. & Bustamante, C. D.
         Inferring the Joint Demographic History of Multiple Populations from
         Multidimensional SNP Frequency Data. PLOS Genetics 5, e1000695 (2009).
+        """
+    ]
+    populations = [
+        _yri_population,
+        _ceu_population,
+        _chb_population
+    ]
 
-    """  # noqa: E501
     author = "Gutenkunst et al."
     year = 2009
     doi = "https://doi.org/10.1371/journal.pgen.1000695"
@@ -255,13 +260,19 @@ class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
         m_AF_EU = 3e-5
         m_AF_AS = 1.9e-5
         m_EU_AS = 9.6e-5
+
         # Population IDs correspond to their indexes in the population
         # configuration array. Therefore, we have 0=YRI, 1=CEU and 2=CHB
         # initially.
         self.population_configurations = [
-            msprime.PopulationConfiguration(initial_size=N_AF),
-            msprime.PopulationConfiguration(initial_size=N_EU, growth_rate=r_EU),
-            msprime.PopulationConfiguration(initial_size=N_AS, growth_rate=r_AS)
+            msprime.PopulationConfiguration(
+                initial_size=N_AF, metadata=self.populations[0].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_EU, growth_rate=r_EU,
+                metadata=self.populations[1].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_AS, growth_rate=r_AS,
+                metadata=self.populations[2].asdict()),
         ]
         self.migration_matrix = [
             [      0, m_AF_EU, m_AF_AS],  # noqa
@@ -289,37 +300,29 @@ class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
 
 
 class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
-    """
-    Model Name:
-        TennessenTwoPopOutOfAfrica
-
-    Model Description:
+    name = "TennessenTwoPopOutOfAfrica"
+    short_description = "Two population out-of-Africa model"
+    description = """
         The model is derived from the Tennesen et al. `analysis <https://doi.org/10.1126/
         science.1219240>`_  of the jSFS from European Americans and African Americans.
         It describes the ancestral human population in Africa, the out of Africa event,
         and two distinct periods of subsequent European population growth over the past
         23kya. Model parameters are taken from Fig. S5 in `Fu et al. (2013) <https://
         doi.org/10.1038 nature11690>`_.
+    """
 
-    Model population indexes:
-        - African (AFR): 0
-        - European (EU): 1
-
-    Parameter Table:
-        .. csv-table::
-            :widths: 15 8 20
-            :header: "Parameter Type (units)", "Value", "Description"
-            :file: ../docs/parameter_tables/homo_sapiens/TennessenTwoPopOutOfAfrica_params.csv
-
-    CLI help:
-        python -m stdpopsim homo-sapiens TennessenTwoPopOutOfAfrica -h
-
-    Citation:
+    populations = [
+        models.Population(name="AFR", description="African Americans"),
+        models.Population(name="EUR", description="European Americans")
+    ]
+    citations = [
+        """
         Tennessen, J. A. et al. Evolution and Functional Impact of Rare Coding
         Variation from Deep Sequencing of Human Exomes. Science 337, 64–69
         (2012).
+        """
+    ]
 
-    """  # noqa: E501
     # NOTE choosing the first publication above the 'the' paper to reference.
     # Should we allow for multiple references??
     author = "Tennessen et al."
@@ -355,8 +358,12 @@ class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
         N_AF = N_AF1 / math.exp(-r_AF * T_EG)
 
         self.population_configurations = [
-            msprime.PopulationConfiguration(initial_size=N_AF, growth_rate=r_AF),
-            msprime.PopulationConfiguration(initial_size=N_EU, growth_rate=r_EU)
+            msprime.PopulationConfiguration(
+                initial_size=N_AF, growth_rate=r_AF,
+                metadata=self.populations[0].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_EU, growth_rate=r_EU,
+                metadata=self.populations[1].asdict())
         ]
 
         self.migration_matrix = [
@@ -386,34 +393,27 @@ class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
         ]
 
 
-class TennessenOnePopAfrica(HomoSapiensModel):
-    """
-    Model Name:
-        TennessenOnePopAfrica
+TennessenTwoPopOutOfAfrica._write_docstring()
 
-    Model Description:
+
+class TennessenOnePopAfrica(HomoSapiensModel):
+    name = "TennessenOnePopAfrica"
+    description = """
         The model is a simplification of the two population Tennesen et al.
         `model <https://doi.org/10.1126/science.1219240>`_ with the European-American
         population removed so that we are modeling the African population in isolation.
-
-    Model population indexes:
-        - African (AFR): 0
-
-    Parameter Table:
-        .. csv-table::
-            :widths: 15 8 20
-            :header: "Parameter Type (units)", "Value", "Description"
-            :file: ../docs/parameter_tables/homo_sapiens/TennessenOnePopAfrica_params.csv
-
-    CLI help:
-        python -m stdpopsim homo-sapiens TennessenOnePopAfrica -h
-
-    Citation:
+    """
+    populations = [
+        models.Population(name="AFR", description="African"),
+    ]
+    citations = [
+        """
         Tennessen, J. A. et al. Evolution and Functional Impact of Rare Coding
         Variation from Deep Sequencing of Human Exomes. Science 337, 64–69
         (2012).
+        """
+    ]
 
-    """  # noqa: E501
     # NOTE choosing the first publication above the 'the' paper to reference.
     # Should we allow for multiple references??
     author = "Tennessen et al."
@@ -437,7 +437,9 @@ class TennessenOnePopAfrica(HomoSapiensModel):
         N_AF = N_AF1 / math.exp(-r_AF * T_EG)
 
         self.population_configurations = [
-            msprime.PopulationConfiguration(initial_size=N_AF, growth_rate=r_AF),
+            msprime.PopulationConfiguration(
+                initial_size=N_AF, growth_rate=r_AF,
+                metadata=self.populations[0].asdict()),
         ]
 
         self.migration_matrix = [
@@ -452,12 +454,13 @@ class TennessenOnePopAfrica(HomoSapiensModel):
         ]
 
 
-class BrowningAmerica(HomoSapiensModel):
-    """
-    Model Name:
-        BrowningAmerica
+TennessenOnePopAfrica._write_docstring()
 
-    Model Description:
+
+class BrowningAmerica(HomoSapiensModel):
+    name = "BrowningAmerica"
+    short_description = "American admixture model"
+    description = """
         Demographic model for American admixture, taken from
         `Browning et al. <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.
         This model extends the `Gravel et al. (2011) <https://doi.org/10.1073/
@@ -465,28 +468,26 @@ class BrowningAmerica(HomoSapiensModel):
         simulate an admixed population with admixture occurring 12 generations ago. The
         admixed population had an initial size of 30,000 and grew at a rate of 5% per
         generation, with 1/6 of the population of African ancestry, 1/3 European, and 1
-        2 Asian. This code was ported over from `Supplementary File 1 <https://doi.org/10.1371/journal.pgen.1007385.s005>`_
+        2 Asian. This code was ported over from `Supplementary File 1
+        <https://doi.org/10.1371/journal.pgen.1007385.s005>`_
+    """
 
-    Model population indexes:
-        - African (AFR): 0
-        - European (EU): 1
-        - Asian (ASN): 2
-        - Admixed (ADMIX): 3
+    populations = [
+        models.Population(name="AFR", description="Contemporary African population"),
+        models.Population(name="EUR", description="Contemporary European population"),
+        models.Population(name="ASIA", description="Contemporary Asian population"),
+        models.Population(
+            name="ADMIX", description="Ancient admixed population",
+            allow_samples=False),
+    ]
 
-    Parameter Table:
-        .. csv-table::
-            :widths: 15 8 20
-            :header: "Parameter Type (units)", "Value", "Description"
-            :file: ../docs/parameter_tables/homo_sapiens/BrowningAmerica_params.csv
-
-    CLI help:
-        python -m stdpopsim homo-sapiens BrowningAmerica -h
-
-    Citation:
+    citations = [
+        """
         Browning, S. R. et al. Ancestry-specific recent effective population size in the
         Americas. PLOS Genetics 14, e1007385 (2018).
+        """
+    ]
 
-    """  # noqa: E501
     author = "Browning et al."
     year = "2011"
     doi = "http://dx.doi.org/10.1371/journal.pgen.1007385"
@@ -511,15 +512,20 @@ class BrowningAmerica(HomoSapiensModel):
         Nadmix = 30000  # initial size of admixed population
         radmix = .05  # growth rate of admixed population
         # pop0 is Africa, pop1 is Europe, pop2 is Asia,  pop3 is admixed
+
         self.population_configurations = [
             msprime.PopulationConfiguration(
-                initial_size=Naf, growth_rate=0.0),
+                initial_size=Naf, growth_rate=0.0,
+                metadata=self.populations[0].asdict()),
             msprime.PopulationConfiguration(
-                initial_size=Neu*math.exp(reu*Teu), growth_rate=reu),
+                initial_size=Neu*math.exp(reu*Teu), growth_rate=reu,
+                metadata=self.populations[1].asdict()),
             msprime.PopulationConfiguration(
-                initial_size=Nas*math.exp(ras*Teu), growth_rate=ras),
+                initial_size=Nas*math.exp(ras*Teu), growth_rate=ras,
+                metadata=self.populations[2].asdict()),
             msprime.PopulationConfiguration(
-                initial_size=Nadmix*math.exp(radmix*Tadmix), growth_rate=radmix)
+                initial_size=Nadmix*math.exp(radmix*Tadmix), growth_rate=radmix,
+                metadata=self.populations[3].asdict())
         ]
 
         self.migration_matrix = [
@@ -567,12 +573,13 @@ class BrowningAmerica(HomoSapiensModel):
         self.demographic_events = admixture_event + eu_event + ooa_event + init_event
 
 
-class RagsdaleArchaic(HomoSapiensModel):
-    """
-    Model Name:
-        RagsdaleArchaic
+BrowningAmerica._write_docstring()
 
-    Model Description:
+
+class RagsdaleArchaic(HomoSapiensModel):
+    name = "RagsdaleArchaic"
+    short_description = "Three population out-of-Africa model with archaic admixture"
+    description = """
         The three population out-of-African model popularized by Gutenkunst et al. (2009)
         and augmented by archaic contributions to both Eurasian and African populations.
         Two archaic populations split early in human history, before the African
@@ -580,28 +587,24 @@ class RagsdaleArchaic(HomoSapiensModel):
         and to the African branch (a deep diverging branch within Africa). Admixture
         is modeled as symmetric migration between the archaic and modern human branches,
         with contribution ending at a given time in the past.
+    """
+    populations = [
+        _yri_population,
+        _ceu_population,
+        _chb_population,
+        models.Population(
+            "Neanderthal", "Putative Neanderthals", allow_samples=False),
+        models.Population(
+            "ArchaicAFR", "Putative Archaic Africans", allow_samples=False),
+    ]
 
-    Model population indexes:
-        - African (YRI): 0
-        - European (CEU): 1
-        - Asian (CHB): 2
-        - Putative Neanderthal: 3
-        - Putative archaic African: 4
-
-    Parameter Table:
-        .. csv-table::
-            :widths: 15 8 20
-            :header: "Parameter Type (units)", "Value", "Description"
-            :file: ../docs/parameter_tables/homo_sapiens/RagsdaleArchaic_params.csv
-
-    CLI help:
-        python -m stdpopsim homo-sapiens RagsdaleArchaic -h
-
-    Citation:
+    citations = [
+        """
         Ragsdale, Aaron P., and Simon Gravel. Models of archaic admixture and
         recent history from two-locus statistics. PLoS genetics 15(6), e1008204 (2019).
+        """
+    ]
 
-    """  # noqa: E501
     author = "Ragsdale and Gravel"
     year = 2019
     doi = "https://doi.org/10.1371/journal.pgen.1008204"
@@ -651,11 +654,20 @@ class RagsdaleArchaic(HomoSapiensModel):
         # archaicAfrican, which are population indices 3=Nean and 4=arch_afr.
         # Their sizes are equal to the ancestral reference population size N_0.
         self.population_configurations = [
-            msprime.PopulationConfiguration(initial_size=N_YRI),
-            msprime.PopulationConfiguration(initial_size=N_CEU, growth_rate=r_CEU),
-            msprime.PopulationConfiguration(initial_size=N_CHB, growth_rate=r_CHB),
-            msprime.PopulationConfiguration(initial_size=N_0),
-            msprime.PopulationConfiguration(initial_size=N_0)
+            msprime.PopulationConfiguration(
+                initial_size=N_YRI, metadata=self.populations[0].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_CEU, growth_rate=r_CEU,
+                metadata=self.populations[1].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_CHB, growth_rate=r_CHB,
+                metadata=self.populations[2].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_0,
+                metadata=self.populations[3].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_0,
+                metadata=self.populations[4].asdict())
         ]
         self.migration_matrix = [                   # noqa
             [      0, m_YRI_CEU, m_YRI_CHB, 0, 0],  # noqa
@@ -724,27 +736,26 @@ class RagsdaleArchaic(HomoSapiensModel):
         ]
 
 
+RagsdaleArchaic._write_docstring()
+
+
 class SchiffelsZigzag(HomoSapiensModel):
-    """
-    Model Name:
-        SchiffelsZigzag
-
-    Model Description:
-        A validation model used by Schiffels and Durbin (2014) and
-        Terhorst and Terhorst, Kamm, and Song (2017) with periods
-        of exponential growth and decline in a single population.
-
-    Model population indexes:
-        - Single population: 0
-
-    CLI help:
-        python -m stdpopsim homo-sapiens SchiffelsZigzag -h
-
-    Citation:
-       Schiffels, S., & Durbin, R. (2014). Inferring human population size and
-       separation history from multiple genome sequences. Nature Genetics.
-       https://doi.org/10.1038/ng.3015
-    """
+    name = "SchiffelsZigzag"
+    short_description = "Validation model with periodic growth and decline."
+    description = """
+        A validation model used by Schiffels and Durbin (2014) and Terhorst and
+        Terhorst, Kamm, and Song (2017) with periods of exponential growth and
+        decline in a single population.
+        """
+    populations = [
+        models.Population("generic", "Generic expanding and contracting population"),
+    ]
+    citations = [
+        """
+        Schiffels, S., & Durbin, R. (2014). Inferring human population size and
+        separation history from multiple genome sequences. Nature Genetics.
+        """
+    ]
     author = "Schiffels and Durbin"
     year = 2014
     doi = "https://doi.org/10.1038/ng.3015"
@@ -801,3 +812,6 @@ class SchiffelsZigzag(HomoSapiensModel):
                 msprime.PopulationParametersChange(
                     time=t_ancient, initial_size=n_ancient, growth_rate=0)
         ]
+
+
+SchiffelsZigzag._write_docstring()
