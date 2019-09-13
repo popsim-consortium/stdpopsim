@@ -7,7 +7,7 @@ import numpy as np
 import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
-import stdpopsim.generic_models as generics # NOQA
+import stdpopsim.generic_models as generic_models
 
 ###########################################################
 #
@@ -77,14 +77,41 @@ genome = genomes.Genome(
 default_generation_time = 1.0
 
 
-class Durvasula2017MSMC(models.Model):
+class ArabidopsisThalianaModel(models.Model):
+    """
+    TODO: documentation
+    """
+    def __init__(self):
+        super().__init__()
+        self.generation_time = default_generation_time
+        self.default_population_size = 1000
+
+
+class GenericConstantSize(ArabidopsisThalianaModel, generic_models.ConstantSizeMixin):
+    def __init__(self):
+        ArabidopsisThalianaModel.__init__(self)
+        generic_models.ConstantSizeMixin.__init__(self, self.default_population_size)
+
+
+class GenericTwoEpoch(ArabidopsisThalianaModel, generic_models.TwoEpochMixin):
+    def __init__(self, n2=None, t=None):
+        ArabidopsisThalianaModel.__init__(self)
+        n1 = self.default_population_size
+        if n2 is None:
+            n2 = n1 / 2.0
+        if t is None:
+            t = n1 / 100
+        generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
+
+
+class Durvasula2017MSMC(ArabidopsisThalianaModel):
     """
     Model estimated from two homozygous individuals from the South Middle Atlas
     using MSMC
     """
 
     def __init__(self):
-
+        super().__init__()
         # the size during the interval times[k] to times[k+1] = sizes[k]
         self.times = np.array([
             699, 2796, 6068, 9894, 14370, 19606, 25730, 32894, 41275,

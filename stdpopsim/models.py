@@ -199,6 +199,7 @@ class Model(citations.CitableMixin):
         # Defaults to a single population
         self.migration_matrix = [[0]]
         self.generation_time = -1
+        self.is_generic = 0
 
     def equals(self, other, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
         """
@@ -270,8 +271,9 @@ def all_models():
     module.
     """
     ret = []
-    for cls in Model.__subclasses__():
-        mod = inspect.getmodule(cls).__name__
-        if mod.startswith("stdpopsim"):
-            ret.append(cls())
+    for scls in Model.__subclasses__():
+        for cls in scls.__subclasses__():
+            mod = inspect.getmodule(cls).__name__
+            if mod.startswith("stdpopsim") and not cls().is_generic:
+                ret.append(cls())
     return ret

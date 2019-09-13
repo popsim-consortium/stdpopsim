@@ -7,7 +7,7 @@ import msprime
 import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
-import stdpopsim.generic_models as generics # NOQA
+import stdpopsim.generic_models as generic_models
 
 ###########################################################
 #
@@ -75,7 +75,34 @@ genome = genomes.Genome(
 default_generation_time = 0.1
 
 
-class SheehanSongThreeEpoch(models.Model):
+class DrosophilaMelanogasterModel(models.Model):
+    """
+    TODO: documentation
+    """
+    def __init__(self):
+        super().__init__()
+        self.generation_time = default_generation_time
+        self.default_population_size = 10000
+
+
+class GenericConstantSize(DrosophilaMelanogasterModel, generic_models.ConstantSizeMixin):
+    def __init__(self):
+        DrosophilaMelanogasterModel.__init__(self)
+        generic_models.ConstantSizeMixin.__init__(self, self.default_population_size)
+
+
+class GenericTwoEpoch(DrosophilaMelanogasterModel, generic_models.TwoEpochMixin):
+    def __init__(self, n2=None, t=None):
+        DrosophilaMelanogasterModel.__init__(self)
+        n1 = self.default_population_size
+        if n2 is None:
+            n2 = n1 / 2.0
+        if t is None:
+            t = n1 / 100
+        generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
+
+
+class SheehanSongThreeEpoch(DrosophilaMelanogasterModel):
     """
     Model Name:
         SheehanSongThreeEpoch
@@ -112,6 +139,7 @@ class SheehanSongThreeEpoch(models.Model):
     doi = "https://doi.org/10.1371/journal.pcbi.1004845"
 
     def __init__(self):
+        super().__init__()
         # Parameter values from "Simulating Data" section
         # these are assumptions, not estimates
         N_ref = 100000
@@ -148,7 +176,7 @@ class SheehanSongThreeEpoch(models.Model):
         self.migration_matrix = [[0]]
 
 
-class LiStephanTwoPopulation(models.Model):
+class LiStephanTwoPopulation(DrosophilaMelanogasterModel):
     """
     Model Name:
         LiStephanTwoPopulation
@@ -181,7 +209,7 @@ class LiStephanTwoPopulation(models.Model):
     doi = "https://doi.org/10.1371/journal.pgen.0020166"
 
     def __init__(self):
-
+        super().__init__()
         # African Parameter values from "Demographic History of the African
         # Population" section
         N_A0 = 8.603e06

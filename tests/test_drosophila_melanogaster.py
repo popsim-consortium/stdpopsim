@@ -88,3 +88,50 @@ class TestLiStephanTwoPopulation(unittest.TestCase):
         model = drosophila_melanogaster.LiStephanTwoPopulation()
         model_qc = drosophlia_melanogaster_qc.LiStephanTwoPopulation()
         self.assertTrue(model.equals(model_qc))
+
+
+class TestGenericConstantSize(unittest.TestCase):
+    """
+    Basic tests for the GenericConstantSize model.
+    """
+
+    def test_simulation_runs(self):
+        model = drosophila_melanogaster.GenericConstantSize()
+        ts = msprime.simulate(
+            samples=[msprime.Sample(0, 0), msprime.Sample(0, 0)],
+            **model.asdict())
+        self.assertEqual(ts.num_populations, 1)
+
+    def test_debug_runs(self):
+        model = drosophila_melanogaster.GenericConstantSize()
+        output = io.StringIO()
+        model.debug(output)
+        s = output.getvalue()
+        self.assertGreater(len(s), 0)
+
+
+class TestGenericTwoEpoch(unittest.TestCase):
+    """
+    Basic tests for the GenericTwoEpoch model.
+    """
+
+    def test_simulation_runs(self):
+        model = drosophila_melanogaster.GenericTwoEpoch()
+        ts = msprime.simulate(
+            samples=[msprime.Sample(0, 0), msprime.Sample(0, 0)],
+            **model.asdict())
+        self.assertEqual(ts.num_populations, 1)
+
+    def test_debug_runs(self):
+        model = drosophila_melanogaster.GenericTwoEpoch()
+        output = io.StringIO()
+        model.debug(output)
+        s = output.getvalue()
+        self.assertGreater(len(s), 0)
+
+    def test_debug_runs_v2(self):
+        model = drosophila_melanogaster.GenericTwoEpoch(100, 4)
+        output = io.StringIO()
+        model.debug(output)
+        s = output.getvalue()
+        self.assertGreater(len(s), 0)

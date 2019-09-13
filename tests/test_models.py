@@ -263,6 +263,7 @@ class TestModelsEqual(unittest.TestCase):
         n = len(known_models)
         for j in range(n):
             for k in range(n):
+                print(known_models[j], known_models[k])
                 self.assertEqual(j == k, known_models[j].equals(known_models[k]))
 
     def test_different_objects(self):

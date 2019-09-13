@@ -5,7 +5,7 @@ import msprime
 
 from stdpopsim import arabidopsis_thaliana
 
-chrom = arabidopsis_thaliana.genome.chromosomes["chr5"]
+chrom = arabidopsis_thaliana.genome.chromosomes["chr1"]
 recomb_map = chrom.recombination_map()
 
 model = arabidopsis_thaliana.Durvasula2017MSMC()
@@ -16,7 +16,7 @@ samples = [
 
 ts = msprime.simulate(
     samples=samples,
-    recombination_map=chrom.recombination_map(),
+    recombination_map=recomb_map,
     mutation_rate=chrom.default_mutation_rate,
     **model.asdict())
 print("simulated:", ts.num_trees, ts.num_sites)
