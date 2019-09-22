@@ -136,6 +136,20 @@ class TestEndToEnd(unittest.TestCase):
         cmd = "homo-sapiens -c chr1 -l0.01 SchiffelsZigzag --num-samples=2"
         self.verify(cmd, num_samples=2)
 
+    def test_li_stephan_two_population(self):
+        cmd = (
+            "drosophila-melanogaster -c chr2L -l0.001 LiStephanTwoPopulation "
+            "--num-AFR=3")
+        self.verify(cmd, num_samples=3)
+
+    def test_durvusula_2017_msmc(self):
+        cmd = "arabidopsis-thaliana -l 0.001 Durvasula2017MSMC --num-samples=7"
+        self.verify(cmd, num_samples=7)
+
+    def test_lapierre_constant(self):
+        cmd = "e-coli -l 1e-7 LapierreConstant --num-samples=2"
+        self.verify(cmd, num_samples=2)
+
 
 class TestEndToEndSubprocess(TestEndToEnd):
     """

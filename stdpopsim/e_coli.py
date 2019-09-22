@@ -15,7 +15,7 @@ import stdpopsim.generic_models as generic_models
 
 _chromosomes = []
 _chromosomes.append(genomes.Chromosome(
-        name="chr",
+        name=None,
         length=4641652,
         default_mutation_rate=1e-5+2e-4,
         default_recombination_rate=0.0))
@@ -29,6 +29,7 @@ genome = genomes.Genome(
     chromosomes=_chromosomes,
     default_genetic_map=None)
 
+genomes.register_genome(genome)
 
 ###########################################################
 #

@@ -197,6 +197,7 @@ def add_species_parser(parser, species_name, default_chromosome):
         cli_name,
         help=f"Run simulations for {cli_name}.")
     species_parser.set_defaults(species=species_name)
+    species_parser.set_defaults(genetic_map=None)
     maps = genetic_maps.all_genetic_maps(species=species_name)
     if len(maps) > 0:
         species_parser.add_argument(
@@ -233,6 +234,9 @@ def stdpopsim_cli_parser():
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True
 
+    # TODO pass the Species object in explicitly, and get the name etc from
+    # that automatically.
+
     subsubparsers = add_species_parser(subparsers, "homo_sapiens", "chr22")
     add_model_runner(subsubparsers, homo_sapiens.GutenkunstThreePopOutOfAfrica())
     add_model_runner(subsubparsers, homo_sapiens.TennessenTwoPopOutOfAfrica())
@@ -250,7 +254,7 @@ def stdpopsim_cli_parser():
     add_model_runner(subsubparsers, drosophila_melanogaster.LiStephanTwoPopulation())
 
     subsubparsers = add_species_parser(
-        subparsers, "e-coli", "x")
+        subparsers, "e_coli", None)
     add_model_runner(subsubparsers, e_coli.LapierreConstant())
 
     return top_parser

@@ -65,6 +65,7 @@ genome = genomes.Genome(
     chromosomes=_chromosomes,
     default_genetic_map=Comeron2012_dm6.name)
 
+genomes.register_genome(genome)
 
 ###########################################################
 #

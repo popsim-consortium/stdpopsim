@@ -67,6 +67,7 @@ genome = genomes.Genome(
     chromosomes=_chromosomes,
     default_genetic_map=Salome2012.name)
 
+genomes.register_genome(genome)
 
 ###########################################################
 #
