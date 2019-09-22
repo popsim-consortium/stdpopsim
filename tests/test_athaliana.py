@@ -1,6 +1,7 @@
 import unittest
 import io
 
+import msprime
 from stdpopsim import arabidopsis_thaliana
 from qc import arabidopsis_thaliana_qc
 
@@ -45,3 +46,50 @@ class TestDurvasula2017MSMC(unittest.TestCase):
     def test_qc_model_equal(self):
         model = arabidopsis_thaliana.Durvasula2017MSMC()
         self.assertTrue(model.equals(arabidopsis_thaliana_qc.Durvasula2017MSMC()))
+
+
+class TestGenericConstantSize(unittest.TestCase):
+    """
+    Basic tests for the GenericConstantSize model.
+    """
+
+    def test_simulation_runs(self):
+        model = arabidopsis_thaliana.GenericConstantSize()
+        ts = msprime.simulate(
+            samples=[msprime.Sample(0, 0), msprime.Sample(0, 0)],
+            **model.asdict())
+        self.assertEqual(ts.num_populations, 1)
+
+    def test_debug_runs(self):
+        model = arabidopsis_thaliana.GenericConstantSize()
+        output = io.StringIO()
+        model.debug(output)
+        s = output.getvalue()
+        self.assertGreater(len(s), 0)
+
+
+class TestGenericTwoEpoch(unittest.TestCase):
+    """
+    Basic tests for the GenericTwoEpoch model.
+    """
+
+    def test_simulation_runs(self):
+        model = arabidopsis_thaliana.GenericTwoEpoch()
+        ts = msprime.simulate(
+            samples=[msprime.Sample(0, 0), msprime.Sample(0, 0)],
+            **model.asdict())
+        self.assertEqual(ts.num_populations, 1)
+
+    def test_debug_runs(self):
+        model = arabidopsis_thaliana.GenericTwoEpoch()
+        output = io.StringIO()
+        model.debug(output)
+        s = output.getvalue()
+        self.assertGreater(len(s), 0)
+
+    def test_debug_runs_v2(self):
+        model = arabidopsis_thaliana.GenericTwoEpoch(100, 4)
+        output = io.StringIO()
+        model.debug(output)
+        s = output.getvalue()
+        self.assertGreater(len(s), 0)

@@ -42,24 +42,23 @@ ts = msprime.simulate(
     **model.asdict())
 print("Human GenericTwoEpoch simulated:", ts.num_trees, ts.num_sites)
 
-# do generic thing with drosophila
-# chrom = stdpopsim.drosophila_melanogaster.genome.chromosomes["chr2L"]
-# recomb_map = chrom.recombination_map()
+# do generic thing with arabidopsis
+chrom = stdpopsim.arabidopsis_thaliana.genome.chromosomes["chr5"]
+recomb_map = chrom.recombination_map()
 
-# N = 100
-# model = stdpopsim.drosophila_melanogaster.generics.GenericConstantSize(N)
-# print("Drosophila constant size debug")
-# model.debug()
+model = stdpopsim.arabidopsis_thaliana.GenericConstantSize()
+print("Arabidopsis constant size debug")
+model.debug()
 
 # two samples
-# samples = [
-    # msprime.Sample(population=0, time=0),
-    # msprime.Sample(population=0, time=0)]
+samples = [
+    msprime.Sample(population=0, time=0),
+    msprime.Sample(population=0, time=0)]
 
-# ts = msprime.simulate(
-    # samples=samples,
-    # recombination_map=chrom.recombination_map(),
-    # mutation_rate=chrom.default_mutation_rate,
-    # **model.asdict())
-# print("drosophila generic simulated:", ts.num_trees, ts.num_sites)
+ts = msprime.simulate(
+    samples=samples,
+    recombination_map=chrom.recombination_map(),
+    mutation_rate=chrom.default_mutation_rate,
+    **model.asdict())
+print("Arabidopsis generic simulated:", ts.num_trees, ts.num_sites)
 

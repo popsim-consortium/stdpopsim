@@ -269,9 +269,13 @@ def all_models():
     Returns the list of all Model classes that are defined within the stdpopsim
     module.
     """
+    # TODO remove this function and change to model of "registering" models
+    # like we do for other objects.
     ret = []
-    for cls in Model.__subclasses__():
-        mod = inspect.getmodule(cls).__name__
-        if mod.startswith("stdpopsim"):
-            ret.append(cls())
+
+    for scls in Model.__subclasses__():
+        for cls in scls.__subclasses__():
+            mod = inspect.getmodule(cls).__name__
+            if mod.startswith("stdpopsim"):
+                ret.append(cls())
     return ret

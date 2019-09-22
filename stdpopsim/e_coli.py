@@ -5,7 +5,7 @@ import msprime
 
 import stdpopsim.models as models
 import stdpopsim.genomes as genomes
-import stdpopsim.generic_models as generics # NOQA
+import stdpopsim.generic_models as generic_models
 
 ###########################################################
 #
@@ -37,9 +37,37 @@ genome = genomes.Genome(
 ###########################################################
 
 # TODO add a generation time here
-# default_generation_time = -1
+default_generation_time = 0.00003805175  # 1.0 / (525600 min/year / 20 min/gen)
 
-class LapierreConstant(models.Model):
+
+class EColiModel(models.Model):
+    """
+    TODO: documentation
+    """
+    def __init__(self):
+        super().__init__()
+        self.generation_time = default_generation_time
+        self.default_population_size = 10000
+
+
+class GenericConstantSize(EColiModel, generic_models.ConstantSizeMixin):
+    def __init__(self):
+        EColiModel.__init__(self)
+        generic_models.ConstantSizeMixin.__init__(self, self.default_population_size)
+
+
+class GenericTwoEpoch(EColiModel, generic_models.TwoEpochMixin):
+    def __init__(self, n2=None, t=None):
+        EColiModel.__init__(self)
+        n1 = self.default_population_size
+        if n2 is None:
+            n2 = n1 / 2.0
+        if t is None:
+            t = n1 / 100
+        generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
+
+
+class LapierreConstant(EColiModel):
     """
     Model Name:
         LapierreConstant
