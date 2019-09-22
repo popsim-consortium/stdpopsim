@@ -182,3 +182,17 @@ class TestAllGeneticMaps(tests.CacheReadingTest):
     def test_types(self):
         for gm in genetic_maps.all_genetic_maps():
             self.assertIsInstance(gm, genetic_maps.GeneticMap)
+
+    def test_known_species(self):
+        known_species = [
+            "homo_sapiens", "arabidopsis_thaliana", "drosophila_melanogaster"]
+        for species in known_species:
+            maps = genetic_maps.all_genetic_maps(species)
+            self.assertGreater(len(maps), 0)
+            for gm in maps:
+                self.assertEqual(gm.species, species)
+
+    def test_unknown_species(self):
+        unknown_species = ["", [], "sdf"]
+        for species in unknown_species:
+            self.assertEqual(len(genetic_maps.all_genetic_maps(species)), 0)

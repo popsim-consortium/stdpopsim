@@ -104,11 +104,27 @@ class GenericTwoEpoch(ArabidopsisThalianaModel, generic_models.TwoEpochMixin):
         generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
 
 
+# FIXME this documentation needs to be filled out.
 class Durvasula2017MSMC(ArabidopsisThalianaModel):
+    name = "Durvasula2017MSMC"
+    short_description = "TODO"
+    description = """
+        Model estimated from two homozygous individuals from the South Middle Atlas
+        using MSMC (TODO: more detail).
     """
-    Model estimated from two homozygous individuals from the South Middle Atlas
-    using MSMC
-    """
+    citations = [
+        """
+        TODO
+        """
+    ]
+    populations = [
+        models.Population(
+            name="a_thaliana", description="Arabidopsis Thaliana population")
+    ]
+
+    author = "Durvasula et al."
+    year = 2017
+    doi = "TODO"
 
     def __init__(self):
         super().__init__()
@@ -144,3 +160,6 @@ class Durvasula2017MSMC(ArabidopsisThalianaModel):
         self.population_configurations = [
            msprime.PopulationConfiguration(initial_size=self.sizes[0])
         ]
+
+
+Durvasula2017MSMC._write_docstring()

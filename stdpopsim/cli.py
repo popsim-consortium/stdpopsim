@@ -16,6 +16,11 @@ import daiquiri
 
 import stdpopsim
 from stdpopsim import genomes
+from stdpopsim import genetic_maps
+# Species modules
+from stdpopsim import arabidopsis_thaliana
+from stdpopsim import e_coli
+from stdpopsim import drosophila_melanogaster
 from stdpopsim import homo_sapiens
 
 
@@ -184,6 +189,32 @@ def add_model_runner(top_parser, model):
     parser.set_defaults(runner=run_simulation)
 
 
+def add_species_parser(parser, species_name, default_chromosome):
+
+    # Replace underscores with hypens to keep with unix CLI conventions
+    cli_name = species_name.replace("_", "-")
+    species_parser = parser.add_parser(
+        cli_name,
+        help=f"Run simulations for {cli_name}.")
+    species_parser.set_defaults(species=species_name)
+    maps = genetic_maps.all_genetic_maps(species=species_name)
+    if len(maps) > 0:
+        species_parser.add_argument(
+            "-g", "--genetic-map", default=None,
+            choices=[gm.name for gm in maps],
+            help="Specify a particular genetic map. Use a flat map by default.")
+    # TODO use the species' genome to get the list of acceptable chromosomes.
+    species_parser.add_argument(
+        "-c", "--chromosome", default=default_chromosome,
+        help=f"Simulate a specific chromosome. (Default={default_chromosome})")
+    species_parser.add_argument(
+        "-l", "--length-multiplier", default=1, type=float,
+        help="Simulate a chromsome of length l times the named chromosome")
+    subparsers = species_parser.add_subparsers(dest="subcommand")
+    subparsers.required = True
+    return subparsers
+
+
 def stdpopsim_cli_parser():
 
     # TODO the CLI defined by this hierarchical and clumsy, but it's the best
@@ -202,38 +233,25 @@ def stdpopsim_cli_parser():
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True
 
-    species_parser = subparsers.add_parser(
-        "homo-sapiens",
-        help="Run simulations of human history.")
-    species_parser.set_defaults(species="homo_sapiens")
-    species_parser.add_argument(
-        "-g", "--genetic-map", default=None,
-        # TODO use the genetic map registry
-        choices=["HapmapII_GRCh37", "Decode_2010_sex_averaged"],
-        help="Specify a particular genetic map. Use a flat map by default.")
-    species_parser.add_argument(
-        "-c", "--chromosome", default="chr22",
-        help="Simulate a specific chromosome")
-    species_parser.add_argument(
-        "-l", "--length-multiplier", default=1, type=float,
-        help="Simulate a chromsome of length l times the named chromosome")
-    subsubparsers = species_parser.add_subparsers(dest="subcommand")
-    subsubparsers.required = True
-
+    subsubparsers = add_species_parser(subparsers, "homo_sapiens", "chr22")
     add_model_runner(subsubparsers, homo_sapiens.GutenkunstThreePopOutOfAfrica())
     add_model_runner(subsubparsers, homo_sapiens.TennessenTwoPopOutOfAfrica())
     add_model_runner(subsubparsers, homo_sapiens.BrowningAmerica())
     add_model_runner(subsubparsers, homo_sapiens.RagsdaleArchaic())
     add_model_runner(subsubparsers, homo_sapiens.SchiffelsZigzag())
 
-    # Add stubs for discussion
-    species_parser = subparsers.add_parser(
-        "arabadopsis-thaliana",
-        help="Run simulations of Arabadopsis thaliana.")
+    subsubparsers = add_species_parser(
+        subparsers, "arabidopsis_thaliana", "chr1")
+    add_model_runner(subsubparsers, arabidopsis_thaliana.Durvasula2017MSMC())
 
-    species_parser = subparsers.add_parser(
-        "e-coli",
-        help="Run simulations of E-coli.")
+    subsubparsers = add_species_parser(
+        subparsers, "drosophila_melanogaster", "chr2L")
+    add_model_runner(subsubparsers, drosophila_melanogaster.SheehanSongThreeEpoch())
+    add_model_runner(subsubparsers, drosophila_melanogaster.LiStephanTwoPopulation())
+
+    subsubparsers = add_species_parser(
+        subparsers, "e-coli", "x")
+    add_model_runner(subsubparsers, e_coli.LapierreConstant())
 
     return top_parser
 

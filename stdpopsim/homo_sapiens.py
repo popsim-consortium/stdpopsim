@@ -265,6 +265,9 @@ class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
         ]
 
 
+GutenkunstThreePopOutOfAfrica._write_docstring()
+
+
 class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
     name = "TennessenTwoPopOutOfAfrica"
     short_description = "Two population out-of-Africa model"

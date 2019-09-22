@@ -45,11 +45,15 @@ def register_genetic_map(genetic_map):
     registered_maps[key] = genetic_map
 
 
-def all_genetic_maps():
+def all_genetic_maps(species=None):
     """
-    Returns all registered genetic maps.
+    Returns all registered genetic maps. If the species is provided, return
+    all genetic maps for this species.
     """
-    return list(registered_maps.values())
+    ret = list(registered_maps.values())
+    if species is not None:
+        ret = [gm for gm in ret if gm.species == species]
+    return ret
 
 
 @contextlib.contextmanager
