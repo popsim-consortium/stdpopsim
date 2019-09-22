@@ -199,7 +199,6 @@ class Model(citations.CitableMixin):
         # Defaults to a single population
         self.migration_matrix = [[0]]
         self.generation_time = -1
-        self.is_generic = 0
 
     def equals(self, other, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
         """
@@ -270,10 +269,13 @@ def all_models():
     Returns the list of all Model classes that are defined within the stdpopsim
     module.
     """
+    # TODO remove this function and change to model of "registering" models
+    # like we do for other objects.
     ret = []
+
     for scls in Model.__subclasses__():
         for cls in scls.__subclasses__():
             mod = inspect.getmodule(cls).__name__
-            if mod.startswith("stdpopsim") and not cls().is_generic:
+            if mod.startswith("stdpopsim"):
                 ret.append(cls())
     return ret

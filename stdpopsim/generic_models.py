@@ -32,7 +32,6 @@ class ConstantSizeMixin(object):
         ]
         self.migration_matrix = [[0]]
         self.demographic_events = []
-        self.is_generic = 1
 
 
 class TwoEpochMixin(object):
@@ -61,4 +60,3 @@ class TwoEpochMixin(object):
             msprime.PopulationParametersChange(
                 time=t, initial_size=N2, growth_rate=0, population_id=0),
         ]
-        self.is_generic = 1

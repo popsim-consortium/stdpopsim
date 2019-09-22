@@ -257,14 +257,11 @@ class TestModelsEqual(unittest.TestCase):
     Tests Model object equality comparison.
     """
     def test_known_models(self):
-        # This assumes that every model should be equal to itself and should be
-        # different to every other model.
-        known_models = models.all_models()
-        n = len(known_models)
-        for j in range(n):
-            for k in range(n):
-                print(known_models[j], known_models[k])
-                self.assertEqual(j == k, known_models[j].equals(known_models[k]))
+        # All models should be equal to themselves.
+        other_model = models.Model()
+        for model in models.all_models():
+            self.assertTrue(model.equals(model))
+            self.assertFalse(model.equals(other_model))
 
     def test_different_objects(self):
         m1 = models.Model()
