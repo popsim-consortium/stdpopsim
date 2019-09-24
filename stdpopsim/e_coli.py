@@ -5,7 +5,7 @@ import msprime
 
 import stdpopsim.models as models
 import stdpopsim.genomes as genomes
-import stdpopsim.generic_models as generic_models
+# import stdpopsim.generic_models as generic_models
 
 ###########################################################
 #
@@ -29,7 +29,6 @@ genome = genomes.Genome(
     chromosomes=_chromosomes,
     default_genetic_map=None)
 
-genomes.register_genome(genome)
 
 ###########################################################
 #
@@ -48,24 +47,8 @@ class EColiModel(models.Model):
     def __init__(self):
         super().__init__()
         self.generation_time = default_generation_time
+        # JK: This is wrong anyway, right?
         self.default_population_size = 10000
-
-
-class GenericConstantSize(EColiModel, generic_models.ConstantSizeMixin):
-    def __init__(self):
-        EColiModel.__init__(self)
-        generic_models.ConstantSizeMixin.__init__(self, self.default_population_size)
-
-
-class GenericTwoEpoch(EColiModel, generic_models.TwoEpochMixin):
-    def __init__(self, n2=None, t=None):
-        EColiModel.__init__(self)
-        n1 = self.default_population_size
-        if n2 is None:
-            n2 = n1 / 2.0
-        if t is None:
-            t = n1 / 100
-        generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
 
 
 class LapierreConstant(EColiModel):

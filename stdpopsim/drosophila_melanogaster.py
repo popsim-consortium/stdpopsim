@@ -7,7 +7,7 @@ import msprime
 import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
-import stdpopsim.generic_models as generic_models
+
 
 ###########################################################
 #
@@ -65,7 +65,6 @@ genome = genomes.Genome(
     chromosomes=_chromosomes,
     default_genetic_map=Comeron2012_dm6.name)
 
-genomes.register_genome(genome)
 
 ###########################################################
 #
@@ -93,21 +92,21 @@ class DrosophilaMelanogasterModel(models.Model):
         self.default_population_size = 10000
 
 
-class GenericConstantSize(DrosophilaMelanogasterModel, generic_models.ConstantSizeMixin):
-    def __init__(self):
-        DrosophilaMelanogasterModel.__init__(self)
-        generic_models.ConstantSizeMixin.__init__(self, self.default_population_size)
+# class GenericConstantSize(DrosophilaMelanogasterModel, generic_models.ConstantSizeMixin):
+#     def __init__(self):
+#         DrosophilaMelanogasterModel.__init__(self)
+#         generic_models.ConstantSizeMixin.__init__(self, self.default_population_size)
 
 
-class GenericTwoEpoch(DrosophilaMelanogasterModel, generic_models.TwoEpochMixin):
-    def __init__(self, n2=None, t=None):
-        DrosophilaMelanogasterModel.__init__(self)
-        n1 = self.default_population_size
-        if n2 is None:
-            n2 = n1 / 2.0
-        if t is None:
-            t = n1 / 100
-        generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
+# class GenericTwoEpoch(DrosophilaMelanogasterModel, generic_models.TwoEpochMixin):
+#     def __init__(self, n2=None, t=None):
+#         DrosophilaMelanogasterModel.__init__(self)
+#         n1 = self.default_population_size
+#         if n2 is None:
+#             n2 = n1 / 2.0
+#         if t is None:
+#             t = n1 / 100
+#         generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
 
 
 class SheehanSongThreeEpoch(DrosophilaMelanogasterModel):

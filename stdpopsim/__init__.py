@@ -14,7 +14,9 @@ from . cache import *  # NOQA
 from . genetic_maps import *  # NOQA
 from . models import *  # NOQA
 from . genomes import *  # NOQA
-from . import generic_models # NOQA
+
+# TODO what should we really be exporting here as the public API?
+
 # Species definitions.
 from . import homo_sapiens  # NOQA
 from . import pongo  # NOQA

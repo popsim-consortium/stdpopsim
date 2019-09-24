@@ -177,7 +177,7 @@ class Model(citations.CitableMixin):
 
     @classmethod
     def _write_docstring(cls):
-        species = "homo_sapiens"
+        species = "XX"
         base_dir = pathlib.Path(__file__).resolve().parents[1]
         parameters_csv_file = (
             base_dir / "docs" / "parameter_tables" / species / f"{cls.name}.csv")
@@ -199,6 +199,10 @@ class Model(citations.CitableMixin):
         # Defaults to a single population
         self.migration_matrix = [[0]]
         self.generation_time = -1
+
+    @property
+    def num_populations(self):
+        return len(self.populations)
 
     def equals(self, other, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
         """
@@ -249,6 +253,17 @@ class Model(citations.CitableMixin):
             "migration_matrix": self.migration_matrix,
             "demographic_events": self.demographic_events}
 
+    def get_samples(self, *args):
+        """
+        Returns a list of msprime.Sample objects as described by the args and
+        keyword args. Positional arguments are interpreted as the number of
+        samples to take from the given population.
+        """
+        samples = []
+        for pop_index, n in enumerate(args):
+            samples.extend([msprime.Sample(pop_index, time=0)] * n)
+        return samples
+
     def run(self, chromosome, samples):
         """
         Runs this model for the specified chromosome (defining the recombination
@@ -262,6 +277,71 @@ class Model(citations.CitableMixin):
             migration_matrix=self.migration_matrix,
             demographic_events=self.demographic_events)
         return ts
+
+
+class ConstantSizeModel(Model):
+    kind = "constant"
+    populations = [
+        Population(name="pop0", description="Generic population")]
+
+    def __init__(self, N):
+
+        # TODO fixup docstring like others.
+
+        """
+        Model Name:
+            ConstantSizeMixin
+
+        Model Description:
+            Generic model of constant size. Uses default_population_size
+            depending on organism
+
+        Model population indexes:
+            - Population 0: 0
+
+        CLI help:
+            python -m stdpopsim homo-sapiens GenericConstantSize -h
+        """  # noqa: E501
+        self.population_configurations = [
+            msprime.PopulationConfiguration(initial_size=N)
+        ]
+        self.migration_matrix = [[0]]
+        self.demographic_events = []
+
+
+class TwoEpochModel(Model):
+    kind = "2_epoch"
+    populations = [
+        Population(name="pop0", description="Generic population")]
+
+    def __init__(self, N1, N2, t):
+
+        # TODO fixup docstring like others.
+
+        """
+        Model Name:
+            TwoEpochMixin
+
+        Model Description:
+            Generic model of a single population with
+            piecewise constant population size with a single change.
+            Defaults depend on organism, but population sizes and time
+            should be set by user
+
+        Model population indexes:
+            - Population 0: 0
+
+        CLI help:
+            python -m stdpopsim homo-sapiens GenericTwoEpoch -h
+        """  # noqa: E501
+        self.population_configurations = [
+            msprime.PopulationConfiguration(initial_size=N1)
+        ]
+        self.migration_matrix = [[0]]
+        self.demographic_events = [
+            msprime.PopulationParametersChange(
+                time=t, initial_size=N2, growth_rate=0, population_id=0),
+        ]
 
 
 def all_models():

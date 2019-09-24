@@ -7,30 +7,92 @@ import logging
 
 import msprime
 
+import stdpopsim.models as models
 import stdpopsim.genetic_maps as genetic_maps
 
 logger = logging.getLogger(__name__)
 
-registered_genomes = {}
+registered_species = {}
 
 
-def get_genome(species):
+def register_species(species):
     """
-    Returns the genome definition for the specified species.
-    Raises a ValueError if the species has not been registered.
+    Registers the specified species.
     """
-    if species not in registered_genomes:
-        raise ValueError("Unknown species '{}'".format(species))
-    return registered_genomes[species]
+    logger.debug(f"Registering species '{species.name}'")
+    registered_species[species.name] = species
 
 
-def register_genome(genome):
+def get_species(name):
+    return registered_species[name]
+
+
+# TODO work this out --- what's the right way to structure this? Might need to
+# refactor things pretty radically.
+
+class Species(object):
     """
-    Registers the genome definition that it can be loaded.
+    Class representing a single species.
     """
-    key = genome.species
-    logger.debug("Registering genome '{}'".format(key))
-    registered_genomes[key] = genome
+    def __init__(
+            self, name, genome, generation_time=None, population_size=None):
+        self.name = name
+        self.genome = genome
+        self.generation_time = generation_time
+        self.population_size = population_size
+        self.models = []
+
+    def get_contig(self, chromosome, genetic_map=None, length_multiplier=1):
+        """
+        Returns a :class:`.Contig` instance describing a section of genome that
+        is to be simulated based on empirical information for a given species
+        and chromosome.
+
+        :param str species: The name of the species to simulate.
+        :param str chromosome: The name of the chromosome to simulate.
+        :param str genetic_map: If specified, obtain recombination rate information
+            from the genetic map with the specified name. If None, simulate
+            a flat recombination rate on a region with the length of the specified
+            chromosome. (Default: None)
+        :param float length_multiplier: If specified simulate a contig of length
+            length_multiplier times the length of the specified chromosome.
+        :rtype: Contig
+        :return: A Contig describing a simulation of the section of genome.
+        """
+        # TODO change this with genome.get_chromosome() so we have flexibility
+        # and for consistency
+        chrom = self.genome.chromosomes[chromosome]
+        if genetic_map is None:
+            logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.name}")
+            recomb_map = msprime.RecombinationMap.uniform_map(
+                chrom.length * length_multiplier, chrom.default_recombination_rate)
+        else:
+            if length_multiplier != 1:
+                raise ValueError("Cannot use length multiplier with empirical maps")
+            logger.debug(f"Getting map for {chrom.name} from {genetic_map}")
+            recomb_map = chrom.recombination_map(genetic_map)
+
+        ret = Contig()
+        ret.recombination_map = recomb_map
+        ret.mutation_rate = chrom.default_mutation_rate
+        return ret
+
+    def get_model(self, kind, num_populations=1):
+        """
+        Returns a model with the specified name with the specified number of
+        populations. Please see the documentation [] for a list of available
+        models.
+
+        - TODO we can add functionality here
+        """
+        for model in self.models:
+            if model.kind == kind and len(model.populations) == num_populations:
+                return model
+        raise ValueError("Model not found")
+
+    def add_model(self, model):
+        self.models.append(model)
+
 
 
 class Genome(object):
@@ -96,6 +158,11 @@ class Chromosome(object):
     def __init__(self, name, length, default_recombination_rate, default_mutation_rate):
         self.name = name
         self.length = length
+        # TODO remove the default here --- default for what? The chromosome object
+        # models the actual chromsomes, it shouldn't need to know about other bits
+        # of the software mode. We should either change it to
+        # recombination_rate or mean_recombination_rate, if we want to be
+        # picky.
         self.default_recombination_rate = default_recombination_rate
         self.default_mutation_rate = default_mutation_rate
         self.species = None
@@ -146,37 +213,3 @@ class Contig(object):
         self.recombination_map = None
         self.mutation_rate = None
 
-
-def contig_factory(species, chromosome, genetic_map=None, length_multiplier=1):
-    """
-    Returns a :class:`.Contig` instance describing a section of genome that
-    is to be simulated based on empirical information for a given species
-    and chromosome.
-
-    :param str species: The name of the species to simulate.
-    :param str chromosome: The name of the chromosome to simulate.
-    :param str genetic_map: If specified, obtain recombination rate information
-        from the genetic map with the specified name. If None, simulate
-        a flat recombination rate on a region with the length of the specified
-        chromosome. (Default: None)
-    :param float length_multiplier: If specified simulate a contig of length
-        length_multiplier times the length of the specified chromosome.
-    :rtype: Contig
-    :return: A Contig describing a simulation of the section of genome.
-    """
-    genome = get_genome(species)
-    chrom = genome.chromosomes[chromosome]
-    if genetic_map is None:
-        logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.name}")
-        recomb_map = msprime.RecombinationMap.uniform_map(
-            chrom.length * length_multiplier, chrom.default_recombination_rate)
-    else:
-        if length_multiplier != 1:
-            raise ValueError("Cannot use length multiplier with empirical maps")
-        logger.debug(f"Getting map for {chrom.name} from {genetic_map}")
-        recomb_map = chrom.recombination_map(genetic_map)
-
-    ret = Contig()
-    ret.recombination_map = recomb_map
-    ret.mutation_rate = chrom.default_mutation_rate
-    return ret

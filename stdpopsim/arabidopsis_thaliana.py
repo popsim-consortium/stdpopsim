@@ -7,7 +7,6 @@ import numpy as np
 import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
-import stdpopsim.generic_models as generic_models
 
 ###########################################################
 #
@@ -67,7 +66,6 @@ genome = genomes.Genome(
     chromosomes=_chromosomes,
     default_genetic_map=Salome2012.name)
 
-genomes.register_genome(genome)
 
 ###########################################################
 #
@@ -88,21 +86,21 @@ class ArabidopsisThalianaModel(models.Model):
         self.default_population_size = 1000
 
 
-class GenericConstantSize(ArabidopsisThalianaModel, generic_models.ConstantSizeMixin):
-    def __init__(self):
-        ArabidopsisThalianaModel.__init__(self)
-        generic_models.ConstantSizeMixin.__init__(self, self.default_population_size)
+# class GenericConstantSize(ArabidopsisThalianaModel, generic_models.ConstantSizeMixin):
+#     def __init__(self):
+#         ArabidopsisThalianaModel.__init__(self)
+#         generic_models.ConstantSizeMixin.__init__(self, self.default_population_size)
 
 
-class GenericTwoEpoch(ArabidopsisThalianaModel, generic_models.TwoEpochMixin):
-    def __init__(self, n2=None, t=None):
-        ArabidopsisThalianaModel.__init__(self)
-        n1 = self.default_population_size
-        if n2 is None:
-            n2 = n1 / 2.0
-        if t is None:
-            t = n1 / 100
-        generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
+# class GenericTwoEpoch(ArabidopsisThalianaModel, generic_models.TwoEpochMixin):
+#     def __init__(self, n2=None, t=None):
+#         ArabidopsisThalianaModel.__init__(self)
+#         n1 = self.default_population_size
+#         if n2 is None:
+#             n2 = n1 / 2.0
+#         if t is None:
+#             t = n1 / 100
+#         generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
 
 
 # FIXME this documentation needs to be filled out.

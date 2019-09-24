@@ -9,7 +9,6 @@ import msprime
 import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
-import stdpopsim.generic_models as generic_models
 
 logger = logging.getLogger(__name__)
 
@@ -113,14 +112,27 @@ for line in _chromosome_data.splitlines():
         default_mutation_rate=1e-8,  # WRONG!,
         default_recombination_rate=float(mean_rr)))
 
-
-#: :class:`stdpopsim.Genome` definition for humans.
-genome = genomes.Genome(
+_genome = genomes.Genome(
     species="homo_sapiens",
     chromosomes=_chromosomes,
     default_genetic_map=HapmapII_GRCh37.name)
 
-genomes.register_genome(genome)
+_species = genomes.Species(
+    name="homo_sapiens",
+    genome=_genome,
+    # TODO reference for these
+    generation_time=25,
+    population_size=10**4)
+
+genomes.register_species(_species)
+
+# Add generic models.
+_species.add_model(models.ConstantSizeModel(_species.population_size))
+# TODO Add meaningful numbers and reference/justification
+_species.add_model(models.TwoEpochModel(
+    N1=10**6,  # FIXME
+    N2=_species.population_size,
+    t=100)) #FIXME
 
 
 ###########################################################
@@ -129,6 +141,8 @@ genomes.register_genome(genome)
 #
 ###########################################################
 
+
+# TODO remove this, it's stored in the species object.
 
 # species wide default generation time
 default_generation_time = 25
@@ -147,6 +161,7 @@ _chb_population = models.Population(
     description="1000 Genomes CHB (Han Chinese in Beijing, China)")
 
 
+# TODO: remove this superclass
 class HomoSapiensModel(models.Model):
     """
     TODO: documentation
@@ -157,24 +172,8 @@ class HomoSapiensModel(models.Model):
         self.default_population_size = 10000
 
 
-class GenericConstantSize(HomoSapiensModel, generic_models.ConstantSizeMixin):
-    def __init__(self):
-        HomoSapiensModel.__init__(self)
-        generic_models.ConstantSizeMixin.__init__(self, self.default_population_size)
-
-
-class GenericTwoEpoch(HomoSapiensModel, generic_models.TwoEpochMixin):
-    def __init__(self, n2=None, t=None):
-        HomoSapiensModel.__init__(self)
-        n1 = self.default_population_size
-        if n2 is None:
-            n2 = n1 / 2.0
-        if t is None:
-            t = n1 / 100
-        generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
-
-
 class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
+    kind = "ooa"
     name = "GutenkunstThreePopOutOfAfrica"
     short_description = "Three population out-of-Africa model"
     description = """
@@ -266,6 +265,7 @@ class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
 
 
 GutenkunstThreePopOutOfAfrica._write_docstring()
+_species.add_model(GutenkunstThreePopOutOfAfrica())
 
 
 class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
