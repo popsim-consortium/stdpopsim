@@ -7,7 +7,6 @@ import logging
 
 import msprime
 
-import stdpopsim.models as models
 import stdpopsim.genetic_maps as genetic_maps
 
 logger = logging.getLogger(__name__)
@@ -27,9 +26,6 @@ def get_species(name):
     return registered_species[name]
 
 
-# TODO work this out --- what's the right way to structure this? Might need to
-# refactor things pretty radically.
-
 class Species(object):
     """
     Class representing a single species.
@@ -41,6 +37,7 @@ class Species(object):
         self.generation_time = generation_time
         self.population_size = population_size
         self.models = []
+        self.genetic_maps = []
 
     def get_contig(self, chromosome, genetic_map=None, length_multiplier=1):
         """
@@ -59,9 +56,7 @@ class Species(object):
         :rtype: Contig
         :return: A Contig describing a simulation of the section of genome.
         """
-        # TODO change this with genome.get_chromosome() so we have flexibility
-        # and for consistency
-        chrom = self.genome.chromosomes[chromosome]
+        chrom = self.genome.get_chromosome(chromosome)
         if genetic_map is None:
             logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.name}")
             recomb_map = msprime.RecombinationMap.uniform_map(
@@ -93,6 +88,8 @@ class Species(object):
     def add_model(self, model):
         self.models.append(model)
 
+    def add_genetic_map(self, genetic_map):
+        self.genetic_maps.append(genetic_map)
 
 
 class Genome(object):
@@ -104,12 +101,9 @@ class Genome(object):
     def __init__(self, species, chromosomes, default_genetic_map=None):
         self.species = species
         self.default_genetic_map = default_genetic_map
-        self.chromosomes = {}
+        self.chromosomes = chromosomes
         self.length = 0
         for chromosome in chromosomes:
-            self.chromosomes[chromosome.name] = chromosome
-            chromosome.default_genetic_map = default_genetic_map
-            chromosome.species = species
             self.length += chromosome.length
 
     def __str__(self):
@@ -120,11 +114,20 @@ class Genome(object):
             s += "\t{}\n".format(chrom)
         return s
 
+    def get_chromosome(self, name):
+        """
+        Returns the chromosome with the specified name.
+        """
+        for chrom in self.chromosomes:
+            if chrom.name == name:
+                return chrom
+        raise ValueError("Chromosome not found")
+
     @property
     def mean_recombination_rate(self):
         """
         This method return the weighted mean recombination rate
-        across all chomosomes in the genome.
+        across all chromosomes in the genome.
         :rtype: float
         """
         mean_recombination_rate = 0
@@ -212,4 +215,3 @@ class Contig(object):
     def __init__(self):
         self.recombination_map = None
         self.mutation_rate = None
-

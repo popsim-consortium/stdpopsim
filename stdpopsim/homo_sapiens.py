@@ -12,55 +12,6 @@ import stdpopsim.genetic_maps as genetic_maps
 
 logger = logging.getLogger(__name__)
 
-
-###########################################################
-#
-# Genetic maps
-#
-###########################################################
-
-
-class HapmapII_GRCh37(genetic_maps.GeneticMap):
-    """
-    Usage: `hapmap = homo_sapiens.HapmapII_GRCh37()` (note the
-    parentheses).
-
-    The Phase II HapMap Genetic map (lifted over to GRCh37) used in
-    1000 Genomes. Please see the `README
-    <ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/20110106_recombination_hotspots/README_hapmapII_GRCh37_map>`_
-    for more details.
-    """
-    url = (
-        "http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
-        "20110106_recombination_hotspots/"
-        "HapmapII_GRCh37_RecombinationHotspots.tar.gz")
-    file_pattern = "genetic_map_GRCh37_{name}.txt"
-    doi = "https://doi.org/10.1038/nature06258"
-
-
-genetic_maps.register_genetic_map(HapmapII_GRCh37())
-
-
-class Decode_2010_sex_averaged(genetic_maps.GeneticMap):
-    """
-    Usage: `decode = homo_sapiens.Decode_2010()` (note the
-    parentheses).
-
-    Decode fine scale genetic map from Kong, A et al. Fine scale
-    recombination rate differences
-    between sexes, populations and individuals. Nature (28 October 2010).
-    (http://www.nature.com/nature/journal/v467/n7319/full/nature09525.html)
-    Please see https://www.decode.com/addendum/ for more details.
-    """
-    url = (
-        "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
-        "decode_2010_sex-averaged_map.tar.gz")
-    file_pattern = "genetic_map_decode_2010_sex-averaged_{name}.txt"
-    doi = "https://doi.org/10.1038/nature09525"
-
-
-genetic_maps.register_genetic_map(Decode_2010_sex_averaged())
-
 ###########################################################
 #
 # Genome definition
@@ -114,8 +65,7 @@ for line in _chromosome_data.splitlines():
 
 _genome = genomes.Genome(
     species="homo_sapiens",
-    chromosomes=_chromosomes,
-    default_genetic_map=HapmapII_GRCh37.name)
+    chromosomes=_chromosomes)
 
 _species = genomes.Species(
     name="homo_sapiens",
@@ -130,9 +80,58 @@ genomes.register_species(_species)
 _species.add_model(models.ConstantSizeModel(_species.population_size))
 # TODO Add meaningful numbers and reference/justification
 _species.add_model(models.TwoEpochModel(
-    N1=10**6,  # FIXME
+    N1=10**6,   # FIXME
     N2=_species.population_size,
-    t=100)) #FIXME
+    t=100))  # FIXME
+
+
+###########################################################
+#
+# Genetic maps
+#
+###########################################################
+
+
+class HapmapII_GRCh37(genetic_maps.GeneticMap):
+    """
+    Usage: `hapmap = homo_sapiens.HapmapII_GRCh37()` (note the
+    parentheses).
+
+    The Phase II HapMap Genetic map (lifted over to GRCh37) used in
+    1000 Genomes. Please see the `README
+    <ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/20110106_recombination_hotspots/README_hapmapII_GRCh37_map>`_
+    for more details.
+    """
+    url = (
+        "http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
+        "20110106_recombination_hotspots/"
+        "HapmapII_GRCh37_RecombinationHotspots.tar.gz")
+    file_pattern = "genetic_map_GRCh37_{name}.txt"
+    doi = "https://doi.org/10.1038/nature06258"
+
+
+_species.add_genetic_map(HapmapII_GRCh37())
+
+
+class Decode_2010_sex_averaged(genetic_maps.GeneticMap):
+    """
+    Usage: `decode = homo_sapiens.Decode_2010()` (note the
+    parentheses).
+
+    Decode fine scale genetic map from Kong, A et al. Fine scale
+    recombination rate differences
+    between sexes, populations and individuals. Nature (28 October 2010).
+    (http://www.nature.com/nature/journal/v467/n7319/full/nature09525.html)
+    Please see https://www.decode.com/addendum/ for more details.
+    """
+    url = (
+        "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
+        "decode_2010_sex-averaged_map.tar.gz")
+    file_pattern = "genetic_map_decode_2010_sex-averaged_{name}.txt"
+    doi = "https://doi.org/10.1038/nature09525"
+
+
+_species.add_genetic_map(Decode_2010_sex_averaged())
 
 
 ###########################################################

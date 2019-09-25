@@ -15,14 +15,6 @@ import humanize
 import daiquiri
 
 import stdpopsim
-from stdpopsim import genomes
-from stdpopsim import genetic_maps
-# Species modules
-from stdpopsim import arabidopsis_thaliana
-from stdpopsim import e_coli
-from stdpopsim import drosophila_melanogaster
-from stdpopsim import homo_sapiens
-
 
 logger = logging.getLogger(__name__)
 
@@ -144,12 +136,12 @@ def summarise_usage():
         user_time, sys_time, max_rss))
 
 
-def add_model_runner(top_parser, model):
+def add_model_runner(top_parser, species, model):
     """
     Adds CLI options and registers the runner callback for the specified model.
     """
     parser = top_parser.add_parser(
-        model.name,
+        model.kind,
         description=model.description,
         help=model.short_description)
     add_output_argument(parser)
@@ -176,8 +168,8 @@ def add_model_runner(top_parser, model):
         if len(samples) < 2:
             exit("Must specify at least 2 samples")
 
-        contig = genomes.contig_factory(
-            args.species, args.chromosome, genetic_map=args.genetic_map,
+        contig = species.get_contig(
+            args.chromosome, genetic_map=args.genetic_map,
             length_multiplier=args.length_multiplier)
         logger.info(f"Running {model.name} on {contig} with {len(samples)} samples")
         ts = model.run(contig, samples)
@@ -189,7 +181,9 @@ def add_model_runner(top_parser, model):
     parser.set_defaults(runner=run_simulation)
 
 
-def add_species_parser(parser, species_name, default_chromosome):
+def add_species_parser(parser, species_name):
+
+    species = stdpopsim.get_species(species_name)
 
     # Replace underscores with hypens to keep with unix CLI conventions
     cli_name = species_name.replace("_", "-")
@@ -198,22 +192,23 @@ def add_species_parser(parser, species_name, default_chromosome):
         help=f"Run simulations for {cli_name}.")
     species_parser.set_defaults(species=species_name)
     species_parser.set_defaults(genetic_map=None)
-    maps = genetic_maps.all_genetic_maps(species=species_name)
-    if len(maps) > 0:
+    if len(species.genetic_maps) > 0:
         species_parser.add_argument(
             "-g", "--genetic-map", default=None,
-            choices=[gm.name for gm in maps],
+            choices=[gm.name for gm in species.genetic_maps],
             help="Specify a particular genetic map. Use a flat map by default.")
-    # TODO use the species' genome to get the list of acceptable chromosomes.
+    choices = [chrom.name for chrom in species.genome.chromosomes]
     species_parser.add_argument(
-        "-c", "--chromosome", default=default_chromosome,
-        help=f"Simulate a specific chromosome. (Default={default_chromosome})")
+        "-c", "--chromosome", choices=choices, default=choices[0],
+        help=f"Simulate a specific chromosome. Default={choices[0]}")
     species_parser.add_argument(
         "-l", "--length-multiplier", default=1, type=float,
         help="Simulate a chromsome of length l times the named chromosome")
     subparsers = species_parser.add_subparsers(dest="subcommand")
     subparsers.required = True
-    return subparsers
+
+    for model in species.models:
+        add_model_runner(subparsers, species, model)
 
 
 def stdpopsim_cli_parser():
@@ -237,25 +232,26 @@ def stdpopsim_cli_parser():
     # TODO pass the Species object in explicitly, and get the name etc from
     # that automatically.
 
-    subsubparsers = add_species_parser(subparsers, "homo_sapiens", "chr22")
-    add_model_runner(subsubparsers, homo_sapiens.GutenkunstThreePopOutOfAfrica())
-    add_model_runner(subsubparsers, homo_sapiens.TennessenTwoPopOutOfAfrica())
-    add_model_runner(subsubparsers, homo_sapiens.BrowningAmerica())
-    add_model_runner(subsubparsers, homo_sapiens.RagsdaleArchaic())
-    add_model_runner(subsubparsers, homo_sapiens.SchiffelsZigzag())
+    add_species_parser(subparsers, "homo_sapiens")
 
-    subsubparsers = add_species_parser(
-        subparsers, "arabidopsis_thaliana", "chr1")
-    add_model_runner(subsubparsers, arabidopsis_thaliana.Durvasula2017MSMC())
+    # add_model_runner(subsubparsers, homo_sapiens.GutenkunstThreePopOutOfAfrica())
+    # add_model_runner(subsubparsers, homo_sapiens.TennessenTwoPopOutOfAfrica())
+    # add_model_runner(subsubparsers, homo_sapiens.BrowningAmerica())
+    # add_model_runner(subsubparsers, homo_sapiens.RagsdaleArchaic())
+    # add_model_runner(subsubparsers, homo_sapiens.SchiffelsZigzag())
 
-    subsubparsers = add_species_parser(
-        subparsers, "drosophila_melanogaster", "chr2L")
-    add_model_runner(subsubparsers, drosophila_melanogaster.SheehanSongThreeEpoch())
-    add_model_runner(subsubparsers, drosophila_melanogaster.LiStephanTwoPopulation())
+#     subsubparsers = add_species_parser(
+#         subparsers, "arabidopsis_thaliana", "chr1")
+#     add_model_runner(subsubparsers, arabidopsis_thaliana.Durvasula2017MSMC())
 
-    subsubparsers = add_species_parser(
-        subparsers, "e_coli", None)
-    add_model_runner(subsubparsers, e_coli.LapierreConstant())
+#     subsubparsers = add_species_parser(
+#         subparsers, "drosophila_melanogaster", "chr2L")
+#     add_model_runner(subsubparsers, drosophila_melanogaster.SheehanSongThreeEpoch())
+#     add_model_runner(subsubparsers, drosophila_melanogaster.LiStephanTwoPopulation())
+
+#     subsubparsers = add_species_parser(
+#         subparsers, "e_coli", None)
+#     add_model_runner(subsubparsers, e_coli.LapierreConstant())
 
     return top_parser
 

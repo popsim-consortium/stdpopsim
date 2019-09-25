@@ -279,63 +279,53 @@ class Model(citations.CitableMixin):
         return ts
 
 
+# Resuable generic population
+_pop0 = Population(name="pop0", description="Generic population")
+
+
 class ConstantSizeModel(Model):
     kind = "constant"
-    populations = [
-        Population(name="pop0", description="Generic population")]
+    name = "ConstantSize"
+    short_description = "Constant size population model"
+    description = """
+        Generic model of constant size.
+    """
+    citations = []
+    populations = [_pop0]
+    author = None
+    year = None
+    doi = None
 
     def __init__(self, N):
-
-        # TODO fixup docstring like others.
-
-        """
-        Model Name:
-            ConstantSizeMixin
-
-        Model Description:
-            Generic model of constant size. Uses default_population_size
-            depending on organism
-
-        Model population indexes:
-            - Population 0: 0
-
-        CLI help:
-            python -m stdpopsim homo-sapiens GenericConstantSize -h
-        """  # noqa: E501
         self.population_configurations = [
-            msprime.PopulationConfiguration(initial_size=N)
+            msprime.PopulationConfiguration(
+                initial_size=N, metadata=self.populations[0].asdict())
         ]
         self.migration_matrix = [[0]]
         self.demographic_events = []
 
 
+ConstantSizeModel._write_docstring()
+
+
 class TwoEpochModel(Model):
     kind = "2_epoch"
-    populations = [
-        Population(name="pop0", description="Generic population")]
+    name = "TwoEpoch"
+    short_description = "Generic two epoch population model"
+    description = """
+        Generic model of a single population with
+        piecewise constant population size with a single change.
+    """
+    citations = []
+    populations = [_pop0]
+    author = None
+    year = None
+    doi = None
 
     def __init__(self, N1, N2, t):
-
-        # TODO fixup docstring like others.
-
-        """
-        Model Name:
-            TwoEpochMixin
-
-        Model Description:
-            Generic model of a single population with
-            piecewise constant population size with a single change.
-            Defaults depend on organism, but population sizes and time
-            should be set by user
-
-        Model population indexes:
-            - Population 0: 0
-
-        CLI help:
-            python -m stdpopsim homo-sapiens GenericTwoEpoch -h
-        """  # noqa: E501
         self.population_configurations = [
-            msprime.PopulationConfiguration(initial_size=N1)
+            msprime.PopulationConfiguration(
+                initial_size=N1, metadata=self.populations[0].asdict())
         ]
         self.migration_matrix = [[0]]
         self.demographic_events = [
