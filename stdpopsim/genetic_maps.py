@@ -19,43 +19,6 @@ import stdpopsim.citations as citations
 logger = logging.getLogger(__name__)
 
 
-registered_maps = {}
-
-
-def get_genetic_map(species, name):
-    """
-    Returns the genetic map with the specified name for the specified species.
-    Raises a ValueError if the map has not been registered.
-    """
-    key = "{}/{}".format(species, name)
-    if key not in registered_maps:
-        raise ValueError("Unknown genetic map '{}'".format(key))
-    return registered_maps[key]
-
-
-def register_genetic_map(genetic_map):
-    """
-    Registers the specified recombination map so that it can be loaded on demand.
-
-    A key is generated from each genetic map based on its class and module names,
-    giving the name of the map and species, respectively.
-    """
-    key = "{}/{}".format(genetic_map.species, genetic_map.name)
-    logger.debug("Registering genetic map '{}'".format(key))
-    registered_maps[key] = genetic_map
-
-
-def all_genetic_maps(species=None):
-    """
-    Returns all registered genetic maps. If the species is provided, return
-    all genetic maps for this species.
-    """
-    ret = list(registered_maps.values())
-    if species is not None:
-        ret = [gm for gm in ret if gm.species == species]
-    return ret
-
-
 @contextlib.contextmanager
 def cd(path):
     """
@@ -103,9 +66,10 @@ class GeneticMap(citations.CitableMixin):
     with Python's :meth:`str.format` method.
     """
 
-    def __init__(self):
+    def __init__(self, species):
+        self.species = species
         self.cache_dir = pathlib.Path(stdpopsim.get_cache_dir()) / "genetic_maps"
-        self.species_cache_dir = self.cache_dir / self.species
+        self.species_cache_dir = self.cache_dir / self.species.name
         self.map_cache_dir = self.species_cache_dir / self.name
 
     # We use a bit of trickery here to dynamically get the species name and
@@ -117,16 +81,6 @@ class GeneticMap(citations.CitableMixin):
         defining it.
         """
         return cls.__name__
-
-    @classproperty
-    def species(cls):
-        """
-        The species that this GeneticMap subclass is for. Equal to the name
-        of the module in which the class is defined.
-        """
-        mod = inspect.getmodule(cls).__name__
-        species = mod.split(".")[-1]
-        return species
 
     def __str__(self):
         s = "GeneticMap:\n"
@@ -196,8 +150,8 @@ class GeneticMap(citations.CitableMixin):
 
     def contains_chromosome_map(self, name):
         """
-        Just a quick check to see whether of not
-        this genetic map contains a genetic map for `name`
+        Returns True if this this genetic map contains a chromosome map for the specified
+        name.
         """
         map_file = os.path.join(self.map_cache_dir, self.file_pattern.format(name=name))
         return os.path.exists(map_file)

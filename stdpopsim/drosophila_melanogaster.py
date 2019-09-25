@@ -27,8 +27,6 @@ class Comeron2012_dm6(genetic_maps.GeneticMap):
     file_pattern = "genetic_map_comeron2012_dm6_{name}.txt"
 
 
-genetic_maps.register_genetic_map(Comeron2012_dm6())
-
 ###########################################################
 #
 # Genome definition
@@ -58,12 +56,11 @@ for line in _chromosome_data.splitlines():
         default_recombination_rate=8.4e-9))  # WRONG, underestimate used in S&S!
 
 
-#: :class:`stdpopsim.Genome` definition for D. melanogaster. Chromosome length data is
-#: based on `dm6 <https://www.ncbi.nlm.nih.gov/assembly/GCF_000001215.4/>`_.
-genome = genomes.Genome(
-    species="drosophila_melanogaster",
-    chromosomes=_chromosomes,
-    default_genetic_map=Comeron2012_dm6.name)
+# TODO need to port this documentation somewhere.
+# class:`stdpopsim.Genome` definition for D. melanogaster. Chromosome length data is
+# based on `dm6 <https://www.ncbi.nlm.nih.gov/assembly/GCF_000001215.4/>`_.
+
+genome = genomes.Genome(chromosomes=_chromosomes)
 
 
 ###########################################################

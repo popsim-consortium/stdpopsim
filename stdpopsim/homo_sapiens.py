@@ -63,9 +63,7 @@ for line in _chromosome_data.splitlines():
         default_mutation_rate=1e-8,  # WRONG!,
         default_recombination_rate=float(mean_rr)))
 
-_genome = genomes.Genome(
-    species="homo_sapiens",
-    chromosomes=_chromosomes)
+_genome = genomes.Genome(chromosomes=_chromosomes)
 
 _species = genomes.Species(
     name="homo_sapiens",
@@ -110,7 +108,7 @@ class HapmapII_GRCh37(genetic_maps.GeneticMap):
     doi = "https://doi.org/10.1038/nature06258"
 
 
-_species.add_genetic_map(HapmapII_GRCh37())
+_species.add_genetic_map(HapmapII_GRCh37)
 
 
 class Decode_2010_sex_averaged(genetic_maps.GeneticMap):
@@ -131,7 +129,7 @@ class Decode_2010_sex_averaged(genetic_maps.GeneticMap):
     doi = "https://doi.org/10.1038/nature09525"
 
 
-_species.add_genetic_map(Decode_2010_sex_averaged())
+_species.add_genetic_map(Decode_2010_sex_averaged)
 
 
 ###########################################################

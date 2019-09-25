@@ -28,9 +28,6 @@ class Salome2012(genetic_maps.GeneticMap):
     file_pattern = "arab_{name}_map_loess.txt"
 
 
-genetic_maps.register_genetic_map(Salome2012())
-
-
 ###########################################################
 #
 # Genome definition
@@ -61,10 +58,7 @@ for line in _chromosome_data.splitlines():
         default_mutation_rate=7e-9,
         default_recombination_rate=8.1e-9))
 
-genome = genomes.Genome(
-    species="arabidopsis_thaliana",
-    chromosomes=_chromosomes,
-    default_genetic_map=Salome2012.name)
+genome = genomes.Genome(_chromosomes)
 
 
 ###########################################################

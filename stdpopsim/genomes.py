@@ -2,12 +2,10 @@
 Infrastructure for defining basic information about the genomes of
 species.
 """
-import warnings
 import logging
 
 import msprime
 
-import stdpopsim.genetic_maps as genetic_maps
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +63,8 @@ class Species(object):
             if length_multiplier != 1:
                 raise ValueError("Cannot use length multiplier with empirical maps")
             logger.debug(f"Getting map for {chrom.name} from {genetic_map}")
-            recomb_map = chrom.recombination_map(genetic_map)
+            gm = self.get_genetic_map(genetic_map)
+            recomb_map = gm.get_chromosome_map(chrom.name)
 
         ret = Contig()
         ret.recombination_map = recomb_map
@@ -88,8 +87,15 @@ class Species(object):
     def add_model(self, model):
         self.models.append(model)
 
-    def add_genetic_map(self, genetic_map):
+    def add_genetic_map(self, genetic_map_class):
+        genetic_map = genetic_map_class(self)
         self.genetic_maps.append(genetic_map)
+
+    def get_genetic_map(self, name):
+        for gm in self.genetic_maps:
+            if gm.name == name:
+                return gm
+        raise ValueError("Genetic map not found")
 
 
 class Genome(object):
@@ -98,16 +104,13 @@ class Genome(object):
 
     .. todo:: Define the facilities that this object provides.
     """
-    def __init__(self, species, chromosomes, default_genetic_map=None):
-        self.species = species
-        self.default_genetic_map = default_genetic_map
+    def __init__(self, chromosomes):
         self.chromosomes = chromosomes
         self.length = 0
         for chromosome in chromosomes:
             self.length += chromosome.length
 
     def __str__(self):
-        s = "Genome for {}:\n".format(self.species)
         s += "Chromosomes:\n"
         length_sorted = sorted(self.chromosomes.values(), key=lambda x: -x.length)
         for chrom in length_sorted:
@@ -168,8 +171,6 @@ class Chromosome(object):
         # picky.
         self.default_recombination_rate = default_recombination_rate
         self.default_mutation_rate = default_mutation_rate
-        self.species = None
-        self.default_genetic_map = None
 
     def __repr__(self):
         return (
@@ -181,26 +182,6 @@ class Chromosome(object):
 
     def __str__(self):
         return repr(self)
-
-    def recombination_map(self, map_name=None):
-        """
-        Returns an :class:`msprime.RecombinationMap` instance representing the
-        recombination map for this chromosome. If ``map_name`` is provided,
-        return the corresponding recombination map; if not, use the default
-        recombination map for this species.
-        """
-        if map_name is None:
-            map_name = self.default_genetic_map
-        genetic_map = genetic_maps.get_genetic_map(self.species, map_name)
-        if genetic_map.contains_chromosome_map(self.name):
-            ret = genetic_map.get_chromosome_map(self.name)
-        else:
-            warnings.warn(
-                "Warning: recombination map not found for chromosome: '{}'"
-                " on map: '{}', substituting a zero"
-                "-recombination map.".format(self.name, map_name))
-            ret = msprime.RecombinationMap.uniform_map(self.length, 0)
-        return ret
 
 
 class Contig(object):
@@ -215,3 +196,12 @@ class Contig(object):
     def __init__(self):
         self.recombination_map = None
         self.mutation_rate = None
+
+    def __str__(self):
+        s = (
+            "Contig(length={:.2G}, recombination_rate={:.2G}, "
+            "mutation_rate={:.2G})").format(
+                self.recombination_map.get_length(),
+                self.recombination_map.mean_recombination_rate,
+                self.mutation_rate)
+        return s

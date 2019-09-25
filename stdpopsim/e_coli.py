@@ -24,10 +24,7 @@ _chromosomes.append(genomes.Chromosome(
 
 #: :class:`stdpopsim.Genome` definition for E. Coli.
 # Chromosome length data is based on strain K-12.
-genome = genomes.Genome(
-    species="e_coli",
-    chromosomes=_chromosomes,
-    default_genetic_map=None)
+genome = genomes.Genome(_chromosomes)
 
 
 ###########################################################
