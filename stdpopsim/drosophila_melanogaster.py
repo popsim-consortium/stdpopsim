@@ -144,7 +144,7 @@ class SheehanSongThreeEpoch(DrosophilaMelanogasterModel):
         self.migration_matrix = [[0]]
 
 
-SheehanSongThreeEpoch._write_docstring()
+# SheehanSongThreeEpoch._write_docstring()
 
 
 class LiStephanTwoPopulation(DrosophilaMelanogasterModel):
@@ -204,4 +204,4 @@ class LiStephanTwoPopulation(DrosophilaMelanogasterModel):
         ]
 
 
-LiStephanTwoPopulation._write_docstring()
+# LiStephanTwoPopulation._write_docstring()

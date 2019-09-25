@@ -177,7 +177,7 @@ class Model(citations.CitableMixin):
 
     @classmethod
     def _write_docstring(cls):
-        species = "XX"
+        species = cls.species.name
         base_dir = pathlib.Path(__file__).resolve().parents[1]
         parameters_csv_file = (
             base_dir / "docs" / "parameter_tables" / species / f"{cls.name}.csv")
@@ -305,7 +305,7 @@ class ConstantSizeModel(Model):
         self.demographic_events = []
 
 
-ConstantSizeModel._write_docstring()
+# ConstantSizeModel._write_docstring()
 
 
 class TwoEpochModel(Model):

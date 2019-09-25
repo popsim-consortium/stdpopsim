@@ -74,6 +74,7 @@ class ArabidopsisThalianaModel(models.Model):
     """
     TODO: documentation
     """
+    # species = _species
     def __init__(self):
         super().__init__()
         self.generation_time = default_generation_time
@@ -155,4 +156,4 @@ class Durvasula2017MSMC(ArabidopsisThalianaModel):
         ]
 
 
-Durvasula2017MSMC._write_docstring()
+# Durvasula2017MSMC._write_docstring()

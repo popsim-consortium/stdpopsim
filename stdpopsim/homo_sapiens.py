@@ -75,12 +75,12 @@ _species = genomes.Species(
 genomes.register_species(_species)
 
 # Add generic models.
-_species.add_model(models.ConstantSizeModel(_species.population_size))
-# TODO Add meaningful numbers and reference/justification
-_species.add_model(models.TwoEpochModel(
-    N1=10**6,   # FIXME
-    N2=_species.population_size,
-    t=100))  # FIXME
+# _species.add_model(models.ConstantSizeModel(_species.population_size))
+# # TODO Add meaningful numbers and reference/justification
+# _species.add_model(models.TwoEpochModel(
+#     N1=10**6,   # FIXME
+#     N2=_species.population_size,
+#     t=100))  # FIXME
 
 
 ###########################################################
@@ -160,6 +160,7 @@ _chb_population = models.Population(
 
 # TODO: remove this superclass
 class HomoSapiensModel(models.Model):
+    species = _species
     """
     TODO: documentation
     """
@@ -207,6 +208,7 @@ class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
         N_EU0 = 1000
         N_AS0 = 510
         # Times are provided in years, so we convert into generations.
+
         # self.generation_time = default_generation_time
         T_AF = 220e3 / self.generation_time
         T_B = 140e3 / self.generation_time
@@ -266,6 +268,7 @@ _species.add_model(GutenkunstThreePopOutOfAfrica())
 
 
 class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
+    kind = "ooa"
     name = "TennessenTwoPopOutOfAfrica"
     short_description = "Two population out-of-Africa model"
     description = """
@@ -360,6 +363,7 @@ class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
 
 
 TennessenTwoPopOutOfAfrica._write_docstring()
+_species.add_model(TennessenTwoPopOutOfAfrica())
 
 
 class TennessenOnePopAfrica(HomoSapiensModel):

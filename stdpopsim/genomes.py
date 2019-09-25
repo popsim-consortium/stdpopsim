@@ -131,7 +131,6 @@ class Genome(object):
         """
         This method return the weighted mean recombination rate
         across all chromosomes in the genome.
-        :rtype: float
         """
         mean_recombination_rate = 0
         for chrom in self.chromosomes.values():
@@ -145,7 +144,6 @@ class Genome(object):
         """
         This method return the weighted mean mutation rate
         across all chomosomes in the genome.
-        :rtype: float
         """
         mean_mutation_rate = 0
         for chrom in self.chromosomes.values():

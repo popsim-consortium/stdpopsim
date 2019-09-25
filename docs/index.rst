@@ -13,6 +13,7 @@ Welcome to stdpopsim's documentation!
    introduction
    installation
    api
+   catalog
    development
    changelogs
 
