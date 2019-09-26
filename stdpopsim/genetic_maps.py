@@ -6,7 +6,6 @@ import tempfile
 import tarfile
 import logging
 import contextlib
-import inspect
 import warnings
 import os
 import urllib.request
@@ -55,32 +54,31 @@ class GeneticMap(citations.CitableMixin):
     and registering the map.
     """
 
-    url = None
-    """
-    The URL where this genetic map can be obtained.
-    """
+    # url = None
+    # """
+    # The URL where this genetic map can be obtained.
+    # """
 
-    file_pattern = None
-    """
-    The pattern used to map name individual chromosome to files, suitable for use
-    with Python's :meth:`str.format` method.
-    """
+    # file_pattern = None
+    # """
+    # The pattern used to map name individual chromosome to files, suitable for use
+    # with Python's :meth:`str.format` method.
+    # """
 
-    def __init__(self, species):
+    def __init__(
+            self, species, name=None, url=None, file_pattern=None, doi=None,
+            description=None, year=None):
         self.species = species
+        self.name = name
+        self.url = url
+        self.file_pattern = file_pattern
+        self.doi = doi
+        self.description = description
+        self.year = year
+
         self.cache_dir = pathlib.Path(stdpopsim.get_cache_dir()) / "genetic_maps"
         self.species_cache_dir = self.cache_dir / self.species.name
         self.map_cache_dir = self.species_cache_dir / self.name
-
-    # We use a bit of trickery here to dynamically get the species name and
-    # map ID from the subclass.
-    @classproperty
-    def name(cls):
-        """
-        The name of this GeneticMap. This is equal to the name of the class
-        defining it.
-        """
-        return cls.__name__
 
     def __str__(self):
         s = "GeneticMap:\n"

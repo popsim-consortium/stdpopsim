@@ -11,9 +11,11 @@ from stdpopsim import homo_sapiens
 from stdpopsim import genetic_maps
 from stdpopsim import genomes
 
+from tests import test_models
 from qc import homo_sapiens_qc
 
 
+@unittest.skip("Skip for now")
 class TestGenome(unittest.TestCase):
     """
     Tests for the human genome.
@@ -133,228 +135,30 @@ class TestGenome(unittest.TestCase):
             homo_sapiens.genome.chromosomes["jibberish"]
 
 
-class TestGeneticMap(unittest.TestCase):
-    """
-    Basic tests for the GeneticMap class
-    """
-
-    def test_get_genetic_map(self):
-        default_map = homo_sapiens.genome.default_genetic_map
-        HapmapII_GRCh37 = genetic_maps.get_genetic_map("homo_sapiens", default_map)
-        self.assertIsInstance(HapmapII_GRCh37, genetic_maps.GeneticMap)
-
-    def test_unknown_get_chromosome_map(self):
-        default_map = homo_sapiens.genome.default_genetic_map
-        HapmapII_GRCh37 = genetic_maps.get_genetic_map("homo_sapiens", default_map)
-        with self.assertRaises(ValueError):
-            HapmapII_GRCh37.get_chromosome_map("jibberish")
-
-    def test_known_get_chromosome_map(self):
-        default_map = homo_sapiens.genome.default_genetic_map
-        HapmapII_GRCh37 = genetic_maps.get_genetic_map("homo_sapiens", default_map)
-        recombination_map = HapmapII_GRCh37.get_chromosome_map("chr1")
-        self.assertIsInstance(recombination_map, msprime.RecombinationMap)
+class TestTennessenTwoPopOutOfAfrica(unittest.TestCase, test_models.QcdModelTestMixin):
+    model = homo_sapiens._TennessenTwoPopOutOfAfrica()
+    qc_model = homo_sapiens_qc.TennessenTwoPopOutOfAfrica()
 
 
-class TestGutenkunstOutOfAfrica(unittest.TestCase):
-    """
-    Basic tests for the GutenkunstThreePopOutOfAfrica model.
-    """
-
-    def test_simulation_runs(self):
-        model = homo_sapiens.GutenkunstThreePopOutOfAfrica()
-        ts = msprime.simulate(
-            samples=[msprime.Sample(pop, 0) for pop in range(3)],
-            **model.asdict())
-        self.assertEqual(ts.num_populations, 3)
-
-    def test_debug_runs(self):
-        model = homo_sapiens.GutenkunstThreePopOutOfAfrica()
-        output = io.StringIO()
-        model.debug(output)
-        s = output.getvalue()
-        self.assertGreater(len(s), 0)
+class TestTennessenOnePopAfrica(unittest.TestCase, test_models.QcdModelTestMixin):
+    model = homo_sapiens._TennessenOnePopAfrica()
+    qc_model = homo_sapiens_qc.TennessenOnePopAfrica()
 
 
-class TestTennessenOutOfAfrica(unittest.TestCase):
-    """
-    Basic tests for the TennessenTwoPopOutOfAfrica model.
-    """
-
-    def test_simulation_runs(self):
-        model = homo_sapiens.TennessenTwoPopOutOfAfrica()
-        ts = msprime.simulate(
-            samples=[msprime.Sample(pop, 0) for pop in range(2)],
-            **model.asdict())
-        self.assertEqual(ts.num_populations, 2)
-
-    def test_debug_runs(self):
-        model = homo_sapiens.TennessenTwoPopOutOfAfrica()
-        output = io.StringIO()
-        model.debug(output)
-        s = output.getvalue()
-        self.assertGreater(len(s), 0)
-
-    def test_qc_model_equal(self):
-        model = homo_sapiens.TennessenTwoPopOutOfAfrica()
-        self.assertTrue(model.equals(homo_sapiens_qc.TennessenTwoPopOutOfAfrica()))
+class TestBrowningAmerica(unittest.TestCase, test_models.QcdModelTestMixin):
+    model = homo_sapiens._BrowningAmerica()
+    qc_model = homo_sapiens_qc.BrowningAmerica()
 
 
-class TestTennessenOnePopAfrica(unittest.TestCase):
-    """
-    Basic tests for the TennessenOnePopAfrica model.
-    """
-
-    def test_simulation_runs(self):
-        model = homo_sapiens.TennessenOnePopAfrica()
-        ts = msprime.simulate(
-            samples=[msprime.Sample(0, 0), msprime.Sample(0, 0)],
-            **model.asdict())
-        self.assertEqual(ts.num_populations, 1)
-
-    def test_debug_runs(self):
-        model = homo_sapiens.TennessenOnePopAfrica()
-        output = io.StringIO()
-        model.debug(output)
-        s = output.getvalue()
-        self.assertGreater(len(s), 0)
-
-    def test_qc_model_equal(self):
-        model = homo_sapiens.TennessenOnePopAfrica()
-        self.assertTrue(model.equals(homo_sapiens_qc.TennessenOnePopAfrica()))
+class TestRagsdaleArchaic(unittest.TestCase, test_models.QcdModelTestMixin):
+    model = homo_sapiens._RagsdaleArchaic()
+    qc_model = homo_sapiens_qc.RagsdaleArchaic()
 
 
-class TestBrowningAmerica(unittest.TestCase):
-    """
-    Basic tests for the BrowningAmerica model.
-    """
+# Models that have not been QC'd:
 
-    def test_simulation_runs(self):
-        model = homo_sapiens.BrowningAmerica()
-        ts = msprime.simulate(
-            samples=[msprime.Sample(pop, 0) for pop in range(4)],
-            **model.asdict())
-        self.assertEqual(ts.num_populations, 4)
+class TestGutenkunstThreePopOutOfAfrica(unittest.TestCase, test_models.ModelTestMixin):
+    model = homo_sapiens._GutenkunstThreePopOutOfAfrica()
 
-    def test_debug_runs(self):
-        model = homo_sapiens.BrowningAmerica()
-        output = io.StringIO()
-        model.debug(output)
-        s = output.getvalue()
-        self.assertGreater(len(s), 0)
-
-    def test_qc_model_equal(self):
-        model = homo_sapiens.BrowningAmerica()
-        self.assertTrue(model.equals(homo_sapiens_qc.BrowningAmerica()))
-
-
-class TestRagsdaleArchaic(unittest.TestCase):
-    """
-    Basic tests for the RagsdaleArchaic model.
-    """
-
-    def test_simulation_runs(self):
-        model = homo_sapiens.RagsdaleArchaic()
-        ts = msprime.simulate(
-            samples=[msprime.Sample(pop, 0) for pop in range(5)],
-            **model.asdict())
-        self.assertEqual(ts.num_populations, 5)
-
-    def test_debug_runs(self):
-        model = homo_sapiens.RagsdaleArchaic()
-        output = io.StringIO()
-        model.debug(output)
-        s = output.getvalue()
-        self.assertGreater(len(s), 0)
-
-    def test_qc_model_equal(self):
-        model = homo_sapiens.RagsdaleArchaic()
-        self.assertTrue(model.equals(homo_sapiens_qc.RagsdaleArchaic()))
-
-
-class TestSchiffelsZigzag(unittest.TestCase):
-    """
-    Basic tests for the TestSchiffelsZigzag model.
-    """
-
-    def test_simulation_runs(self):
-        model = homo_sapiens.SchiffelsZigzag()
-        ts = msprime.simulate(
-            samples=[msprime.Sample(0, 0), msprime.Sample(0, 0)],
-            **model.asdict())
-        self.assertEqual(ts.num_populations, 1)
-
-    def test_debug_runs(self):
-        model = homo_sapiens.SchiffelsZigzag()
-        output = io.StringIO()
-        model.debug(output)
-        s = output.getvalue()
-        self.assertGreater(len(s), 0)
-
-
-class TestGenericConstantSize(unittest.TestCase):
-    """
-    Basic tests for the GenericConstantSize model.
-    """
-
-    def test_simulation_runs(self):
-        model = homo_sapiens.GenericConstantSize()
-        ts = msprime.simulate(
-            samples=[msprime.Sample(0, 0), msprime.Sample(0, 0)],
-            **model.asdict())
-        self.assertEqual(ts.num_populations, 1)
-
-    def test_debug_runs(self):
-        model = homo_sapiens.GenericConstantSize()
-        output = io.StringIO()
-        model.debug(output)
-        s = output.getvalue()
-        self.assertGreater(len(s), 0)
-
-
-class TestGenericTwoEpoch(unittest.TestCase):
-    """
-    Basic tests for the GenericTwoEpoch model.
-    """
-
-    def test_simulation_runs(self):
-        model = homo_sapiens.GenericTwoEpoch()
-        ts = msprime.simulate(
-            samples=[msprime.Sample(0, 0), msprime.Sample(0, 0)],
-            **model.asdict())
-        self.assertEqual(ts.num_populations, 1)
-
-    def test_debug_runs(self):
-        model = homo_sapiens.GenericTwoEpoch()
-        output = io.StringIO()
-        model.debug(output)
-        s = output.getvalue()
-        self.assertGreater(len(s), 0)
-
-    def test_debug_runs_v2(self):
-        model = homo_sapiens.GenericTwoEpoch(100, 4)
-        output = io.StringIO()
-        model.debug(output)
-        s = output.getvalue()
-        self.assertGreater(len(s), 0)
-
-
-class TestContigFactory(unittest.TestCase):
-    """
-    Tests for the contig_factory function.
-
-    TODO move these into the appropriate location.
-    """
-    def test_length_multiplier(self):
-        contig1 = genomes.contig_factory("homo_sapiens", "chr22")
-        for x in [0.125, 1.0, 2.0]:
-            contig2 = genomes.contig_factory(
-                "homo_sapiens", "chr22", length_multiplier=x)
-            self.assertEqual(
-                contig1.recombination_map.get_positions()[-1] * x,
-                contig2.recombination_map.get_positions()[-1])
-
-    def test_length_multiplier_on_empirical_map(self):
-        with self.assertRaises(ValueError):
-            genomes.contig_factory(
-                "homo_sapiens", "chr1", "HapmapII_GRCh37", length_multiplier=2)
+class TestSchiffelsZigzag(unittest.TestCase, test_models.ModelTestMixin):
+    model = homo_sapiens._SchiffelsZigzag()

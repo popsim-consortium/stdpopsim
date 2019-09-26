@@ -8,7 +8,7 @@ import tempfile
 import os.path
 import shutil
 import urllib.request
-import pathlib
+# import pathlib
 
 import msprime
 
@@ -37,25 +37,25 @@ def download_map_tarballs(destination):
 
 saved_urls = {}
 
-
-def setUpModule():
-    # download_map_tarballs(pathlib.Path("test_cache/tarballs"))
-    destination = pathlib.Path("test_cache/tarballs")
-    for key, genetic_map in genetic_maps.registered_maps.items():
-        local_file = destination / (key + ".tar.gz")
-        if not local_file.exists():
-            cache_dir = local_file.parent
-            cache_dir.mkdir(exist_ok=True, parents=True)
-            urllib.request.urlretrieve(genetic_map.url, local_file)
-        saved_urls[key] = genetic_map.url
-        genetic_map.url = local_file.resolve().as_uri()
-
-
-def tearDownModule():
-    for key, genetic_map in genetic_maps.registered_maps.items():
-        genetic_map.url = saved_urls[key]
+# def setUpModule():
+#     # download_map_tarballs(pathlib.Path("test_cache/tarballs"))
+#     destination = pathlib.Path("test_cache/tarballs")
+#     for key, genetic_map in genetic_maps.registered_maps.items():
+#         local_file = destination / (key + ".tar.gz")
+#         if not local_file.exists():
+#             cache_dir = local_file.parent
+#             cache_dir.mkdir(exist_ok=True, parents=True)
+#             urllib.request.urlretrieve(genetic_map.url, local_file)
+#         saved_urls[key] = genetic_map.url
+#         genetic_map.url = local_file.resolve().as_uri()
 
 
+# def tearDownModule():
+#     for key, genetic_map in genetic_maps.registered_maps.items():
+#         genetic_map.url = saved_urls[key]
+
+
+@unittest.skip("Skip for now")
 class GeneticMapTestClass(genetic_maps.GeneticMap):
     species = "test_species"
     name = "test_map"
@@ -91,6 +91,7 @@ def get_genetic_map_tarball():
     return tarball
 
 
+@unittest.skip("Skip for now")
 class TestGeneticMapTarball(unittest.TestCase):
     """
     Tests that we correctly encode a genetic map in the tarball test function.
@@ -114,6 +115,7 @@ class TestGeneticMapTarball(unittest.TestCase):
         self.assertGreater(len(maps), 0)
 
 
+@unittest.skip("Skip for now")
 class TestGeneticMap(tests.CacheWritingTest):
     """
     Tests for the basic functionality of the genetic map class.
@@ -138,6 +140,7 @@ class TestGeneticMap(tests.CacheWritingTest):
         self.assertFalse(gm.is_cached())
 
 
+@unittest.skip("Skip for now")
 class TestGeneticMapDownload(tests.CacheWritingTest):
     """
     Tests downloading code for the genetic maps.
@@ -172,6 +175,7 @@ class TestGeneticMapDownload(tests.CacheWritingTest):
             gm.is_cached = saved
 
 
+@unittest.skip("Skip for now")
 class TestAllGeneticMaps(tests.CacheReadingTest):
     """
     Tests if the all_genetic_maps() function works correctly.

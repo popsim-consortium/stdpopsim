@@ -87,8 +87,7 @@ class Species(object):
     def add_model(self, model):
         self.models.append(model)
 
-    def add_genetic_map(self, genetic_map_class):
-        genetic_map = genetic_map_class(self)
+    def add_genetic_map(self, genetic_map):
         self.genetic_maps.append(genetic_map)
 
     def get_genetic_map(self, name):
@@ -111,8 +110,8 @@ class Genome(object):
             self.length += chromosome.length
 
     def __str__(self):
-        s += "Chromosomes:\n"
-        length_sorted = sorted(self.chromosomes.values(), key=lambda x: -x.length)
+        s = "Chromosomes:\n"
+        length_sorted = sorted(self.chromosomes, key=lambda x: -x.length)
         for chrom in length_sorted:
             s += "\t{}\n".format(chrom)
         return s

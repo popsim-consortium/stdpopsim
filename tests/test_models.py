@@ -3,11 +3,49 @@ Tests for simulation model infrastructure.
 """
 import unittest
 import itertools
+import io
 
 import numpy as np
 import msprime
 
 from stdpopsim import models
+from stdpopsim import genomes
+
+
+class ModelTestMixin(object):
+    """
+    Mixin for testing specific models. Subclasses should extend
+    unittest.TestCase and this mixin, and define the self.model (as the
+    model instance).
+    """
+    # To be defined in subclasses.
+    model = None
+
+    def test_debug_runs(self):
+        output = io.StringIO()
+        self.model.debug(output)
+        s = output.getvalue()
+        self.assertGreater(len(s), 0)
+
+    def test_simulation_runs(self):
+        # With a recombination_map of None, we simulate a coalescent without
+        # recombination in msprime, with no mutation.
+        contig = genomes.Contig()
+        samples = self.model.get_samples(*([2] * self.model.num_populations))
+        ts = self.model.run(contig, samples)
+        self.assertEqual(ts.num_populations, self.model.num_populations)
+
+
+class QcdModelTestMixin(ModelTestMixin):
+    """
+    Extends the tests to also check that the qc model is equal to
+    the production model.
+    """
+    # To be defined in subclass.
+    qc_model = None
+
+    def test_qc_model_equal(self):
+        self.assertTrue(self.model.equals(self.qc_model))
 
 
 class TestPopulationConfigsEqual(unittest.TestCase):

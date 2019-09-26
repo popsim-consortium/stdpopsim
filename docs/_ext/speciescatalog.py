@@ -1,4 +1,6 @@
 import csv
+import pathlib
+
 from docutils import nodes
 from docutils.parsers.rst import Directive
 
@@ -107,6 +109,13 @@ def citation_list(citable):
 
 
 def model_parameter_table(model):
+    path = pathlib.Path(f"parameter_tables/{model.species.name}/{model.name}.csv")
+    if not path.exists():
+        return None
+    with open(path) as csv_file:
+        reader = csv.reader(csv_file)
+        data = list(reader)
+
     table = nodes.table()
     tgroup = nodes.tgroup(cols=3)
     colspec = nodes.colspec(colwidth=1)
@@ -131,10 +140,6 @@ def model_parameter_table(model):
     entry += nodes.paragraph(text="Description")
     row += entry
     thead.append(row)
-
-    with open(f"parameter_tables/{model.species.name}/{model.name}.csv") as csv_file:
-        reader = csv.reader(csv_file)
-        data = list(reader)
 
     rows = []
     for row_data in data:
@@ -161,6 +166,13 @@ def population_list(model):
         pop_list += list_item
     return pop_list
 
+
+def genetic_map_section(species, genetic_map):
+    map_id = f"sec_catalog_{species.name}_genetic_maps_{genetic_map.name}"
+    section = nodes.section(ids=[map_id])
+    section += nodes.title(text=genetic_map.name)
+    section += nodes.paragraph(text=genetic_map.description)
+    return section
 
 def genetic_maps_table(species):
     table = nodes.table()
@@ -195,6 +207,9 @@ def genetic_maps_table(species):
         row = nodes.row()
         rows.append(row)
 
+        # map_id = f"sec_catalog_{species.name}_genetic_maps_{genetic_map.name}"
+        # TODO figure out how to make a link here to the corresponding detail
+        # section.
         entry = nodes.entry()
         entry += nodes.paragraph(text=genetic_map.name)
         row += entry
@@ -294,6 +309,8 @@ class SpeciesCatalog(Directive):
         maps_section = nodes.section(ids=[f"sec_catalog_{species.name}_genetic_maps"])
         maps_section += nodes.title(text="Genetic Maps")
         maps_section += genetic_maps_table(species)
+        for gmap in species.genetic_maps:
+            maps_section += genetic_map_section(species, gmap)
         section += maps_section
 
         models_section = nodes.section(ids=[f"sec_catalog_{species.name}_models"])

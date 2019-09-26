@@ -8,25 +8,6 @@ import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
 
-###########################################################
-#
-# Genetic maps
-#
-###########################################################
-
-
-class Salome2012(genetic_maps.GeneticMap):
-    """
-    Genetic map from Salome 2012 averaged across population crosses.
-    Please see this repo for details on how this was done: https://github.com/
-    LohmuellerLab/arabidopsis_recomb_maps
-
-    """
-
-    url = ("http://www.eeb.ucla.edu/Faculty/Lohmueller/data/"
-           "uploads/salome2012_maps.tar.gz")
-    file_pattern = "arab_{name}_map_loess.txt"
-
 
 ###########################################################
 #
@@ -58,7 +39,38 @@ for line in _chromosome_data.splitlines():
         default_mutation_rate=7e-9,
         default_recombination_rate=8.1e-9))
 
-genome = genomes.Genome(_chromosomes)
+_genome = genomes.Genome(chromosomes=_chromosomes)
+
+_species = genomes.Species(
+    name="arabidopsis_thaliana",
+    genome=_genome,
+    # TODO reference for these
+    generation_time=1.0,
+    population_size=10**3)
+
+genomes.register_species(_species)
+
+###########################################################
+#
+# Genetic maps
+#
+###########################################################
+
+_gm = genetic_maps.GeneticMap(
+    species=_species,
+    name="Salome2012",
+    year=2012,
+    url=(
+        "http://www.eeb.ucla.edu/Faculty/Lohmueller/data/"
+        "uploads/salome2012_maps.tar.gz"),
+    file_pattern="arab_{name}_map_loess.txt",
+    doi=None,
+    description=(
+        "Genetic map from Salome 2012 averaged across population crosses. "
+        "Please see this repo for details on how this was done: "
+        "https://github.com/LohmuellerLab/arabidopsis_recomb_maps"
+    ))
+_species.add_genetic_map(_gm)
 
 
 ###########################################################
@@ -67,39 +79,17 @@ genome = genomes.Genome(_chromosomes)
 #
 ###########################################################
 
-default_generation_time = 1.0
-
 
 class ArabidopsisThalianaModel(models.Model):
     """
     TODO: documentation
     """
-    # species = _species
-    def __init__(self):
-        super().__init__()
-        self.generation_time = default_generation_time
-        self.default_population_size = 1000
-
-
-# class GenericConstantSize(ArabidopsisThalianaModel, generic_models.ConstantSizeMixin):
-#     def __init__(self):
-#         ArabidopsisThalianaModel.__init__(self)
-#         generic_models.ConstantSizeMixin.__init__(self, self.default_population_size)
-
-
-# class GenericTwoEpoch(ArabidopsisThalianaModel, generic_models.TwoEpochMixin):
-#     def __init__(self, n2=None, t=None):
-#         ArabidopsisThalianaModel.__init__(self)
-#         n1 = self.default_population_size
-#         if n2 is None:
-#             n2 = n1 / 2.0
-#         if t is None:
-#             t = n1 / 100
-#         generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
+    species = _species
 
 
 # FIXME this documentation needs to be filled out.
-class Durvasula2017MSMC(ArabidopsisThalianaModel):
+class _Durvasula2017MSMC(ArabidopsisThalianaModel):
+    kind = "fixme"  # FIXME
     name = "Durvasula2017MSMC"
     short_description = "TODO"
     description = """
@@ -142,7 +132,7 @@ class Durvasula2017MSMC(ArabidopsisThalianaModel):
         # to the size at 30 (~1.6Mya)
         self.sizes[30:32] = self.sizes[30]
         # generation time is 1 year
-        self.generation_time = default_generation_time
+        self.generation_time = 1
         self.demographic_events = []
         for idx, t in enumerate(self.times):
             self.demographic_events.append(
@@ -156,4 +146,4 @@ class Durvasula2017MSMC(ArabidopsisThalianaModel):
         ]
 
 
-# Durvasula2017MSMC._write_docstring()
+_species.add_model(_Durvasula2017MSMC())

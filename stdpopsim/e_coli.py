@@ -24,7 +24,17 @@ _chromosomes.append(genomes.Chromosome(
 
 #: :class:`stdpopsim.Genome` definition for E. Coli.
 # Chromosome length data is based on strain K-12.
-genome = genomes.Genome(_chromosomes)
+
+_genome = genomes.Genome(chromosomes=_chromosomes)
+
+_species = genomes.Species(
+    name="e_coli",
+    genome=_genome,
+    # TODO reference for these
+    generation_time=0.00003805175,  # 1.0 / (525600 min/year / 20 min/gen)
+    population_size=None)  # FIXME
+
+genomes.register_species(_species)
 
 
 ###########################################################
@@ -33,22 +43,10 @@ genome = genomes.Genome(_chromosomes)
 #
 ###########################################################
 
-# TODO add a generation time here
-default_generation_time = 0.00003805175  # 1.0 / (525600 min/year / 20 min/gen)
 
-
-class EColiModel(models.Model):
-    """
-    TODO: documentation
-    """
-    def __init__(self):
-        super().__init__()
-        self.generation_time = default_generation_time
-        # JK: This is wrong anyway, right?
-        self.default_population_size = 10000
-
-
-class LapierreConstant(EColiModel):
+class _LapierreConstant(models.Model):
+    species = _species
+    kind = "constant"
     name = "LapierreConstant"
     short_description = "Constant size model for E-coli"
     description = """
@@ -82,3 +80,6 @@ class LapierreConstant(EColiModel):
         ]
         self.migration_matrix = [[0]]
         self.demographic_events = []
+
+
+_species.add_model(_LapierreConstant())

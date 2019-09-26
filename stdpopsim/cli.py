@@ -229,29 +229,10 @@ def stdpopsim_cli_parser():
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True
 
-    # TODO pass the Species object in explicitly, and get the name etc from
-    # that automatically.
-
     add_species_parser(subparsers, "homo_sapiens")
-
-    # add_model_runner(subsubparsers, homo_sapiens.GutenkunstThreePopOutOfAfrica())
-    # add_model_runner(subsubparsers, homo_sapiens.TennessenTwoPopOutOfAfrica())
-    # add_model_runner(subsubparsers, homo_sapiens.BrowningAmerica())
-    # add_model_runner(subsubparsers, homo_sapiens.RagsdaleArchaic())
-    # add_model_runner(subsubparsers, homo_sapiens.SchiffelsZigzag())
-
-#     subsubparsers = add_species_parser(
-#         subparsers, "arabidopsis_thaliana", "chr1")
-#     add_model_runner(subsubparsers, arabidopsis_thaliana.Durvasula2017MSMC())
-
-#     subsubparsers = add_species_parser(
-#         subparsers, "drosophila_melanogaster", "chr2L")
-#     add_model_runner(subsubparsers, drosophila_melanogaster.SheehanSongThreeEpoch())
-#     add_model_runner(subsubparsers, drosophila_melanogaster.LiStephanTwoPopulation())
-
-#     subsubparsers = add_species_parser(
-#         subparsers, "e_coli", None)
-#     add_model_runner(subsubparsers, e_coli.LapierreConstant())
+    add_species_parser(subparsers, "drosophila_melanogaster")
+    add_species_parser(subparsers, "arabidopsis_thaliana")
+    add_species_parser(subparsers, "e_coli")
 
     return top_parser
 

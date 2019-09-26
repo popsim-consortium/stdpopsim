@@ -74,14 +74,6 @@ _species = genomes.Species(
 
 genomes.register_species(_species)
 
-# Add generic models.
-# _species.add_model(models.ConstantSizeModel(_species.population_size))
-# # TODO Add meaningful numbers and reference/justification
-# _species.add_model(models.TwoEpochModel(
-#     N1=10**6,   # FIXME
-#     N2=_species.population_size,
-#     t=100))  # FIXME
-
 
 ###########################################################
 #
@@ -90,46 +82,40 @@ genomes.register_species(_species)
 ###########################################################
 
 
-class HapmapII_GRCh37(genetic_maps.GeneticMap):
-    """
-    Usage: `hapmap = homo_sapiens.HapmapII_GRCh37()` (note the
-    parentheses).
-
-    The Phase II HapMap Genetic map (lifted over to GRCh37) used in
-    1000 Genomes. Please see the `README
-    <ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/20110106_recombination_hotspots/README_hapmapII_GRCh37_map>`_
-    for more details.
-    """
-    url = (
+_gm = genetic_maps.GeneticMap(
+    species=_species,
+    name="HapmapII_GRCh37",
+    year=2007,
+    url=(
         "http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
         "20110106_recombination_hotspots/"
-        "HapmapII_GRCh37_RecombinationHotspots.tar.gz")
-    file_pattern = "genetic_map_GRCh37_{name}.txt"
-    doi = "https://doi.org/10.1038/nature06258"
+        "HapmapII_GRCh37_RecombinationHotspots.tar.gz"),
+    file_pattern="genetic_map_GRCh37_{name}.txt",
+    doi="https://doi.org/10.1038/nature06258",
+    description=(
+        "The Phase II HapMap Genetic map (lifted over to GRCh37) used in "
+        "1000 Genomes. Please see the `README <ftp://ftp-trace.ncbi.nih.gov/1000genomes"
+        "/ftp/technical/working/20110106_recombination_hotspots"
+        "/README_hapmapII_GRCh37_map>`_ for more details.")
+    )
+_species.add_genetic_map(_gm)
 
-
-_species.add_genetic_map(HapmapII_GRCh37)
-
-
-class Decode_2010_sex_averaged(genetic_maps.GeneticMap):
-    """
-    Usage: `decode = homo_sapiens.Decode_2010()` (note the
-    parentheses).
-
-    Decode fine scale genetic map from Kong, A et al. Fine scale
-    recombination rate differences
-    between sexes, populations and individuals. Nature (28 October 2010).
-    (http://www.nature.com/nature/journal/v467/n7319/full/nature09525.html)
-    Please see https://www.decode.com/addendum/ for more details.
-    """
-    url = (
+_gm = genetic_maps.GeneticMap(
+    species=_species,
+    name="Decode_2010_sex_averaged",
+    year=2010,
+    url=(
         "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
-        "decode_2010_sex-averaged_map.tar.gz")
-    file_pattern = "genetic_map_decode_2010_sex-averaged_{name}.txt"
-    doi = "https://doi.org/10.1038/nature09525"
-
-
-_species.add_genetic_map(Decode_2010_sex_averaged)
+        "decode_2010_sex-averaged_map.tar.gz"),
+    file_pattern="genetic_map_decode_2010_sex-averaged_{name}.txt",
+    doi="https://doi.org/10.1038/nature09525",
+    description=(
+        "Decode fine scale genetic map from Kong, A et al. Fine scale "
+        "recombination rate differences between sexes, populations and "
+        "individuals. Nature (28 October 2010). "
+        "Please see https://www.decode.com/addendum/ for more details.")
+    )
+_species.add_genetic_map(_gm)
 
 
 ###########################################################
@@ -137,12 +123,6 @@ _species.add_genetic_map(Decode_2010_sex_averaged)
 # Demographic models
 #
 ###########################################################
-
-
-# TODO remove this, it's stored in the species object.
-
-# species wide default generation time
-default_generation_time = 25
 
 # population definitions that are reused.
 _yri_population = models.Population(
@@ -166,12 +146,19 @@ class HomoSapiensModel(models.Model):
     """
     def __init__(self):
         super().__init__()
-        self.generation_time = default_generation_time
-        self.default_population_size = 10000
+        self.generation_time = _species.generation_time
 
 
-class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
-    kind = "ooa"
+# TODO we want to move away from defining these as classes which
+# can be instantiated and rather to creating *instances* of the Model
+# class which has this behaviour. However, it's not clear what form
+# the refactored versions would have. Marking these classes with a
+# __ to emphasise that they're not supposed to be used externally
+# like this, but should be found via the species catalog.
+
+
+class _GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
+    kind = "ooa_3"
     name = "GutenkunstThreePopOutOfAfrica"
     short_description = "Three population out-of-Africa model"
     description = """
@@ -263,12 +250,11 @@ class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
         ]
 
 
-GutenkunstThreePopOutOfAfrica._write_docstring()
-_species.add_model(GutenkunstThreePopOutOfAfrica())
+_species.add_model(_GutenkunstThreePopOutOfAfrica())
 
 
-class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
-    kind = "ooa"
+class _TennessenTwoPopOutOfAfrica(HomoSapiensModel):
+    kind = "ooa_2"
     name = "TennessenTwoPopOutOfAfrica"
     short_description = "Two population out-of-Africa model"
     description = """
@@ -362,12 +348,13 @@ class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
         ]
 
 
-TennessenTwoPopOutOfAfrica._write_docstring()
-_species.add_model(TennessenTwoPopOutOfAfrica())
+_species.add_model(_TennessenTwoPopOutOfAfrica())
 
 
-class TennessenOnePopAfrica(HomoSapiensModel):
+class _TennessenOnePopAfrica(HomoSapiensModel):
+    kind = "african"
     name = "TennessenOnePopAfrica"
+    short_description = "African population"
     description = """
         The model is a simplification of the two population Tennesen et al.
         `model <https://doi.org/10.1126/science.1219240>`_ with the European-American
@@ -424,10 +411,11 @@ class TennessenOnePopAfrica(HomoSapiensModel):
         ]
 
 
-TennessenOnePopAfrica._write_docstring()
+_species.add_model(_TennessenOnePopAfrica())
 
 
-class BrowningAmerica(HomoSapiensModel):
+class _BrowningAmerica(HomoSapiensModel):
+    kind = "america"
     name = "BrowningAmerica"
     short_description = "American admixture model"
     description = """
@@ -543,10 +531,11 @@ class BrowningAmerica(HomoSapiensModel):
         self.demographic_events = admixture_event + eu_event + ooa_event + init_event
 
 
-BrowningAmerica._write_docstring()
+_species.add_model(_BrowningAmerica())
 
 
-class RagsdaleArchaic(HomoSapiensModel):
+class _RagsdaleArchaic(HomoSapiensModel):
+    kind = "ooa_archaic"
     name = "RagsdaleArchaic"
     short_description = "Three population out-of-Africa model with archaic admixture"
     description = """
@@ -706,10 +695,11 @@ class RagsdaleArchaic(HomoSapiensModel):
         ]
 
 
-RagsdaleArchaic._write_docstring()
+_species.add_model(_RagsdaleArchaic())
 
 
-class SchiffelsZigzag(HomoSapiensModel):
+class _SchiffelsZigzag(HomoSapiensModel):
+    kind = "zigzag"
     name = "SchiffelsZigzag"
     short_description = "Validation model with periodic growth and decline."
     description = """
@@ -784,4 +774,4 @@ class SchiffelsZigzag(HomoSapiensModel):
         ]
 
 
-SchiffelsZigzag._write_docstring()
+_species.add_model(_SchiffelsZigzag())

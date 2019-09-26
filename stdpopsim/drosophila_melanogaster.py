@@ -8,25 +8,6 @@ import stdpopsim.models as models
 import stdpopsim.genomes as genomes
 import stdpopsim.genetic_maps as genetic_maps
 
-
-###########################################################
-#
-# Genetic maps
-#
-###########################################################
-
-
-class Comeron2012_dm6(genetic_maps.GeneticMap):
-    """
-    Comeron et al. (2012) maps (lifted over to dm6) used in
-    Currently needs a readme as to the lift over, etc.
-    """
-    url = (
-        "http://sesame.uoregon.edu/~adkern/dmel_recombination_map/"
-        "comeron2012_maps.tar.gz")
-    file_pattern = "genetic_map_comeron2012_dm6_{name}.txt"
-
-
 ###########################################################
 #
 # Genome definition
@@ -60,7 +41,40 @@ for line in _chromosome_data.splitlines():
 # class:`stdpopsim.Genome` definition for D. melanogaster. Chromosome length data is
 # based on `dm6 <https://www.ncbi.nlm.nih.gov/assembly/GCF_000001215.4/>`_.
 
-genome = genomes.Genome(chromosomes=_chromosomes)
+_genome = genomes.Genome(chromosomes=_chromosomes)
+
+_species = genomes.Species(
+    name="drosophila_melanogaster",
+    genome=_genome,
+    # TODO reference for these
+    generation_time=0.1,
+    population_size=10**4)  # TODO: This is wildly wrong, right?
+
+genomes.register_species(_species)
+
+
+###########################################################
+#
+# Genetic maps
+#
+###########################################################
+
+
+_gm = genetic_maps.GeneticMap(
+    species=_species,
+    name="Comeron2012_dm6",
+    year=2012,
+    url=(
+        "http://sesame.uoregon.edu/~adkern/dmel_recombination_map/"
+        "comeron2012_maps.tar.gz"),
+    file_pattern="genetic_map_comeron2012_dm6_{name}.txt",
+    doi=None,  # FIXME
+    description=(
+        "Comeron et al. (2012) maps (lifted over to dm6)."
+        # TODO more detail
+    ))
+
+_species.add_genetic_map(_gm)
 
 
 ###########################################################
@@ -83,13 +97,15 @@ class DrosophilaMelanogasterModel(models.Model):
     """
     TODO: documentation
     """
+    species = _species
+
     def __init__(self):
         super().__init__()
-        self.generation_time = default_generation_time
-        self.default_population_size = 10000
+        self.generation_time = _species.generation_time
 
 
-class SheehanSongThreeEpoch(DrosophilaMelanogasterModel):
+class _SheehanSongThreeEpoch(DrosophilaMelanogasterModel):
+    kind = "3_epoch"
     name = "SheehanSongThreeEpoch"
     short_description = "Three epoch model for single African population."
     description = """
@@ -144,10 +160,11 @@ class SheehanSongThreeEpoch(DrosophilaMelanogasterModel):
         self.migration_matrix = [[0]]
 
 
-# SheehanSongThreeEpoch._write_docstring()
+_species.add_model(_SheehanSongThreeEpoch())
 
 
-class LiStephanTwoPopulation(DrosophilaMelanogasterModel):
+class _LiStephanTwoPopulation(DrosophilaMelanogasterModel):
+    kind = "ooa_2"  # TODO is this true??
     name = "LiStephanTwoPopulation"
     short_description = "Three epoch model for African and European populations."
     description = """
@@ -204,4 +221,4 @@ class LiStephanTwoPopulation(DrosophilaMelanogasterModel):
         ]
 
 
-# LiStephanTwoPopulation._write_docstring()
+_species.add_model(_LiStephanTwoPopulation())

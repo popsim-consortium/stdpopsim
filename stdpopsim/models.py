@@ -264,15 +264,15 @@ class Model(citations.CitableMixin):
             samples.extend([msprime.Sample(pop_index, time=0)] * n)
         return samples
 
-    def run(self, chromosome, samples):
+    def run(self, contig, samples):
         """
-        Runs this model for the specified chromosome (defining the recombination
+        Runs this model for the specified contig (defining the recombination
         map and mutation rate) and samples.
         """
         ts = msprime.simulate(
             samples=samples,
-            recombination_map=chromosome.recombination_map,
-            mutation_rate=chromosome.mutation_rate,
+            recombination_map=contig.recombination_map,
+            mutation_rate=contig.mutation_rate,
             population_configurations=self.population_configurations,
             migration_matrix=self.migration_matrix,
             demographic_events=self.demographic_events)
