@@ -8,8 +8,8 @@ import io
 import numpy as np
 import msprime
 
+import stdpopsim
 from stdpopsim import models
-from stdpopsim import species
 
 
 class ModelTestMixin(object):
@@ -30,7 +30,7 @@ class ModelTestMixin(object):
     def test_simulation_runs(self):
         # With a recombination_map of None, we simulate a coalescent without
         # recombination in msprime, with no mutation.
-        contig = species.Contig()
+        contig = stdpopsim.Contig()
         samples = self.model.get_samples(*([2] * self.model.num_populations))
         ts = self.model.run(contig, samples)
         self.assertEqual(ts.num_populations, self.model.num_populations)
@@ -275,19 +275,19 @@ class TestAllModels(unittest.TestCase):
     Tests that we can get all known simulation models.
     """
     def test_non_empty(self):
-        self.assertGreater(len(models.all_models()), 0)
+        self.assertGreater(len(list(stdpopsim.all_models())), 0)
 
     def test_all_instances(self):
-        for model in models.all_models():
+        for model in stdpopsim.all_models():
             self.assertIsInstance(model, models.Model)
 
     def test_filtering_outside_classes(self):
-        for model in models.all_models():
+        for model in stdpopsim.all_models():
             self.assertNotIsInstance(model, DummyModel)
 
     def test_generation_times_non_empty(self):
         self.assertGreater(len([model.generation_time for model in
-                                models.all_models()]), 0)
+                                stdpopsim.all_models()]), 0)
 
 
 class TestModelsEqual(unittest.TestCase):
@@ -297,7 +297,7 @@ class TestModelsEqual(unittest.TestCase):
     def test_known_models(self):
         # All models should be equal to themselves.
         other_model = models.Model()
-        for model in models.all_models():
+        for model in stdpopsim.all_models():
             self.assertTrue(model.equals(model))
             self.assertFalse(model.equals(other_model))
 
@@ -336,7 +336,15 @@ class TestModelsEqual(unittest.TestCase):
 class TestModelProperties(unittest.TestCase):
     def test_model_generation_time(self):
         self.assertTrue(models.Model().generation_time == -1)
-        known_models = models.all_models()
+        known_models = list(stdpopsim.all_models())
         n = len(known_models)
         for j in range(n):
             self.assertTrue(known_models[j].generation_time > -2)
+
+
+class TestConstantSizeModel(unittest.TestCase, ModelTestMixin):
+    model = models.ConstantSizeModel(100)
+
+
+class TestTwoEpochModel(unittest.TestCase, ModelTestMixin):
+    model = models.TwoEpochModel(100, 10, 10)

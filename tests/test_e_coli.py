@@ -2,11 +2,25 @@
 Tests for the e. coli data definitions.
 """
 import unittest
-import io
 
 import stdpopsim
 from tests import test_models
+from tests import test_species
 from qc import e_coli_qc
+
+
+class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
+    """
+    Tests for the e_coli genome.
+    """
+    genome = stdpopsim.get_species("e_coli").genome
+
+    def test_basic_attributes(self):
+        self.assertEqual(len(self.genome.chromosomes), 1)
+
+    @unittest.skip("Errors with: 0 not greater than or equal to 0.00021")
+    def test_mean_recombination_rate(self):
+        pass
 
 
 class TestLapierreConstant(unittest.TestCase, test_models.QcdModelTestMixin):

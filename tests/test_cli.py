@@ -15,8 +15,6 @@ import msprime
 
 import stdpopsim
 import stdpopsim.cli as cli
-import stdpopsim.models as models
-import stdpopsim.homo_sapiens as homo_sapiens
 
 
 class TestException(Exception):
@@ -82,7 +80,6 @@ class TestProvenance(unittest.TestCase):
         self.assertEqual(d["args"], sys.argv[1:])
 
 
-@unittest.skip("Fix up the model kind/name issues")
 class TestHomoSapiensArgumentParser(unittest.TestCase):
     """
     Tests for the argument parsers.
@@ -91,7 +88,7 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
     def test_defaults(self):
         parser = cli.stdpopsim_cli_parser()
         cmd = "homo-sapiens"
-        model = "GutenkunstThreePopOutOfAfrica"
+        model = "ooa_3"
         output = "test.trees"
         args = parser.parse_args([cmd, model, output])
         self.assertEqual(args.output, output)
@@ -200,7 +197,6 @@ class TestSetupLogging(unittest.TestCase):
             mocked_setup.assert_called_once_with(level="DEBUG")
 
 
-@unittest.skip("Fix up the model kind/name issues")
 class TestErrors(unittest.TestCase):
 
     # Need to mock out setup_logging here or we spew logging to the console
@@ -231,24 +227,36 @@ class TestErrors(unittest.TestCase):
             mocked_exit.assert_called_once()
 
     def test_tennessen_model(self):
-        self.verify_bad_samples("-q homo-sapiens TennessenTwoPopOutOfAfrica tmp.trees")
+        self.verify_bad_samples("-q homo-sapiens ooa_2 tmp.trees")
 
     def test_gutenkunst_three_pop_ooa(self):
         self.verify_bad_samples(
-            "-q homo-sapiens GutenkunstThreePopOutOfAfrica tmp.trees")
+            "-q homo-sapiens ooa_3 tmp.trees")
 
     def test_browning_america(self):
-        self.verify_bad_samples("-q homo-sapiens BrowningAmerica tmp.trees")
+        self.verify_bad_samples("-q homo-sapiens america tmp.trees")
 
 
-@unittest.skip("Non-human models missing 'name' attribute")
 class TestWriteCitations(unittest.TestCase):
     """
     Make sure all models can write citation information.
     """
-    def test_all_models(self):
-        chromosome = homo_sapiens.chromosome_factory("chr22")
-        for model in models.all_models():
-            stdout, stderr = capture_output(cli.write_citations, chromosome, model)
-            self.assertEqual(len(stderr), 0)
-            self.assertGreater(len(stdout), 0)
+    def test_model(self):
+        contig = stdpopsim.Contig()
+        species = stdpopsim.get_species("homo_sapiens")
+        model = species.get_model("ooa_3")
+        stdout, stderr = capture_output(cli.write_citations, contig, model)
+        self.assertEqual(len(stderr), 0)
+        # TODO Parse out the output for the model and check that the text is
+        # in there.
+        self.assertGreater(len(stdout), 0)
+
+    def test_genetic_map(self):
+        species = stdpopsim.get_species("homo_sapiens")
+        contig = species.get_contig("chr22", genetic_map="HapmapII_GRCh37")
+        model = stdpopsim.ConstantSizeModel(species.population_size)
+        stdout, stderr = capture_output(cli.write_citations, contig, model)
+        self.assertEqual(len(stderr), 0)
+        # TODO Parse out the output for the model and check that the text is
+        # in there.
+        self.assertGreater(len(stdout), 0)

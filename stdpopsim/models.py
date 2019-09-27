@@ -2,9 +2,6 @@
 Common infrastructure for specifying demographic models.
 """
 import sys
-import inspect
-import string
-import pathlib
 
 import msprime
 import numpy as np
@@ -114,30 +111,6 @@ def verify_demographic_events_equal(
                         key, value1, value2))
 
 
-_model_docstring_template = string.Template("""
-Name:
-    $name
-
-Description:
-    $description
-
-Populations:
-$populations
-
-CLI help:
-    $cli_help
-
-Citations:
-$citations
-
-Parameter Table:
-    .. csv-table::
-        :widths: 15 8 20
-        :header: "Parameter Type (units)", "Value", "Description"
-        :file: $parameters_csv_file
-""")
-
-
 class Population(object):
     """
     Class recording metadata representing a population in a simulation.
@@ -154,44 +127,12 @@ class Population(object):
         return {"name": self.name, "description": self.description}
 
 
-def cleanup(docs):
-    """
-    Remove all newlines and trailing whitespace from the specified string.
-    """
-    return ' '.join([line.strip() for line in docs.strip().splitlines() if line.strip()])
-
-
 class Model(citations.CitableMixin):
     """
     Class representating a simulation model that can be run to output a tree sequence.
     Concrete subclasses must define population_configurations, demographic_events
     and migration_matrix instance variables which define the model.
-
-    Docstrings are handled in a non-standard way by these subclasses. The docstrings
-    are used to generate online documentation and are composed of smaller pieces
-    of information that are also used in the CLI documentation. To avoid repeating
-    these smaller elements, we define them separately in each subclass, and
-    call <SubclassName>._write_docstring() immediately after it is defined to
-    build the docstring folling the standard template.
     """
-
-    @classmethod
-    def _write_docstring(cls):
-        species = cls.species.name
-        base_dir = pathlib.Path(__file__).resolve().parents[1]
-        parameters_csv_file = (
-            base_dir / "docs" / "parameter_tables" / species / f"{cls.name}.csv")
-        cli_help = f"python -m stdpopsim {species} {cls.name} -h"
-        citations = "".join(
-            f"    - {cleanup(citation)}\n" for citation in cls.citations)
-        populations = "".join(
-            f"    - {index}: {population.name}: {cleanup(population.description)}\n"
-            for index, population in enumerate(cls.populations))
-        cls.__doc__ = _model_docstring_template.substitute(
-            name=cleanup(cls.name),
-            description=cleanup(cls.description), populations=populations,
-            cli_help=cli_help, citations=citations,
-            parameters_csv_file=str(parameters_csv_file))
 
     def __init__(self):
         self.population_configurations = []
@@ -245,13 +186,6 @@ class Model(citations.CitableMixin):
             migration_matrix=self.migration_matrix,
             demographic_events=self.demographic_events)
         dd.print_history(out_file)
-
-    # TODO deprecate/remove this, as the recommended interface is now 'run'.
-    def asdict(self):
-        return {
-            "population_configurations": self.population_configurations,
-            "migration_matrix": self.migration_matrix,
-            "demographic_events": self.demographic_events}
 
     def get_samples(self, *args):
         """
@@ -331,21 +265,5 @@ class TwoEpochModel(Model):
         self.demographic_events = [
             msprime.PopulationParametersChange(
                 time=t, initial_size=N2, growth_rate=0, population_id=0),
+
         ]
-
-
-def all_models():
-    """
-    Returns the list of all Model classes that are defined within the stdpopsim
-    module.
-    """
-    # TODO remove this function and change to model of "registering" models
-    # like we do for other objects.
-    ret = []
-
-    for scls in Model.__subclasses__():
-        for cls in scls.__subclasses__():
-            mod = inspect.getmodule(cls).__name__
-            if mod.startswith("stdpopsim"):
-                ret.append(cls())
-    return ret

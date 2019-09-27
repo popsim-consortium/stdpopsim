@@ -24,6 +24,29 @@ def get_species(name):
     return registered_species[name]
 
 
+# Convenience methods for getting all the species/genetic maps/models
+# we have defined in the catalog.
+
+def all_species():
+    """
+    Returns an iterator over all species in the catalog.
+    """
+    for species in registered_species.values():
+        yield species
+
+
+def all_genetic_maps():
+    for species in all_species():
+        for genetic_map in species.genetic_maps:
+            yield genetic_map
+
+
+def all_models():
+    for species in all_species():
+        for model in species.models:
+            yield model
+
+
 class Species(object):
     """
     Class representing a single species.
@@ -36,6 +59,9 @@ class Species(object):
         self.population_size = population_size
         self.models = []
         self.genetic_maps = []
+
+    def __str__(self):
+        return f"Species(name={self.name})"
 
     def get_contig(self, chromosome, genetic_map=None, length_multiplier=1):
         """
@@ -58,7 +84,7 @@ class Species(object):
         if genetic_map is None:
             logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.name}")
             recomb_map = msprime.RecombinationMap.uniform_map(
-                chrom.length * length_multiplier, chrom.default_recombination_rate)
+                chrom.length * length_multiplier, chrom.recombination_rate)
         else:
             if length_multiplier != 1:
                 raise ValueError("Cannot use length multiplier with empirical maps")
@@ -68,10 +94,10 @@ class Species(object):
 
         ret = Contig()
         ret.recombination_map = recomb_map
-        ret.mutation_rate = chrom.default_mutation_rate
+        ret.mutation_rate = chrom.mutation_rate
         return ret
 
-    def get_model(self, kind, num_populations=1):
+    def get_model(self, kind):
         """
         Returns a model with the specified name with the specified number of
         populations. Please see the documentation [] for a list of available
@@ -80,7 +106,7 @@ class Species(object):
         - TODO we can add functionality here
         """
         for model in self.models:
-            if model.kind == kind and len(model.populations) == num_populations:
+            if model.kind == kind:
                 return model
         raise ValueError("Model not found")
 
@@ -128,26 +154,24 @@ class Genome(object):
     @property
     def mean_recombination_rate(self):
         """
-        This method return the weighted mean recombination rate
-        across all chromosomes in the genome.
+        The length-weighted mean recombination rate across all chromosomes.
         """
         mean_recombination_rate = 0
-        for chrom in self.chromosomes.values():
+        for chrom in self.chromosomes:
             normalized_weight = chrom.length / self.length
-            cont = chrom.default_recombination_rate*normalized_weight
+            cont = chrom.recombination_rate * normalized_weight
             mean_recombination_rate += cont
         return mean_recombination_rate
 
     @property
     def mean_mutation_rate(self):
         """
-        This method return the weighted mean mutation rate
-        across all chomosomes in the genome.
+        The length-weighted mean mutation rate across all chromosomes.
         """
         mean_mutation_rate = 0
-        for chrom in self.chromosomes.values():
+        for chrom in self.chromosomes:
             normalized_weight = chrom.length / self.length
-            cont = chrom.default_mutation_rate*normalized_weight
+            cont = chrom.mutation_rate * normalized_weight
             mean_mutation_rate += cont
         return mean_mutation_rate
 
@@ -158,24 +182,19 @@ class Chromosome(object):
 
     .. todo:: Define the facilities that this object provides.
     """
-    def __init__(self, name, length, default_recombination_rate, default_mutation_rate):
+    def __init__(self, name, length, recombination_rate, mutation_rate):
         self.name = name
         self.length = length
-        # TODO remove the default here --- default for what? The chromosome object
-        # models the actual chromsomes, it shouldn't need to know about other bits
-        # of the software mode. We should either change it to
-        # recombination_rate or mean_recombination_rate, if we want to be
-        # picky.
-        self.default_recombination_rate = default_recombination_rate
-        self.default_mutation_rate = default_mutation_rate
+        self.recombination_rate = recombination_rate
+        self.mutation_rate = mutation_rate
 
     def __repr__(self):
         return (
             "{{'name': {}, 'length': {}, "
-            "'default_recombination_rate': {}, "
-            "'default_mutation_rate': {}}}".format(
-                self.name, self.length, self.default_recombination_rate,
-                self.default_mutation_rate))
+            "'recombination_rate': {}, "
+            "'mutation_rate': {}}}".format(
+                self.name, self.length, self.recombination_rate,
+                self.mutation_rate))
 
     def __str__(self):
         return repr(self)

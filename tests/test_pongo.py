@@ -1,13 +1,9 @@
 import unittest
 import io
 
-import msprime
 
+import stdpopsim
 from stdpopsim import pongo
-
-
-# TODO this needs to be brought up to date with the rest of the API when we
-# do the QC process.
 
 
 class TestPongoIM(unittest.TestCase):
@@ -17,9 +13,9 @@ class TestPongoIM(unittest.TestCase):
 
     def test_simulation_runs(self):
         model = pongo.LockeEtAlPongoIM()
-        ts = msprime.simulate(
-            samples=[msprime.Sample(pop, 0) for pop in range(2)],
-            **model.asdict())
+        contig = stdpopsim.Contig()
+        samples = model.get_samples(2)
+        ts = model.run(contig, samples)
         self.assertEqual(ts.num_populations, 2)
 
     def test_debug_runs(self):

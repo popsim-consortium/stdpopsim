@@ -15,8 +15,8 @@ from . cache import *  # NOQA
 
 # We import these here to build the catalog, but the internal classes
 # defined are not part of the external API.
-from . import homo_sapiens  # NOQA
-from . import pongo  # NOQA
-from . import arabidopsis_thaliana  # NOQA
-from . import e_coli  # NOQA
-from . import drosophila_melanogaster  # NOQA
+from .catalog import homo_sapiens  # NOQA
+from .catalog import pongo  # NOQA
+from .catalog import arabidopsis_thaliana  # NOQA
+from .catalog import e_coli  # NOQA
+from .catalog import drosophila_melanogaster  # NOQA

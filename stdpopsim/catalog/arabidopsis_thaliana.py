@@ -33,8 +33,8 @@ for line in _chromosome_data.splitlines():
     name, length = line.split()[:2]
     _chromosomes.append(stdpopsim.Chromosome(
         name=name, length=int(length),
-        default_mutation_rate=7e-9,
-        default_recombination_rate=8.1e-9))
+        mutation_rate=7e-9,
+        recombination_rate=8.1e-9))
 
 _genome = stdpopsim.Genome(chromosomes=_chromosomes)
 

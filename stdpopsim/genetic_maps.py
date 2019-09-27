@@ -32,19 +32,6 @@ def cd(path):
         os.chdir(old_dir)
 
 
-class classproperty(object):
-    """
-    Define a 'class property'. Used below for defining GeneticMap name and species.
-
-    https://stackoverflow.com/questions/5189699/how-to-make-a-class-property
-    """
-    def __init__(self, f):
-        self.f = f
-
-    def __get__(self, obj, owner):
-        return self.f(owner)
-
-
 class GeneticMap(citations.CitableMixin):
     """
     Class representing a genetic map for a species. Provides functionality for
@@ -52,18 +39,13 @@ class GeneticMap(citations.CitableMixin):
 
     Specific genetic maps are defined by subclassing this abstract superclass
     and registering the map.
+
+    :ivar url: The URL where the packed and compressed genetic map can be obtained.
+    :vartype url: str
+    :ivar file_pattern: The pattern used to map name individual chromosome to
+        files, suitable for use with Python's :meth:`str.format` method.
+    :vartype file_pattern: str
     """
-
-    # url = None
-    # """
-    # The URL where this genetic map can be obtained.
-    # """
-
-    # file_pattern = None
-    # """
-    # The pattern used to map name individual chromosome to files, suitable for use
-    # with Python's :meth:`str.format` method.
-    # """
 
     def __init__(
             self, species, name=None, url=None, file_pattern=None, doi=None,
@@ -82,7 +64,7 @@ class GeneticMap(citations.CitableMixin):
 
     def __str__(self):
         s = "GeneticMap:\n"
-        s += "\tspecies   = {}\n".format(self.species)
+        s += "\tspecies   = {}\n".format(self.species.name)
         s += "\tname      = {}\n".format(self.name)
         s += "\turl       = {}\n".format(self.url)
         s += "\tcached    = {}\n".format(self.is_cached())

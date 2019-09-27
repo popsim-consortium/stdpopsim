@@ -31,8 +31,8 @@ for line in _chromosome_data.splitlines():
     name, length = line.split()[:2]
     _chromosomes.append(stdpopsim.Chromosome(
         name=name, length=int(length),
-        default_mutation_rate=8.4e-9,  # WRONG!, underestimate used in S&S
-        default_recombination_rate=8.4e-9))  # WRONG, underestimate used in S&S!
+        mutation_rate=8.4e-9,  # WRONG!, underestimate used in S&S
+        recombination_rate=8.4e-9))  # WRONG, underestimate used in S&S!
 
 
 # TODO need to port this documentation somewhere.
