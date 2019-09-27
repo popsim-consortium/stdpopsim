@@ -114,6 +114,7 @@ class Species(object):
         self.models.append(model)
 
     def add_genetic_map(self, genetic_map):
+        genetic_map.species = self
         self.genetic_maps.append(genetic_map)
 
     def get_genetic_map(self, name):

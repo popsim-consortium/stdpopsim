@@ -181,3 +181,28 @@ class TestAllGeneticMaps(tests.CacheReadingTest):
     def test_types(self):
         for gm in stdpopsim.all_genetic_maps():
             self.assertIsInstance(gm, genetic_maps.GeneticMap)
+
+
+class TestGetChromosomeMap(tests.CacheReadingTest):
+    """
+    Tests if we get chromosome maps using the HapmapII_GRCh37 human map.
+    """
+    species = stdpopsim.get_species("homo_sapiens")
+    genetic_map = species.get_genetic_map("HapmapII_GRCh37")
+
+    def test_warning_from_no_mapped_chromosome(self):
+        chrom = self.species.genome.get_chromosome("chrY")
+        with self.assertWarns(Warning):
+            cm = self.genetic_map.get_chromosome_map(chrom.name)
+            self.assertIsInstance(cm, msprime.RecombinationMap)
+            self.assertEqual(chrom.length, cm.get_sequence_length())
+
+    def test_known_chromosome(self):
+        chrom = self.species.genome.get_chromosome("chr22")
+        cm = self.genetic_map.get_chromosome_map(chrom.name)
+        self.assertIsInstance(cm, msprime.RecombinationMap)
+
+    def test_unknown_chromosome(self):
+        for bad_chrom in ["", "ABD", None]:
+            with self.assertRaises(ValueError):
+                self.genetic_map.get_chromosome_map(bad_chrom)

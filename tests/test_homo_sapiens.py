@@ -47,6 +47,21 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         self.assertEqual(genome.get_chromosome("chrX").length, 155270560)
         self.assertEqual(genome.get_chromosome("chrY").length, 59373566)
 
+    def test_recombination_rates(self):
+        # recompute recombination rates from HapmapII_GRCh37 map then
+        # compare the results to the current recombination rates for each chromosome
+        genetic_map = "HapmapII_GRCh37"
+        species = stdpopsim.get_species("homo_sapiens")
+        for chrom in self.genome.chromosomes:
+            if chrom.name == "chrY":
+                with self.assertWarns(Warning):
+                    contig = species.get_contig(chrom.name, genetic_map=genetic_map)
+            else:
+                contig = species.get_contig(chrom.name, genetic_map=genetic_map)
+            self.assertAlmostEqual(
+                chrom.recombination_rate,
+                contig.recombination_map.mean_recombination_rate)
+
 
 class TestTennessenTwoPopOutOfAfrica(unittest.TestCase, test_models.QcdModelTestMixin):
     model = homo_sapiens._TennessenTwoPopOutOfAfrica()
