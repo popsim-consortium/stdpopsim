@@ -23,10 +23,6 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         self.assertEqual(genome.get_chromosome("chr4").length, 18585056)
         self.assertEqual(genome.get_chromosome("chr5").length, 26975502)
 
-    @unittest.skip("Error raised: 7e-09 not greater than or equal to 8.1e-09")
-    def test_mean_recombination_rate(self):
-        pass
-
 
 class TestDurvasula2017MSMC(unittest.TestCase, test_models.QcdModelTestMixin):
     """

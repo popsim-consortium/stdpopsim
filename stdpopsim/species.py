@@ -21,6 +21,10 @@ def register_species(species):
 
 
 def get_species(name):
+    if name not in registered_species:
+        # TODO we should probably have a custom exception here and standardise
+        # on using these for all the catalog search functions.
+        raise ValueError("species not found")
     return registered_species[name]
 
 

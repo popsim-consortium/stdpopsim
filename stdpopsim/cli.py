@@ -181,16 +181,13 @@ def add_model_runner(top_parser, species, model):
     parser.set_defaults(runner=run_simulation)
 
 
-def add_species_parser(parser, species_name):
-
-    species = stdpopsim.get_species(species_name)
-
+def add_species_parser(parser, species):
     # Replace underscores with hypens to keep with unix CLI conventions
-    cli_name = species_name.replace("_", "-")
+    cli_name = species.name.replace("_", "-")
     species_parser = parser.add_parser(
         cli_name,
         help=f"Run simulations for {cli_name}.")
-    species_parser.set_defaults(species=species_name)
+    species_parser.set_defaults(species=species.name)
     species_parser.set_defaults(genetic_map=None)
     if len(species.genetic_maps) > 0:
         species_parser.add_argument(
@@ -229,10 +226,8 @@ def stdpopsim_cli_parser():
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True
 
-    add_species_parser(subparsers, "homo_sapiens")
-    add_species_parser(subparsers, "drosophila_melanogaster")
-    add_species_parser(subparsers, "arabidopsis_thaliana")
-    add_species_parser(subparsers, "e_coli")
+    for species in stdpopsim.all_species():
+        add_species_parser(subparsers, species)
 
     return top_parser
 

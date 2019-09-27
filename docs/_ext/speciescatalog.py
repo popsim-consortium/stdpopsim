@@ -297,7 +297,11 @@ class SpeciesCatalog(Directive):
 
     def run(self):
         species = stdpopsim.get_species(self.arguments[0])
-        section = nodes.section(ids=[f"sec_catalog_{species.name}"])
+        sid = f"sec_catalog_{species.name}"
+        section = nodes.section(ids=[sid])
+        # TODO figure out out to make cross references to these IDs work within sphinx.
+        # Probably need to create a 'label' node?
+        # section += nodes.label(ids=[sid])
         section += nodes.title(text=species.name)
         section += species_summary_table(species)
 

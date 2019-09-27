@@ -9,15 +9,43 @@ import msprime
 import stdpopsim
 
 
-class TestAllSpecies(unittest.TestCase):
+class TestSpecies(unittest.TestCase):
     """
-    Tests for basic methods on all species in the catalog.
+    Tests for basic methods for the species.
     """
     def test_str(self):
         for species in stdpopsim.all_species():
             s = str(species)
             self.assertIsInstance(s, str)
             self.assertGreater(len(s), 0)
+
+    def test_get_known_species(self):
+        good = ["homo_sapiens", "e_coli"]
+        for species_name in good:
+            species = stdpopsim.get_species(species_name)
+            self.assertIsInstance(species, stdpopsim.Species)
+            self.assertEqual(species.name, species_name)
+
+    def test_get_unknown_species(self):
+        bad = ["XXXX", ""]
+        for species_name in bad:
+            with self.assertRaises(ValueError):
+                stdpopsim.get_species(species_name)
+
+    def test_get_known_genetic_map(self):
+        good = ["HapmapII_GRCh37", "Decode_2010_sex_averaged"]
+        species = stdpopsim.get_species("homo_sapiens")
+        for name in good:
+            gmap = species.get_genetic_map(name)
+            self.assertIsInstance(gmap, stdpopsim.GeneticMap)
+            self.assertEqual(gmap.name, name)
+
+    def test_get_unknown_genetic_map(self):
+        bad = ["GDXXX", "", None]
+        species = stdpopsim.get_species("homo_sapiens")
+        for name in bad:
+            with self.assertRaises(ValueError):
+                species.get_genetic_map(name)
 
 
 class GenomeTestMixin(object):
@@ -41,7 +69,7 @@ class GenomeTestMixin(object):
             rr = chrom.recombination_rate
             lowest_rr = min(lowest_rr, rr)
             highest_rr = max(highest_rr, rr)
-        mean_genome_rr = self.genome.mean_mutation_rate
+        mean_genome_rr = self.genome.mean_recombination_rate
         if not math.isclose(mean_genome_rr, lowest_rr):
             self.assertGreaterEqual(mean_genome_rr, lowest_rr)
             self.assertGreaterEqual(highest_rr, mean_genome_rr)

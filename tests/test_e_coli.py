@@ -18,10 +18,6 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     def test_basic_attributes(self):
         self.assertEqual(len(self.genome.chromosomes), 1)
 
-    @unittest.skip("Errors with: 0 not greater than or equal to 0.00021")
-    def test_mean_recombination_rate(self):
-        pass
-
 
 class TestLapierreConstant(unittest.TestCase, test_models.QcdModelTestMixin):
     """

@@ -239,9 +239,6 @@ class ConstantSizeModel(Model):
         self.demographic_events = []
 
 
-# ConstantSizeModel._write_docstring()
-
-
 class TwoEpochModel(Model):
     kind = "2_epoch"
     name = "TwoEpoch"
