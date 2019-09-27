@@ -7,17 +7,14 @@ try:
 except ImportError:
     pass
 
-# Cache handling for downloaded data.
-from . cache import *  # NOQA
-
 # Internal modules. Import here to flatten the namespace.
 from . genetic_maps import *  # NOQA
 from . models import *  # NOQA
-from . genomes import *  # NOQA
+from . species import *  # NOQA
+from . cache import *  # NOQA
 
-# TODO what should we really be exporting here as the public API?
-
-# Species definitions.
+# We import these here to build the catalog, but the internal classes
+# defined are not part of the external API.
 from . import homo_sapiens  # NOQA
 from . import pongo  # NOQA
 from . import arabidopsis_thaliana  # NOQA

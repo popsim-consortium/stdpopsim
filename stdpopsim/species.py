@@ -1,6 +1,6 @@
 """
-Infrastructure for defining basic information about the genomes of
-species.
+Infrastructure for defining basic information about species and
+organising the species catalog.
 """
 import logging
 

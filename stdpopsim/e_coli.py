@@ -3,9 +3,7 @@ Genome and demographic model definitions for Escherichia coli.
 """
 import msprime
 
-import stdpopsim.models as models
-import stdpopsim.genomes as genomes
-# import stdpopsim.generic_models as generic_models
+import stdpopsim
 
 ###########################################################
 #
@@ -14,7 +12,7 @@ import stdpopsim.genomes as genomes
 ###########################################################
 
 _chromosomes = []
-_chromosomes.append(genomes.Chromosome(
+_chromosomes.append(stdpopsim.Chromosome(
         name=None,
         length=4641652,
         default_mutation_rate=1e-5+2e-4,
@@ -25,16 +23,16 @@ _chromosomes.append(genomes.Chromosome(
 #: :class:`stdpopsim.Genome` definition for E. Coli.
 # Chromosome length data is based on strain K-12.
 
-_genome = genomes.Genome(chromosomes=_chromosomes)
+_genome = stdpopsim.Genome(chromosomes=_chromosomes)
 
-_species = genomes.Species(
+_species = stdpopsim.Species(
     name="e_coli",
     genome=_genome,
     # TODO reference for these
     generation_time=0.00003805175,  # 1.0 / (525600 min/year / 20 min/gen)
     population_size=None)  # FIXME
 
-genomes.register_species(_species)
+stdpopsim.register_species(_species)
 
 
 ###########################################################
@@ -44,7 +42,7 @@ genomes.register_species(_species)
 ###########################################################
 
 
-class _LapierreConstant(models.Model):
+class _LapierreConstant(stdpopsim.Model):
     species = _species
     kind = "constant"
     name = "LapierreConstant"
@@ -63,7 +61,7 @@ class _LapierreConstant(models.Model):
         """
     ]
     populations = [
-        models.Population(name="e_coli", description="Single E-coli population"),
+        stdpopsim.Population(name="e_coli", description="Single E-coli population"),
     ]
     author = "Lapierre et al."
     year = "2016"

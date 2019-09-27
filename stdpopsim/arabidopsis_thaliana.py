@@ -4,10 +4,7 @@ Genome, genetic map and demographic model definitions for Arabidopsis thaliana.
 import msprime
 import numpy as np
 
-import stdpopsim.models as models
-import stdpopsim.genomes as genomes
-import stdpopsim.genetic_maps as genetic_maps
-
+import stdpopsim
 
 ###########################################################
 #
@@ -34,21 +31,21 @@ chr5 26975502
 _chromosomes = []
 for line in _chromosome_data.splitlines():
     name, length = line.split()[:2]
-    _chromosomes.append(genomes.Chromosome(
+    _chromosomes.append(stdpopsim.Chromosome(
         name=name, length=int(length),
         default_mutation_rate=7e-9,
         default_recombination_rate=8.1e-9))
 
-_genome = genomes.Genome(chromosomes=_chromosomes)
+_genome = stdpopsim.Genome(chromosomes=_chromosomes)
 
-_species = genomes.Species(
+_species = stdpopsim.Species(
     name="arabidopsis_thaliana",
     genome=_genome,
     # TODO reference for these
     generation_time=1.0,
     population_size=10**3)
 
-genomes.register_species(_species)
+stdpopsim.register_species(_species)
 
 ###########################################################
 #
@@ -56,7 +53,7 @@ genomes.register_species(_species)
 #
 ###########################################################
 
-_gm = genetic_maps.GeneticMap(
+_gm = stdpopsim.GeneticMap(
     species=_species,
     name="Salome2012",
     year=2012,
@@ -80,7 +77,7 @@ _species.add_genetic_map(_gm)
 ###########################################################
 
 
-class ArabidopsisThalianaModel(models.Model):
+class ArabidopsisThalianaModel(stdpopsim.Model):
     """
     TODO: documentation
     """
@@ -102,7 +99,7 @@ class _Durvasula2017MSMC(ArabidopsisThalianaModel):
         """
     ]
     populations = [
-        models.Population(
+        stdpopsim.Population(
             name="a_thaliana", description="Arabidopsis Thaliana population")
     ]
 

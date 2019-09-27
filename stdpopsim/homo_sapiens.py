@@ -1,14 +1,12 @@
 """
-Genome, genetic map and demographic model definitions for humans.
+Catalog definitions for
 """
 import math
 import logging
 
 import msprime
 
-import stdpopsim.models as models
-import stdpopsim.genomes as genomes
-import stdpopsim.genetic_maps as genetic_maps
+import stdpopsim
 
 logger = logging.getLogger(__name__)
 
@@ -58,21 +56,21 @@ chrY 	 59373566 	 0.0
 _chromosomes = []
 for line in _chromosome_data.splitlines():
     name, length, mean_rr = line.split()[:3]
-    _chromosomes.append(genomes.Chromosome(
+    _chromosomes.append(stdpopsim.Chromosome(
         name=name, length=int(length),
         default_mutation_rate=1e-8,  # WRONG!,
         default_recombination_rate=float(mean_rr)))
 
-_genome = genomes.Genome(chromosomes=_chromosomes)
+_genome = stdpopsim.Genome(chromosomes=_chromosomes)
 
-_species = genomes.Species(
+_species = stdpopsim.Species(
     name="homo_sapiens",
     genome=_genome,
     # TODO reference for these
     generation_time=25,
     population_size=10**4)
 
-genomes.register_species(_species)
+stdpopsim.register_species(_species)
 
 
 ###########################################################
@@ -82,7 +80,7 @@ genomes.register_species(_species)
 ###########################################################
 
 
-_gm = genetic_maps.GeneticMap(
+_gm = stdpopsim.GeneticMap(
     species=_species,
     name="HapmapII_GRCh37",
     year=2007,
@@ -100,7 +98,7 @@ _gm = genetic_maps.GeneticMap(
     )
 _species.add_genetic_map(_gm)
 
-_gm = genetic_maps.GeneticMap(
+_gm = stdpopsim.GeneticMap(
     species=_species,
     name="Decode_2010_sex_averaged",
     year=2010,
@@ -125,21 +123,21 @@ _species.add_genetic_map(_gm)
 ###########################################################
 
 # population definitions that are reused.
-_yri_population = models.Population(
+_yri_population = stdpopsim.Population(
     name="YRI",
     description="1000 Genomes YRI (Yorubans)")
-_ceu_population = models.Population(
+_ceu_population = stdpopsim.Population(
     name="CEU",
     description=(
         "1000 Genomes CEU (Utah Residents (CEPH) with Northern and "
         "Western European Ancestry"))
-_chb_population = models.Population(
+_chb_population = stdpopsim.Population(
     name="CHB",
     description="1000 Genomes CHB (Han Chinese in Beijing, China)")
 
 
 # TODO: remove this superclass
-class HomoSapiensModel(models.Model):
+class HomoSapiensModel(stdpopsim.Model):
     species = _species
     """
     TODO: documentation
@@ -267,8 +265,8 @@ class _TennessenTwoPopOutOfAfrica(HomoSapiensModel):
     """
 
     populations = [
-        models.Population(name="AFR", description="African Americans"),
-        models.Population(name="EUR", description="European Americans")
+        stdpopsim.Population(name="AFR", description="African Americans"),
+        stdpopsim.Population(name="EUR", description="European Americans")
     ]
     citations = [
         """
@@ -361,7 +359,7 @@ class _TennessenOnePopAfrica(HomoSapiensModel):
         population removed so that we are modeling the African population in isolation.
     """
     populations = [
-        models.Population(name="AFR", description="African"),
+        stdpopsim.Population(name="AFR", description="African"),
     ]
     citations = [
         """
@@ -431,10 +429,10 @@ class _BrowningAmerica(HomoSapiensModel):
     """
 
     populations = [
-        models.Population(name="AFR", description="Contemporary African population"),
-        models.Population(name="EUR", description="Contemporary European population"),
-        models.Population(name="ASIA", description="Contemporary Asian population"),
-        models.Population(
+        stdpopsim.Population(name="AFR", description="Contemporary African population"),
+        stdpopsim.Population(name="EUR", description="Contemporary European population"),
+        stdpopsim.Population(name="ASIA", description="Contemporary Asian population"),
+        stdpopsim.Population(
             name="ADMIX", description="Ancient admixed population",
             allow_samples=False),
     ]
@@ -551,9 +549,9 @@ class _RagsdaleArchaic(HomoSapiensModel):
         _yri_population,
         _ceu_population,
         _chb_population,
-        models.Population(
+        stdpopsim.Population(
             "Neanderthal", "Putative Neanderthals", allow_samples=False),
-        models.Population(
+        stdpopsim.Population(
             "ArchaicAFR", "Putative Archaic Africans", allow_samples=False),
     ]
 
@@ -708,7 +706,7 @@ class _SchiffelsZigzag(HomoSapiensModel):
         decline in a single population.
         """
     populations = [
-        models.Population("generic", "Generic expanding and contracting population"),
+        stdpopsim.Population("generic", "Generic expanding and contracting population"),
     ]
     citations = [
         """

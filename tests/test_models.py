@@ -9,7 +9,7 @@ import numpy as np
 import msprime
 
 from stdpopsim import models
-from stdpopsim import genomes
+from stdpopsim import species
 
 
 class ModelTestMixin(object):
@@ -30,7 +30,7 @@ class ModelTestMixin(object):
     def test_simulation_runs(self):
         # With a recombination_map of None, we simulate a coalescent without
         # recombination in msprime, with no mutation.
-        contig = genomes.Contig()
+        contig = species.Contig()
         samples = self.model.get_samples(*([2] * self.model.num_populations))
         ts = self.model.run(contig, samples)
         self.assertEqual(ts.num_populations, self.model.num_populations)

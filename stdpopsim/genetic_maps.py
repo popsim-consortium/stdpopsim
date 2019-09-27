@@ -12,8 +12,8 @@ import urllib.request
 
 import msprime
 
-import stdpopsim
-import stdpopsim.citations as citations
+from . import cache
+from . import citations
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,7 @@ class GeneticMap(citations.CitableMixin):
         self.description = description
         self.year = year
 
-        self.cache_dir = pathlib.Path(stdpopsim.get_cache_dir()) / "genetic_maps"
+        self.cache_dir = pathlib.Path(cache.get_cache_dir()) / "genetic_maps"
         self.species_cache_dir = self.cache_dir / self.species.name
         self.map_cache_dir = self.species_cache_dir / self.name
 

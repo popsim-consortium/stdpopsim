@@ -4,9 +4,7 @@ Genome, genetic map and demographic model definitions for humans.
 
 import msprime
 
-import stdpopsim.models as models
-import stdpopsim.genomes as genomes
-import stdpopsim.genetic_maps as genetic_maps
+import stdpopsim
 
 ###########################################################
 #
@@ -31,7 +29,7 @@ chrM   19524
 _chromosomes = []
 for line in _chromosome_data.splitlines():
     name, length = line.split()[:2]
-    _chromosomes.append(genomes.Chromosome(
+    _chromosomes.append(stdpopsim.Chromosome(
         name=name, length=int(length),
         default_mutation_rate=8.4e-9,  # WRONG!, underestimate used in S&S
         default_recombination_rate=8.4e-9))  # WRONG, underestimate used in S&S!
@@ -41,16 +39,16 @@ for line in _chromosome_data.splitlines():
 # class:`stdpopsim.Genome` definition for D. melanogaster. Chromosome length data is
 # based on `dm6 <https://www.ncbi.nlm.nih.gov/assembly/GCF_000001215.4/>`_.
 
-_genome = genomes.Genome(chromosomes=_chromosomes)
+_genome = stdpopsim.Genome(chromosomes=_chromosomes)
 
-_species = genomes.Species(
+_species = stdpopsim.Species(
     name="drosophila_melanogaster",
     genome=_genome,
     # TODO reference for these
     generation_time=0.1,
     population_size=10**4)  # TODO: This is wildly wrong, right?
 
-genomes.register_species(_species)
+stdpopsim.register_species(_species)
 
 
 ###########################################################
@@ -60,7 +58,7 @@ genomes.register_species(_species)
 ###########################################################
 
 
-_gm = genetic_maps.GeneticMap(
+_gm = stdpopsim.GeneticMap(
     species=_species,
     name="Comeron2012_dm6",
     year=2012,
@@ -87,13 +85,13 @@ default_generation_time = 0.1
 
 
 # population definitions that are reused.
-_afr_population = models.Population(
+_afr_population = stdpopsim.Population(
    name="AFR", description="African D. melanogaster population")
-_eur_population = models.Population(
+_eur_population = stdpopsim.Population(
    name="EUR", description="European D. melanogaster population")
 
 
-class DrosophilaMelanogasterModel(models.Model):
+class DrosophilaMelanogasterModel(stdpopsim.Model):
     """
     TODO: documentation
     """

@@ -9,7 +9,6 @@ import numpy as np
 
 from stdpopsim import homo_sapiens
 from stdpopsim import genetic_maps
-from stdpopsim import genomes
 
 from tests import test_models
 from qc import homo_sapiens_qc
