@@ -4,10 +4,10 @@
 Catalog
 =======
 
-.. speciescatalog:: homo_sapiens
+.. speciescatalog:: homsap
 
-.. speciescatalog:: drosophila_melanogaster
+.. speciescatalog:: dromel
 
-.. speciescatalog:: arabidopsis_thaliana
+.. speciescatalog:: aratha
 
-.. speciescatalog:: e_coli
+.. speciescatalog:: esccol

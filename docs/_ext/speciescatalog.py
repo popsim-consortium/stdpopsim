@@ -20,9 +20,10 @@ def species_summary_table(species):
     table += tgroup
 
     data = [
-        ("name", species.name, None),
-        ("generation_time", species.generation_time, "Notes for generation_time"),
-        ("population_size", species.population_size, "Notes for population_size"),
+        ("id", species.id, ""),
+        ("name", species.name, ""),
+        ("generation_time", species.generation_time, "TODO: Notes for generation_time"),
+        ("population_size", species.population_size, "TODO: Notes for population_size"),
     ]
 
     rows = []

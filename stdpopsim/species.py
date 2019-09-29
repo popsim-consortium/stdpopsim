@@ -16,16 +16,16 @@ def register_species(species):
     """
     Registers the specified species.
     """
-    logger.debug(f"Registering species '{species.name}'")
-    registered_species[species.name] = species
+    logger.debug(f"Registering species '{species.id}'")
+    registered_species[species.id] = species
 
 
-def get_species(name):
-    if name not in registered_species:
+def get_species(id_):
+    if id_ not in registered_species:
         # TODO we should probably have a custom exception here and standardise
         # on using these for all the catalog search functions.
         raise ValueError("species not found")
-    return registered_species[name]
+    return registered_species[id_]
 
 
 # Convenience methods for getting all the species/genetic maps/models
@@ -53,19 +53,51 @@ def all_models():
 
 class Species(object):
     """
-    Class representing a single species.
+    Class representing a species in the catalog.
+
+    :ivar id: The unique identifier for this species. The species ID is
+        usually an abbreviation of the species name, which does not
+        contain any spaces or puncutation.. The usual scheme is to
+        use the first three letters of the genus and species (similar to the
+        approach used in the UCSC genome browser), e.g., "homsap"
+        is the ID for Homo Sapiens.
+    :vartype id: str
+    :ivar name: The informal name for this species as it would
+        be used in written text, e.g., "Homo sapiens"
+    :vartype informal_name: str
+    :ivar genome: The :class:`.Genome` instance describing the details
+        of this species' genome.
+    :vartype genome: stdpopsim.Genome
+    :ivar generation_time: The current best estimate for the generation
+        time of this species in years. Note that individual population
+        models in the catalog may or may not use this estimate: each
+        model uses the generation time that was used in the original
+        publication(s).
+    :vartype generation_time: float
+    :ivar population_size: The current best estimate for the population
+        size of this species. Note that individual population
+        models in the catalog may or may not use this estimate: each
+        model uses the populations sizes defined in the original
+        publication(s).
+    :vartype population_size: float
+    :ivar models: This list of :class:`Model` instances in the catalog
+        for this species.
+    :vartype models: list()
     """
     def __init__(
-            self, name, genome, generation_time=None, population_size=None):
+            self, id_, name, genome,
+            generation_time=None, population_size=None):
+        self.id = id_
         self.name = name
         self.genome = genome
         self.generation_time = generation_time
         self.population_size = population_size
         self.models = []
+        # TODO should this be here on in the Genome?
         self.genetic_maps = []
 
     def __str__(self):
-        return f"Species(name={self.name})"
+        return f"Species(id={self.id}, name={self.name})"
 
     def get_contig(self, chromosome, genetic_map=None, length_multiplier=1):
         """

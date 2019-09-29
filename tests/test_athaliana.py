@@ -10,7 +10,7 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     """
     Tests for the arabidopsis_thaliana genome.
     """
-    genome = stdpopsim.get_species("arabidopsis_thaliana").genome
+    genome = stdpopsim.get_species("aratha").genome
 
     def test_basic_attributes(self):
         self.assertEqual(len(self.genome.chromosomes), 5)

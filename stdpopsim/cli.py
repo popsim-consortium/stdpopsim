@@ -183,11 +183,10 @@ def add_model_runner(top_parser, species, model):
 
 def add_species_parser(parser, species):
     # Replace underscores with hypens to keep with unix CLI conventions
-    cli_name = species.name.replace("_", "-")
     species_parser = parser.add_parser(
-        cli_name,
-        help=f"Run simulations for {cli_name}.")
-    species_parser.set_defaults(species=species.name)
+        species.id,
+        help=f"Run simulations for {species.name}.")
+    species_parser.set_defaults(species=species.id)
     species_parser.set_defaults(genetic_map=None)
     if len(species.genetic_maps) > 0:
         species_parser.add_argument(

@@ -54,7 +54,7 @@ class GeneticMapTestClass(genetic_maps.GeneticMap):
     def __init__(self):
         genome = stdpopsim.Genome(chromosomes=[])
         _species = stdpopsim.Species(
-            name="test_species", genome=genome)
+            id_="tesspe", name="Test species", genome=genome)
         super().__init__(
             species=_species,
             name="test_map",
@@ -187,7 +187,7 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
     """
     Tests if we get chromosome maps using the HapmapII_GRCh37 human map.
     """
-    species = stdpopsim.get_species("homo_sapiens")
+    species = stdpopsim.get_species("homsap")
     genetic_map = species.get_genetic_map("HapmapII_GRCh37")
 
     def test_warning_from_no_mapped_chromosome(self):

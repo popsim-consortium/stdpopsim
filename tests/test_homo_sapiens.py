@@ -15,7 +15,7 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     """
     Tests for the human genome.
     """
-    genome = stdpopsim.get_species("homo_sapiens").genome
+    genome = stdpopsim.get_species("homsap").genome
 
     def test_basic_attributes(self):
         self.assertEqual(len(self.genome.chromosomes), 24)
@@ -51,7 +51,7 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         # recompute recombination rates from HapmapII_GRCh37 map then
         # compare the results to the current recombination rates for each chromosome
         genetic_map = "HapmapII_GRCh37"
-        species = stdpopsim.get_species("homo_sapiens")
+        species = stdpopsim.get_species("homsap")
         for chrom in self.genome.chromosomes:
             if chrom.name == "chrY":
                 with self.assertWarns(Warning):

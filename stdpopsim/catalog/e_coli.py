@@ -26,7 +26,8 @@ _chromosomes.append(stdpopsim.Chromosome(
 _genome = stdpopsim.Genome(chromosomes=_chromosomes)
 
 _species = stdpopsim.Species(
-    name="e_coli",
+    id_="esccol",
+    name="Escherichia coli",
     genome=_genome,
     # TODO reference for these
     generation_time=0.00003805175,  # 1.0 / (525600 min/year / 20 min/gen)

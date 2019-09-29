@@ -20,11 +20,11 @@ class TestSpecies(unittest.TestCase):
             self.assertGreater(len(s), 0)
 
     def test_get_known_species(self):
-        good = ["homo_sapiens", "e_coli"]
-        for species_name in good:
-            species = stdpopsim.get_species(species_name)
+        good = ["homsap", "esccol"]
+        for species_id in good:
+            species = stdpopsim.get_species(species_id)
             self.assertIsInstance(species, stdpopsim.Species)
-            self.assertEqual(species.name, species_name)
+            self.assertEqual(species.id, species_id)
 
     def test_get_unknown_species(self):
         bad = ["XXXX", ""]
@@ -34,7 +34,7 @@ class TestSpecies(unittest.TestCase):
 
     def test_get_known_genetic_map(self):
         good = ["HapmapII_GRCh37", "Decode_2010_sex_averaged"]
-        species = stdpopsim.get_species("homo_sapiens")
+        species = stdpopsim.get_species("homsap")
         for name in good:
             gmap = species.get_genetic_map(name)
             self.assertIsInstance(gmap, stdpopsim.GeneticMap)
@@ -42,7 +42,7 @@ class TestSpecies(unittest.TestCase):
 
     def test_get_unknown_genetic_map(self):
         bad = ["GDXXX", "", None]
-        species = stdpopsim.get_species("homo_sapiens")
+        species = stdpopsim.get_species("homsap")
         for name in bad:
             with self.assertRaises(ValueError):
                 species.get_genetic_map(name)
@@ -103,7 +103,7 @@ class TestGetContig(unittest.TestCase):
     """
     Tests for the get contig method.
     """
-    species = stdpopsim.get_species("homo_sapiens")
+    species = stdpopsim.get_species("homsap")
 
     def test_length_multiplier(self):
         contig1 = self.species.get_contig("chr22")

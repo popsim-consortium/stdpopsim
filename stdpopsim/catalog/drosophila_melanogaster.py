@@ -42,7 +42,8 @@ for line in _chromosome_data.splitlines():
 _genome = stdpopsim.Genome(chromosomes=_chromosomes)
 
 _species = stdpopsim.Species(
-    name="drosophila_melanogaster",
+    id_="dromel",
+    name="Drosophila melanogaster",
     genome=_genome,
     # TODO reference for these
     generation_time=0.1,

@@ -87,7 +87,7 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
 
     def test_defaults(self):
         parser = cli.stdpopsim_cli_parser()
-        cmd = "homo-sapiens"
+        cmd = "homsap"
         model = "ooa_3"
         output = "test.trees"
         args = parser.parse_args([cmd, model, output])
@@ -114,38 +114,37 @@ class TestEndToEnd(unittest.TestCase):
 
     def test_tennessen_two_pop_ooa(self):
         cmd = (
-            "homo-sapiens -c chr22 -l0.1 ooa_2 --num-AFR=2 "
+            "homsap -c chr22 -l0.1 ooa_2 --num-AFR=2 "
             "--num-EUR=3")
         self.verify(cmd, num_samples=5)
 
     def test_gutenkunst_three_pop_ooa(self):
-        cmd = "homo-sapiens -c chr1 -l0.01 ooa_3 --num-CEU=10"
+        cmd = "homsap -c chr1 -l0.01 ooa_3 --num-CEU=10"
         self.verify(cmd, num_samples=10)
 
     def test_browning_america(self):
-        cmd = "homo-sapiens -c chr1 -l0.01 america --num-ASIA=10"
+        cmd = "homsap -c chr1 -l0.01 america --num-ASIA=10"
         self.verify(cmd, num_samples=10)
 
     def test_ragsdale_archaic(self):
-        cmd = "homo-sapiens -c chr1 -l0.01 ooa_archaic --num-CEU=10"
+        cmd = "homsap -c chr1 -l0.01 ooa_archaic --num-CEU=10"
         self.verify(cmd, num_samples=10)
 
     def test_schiffels_zigzag(self):
-        cmd = "homo-sapiens -c chr1 -l0.01 zigzag --num-samples=2"
+        cmd = "homsap -c chr1 -l0.01 zigzag --num-samples=2"
         self.verify(cmd, num_samples=2)
 
     def test_li_stephan_two_population(self):
         cmd = (
-            "drosophila-melanogaster -c chr2L -l0.001 ooa_2 "
-            "--num-AFR=3")
+            "dromel -c chr2L -l0.001 ooa_2 --num-AFR=3")
         self.verify(cmd, num_samples=3)
 
     def test_durvusula_2017_msmc(self):
-        cmd = "arabidopsis-thaliana -l 0.001 fixme --num-samples=7"
+        cmd = "aratha -l 0.001 fixme --num-samples=7"
         self.verify(cmd, num_samples=7)
 
     def test_lapierre_constant(self):
-        cmd = "e-coli -l 1e-7 constant --num-samples=2"
+        cmd = "esccol -l 1e-7 constant --num-samples=2"
         self.verify(cmd, num_samples=2)
 
 
@@ -173,7 +172,7 @@ class TestSetupLogging(unittest.TestCase):
     Tests that setup logging has the desired effect.
     """
     basic_cmd = [
-        "homo-sapiens", "ooa_3", "tmp.trees", "--num-CEU=10"]
+        "homsap", "ooa_3", "tmp.trees", "--num-CEU=10"]
 
     def test_default(self):
         parser = cli.stdpopsim_cli_parser()
@@ -227,14 +226,14 @@ class TestErrors(unittest.TestCase):
             mocked_exit.assert_called_once()
 
     def test_tennessen_model(self):
-        self.verify_bad_samples("-q homo-sapiens ooa_2 tmp.trees")
+        self.verify_bad_samples("-q homsap ooa_2 tmp.trees")
 
     def test_gutenkunst_three_pop_ooa(self):
         self.verify_bad_samples(
-            "-q homo-sapiens ooa_3 tmp.trees")
+            "-q homsap ooa_3 tmp.trees")
 
     def test_browning_america(self):
-        self.verify_bad_samples("-q homo-sapiens america tmp.trees")
+        self.verify_bad_samples("-q homsap america tmp.trees")
 
 
 class TestWriteCitations(unittest.TestCase):
@@ -243,7 +242,7 @@ class TestWriteCitations(unittest.TestCase):
     """
     def test_model(self):
         contig = stdpopsim.Contig()
-        species = stdpopsim.get_species("homo_sapiens")
+        species = stdpopsim.get_species("homsap")
         model = species.get_model("ooa_3")
         stdout, stderr = capture_output(cli.write_citations, contig, model)
         self.assertEqual(len(stderr), 0)
@@ -252,7 +251,7 @@ class TestWriteCitations(unittest.TestCase):
         self.assertGreater(len(stdout), 0)
 
     def test_genetic_map(self):
-        species = stdpopsim.get_species("homo_sapiens")
+        species = stdpopsim.get_species("homsap")
         contig = species.get_contig("chr22", genetic_map="HapmapII_GRCh37")
         model = stdpopsim.ConstantSizeModel(species.population_size)
         stdout, stderr = capture_output(cli.write_citations, contig, model)

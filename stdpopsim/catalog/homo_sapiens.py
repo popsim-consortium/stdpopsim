@@ -64,7 +64,8 @@ for line in _chromosome_data.splitlines():
 _genome = stdpopsim.Genome(chromosomes=_chromosomes)
 
 _species = stdpopsim.Species(
-    name="homo_sapiens",
+    id_="homsap",
+    name = "Homo sapiens",
     genome=_genome,
     # TODO reference for these
     generation_time=25,
