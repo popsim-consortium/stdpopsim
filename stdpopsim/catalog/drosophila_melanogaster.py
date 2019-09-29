@@ -104,9 +104,8 @@ class DrosophilaMelanogasterModel(stdpopsim.Model):
 
 
 class _SheehanSongThreeEpoch(DrosophilaMelanogasterModel):
-    kind = "3_epoch"
-    name = "SheehanSongThreeEpoch"
-    short_description = "Three epoch model for single African population."
+    id = "afr_3epoch"
+    name = "Three epoch African population"
     description = """
         The three epoch (modern, bottleneck, ancestral) model estimated for a
         single African Drosophila Melanogaster population from `Sheehan and Song <https:/
@@ -163,9 +162,8 @@ _species.add_model(_SheehanSongThreeEpoch())
 
 
 class _LiStephanTwoPopulation(DrosophilaMelanogasterModel):
-    kind = "ooa_2"  # TODO is this true??
-    name = "LiStephanTwoPopulation"
-    short_description = "Three epoch model for African and European populations."
+    id = "ooa_2"  # TODO is this true??
+    name = "Three epoch model for African and European populations"
     description = """
         The three epoch (modern, bottleneck, ancestral) model estimated for two
         Drosophila Melanogaster populations: African (ancestral) and European (derived)

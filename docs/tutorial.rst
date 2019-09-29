@@ -110,9 +110,9 @@ the models directly rather than retrieving them from the catalog.
 
 .. code-block:: python
 
-    species = stdpopsim.get_species("homo_sapiens")
+    species = stdpopsim.get_species("homsap")
     contig = species.get_contig("chr22", length_multiplier=0.1)
-    model = stdpopsim.ConstantSizeModel(species.population_size)
+    model = stdpopsim.PiecewiseConstantSize(species.population_size)
     samples = model.get_samples(10)
     ts = model.run(contig, samples)
 

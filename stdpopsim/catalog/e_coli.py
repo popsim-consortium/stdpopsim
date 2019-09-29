@@ -31,7 +31,7 @@ _species = stdpopsim.Species(
     genome=_genome,
     # TODO reference for these
     generation_time=0.00003805175,  # 1.0 / (525600 min/year / 20 min/gen)
-    population_size=None)  # FIXME
+    population_size=1.8e8)  # TODO add reference for Lapierre et al.
 
 stdpopsim.register_species(_species)
 
@@ -42,12 +42,14 @@ stdpopsim.register_species(_species)
 #
 ###########################################################
 
+# TODO this model is redundant, since we can simulate it just as well
+# with the PiecewiseConstant model. However, we should maintain the
+# references, and make the population size estimates properly citable.
 
 class _LapierreConstant(stdpopsim.Model):
     species = _species
-    kind = "constant"
-    name = "LapierreConstant"
-    short_description = "Constant size model for E-coli"
+    id = "constant"
+    name = "Constant size"
     description = """
         The constant population size model from `Lapierre et al. 2016 <https://doi.org/
         10.1093/molbev/msw048>`_. The population does not undergo growth or size changes

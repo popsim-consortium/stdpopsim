@@ -115,6 +115,7 @@ class Population(object):
     """
     Class recording metadata representing a population in a simulation.
     """
+    # TODO change this to use the usual id, name combination
     def __init__(self, name, description, allow_samples=True):
         self.name = name
         self.description = description
@@ -132,7 +133,21 @@ class Model(citations.CitableMixin):
     Class representating a simulation model that can be run to output a tree sequence.
     Concrete subclasses must define population_configurations, demographic_events
     and migration_matrix instance variables which define the model.
+
+    :ivar id: The unique identifier for this model. Model IDs should be
+        short and memorable, perhaps as an abbreviation of the model's
+        name.
+    :vartype id: str
+    :ivar name: The informal name for this model as it would be used in
+        written text, e.g., "Three population Out-of-Africa"
+    :vartype informal_name: str
     """
+    # TODO the infrastructure here is left over from a structure that
+    # rigidly used class definitions as a way to define population
+    # models. This contructor should take all the instance variables
+    # as parameteters, and we should use factory functions to define
+    # the model instances that are added to the catalog rather than
+    # subclasses.
 
     def __init__(self):
         self.population_configurations = []
@@ -217,50 +232,23 @@ class Model(citations.CitableMixin):
 _pop0 = Population(name="pop0", description="Generic population")
 
 
-class ConstantSizeModel(Model):
-    kind = "constant"
-    name = "ConstantSize"
-    short_description = "Constant size population model"
-    description = """
-        Generic model of constant size.
-    """
+class PiecewiseConstantSize(Model):
+    id = "constant"
+    name = "Piecewise constant size"
+    description = "Piecewise constant size population model over multiple epochs."
     citations = []
     populations = [_pop0]
     author = None
     year = None
     doi = None
 
-    def __init__(self, N):
+    def __init__(self, N0, *args):
         self.population_configurations = [
             msprime.PopulationConfiguration(
-                initial_size=N, metadata=self.populations[0].asdict())
+                initial_size=N0, metadata=self.populations[0].asdict())
         ]
         self.migration_matrix = [[0]]
         self.demographic_events = []
-
-
-class TwoEpochModel(Model):
-    kind = "2_epoch"
-    name = "TwoEpoch"
-    short_description = "Generic two epoch population model"
-    description = """
-        Generic model of a single population with
-        piecewise constant population size with a single change.
-    """
-    citations = []
-    populations = [_pop0]
-    author = None
-    year = None
-    doi = None
-
-    def __init__(self, N1, N2, t):
-        self.population_configurations = [
-            msprime.PopulationConfiguration(
-                initial_size=N1, metadata=self.populations[0].asdict())
-        ]
-        self.migration_matrix = [[0]]
-        self.demographic_events = [
-            msprime.PopulationParametersChange(
-                time=t, initial_size=N2, growth_rate=0, population_id=0),
-
-        ]
+        for t, N in args:
+            self.demographic_events.append(msprime.PopulationParametersChange(
+                time=t, initial_size=N, growth_rate=0, population_id=0))

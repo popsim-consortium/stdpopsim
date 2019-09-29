@@ -87,9 +87,8 @@ class ArabidopsisThalianaModel(stdpopsim.Model):
 
 # FIXME this documentation needs to be filled out.
 class _Durvasula2017MSMC(ArabidopsisThalianaModel):
-    kind = "fixme"  # FIXME
-    name = "Durvasula2017MSMC"
-    short_description = "TODO"
+    id = "fixme"  # FIXME
+    name = "Please given me a descriptive name"
     description = """
         Model estimated from two homozygous individuals from the South Middle Atlas
         using MSMC (TODO: more detail).

@@ -65,7 +65,7 @@ _genome = stdpopsim.Genome(chromosomes=_chromosomes)
 
 _species = stdpopsim.Species(
     id_="homsap",
-    name = "Homo sapiens",
+    name="Homo sapiens",
     genome=_genome,
     # TODO reference for these
     generation_time=25,
@@ -157,9 +157,8 @@ class HomoSapiensModel(stdpopsim.Model):
 
 
 class _GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
-    kind = "ooa_3"
-    name = "GutenkunstThreePopOutOfAfrica"
-    short_description = "Three population out-of-Africa model"
+    id = "ooa_3"
+    name = "Three population out-of-Africa"
     description = """
         The three population Out-of-Africa model from `Gutenkunst et al. <https://
         doi.org/10.1371/journal.pgen.1000695>`_ It describes the ancestral human
@@ -253,9 +252,8 @@ _species.add_model(_GutenkunstThreePopOutOfAfrica())
 
 
 class _TennessenTwoPopOutOfAfrica(HomoSapiensModel):
-    kind = "ooa_2"
-    name = "TennessenTwoPopOutOfAfrica"
-    short_description = "Two population out-of-Africa model"
+    id = "ooa_2"
+    name = "Two population out-of-Africa"
     description = """
         The model is derived from the Tennesen et al. `analysis <https://doi.org/10.1126/
         science.1219240>`_  of the jSFS from European Americans and African Americans.
@@ -351,9 +349,8 @@ _species.add_model(_TennessenTwoPopOutOfAfrica())
 
 
 class _TennessenOnePopAfrica(HomoSapiensModel):
-    kind = "african"
-    name = "TennessenOnePopAfrica"
-    short_description = "African population"
+    id = "african"
+    name = "African population"
     description = """
         The model is a simplification of the two population Tennesen et al.
         `model <https://doi.org/10.1126/science.1219240>`_ with the European-American
@@ -414,9 +411,8 @@ _species.add_model(_TennessenOnePopAfrica())
 
 
 class _BrowningAmerica(HomoSapiensModel):
-    kind = "america"
-    name = "BrowningAmerica"
-    short_description = "American admixture model"
+    id = "america"
+    name = "American admixture"
     description = """
         Demographic model for American admixture, taken from
         `Browning et al. <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.
@@ -534,9 +530,8 @@ _species.add_model(_BrowningAmerica())
 
 
 class _RagsdaleArchaic(HomoSapiensModel):
-    kind = "ooa_archaic"
-    name = "RagsdaleArchaic"
-    short_description = "Three population out-of-Africa model with archaic admixture"
+    id = "ooa_archaic"
+    name = "Three population out-of-Africa with archaic admixture"
     description = """
         The three population out-of-African model popularized by Gutenkunst et al. (2009)
         and augmented by archaic contributions to both Eurasian and African populations.
@@ -698,9 +693,8 @@ _species.add_model(_RagsdaleArchaic())
 
 
 class _SchiffelsZigzag(HomoSapiensModel):
-    kind = "zigzag"
-    name = "SchiffelsZigzag"
-    short_description = "Validation model with periodic growth and decline."
+    id = "zigzag"
+    name = "Periodic growth and decline."
     description = """
         A validation model used by Schiffels and Durbin (2014) and Terhorst and
         Terhorst, Kamm, and Song (2017) with periods of exponential growth and

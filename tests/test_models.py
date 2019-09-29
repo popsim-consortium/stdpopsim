@@ -343,8 +343,41 @@ class TestModelProperties(unittest.TestCase):
 
 
 class TestConstantSizeModel(unittest.TestCase, ModelTestMixin):
-    model = models.ConstantSizeModel(100)
+    model = models.PiecewiseConstantSize(100)
 
 
 class TestTwoEpochModel(unittest.TestCase, ModelTestMixin):
-    model = models.TwoEpochModel(100, 10, 10)
+    model = models.PiecewiseConstantSize(100, (10, 10))
+
+
+class TestPiecewiseConstantSize(unittest.TestCase):
+    """
+    Specific tests for the piecewise constant model.
+    """
+    def test_single_epoch(self):
+        model = models.PiecewiseConstantSize(100)
+        self.assertEqual(model.population_configurations[0].initial_size, 100)
+        self.assertEqual(len(model.population_configurations), 1)
+        self.assertEqual(len(model.demographic_events), 0)
+
+    def test_two_epoch(self):
+        model = models.PiecewiseConstantSize(50, (10, 100))
+        self.assertEqual(model.population_configurations[0].initial_size, 50)
+        self.assertEqual(len(model.demographic_events), 1)
+        event = model.demographic_events[0]
+        self.assertEqual(event.time, 10)
+        self.assertEqual(event.initial_size, 100)
+        self.assertEqual(event.growth_rate, 0)
+
+    def test_three_epoch(self):
+        model = models.PiecewiseConstantSize(0.1, (0.1, 10), (0.2, 100))
+        self.assertEqual(model.population_configurations[0].initial_size, 0.1)
+        self.assertEqual(len(model.demographic_events), 2)
+        event = model.demographic_events[0]
+        self.assertEqual(event.time, 0.1)
+        self.assertEqual(event.initial_size, 10)
+        self.assertEqual(event.growth_rate, 0)
+        event = model.demographic_events[1]
+        self.assertEqual(event.time, 0.2)
+        self.assertEqual(event.initial_size, 100)
+        self.assertEqual(event.growth_rate, 0)

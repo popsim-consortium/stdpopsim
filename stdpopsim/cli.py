@@ -141,9 +141,9 @@ def add_model_runner(top_parser, species, model):
     Adds CLI options and registers the runner callback for the specified model.
     """
     parser = top_parser.add_parser(
-        model.kind,
+        model.id,
         description=model.description,
-        help=model.short_description)
+        help=model.name)
     add_output_argument(parser)
     sample_arg_names = []
     if len(model.populations) == 1:

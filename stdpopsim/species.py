@@ -133,16 +133,14 @@ class Species(object):
         ret.mutation_rate = chrom.mutation_rate
         return ret
 
-    def get_model(self, kind):
+    def get_model(self, id_):
         """
-        Returns a model with the specified name with the specified number of
-        populations. Please see the documentation [] for a list of available
-        models.
+        Returns a model with the specified id.
 
-        - TODO we can add functionality here
+        - TODO explain where we find models from the catalog.
         """
         for model in self.models:
-            if model.kind == kind:
+            if model.id == id_:
                 return model
         raise ValueError("Model not found")
 

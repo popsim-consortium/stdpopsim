@@ -253,7 +253,7 @@ class TestWriteCitations(unittest.TestCase):
     def test_genetic_map(self):
         species = stdpopsim.get_species("homsap")
         contig = species.get_contig("chr22", genetic_map="HapmapII_GRCh37")
-        model = stdpopsim.ConstantSizeModel(species.population_size)
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
         stdout, stderr = capture_output(cli.write_citations, contig, model)
         self.assertEqual(len(stderr), 0)
         # TODO Parse out the output for the model and check that the text is
