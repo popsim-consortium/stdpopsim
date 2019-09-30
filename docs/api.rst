@@ -45,6 +45,5 @@ to simulate more generic models, which are documented here.
 Please see the :ref:`sec_tutorial_generic_models` for examples of using
 these models.
 
-.. autoclass:: stdpopsim.ConstantSizeModel
+.. autoclass:: stdpopsim.PiecewiseConstantSize
 
-.. autoclass:: stdpopsim.TwoEpochModel

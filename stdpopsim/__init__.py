@@ -12,6 +12,7 @@ from . genetic_maps import *  # NOQA
 from . models import *  # NOQA
 from . species import *  # NOQA
 from . cache import *  # NOQA
+from . citations import *  # NOQA
 
 # We import these here to build the catalog, but the internal classes
 # defined are not part of the external API.

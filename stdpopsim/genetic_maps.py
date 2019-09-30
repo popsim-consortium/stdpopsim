@@ -13,7 +13,6 @@ import urllib.request
 import msprime
 
 from . import cache
-from . import citations
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ def cd(path):
         os.chdir(old_dir)
 
 
-class GeneticMap(citations.CitableMixin):
+class GeneticMap(object):
     """
     Class representing a genetic map for a species. Provides functionality for
     downloading and cacheing recombination maps from a remote URL.
@@ -48,15 +47,14 @@ class GeneticMap(citations.CitableMixin):
     """
 
     def __init__(
-            self, species, name=None, url=None, file_pattern=None, doi=None,
-            description=None, year=None):
+            self, species, name=None, url=None, file_pattern=None,
+            description=None, citations=None):
         self.species = species
         self.name = name
         self.url = url
         self.file_pattern = file_pattern
-        self.doi = doi
         self.description = description
-        self.year = year
+        self.citations = citations
 
         self.cache_dir = pathlib.Path(cache.get_cache_dir()) / "genetic_maps"
         self.species_cache_dir = self.cache_dir / self.species.name

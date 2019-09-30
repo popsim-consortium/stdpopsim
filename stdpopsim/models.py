@@ -6,8 +6,6 @@ import sys
 import msprime
 import numpy as np
 
-import stdpopsim.citations as citations
-
 
 # Defaults taken from np.allclose
 DEFAULT_ATOL = 1e-05
@@ -128,7 +126,7 @@ class Population(object):
         return {"name": self.name, "description": self.description}
 
 
-class Model(citations.CitableMixin):
+class Model(object):
     """
     Class representating a simulation model that can be run to output a tree sequence.
     Concrete subclasses must define population_configurations, demographic_events

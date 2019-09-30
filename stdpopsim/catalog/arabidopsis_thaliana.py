@@ -57,17 +57,19 @@ stdpopsim.register_species(_species)
 _gm = stdpopsim.GeneticMap(
     species=_species,
     name="Salome2012",
-    year=2012,
     url=(
         "http://www.eeb.ucla.edu/Faculty/Lohmueller/data/"
         "uploads/salome2012_maps.tar.gz"),
     file_pattern="arab_{name}_map_loess.txt",
-    doi=None,
     description=(
         "Genetic map from Salome 2012 averaged across population crosses. "
         "Please see this repo for details on how this was done: "
-        "https://github.com/LohmuellerLab/arabidopsis_recomb_maps"
-    ))
+        "https://github.com/LohmuellerLab/arabidopsis_recomb_maps"),
+    citations=[stdpopsim.Citation(
+        doi=None,  # FIXME
+        author="Salome et al.",
+        year=2012)]
+    )
 _species.add_genetic_map(_gm)
 
 
@@ -88,24 +90,20 @@ class ArabidopsisThalianaModel(stdpopsim.Model):
 # FIXME this documentation needs to be filled out.
 class _Durvasula2017MSMC(ArabidopsisThalianaModel):
     id = "fixme"  # FIXME
-    name = "Please given me a descriptive name"
+    name = "Please give me a descriptive name"
     description = """
         Model estimated from two homozygous individuals from the South Middle Atlas
         using MSMC (TODO: more detail).
     """
-    citations = [
-        """
-        TODO
-        """
-    ]
     populations = [
         stdpopsim.Population(
             name="a_thaliana", description="Arabidopsis Thaliana population")
     ]
-
-    author = "Durvasula et al."
-    year = 2017
-    doi = "TODO"
+    citations = [stdpopsim.Citation(
+        author="Durvasula et al.",
+        year=2017,
+        doi="TODO")  # FIXME
+    ]
 
     def __init__(self):
         super().__init__()

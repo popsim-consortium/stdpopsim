@@ -84,35 +84,39 @@ stdpopsim.register_species(_species)
 _gm = stdpopsim.GeneticMap(
     species=_species,
     name="HapmapII_GRCh37",
-    year=2007,
     url=(
         "http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
         "20110106_recombination_hotspots/"
         "HapmapII_GRCh37_RecombinationHotspots.tar.gz"),
     file_pattern="genetic_map_GRCh37_{name}.txt",
-    doi="https://doi.org/10.1038/nature06258",
     description=(
         "The Phase II HapMap Genetic map (lifted over to GRCh37) used in "
         "1000 Genomes. Please see the `README <ftp://ftp-trace.ncbi.nih.gov/1000genomes"
         "/ftp/technical/working/20110106_recombination_hotspots"
-        "/README_hapmapII_GRCh37_map>`_ for more details.")
+        "/README_hapmapII_GRCh37_map>`_ for more details."),
+    citations=[stdpopsim.Citation(
+        doi="https://doi.org/10.1038/nature06258",
+        year=2007,
+        author="1000 Genomes Project consortium")]
     )
 _species.add_genetic_map(_gm)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
     name="Decode_2010_sex_averaged",
-    year=2010,
     url=(
         "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
         "decode_2010_sex-averaged_map.tar.gz"),
     file_pattern="genetic_map_decode_2010_sex-averaged_{name}.txt",
-    doi="https://doi.org/10.1038/nature09525",
     description=(
         "Decode fine scale genetic map from Kong, A et al. Fine scale "
         "recombination rate differences between sexes, populations and "
         "individuals. Nature (28 October 2010). "
-        "Please see https://www.decode.com/addendum/ for more details.")
+        "Please see https://www.decode.com/addendum/ for more details."),
+    citations=[stdpopsim.Citation(
+        year=2010,
+        author="Kong et al",
+        doi="https://doi.org/10.1038/nature09525")]
     )
 _species.add_genetic_map(_gm)
 
@@ -135,6 +139,12 @@ _ceu_population = stdpopsim.Population(
 _chb_population = stdpopsim.Population(
     name="CHB",
     description="1000 Genomes CHB (Han Chinese in Beijing, China)")
+
+
+_tennessen_et_al = stdpopsim.Citation(
+    author="Tennessen et al.",
+    year=2012,
+    doi="https://doi.org/10.1126/science.1219240")
 
 
 # TODO: remove this superclass
@@ -166,22 +176,17 @@ class _GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
         population split. Model parameters are the maximum likelihood values of the
         various parameters given in Table 1 of Gutenkunst et al.
     """
-    citations = [
-        """
-        Gutenkunst, R. N., Hernandez, R. D., Williamson, S. H. & Bustamante, C. D.
-        Inferring the Joint Demographic History of Multiple Populations from
-        Multidimensional SNP Frequency Data. PLOS Genetics 5, e1000695 (2009).
-        """
-    ]
     populations = [
         _yri_population,
         _ceu_population,
         _chb_population
     ]
 
-    author = "Gutenkunst et al."
-    year = 2009
-    doi = "https://doi.org/10.1371/journal.pgen.1000695"
+    citations = [stdpopsim.Citation(
+        author="Gutenkunst et al.",
+        year=2009,
+        doi="https://doi.org/10.1371/journal.pgen.1000695")
+    ]
 
     def __init__(self):
         super().__init__()
@@ -267,19 +272,7 @@ class _TennessenTwoPopOutOfAfrica(HomoSapiensModel):
         stdpopsim.Population(name="AFR", description="African Americans"),
         stdpopsim.Population(name="EUR", description="European Americans")
     ]
-    citations = [
-        """
-        Tennessen, J. A. et al. Evolution and Functional Impact of Rare Coding
-        Variation from Deep Sequencing of Human Exomes. Science 337, 64–69
-        (2012).
-        """
-    ]
-
-    # NOTE choosing the first publication above the 'the' paper to reference.
-    # Should we allow for multiple references??
-    author = "Tennessen et al."
-    year = "2012"
-    doi = "https://doi.org/10.1126/science.1219240"
+    citations = [_tennessen_et_al]
 
     def __init__(self):
         super().__init__()
@@ -359,19 +352,7 @@ class _TennessenOnePopAfrica(HomoSapiensModel):
     populations = [
         stdpopsim.Population(name="AFR", description="African"),
     ]
-    citations = [
-        """
-        Tennessen, J. A. et al. Evolution and Functional Impact of Rare Coding
-        Variation from Deep Sequencing of Human Exomes. Science 337, 64–69
-        (2012).
-        """
-    ]
-
-    # NOTE choosing the first publication above the 'the' paper to reference.
-    # Should we allow for multiple references??
-    author = "Tennessen et al."
-    year = "2012"
-    doi = "https://doi.org/10.1126/science.1219240"
+    citations = [_tennessen_et_al]
 
     def __init__(self):
         super().__init__()
@@ -435,15 +416,11 @@ class _BrowningAmerica(HomoSapiensModel):
     ]
 
     citations = [
-        """
-        Browning, S. R. et al. Ancestry-specific recent effective population size in the
-        Americas. PLOS Genetics 14, e1007385 (2018).
-        """
+        stdpopsim.Citation(
+            author="Browning et al.",
+            year=2011,
+            doi="http://dx.doi.org/10.1371/journal.pgen.1007385")
     ]
-
-    author = "Browning et al."
-    year = "2011"
-    doi = "http://dx.doi.org/10.1371/journal.pgen.1007385"
 
     def __init__(self):
         super().__init__()
@@ -550,17 +527,12 @@ class _RagsdaleArchaic(HomoSapiensModel):
         stdpopsim.Population(
             "ArchaicAFR", "Putative Archaic Africans", allow_samples=False),
     ]
-
     citations = [
-        """
-        Ragsdale, Aaron P., and Simon Gravel. Models of archaic admixture and
-        recent history from two-locus statistics. PLoS genetics 15(6), e1008204 (2019).
-        """
+        stdpopsim.Citation(
+            author="Ragsdale and Gravel",
+            year=2019,
+            doi="https://doi.org/10.1371/journal.pgen.1008204")
     ]
-
-    author = "Ragsdale and Gravel"
-    year = 2019
-    doi = "https://doi.org/10.1371/journal.pgen.1008204"
 
     def __init__(self):
         super().__init__()
@@ -704,14 +676,11 @@ class _SchiffelsZigzag(HomoSapiensModel):
         stdpopsim.Population("generic", "Generic expanding and contracting population"),
     ]
     citations = [
-        """
-        Schiffels, S., & Durbin, R. (2014). Inferring human population size and
-        separation history from multiple genome sequences. Nature Genetics.
-        """
+        stdpopsim.Citation(
+            author="Schiffels and Durbin",
+            year=2014,
+            doi="https://doi.org/10.1038/ng.3015")
     ]
-    author = "Schiffels and Durbin"
-    year = 2014
-    doi = "https://doi.org/10.1038/ng.3015"
 
     def __init__(self):
         super().__init__()

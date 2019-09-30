@@ -31,7 +31,7 @@ setup(
             'stdpopsim=stdpopsim.cli:stdpopsim_main',
         ]
     },
-    install_requires=["msprime", "appdirs", "humanize", "daiquiri"],
+    install_requires=["msprime", "attr", "appdirs", "humanize", "daiquiri"],
     url='https://github.com/popgensims/stdpopsim',
     project_urls={
         'Bug Reports': 'https://github.com/popgensims/stdpopsim/issues',

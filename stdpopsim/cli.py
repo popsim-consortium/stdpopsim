@@ -117,8 +117,9 @@ def write_citations(contig, model):
     # TODO need some way to get a GeneticMap instance from the chromosome. We'll also
     # want to be able to output mutation map, and perhaps other information too, so
     # we want to keep some flexibility for this in mind.
-    print("Simulation model:")
-    print(f"\t{model.name}: {model.author} {model.year} {model.doi}")
+    print("Simulation model:", model.name)
+    for citation in model.citations:
+        print("\t", citation, sep="")
 
 
 def add_output_argument(parser):
@@ -235,15 +236,4 @@ def stdpopsim_main(arg_list=None):
     parser = stdpopsim_cli_parser()
     args = parser.parse_args(arg_list)
     setup_logging(args)
-    if not args.quiet:
-        print("*****************************")
-        print("**        WARNING          **")
-        print("*****************************")
-        print("This inferface is highly experimental and *will* change. ")
-        print("It is provided as a work-in-progress to get some feedback on ")
-        print("how to better structure the interfaces")
-        print("Disable this message with the -q option")
-        print("*****************************")
-        print("**      END WARNING        **")
-        print("*****************************")
     args.runner(args)

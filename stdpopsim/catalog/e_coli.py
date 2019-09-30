@@ -56,19 +56,15 @@ class _LapierreConstant(stdpopsim.Model):
         making it a simple scenario in which to study the effects of recombination and/
         or mutation on a variety of inference methods.
     """
-    citations = [
-        """
-        Lapierre, M., Blin, C., Lambert, A., Achaz, G. & Rocha, E. P. C. The Impact of
-        Selection, Gene Conversion, and Biased Sampling on the Assessment of Microbial
-        Demography. Mol Biol Evol 33, 1711–1725 (2016).
-        """
-    ]
     populations = [
         stdpopsim.Population(name="e_coli", description="Single E-coli population"),
     ]
-    author = "Lapierre et al."
-    year = "2016"
-    doi = "https://doi.org/10.1093/molbev/msw048"
+    citations = [
+        stdpopsim.Citation(
+            author="Lapierre et al.",
+            year="2016",
+            doi="https://doi.org/10.1093/molbev/msw048")
+    ]
 
     def __init__(self):
         super().__init__()

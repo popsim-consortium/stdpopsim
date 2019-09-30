@@ -58,10 +58,10 @@ def model_table(model):
     row = nodes.row()
     rows.append(row)
     entry = nodes.entry()
-    entry += nodes.paragraph(text="kind")
+    entry += nodes.paragraph(text="id")
     row += entry
     entry = nodes.entry()
-    entry += nodes.paragraph(text=model.kind)
+    entry += nodes.paragraph(text=model.id)
     row += entry
 
     row = nodes.row()
@@ -89,7 +89,8 @@ def model_table(model):
     row += entry
     entry = nodes.entry()
     para = nodes.paragraph()
-    para += nodes.reference(internal=False, refuri=model.doi, text=model.doi)
+    doi = model.citations[0].doi
+    para += nodes.reference(internal=False, refuri=doi, text=doi)
     entry += para
     row += entry
 
@@ -216,13 +217,13 @@ def genetic_maps_table(species):
         row += entry
 
         entry = nodes.entry()
-        entry += nodes.paragraph(text=genetic_map.year)
+        entry += nodes.paragraph(text=genetic_map.citations[0].year)
         row += entry
 
         entry = nodes.entry()
         para = nodes.paragraph()
-        para += nodes.reference(
-            internal=False, refuri=genetic_map.doi, text=genetic_map.doi)
+        doi = genetic_map.citations[0].doi
+        para += nodes.reference(internal=False, refuri=doi, text=doi)
         entry += para
         row += entry
 

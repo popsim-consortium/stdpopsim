@@ -62,16 +62,18 @@ stdpopsim.register_species(_species)
 _gm = stdpopsim.GeneticMap(
     species=_species,
     name="Comeron2012_dm6",
-    year=2012,
     url=(
         "http://sesame.uoregon.edu/~adkern/dmel_recombination_map/"
         "comeron2012_maps.tar.gz"),
     file_pattern="genetic_map_comeron2012_dm6_{name}.txt",
-    doi=None,  # FIXME
     description=(
-        "Comeron et al. (2012) maps (lifted over to dm6)."
         # TODO more detail
-    ))
+        "Comeron et al. (2012) maps (lifted over to dm6)."),
+    citations=[stdpopsim.Citation(
+        author="Comeron et al",
+        doi=None,  # FIXME
+        year=2012)]
+    )
 
 _species.add_genetic_map(_gm)
 
@@ -116,15 +118,11 @@ class _SheehanSongThreeEpoch(DrosophilaMelanogasterModel):
         publication. We have faithfully represented the published model here.
     """
     populations = [_afr_population]
-    citations = [
-        """
-        Sheehan, S. & Song, Y. S. Deep Learning for Population Genetic Inference. PLOS
-        Computational Biology 12, e1004845 (2016).
-        """
+    citations = [stdpopsim.Citation(
+        author="Sheehan and Song",
+        year=2016,
+        doi="https://doi.org/10.1371/journal.pcbi.1004845")
     ]
-    author = "Sheehan and Song"
-    year = 2016
-    doi = "https://doi.org/10.1371/journal.pcbi.1004845"
 
     def __init__(self):
         super().__init__()
@@ -170,15 +168,11 @@ class _LiStephanTwoPopulation(DrosophilaMelanogasterModel):
         from `Li and Stephan <https://doi.org/10.1371/journal.pgen.0020166>`_ .
     """
     populations = [_afr_population, _eur_population]
-    citations = [
-        """
-        Li, H. & Stephan, W. Inferring the Demographic History and Rate of Adaptive
-        Substitution in Drosophila. PLOS Genetics 2, e166 (2006).
-        """
+    citations = [stdpopsim.Citation(
+        author="Li et al.",
+        year=2006,
+        doi="https://doi.org/10.1371/journal.pgen.0020166")
     ]
-    author = "Li et al."
-    year = 2006
-    doi = "https://doi.org/10.1371/journal.pgen.0020166"
 
     def __init__(self):
         super().__init__()
