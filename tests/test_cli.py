@@ -162,15 +162,15 @@ class TestEndToEndSubprocess(TestEndToEnd):
     def verify(self, cmd, num_samples):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
-            full_cmd = "python3 -m stdpopsim -q " + cmd + f" {filename}"
+            full_cmd = "python3 -m stdpopsim " + cmd + f" {filename} -q"
             subprocess.run(full_cmd, shell=True, check=True)
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)
         provenance = json.loads(ts.provenance(ts.num_provenances - 1).record)
         tskit.validate_provenance(provenance)
         stored_cmd = provenance["parameters"]["args"]
-        self.assertEqual(stored_cmd[0], "-q")
-        self.assertEqual(stored_cmd[1:-1], cmd.split())
+        self.assertEqual(stored_cmd[-1], "-q")
+        self.assertEqual(stored_cmd[:-2], cmd.split())
 
 
 class TestSetupLogging(unittest.TestCase):
@@ -231,16 +231,16 @@ class TestErrors(unittest.TestCase):
             mocked_exit.assert_called_once()
 
     def test_default(self):
-        self.verify_bad_samples("-q sim-homsap 2 3 tmp.trees")
+        self.verify_bad_samples("sim-homsap -q 2 3 tmp.trees")
 
     def test_tennessen_model(self):
-        self.verify_bad_samples("-q sim-homsap -m ooa_2 2 3 4 tmp.trees")
+        self.verify_bad_samples("sim-homsap  -q -m ooa_2 2 3 4 tmp.trees")
 
     def test_gutenkunst_three_pop_ooa(self):
-        self.verify_bad_samples("-q sim-homsap -m ooa_3 2 3 4 5 tmp.trees")
+        self.verify_bad_samples("sim-homsap -q -m ooa_3 2 3 4 5 tmp.trees")
 
     def test_browning_america(self):
-        self.verify_bad_samples("-q sim-homsap -m america 2 3 4 5 6 tmp.trees")
+        self.verify_bad_samples("sim-homsap -q -m america 2 3 4 5 6 tmp.trees")
 
 
 class TestWriteCitations(unittest.TestCase):

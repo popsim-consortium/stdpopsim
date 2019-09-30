@@ -7,6 +7,7 @@ import json
 import logging
 import platform
 import sys
+import textwrap
 import resource
 
 import msprime
@@ -138,33 +139,91 @@ def summarise_usage():
 
 
 def add_simulate_species_parser(parser, species):
-    species_parser = parser.add_parser(
+    header = (
+        f"Run simulations for {species.name} using up-to-date genome information, "
+        "genetic maps and simulation models from the literature."
+    )
 
-        f"simulate-{species.id}",
-        aliases=[f"sim-{species.id}"],
+    # TODO perhaps it would be better to have a model help text option rather than
+    # writing all this out every time. It's going to be a lot of text, and might
+    # distract from the important help stuff.
+    models_text = "\nSimulation models\n\n"
+    indent = " " * 4
+    wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
+    for model in species.models:
+        models_text += f"{model.id}: {model.name}\n"
+        models_text += wrapper.fill(textwrap.dedent(model.description))
+        models_text += "\n\n"
+
+        models_text += indent + "Populations:\n"
+
+        for population in model.populations:
+            if population.allow_samples:
+                models_text += indent * 2
+                models_text += f"{population.name}: {population.description}\n"
+        models_text += "\n"
+
+    description_text = textwrap.fill(header) + "\n" + models_text
+
+    species_parser = parser.add_parser(
+        f"sim-{species.id}",
+        description=description_text,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
         help=f"Run simulations for {species.name}.")
     species_parser.set_defaults(species=species.id)
     species_parser.set_defaults(genetic_map=None)
+    species_parser.set_defaults(chromosome=None)
+    species_parser.add_argument(
+        "-q", "--quiet", action='store_true',
+        help="Do not write out citation information")
+
+    # Set metavar="" to prevent help text from writing out the explicit list
+    # of options, which can be too long and ugly.
+    choices = [gm.name for gm in species.genetic_maps]
     if len(species.genetic_maps) > 0:
         species_parser.add_argument(
-            "-g", "--genetic-map", default=None,
-            choices=[gm.name for gm in species.genetic_maps],
-            help="Specify a particular genetic map. Use a flat map by default.")
-    choices = [chrom.name for chrom in species.genome.chromosomes]
-    species_parser.add_argument(
-        "-c", "--chromosome", choices=choices, default=choices[0],
-        help=f"Simulate a specific chromosome. Default={choices[0]}")
+            "-g", "--genetic-map",
+            choices=choices, metavar="", default=None,
+            help=(
+                "Specify a particular genetic map. If no genetic map is specified "
+                "use a flat map by default. Available maps: "
+                f"{', '.join(choices)}. "))
+
+    if len(species.genome.chromosomes) > 1:
+        choices = [chrom.name for chrom in species.genome.chromosomes]
+        species_parser.add_argument(
+            "-c", "--chromosome", choices=choices, metavar="", default=choices[0],
+            help=(
+                f"Simulate a specific chromosome. "
+                f"Options: {', '.join(choices)}. "
+                f"Default={choices[0]}."))
     species_parser.add_argument(
         "-l", "--length-multiplier", default=1, type=float,
         help="Simulate a chromsome of length l times the named chromosome")
 
+    model_help = (
+        "Specify a simulation model. If no model it specified, a single population"
+        "constant size model is used. Available models:"
+        f"{', '.join(model.id for model in species.models)}"
+        ". Please see above for details of these models.")
     species_parser.add_argument(
-        "-m", "--model", default=None,
+        "-m", "--model", default=None, metavar="",
         choices=[model.id for model in species.models],
-        help="Specify a simulation model.")
+        help=model_help)
 
-    species_parser.add_argument('samples', type=int, nargs="+")
-    species_parser.add_argument('output')
+    species_parser.add_argument(
+        "samples", type=int, nargs="+",
+        help=(
+            "The number of samples to draw from each population. At least "
+            "two samples must be specified. The number of arguments that "
+            "will be accepted depends on the simulation model that is "
+            "specified: for a model that has n populations, we can specify "
+            "the number of samples to draw from each of these populations."
+            "We do not need to provide sample numbers of each of the "
+            "populations; those that are omitted are set to zero."))
+    species_parser.add_argument(
+        "output",
+        help="Where to write the output tree sequence file.")
 
     def run_simulation(args):
         if args.model is None:
@@ -198,16 +257,13 @@ def stdpopsim_cli_parser():
     # TODO the CLI defined by this hierarchical and clumsy, but it's the best
     # I could figure out. It can definitely be improved!
     top_parser = argparse.ArgumentParser(
-        description="Run simulations defined by stdpopsim from the command line")
+        description="Command line interface for stdpopsim.")
     top_parser.add_argument(
         "-V", "--version", action='version',
         version='%(prog)s {}'.format(stdpopsim.__version__))
     top_parser.add_argument(
         "-v", "--verbosity", action='count', default=0,
         help="Increase the verbosity")
-    top_parser.add_argument(
-        "-q", "--quiet", action='store_true',
-        help="Do not write out citation information")
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True
 
