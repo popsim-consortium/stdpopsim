@@ -48,6 +48,18 @@ class TestSpecies(unittest.TestCase):
                 species.get_genetic_map(name)
 
 
+class SpeciesTestMixin(object):
+    """
+    Mixin class for testing individual species properties.
+    """
+    species = None  # To be defined in subclasses.
+
+    def test_str(self):
+        s = str(self.species)
+        self.assertGreater(len(s), 0)
+        self.assertIsInstance(s, str)
+
+
 class GenomeTestMixin(object):
     """
     Mixin class for testing individual genome properties.

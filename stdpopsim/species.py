@@ -4,6 +4,7 @@ organising the species catalog.
 """
 import logging
 
+import attr
 import msprime
 
 
@@ -51,6 +52,7 @@ def all_models():
             yield model
 
 
+@attr.s
 class Species(object):
     """
     Class representing a species in the catalog.
@@ -74,30 +76,32 @@ class Species(object):
         model uses the generation time that was used in the original
         publication(s).
     :vartype generation_time: float
+    :ivar generation_time_citations: A list of :class:`.Citation` objects
+        providing justification for the genertion time estimate.
+    :vartype generation_time_citations: list
     :ivar population_size: The current best estimate for the population
         size of this species. Note that individual population
         models in the catalog may or may not use this estimate: each
         model uses the populations sizes defined in the original
         publication(s).
     :vartype population_size: float
+    :ivar population_size_citations: A list of :class:`.Citation` objects
+        providing justification for the population size estimate.
+    :vartype population_size_citations: list
     :ivar models: This list of :class:`Model` instances in the catalog
         for this species.
     :vartype models: list()
     """
-    def __init__(
-            self, id_, name, genome,
-            generation_time=None, population_size=None):
-        self.id = id_
-        self.name = name
-        self.genome = genome
-        self.generation_time = generation_time
-        self.population_size = population_size
-        self.models = []
-        # TODO should this be here on in the Genome?
-        self.genetic_maps = []
 
-    def __str__(self):
-        return f"Species(id={self.id}, name={self.name})"
+    id = attr.ib(type=str, kw_only=True)
+    name = attr.ib(type=str, kw_only=True)
+    genome = attr.ib(type=int, kw_only=True)
+    generation_time = attr.ib(default=1, kw_only=True)
+    generation_time_citations = attr.ib(factory=list, kw_only=True)
+    population_size = attr.ib(default=1, kw_only=True)
+    population_size_citations = attr.ib(factory=list, kw_only=True)
+    models = attr.ib(factory=list, kw_only=True)
+    genetic_maps = attr.ib(factory=list, kw_only=True)
 
     def get_contig(self, chromosome, genetic_map=None, length_multiplier=1):
         """

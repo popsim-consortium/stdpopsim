@@ -39,7 +39,7 @@ for line in _chromosome_data.splitlines():
 _genome = stdpopsim.Genome(chromosomes=_chromosomes)
 
 _species = stdpopsim.Species(
-    id_="aratha",
+    id="aratha",
     name="Arabidopsis thaliana",
     genome=_genome,
     # TODO reference for these

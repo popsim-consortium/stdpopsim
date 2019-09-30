@@ -32,6 +32,9 @@ accessed through the main entrypoint, :func:`.get_species`.
 .. autoclass:: stdpopsim.Model
     :members:
 
+.. autoclass:: stdpopsim.Citation
+    :members:
+
 
 .. _sec_api_generic_models:
 

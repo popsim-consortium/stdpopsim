@@ -4,9 +4,19 @@ Tests for the e. coli data definitions.
 import unittest
 
 import stdpopsim
-from tests import test_models
 from tests import test_species
-from qc import e_coli_qc
+
+
+class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
+    species = stdpopsim.get_species("esccol")
+
+    def test_basic_attributes(self):
+        # From paper https://doi.org/10.1093/molbev/msw048
+        # Ne taken from Table 2
+        self.assertEqual(self.species.population_size, 1.8e8)
+        # 20 minutes per generation
+        generation_time = 1.0 / (525600 / 20)
+        self.assertAlmostEqual(self.species.generation_time, generation_time)
 
 
 class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
@@ -17,11 +27,3 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
 
     def test_basic_attributes(self):
         self.assertEqual(len(self.genome.chromosomes), 1)
-
-
-class TestLapierreConstant(unittest.TestCase, test_models.QcdModelTestMixin):
-    """
-    Basic tests for the LapierreConstant model.
-    """
-    model = stdpopsim.e_coli._LapierreConstant()
-    qc_model = e_coli_qc.LapierreConstant()
