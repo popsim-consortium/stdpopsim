@@ -137,55 +137,11 @@ def summarise_usage():
         user_time, sys_time, max_rss))
 
 
-def add_model_runner(top_parser, species, model):
-    """
-    Adds CLI options and registers the runner callback for the specified model.
-    """
-    parser = top_parser.add_parser(
-        model.id,
-        description=model.description,
-        help=model.name)
-    add_output_argument(parser)
-    sample_arg_names = []
-    if len(model.populations) == 1:
-        assert model.populations[0].allow_samples
-        help_text = f"The number of samples"
-        parser.add_argument(f"--num-samples", help=help_text, default=0, type=int)
-        sample_arg_names.append("num_samples")
-    else:
-        for population in model.populations:
-            if population.allow_samples:
-                name = population.name
-                help_text = f"The number of samples to take from the {name} population"
-                parser.add_argument(f"--num-{name}", help=help_text, default=0, type=int)
-                sample_arg_names.append("num_{}".format(name))
-
-    def run_simulation(args):
-        args_dict = vars(args)
-        samples = []
-        for pop_index, sample_arg in enumerate(sample_arg_names):
-            num_samples = args_dict[sample_arg]
-            samples.extend([msprime.Sample(population=pop_index, time=0)] * num_samples)
-        if len(samples) < 2:
-            exit("Must specify at least 2 samples")
-
-        contig = species.get_contig(
-            args.chromosome, genetic_map=args.genetic_map,
-            length_multiplier=args.length_multiplier)
-        logger.info(f"Running {model.name} on {contig} with {len(samples)} samples")
-        ts = model.run(contig, samples)
-        summarise_usage()
-        write_output(ts, args)
-        if not args.quiet:
-            write_citations(contig, model)
-
-    parser.set_defaults(runner=run_simulation)
-
-
-def add_species_parser(parser, species):
-    # Replace underscores with hypens to keep with unix CLI conventions
+def add_simulate_species_parser(parser, species):
     species_parser = parser.add_parser(
-        species.id,
+
+        f"simulate-{species.id}",
+        aliases=[f"sim-{species.id}"],
         help=f"Run simulations for {species.name}.")
     species_parser.set_defaults(species=species.id)
     species_parser.set_defaults(genetic_map=None)
@@ -201,11 +157,40 @@ def add_species_parser(parser, species):
     species_parser.add_argument(
         "-l", "--length-multiplier", default=1, type=float,
         help="Simulate a chromsome of length l times the named chromosome")
-    subparsers = species_parser.add_subparsers(dest="subcommand")
-    subparsers.required = True
 
-    for model in species.models:
-        add_model_runner(subparsers, species, model)
+    species_parser.add_argument(
+        "-m", "--model", default=None,
+        choices=[model.id for model in species.models],
+        help="Specify a simulation model.")
+
+    species_parser.add_argument('samples', type=int, nargs="+")
+    species_parser.add_argument('output')
+
+    def run_simulation(args):
+        if args.model is None:
+            model = stdpopsim.PiecewiseConstantSize(species.population_size)
+            model.citations = species.population_size_citations
+        else:
+            model = species.get_model(args.model)
+        if len(args.samples) > model.num_sampling_populations:
+            exit(
+                f"Cannot sample from more than {model.num_sampling_populations} "
+                "populations")
+        samples = model.get_samples(*args.samples)
+
+        contig = species.get_contig(
+            args.chromosome, genetic_map=args.genetic_map,
+            length_multiplier=args.length_multiplier)
+        logger.info(
+            f"Running simulation model {model.name} for {species.name} on "
+            f"{contig} with {len(samples)} samples")
+        ts = model.run(contig, samples)
+        summarise_usage()
+        write_output(ts, args)
+        if not args.quiet:
+            write_citations(contig, model)
+
+    species_parser.set_defaults(runner=run_simulation)
 
 
 def stdpopsim_cli_parser():
@@ -227,7 +212,7 @@ def stdpopsim_cli_parser():
     subparsers.required = True
 
     for species in stdpopsim.all_species():
-        add_species_parser(subparsers, species)
+        add_simulate_species_parser(subparsers, species)
 
     return top_parser
 

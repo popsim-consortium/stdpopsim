@@ -158,6 +158,10 @@ class Model(object):
     def num_populations(self):
         return len(self.populations)
 
+    @property
+    def num_sampling_populations(self):
+        return sum(int(pop.allow_samples) for pop in self.populations)
+
     def equals(self, other, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
         """
         Returns True if this model is equal to the specified model to the

@@ -87,14 +87,11 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
 
     def test_defaults(self):
         parser = cli.stdpopsim_cli_parser()
-        cmd = "homsap"
-        model = "ooa_3"
+        cmd = "sim-homsap"
         output = "test.trees"
-        args = parser.parse_args([cmd, model, output])
+        args = parser.parse_args([cmd, "2", output])
         self.assertEqual(args.output, output)
-        self.assertEqual(args.num_CEU, 0)
-        self.assertEqual(args.num_CHB, 0)
-        self.assertEqual(args.num_YRI, 0)
+        self.assertEqual(args.samples, [2])
 
 
 class TestEndToEnd(unittest.TestCase):
@@ -112,39 +109,48 @@ class TestEndToEnd(unittest.TestCase):
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)
 
+    def test_homsap_constant(self):
+        cmd = "sim-homsap -c chr22 -l0.1 20"
+        self.verify(cmd, num_samples=20)
+
     def test_tennessen_two_pop_ooa(self):
-        cmd = (
-            "homsap -c chr22 -l0.1 ooa_2 --num-AFR=2 "
-            "--num-EUR=3")
+        cmd = "sim-homsap -c chr22 -l0.1 -m ooa_2 2 3"
         self.verify(cmd, num_samples=5)
 
     def test_gutenkunst_three_pop_ooa(self):
-        cmd = "homsap -c chr1 -l0.01 ooa_3 --num-CEU=10"
+        cmd = "sim-homsap -c chr1 -l0.01 -m ooa_3 10"
         self.verify(cmd, num_samples=10)
 
     def test_browning_america(self):
-        cmd = "homsap -c chr1 -l0.01 america --num-ASIA=10"
+        cmd = "sim-homsap -c chr1 -l0.01 -m america 10"
         self.verify(cmd, num_samples=10)
 
     def test_ragsdale_archaic(self):
-        cmd = "homsap -c chr1 -l0.01 ooa_archaic --num-CEU=10"
+        cmd = "sim-homsap -c chr1 -l0.01 -m ooa_archaic 10"
         self.verify(cmd, num_samples=10)
 
     def test_schiffels_zigzag(self):
-        cmd = "homsap -c chr1 -l0.01 zigzag --num-samples=2"
+        cmd = "sim-homsap -c chr1 -l0.01 -m zigzag 2"
         self.verify(cmd, num_samples=2)
 
+    def test_dromel_constant(self):
+        cmd = "sim-dromel -c chr2L -l0.001 4"
+        self.verify(cmd, num_samples=4)
+
     def test_li_stephan_two_population(self):
-        cmd = (
-            "dromel -c chr2L -l0.001 ooa_2 --num-AFR=3")
+        cmd = "sim-dromel -c chr2L -l0.001 -m ooa_2 3"
         self.verify(cmd, num_samples=3)
 
+    def test_aratha_constant(self):
+        cmd = "sim-aratha -l 0.001 8"
+        self.verify(cmd, num_samples=8)
+
     def test_durvusula_2017_msmc(self):
-        cmd = "aratha -l 0.001 fixme --num-samples=7"
+        cmd = "sim-aratha -l 0.001 -m fixme 7"
         self.verify(cmd, num_samples=7)
 
     def test_lapierre_constant(self):
-        cmd = "esccol -l 1e-7 constant --num-samples=2"
+        cmd = "sim-esccol -l 1e-7 2"
         self.verify(cmd, num_samples=2)
 
 
@@ -171,8 +177,7 @@ class TestSetupLogging(unittest.TestCase):
     """
     Tests that setup logging has the desired effect.
     """
-    basic_cmd = [
-        "homsap", "ooa_3", "tmp.trees", "--num-CEU=10"]
+    basic_cmd = ["sim-homsap", "10", "tmp.trees"]
 
     def test_default(self):
         parser = cli.stdpopsim_cli_parser()
@@ -225,15 +230,17 @@ class TestErrors(unittest.TestCase):
                 cli.stdpopsim_main(cmd.split())
             mocked_exit.assert_called_once()
 
+    def test_default(self):
+        self.verify_bad_samples("-q sim-homsap 2 3 tmp.trees")
+
     def test_tennessen_model(self):
-        self.verify_bad_samples("-q homsap ooa_2 tmp.trees")
+        self.verify_bad_samples("-q sim-homsap -m ooa_2 2 3 4 tmp.trees")
 
     def test_gutenkunst_three_pop_ooa(self):
-        self.verify_bad_samples(
-            "-q homsap ooa_3 tmp.trees")
+        self.verify_bad_samples("-q sim-homsap -m ooa_3 2 3 4 5 tmp.trees")
 
     def test_browning_america(self):
-        self.verify_bad_samples("-q homsap america tmp.trees")
+        self.verify_bad_samples("-q sim-homsap -m america 2 3 4 5 6 tmp.trees")
 
 
 class TestWriteCitations(unittest.TestCase):
