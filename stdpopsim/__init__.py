@@ -11,6 +11,7 @@ except ImportError:
 from . genetic_maps import *  # NOQA
 from . models import *  # NOQA
 from . species import *  # NOQA
+from . genomes import *  # NOQA
 from . cache import *  # NOQA
 from . citations import *  # NOQA
 
