@@ -166,7 +166,7 @@ def add_simulate_species_parser(parser, species):
     description_text = textwrap.fill(header) + "\n" + models_text
 
     species_parser = parser.add_parser(
-        f"sim-{species.id}",
+        f"{species.id}",
         description=description_text,
         formatter_class=argparse.RawDescriptionHelpFormatter,
         help=f"Run simulations for {species.name}.")
