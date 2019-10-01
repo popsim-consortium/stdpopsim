@@ -170,7 +170,7 @@ def population_list(model):
 
 
 def genetic_map_section(species, genetic_map):
-    map_id = f"sec_catalog_{species.name}_genetic_maps_{genetic_map.name}"
+    map_id = f"sec_catalog_{species.id}_genetic_maps_{genetic_map.name}"
     section = nodes.section(ids=[map_id])
     section += nodes.title(text=genetic_map.name)
     section += nodes.paragraph(text=genetic_map.description)
@@ -209,7 +209,7 @@ def genetic_maps_table(species):
         row = nodes.row()
         rows.append(row)
 
-        # map_id = f"sec_catalog_{species.name}_genetic_maps_{genetic_map.name}"
+        # map_id = f"sec_catalog_{species.id}_genetic_maps_{genetic_map.name}"
         # TODO figure out how to make a link here to the corresponding detail
         # section.
         entry = nodes.entry()
@@ -279,7 +279,7 @@ def chromosomes_table(species):
 
 
 def model_section(species, model):
-    section = nodes.section(ids=[f"sec_catalog_{species.name}_models_{model.name}"])
+    section = nodes.section(ids=[f"sec_catalog_{species.id}_models_{model.name}"])
     section += nodes.title(text=model.name)
     section += nodes.paragraph(text=model.description)
     section += nodes.rubric(text="Details")
@@ -299,7 +299,7 @@ class SpeciesCatalog(Directive):
 
     def run(self):
         species = stdpopsim.get_species(self.arguments[0])
-        sid = f"sec_catalog_{species.name}"
+        sid = f"sec_catalog_{species.id}"
         section = nodes.section(ids=[sid])
         # TODO figure out out to make cross references to these IDs work within sphinx.
         # Probably need to create a 'label' node?
@@ -307,19 +307,19 @@ class SpeciesCatalog(Directive):
         section += nodes.title(text=species.name)
         section += species_summary_table(species)
 
-        genome_section = nodes.section(ids=[f"sec_catalog_{species.name}_genome"])
+        genome_section = nodes.section(ids=[f"sec_catalog_{species.id}_genome"])
         genome_section += nodes.title(text="Genome")
         genome_section += chromosomes_table(species)
         section += genome_section
 
-        maps_section = nodes.section(ids=[f"sec_catalog_{species.name}_genetic_maps"])
+        maps_section = nodes.section(ids=[f"sec_catalog_{species.id}_genetic_maps"])
         maps_section += nodes.title(text="Genetic Maps")
         maps_section += genetic_maps_table(species)
         for gmap in species.genetic_maps:
             maps_section += genetic_map_section(species, gmap)
         section += maps_section
 
-        models_section = nodes.section(ids=[f"sec_catalog_{species.name}_models"])
+        models_section = nodes.section(ids=[f"sec_catalog_{species.id}_models"])
         models_section += nodes.title(text="Models")
         # TODO add a table summarising the models with links to the detailed
         # descriptions
