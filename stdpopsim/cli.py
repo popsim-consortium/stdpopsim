@@ -1,6 +1,6 @@
 """
-The command line interface for stdpopsim. Allows provides standard simulations
-at the command line.
+The command line interface for stdpopsim. Provides standard simulations
+at the command line and methods to manage resources used by stdpopsim.
 """
 import argparse
 import json
@@ -190,7 +190,7 @@ def add_simulate_species_parser(parser, species):
                 f"{', '.join(choices)}. "))
 
     if len(species.genome.chromosomes) > 1:
-        choices = [chrom.name for chrom in species.genome.chromosomes]
+        choices = [chrom.id for chrom in species.genome.chromosomes]
         species_parser.add_argument(
             "-c", "--chromosome", choices=choices, metavar="", default=choices[0],
             help=(

@@ -16,7 +16,7 @@ _lapierre_et_al = stdpopsim.Citation(
 
 _chromosomes = []
 _chromosomes.append(stdpopsim.Chromosome(
-        name=None,
+        id=None,
         length=4641652,
         mutation_rate=1e-5+2e-4,
         recombination_rate=0.0))

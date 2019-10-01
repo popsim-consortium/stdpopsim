@@ -262,11 +262,11 @@ def chromosomes_table(species):
     for chrom in species.genome.chromosomes:
         row = nodes.row()
         entry = nodes.entry()
-        entry += nodes.paragraph(text=chrom.name)
+        entry += nodes.paragraph(text=chrom.id)
         row += entry
 
         entry = nodes.entry()
-        entry += nodes.paragraph(text="{:.4G}".format(chrom.length))
+        entry += nodes.paragraph(text="{:d}".format(chrom.length))
         row += entry
 
         # TODO add mutation/recombination rate.

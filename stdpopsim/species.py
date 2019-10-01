@@ -110,28 +110,29 @@ class Species(object):
         is to be simulated based on empirical information for a given species
         and chromosome.
 
-        :param str species: The name of the species to simulate.
-        :param str chromosome: The name of the chromosome to simulate.
+        :param str chromosome: The ID of the chromosome to simulate.
         :param str genetic_map: If specified, obtain recombination rate information
-            from the genetic map with the specified name. If None, simulate
+            from the genetic map with the specified ID. If None, simulate
             a flat recombination rate on a region with the length of the specified
             chromosome. (Default: None)
         :param float length_multiplier: If specified simulate a contig of length
             length_multiplier times the length of the specified chromosome.
+            This option cannot currently be used in conjunction with the
+            ``genetic_map`` argument.
         :rtype: Contig
         :return: A Contig describing a simulation of the section of genome.
         """
         chrom = self.genome.get_chromosome(chromosome)
         if genetic_map is None:
-            logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.name}")
+            logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.id}")
             recomb_map = msprime.RecombinationMap.uniform_map(
                 chrom.length * length_multiplier, chrom.recombination_rate)
         else:
             if length_multiplier != 1:
                 raise ValueError("Cannot use length multiplier with empirical maps")
-            logger.debug(f"Getting map for {chrom.name} from {genetic_map}")
+            logger.debug(f"Getting map for {chrom.id} from {genetic_map}")
             gm = self.get_genetic_map(genetic_map)
-            recomb_map = gm.get_chromosome_map(chrom.name)
+            recomb_map = gm.get_chromosome_map(chrom.id)
 
         ret = genomes.Contig(
             recombination_map=recomb_map, mutation_rate=chrom.mutation_rate)

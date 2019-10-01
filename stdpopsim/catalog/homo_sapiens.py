@@ -57,7 +57,7 @@ _chromosomes = []
 for line in _chromosome_data.splitlines():
     name, length, mean_rr = line.split()[:3]
     _chromosomes.append(stdpopsim.Chromosome(
-        name=name, length=int(length),
+        id=name, length=int(length),
         mutation_rate=1e-8,  # WRONG!,
         recombination_rate=float(mean_rr)))
 

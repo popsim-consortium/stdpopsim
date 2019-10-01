@@ -193,13 +193,13 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
     def test_warning_from_no_mapped_chromosome(self):
         chrom = self.species.genome.get_chromosome("chrY")
         with self.assertWarns(Warning):
-            cm = self.genetic_map.get_chromosome_map(chrom.name)
+            cm = self.genetic_map.get_chromosome_map(chrom.id)
             self.assertIsInstance(cm, msprime.RecombinationMap)
             self.assertEqual(chrom.length, cm.get_sequence_length())
 
     def test_known_chromosome(self):
         chrom = self.species.genome.get_chromosome("chr22")
-        cm = self.genetic_map.get_chromosome_map(chrom.name)
+        cm = self.genetic_map.get_chromosome_map(chrom.id)
         self.assertIsInstance(cm, msprime.RecombinationMap)
 
     def test_unknown_chromosome(self):

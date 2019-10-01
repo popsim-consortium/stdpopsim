@@ -9,6 +9,10 @@ import attr
 logger = logging.getLogger(__name__)
 
 
+# TODO not clear whether it's worth using attrs here, since we only have one
+# instance variable that we supply. If we add more then we probably should
+# use attrs for consistency.
+
 class Genome(object):
     """
     Class representing the genome for a species.
@@ -28,12 +32,12 @@ class Genome(object):
             s += "\t{}\n".format(chrom)
         return s
 
-    def get_chromosome(self, name):
+    def get_chromosome(self, id):
         """
-        Returns the chromosome with the specified name.
+        Returns the chromosome with the specified id.
         """
         for chrom in self.chromosomes:
-            if chrom.name == name:
+            if chrom.id == id:
                 return chrom
         raise ValueError("Chromosome not found")
 
@@ -69,7 +73,7 @@ class Chromosome(object):
 
     .. todo:: Define the facilities that this object provides.
     """
-    name = attr.ib(type=str, kw_only=True)
+    id = attr.ib(type=str, kw_only=True)
     length = attr.ib(kw_only=True)
     recombination_rate = attr.ib(type=float, kw_only=True)
     mutation_rate = attr.ib(type=float, kw_only=True)

@@ -209,6 +209,10 @@ class Model(object):
         Returns a list of msprime.Sample objects as described by the args and
         keyword args. Positional arguments are interpreted as the number of
         samples to take from the given population.
+
+        .. todo:: Add a description how the positional arguments work and
+            perhaps link into a section of the tutorial showing it in action.
+
         """
         samples = []
         for pop_index, n in enumerate(args):
