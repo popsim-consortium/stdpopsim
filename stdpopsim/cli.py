@@ -8,7 +8,6 @@ import logging
 import platform
 import sys
 import textwrap
-import resource
 
 import msprime
 import tskit
@@ -16,6 +15,17 @@ import humanize
 import daiquiri
 
 import stdpopsim
+
+# resource is from the standard library, but it's not available on
+# Windows. We break from the usual import grouping conventions here
+# to avoid lots of pep8 complaints about mixing imports and code.
+_resource_module_available = False
+try:
+    import resource
+    _resource_module_available = True
+except ImportError:
+    pass
+
 
 logger = logging.getLogger(__name__)
 
@@ -130,12 +140,18 @@ def add_output_argument(parser):
 
 
 def summarise_usage():
-    rusage = resource.getrusage(resource.RUSAGE_SELF)
-    user_time = humanize.naturaldelta(rusage.ru_utime)
-    sys_time = rusage.ru_stime
-    max_rss = humanize.naturalsize(rusage.ru_maxrss * 1024, binary=True)
-    logger.info("rusage: user={}; sys={:.2f}s; max_rss={}".format(
-        user_time, sys_time, max_rss))
+    # Don't report usage on Windows as the resource module is not available.
+    #  We could do this using the psutil external library, if demand exists.
+    if _resource_module_available:
+        rusage = resource.getrusage(resource.RUSAGE_SELF)
+        user_time = humanize.naturaldelta(rusage.ru_utime)
+        sys_time = rusage.ru_stime
+        max_mem = rusage.ru_maxrss
+        if sys.platform != 'darwin':
+            max_mem *= 1024  # Linux and other OSs (e.g. freeBSD) report maxrss in kb
+        max_mem_str = humanize.naturalsize(max_mem, binary=True)
+        logger.info("rusage: user={}; sys={:.2f}s; max_rss={}".format(
+            user_time, sys_time, max_mem_str))
 
 
 def add_simulate_species_parser(parser, species):
