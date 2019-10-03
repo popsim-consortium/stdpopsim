@@ -32,7 +32,7 @@ class ModelTestMixin(object):
         # recombination in msprime, with no mutation.
         contig = stdpopsim.Contig()
         samples = self.model.get_samples(*([2] * self.model.num_populations))
-        ts = self.model.run(contig, samples)
+        ts = self.model.simulate(contig, samples)
         self.assertEqual(ts.num_populations, self.model.num_populations)
 
 

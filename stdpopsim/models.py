@@ -219,9 +219,9 @@ class Model(object):
             samples.extend([msprime.Sample(pop_index, time=0)] * n)
         return samples
 
-    def run(self, contig, samples):
+    def simulate(self, contig, samples, seed=None):
         """
-        Runs this model for the specified contig (defining the recombination
+        Simulates this model for the specified contig (defining the recombination
         map and mutation rate) and samples.
         """
         ts = msprime.simulate(
@@ -230,7 +230,8 @@ class Model(object):
             mutation_rate=contig.mutation_rate,
             population_configurations=self.population_configurations,
             migration_matrix=self.migration_matrix,
-            demographic_events=self.demographic_events)
+            demographic_events=self.demographic_events,
+            random_seed=seed)
         return ts
 
 

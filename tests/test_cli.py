@@ -91,23 +91,45 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
         output = "test.trees"
         args = parser.parse_args([cmd, "2", output])
         self.assertEqual(args.output, output)
+        self.assertEqual(args.seed, None)
         self.assertEqual(args.samples, [2])
+
+    def test_seed(self):
+        parser = cli.stdpopsim_cli_parser()
+        cmd = "homsap"
+        output = "test.trees"
+        args = parser.parse_args([cmd, "2", "-s", "1234", output])
+        self.assertEqual(args.output, output)
+        self.assertEqual(args.samples, [2])
+        self.assertEqual(args.seed, 1234)
+
+        args = parser.parse_args([cmd, "2", "--seed", "14", output])
+        self.assertEqual(args.output, output)
+        self.assertEqual(args.samples, [2])
+        self.assertEqual(args.seed, 14)
 
 
 class TestEndToEnd(unittest.TestCase):
     """
     Checks that simulations we run from the CLI have plausible looking output.
     """
-    def verify(self, cmd, num_samples):
+    def verify(self, cmd, num_samples, seed=1):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
-            full_cmd = cmd + f" {filename}"
+            full_cmd = cmd + f" {filename} --seed={seed}"
             with mock.patch("stdpopsim.cli.setup_logging"):
                 stdout, stderr = capture_output(cli.stdpopsim_main, full_cmd.split())
             self.assertEqual(len(stderr), 0)
             self.assertGreater(len(stdout), 0)
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)
+        provenance = json.loads(ts.provenance(0).record)
+        prov_seed = provenance["parameters"]["random_seed"]
+        self.assertEqual(prov_seed, seed)
+
+    def test_homsap_seed(self):
+        cmd = "homsap -c chr22 -l0.1 20"
+        self.verify(cmd, num_samples=20, seed=1234)
 
     def test_homsap_constant(self):
         cmd = "homsap -c chr22 -l0.1 20"
@@ -159,10 +181,10 @@ class TestEndToEndSubprocess(TestEndToEnd):
     Run the commands in a subprocess so that we can verify the provenance is
     stored correctly.
     """
-    def verify(self, cmd, num_samples):
+    def verify(self, cmd, num_samples, seed=1):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
-            full_cmd = "python3 -m stdpopsim " + cmd + f" {filename} -q"
+            full_cmd = f"python3 -m stdpopsim {cmd} {filename} -s {seed} -q"
             subprocess.run(full_cmd, shell=True, check=True)
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)
@@ -170,7 +192,12 @@ class TestEndToEndSubprocess(TestEndToEnd):
         tskit.validate_provenance(provenance)
         stored_cmd = provenance["parameters"]["args"]
         self.assertEqual(stored_cmd[-1], "-q")
-        self.assertEqual(stored_cmd[:-2], cmd.split())
+        self.assertEqual(stored_cmd[-2], str(seed))
+        self.assertEqual(stored_cmd[-3], "-s")
+        self.assertEqual(stored_cmd[:-4], cmd.split())
+        provenance = json.loads(ts.provenance(0).record)
+        prov_seed = provenance["parameters"]["random_seed"]
+        self.assertEqual(prov_seed, seed)
 
 
 class TestSetupLogging(unittest.TestCase):

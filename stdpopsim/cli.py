@@ -216,9 +216,15 @@ def add_simulate_species_parser(parser, species):
     species_parser.add_argument(
         "-l", "--length-multiplier", default=1, type=float,
         help="Simulate a chromsome of length l times the named chromosome")
+    species_parser.add_argument(
+        "-s", "--seed", default=None, type=int,
+        help=(
+            "The random seed to use for simulations. If not specified a "
+            "high-quality random seed will be generated automatically. "
+            "For msprime, seeds must be > 0 and < 2^32."))
 
     model_help = (
-        "Specify a simulation model. If no model it specified, a single population"
+        "Specify a simulation model. If no model is specified, a single population"
         "constant size model is used. Available models:"
         f"{', '.join(model.id for model in species.models)}"
         ". Please see above for details of these models.")
@@ -259,7 +265,7 @@ def add_simulate_species_parser(parser, species):
         logger.info(
             f"Running simulation model {model.name} for {species.name} on "
             f"{contig} with {len(samples)} samples")
-        ts = model.run(contig, samples)
+        ts = model.simulate(contig, samples, args.seed)
         summarise_usage()
         write_output(ts, args)
         if not args.quiet:
