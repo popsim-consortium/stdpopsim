@@ -14,10 +14,27 @@
 #
 import os
 import sys
+
+# We need to mock out msprime here so that we can build on readthedocs.
+# We can't used autodoc_mock_imports because we import msprime as part
+# of the process of building the catalog.
+# Follows the recommended pattern at
+# http://docs.readthedocs.org/en/latest/faq.html
+
+from unittest.mock import MagicMock
+
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+        return MagicMock()
+
+MOCK_MODULES = ["msprime"]
+sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
 sys.path.insert(0, os.path.abspath('..'))
 # Add the path for local extensions
 sys.path.append(os.path.abspath("./_ext"))
-
 
 # -- Project information -----------------------------------------------------
 
@@ -32,9 +49,6 @@ release = '0.1'
 
 
 # -- General configuration ---------------------------------------------------
-
-# Mock out msprime as it needs binary installations.
-autodoc_mock_imports = ["msprime"]
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
