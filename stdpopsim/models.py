@@ -2,14 +2,9 @@
 Common infrastructure for specifying demographic models.
 """
 import sys
-import inspect
-import string
-import pathlib
 
 import msprime
 import numpy as np
-
-import stdpopsim.citations as citations
 
 
 # Defaults taken from np.allclose
@@ -114,34 +109,11 @@ def verify_demographic_events_equal(
                         key, value1, value2))
 
 
-_model_docstring_template = string.Template("""
-Name:
-    $name
-
-Description:
-    $description
-
-Populations:
-$populations
-
-CLI help:
-    $cli_help
-
-Citations:
-$citations
-
-Parameter Table:
-    .. csv-table::
-        :widths: 15 8 20
-        :header: "Parameter Type (units)", "Value", "Description"
-        :file: $parameters_csv_file
-""")
-
-
 class Population(object):
     """
     Class recording metadata representing a population in a simulation.
     """
+    # TODO change this to use the usual id, name combination
     def __init__(self, name, description, allow_samples=True):
         self.name = name
         self.description = description
@@ -154,44 +126,26 @@ class Population(object):
         return {"name": self.name, "description": self.description}
 
 
-def cleanup(docs):
-    """
-    Remove all newlines and trailing whitespace from the specified string.
-    """
-    return ' '.join([line.strip() for line in docs.strip().splitlines() if line.strip()])
-
-
-class Model(citations.CitableMixin):
+class Model(object):
     """
     Class representating a simulation model that can be run to output a tree sequence.
     Concrete subclasses must define population_configurations, demographic_events
     and migration_matrix instance variables which define the model.
 
-    Docstrings are handled in a non-standard way by these subclasses. The docstrings
-    are used to generate online documentation and are composed of smaller pieces
-    of information that are also used in the CLI documentation. To avoid repeating
-    these smaller elements, we define them separately in each subclass, and
-    call <SubclassName>._write_docstring() immediately after it is defined to
-    build the docstring folling the standard template.
+    :ivar id: The unique identifier for this model. Model IDs should be
+        short and memorable, perhaps as an abbreviation of the model's
+        name.
+    :vartype id: str
+    :ivar name: The informal name for this model as it would be used in
+        written text, e.g., "Three population Out-of-Africa"
+    :vartype informal_name: str
     """
-
-    @classmethod
-    def _write_docstring(cls):
-        species = "homo_sapiens"
-        base_dir = pathlib.Path(__file__).resolve().parents[1]
-        parameters_csv_file = (
-            base_dir / "docs" / "parameter_tables" / species / f"{cls.name}.csv")
-        cli_help = f"python -m stdpopsim {species} {cls.name} -h"
-        citations = "".join(
-            f"    - {cleanup(citation)}\n" for citation in cls.citations)
-        populations = "".join(
-            f"    - {index}: {population.name}: {cleanup(population.description)}\n"
-            for index, population in enumerate(cls.populations))
-        cls.__doc__ = _model_docstring_template.substitute(
-            name=cleanup(cls.name),
-            description=cleanup(cls.description), populations=populations,
-            cli_help=cli_help, citations=citations,
-            parameters_csv_file=str(parameters_csv_file))
+    # TODO the infrastructure here is left over from a structure that
+    # rigidly used class definitions as a way to define population
+    # models. This contructor should take all the instance variables
+    # as parameteters, and we should use factory functions to define
+    # the model instances that are added to the catalog rather than
+    # subclasses.
 
     def __init__(self):
         self.population_configurations = []
@@ -199,6 +153,14 @@ class Model(citations.CitableMixin):
         # Defaults to a single population
         self.migration_matrix = [[0]]
         self.generation_time = -1
+
+    @property
+    def num_populations(self):
+        return len(self.populations)
+
+    @property
+    def num_sampling_populations(self):
+        return sum(int(pop.allow_samples) for pop in self.populations)
 
     def equals(self, other, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
         """
@@ -242,40 +204,58 @@ class Model(citations.CitableMixin):
             demographic_events=self.demographic_events)
         dd.print_history(out_file)
 
-    # TODO deprecate/remove this, as the recommended interface is now 'run'.
-    def asdict(self):
-        return {
-            "population_configurations": self.population_configurations,
-            "migration_matrix": self.migration_matrix,
-            "demographic_events": self.demographic_events}
-
-    def run(self, chromosome, samples):
+    def get_samples(self, *args):
         """
-        Runs this model for the specified chromosome (defining the recombination
+        Returns a list of msprime.Sample objects as described by the args and
+        keyword args. Positional arguments are interpreted as the number of
+        samples to take from the given population.
+
+        .. todo:: Add a description how the positional arguments work and
+            perhaps link into a section of the tutorial showing it in action.
+
+        """
+        samples = []
+        for pop_index, n in enumerate(args):
+            samples.extend([msprime.Sample(pop_index, time=0)] * n)
+        return samples
+
+    def simulate(self, contig, samples, seed=None):
+        """
+        Simulates this model for the specified contig (defining the recombination
         map and mutation rate) and samples.
         """
         ts = msprime.simulate(
             samples=samples,
-            recombination_map=chromosome.recombination_map,
-            mutation_rate=chromosome.mutation_rate,
+            recombination_map=contig.recombination_map,
+            mutation_rate=contig.mutation_rate,
             population_configurations=self.population_configurations,
             migration_matrix=self.migration_matrix,
-            demographic_events=self.demographic_events)
+            demographic_events=self.demographic_events,
+            random_seed=seed)
         return ts
 
 
-def all_models():
-    """
-    Returns the list of all Model classes that are defined within the stdpopsim
-    module.
-    """
-    # TODO remove this function and change to model of "registering" models
-    # like we do for other objects.
-    ret = []
+# Resuable generic population
+_pop0 = Population(name="pop0", description="Generic population")
 
-    for scls in Model.__subclasses__():
-        for cls in scls.__subclasses__():
-            mod = inspect.getmodule(cls).__name__
-            if mod.startswith("stdpopsim"):
-                ret.append(cls())
-    return ret
+
+class PiecewiseConstantSize(Model):
+    id = "constant"
+    name = "Piecewise constant size"
+    description = "Piecewise constant size population model over multiple epochs."
+    citations = []
+    populations = [_pop0]
+    author = None
+    year = None
+    doi = None
+
+    def __init__(self, N0, *args):
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N0, metadata=self.populations[0].asdict())
+        ]
+        self.migration_matrix = [[0]]
+        self.demographic_events = []
+        for t, N in args:
+            self.demographic_events.append(msprime.PopulationParametersChange(
+                time=t, initial_size=N, growth_rate=0, population_id=0))

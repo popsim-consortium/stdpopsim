@@ -1,13 +1,13 @@
 """
-The command line interface for stdpopsim. Allows provides standard simulations
-at the command line.
+The command line interface for stdpopsim. Provides standard simulations
+at the command line and methods to manage resources used by stdpopsim.
 """
 import argparse
 import json
 import logging
 import platform
 import sys
-import resource
+import textwrap
 
 import msprime
 import tskit
@@ -15,7 +15,16 @@ import humanize
 import daiquiri
 
 import stdpopsim
-from stdpopsim import homo_sapiens
+
+# resource is from the standard library, but it's not available on
+# Windows. We break from the usual import grouping conventions here
+# to avoid lots of pep8 complaints about mixing imports and code.
+_resource_module_available = False
+try:
+    import resource
+    _resource_module_available = True
+except ImportError:
+    pass
 
 
 logger = logging.getLogger(__name__)
@@ -96,7 +105,7 @@ def write_output(ts, args):
     ts.dump(args.output)
 
 
-def write_citations(chromosome, model):
+def write_citations(contig, model):
     """
     Write out citation information so that the user knows what papers to cite
     for the simulation engine, the model and the mutation/recombination rate
@@ -119,8 +128,9 @@ def write_citations(chromosome, model):
     # TODO need some way to get a GeneticMap instance from the chromosome. We'll also
     # want to be able to output mutation map, and perhaps other information too, so
     # we want to keep some flexibility for this in mind.
-    print("Simulation model:")
-    print(f"\t{model.name}: {model.author} {model.year} {model.doi}")
+    print("Simulation model:", model.name)
+    for citation in model.citations:
+        print("\t", citation, sep="")
 
 
 def add_output_argument(parser):
@@ -130,57 +140,138 @@ def add_output_argument(parser):
 
 
 def summarise_usage():
-    rusage = resource.getrusage(resource.RUSAGE_SELF)
-    user_time = humanize.naturaldelta(rusage.ru_utime)
-    sys_time = rusage.ru_stime
-    max_rss = humanize.naturalsize(rusage.ru_maxrss * 1024, binary=True)
-    logger.info("rusage: user={}; sys={:.2f}s; max_rss={}".format(
-        user_time, sys_time, max_rss))
+    # Don't report usage on Windows as the resource module is not available.
+    #  We could do this using the psutil external library, if demand exists.
+    if _resource_module_available:
+        rusage = resource.getrusage(resource.RUSAGE_SELF)
+        user_time = humanize.naturaldelta(rusage.ru_utime)
+        sys_time = rusage.ru_stime
+        max_mem = rusage.ru_maxrss
+        if sys.platform != 'darwin':
+            max_mem *= 1024  # Linux and other OSs (e.g. freeBSD) report maxrss in kb
+        max_mem_str = humanize.naturalsize(max_mem, binary=True)
+        logger.info("rusage: user={}; sys={:.2f}s; max_rss={}".format(
+            user_time, sys_time, max_mem_str))
 
 
-def add_model_runner(top_parser, model):
-    """
-    Adds CLI options and registers the runner callback for the specified model.
-    """
-    parser = top_parser.add_parser(
-        model.name,
-        description=model.description,
-        help=model.short_description)
-    add_output_argument(parser)
-    sample_arg_names = []
-    if len(model.populations) == 1:
-        assert model.populations[0].allow_samples
-        help_text = f"The number of samples"
-        parser.add_argument(f"--num-samples", help=help_text, default=0, type=int)
-        sample_arg_names.append("num_samples")
-    else:
+def add_simulate_species_parser(parser, species):
+    header = (
+        f"Run simulations for {species.name} using up-to-date genome information, "
+        "genetic maps and simulation models from the literature."
+    )
+
+    # TODO perhaps it would be better to have a model help text option rather than
+    # writing all this out every time. It's going to be a lot of text, and might
+    # distract from the important help stuff.
+    models_text = "\nSimulation models\n\n"
+    indent = " " * 4
+    wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
+    for model in species.models:
+        models_text += f"{model.id}: {model.name}\n"
+        models_text += wrapper.fill(textwrap.dedent(model.description))
+        models_text += "\n\n"
+
+        models_text += indent + "Populations:\n"
+
         for population in model.populations:
             if population.allow_samples:
-                name = population.name
-                help_text = f"The number of samples to take from the {name} population"
-                parser.add_argument(f"--num-{name}", help=help_text, default=0, type=int)
-                sample_arg_names.append("num_{}".format(name))
+                models_text += indent * 2
+                models_text += f"{population.name}: {population.description}\n"
+        models_text += "\n"
+
+    description_text = textwrap.fill(header) + "\n" + models_text
+
+    species_parser = parser.add_parser(
+        f"{species.id}",
+        description=description_text,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        help=f"Run simulations for {species.name}.")
+    species_parser.set_defaults(species=species.id)
+    species_parser.set_defaults(genetic_map=None)
+    species_parser.set_defaults(chromosome=None)
+    species_parser.add_argument(
+        "-q", "--quiet", action='store_true',
+        help="Do not write out citation information")
+
+    # Set metavar="" to prevent help text from writing out the explicit list
+    # of options, which can be too long and ugly.
+    choices = [gm.name for gm in species.genetic_maps]
+    if len(species.genetic_maps) > 0:
+        species_parser.add_argument(
+            "-g", "--genetic-map",
+            choices=choices, metavar="", default=None,
+            help=(
+                "Specify a particular genetic map. If no genetic map is specified "
+                "use a flat map by default. Available maps: "
+                f"{', '.join(choices)}. "))
+
+    if len(species.genome.chromosomes) > 1:
+        choices = [chrom.id for chrom in species.genome.chromosomes]
+        species_parser.add_argument(
+            "-c", "--chromosome", choices=choices, metavar="", default=choices[0],
+            help=(
+                f"Simulate a specific chromosome. "
+                f"Options: {', '.join(choices)}. "
+                f"Default={choices[0]}."))
+    species_parser.add_argument(
+        "-l", "--length-multiplier", default=1, type=float,
+        help="Simulate a chromsome of length l times the named chromosome")
+    species_parser.add_argument(
+        "-s", "--seed", default=None, type=int,
+        help=(
+            "The random seed to use for simulations. If not specified a "
+            "high-quality random seed will be generated automatically. "
+            "For msprime, seeds must be > 0 and < 2^32."))
+
+    model_help = (
+        "Specify a simulation model. If no model is specified, a single population"
+        "constant size model is used. Available models:"
+        f"{', '.join(model.id for model in species.models)}"
+        ". Please see above for details of these models.")
+    species_parser.add_argument(
+        "-m", "--model", default=None, metavar="",
+        choices=[model.id for model in species.models],
+        help=model_help)
+
+    species_parser.add_argument(
+        "samples", type=int, nargs="+",
+        help=(
+            "The number of samples to draw from each population. At least "
+            "two samples must be specified. The number of arguments that "
+            "will be accepted depends on the simulation model that is "
+            "specified: for a model that has n populations, we can specify "
+            "the number of samples to draw from each of these populations."
+            "We do not need to provide sample numbers of each of the "
+            "populations; those that are omitted are set to zero."))
+    species_parser.add_argument(
+        "output",
+        help="Where to write the output tree sequence file.")
 
     def run_simulation(args):
-        args_dict = vars(args)
-        samples = []
-        for pop_index, sample_arg in enumerate(sample_arg_names):
-            num_samples = args_dict[sample_arg]
-            samples.extend([msprime.Sample(population=pop_index, time=0)] * num_samples)
-        if len(samples) < 2:
-            exit("Must specify at least 2 samples")
+        if args.model is None:
+            model = stdpopsim.PiecewiseConstantSize(species.population_size)
+            model.citations = species.population_size_citations
+        else:
+            model = species.get_model(args.model)
+        if len(args.samples) > model.num_sampling_populations:
+            exit(
+                f"Cannot sample from more than {model.num_sampling_populations} "
+                "populations")
+        samples = model.get_samples(*args.samples)
 
-        chromosome = homo_sapiens.chromosome_factory(
-                args.chromosome, genetic_map=args.genetic_map,
-                length_multiplier=args.length_multiplier)
-        logger.info(f"Running {model.name} on {chromosome} with {len(samples)} samples")
-        ts = model.run(chromosome, samples)
+        contig = species.get_contig(
+            args.chromosome, genetic_map=args.genetic_map,
+            length_multiplier=args.length_multiplier)
+        logger.info(
+            f"Running simulation model {model.name} for {species.name} on "
+            f"{contig} with {len(samples)} samples")
+        ts = model.simulate(contig, samples, args.seed)
         summarise_usage()
         write_output(ts, args)
         if not args.quiet:
-            write_citations(chromosome, model)
+            write_citations(contig, model)
 
-    parser.set_defaults(runner=run_simulation)
+    species_parser.set_defaults(runner=run_simulation)
 
 
 def stdpopsim_cli_parser():
@@ -188,50 +279,18 @@ def stdpopsim_cli_parser():
     # TODO the CLI defined by this hierarchical and clumsy, but it's the best
     # I could figure out. It can definitely be improved!
     top_parser = argparse.ArgumentParser(
-        description="Run simulations defined by stdpopsim from the command line")
+        description="Command line interface for stdpopsim.")
     top_parser.add_argument(
         "-V", "--version", action='version',
         version='%(prog)s {}'.format(stdpopsim.__version__))
     top_parser.add_argument(
         "-v", "--verbosity", action='count', default=0,
         help="Increase the verbosity")
-    top_parser.add_argument(
-        "-q", "--quiet", action='store_true',
-        help="Do not write out citation information")
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True
 
-    species_parser = subparsers.add_parser(
-        "homo-sapiens",
-        help="Run simulations of human history.")
-    species_parser.add_argument(
-        "-g", "--genetic-map", default=None,
-        # TODO use the genetic map registry
-        choices=["HapmapII_GRCh37", "Decode_2010_sex_averaged"],
-        help="Specify a particular genetic map. Use a flat map by default.")
-    species_parser.add_argument(
-        "-c", "--chromosome", default="chr22",
-        help="Simulate a specific chromosome")
-    species_parser.add_argument(
-        "-l", "--length-multiplier", default=1, type=float,
-        help="Simulate a chromsome of length l times the named chromosome")
-    subsubparsers = species_parser.add_subparsers(dest="subcommand")
-    subsubparsers.required = True
-
-    add_model_runner(subsubparsers, homo_sapiens.GutenkunstThreePopOutOfAfrica())
-    add_model_runner(subsubparsers, homo_sapiens.TennessenTwoPopOutOfAfrica())
-    add_model_runner(subsubparsers, homo_sapiens.BrowningAmerica())
-    add_model_runner(subsubparsers, homo_sapiens.RagsdaleArchaic())
-    add_model_runner(subsubparsers, homo_sapiens.SchiffelsZigzag())
-
-    # Add stubs for discussion
-    species_parser = subparsers.add_parser(
-        "arabadopsis-thaliana",
-        help="Run simulations of Arabadopsis thaliana.")
-
-    species_parser = subparsers.add_parser(
-        "e-coli",
-        help="Run simulations of E-coli.")
+    for species in stdpopsim.all_species():
+        add_simulate_species_parser(subparsers, species)
 
     return top_parser
 
@@ -240,15 +299,4 @@ def stdpopsim_main(arg_list=None):
     parser = stdpopsim_cli_parser()
     args = parser.parse_args(arg_list)
     setup_logging(args)
-    if not args.quiet:
-        print("*****************************")
-        print("**        WARNING          **")
-        print("*****************************")
-        print("This inferface is highly experimental and *will* change. ")
-        print("It is provided as a work-in-progress to get some feedback on ")
-        print("how to better structure the interfaces")
-        print("Disable this message with the -q option")
-        print("*****************************")
-        print("**      END WARNING        **")
-        print("*****************************")
     args.runner(args)

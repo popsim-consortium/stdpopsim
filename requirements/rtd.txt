@@ -1,4 +1,5 @@
 # Requirements needed when building on readthedocs.
 setuptools_scm
+attrs
 appdirs
 numpy

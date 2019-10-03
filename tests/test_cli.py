@@ -15,8 +15,6 @@ import msprime
 
 import stdpopsim
 import stdpopsim.cli as cli
-import stdpopsim.models as models
-import stdpopsim.homo_sapiens as homo_sapiens
 
 
 class TestException(Exception):
@@ -89,51 +87,92 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
 
     def test_defaults(self):
         parser = cli.stdpopsim_cli_parser()
-        cmd = "homo-sapiens"
-        model = "GutenkunstThreePopOutOfAfrica"
+        cmd = "homsap"
         output = "test.trees"
-        args = parser.parse_args([cmd, model, output])
+        args = parser.parse_args([cmd, "2", output])
         self.assertEqual(args.output, output)
-        self.assertEqual(args.num_CEU, 0)
-        self.assertEqual(args.num_CHB, 0)
-        self.assertEqual(args.num_YRI, 0)
+        self.assertEqual(args.seed, None)
+        self.assertEqual(args.samples, [2])
+
+    def test_seed(self):
+        parser = cli.stdpopsim_cli_parser()
+        cmd = "homsap"
+        output = "test.trees"
+        args = parser.parse_args([cmd, "2", "-s", "1234", output])
+        self.assertEqual(args.output, output)
+        self.assertEqual(args.samples, [2])
+        self.assertEqual(args.seed, 1234)
+
+        args = parser.parse_args([cmd, "2", "--seed", "14", output])
+        self.assertEqual(args.output, output)
+        self.assertEqual(args.samples, [2])
+        self.assertEqual(args.seed, 14)
 
 
 class TestEndToEnd(unittest.TestCase):
     """
     Checks that simulations we run from the CLI have plausible looking output.
     """
-    def verify(self, cmd, num_samples):
+    def verify(self, cmd, num_samples, seed=1):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
-            full_cmd = cmd + f" {filename}"
+            full_cmd = cmd + f" {filename} --seed={seed}"
             with mock.patch("stdpopsim.cli.setup_logging"):
                 stdout, stderr = capture_output(cli.stdpopsim_main, full_cmd.split())
             self.assertEqual(len(stderr), 0)
             self.assertGreater(len(stdout), 0)
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)
+        provenance = json.loads(ts.provenance(0).record)
+        prov_seed = provenance["parameters"]["random_seed"]
+        self.assertEqual(prov_seed, seed)
+
+    def test_homsap_seed(self):
+        cmd = "homsap -c chr22 -l0.1 20"
+        self.verify(cmd, num_samples=20, seed=1234)
+
+    def test_homsap_constant(self):
+        cmd = "homsap -c chr22 -l0.1 20"
+        self.verify(cmd, num_samples=20)
 
     def test_tennessen_two_pop_ooa(self):
-        cmd = (
-            "homo-sapiens -c chr22 -l0.1 TennessenTwoPopOutOfAfrica --num-AFR=2 "
-            "--num-EUR=3")
+        cmd = "homsap -c chr22 -l0.1 -m ooa_2 2 3"
         self.verify(cmd, num_samples=5)
 
     def test_gutenkunst_three_pop_ooa(self):
-        cmd = "homo-sapiens -c chr1 -l0.01 GutenkunstThreePopOutOfAfrica --num-CEU=10"
+        cmd = "homsap -c chr1 -l0.01 -m ooa_3 10"
         self.verify(cmd, num_samples=10)
 
     def test_browning_america(self):
-        cmd = "homo-sapiens -c chr1 -l0.01 BrowningAmerica --num-ASIA=10"
+        cmd = "homsap -c chr1 -l0.01 -m america 10"
         self.verify(cmd, num_samples=10)
 
     def test_ragsdale_archaic(self):
-        cmd = "homo-sapiens -c chr1 -l0.01 RagsdaleArchaic --num-CEU=10"
+        cmd = "homsap -c chr1 -l0.01 -m ooa_archaic 10"
         self.verify(cmd, num_samples=10)
 
     def test_schiffels_zigzag(self):
-        cmd = "homo-sapiens -c chr1 -l0.01 SchiffelsZigzag --num-samples=2"
+        cmd = "homsap -c chr1 -l0.01 -m zigzag 2"
+        self.verify(cmd, num_samples=2)
+
+    def test_dromel_constant(self):
+        cmd = "dromel -c chr2L -l0.001 4"
+        self.verify(cmd, num_samples=4)
+
+    def test_li_stephan_two_population(self):
+        cmd = "dromel -c chr2L -l0.001 -m ooa_2 3"
+        self.verify(cmd, num_samples=3)
+
+    def test_aratha_constant(self):
+        cmd = "aratha -l 0.001 8"
+        self.verify(cmd, num_samples=8)
+
+    def test_durvusula_2017_msmc(self):
+        cmd = "aratha -l 0.001 -m fixme 7"
+        self.verify(cmd, num_samples=7)
+
+    def test_lapierre_constant(self):
+        cmd = "esccol -l 1e-7 2"
         self.verify(cmd, num_samples=2)
 
 
@@ -142,26 +181,30 @@ class TestEndToEndSubprocess(TestEndToEnd):
     Run the commands in a subprocess so that we can verify the provenance is
     stored correctly.
     """
-    def verify(self, cmd, num_samples):
+    def verify(self, cmd, num_samples, seed=1):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
-            full_cmd = "python3 -m stdpopsim -q " + cmd + f" {filename}"
+            full_cmd = f"python3 -m stdpopsim {cmd} {filename} -s {seed} -q"
             subprocess.run(full_cmd, shell=True, check=True)
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)
         provenance = json.loads(ts.provenance(ts.num_provenances - 1).record)
         tskit.validate_provenance(provenance)
         stored_cmd = provenance["parameters"]["args"]
-        self.assertEqual(stored_cmd[0], "-q")
-        self.assertEqual(stored_cmd[1:-1], cmd.split())
+        self.assertEqual(stored_cmd[-1], "-q")
+        self.assertEqual(stored_cmd[-2], str(seed))
+        self.assertEqual(stored_cmd[-3], "-s")
+        self.assertEqual(stored_cmd[:-4], cmd.split())
+        provenance = json.loads(ts.provenance(0).record)
+        prov_seed = provenance["parameters"]["random_seed"]
+        self.assertEqual(prov_seed, seed)
 
 
 class TestSetupLogging(unittest.TestCase):
     """
     Tests that setup logging has the desired effect.
     """
-    basic_cmd = [
-        "homo-sapiens", "GutenkunstThreePopOutOfAfrica", "tmp.trees", "--num-CEU=10"]
+    basic_cmd = ["homsap", "10", "tmp.trees"]
 
     def test_default(self):
         parser = cli.stdpopsim_cli_parser()
@@ -214,25 +257,39 @@ class TestErrors(unittest.TestCase):
                 cli.stdpopsim_main(cmd.split())
             mocked_exit.assert_called_once()
 
+    def test_default(self):
+        self.verify_bad_samples("homsap -q 2 3 tmp.trees")
+
     def test_tennessen_model(self):
-        self.verify_bad_samples("-q homo-sapiens TennessenTwoPopOutOfAfrica tmp.trees")
+        self.verify_bad_samples("homsap  -q -m ooa_2 2 3 4 tmp.trees")
 
     def test_gutenkunst_three_pop_ooa(self):
-        self.verify_bad_samples(
-            "-q homo-sapiens GutenkunstThreePopOutOfAfrica tmp.trees")
+        self.verify_bad_samples("homsap -q -m ooa_3 2 3 4 5 tmp.trees")
 
     def test_browning_america(self):
-        self.verify_bad_samples("-q homo-sapiens BrowningAmerica tmp.trees")
+        self.verify_bad_samples("homsap -q -m america 2 3 4 5 6 tmp.trees")
 
 
-@unittest.skip("Non-human models missing 'name' attribute")
 class TestWriteCitations(unittest.TestCase):
     """
     Make sure all models can write citation information.
     """
-    def test_all_models(self):
-        chromosome = homo_sapiens.chromosome_factory("chr22")
-        for model in models.all_models():
-            stdout, stderr = capture_output(cli.write_citations, chromosome, model)
-            self.assertEqual(len(stderr), 0)
-            self.assertGreater(len(stdout), 0)
+    def test_model(self):
+        contig = stdpopsim.Contig()
+        species = stdpopsim.get_species("homsap")
+        model = species.get_model("ooa_3")
+        stdout, stderr = capture_output(cli.write_citations, contig, model)
+        self.assertEqual(len(stderr), 0)
+        # TODO Parse out the output for the model and check that the text is
+        # in there.
+        self.assertGreater(len(stdout), 0)
+
+    def test_genetic_map(self):
+        species = stdpopsim.get_species("homsap")
+        contig = species.get_contig("chr22", genetic_map="HapmapII_GRCh37")
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        stdout, stderr = capture_output(cli.write_citations, contig, model)
+        self.assertEqual(len(stderr), 0)
+        # TODO Parse out the output for the model and check that the text is
+        # in there.
+        self.assertGreater(len(stdout), 0)

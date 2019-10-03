@@ -6,40 +6,13 @@ import math
 import msprime
 
 import stdpopsim.models as models
-import stdpopsim.generic_models as generic_models
 
 
-default_generation_time = 27
+# TODO we need to add a Genome here. Should we just take a copy of the human
+# genome?
 
 
-class PongoModel(models.Model):
-    """
-    TODO: documentation
-    """
-    def __init__(self):
-        super().__init__()
-        self.generation_time = default_generation_time
-        self.default_population_size = 10000
-
-
-class GenericConstantSize(PongoModel, generic_models.ConstantSizeMixin):
-    def __init__(self):
-        PongoModel.__init__(self)
-        generic_models.ConstantSizeMixin.__init__(self, self.default_population_size)
-
-
-class GenericTwoEpoch(PongoModel, generic_models.TwoEpochMixin):
-    def __init__(self, n2=None, t=None):
-        PongoModel.__init__(self)
-        n1 = self.default_population_size
-        if n2 is None:
-            n2 = n1 / 2.0
-        if t is None:
-            t = n1 / 100
-        generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
-
-
-class LockeEtAlPongoIM(PongoModel):
+class LockeEtAlPongoIM(models.Model):
     '''
     http://doi.org/10.1038/nature09687
     '''

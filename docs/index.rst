@@ -12,6 +12,8 @@ Welcome to stdpopsim's documentation!
 
    introduction
    installation
+   catalog
+   tutorial
    api
    development
    changelogs

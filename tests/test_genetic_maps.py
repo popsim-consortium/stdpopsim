@@ -17,50 +17,49 @@ from stdpopsim import genetic_maps
 import tests
 
 
-# Infrastructure for keeping a local cache of the downloaded tarballs that
-# which we 'download' from when we're running tests below.
-
-def download_map_tarballs(destination):
-    """
-    Download the tarballs for all genetic maps to the specified destination.
-    Used mainly for testing, where we want to download the maps repeatedly
-    to the cache and we wish to avoid the cost of downloading multiple times
-    from the remote location.
-    """
-    for key, genetic_map in genetic_maps.registered_maps.items():
-        local_file = destination / (key + ".tar.gz")
-        if not local_file.exists():
-            cache_dir = local_file.parent
-            cache_dir.mkdir(exist_ok=True)
-            urllib.request.urlretrieve(genetic_map.url, local_file)
-
+# Here we download all the genetic map tarballs in one go and store
+# then in the local cache directory, _test_cache. Tests are then run
+# with the download URLs redirected to local files, which makes them
+# much faster and takes network errors out of the equation. The
+# tarball cache is also useful for developers as it means that these
+# files are only downloaded once.
 
 saved_urls = {}
 
 
 def setUpModule():
-    # download_map_tarballs(pathlib.Path("test_cache/tarballs"))
-    destination = pathlib.Path("test_cache/tarballs")
-    for key, genetic_map in genetic_maps.registered_maps.items():
+    destination = pathlib.Path("_test_cache/tarballs")
+    for genetic_map in stdpopsim.all_genetic_maps():
+        key = genetic_map.name
         local_file = destination / (key + ".tar.gz")
         if not local_file.exists():
             cache_dir = local_file.parent
             cache_dir.mkdir(exist_ok=True, parents=True)
+            # print("Downloading", genetic_map.url)
             urllib.request.urlretrieve(genetic_map.url, local_file)
         saved_urls[key] = genetic_map.url
         genetic_map.url = local_file.resolve().as_uri()
 
 
 def tearDownModule():
-    for key, genetic_map in genetic_maps.registered_maps.items():
-        genetic_map.url = saved_urls[key]
+    for genetic_map in stdpopsim.all_genetic_maps():
+        genetic_map.url = saved_urls[genetic_map.name]
 
 
 class GeneticMapTestClass(genetic_maps.GeneticMap):
-    species = "test_species"
-    name = "test_map"
-    url = "http://example.com/genetic_map.tar.gz"
-    file_pattern = "prefix_{name}.txt"
+    """
+    A genetic map that we can instantiate to get a genetic map for testing.
+    """
+
+    def __init__(self):
+        genome = stdpopsim.Genome(chromosomes=[])
+        _species = stdpopsim.Species(
+            id="tesspe", name="Test species", genome=genome)
+        super().__init__(
+            species=_species,
+            name="test_map",
+            url="http://example.com/genetic_map.tar.gz",
+            file_pattern="prefix_{name}.txt")
 
 
 # TODO add some parameters here to check different compression options,
@@ -123,7 +122,7 @@ class TestGeneticMap(tests.CacheWritingTest):
         gm = GeneticMapTestClass()
         cache_dir = stdpopsim.get_cache_dir() / "genetic_maps"
         self.assertEqual(gm.cache_dir, cache_dir)
-        self.assertEqual(gm.species_cache_dir, gm.cache_dir / gm.species)
+        self.assertEqual(gm.species_cache_dir, gm.cache_dir / gm.species.name)
         self.assertEqual(gm.map_cache_dir, gm.species_cache_dir / gm.name)
 
     def test_str(self):
@@ -152,14 +151,14 @@ class TestGeneticMapDownload(tests.CacheWritingTest):
         mocked_get.assert_called_once_with(gm.url, filename=unittest.mock.ANY)
 
     def test_download_over_cache(self):
-        for gm in genetic_maps.all_genetic_maps():
+        for gm in stdpopsim.all_genetic_maps():
             gm.download()
             self.assertTrue(gm.is_cached())
             gm.download()
             self.assertTrue(gm.is_cached())
 
     def test_multiple_threads_downloading(self):
-        gm = genetic_maps.get_genetic_map("drosophila_melanogaster", "Comeron2012_dm6")
+        gm = next(stdpopsim.all_genetic_maps())
         gm.download()
         saved = gm.is_cached
         try:
@@ -177,8 +176,33 @@ class TestAllGeneticMaps(tests.CacheReadingTest):
     Tests if the all_genetic_maps() function works correctly.
     """
     def test_non_empty(self):
-        self.assertGreater(len(genetic_maps.all_genetic_maps()), 0)
+        self.assertGreater(len(list(stdpopsim.all_genetic_maps())), 0)
 
     def test_types(self):
-        for gm in genetic_maps.all_genetic_maps():
+        for gm in stdpopsim.all_genetic_maps():
             self.assertIsInstance(gm, genetic_maps.GeneticMap)
+
+
+class TestGetChromosomeMap(tests.CacheReadingTest):
+    """
+    Tests if we get chromosome maps using the HapmapII_GRCh37 human map.
+    """
+    species = stdpopsim.get_species("homsap")
+    genetic_map = species.get_genetic_map("HapmapII_GRCh37")
+
+    def test_warning_from_no_mapped_chromosome(self):
+        chrom = self.species.genome.get_chromosome("chrY")
+        with self.assertWarns(Warning):
+            cm = self.genetic_map.get_chromosome_map(chrom.id)
+            self.assertIsInstance(cm, msprime.RecombinationMap)
+            self.assertEqual(chrom.length, cm.get_sequence_length())
+
+    def test_known_chromosome(self):
+        chrom = self.species.genome.get_chromosome("chr22")
+        cm = self.genetic_map.get_chromosome_map(chrom.id)
+        self.assertIsInstance(cm, msprime.RecombinationMap)
+
+    def test_unknown_chromosome(self):
+        for bad_chrom in ["", "ABD", None]:
+            with self.assertRaises(ValueError):
+                self.genetic_map.get_chromosome_map(bad_chrom)

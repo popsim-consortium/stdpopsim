@@ -2,70 +2,28 @@
 Tests for the e. coli data definitions.
 """
 import unittest
-import io
-import msprime
-from stdpopsim import e_coli
-from qc import e_coli_qc
+
+import stdpopsim
+from tests import test_species
 
 
-class TestLapierreConstant(unittest.TestCase):
+class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
+    species = stdpopsim.get_species("esccol")
+
+    def test_basic_attributes(self):
+        # From paper https://doi.org/10.1093/molbev/msw048
+        # Ne taken from Table 2
+        self.assertEqual(self.species.population_size, 1.8e8)
+        # 20 minutes per generation
+        generation_time = 1.0 / (525600 / 20)
+        self.assertAlmostEqual(self.species.generation_time, generation_time)
+
+
+class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     """
-    Basic tests for the LapierreConstant model.
+    Tests for the e_coli genome.
     """
-    def test_debug_runs(self):
-        model = e_coli.LapierreConstant()
-        output = io.StringIO()
-        model.debug(output)
-        s = output.getvalue()
-        self.assertGreater(len(s), 0)
+    genome = stdpopsim.get_species("esccol").genome
 
-    def test_qc_model_equal(self):
-        model = e_coli.LapierreConstant()
-        self.assertTrue(model.equals(e_coli_qc.LapierreConstant()))
-
-
-class TestGenericConstantSize(unittest.TestCase):
-    """
-    Basic tests for the GenericConstantSize model.
-    """
-
-    def test_simulation_runs(self):
-        model = e_coli.GenericConstantSize()
-        ts = msprime.simulate(
-            samples=[msprime.Sample(0, 0), msprime.Sample(0, 0)],
-            **model.asdict())
-        self.assertEqual(ts.num_populations, 1)
-
-    def test_debug_runs(self):
-        model = e_coli.GenericConstantSize()
-        output = io.StringIO()
-        model.debug(output)
-        s = output.getvalue()
-        self.assertGreater(len(s), 0)
-
-
-class TestGenericTwoEpoch(unittest.TestCase):
-    """
-    Basic tests for the GenericTwoEpoch model.
-    """
-
-    def test_simulation_runs(self):
-        model = e_coli.GenericTwoEpoch()
-        ts = msprime.simulate(
-            samples=[msprime.Sample(0, 0), msprime.Sample(0, 0)],
-            **model.asdict())
-        self.assertEqual(ts.num_populations, 1)
-
-    def test_debug_runs(self):
-        model = e_coli.GenericTwoEpoch()
-        output = io.StringIO()
-        model.debug(output)
-        s = output.getvalue()
-        self.assertGreater(len(s), 0)
-
-    def test_debug_runs_v2(self):
-        model = e_coli.GenericTwoEpoch(100, 4)
-        output = io.StringIO()
-        model.debug(output)
-        s = output.getvalue()
-        self.assertGreater(len(s), 0)
+    def test_basic_attributes(self):
+        self.assertEqual(len(self.genome.chromosomes), 1)

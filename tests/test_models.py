@@ -3,11 +3,49 @@ Tests for simulation model infrastructure.
 """
 import unittest
 import itertools
+import io
 
 import numpy as np
 import msprime
 
+import stdpopsim
 from stdpopsim import models
+
+
+class ModelTestMixin(object):
+    """
+    Mixin for testing specific models. Subclasses should extend
+    unittest.TestCase and this mixin, and define the self.model (as the
+    model instance).
+    """
+    # To be defined in subclasses.
+    model = None
+
+    def test_debug_runs(self):
+        output = io.StringIO()
+        self.model.debug(output)
+        s = output.getvalue()
+        self.assertGreater(len(s), 0)
+
+    def test_simulation_runs(self):
+        # With a recombination_map of None, we simulate a coalescent without
+        # recombination in msprime, with no mutation.
+        contig = stdpopsim.Contig()
+        samples = self.model.get_samples(*([2] * self.model.num_populations))
+        ts = self.model.simulate(contig, samples)
+        self.assertEqual(ts.num_populations, self.model.num_populations)
+
+
+class QcdModelTestMixin(ModelTestMixin):
+    """
+    Extends the tests to also check that the qc model is equal to
+    the production model.
+    """
+    # To be defined in subclass.
+    qc_model = None
+
+    def test_qc_model_equal(self):
+        self.assertTrue(self.model.equals(self.qc_model))
 
 
 class TestPopulationConfigsEqual(unittest.TestCase):
@@ -237,19 +275,19 @@ class TestAllModels(unittest.TestCase):
     Tests that we can get all known simulation models.
     """
     def test_non_empty(self):
-        self.assertGreater(len(models.all_models()), 0)
+        self.assertGreater(len(list(stdpopsim.all_models())), 0)
 
     def test_all_instances(self):
-        for model in models.all_models():
+        for model in stdpopsim.all_models():
             self.assertIsInstance(model, models.Model)
 
     def test_filtering_outside_classes(self):
-        for model in models.all_models():
+        for model in stdpopsim.all_models():
             self.assertNotIsInstance(model, DummyModel)
 
     def test_generation_times_non_empty(self):
         self.assertGreater(len([model.generation_time for model in
-                                models.all_models()]), 0)
+                                stdpopsim.all_models()]), 0)
 
 
 class TestModelsEqual(unittest.TestCase):
@@ -259,7 +297,7 @@ class TestModelsEqual(unittest.TestCase):
     def test_known_models(self):
         # All models should be equal to themselves.
         other_model = models.Model()
-        for model in models.all_models():
+        for model in stdpopsim.all_models():
             self.assertTrue(model.equals(model))
             self.assertFalse(model.equals(other_model))
 
@@ -298,7 +336,48 @@ class TestModelsEqual(unittest.TestCase):
 class TestModelProperties(unittest.TestCase):
     def test_model_generation_time(self):
         self.assertTrue(models.Model().generation_time == -1)
-        known_models = models.all_models()
+        known_models = list(stdpopsim.all_models())
         n = len(known_models)
         for j in range(n):
             self.assertTrue(known_models[j].generation_time > -2)
+
+
+class TestConstantSizeModel(unittest.TestCase, ModelTestMixin):
+    model = models.PiecewiseConstantSize(100)
+
+
+class TestTwoEpochModel(unittest.TestCase, ModelTestMixin):
+    model = models.PiecewiseConstantSize(100, (10, 10))
+
+
+class TestPiecewiseConstantSize(unittest.TestCase):
+    """
+    Specific tests for the piecewise constant model.
+    """
+    def test_single_epoch(self):
+        model = models.PiecewiseConstantSize(100)
+        self.assertEqual(model.population_configurations[0].initial_size, 100)
+        self.assertEqual(len(model.population_configurations), 1)
+        self.assertEqual(len(model.demographic_events), 0)
+
+    def test_two_epoch(self):
+        model = models.PiecewiseConstantSize(50, (10, 100))
+        self.assertEqual(model.population_configurations[0].initial_size, 50)
+        self.assertEqual(len(model.demographic_events), 1)
+        event = model.demographic_events[0]
+        self.assertEqual(event.time, 10)
+        self.assertEqual(event.initial_size, 100)
+        self.assertEqual(event.growth_rate, 0)
+
+    def test_three_epoch(self):
+        model = models.PiecewiseConstantSize(0.1, (0.1, 10), (0.2, 100))
+        self.assertEqual(model.population_configurations[0].initial_size, 0.1)
+        self.assertEqual(len(model.demographic_events), 2)
+        event = model.demographic_events[0]
+        self.assertEqual(event.time, 0.1)
+        self.assertEqual(event.initial_size, 10)
+        self.assertEqual(event.growth_rate, 0)
+        event = model.demographic_events[1]
+        self.assertEqual(event.time, 0.2)
+        self.assertEqual(event.initial_size, 100)
+        self.assertEqual(event.growth_rate, 0)

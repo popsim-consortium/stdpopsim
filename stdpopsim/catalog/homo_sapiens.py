@@ -1,66 +1,14 @@
 """
-Genome, genetic map and demographic model definitions for humans.
+Catalog definitions for
 """
 import math
 import logging
 
 import msprime
 
-import stdpopsim.models as models
-import stdpopsim.genomes as genomes
-import stdpopsim.genetic_maps as genetic_maps
-import stdpopsim.generic_models as generic_models
+import stdpopsim
 
 logger = logging.getLogger(__name__)
-
-
-###########################################################
-#
-# Genetic maps
-#
-###########################################################
-
-
-class HapmapII_GRCh37(genetic_maps.GeneticMap):
-    """
-    Usage: `hapmap = homo_sapiens.HapmapII_GRCh37()` (note the
-    parentheses).
-
-    The Phase II HapMap Genetic map (lifted over to GRCh37) used in
-    1000 Genomes. Please see the `README
-    <ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/20110106_recombination_hotspots/README_hapmapII_GRCh37_map>`_
-    for more details.
-    """
-    url = (
-        "http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
-        "20110106_recombination_hotspots/"
-        "HapmapII_GRCh37_RecombinationHotspots.tar.gz")
-    file_pattern = "genetic_map_GRCh37_{name}.txt"
-    doi = "https://doi.org/10.1038/nature06258"
-
-
-genetic_maps.register_genetic_map(HapmapII_GRCh37())
-
-
-class Decode_2010_sex_averaged(genetic_maps.GeneticMap):
-    """
-    Usage: `decode = homo_sapiens.Decode_2010()` (note the
-    parentheses).
-
-    Decode fine scale genetic map from Kong, A et al. Fine scale
-    recombination rate differences
-    between sexes, populations and individuals. Nature (28 October 2010).
-    (http://www.nature.com/nature/journal/v467/n7319/full/nature09525.html)
-    Please see https://www.decode.com/addendum/ for more details.
-    """
-    url = (
-        "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
-        "decode_2010_sex-averaged_map.tar.gz")
-    file_pattern = "genetic_map_decode_2010_sex-averaged_{name}.txt"
-    doi = "https://doi.org/10.1038/nature09525"
-
-
-genetic_maps.register_genetic_map(Decode_2010_sex_averaged())
 
 ###########################################################
 #
@@ -108,54 +56,70 @@ chrY 	 59373566 	 0.0
 _chromosomes = []
 for line in _chromosome_data.splitlines():
     name, length, mean_rr = line.split()[:3]
-    _chromosomes.append(genomes.Chromosome(
-        name=name, length=int(length),
-        default_mutation_rate=1e-8,  # WRONG!,
-        default_recombination_rate=float(mean_rr)))
+    _chromosomes.append(stdpopsim.Chromosome(
+        id=name, length=int(length),
+        mutation_rate=1e-8,  # WRONG!,
+        recombination_rate=float(mean_rr)))
+
+_genome = stdpopsim.Genome(chromosomes=_chromosomes)
+
+_species = stdpopsim.Species(
+    id="homsap",
+    name="Homo sapiens",
+    genome=_genome,
+    # TODO reference for these
+    generation_time=25,
+    population_size=10**4)
+
+stdpopsim.register_species(_species)
 
 
-#: :class:`stdpopsim.Genome` definition for humans.
-genome = genomes.Genome(
-    species="homo_sapiens",
-    chromosomes=_chromosomes,
-    default_genetic_map=HapmapII_GRCh37.name)
-
-
+###########################################################
 #
-# Experimental interface used to develop the CLI.
+# Genetic maps
 #
+###########################################################
 
 
-class TempChromosome(object):
-    """
-    Temporary class while figuring out the best way to do this.
-    """
-    def __init__(self):
-        self.length = None
-        self.recombination_map = None
-        self.mutation_rate = None
+_gm = stdpopsim.GeneticMap(
+    species=_species,
+    name="HapmapII_GRCh37",
+    url=(
+        "http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
+        "20110106_recombination_hotspots/"
+        "HapmapII_GRCh37_RecombinationHotspots.tar.gz"),
+    file_pattern="genetic_map_GRCh37_{name}.txt",
+    description=(
+        "The Phase II HapMap Genetic map (lifted over to GRCh37) used in "
+        "1000 Genomes. Please see the `README <ftp://ftp-trace.ncbi.nih.gov/1000genomes"
+        "/ftp/technical/working/20110106_recombination_hotspots"
+        "/README_hapmapII_GRCh37_map>`_ for more details."),
+    citations=[stdpopsim.Citation(
+        doi="https://doi.org/10.1038/nature06258",
+        year=2007,
+        author="1000 Genomes Project consortium")]
+    )
+_species.add_genetic_map(_gm)
 
+_gm = stdpopsim.GeneticMap(
+    species=_species,
+    name="Decode_2010_sex_averaged",
+    url=(
+        "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
+        "decode_2010_sex-averaged_map.tar.gz"),
+    file_pattern="genetic_map_decode_2010_sex-averaged_{name}.txt",
+    description=(
+        "Decode fine scale genetic map from Kong, A et al. Fine scale "
+        "recombination rate differences between sexes, populations and "
+        "individuals. Nature (28 October 2010). "
+        "Please see https://www.decode.com/addendum/ for more details."),
+    citations=[stdpopsim.Citation(
+        year=2010,
+        author="Kong et al",
+        doi="https://doi.org/10.1038/nature09525")]
+    )
+_species.add_genetic_map(_gm)
 
-def chromosome_factory(name, genetic_map=None, length_multiplier=1):
-    """
-    Temporary function to help figure out the right interface for getting
-    chromosome information.
-    """
-    chrom = genome.chromosomes[name]
-    if genetic_map is None:
-        logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.name}")
-        recomb_map = msprime.RecombinationMap.uniform_map(
-            chrom.length * length_multiplier, chrom.default_recombination_rate)
-    else:
-        if length_multiplier != 1:
-            raise ValueError("Cannot use length multiplier with empirical maps")
-        logger.debug(f"Getting map for {chrom.name} from {genetic_map}")
-        recomb_map = chrom.recombination_map(genetic_map)
-
-    ret = TempChromosome()
-    ret.recombination_map = recomb_map
-    ret.mutation_rate = chrom.default_mutation_rate
-    return ret
 
 ###########################################################
 #
@@ -163,54 +127,48 @@ def chromosome_factory(name, genetic_map=None, length_multiplier=1):
 #
 ###########################################################
 
-
-# species wide default generation time
-default_generation_time = 25
-
 # population definitions that are reused.
-_yri_population = models.Population(
+_yri_population = stdpopsim.Population(
     name="YRI",
     description="1000 Genomes YRI (Yorubans)")
-_ceu_population = models.Population(
+_ceu_population = stdpopsim.Population(
     name="CEU",
     description=(
         "1000 Genomes CEU (Utah Residents (CEPH) with Northern and "
         "Western European Ancestry"))
-_chb_population = models.Population(
+_chb_population = stdpopsim.Population(
     name="CHB",
     description="1000 Genomes CHB (Han Chinese in Beijing, China)")
 
 
-class HomoSapiensModel(models.Model):
+_tennessen_et_al = stdpopsim.Citation(
+    author="Tennessen et al.",
+    year=2012,
+    doi="https://doi.org/10.1126/science.1219240")
+
+
+# TODO: remove this superclass
+class HomoSapiensModel(stdpopsim.Model):
+    species = _species
     """
     TODO: documentation
     """
     def __init__(self):
         super().__init__()
-        self.generation_time = default_generation_time
-        self.default_population_size = 10000
+        self.generation_time = _species.generation_time
 
 
-class GenericConstantSize(HomoSapiensModel, generic_models.ConstantSizeMixin):
-    def __init__(self):
-        HomoSapiensModel.__init__(self)
-        generic_models.ConstantSizeMixin.__init__(self, self.default_population_size)
+# TODO we want to move away from defining these as classes which
+# can be instantiated and rather to creating *instances* of the Model
+# class which has this behaviour. However, it's not clear what form
+# the refactored versions would have. Marking these classes with a
+# __ to emphasise that they're not supposed to be used externally
+# like this, but should be found via the species catalog.
 
 
-class GenericTwoEpoch(HomoSapiensModel, generic_models.TwoEpochMixin):
-    def __init__(self, n2=None, t=None):
-        HomoSapiensModel.__init__(self)
-        n1 = self.default_population_size
-        if n2 is None:
-            n2 = n1 / 2.0
-        if t is None:
-            t = n1 / 100
-        generic_models.TwoEpochMixin.__init__(self, n1, n2, t)
-
-
-class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
-    name = "GutenkunstThreePopOutOfAfrica"
-    short_description = "Three population out-of-Africa model"
+class _GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
+    id = "ooa_3"
+    name = "Three population out-of-Africa"
     description = """
         The three population Out-of-Africa model from `Gutenkunst et al. <https://
         doi.org/10.1371/journal.pgen.1000695>`_ It describes the ancestral human
@@ -218,22 +176,17 @@ class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
         population split. Model parameters are the maximum likelihood values of the
         various parameters given in Table 1 of Gutenkunst et al.
     """
-    citations = [
-        """
-        Gutenkunst, R. N., Hernandez, R. D., Williamson, S. H. & Bustamante, C. D.
-        Inferring the Joint Demographic History of Multiple Populations from
-        Multidimensional SNP Frequency Data. PLOS Genetics 5, e1000695 (2009).
-        """
-    ]
     populations = [
         _yri_population,
         _ceu_population,
         _chb_population
     ]
 
-    author = "Gutenkunst et al."
-    year = 2009
-    doi = "https://doi.org/10.1371/journal.pgen.1000695"
+    citations = [stdpopsim.Citation(
+        author="Gutenkunst et al.",
+        year=2009,
+        doi="https://doi.org/10.1371/journal.pgen.1000695")
+    ]
 
     def __init__(self):
         super().__init__()
@@ -245,6 +198,7 @@ class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
         N_EU0 = 1000
         N_AS0 = 510
         # Times are provided in years, so we convert into generations.
+
         # self.generation_time = default_generation_time
         T_AF = 220e3 / self.generation_time
         T_B = 140e3 / self.generation_time
@@ -299,9 +253,12 @@ class GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
         ]
 
 
-class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
-    name = "TennessenTwoPopOutOfAfrica"
-    short_description = "Two population out-of-Africa model"
+_species.add_model(_GutenkunstThreePopOutOfAfrica())
+
+
+class _TennessenTwoPopOutOfAfrica(HomoSapiensModel):
+    id = "ooa_2"
+    name = "Two population out-of-Africa"
     description = """
         The model is derived from the Tennesen et al. `analysis <https://doi.org/10.1126/
         science.1219240>`_  of the jSFS from European Americans and African Americans.
@@ -312,22 +269,10 @@ class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
     """
 
     populations = [
-        models.Population(name="AFR", description="African Americans"),
-        models.Population(name="EUR", description="European Americans")
+        stdpopsim.Population(name="AFR", description="African Americans"),
+        stdpopsim.Population(name="EUR", description="European Americans")
     ]
-    citations = [
-        """
-        Tennessen, J. A. et al. Evolution and Functional Impact of Rare Coding
-        Variation from Deep Sequencing of Human Exomes. Science 337, 64–69
-        (2012).
-        """
-    ]
-
-    # NOTE choosing the first publication above the 'the' paper to reference.
-    # Should we allow for multiple references??
-    author = "Tennessen et al."
-    year = "2012"
-    doi = "https://doi.org/10.1126/science.1219240"
+    citations = [_tennessen_et_al]
 
     def __init__(self):
         super().__init__()
@@ -393,32 +338,21 @@ class TennessenTwoPopOutOfAfrica(HomoSapiensModel):
         ]
 
 
-TennessenTwoPopOutOfAfrica._write_docstring()
+_species.add_model(_TennessenTwoPopOutOfAfrica())
 
 
-class TennessenOnePopAfrica(HomoSapiensModel):
-    name = "TennessenOnePopAfrica"
+class _TennessenOnePopAfrica(HomoSapiensModel):
+    id = "african"
+    name = "African population"
     description = """
         The model is a simplification of the two population Tennesen et al.
         `model <https://doi.org/10.1126/science.1219240>`_ with the European-American
         population removed so that we are modeling the African population in isolation.
     """
     populations = [
-        models.Population(name="AFR", description="African"),
+        stdpopsim.Population(name="AFR", description="African"),
     ]
-    citations = [
-        """
-        Tennessen, J. A. et al. Evolution and Functional Impact of Rare Coding
-        Variation from Deep Sequencing of Human Exomes. Science 337, 64–69
-        (2012).
-        """
-    ]
-
-    # NOTE choosing the first publication above the 'the' paper to reference.
-    # Should we allow for multiple references??
-    author = "Tennessen et al."
-    year = "2012"
-    doi = "https://doi.org/10.1126/science.1219240"
+    citations = [_tennessen_et_al]
 
     def __init__(self):
         super().__init__()
@@ -454,12 +388,12 @@ class TennessenOnePopAfrica(HomoSapiensModel):
         ]
 
 
-TennessenOnePopAfrica._write_docstring()
+_species.add_model(_TennessenOnePopAfrica())
 
 
-class BrowningAmerica(HomoSapiensModel):
-    name = "BrowningAmerica"
-    short_description = "American admixture model"
+class _BrowningAmerica(HomoSapiensModel):
+    id = "america"
+    name = "American admixture"
     description = """
         Demographic model for American admixture, taken from
         `Browning et al. <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.
@@ -473,24 +407,20 @@ class BrowningAmerica(HomoSapiensModel):
     """
 
     populations = [
-        models.Population(name="AFR", description="Contemporary African population"),
-        models.Population(name="EUR", description="Contemporary European population"),
-        models.Population(name="ASIA", description="Contemporary Asian population"),
-        models.Population(
+        stdpopsim.Population(name="AFR", description="Contemporary African population"),
+        stdpopsim.Population(name="EUR", description="Contemporary European population"),
+        stdpopsim.Population(name="ASIA", description="Contemporary Asian population"),
+        stdpopsim.Population(
             name="ADMIX", description="Ancient admixed population",
             allow_samples=False),
     ]
 
     citations = [
-        """
-        Browning, S. R. et al. Ancestry-specific recent effective population size in the
-        Americas. PLOS Genetics 14, e1007385 (2018).
-        """
+        stdpopsim.Citation(
+            author="Browning et al.",
+            year=2011,
+            doi="http://dx.doi.org/10.1371/journal.pgen.1007385")
     ]
-
-    author = "Browning et al."
-    year = "2011"
-    doi = "http://dx.doi.org/10.1371/journal.pgen.1007385"
 
     def __init__(self):
         super().__init__()
@@ -573,12 +503,12 @@ class BrowningAmerica(HomoSapiensModel):
         self.demographic_events = admixture_event + eu_event + ooa_event + init_event
 
 
-BrowningAmerica._write_docstring()
+_species.add_model(_BrowningAmerica())
 
 
-class RagsdaleArchaic(HomoSapiensModel):
-    name = "RagsdaleArchaic"
-    short_description = "Three population out-of-Africa model with archaic admixture"
+class _RagsdaleArchaic(HomoSapiensModel):
+    id = "ooa_archaic"
+    name = "Three population out-of-Africa with archaic admixture"
     description = """
         The three population out-of-African model popularized by Gutenkunst et al. (2009)
         and augmented by archaic contributions to both Eurasian and African populations.
@@ -592,22 +522,17 @@ class RagsdaleArchaic(HomoSapiensModel):
         _yri_population,
         _ceu_population,
         _chb_population,
-        models.Population(
+        stdpopsim.Population(
             "Neanderthal", "Putative Neanderthals", allow_samples=False),
-        models.Population(
+        stdpopsim.Population(
             "ArchaicAFR", "Putative Archaic Africans", allow_samples=False),
     ]
-
     citations = [
-        """
-        Ragsdale, Aaron P., and Simon Gravel. Models of archaic admixture and
-        recent history from two-locus statistics. PLoS genetics 15(6), e1008204 (2019).
-        """
+        stdpopsim.Citation(
+            author="Ragsdale and Gravel",
+            year=2019,
+            doi="https://doi.org/10.1371/journal.pgen.1008204")
     ]
-
-    author = "Ragsdale and Gravel"
-    year = 2019
-    doi = "https://doi.org/10.1371/journal.pgen.1008204"
 
     def __init__(self):
         super().__init__()
@@ -736,29 +661,26 @@ class RagsdaleArchaic(HomoSapiensModel):
         ]
 
 
-RagsdaleArchaic._write_docstring()
+_species.add_model(_RagsdaleArchaic())
 
 
-class SchiffelsZigzag(HomoSapiensModel):
-    name = "SchiffelsZigzag"
-    short_description = "Validation model with periodic growth and decline."
+class _SchiffelsZigzag(HomoSapiensModel):
+    id = "zigzag"
+    name = "Periodic growth and decline."
     description = """
         A validation model used by Schiffels and Durbin (2014) and Terhorst and
         Terhorst, Kamm, and Song (2017) with periods of exponential growth and
         decline in a single population.
         """
     populations = [
-        models.Population("generic", "Generic expanding and contracting population"),
+        stdpopsim.Population("generic", "Generic expanding and contracting population"),
     ]
     citations = [
-        """
-        Schiffels, S., & Durbin, R. (2014). Inferring human population size and
-        separation history from multiple genome sequences. Nature Genetics.
-        """
+        stdpopsim.Citation(
+            author="Schiffels and Durbin",
+            year=2014,
+            doi="https://doi.org/10.1038/ng.3015")
     ]
-    author = "Schiffels and Durbin"
-    year = 2014
-    doi = "https://doi.org/10.1038/ng.3015"
 
     def __init__(self):
         super().__init__()
@@ -814,4 +736,4 @@ class SchiffelsZigzag(HomoSapiensModel):
         ]
 
 
-SchiffelsZigzag._write_docstring()
+_species.add_model(_SchiffelsZigzag())

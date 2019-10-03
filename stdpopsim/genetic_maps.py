@@ -6,50 +6,15 @@ import tempfile
 import tarfile
 import logging
 import contextlib
-import inspect
 import warnings
 import os
 import urllib.request
 
 import msprime
 
-import stdpopsim
-import stdpopsim.citations as citations
+from . import cache
 
 logger = logging.getLogger(__name__)
-
-
-registered_maps = {}
-
-
-def get_genetic_map(species, name):
-    """
-    Returns the genetic map with the specified name for the specified species.
-    Raises a ValueError if the map has not been registered.
-    """
-    key = "{}/{}".format(species, name)
-    if key not in registered_maps:
-        raise ValueError("Unknown genetic map '{}'".format(key))
-    return registered_maps[key]
-
-
-def register_genetic_map(genetic_map):
-    """
-    Registers the specified recombination map so that it can be loaded on demand.
-
-    A key is generated from each genetic map based on its class and module names,
-    giving the name of the map and species, respectively.
-    """
-    key = "{}/{}".format(genetic_map.species, genetic_map.name)
-    logger.debug("Registering genetic map '{}'".format(key))
-    registered_maps[key] = genetic_map
-
-
-def all_genetic_maps():
-    """
-    Returns all registered genetic maps.
-    """
-    return list(registered_maps.values())
 
 
 @contextlib.contextmanager
@@ -66,67 +31,38 @@ def cd(path):
         os.chdir(old_dir)
 
 
-class classproperty(object):
-    """
-    Define a 'class property'. Used below for defining GeneticMap name and species.
-
-    https://stackoverflow.com/questions/5189699/how-to-make-a-class-property
-    """
-    def __init__(self, f):
-        self.f = f
-
-    def __get__(self, obj, owner):
-        return self.f(owner)
-
-
-class GeneticMap(citations.CitableMixin):
+class GeneticMap(object):
     """
     Class representing a genetic map for a species. Provides functionality for
     downloading and cacheing recombination maps from a remote URL.
 
     Specific genetic maps are defined by subclassing this abstract superclass
     and registering the map.
+
+    :ivar url: The URL where the packed and compressed genetic map can be obtained.
+    :vartype url: str
+    :ivar file_pattern: The pattern used to map name individual chromosome to
+        files, suitable for use with Python's :meth:`str.format` method.
+    :vartype file_pattern: str
     """
 
-    url = None
-    """
-    The URL where this genetic map can be obtained.
-    """
+    def __init__(
+            self, species, name=None, url=None, file_pattern=None,
+            description=None, citations=None):
+        self.species = species
+        self.name = name
+        self.url = url
+        self.file_pattern = file_pattern
+        self.description = description
+        self.citations = citations
 
-    file_pattern = None
-    """
-    The pattern used to map name individual chromosome to files, suitable for use
-    with Python's :meth:`str.format` method.
-    """
-
-    def __init__(self):
-        self.cache_dir = pathlib.Path(stdpopsim.get_cache_dir()) / "genetic_maps"
-        self.species_cache_dir = self.cache_dir / self.species
+        self.cache_dir = pathlib.Path(cache.get_cache_dir()) / "genetic_maps"
+        self.species_cache_dir = self.cache_dir / self.species.name
         self.map_cache_dir = self.species_cache_dir / self.name
-
-    # We use a bit of trickery here to dynamically get the species name and
-    # map ID from the subclass.
-    @classproperty
-    def name(cls):
-        """
-        The name of this GeneticMap. This is equal to the name of the class
-        defining it.
-        """
-        return cls.__name__
-
-    @classproperty
-    def species(cls):
-        """
-        The species that this GeneticMap subclass is for. Equal to the name
-        of the module in which the class is defined.
-        """
-        mod = inspect.getmodule(cls).__name__
-        species = mod.split(".")[-1]
-        return species
 
     def __str__(self):
         s = "GeneticMap:\n"
-        s += "\tspecies   = {}\n".format(self.species)
+        s += "\tspecies   = {}\n".format(self.species.name)
         s += "\tname      = {}\n".format(self.name)
         s += "\turl       = {}\n".format(self.url)
         s += "\tcached    = {}\n".format(self.is_cached())
@@ -190,22 +126,26 @@ class GeneticMap(citations.CitableMixin):
                     "Error occured renaming map directory. Are several threads/processes"
                     "downloading this map at the same time?")
 
-    def contains_chromosome_map(self, name):
-        """
-        Just a quick check to see whether of not
-        this genetic map contains a genetic map for `name`
-        """
-        map_file = os.path.join(self.map_cache_dir, self.file_pattern.format(name=name))
-        return os.path.exists(map_file)
-
     def get_chromosome_map(self, name):
         """
         Returns the genetic map for the chromosome with the specified name.
         """
-        # TODO look up a list of known names to give a good error message.
+        chrom = self.species.genome.get_chromosome(name)
         if not self.is_cached():
             self.download()
-        if not self.contains_chromosome_map(name=name):
-            raise ValueError("Chromosome map for '{}' not found".format(name))
+        # We assume that if the map file does not exist this is a property of the
+        # map itself and not a download error. If a failure occurs reading the map
+        # this is propagated to the user, as this indicates a corrupted map which
+        # needs to be redownloaded.
         map_file = os.path.join(self.map_cache_dir, self.file_pattern.format(name=name))
-        return msprime.RecombinationMap.read_hapmap(map_file)
+        if os.path.exists(map_file):
+            ret = msprime.RecombinationMap.read_hapmap(map_file)
+        else:
+            warnings.warn(
+                "Warning: recombination map not found for chromosome: '{}'"
+                " on map: '{}', substituting a flat map with chromosome "
+                "recombination rate {}".format(
+                    name, self.name, chrom.recombination_rate))
+            ret = msprime.RecombinationMap.uniform_map(
+                    chrom.length, chrom.recombination_rate)
+        return ret
