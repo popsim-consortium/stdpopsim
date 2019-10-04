@@ -46,6 +46,49 @@ def setup_logging(args):
     daiquiri.setup(level=log_level)
 
 
+def get_models_help(species_id, model_id):
+    """
+    Generate help text for the specified species. If model_id is None, generate
+    help for all models. Otherwise, it must be a string with a valid model ID.
+    """
+    species = stdpopsim.get_species(species_id)
+    if model_id is None:
+        models_text = f"\nAll simulation models for {species.name}\n\n"
+        models = [model.id for model in species.models]
+    else:
+        models = [model_id]
+        models_text = f"\nModel description\n\n"
+
+    # TODO improve this text formatting.
+    indent = " " * 4
+    wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
+    for model_id in models:
+        model = species.get_model(model_id)
+        models_text += f"{model.id}: {model.name}\n"
+        models_text += wrapper.fill(textwrap.dedent(model.description))
+        models_text += "\n\n"
+
+        models_text += indent + "Populations:\n"
+
+        for population in model.populations:
+            if population.allow_samples:
+                models_text += indent * 2
+                models_text += f"{population.name}: {population.description}\n"
+        models_text += "\n"
+
+    return models_text
+
+
+class HelpModels(argparse.Action):
+    """
+    Action used to produce model help text.
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        help_text = get_models_help(namespace.species, values)
+        print(help_text, file=sys.stderr)
+        parser.exit()
+
+
 def get_environment():
     """
     Returns a dictionary describing the environment in which stdpopsim
@@ -160,26 +203,7 @@ def add_simulate_species_parser(parser, species):
         "genetic maps and simulation models from the literature."
     )
 
-    # TODO perhaps it would be better to have a model help text option rather than
-    # writing all this out every time. It's going to be a lot of text, and might
-    # distract from the important help stuff.
-    models_text = "\nSimulation models\n\n"
-    indent = " " * 4
-    wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
-    for model in species.models:
-        models_text += f"{model.id}: {model.name}\n"
-        models_text += wrapper.fill(textwrap.dedent(model.description))
-        models_text += "\n\n"
-
-        models_text += indent + "Populations:\n"
-
-        for population in model.populations:
-            if population.allow_samples:
-                models_text += indent * 2
-                models_text += f"{population.name}: {population.description}\n"
-        models_text += "\n"
-
-    description_text = textwrap.fill(header) + "\n" + models_text
+    description_text = textwrap.fill(header)
 
     species_parser = parser.add_parser(
         f"{species.id}",
@@ -189,6 +213,12 @@ def add_simulate_species_parser(parser, species):
     species_parser.set_defaults(species=species.id)
     species_parser.set_defaults(genetic_map=None)
     species_parser.set_defaults(chromosome=None)
+    species_parser.add_argument(
+        "--help-models", action=HelpModels, nargs="?",
+        help=(
+            "Print descriptions of simulation models and exit. If a model ID "
+            "is provided as an argument show help for this model; otherwise "
+            "show help for all available models"))
     species_parser.add_argument(
         "-q", "--quiet", action='store_true',
         help="Do not write out citation information")
@@ -227,7 +257,7 @@ def add_simulate_species_parser(parser, species):
         "Specify a simulation model. If no model is specified, a single population"
         "constant size model is used. Available models:"
         f"{', '.join(model.id for model in species.models)}"
-        ". Please see above for details of these models.")
+        ". Please see --help-models for details of these models.")
     species_parser.add_argument(
         "-m", "--model", default=None, metavar="",
         choices=[model.id for model in species.models],
