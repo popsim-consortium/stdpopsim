@@ -82,18 +82,6 @@ def model_table(model):
     entry += nodes.paragraph(text=model.num_populations)
     row += entry
 
-    row = nodes.row()
-    rows.append(row)
-    entry = nodes.entry()
-    entry += nodes.paragraph(text="doi")
-    row += entry
-    entry = nodes.entry()
-    para = nodes.paragraph()
-    doi = model.citations[0].doi
-    para += nodes.reference(internal=False, refuri=doi, text=doi)
-    entry += para
-    row += entry
-
     tbody = nodes.tbody()
     tbody.extend(rows)
     tgroup += tbody
@@ -105,14 +93,19 @@ def citation_list(citable):
     bullet_list = nodes.bullet_list()
     for citation in citable.citations:
         list_item = nodes.list_item()
-        list_item += nodes.paragraph(text=citation)
+
+        para = nodes.paragraph(text=f"{citation.author}, {citation.year}. ")
+        para += nodes.reference(internal=False, refuri=citation.doi, text=citation.doi)
+        list_item += para
         bullet_list += list_item
     return bullet_list
 
 
 def model_parameter_table(model):
-    path = pathlib.Path(f"parameter_tables/{model.species.name}/{model.name}.csv")
+    path = pathlib.Path(f"parameter_tables/{model.species.id}/{model.id}.csv")
     if not path.exists():
+        # TODO integrate with messages?
+        print("Skipping model parameters", model.id)
         return None
     with open(path) as csv_file:
         reader = csv.reader(csv_file)
@@ -279,7 +272,7 @@ def chromosomes_table(species):
 
 
 def model_section(species, model):
-    section = nodes.section(ids=[f"sec_catalog_{species.id}_models_{model.name}"])
+    section = nodes.section(ids=[f"sec_catalog_{species.id}_models_{model.id}"])
     section += nodes.title(text=model.name)
     section += nodes.paragraph(text=model.description)
     section += nodes.rubric(text="Details")
@@ -311,6 +304,7 @@ class SpeciesCatalog(Directive):
         genome_section += nodes.title(text="Genome")
         genome_section += chromosomes_table(species)
         section += genome_section
+        section += nodes.transition()
 
         maps_section = nodes.section(ids=[f"sec_catalog_{species.id}_genetic_maps"])
         maps_section += nodes.title(text="Genetic Maps")
@@ -318,9 +312,13 @@ class SpeciesCatalog(Directive):
         for gmap in species.genetic_maps:
             maps_section += genetic_map_section(species, gmap)
         section += maps_section
+        section += nodes.transition()
 
         models_section = nodes.section(ids=[f"sec_catalog_{species.id}_models"])
         models_section += nodes.title(text="Models")
+        # TODO we need some styling here to break this up visually. How does
+        # sphinx autoclass do this? We should probably have a table of all the
+        # models, and try to use the Sphinx styling to make it all work visually.
         # TODO add a table summarising the models with links to the detailed
         # descriptions
         for model in species.models:

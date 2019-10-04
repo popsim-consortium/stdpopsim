@@ -1,5 +1,5 @@
 """
-Catalog definitions for
+Catalog definitions for Homo Sapiens
 """
 import math
 import logging
@@ -91,13 +91,22 @@ _gm = stdpopsim.GeneticMap(
     file_pattern="genetic_map_GRCh37_{name}.txt",
     description=(
         "The Phase II HapMap Genetic map (lifted over to GRCh37) used in "
-        "1000 Genomes. Please see the `README <ftp://ftp-trace.ncbi.nih.gov/1000genomes"
-        "/ftp/technical/working/20110106_recombination_hotspots"
-        "/README_hapmapII_GRCh37_map>`_ for more details."),
-    citations=[stdpopsim.Citation(
-        doi="https://doi.org/10.1038/nature06258",
-        year=2007,
-        author="1000 Genomes Project consortium")]
+        "1000 Genomes. Please see the README for more details."),
+    citations=[
+        stdpopsim.Citation(
+            doi="https://doi.org/10.1038/nature06258",
+            year=2007,
+            author="1000 Genomes Project consortium"),
+        # TODO update the citation class to accept a plain URL as well
+        # for things like this.
+        stdpopsim.Citation(
+            doi=(
+                "<ftp://ftp-trace.ncbi.nih.gov/1000genomes"
+                "/ftp/technical/working/20110106_recombination_hotspots"
+                "/README_hapmapII_GRCh37_map>"),
+            year=None,
+            author=None)
+        ]
     )
 _species.add_genetic_map(_gm)
 
@@ -111,13 +120,15 @@ _gm = stdpopsim.GeneticMap(
     description=(
         "Decode fine scale genetic map from Kong, A et al. Fine scale "
         "recombination rate differences between sexes, populations and "
-        "individuals. Nature (28 October 2010). "
-        "Please see https://www.decode.com/addendum/ for more details."),
-    citations=[stdpopsim.Citation(
-        year=2010,
-        author="Kong et al",
-        doi="https://doi.org/10.1038/nature09525")]
+        "individuals. Nature (28 October 2010). "),
+    citations=[
+        stdpopsim.Citation(
+            year=2010,
+            author="Kong et al",
+            doi="https://doi.org/10.1038/nature09525")]
     )
+# TODO add a URL citation (see above) here for this:
+# "Please see https://www.decode.com/addendum/ for more details."),
 _species.add_genetic_map(_gm)
 
 
@@ -170,10 +181,10 @@ class _GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
     id = "ooa_3"
     name = "Three population out-of-Africa"
     description = """
-        The three population Out-of-Africa model from `Gutenkunst et al. <https://
-        doi.org/10.1371/journal.pgen.1000695>`_ It describes the ancestral human
-        population in Africa, the out of Africa event, and the subsequent European-Asian
-        population split. Model parameters are the maximum likelihood values of the
+        The three population Out-of-Africa model from Gutenkunst et al. 2009.
+        It describes the ancestral human population in Africa, the out of Africa
+        event, and the subsequent European-Asian population split.
+        Model parameters are the maximum likelihood values of the
         various parameters given in Table 1 of Gutenkunst et al.
     """
     populations = [
@@ -260,19 +271,24 @@ class _TennessenTwoPopOutOfAfrica(HomoSapiensModel):
     id = "ooa_2"
     name = "Two population out-of-Africa"
     description = """
-        The model is derived from the Tennesen et al. `analysis <https://doi.org/10.1126/
-        science.1219240>`_  of the jSFS from European Americans and African Americans.
+        The model is derived from the Tennesen et al. analysis of the
+        jSFS from European Americans and African Americans.
         It describes the ancestral human population in Africa, the out of Africa event,
         and two distinct periods of subsequent European population growth over the past
-        23kya. Model parameters are taken from Fig. S5 in `Fu et al. (2013) <https://
-        doi.org/10.1038 nature11690>`_.
+        23kya. Model parameters are taken from Fig. S5 in Fu et al.
     """
 
     populations = [
         stdpopsim.Population(name="AFR", description="African Americans"),
         stdpopsim.Population(name="EUR", description="European Americans")
     ]
-    citations = [_tennessen_et_al]
+    citations = [
+        _tennessen_et_al,
+        stdpopsim.Citation(
+            author="Fu et al.",
+            year=2013,
+            doi="https://doi.org/10.1038 nature11690")
+    ]
 
     def __init__(self):
         super().__init__()
@@ -346,8 +362,8 @@ class _TennessenOnePopAfrica(HomoSapiensModel):
     name = "African population"
     description = """
         The model is a simplification of the two population Tennesen et al.
-        `model <https://doi.org/10.1126/science.1219240>`_ with the European-American
-        population removed so that we are modeling the African population in isolation.
+        model with the European-American population removed so that we are
+        modeling the African population in isolation.
     """
     populations = [
         stdpopsim.Population(name="AFR", description="African"),
@@ -395,15 +411,13 @@ class _BrowningAmerica(HomoSapiensModel):
     id = "america"
     name = "American admixture"
     description = """
-        Demographic model for American admixture, taken from
-        `Browning et al. <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.
-        This model extends the `Gravel et al. (2011) <https://doi.org/10.1073/
-        pnas.1019276108>`_ model of African/European/Asian demographic history to
-        simulate an admixed population with admixture occurring 12 generations ago. The
-        admixed population had an initial size of 30,000 and grew at a rate of 5% per
-        generation, with 1/6 of the population of African ancestry, 1/3 European, and 1
-        2 Asian. This code was ported over from `Supplementary File 1
-        <https://doi.org/10.1371/journal.pgen.1007385.s005>`_
+        Demographic model for American admixture, taken from Browning et al. 2011.
+        This model extends the Gravel et al. (2011) model of African/European/Asian
+        demographic history to simulate an admixed population with admixture
+        occurring 12 generations ago. The admixed population had an initial size
+        of 30,000 and grew at a rate of 5% per generation, with 1/6 of the
+        population of African ancestry, 1/3 European, and 1
+        2 Asian.
     """
 
     populations = [
@@ -424,6 +438,7 @@ class _BrowningAmerica(HomoSapiensModel):
 
     def __init__(self):
         super().__init__()
+        # Model code was ported from Supplementary File 1.
         N0 = 7310  # initial population size
         Thum = 5920  # time (gens) of advent of modern humans
         Naf = 14474  # size of african population

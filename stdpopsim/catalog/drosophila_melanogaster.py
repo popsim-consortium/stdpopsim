@@ -110,8 +110,8 @@ class _SheehanSongThreeEpoch(DrosophilaMelanogasterModel):
     name = "Three epoch African population"
     description = """
         The three epoch (modern, bottleneck, ancestral) model estimated for a
-        single African Drosophila Melanogaster population from `Sheehan and Song <https:/
-        /doi.org/10.1371/journal.pcbi.1004845>`_ . Population sizes are estimated by a
+        single African Drosophila Melanogaster population from Sheehan and Song (2016).
+        Population sizes are estimated by a
         deep learning model trained on simulation data. NOTE: Due to differences in
         coalescence units between PSMC (2N) and msms (4N) the number of generations were
         doubled from PSMC estimates when simulating data from msms in the original
@@ -165,7 +165,7 @@ class _LiStephanTwoPopulation(DrosophilaMelanogasterModel):
     description = """
         The three epoch (modern, bottleneck, ancestral) model estimated for two
         Drosophila Melanogaster populations: African (ancestral) and European (derived)
-        from `Li and Stephan <https://doi.org/10.1371/journal.pgen.0020166>`_ .
+        from Li and Stephan (2006).
     """
     populations = [_afr_population, _eur_population]
     citations = [stdpopsim.Citation(
