@@ -71,7 +71,7 @@ _gm = stdpopsim.GeneticMap(
         "Comeron et al. (2012) maps (lifted over to dm6)."),
     citations=[stdpopsim.Citation(
         author="Comeron et al",
-        doi=None,  # FIXME
+        doi="FIXME",  # FIXME
         year=2012)]
     )
 
