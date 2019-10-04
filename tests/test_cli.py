@@ -8,6 +8,7 @@ import subprocess
 import json
 import sys
 import io
+import argparse  # NOQA
 from unittest import mock
 
 import tskit
@@ -268,6 +269,31 @@ class TestErrors(unittest.TestCase):
 
     def test_browning_america(self):
         self.verify_bad_samples("homsap -q -m america 2 3 4 5 6 tmp.trees")
+
+
+class TestHelp(unittest.TestCase):
+
+    def run_stdpopsim(self, command):
+        with mock.patch(
+                "argparse.ArgumentParser.exit",
+                side_effect=TestException) as mocked_exit:
+            with self.assertRaises(TestException):
+                capture_output(cli.stdpopsim_main, command.split())
+            mocked_exit.assert_called_once()
+
+    def test_basic_help(self):
+        self.run_stdpopsim("--help")
+
+    def test_homsap_help(self):
+        self.run_stdpopsim("homsap --help")
+
+    def test_homsap_models_help(self):
+        self.run_stdpopsim("homsap --help-models")
+        self.run_stdpopsim("homsap --help-models ooa_3")
+
+    def test_all_species_model_help(self):
+        for species in stdpopsim.all_species():
+            self.run_stdpopsim(f"{species} --help-models")
 
 
 class TestWriteCitations(unittest.TestCase):
