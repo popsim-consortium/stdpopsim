@@ -111,7 +111,7 @@ def citation_list(citable):
 
 
 def model_parameter_table(model):
-    path = pathlib.Path(f"parameter_tables/{model.species.name}/{model.name}.csv")
+    path = pathlib.Path(f"parameter_tables/{model.species.id}/{model.id}.csv")
     if not path.exists():
         return None
     with open(path) as csv_file:
@@ -279,7 +279,7 @@ def chromosomes_table(species):
 
 
 def model_section(species, model):
-    section = nodes.section(ids=[f"sec_catalog_{species.id}_models_{model.name}"])
+    section = nodes.section(ids=[f"sec_catalog_{species.id}_models_{model.id}"])
     section += nodes.title(text=model.name)
     section += nodes.paragraph(text=model.description)
     section += nodes.rubric(text="Details")
