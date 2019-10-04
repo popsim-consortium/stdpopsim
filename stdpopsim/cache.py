@@ -29,7 +29,7 @@ def set_cache_dir(cache_dir=None):
         cache_dir = appdirs.user_cache_dir("stdpopsim", "popgensims")
     global _cache_dir
     _cache_dir = pathlib.Path(cache_dir)
-    logging.info(f"Set cache_dir to {_cache_dir}")
+    logger.info(f"Set cache_dir to {_cache_dir}")
 
 
 def get_cache_dir():
