@@ -22,12 +22,12 @@ def register_species(species):
     registered_species[species.id] = species
 
 
-def get_species(id_):
-    if id_ not in registered_species:
+def get_species(id):
+    if id not in registered_species:
         # TODO we should probably have a custom exception here and standardise
         # on using these for all the catalog search functions.
-        raise ValueError("species not found")
-    return registered_species[id_]
+        raise ValueError(f"Species '{id}' not in catalog")
+    return registered_species[id]
 
 
 # Convenience methods for getting all the species/genetic maps/models
@@ -138,16 +138,16 @@ class Species(object):
             recombination_map=recomb_map, mutation_rate=chrom.mutation_rate)
         return ret
 
-    def get_model(self, id_):
+    def get_model(self, id):
         """
         Returns a model with the specified id.
 
         - TODO explain where we find models from the catalog.
         """
         for model in self.models:
-            if model.id == id_:
+            if model.id == id:
                 return model
-        raise ValueError("Model not found")
+        raise ValueError(f"Model '{self.id}/{id}' not in catalog")
 
     def add_model(self, model):
         self.models.append(model)
@@ -156,8 +156,8 @@ class Species(object):
         genetic_map.species = self
         self.genetic_maps.append(genetic_map)
 
-    def get_genetic_map(self, name):
+    def get_genetic_map(self, id):
         for gm in self.genetic_maps:
-            if gm.name == name:
+            if gm.name == id:
                 return gm
-        raise ValueError("Genetic map not found")
+        raise ValueError(f"Genetic map '{self.id}/{id}' not in catalog")

@@ -431,3 +431,26 @@ class TestDownloadGeneticMaps(unittest.TestCase):
         for j in range(len(maps)):
             args = " ".join(maps[:j + 1])
             self.run_download("homsap " + args, j + 1)
+
+
+class TestSearchWrappers(unittest.TestCase):
+    """
+    Tests that the search wrappers for species etc work correctly.
+    """
+    def test_bad_species(self):
+        with mock.patch("stdpopsim.cli.exit") as mocked_exit:
+            cli.get_species_wrapper("XXX")
+            mocked_exit.assert_called_once_with("Species 'XXX' not in catalog")
+
+    def test_bad_model(self):
+        species = stdpopsim.get_species("homsap")
+        with mock.patch("stdpopsim.cli.exit") as mocked_exit:
+            cli.get_model_wrapper(species, "XXX")
+            mocked_exit.assert_called_once_with("Model 'homsap/XXX' not in catalog")
+
+    def test_bad_genetic_map(self):
+        species = stdpopsim.get_species("homsap")
+        with mock.patch("stdpopsim.cli.exit") as mocked_exit:
+            cli.get_genetic_map_wrapper(species, "XXX")
+            mocked_exit.assert_called_once_with(
+                "Genetic map 'homsap/XXX' not in catalog")

@@ -34,7 +34,7 @@ def exit(message):
     """
     Exit with the specified error message, setting error status.
     """
-    sys.exit("{}: {}".format(sys.argv[0], message))
+    sys.exit(f"{sys.argv[0]}: {message}")
 
 
 def setup_logging(args):
@@ -44,6 +44,27 @@ def setup_logging(args):
     if args.verbosity > 1:
         log_level = "DEBUG"
     daiquiri.setup(level=log_level)
+
+
+def get_species_wrapper(species_id):
+    try:
+        return stdpopsim.get_species(species_id)
+    except ValueError as ve:
+        exit(str(ve))
+
+
+def get_model_wrapper(species, model_id):
+    try:
+        return species.get_model(model_id)
+    except ValueError as ve:
+        exit(str(ve))
+
+
+def get_genetic_map_wrapper(species, genetic_map_id):
+    try:
+        return species.get_genetic_map(genetic_map_id)
+    except ValueError as ve:
+        exit(str(ve))
 
 
 def get_models_help(species_id, model_id):
@@ -63,7 +84,7 @@ def get_models_help(species_id, model_id):
     indent = " " * 4
     wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
     for model_id in models:
-        model = species.get_model(model_id)
+        model = get_model_wrapper(species, model_id)
         models_text += f"{model.id}: {model.name}\n"
         models_text += wrapper.fill(textwrap.dedent(model.description))
         models_text += "\n\n"
@@ -282,7 +303,7 @@ def add_simulate_species_parser(parser, species):
             model = stdpopsim.PiecewiseConstantSize(species.population_size)
             model.citations = species.population_size_citations
         else:
-            model = species.get_model(args.model)
+            model = get_model_wrapper(species, args.model)
         if len(args.samples) > model.num_sampling_populations:
             exit(
                 f"Cannot sample from more than {model.num_sampling_populations} "
@@ -309,13 +330,13 @@ def run_download_genetic_maps(args):
     if args.species is None:
         species_names = [species.id for species in stdpopsim.all_species()]
     for species_id in species_names:
-        species = stdpopsim.get_species(species_id)
+        species = get_species_wrapper(species_id)
         if len(args.genetic_maps) == 0:
             genetic_maps = [gmap.name for gmap in species.genetic_maps]
         else:
             genetic_maps = args.genetic_maps
         for genetic_map_id in genetic_maps:
-            genetic_map = species.get_genetic_map(genetic_map_id)
+            genetic_map = get_genetic_map_wrapper(species, genetic_map_id)
             genetic_map.download()
 
 
