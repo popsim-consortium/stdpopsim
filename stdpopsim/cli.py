@@ -370,10 +370,16 @@ def stdpopsim_cli_parser():
     return top_parser
 
 
+# This function only exists to make mocking out the actual running of
+# the program easier.
+def run(args):
+    args.runner(args)
+
+
 def stdpopsim_main(arg_list=None):
     parser = stdpopsim_cli_parser()
     args = parser.parse_args(arg_list)
     setup_logging(args)
     if args.cache_dir is not None:
         stdpopsim.set_cache_dir(args.cache_dir)
-    args.runner(args)
+    run(args)

@@ -81,6 +81,39 @@ class TestProvenance(unittest.TestCase):
         self.assertEqual(d["args"], sys.argv[1:])
 
 
+class TestDownloadGeneticMapsArgumentParser(unittest.TestCase):
+    """
+    Tests for the download-genetic-maps parser
+    """
+    def test_defaults(self):
+        parser = cli.stdpopsim_cli_parser()
+        cmd = "download-genetic-maps"
+        args = parser.parse_args([cmd])
+        self.assertEqual(args.species, None)
+        self.assertEqual(len(args.genetic_maps), 0)
+
+    def test_species_no_maps(self):
+        parser = cli.stdpopsim_cli_parser()
+        cmd = "download-genetic-maps some_species"
+        args = parser.parse_args(cmd.split())
+        self.assertEqual(args.species, "some_species")
+        self.assertEqual(len(args.genetic_maps), 0)
+
+    def test_species_one_map(self):
+        parser = cli.stdpopsim_cli_parser()
+        cmd = "download-genetic-maps some_species map1"
+        args = parser.parse_args(cmd.split())
+        self.assertEqual(args.species, "some_species")
+        self.assertEqual(args.genetic_maps, ["map1"])
+
+    def test_species_two_maps(self):
+        parser = cli.stdpopsim_cli_parser()
+        cmd = "download-genetic-maps some_species map1 map2"
+        args = parser.parse_args(cmd.split())
+        self.assertEqual(args.species, "some_species")
+        self.assertEqual(args.genetic_maps, ["map1", "map2"])
+
+
 class TestHomoSapiensArgumentParser(unittest.TestCase):
     """
     Tests for the argument parsers.
@@ -108,6 +141,20 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
         self.assertEqual(args.output, output)
         self.assertEqual(args.samples, [2])
         self.assertEqual(args.seed, 14)
+
+    def test_cache_dir(self):
+        parser = cli.stdpopsim_cli_parser()
+        cmd = "homsap"
+        output = "test.trees"
+        args = parser.parse_args(["-c", "cache_dir", cmd, "2", output])
+        self.assertEqual(args.output, output)
+        self.assertEqual(args.samples, [2])
+        self.assertEqual(args.cache_dir, "cache_dir")
+
+        args = parser.parse_args(["--cache-dir", "/some/cache_dir", cmd, "2", output])
+        self.assertEqual(args.output, output)
+        self.assertEqual(args.samples, [2])
+        self.assertEqual(args.cache_dir, "/some/cache_dir")
 
 
 class TestEndToEnd(unittest.TestCase):
@@ -319,3 +366,68 @@ class TestWriteCitations(unittest.TestCase):
         # TODO Parse out the output for the model and check that the text is
         # in there.
         self.assertGreater(len(stdout), 0)
+
+
+class TestCacheDir(unittest.TestCase):
+    """
+    Tests for setting the cache directory.
+    """
+    @mock.patch("stdpopsim.cli.setup_logging")
+    @mock.patch("stdpopsim.cli.run")
+    def run_stdpopsim(self, command, mock_setup_logging, mock_run):
+        stdout, stderr = capture_output(cli.stdpopsim_main, command)
+        self.assertEqual(stderr, "")
+        self.assertEqual(stdout, "")
+        self.assertTrue(mock_setup_logging.called_once)
+        self.assertTrue(mock_run.called_once)
+
+    def check_cache_dir_set(self, cmd, cache_dir):
+        with mock.patch("stdpopsim.set_cache_dir") as mocked_set_cache_dir:
+            self.run_stdpopsim(cmd.split())
+            mocked_set_cache_dir.assert_called_once_with(cache_dir)
+
+    def test_homsap_simulation(self):
+        cache_dir = "/some/cache/dir"
+        cmd = f"-c {cache_dir} homsap 2 tmp.trees"
+        self.check_cache_dir_set(cmd, cache_dir)
+
+    def test_dromel_simulation(self):
+        cache_dir = "cache_dir"
+        cmd = f"--cache-dir {cache_dir} dromel 2 tmp.trees"
+        self.check_cache_dir_set(cmd, cache_dir)
+
+    def test_download_genetic_maps(self):
+        cache_dir = "/some/other/cache/dir"
+        cmd = f"-c {cache_dir} download-genetic-maps"
+        self.check_cache_dir_set(cmd, cache_dir)
+
+
+class TestDownloadGeneticMaps(unittest.TestCase):
+    """
+    Tests for the download genetic maps function.
+    """
+
+    def run_download(self, cmd_args, expected_num_downloads):
+        parser = cli.stdpopsim_cli_parser()
+        args = parser.parse_args(["download-genetic-maps"] + cmd_args.split())
+        with mock.patch("stdpopsim.GeneticMap.download") as mocked_download:
+            cli.run_download_genetic_maps(args)
+            self.assertEqual(mocked_download.call_count, expected_num_downloads)
+
+    def test_defaults(self):
+        num_maps = sum(len(species.genetic_maps) for species in stdpopsim.all_species())
+        self.assertGreater(num_maps, 0)
+        self.run_download("", num_maps)
+
+    def test_homsap_defaults(self):
+        species = stdpopsim.get_species("homsap")
+        num_maps = len(species.genetic_maps)
+        self.assertGreater(num_maps, 0)
+        self.run_download("homsap", num_maps)
+
+    def test_homsap_specify_maps(self):
+        species = stdpopsim.get_species("homsap")
+        maps = [gmap.name for gmap in species.genetic_maps]
+        for j in range(len(maps)):
+            args = " ".join(maps[:j + 1])
+            self.run_download("homsap " + args, j + 1)
