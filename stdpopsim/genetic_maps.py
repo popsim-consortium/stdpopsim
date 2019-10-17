@@ -86,7 +86,8 @@ class GeneticMap(object):
             with tempfile.TemporaryDirectory(dir=self.species_cache_dir) as tempdir:
                 # Atomically move to a temporary directory, which will be automatically
                 # deleted on exit.
-                os.rename(self.map_cache_dir, tempdir)
+                dest = pathlib.Path(tempdir) / "will_be_deleted"
+                os.rename(self.map_cache_dir, dest)
         logger.debug("Making species cache directory {}".format(self.species_cache_dir))
         os.makedirs(self.species_cache_dir, exist_ok=True)
 
