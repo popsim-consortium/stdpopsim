@@ -185,7 +185,7 @@ class TestEndToEndSubprocess(TestEndToEnd):
     def verify(self, cmd, num_samples, seed=1):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
-            full_cmd = f"python3 -m stdpopsim {cmd} {filename} -s {seed} -q"
+            full_cmd = f"{sys.executable} -m stdpopsim {cmd} {filename} -s {seed} -q"
             subprocess.run(full_cmd, shell=True, check=True)
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)

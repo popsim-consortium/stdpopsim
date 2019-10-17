@@ -21,7 +21,7 @@ install:
   - cmd: python -m pip install daiquiri
 
 build_script:
-  - cmd: python -m nose
+  - cmd: python -m nose -vs
 
 after_test:
   - cmd: python setup.py bdist_wheel
