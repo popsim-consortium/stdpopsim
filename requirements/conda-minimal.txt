@@ -1,0 +1,7 @@
+nose
+msprime
+kastore
+tskit
+humanize
+attrs
+appdirs
