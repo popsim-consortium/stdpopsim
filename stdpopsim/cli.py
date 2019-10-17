@@ -8,6 +8,10 @@ import logging
 import platform
 import sys
 import textwrap
+import tempfile
+import pathlib
+import shutil
+import functools
 
 import msprime
 import tskit
@@ -165,8 +169,17 @@ def write_output(ts, args):
     provenance = get_provenance_dict()
     tables.provenances.add_row(json.dumps(provenance))
     ts = tables.tree_sequence()
-    logger.info(f"Writing to {args.output}")
-    ts.dump(args.output)
+    if args.output is None:
+        # There's no way to get tskit to write directly to stdout, so we write
+        # to a tempfile first.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpfile = pathlib.Path(tmpdir) / "tmp.trees"
+            ts.dump(tmpfile)
+            with open(tmpfile, "rb") as f:
+                shutil.copyfileobj(f, sys.stdout.buffer)
+    else:
+        logger.info(f"Writing to {args.output}")
+        ts.dump(args.output)
 
 
 def write_citations(contig, model):
@@ -175,32 +188,27 @@ def write_citations(contig, model):
     for the simulation engine, the model and the mutation/recombination rate
     information.
     """
+    printerr = functools.partial(print, file=sys.stderr)
     # TODO say this better
-    print(
+    printerr(
         "If you use this simulation in published work, please cite the following "
         "papers:")
-    print("******************")
-    print("Simulation engine:")
-    print("******************")
-    print(
+    printerr("******************")
+    printerr("Simulation engine:")
+    printerr("******************")
+    printerr(
         "\tmsprime: Kelleher et al. 2016: "
         "https://doi.org/10.1371/journal.pcbi.1004842")
-    print("******************")
-    print("Genetic map:")
-    print("******************")
-    print("\tTODO")
+    printerr("******************")
+    printerr("Genetic map:")
+    printerr("******************")
+    printerr("\tTODO")
     # TODO need some way to get a GeneticMap instance from the chromosome. We'll also
     # want to be able to output mutation map, and perhaps other information too, so
     # we want to keep some flexibility for this in mind.
-    print("Simulation model:", model.name)
+    printerr("Simulation model:", model.name)
     for citation in model.citations:
-        print("\t", citation, sep="")
-
-
-def add_output_argument(parser):
-    parser.add_argument(
-        "output",
-        help="The file to write simulated tree sequence to")
+        printerr("\t", citation, sep="")
 
 
 def summarise_usage():
@@ -221,7 +229,10 @@ def summarise_usage():
 def add_simulate_species_parser(parser, species):
     header = (
         f"Run simulations for {species.name} using up-to-date genome information, "
-        "genetic maps and simulation models from the literature."
+        "genetic maps and simulation models from the literature. "
+        "NOTE: By default, the tskit '.trees' binary file is written to stdout,"
+        "so you should either redirect this to a file or use the '--output' "
+        "option to specify a filename."
     )
 
     description_text = textwrap.fill(header)
@@ -283,6 +294,11 @@ def add_simulate_species_parser(parser, species):
         "-m", "--model", default=None, metavar="",
         choices=[model.id for model in species.models],
         help=model_help)
+    species_parser.add_argument(
+        "-o", "--output",
+        help=(
+            "Where to write the output tree sequence file. Defaults to "
+            "stdout if not specified"))
 
     species_parser.add_argument(
         "samples", type=int, nargs="+",
@@ -294,9 +310,6 @@ def add_simulate_species_parser(parser, species):
             "the number of samples to draw from each of these populations."
             "We do not need to provide sample numbers of each of the "
             "populations; those that are omitted are set to zero."))
-    species_parser.add_argument(
-        "output",
-        help="Where to write the output tree sequence file.")
 
     def run_simulation(args):
         if args.model is None:

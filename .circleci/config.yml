@@ -29,7 +29,7 @@ jobs:
       - run:
           name: Run Python tests 
           command: |
-            nosetests -v --with-coverage --cover-package stdpopsim \
+            nosetests -vs --with-coverage --cover-package stdpopsim \
               --cover-branches --cover-erase --cover-xml \
               --cover-inclusive tests
             python3 -m codecov 
