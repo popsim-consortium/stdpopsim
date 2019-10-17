@@ -122,7 +122,7 @@ class TestGeneticMap(tests.CacheWritingTest):
         gm = GeneticMapTestClass()
         cache_dir = stdpopsim.get_cache_dir() / "genetic_maps"
         self.assertEqual(gm.cache_dir, cache_dir)
-        self.assertEqual(gm.species_cache_dir, gm.cache_dir / gm.species.name)
+        self.assertEqual(gm.species_cache_dir, gm.cache_dir / gm.species.id)
         self.assertEqual(gm.map_cache_dir, gm.species_cache_dir / gm.name)
 
     def test_str(self):

@@ -31,6 +31,7 @@ def cd(path):
         os.chdir(old_dir)
 
 
+# TODO change this to use attrs
 class GeneticMap(object):
     """
     Class representing a genetic map for a species. Provides functionality for
@@ -56,9 +57,17 @@ class GeneticMap(object):
         self.description = description
         self.citations = citations
 
-        self.cache_dir = pathlib.Path(cache.get_cache_dir()) / "genetic_maps"
-        self.species_cache_dir = self.cache_dir / self.species.name
-        self.map_cache_dir = self.species_cache_dir / self.name
+    @property
+    def cache_dir(self):
+        return pathlib.Path(cache.get_cache_dir()) / "genetic_maps"
+
+    @property
+    def species_cache_dir(self):
+        return self.cache_dir / self.species.id
+
+    @property
+    def map_cache_dir(self):
+        return self.species_cache_dir / self.name
 
     def __str__(self):
         s = "GeneticMap:\n"
@@ -82,16 +91,16 @@ class GeneticMap(object):
         removed.
         """
         if self.is_cached():
-            logger.info("Clearing cache {}".format(self.map_cache_dir))
+            logger.info(f"Clearing cache {self.map_cache_dir}")
             with tempfile.TemporaryDirectory(dir=self.species_cache_dir) as tempdir:
                 # Atomically move to a temporary directory, which will be automatically
                 # deleted on exit.
                 dest = pathlib.Path(tempdir) / "will_be_deleted"
                 os.rename(self.map_cache_dir, dest)
-        logger.debug("Making species cache directory {}".format(self.species_cache_dir))
+        logger.debug(f"Checking species cache directory {self.species_cache_dir}")
         os.makedirs(self.species_cache_dir, exist_ok=True)
 
-        logger.info("Downloading genetic map '{}' from {}".format(self.name, self.url))
+        logger.info(f"Downloading genetic map '{self.name}' from {self.url}")
         # os.rename will not work on some Unixes if the source and dest are on
         # different file systems. Keep the tempdir in the same directory as
         # the destination to ensure it's on the same file system.
@@ -108,8 +117,7 @@ class GeneticMap(object):
                     # https://docs.python.org/3.5/library/tarfile.html#tarfile.TarFile.extractall
                     if not info.isfile():
                         raise ValueError(
-                            "Tarball format error: member {} not a file".format(
-                                info.name))
+                            f"Tarball format error: member {info.name} not a file")
                 with cd(extract_dir):
                     tf.extractall()
             # If this has all gone OK up to here we can now move the

@@ -34,7 +34,7 @@ def exit(message):
     """
     Exit with the specified error message, setting error status.
     """
-    sys.exit("{}: {}".format(sys.argv[0], message))
+    sys.exit(f"{sys.argv[0]}: {message}")
 
 
 def setup_logging(args):
@@ -44,6 +44,27 @@ def setup_logging(args):
     if args.verbosity > 1:
         log_level = "DEBUG"
     daiquiri.setup(level=log_level)
+
+
+def get_species_wrapper(species_id):
+    try:
+        return stdpopsim.get_species(species_id)
+    except ValueError as ve:
+        exit(str(ve))
+
+
+def get_model_wrapper(species, model_id):
+    try:
+        return species.get_model(model_id)
+    except ValueError as ve:
+        exit(str(ve))
+
+
+def get_genetic_map_wrapper(species, genetic_map_id):
+    try:
+        return species.get_genetic_map(genetic_map_id)
+    except ValueError as ve:
+        exit(str(ve))
 
 
 def get_models_help(species_id, model_id):
@@ -63,7 +84,7 @@ def get_models_help(species_id, model_id):
     indent = " " * 4
     wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
     for model_id in models:
-        model = species.get_model(model_id)
+        model = get_model_wrapper(species, model_id)
         models_text += f"{model.id}: {model.name}\n"
         models_text += wrapper.fill(textwrap.dedent(model.description))
         models_text += "\n\n"
@@ -282,7 +303,7 @@ def add_simulate_species_parser(parser, species):
             model = stdpopsim.PiecewiseConstantSize(species.population_size)
             model.citations = species.population_size_citations
         else:
-            model = species.get_model(args.model)
+            model = get_model_wrapper(species, args.model)
         if len(args.samples) > model.num_sampling_populations:
             exit(
                 f"Cannot sample from more than {model.num_sampling_populations} "
@@ -304,6 +325,21 @@ def add_simulate_species_parser(parser, species):
     species_parser.set_defaults(runner=run_simulation)
 
 
+def run_download_genetic_maps(args):
+    species_names = [args.species]
+    if args.species is None:
+        species_names = [species.id for species in stdpopsim.all_species()]
+    for species_id in species_names:
+        species = get_species_wrapper(species_id)
+        if len(args.genetic_maps) == 0:
+            genetic_maps = [gmap.name for gmap in species.genetic_maps]
+        else:
+            genetic_maps = args.genetic_maps
+        for genetic_map_id in genetic_maps:
+            genetic_map = get_genetic_map_wrapper(species, genetic_map_id)
+            genetic_map.download()
+
+
 def stdpopsim_cli_parser():
 
     # TODO the CLI defined by this hierarchical and clumsy, but it's the best
@@ -316,17 +352,55 @@ def stdpopsim_cli_parser():
     top_parser.add_argument(
         "-v", "--verbosity", action='count', default=0,
         help="Increase the verbosity")
+    top_parser.add_argument(
+        "-c", "--cache-dir", type=str, default=None,
+        help=(
+            "Set the cache directory to the specified value. "
+            "Note that this can also be set using the environment variable "
+            "STDPOPSIM_CACHE. If both the environment variable and this "
+            "option are set, the option takes precedence. "
+            f"Default: {stdpopsim.get_cache_dir()}"))
+
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True
 
     for species in stdpopsim.all_species():
         add_simulate_species_parser(subparsers, species)
 
+    download_maps_parser = subparsers.add_parser(
+        "download-genetic-maps",
+        help="Download genetic maps",
+        description=(
+            "Download genetic maps and store them in the cache directory. "
+            "Maps are downloaded regardless of whether they are already "
+            "in the cache or not. Please use the --cache-dir option to "
+            "download maps to a specific directory. "))
+    download_maps_parser.add_argument(
+        "species", nargs="?",
+        help=(
+            "Download genetic maps for this species. If not specified "
+            "download all known genetic maps."))
+    download_maps_parser.add_argument(
+        "genetic_maps", type=str, nargs="*",
+        help=(
+            "If specified, download these genetic maps. If no maps "
+            "are provided, download all maps for this species."))
+
+    download_maps_parser.set_defaults(runner=run_download_genetic_maps)
+
     return top_parser
+
+
+# This function only exists to make mocking out the actual running of
+# the program easier.
+def run(args):
+    args.runner(args)
 
 
 def stdpopsim_main(arg_list=None):
     parser = stdpopsim_cli_parser()
     args = parser.parse_args(arg_list)
     setup_logging(args)
-    args.runner(args)
+    if args.cache_dir is not None:
+        stdpopsim.set_cache_dir(args.cache_dir)
+    run(args)
