@@ -13,6 +13,7 @@ from unittest import mock
 
 import tskit
 import msprime
+import kastore
 
 import stdpopsim
 import stdpopsim.cli as cli
@@ -29,13 +30,10 @@ def capture_output(func, *args, **kwargs):
     Runs the specified function and arguments, and returns the
     tuple (stdout, stderr) as strings.
     """
-    buffer_class = io.BytesIO
-    if sys.version_info[0] == 3:
-        buffer_class = io.StringIO
     stdout = sys.stdout
-    sys.stdout = buffer_class()
+    sys.stdout = io.StringIO()
     stderr = sys.stderr
-    sys.stderr = buffer_class()
+    sys.stderr = io.StringIO()
 
     try:
         func(*args, **kwargs)
@@ -122,37 +120,47 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
     def test_defaults(self):
         parser = cli.stdpopsim_cli_parser()
         cmd = "homsap"
-        output = "test.trees"
-        args = parser.parse_args([cmd, "2", output])
-        self.assertEqual(args.output, output)
+        args = parser.parse_args([cmd, "2"])
+        self.assertEqual(args.output, None)
         self.assertEqual(args.seed, None)
+        self.assertEqual(args.samples, [2])
+
+    def test_output(self):
+        parser = cli.stdpopsim_cli_parser()
+        cmd = "homsap"
+        output = "/stuff/tmp.trees"
+
+        args = parser.parse_args([cmd, "2", "-o", output])
+        self.assertEqual(args.output, output)
+        self.assertEqual(args.samples, [2])
+
+        args = parser.parse_args([cmd, "-o", output, "2"])
+        self.assertEqual(args.output, output)
+        self.assertEqual(args.samples, [2])
+
+        args = parser.parse_args([cmd, "--output", output, "2"])
+        self.assertEqual(args.output, output)
         self.assertEqual(args.samples, [2])
 
     def test_seed(self):
         parser = cli.stdpopsim_cli_parser()
         cmd = "homsap"
-        output = "test.trees"
-        args = parser.parse_args([cmd, "2", "-s", "1234", output])
-        self.assertEqual(args.output, output)
+        args = parser.parse_args([cmd, "2", "-s", "1234"])
         self.assertEqual(args.samples, [2])
         self.assertEqual(args.seed, 1234)
 
-        args = parser.parse_args([cmd, "2", "--seed", "14", output])
-        self.assertEqual(args.output, output)
+        args = parser.parse_args([cmd, "2", "--seed", "14"])
         self.assertEqual(args.samples, [2])
         self.assertEqual(args.seed, 14)
 
     def test_cache_dir(self):
         parser = cli.stdpopsim_cli_parser()
         cmd = "homsap"
-        output = "test.trees"
-        args = parser.parse_args(["-c", "cache_dir", cmd, "2", output])
-        self.assertEqual(args.output, output)
+        args = parser.parse_args(["-c", "cache_dir", cmd, "2"])
         self.assertEqual(args.samples, [2])
         self.assertEqual(args.cache_dir, "cache_dir")
 
-        args = parser.parse_args(["--cache-dir", "/some/cache_dir", cmd, "2", output])
-        self.assertEqual(args.output, output)
+        args = parser.parse_args(["--cache-dir", "/some/cache_dir", cmd, "2"])
         self.assertEqual(args.samples, [2])
         self.assertEqual(args.cache_dir, "/some/cache_dir")
 
@@ -164,11 +172,11 @@ class TestEndToEnd(unittest.TestCase):
     def verify(self, cmd, num_samples, seed=1):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
-            full_cmd = cmd + f" {filename} --seed={seed}"
+            full_cmd = cmd + f" -q -o {filename} --seed={seed}"
             with mock.patch("stdpopsim.cli.setup_logging"):
                 stdout, stderr = capture_output(cli.stdpopsim_main, full_cmd.split())
             self.assertEqual(len(stderr), 0)
-            self.assertGreater(len(stdout), 0)
+            self.assertEqual(len(stdout), 0)
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)
         provenance = json.loads(ts.provenance(0).record)
@@ -232,7 +240,7 @@ class TestEndToEndSubprocess(TestEndToEnd):
     def verify(self, cmd, num_samples, seed=1):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
-            full_cmd = f"{sys.executable} -m stdpopsim {cmd} {filename} -s {seed} -q"
+            full_cmd = f"{sys.executable} -m stdpopsim {cmd} -o {filename} -s {seed} -q"
             subprocess.run(full_cmd, shell=True, check=True)
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)
@@ -242,17 +250,84 @@ class TestEndToEndSubprocess(TestEndToEnd):
         self.assertEqual(stored_cmd[-1], "-q")
         self.assertEqual(stored_cmd[-2], str(seed))
         self.assertEqual(stored_cmd[-3], "-s")
-        self.assertEqual(stored_cmd[:-4], cmd.split())
+        self.assertEqual(stored_cmd[:-5], cmd.split())
         provenance = json.loads(ts.provenance(0).record)
         prov_seed = provenance["parameters"]["random_seed"]
         self.assertEqual(prov_seed, seed)
+
+
+class TestWriteOutput(unittest.TestCase):
+    """
+    Tests the paths through the write_output function.
+    """
+    def test_stdout(self):
+        ts = msprime.simulate(10, random_seed=2)
+        parser = cli.stdpopsim_cli_parser()
+        args = parser.parse_args(["aratha", "2"])
+        with mock.patch("shutil.copyfileobj") as mocked_copy:
+            cli.write_output(ts, args)
+            mocked_copy.assert_called_once()
+
+    def test_to_file(self):
+        ts = msprime.simulate(10, random_seed=2)
+        parser = cli.stdpopsim_cli_parser()
+        output_file = "mocked.trees"
+        args = parser.parse_args(["homsap", "2", "-o", output_file])
+        with mock.patch("tskit.TreeSequence.dump") as mocked_dump:
+            cli.write_output(ts, args)
+            mocked_dump.assert_called_once_with(output_file)
+
+
+class TestRedirection(unittest.TestCase):
+    """
+    Tests that the tree sequence file we get from redirecting is identical to the
+    the one we get from using the --output option.
+    """
+    def verify_files(self, filename1, filename2):
+
+        tables1 = tskit.load(filename1).dump_tables()
+        tables2 = tskit.load(filename2).dump_tables()
+        tables1.provenances.clear()
+        tables2.provenances.clear()
+        self.assertEqual(tables1, tables2)
+
+        # Load the files into kastore to do some extra checks.
+        with kastore.load(filename1) as store1, kastore.load(filename2) as store2:
+            self.assertEqual(set(store1.keys()), set(store2.keys()))
+
+    def verify(self, cmd):
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            filename1 = pathlib.Path(tmpdir) / "output1.trees"
+            full_cmd = f"{sys.executable} -m stdpopsim {cmd} -o {filename1}"
+            result = subprocess.run(
+                full_cmd, shell=True, check=True, stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE)
+            self.assertEqual(len(result.stdout), 0)
+
+            filename2 = pathlib.Path(tmpdir) / "output2.trees"
+            full_cmd = f"{sys.executable} -m stdpopsim {cmd}"
+            with open(filename2, "wb") as output:
+                subprocess.run(
+                    full_cmd, shell=True, check=True, stdout=output,
+                    stderr=subprocess.PIPE)
+
+            self.verify_files(filename1, filename2)
+
+    def test_quiet(self):
+        cmd = "homsap -q -s 2 10 -c chr22 -l 0.001"
+        self.verify(cmd)
+
+    def test_no_quiet(self):
+        cmd = "homsap -s 3 10 -c chr22 -l 0.001"
+        self.verify(cmd)
 
 
 class TestSetupLogging(unittest.TestCase):
     """
     Tests that setup logging has the desired effect.
     """
-    basic_cmd = ["homsap", "10", "tmp.trees"]
+    basic_cmd = ["homsap", "10"]
 
     def test_default(self):
         parser = cli.stdpopsim_cli_parser()
@@ -306,16 +381,16 @@ class TestErrors(unittest.TestCase):
             mocked_exit.assert_called_once()
 
     def test_default(self):
-        self.verify_bad_samples("homsap -q 2 3 tmp.trees")
+        self.verify_bad_samples("homsap -q 2 3 ")
 
     def test_tennessen_model(self):
-        self.verify_bad_samples("homsap  -q -m ooa_2 2 3 4 tmp.trees")
+        self.verify_bad_samples("homsap  -q -m ooa_2 2 3 4")
 
     def test_gutenkunst_three_pop_ooa(self):
-        self.verify_bad_samples("homsap -q -m ooa_3 2 3 4 5 tmp.trees")
+        self.verify_bad_samples("homsap -q -m ooa_3 2 3 4 5")
 
     def test_browning_america(self):
-        self.verify_bad_samples("homsap -q -m america 2 3 4 5 6 tmp.trees")
+        self.verify_bad_samples("homsap -q -m america 2 3 4 5 6")
 
 
 class TestHelp(unittest.TestCase):
@@ -352,20 +427,20 @@ class TestWriteCitations(unittest.TestCase):
         species = stdpopsim.get_species("homsap")
         model = species.get_model("ooa_3")
         stdout, stderr = capture_output(cli.write_citations, contig, model)
-        self.assertEqual(len(stderr), 0)
+        self.assertEqual(len(stdout), 0)
         # TODO Parse out the output for the model and check that the text is
         # in there.
-        self.assertGreater(len(stdout), 0)
+        self.assertGreater(len(stderr), 0)
 
     def test_genetic_map(self):
         species = stdpopsim.get_species("homsap")
         contig = species.get_contig("chr22", genetic_map="HapmapII_GRCh37")
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         stdout, stderr = capture_output(cli.write_citations, contig, model)
-        self.assertEqual(len(stderr), 0)
+        self.assertEqual(len(stdout), 0)
         # TODO Parse out the output for the model and check that the text is
         # in there.
-        self.assertGreater(len(stdout), 0)
+        self.assertGreater(len(stderr), 0)
 
 
 class TestCacheDir(unittest.TestCase):
@@ -388,12 +463,12 @@ class TestCacheDir(unittest.TestCase):
 
     def test_homsap_simulation(self):
         cache_dir = "/some/cache/dir"
-        cmd = f"-c {cache_dir} homsap 2 tmp.trees"
+        cmd = f"-c {cache_dir} homsap 2 -o tmp.trees"
         self.check_cache_dir_set(cmd, cache_dir)
 
     def test_dromel_simulation(self):
         cache_dir = "cache_dir"
-        cmd = f"--cache-dir {cache_dir} dromel 2 tmp.trees"
+        cmd = f"--cache-dir {cache_dir} dromel 2 -o tmp.trees"
         self.check_cache_dir_set(cmd, cache_dir)
 
     def test_download_genetic_maps(self):
