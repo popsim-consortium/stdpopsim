@@ -420,7 +420,8 @@ def add_simulate_species_parser(parser, species):
         if not args.dry_run:
             ts = engine.simulate(**kwargs)
             summarise_usage()
-            write_output(ts, args)
+            if ts is not None:
+                write_output(ts, args)
         if not args.quiet:
             write_citations(engine, model, contig, species)
         if args.bibtex_file is not None:
