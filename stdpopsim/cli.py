@@ -380,7 +380,8 @@ def add_simulate_species_parser(parser, species):
         kwargs.update(model=model, contig=contig, samples=samples)
         ts = engine.simulate(**kwargs)
         summarise_usage()
-        write_output(ts, args)
+        if ts is not None:
+            write_output(ts, args)
         if not args.quiet:
             write_citations(engine, model, contig)
 
