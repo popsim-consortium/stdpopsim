@@ -99,3 +99,7 @@ class TestGutenkunstThreePopOutOfAfrica(unittest.TestCase, test_models.ModelTest
 
 class TestSchiffelsZigzag(unittest.TestCase, test_models.ModelTestMixin):
     model = homo_sapiens._SchiffelsZigzag()
+
+
+class TestKammAncientEurasia(unittest.TestCase, test_models.ModelTestMixin):
+    model = homo_sapiens._KammAncientEurasia()

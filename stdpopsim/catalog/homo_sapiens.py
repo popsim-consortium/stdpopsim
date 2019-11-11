@@ -752,3 +752,223 @@ class _SchiffelsZigzag(HomoSapiensModel):
 
 
 _species.add_model(_SchiffelsZigzag())
+
+
+class _KammAncientEurasia(HomoSapiensModel):
+    id = "kamm_ancient_eurasia"
+    name = "Multi-population model of ancient Eurasia (Kamm et al. 2019)"
+    description = """
+        This is the best-fitting model of a history of
+        multiple ancient and present-day human populations
+        sampled across Eurasia over the past 120,000 years.
+        The fitting was performed using momi2 (Kamm et al. 2019),
+        which uses the multi-population site-frequency spectrum
+        as input data. The model includes a ghost admixture event
+        (from unsampled basal Eurasians into early European
+        farmers), and two admixture events where the source is
+        approximately well-known (from Neanderthals into
+        Non-Africans and from Western European hunter-gatherers
+        into modern Sardinians. There are three present-day
+        populations: Sardinians, Han Chinese and African Mbuti.
+        Additionally, there are several ancient samples
+        obtained from fossils dated at different times in
+        the past: the Altai Neanderthal (Prufer et al. 2014),
+        a Mesolithic hunter-gatherer (Lazaridis et al. 2014),
+        a Neolithic early European sample (Lazaridis et al. 2014),
+        and two Palaeolithic modern humans from Siberia - MA1
+        (Raghavan et al. 2014) and  Ust'Ishim (Fu et al. 2014).
+        All the ancient samples are represented by a single diploid
+        genome.
+    """
+    populations = [
+        stdpopsim.Population(name="Mbuti",
+                             description="Present-day African Mbuti"),
+        stdpopsim.Population(name="BasalEurasian",
+                             description="Basal Eurasians",
+                             allow_samples=False),
+        stdpopsim.Population(name="LBK",
+                             description="Early European farmer (EEF)"),
+        stdpopsim.Population(name="Sardinian",
+                             description="Present-day Sardinian"),
+        stdpopsim.Population(name="Loschbour",
+                             description="Western hunter-gatherer (WHG)"),
+        stdpopsim.Population(name="MA1",
+                             description="Upper Palaeolithic MAl'ta culture"),
+        stdpopsim.Population(name="Han",
+                             description="Present-day Han Chinese"),
+        stdpopsim.Population(name="UstIshim",
+                             description="early Palaeolithic Ust'-Ishim"),
+        stdpopsim.Population(name="Neanderthal",
+                             description="Altai Neanderthal from Siberia")
+    ]
+    citations = [
+        stdpopsim.Citation(
+            author="Kamm et al.",
+            year=2019,
+            doi="https://doi.org/10.1080/01621459.2019.1635482")
+    ]
+
+    def __init__(self):
+        super().__init__()
+        # Times are provided in years, so we convert into generations.
+        self.generation_time = 29
+        # Mutation_rate = 1.22e-8
+        # Effective population sizes
+        N_Losch = 1920
+        N_Mbu = 17300
+        N_Mbu_Losch = 29100
+        N_Han = 6300
+        N_Han_Losch = 2340
+        N_Nean_Losch = 18200
+        N_Nean = 86.9
+        N_LBK = 75.7
+        N_Sard = 15000
+        N_Sard_LBK = 1200
+        # Unknown but inferred...
+        N_Basal = N_Losch
+        N_MA1 = N_Losch
+        N_Ust = N_Losch
+        t_NeaPopSizeChange = 200000 / self.generation_time
+        # Note that the original Kamm et al. model has the
+        # Altai Neanderthal as sampled *after* the Nea->NonAfr
+        # admixture event. Due to re-dating of the Altai Neanderthal
+        # sample, we now know that the sampling happened much earlier
+        # The new date is the one specified in this particular
+        # implementation of the model.
+        # Population split times
+        t_Mbu_Losch = 95800 / self.generation_time
+        t_Han_Losch = 50400 / self.generation_time
+        t_Ust_Losch = 51500 / self.generation_time
+        t_Nean_Losch = 696000 / self.generation_time
+        t_MA1_Losch = 44900 / self.generation_time
+        t_LBK_Losch = 37700 / self.generation_time
+        t_Basal_Losch = 79800 / self.generation_time
+        t_Sard_LBK = 7690 / self.generation_time
+        # Given that we're using best model estimate,
+        # ghost WHG is directly descended from Loschbour,
+        # so this parameter is not used
+        # t_GhostWHG_Losch = 1560 / self.generation_time
+        # Admixture times
+        t_Nean_to_Eurasian = 56800 / self.generation_time
+        t_Basal_to_EEF = 33700 / self.generation_time
+        t_GhostWHG_to_Sard = 1230 / self.generation_time
+        # Sampling times (obtained from literature).
+        # NOTE: at the moment, these sampling times are not
+        # directly implemented in the model. Be careful with
+        # obtaining present-day samples from populations
+        # that no longer exist in the present.
+        # samp_Mbuti = 0
+        # samp_LBK = 7000 / self.generation_time
+        # samp_Sard = 0
+        # samp_Losch = 8000 / self.generation_time
+        # samp_MA1 = 24000 / self.generation_time
+        # samp_Han = 0
+        # samp_Ust = 45000 / self.generation_time
+        # samp_Nea = 120000 / self.generation_time
+        # Admixture proportions
+        p_Nean_to_Eurasian = 0.0296
+        p_Basal_to_EEF = 0.0936
+        p_GhostWHG_to_Sard = 0.0317
+        self.migration_matrix = [
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+        # Population IDs: Mbuti = 0; Basal Eurasian = 1;
+        # LBK = 2; Sardinian = 3; Loschbour = 4
+        # MA1 = 5; Han = 6; Ust Ishim = 7; Neanderthal = 8
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N_Mbu, metadata=self.populations[0].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_Basal, metadata=self.populations[1].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_LBK, metadata=self.populations[2].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_Sard, metadata=self.populations[3].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_Losch, metadata=self.populations[4].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_MA1, metadata=self.populations[5].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_Han, metadata=self.populations[6].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_Ust, metadata=self.populations[7].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N_Nean, metadata=self.populations[8].asdict())
+        ]
+        self.demographic_events = [
+            # Sardinian receives admixture from Loschbour / WHG
+            msprime.MassMigration(
+                time=t_GhostWHG_to_Sard, source=3, destination=4,
+                proportion=p_GhostWHG_to_Sard),
+            # Sardinian merges into LBK / EEF
+            msprime.MassMigration(
+                time=t_Sard_LBK, source=3, destination=2,
+                proportion=1.0),
+            # Sardinian-LBK ancestral pop size change
+            msprime.PopulationParametersChange(
+                time=t_Sard_LBK, initial_size=N_Sard_LBK,
+                population_id=2),
+            # LBK / EEF receives admixture from Basal Eurasians
+            msprime.MassMigration(
+                time=t_Basal_to_EEF, source=2, destination=1,
+                proportion=p_Basal_to_EEF),
+            # LBK / EEF merges into Loschbour
+            msprime.MassMigration(
+                time=t_LBK_Losch, source=2, destination=4,
+                proportion=1.0),
+            # MA1 merges into Loschbour
+            msprime.MassMigration(
+                time=t_MA1_Losch, source=5, destination=4,
+                proportion=1.0),
+            # Han merges into Loschbour
+            msprime.MassMigration(
+                time=t_Han_Losch, source=6, destination=4,
+                proportion=1.0),
+            # Change in population size in Han-Losch ancestral pop
+            msprime.PopulationParametersChange(
+                time=t_Han_Losch, initial_size=N_Han_Losch,
+                population_id=4),
+            # UstIshim merges into Loschbour
+            msprime.MassMigration(
+                time=t_Ust_Losch, source=7, destination=4,
+                proportion=1.0),
+            # Loschbour / Non-Africans receive admixture from Neanderthals
+            msprime.MassMigration(
+                time=t_Nean_to_Eurasian, source=4, destination=8,
+                proportion=p_Nean_to_Eurasian),
+            # Basal Eurasians merge into Loschbour / Non-Africans
+            msprime.MassMigration(
+                time=t_Basal_Losch, source=1, destination=4,
+                proportion=1.0),
+            # Mbuti merge into Loschbour / Non-Africans
+            msprime.MassMigration(
+                time=t_Mbu_Losch, source=0, destination=4,
+                proportion=1.0),
+            # Change in population size in Mbuti-Losch ancestral pop
+            msprime.PopulationParametersChange(
+                time=t_Mbu_Losch, initial_size=N_Mbu_Losch,
+                population_id=4),
+            # Neanderthal change population size
+            msprime.PopulationParametersChange(
+                time=t_NeaPopSizeChange, initial_size=N_Nean_Losch,
+                population_id=8),
+            # Neanderthal merge into Loschbour / modern humans
+            msprime.MassMigration(
+                time=t_Nean_Losch, source=8, destination=4,
+                proportion=1.0),
+            # Ancestral hominin population size change
+            msprime.PopulationParametersChange(
+                time=t_Nean_Losch, initial_size=N_Nean_Losch,
+                population_id=4),
+        ]
+
+
+_species.add_model(_KammAncientEurasia())
