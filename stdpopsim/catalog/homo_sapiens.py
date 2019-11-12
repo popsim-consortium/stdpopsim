@@ -774,17 +774,17 @@ class _KammAncientEurasia(HomoSapiensModel):
         stdpopsim.Population(name="Mbuti",
                              description="Present-day African Mbuti",
                              sampling_time=0),
-        # LBK: 7,000 years ago
+        # LBK: 8,000 years ago
         stdpopsim.Population(name="LBK",
                              description="Early European farmer (EEF)",
-                             sampling_time=280),
+                             sampling_time=320),
         stdpopsim.Population(name="Sardinian",
                              description="Present-day Sardinian",
                              sampling_time=0),
-        # Loschbour: 8,000 years ago
+        # Loschbour: 7,500 years ago
         stdpopsim.Population(name="Loschbour",
                              description="Western hunter-gatherer (WHG)",
-                             sampling_time=320),
+                             sampling_time=300),
         # MA1: 24,000 years ago
         stdpopsim.Population(name="MA1",
                              description="Upper Palaeolithic MAl'ta culture",
@@ -796,11 +796,10 @@ class _KammAncientEurasia(HomoSapiensModel):
         stdpopsim.Population(name="UstIshim",
                              description="early Palaeolithic Ust'-Ishim",
                              sampling_time=1800),
-        # Altai Neanderthal: 45,000 years ago
-        # Note: this date is incorrect but used in Kamm et al.
+        # Altai Neanderthal: 50,000 years ago
         stdpopsim.Population(name="Neanderthal",
                              description="Altai Neanderthal from Siberia",
-                             sampling_time=1800),
+                             sampling_time=2000),
         stdpopsim.Population(name="BasalEurasian",
                              description="Basal Eurasians",
                              sampling_time=None),
@@ -827,9 +826,9 @@ class _KammAncientEurasia(HomoSapiensModel):
         N_Nean = 86.9
         N_LBK = 75.7
         N_Sard = 15000
-        N_Sard_LBK = 1200
-        # Nea pop size change 45,000 years ago (Jack Kamm pers comm)
-        t_NeaPopSizeChange = 45000 / self.generation_time
+        N_Sard_LBK = 12000
+        # Table A.1 has Altai at 50,000 years ago
+        t_NeaPopSizeChange = 50000 / self.generation_time
         # Unknown but suspected parameters...
         N_Basal = N_Losch
         N_MA1 = N_Losch
@@ -851,7 +850,7 @@ class _KammAncientEurasia(HomoSapiensModel):
         t_Nean_to_Eurasian = 56800 / self.generation_time
         t_Basal_to_EEF = 33700 / self.generation_time
         t_GhostWHG_to_Sard = 1230 / self.generation_time
-        t_NeanGrowth = t_Nean_Losch - t_NeaPopSizeChange
+        t_NeanGrowth = t_Mbu_Losch - t_NeaPopSizeChange
         logdiffNeanGrowth = math.log(N_Nean/N_Nean_Losch)
         r_NeanGrowth = logdiffNeanGrowth / t_NeanGrowth
         p_Nean_to_Eurasian = 0.0296
@@ -950,6 +949,10 @@ class _KammAncientEurasia(HomoSapiensModel):
             msprime.PopulationParametersChange(
                 time=t_Mbu_Losch, initial_size=N_Mbu_Losch,
                 population_id=3),
+            # Change in population size in Neanderthal, growth rate 0
+            msprime.PopulationParametersChange(
+                time=t_Mbu_Losch, initial_size=N_Nean_Losch, growth_rate=0,
+                population_id=7),
             # Neanderthal merge into Loschbour / modern humans
             msprime.MassMigration(
                 time=t_Nean_Losch, source=7, destination=3,
