@@ -114,6 +114,41 @@ class HelpModels(argparse.Action):
         parser.exit()
 
 
+def get_genetic_maps_help(species_id, genetic_map_id):
+    """
+    Generate help text for the given genetic map. If map_id is None, generate
+    help for all genetic maps. Otherwise, it must be a string with a valid map
+    ID.
+    """
+    species = stdpopsim.get_species(species_id)
+    if genetic_map_id is None:
+        maps_text = f"\nAll genetic maps for {species.name}\n\n"
+        maps = [genetic_map.name for genetic_map in species.genetic_maps]
+    else:
+        maps = [genetic_map_id]
+        maps_text = f"\nGenetic map description\n\n"
+
+    indent = " " * 4
+    wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
+    for map_id in maps:
+        map = get_genetic_map_wrapper(species, map_id)
+        maps_text += f"{map.name}\n"
+        maps_text += wrapper.fill(textwrap.dedent(map.description))
+        maps_text += "\n\n"
+
+    return maps_text
+
+
+class HelpGeneticMaps(argparse.Action):
+    """
+    Action used to produce genetic map help text.
+    """
+    def __call__(self, parser, namespace, values, option_string=None):
+        help_text = get_genetic_maps_help(namespace.species, values)
+        print(help_text, file=sys.stderr)
+        parser.exit()
+
+
 def get_environment():
     """
     Returns a dictionary describing the environment in which stdpopsim
@@ -251,13 +286,22 @@ def add_simulate_species_parser(parser, species):
             "Print descriptions of simulation models and exit. If a model ID "
             "is provided as an argument show help for this model; otherwise "
             "show help for all available models"))
-    species_parser.add_argument(
-        "-q", "--quiet", action='store_true',
-        help="Do not write out citation information")
 
     # Set metavar="" to prevent help text from writing out the explicit list
     # of options, which can be too long and ugly.
     choices = [gm.name for gm in species.genetic_maps]
+    if len(species.genetic_maps) > 0:
+        species_parser.add_argument(
+            "--help-genetic-maps", action=HelpGeneticMaps, nargs="?",
+            help=(
+                "Print list of genetic maps and exit. If a genetic map ID is "
+                "given as an argument, show help for this map. Otherwise show "
+                "help for all available genetic maps"))
+
+    species_parser.add_argument(
+        "-q", "--quiet", action='store_true',
+        help="Do not write out citation information")
+
     if len(species.genetic_maps) > 0:
         species_parser.add_argument(
             "-g", "--genetic-map",

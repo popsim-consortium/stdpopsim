@@ -417,6 +417,14 @@ class TestHelp(unittest.TestCase):
         for species in stdpopsim.all_species():
             self.run_stdpopsim(f"{species} --help-models")
 
+    def test_homsap_genetic_maps_help(self):
+        self.run_stdpopsim("homsap --help-genetic-maps")
+        self.run_stdpopsim("homsap --help-genetic-maps HapmapII_GRCh37")
+
+    def test_all_species_genetic_maps_help(self):
+        for species in stdpopsim.all_species():
+            self.run_stdpopsim(f"{species} --help-genetic-maps")
+
 
 class TestWriteCitations(unittest.TestCase):
     """
