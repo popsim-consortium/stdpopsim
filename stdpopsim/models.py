@@ -235,8 +235,11 @@ class Model(object):
         return ts
 
 
-# Resuable generic population
+# Reusable generic populations
 _pop0 = Population(name="pop0", description="Generic population")
+_pop1 = Population(name="pop1", description="Generic population")
+_popAnc = Population(name="popAnc", description="Generic ancestral population",
+                     allow_samples=False)
 
 
 class PiecewiseConstantSize(Model):
@@ -259,3 +262,41 @@ class PiecewiseConstantSize(Model):
         for t, N in args:
             self.demographic_events.append(msprime.PopulationParametersChange(
                 time=t, initial_size=N, growth_rate=0, population_id=0))
+
+
+class GenericIM(Model):
+    """
+    Takes parameters N1, N2, NA, T, M12, and M21, as list of arguments:
+    (N1, N2, NA, T, M12, M21).
+    Sampling is disallowed in the ancestral population, which has index 2.
+    """
+    id = "IM"
+    name = "Isolation with migration"
+    description = """
+        A generic isolation with migration model where a single ancestral
+        population of size NA splits into two populations of constant size N1
+        and N2 time T generations ago, with migration rates M12 and M21 between
+        the split populations.
+        """
+    citations = []
+    populations = [_pop0, _pop1, _popAnc]
+    author = None
+    year = None
+    doi = None
+
+    def __init__(self, N1, N2, NA, T, M12, M21):
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N1, metadata=self.populations[0].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=N2, metadata=self.populations[1].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=NA, metadata=self.populations[2].asdict())
+        ]
+        self.migration_matrix = [[0, M12, 0], [M21, 0, 0], [0, 0, 0]]
+        self.demographic_events = [
+            msprime.MassMigration(
+                time=T, source=0, destination=2, proportion=1),
+            msprime.MassMigration(
+                time=T, source=1, destination=2, proportion=1)
+        ]

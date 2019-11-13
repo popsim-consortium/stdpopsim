@@ -381,3 +381,29 @@ class TestPiecewiseConstantSize(unittest.TestCase):
         self.assertEqual(event.time, 0.2)
         self.assertEqual(event.initial_size, 100)
         self.assertEqual(event.growth_rate, 0)
+
+
+class TestGenericIM(unittest.TestCase):
+    """
+    Tests for the generic IM model.
+    """
+    def test_pop_configs(self):
+        model = models.GenericIM(100, 200, 300, 50, 0, 0)
+        self.assertEqual(len(model.population_configurations), 3)
+        self.assertEqual(model.population_configurations[0].initial_size, 100)
+        self.assertEqual(model.population_configurations[1].initial_size, 200)
+        self.assertEqual(model.population_configurations[2].initial_size, 300)
+
+    def test_split(self):
+        model = models.GenericIM(100, 200, 300, 50, 0, 0)
+        self.assertEqual(len(model.demographic_events), 2)
+        self.assertEqual(model.demographic_events[0].time, 50)
+        self.assertEqual(model.demographic_events[1].time, 50)
+
+    def test_migration_rates(self):
+        model = models.GenericIM(100, 200, 300, 50, 0.002, 0.003)
+        self.assertEqual(np.shape(model.migration_matrix), (3, 3))
+        self.assertEqual(model.migration_matrix[0][1], 0.002)
+        self.assertEqual(model.migration_matrix[1][0], 0.003)
+        # check these are the only two nonzero entries in the migration matrix
+        self.assertEqual(np.sum(np.array(model.migration_matrix) != 0), 2)
