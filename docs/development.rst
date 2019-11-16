@@ -9,23 +9,39 @@ following. If you think there is anything missing,
 please open an `issue <http://github.com/popgensims/stdpopsim/issues>`_ or
 `pull request <http://github.com/popgensims/stdpopsim/pulls>`_ on GitHub!
 
-********
-Overview
-********
+************
+Installation
+************
 
-The ``stdpopsim`` library requires Python 3.4 or later. For ``pip`` users,
-install the packages required for development using::
+Before installing, be sure to make a fork of the repo and clone it locally
+following the instructions in the `GitHub Workflow`_.
+
+The ``stdpopsim`` library requires Python 3.4 or later.
+
+For ``pip`` users, install the packages required for development using::
 
     $ python3 -m pip install -r requirements/development.txt
 
-We do require ``msprime``, so please see the the `installation notes
-<https://msprime.readthedocs.io/en/stable/installation.html>`_ if you
-encounter problems with it. Conda users will need to add the `conda-forge`
-channel to their conda environment and then should be able to install the
-development requirements using::
+
+
+For ``conda`` users, you will need to add the conda-forge channel to your conda
+environment and then should be able to install the development requirements using::
 
     $ conda config --add channels conda-forge
     $ conda install --file=requirements/development.txt
+
+
+We do require ``msprime``, so please see the the `installation notes
+<https://msprime.readthedocs.io/en/stable/installation.html>`_ if you
+encounter problems with it.
+
+.. Note:: If you have trouble installing any of the requirements, your ``pip`` may be the wrong version.
+    Try ``pip3 install -r requirements/development.txt``
+
+.. Warning:: The dependency ``daiquiri`` is not currently a conda package.
+    So, ``conda install`` will fail.
+    See the `GitHub issue
+    <https://github.com/popgensims/stdpopsim/issues/161>`_
 
 ***************
 GitHub workflow
