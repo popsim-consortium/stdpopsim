@@ -50,6 +50,7 @@ Using a Virtual Environment
 We encourage the use of a virtual environment.
 
 For ``pip``, you can use ``venv``.
+
 First, create the virtual environment (You only need to do this once)::
 
     $ python3 -m venv stdpopsim_env
