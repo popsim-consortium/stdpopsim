@@ -43,6 +43,36 @@ encounter problems with it.
     See the `GitHub issue
     <https://github.com/popgensims/stdpopsim/issues/161>`_
 
+---------------------------
+Using a Virtual Environment
+---------------------------
+
+We encourage the use of a virtual environment.
+
+For ``pip``, you can use ``venv``.
+First, create the virtual environment (You only need to do this once)::
+
+    $ python3 -m venv stdpopsim_env
+
+Next, activate the virtual environment::
+
+    $ source stdpopsim_env/bin/activate
+
+You will then see the virtual environment in your prompt. Like so::
+
+    (stdpopsim_env) $
+
+Once the virtual environment is activated, install the requirements::
+
+    (stdpopsim_env) $ python3 -m pip install -r requirements/development.txt
+
+You can then run any of the code in the virtual environment with the packages installed,
+without conflicting with other packages in your local environment.
+To deactivate the virtual environment::
+
+    (stdpopsim_env) $ deactivate
+
+
 ***************
 GitHub workflow
 ***************
