@@ -128,7 +128,7 @@ class Population(object):
 
 class Model(object):
     """
-    Class representating a simulation model that can be run to output a tree sequence.
+    Class representing a simulation model that can be run to output a tree sequence.
     Concrete subclasses must define population_configurations, demographic_events
     and migration_matrix instance variables which define the model.
 
@@ -243,6 +243,24 @@ _popAnc = Population(name="popAnc", description="Generic ancestral population",
 
 
 class PiecewiseConstantSize(Model):
+    """
+    Class representing a generic simulation model that can be run to output a
+    tree sequence. This is a piecewise constant size model, which allows for
+    instantaneous population size change over multiple epochs in a single population.
+
+    :ivar N0: The initial effective population size
+    :vartype N0: float
+    :ivar args: Each subsequent argument is a tuple (t, N) which gives the
+        time at which the size change takes place and the population size.
+
+    The usage is best illustrated by an example:
+
+    .. code-block:: python
+
+        model1 = stdpopsim.PiecewiseConstantSize(N0, (t1, N1)) # One change
+        model2 = stdpopsim.PiecewiseConstantSize(N0, (t1, N1), (t2, N2)) # Two changes
+    """
+
     id = "constant"
     name = "Piecewise constant size"
     description = "Piecewise constant size population model over multiple epochs."
@@ -266,10 +284,33 @@ class PiecewiseConstantSize(Model):
 
 class GenericIM(Model):
     """
-    Takes parameters N0, N1, N2, T, M12, and M21, as list of arguments:
-    (NA, N1, N2, T, M12, M21).
-    Sampling is disallowed in population index 0, as this is the ancestral
-    population.
+    Class representing a generic simulation model that can be run to output a tree
+    sequence. A generic isolation with migration model where a single ancestral
+    population of size NA splits into two populations of constant size N1
+    and N2 time T generations ago, with migration rates M12 and M21 between
+    the split populations. Sampling is disallowed in population index 0,
+    as this is the ancestral population.
+
+    :ivar NA: The initial ancestral effective population size
+    :vartype NA: float
+    :ivar N1: The effective population size of population 1
+    :vartype N1: float
+    :ivar N2: The effective population size of population 2
+    :vartype N2: float
+    :ivar T: Time of split between populations 1 and 2 (in generations)
+    :vartype T: float
+    :ivar M12: Migration rate from population 1 to 2
+    :vartype M12: float
+    :ivar M21: Migration rate from population 2 to 1
+    :vartype M21: float
+
+
+    Example usage:
+
+    .. code-block:: python
+
+        model1 = stdpopsim.GenericIM(NA, N1, N2, T, M12, M21)
+
     """
     id = "IM"
     name = "Isolation with migration"
