@@ -811,7 +811,7 @@ class _KammAncientEurasia(HomoSapiensModel):
     def __init__(self):
         super().__init__()
         # Times are provided in years, so we convert into generations.
-        self.generation_time = 29
+        self.generation_time = 25
         # Mutation_rate = 1.22e-8
         # Effective population sizes
         N_Losch = 1920
@@ -824,11 +824,12 @@ class _KammAncientEurasia(HomoSapiensModel):
         N_LBK = 75.7
         N_Sard = 15000
         N_Sard_LBK = 1200
-        # Unknown but inferred...
+        # Jack Kamm says this is 45,000 years ago (pers comm)
+        t_NeaPopSizeChange = 45000 / self.generation_time
+        # Unknown but suspected parameters...
         N_Basal = N_Losch
         N_MA1 = N_Losch
         N_Ust = N_Losch
-        t_NeaPopSizeChange = 200000 / self.generation_time
         # Note that the original Kamm et al. model has the
         # Altai Neanderthal as sampled *after* the Nea->NonAfr
         # admixture event. Due to re-dating of the Altai Neanderthal
@@ -852,11 +853,16 @@ class _KammAncientEurasia(HomoSapiensModel):
         t_Nean_to_Eurasian = 56800 / self.generation_time
         t_Basal_to_EEF = 33700 / self.generation_time
         t_GhostWHG_to_Sard = 1230 / self.generation_time
+        t_NeanGrowth = t_Nean_Losch - t_NeaPopSizeChange
+        logdiffNeanGrowth = math.log(N_Nean/N_Nean_Losch)
+        r_NeanGrowth = logdiffNeanGrowth / t_NeanGrowth
         # Sampling times (obtained from literature).
         # NOTE: at the moment, these sampling times are not
         # directly implemented in the model. Be careful with
         # obtaining present-day samples from populations
-        # that no longer exist in the present.
+        # that no longer exist in the present. The
+        # Nea sampling time has since been corrected
+        # but we're using the one known at the time.
         # samp_Mbuti = 0
         # samp_LBK = 7000 / self.generation_time
         # samp_Sard = 0
@@ -864,7 +870,7 @@ class _KammAncientEurasia(HomoSapiensModel):
         # samp_MA1 = 24000 / self.generation_time
         # samp_Han = 0
         # samp_Ust = 45000 / self.generation_time
-        # samp_Nea = 120000 / self.generation_time
+        # samp_Nea = 45000 / self.generation_time
         # Admixture proportions
         p_Nean_to_Eurasian = 0.0296
         p_Basal_to_EEF = 0.0936
@@ -928,6 +934,10 @@ class _KammAncientEurasia(HomoSapiensModel):
             msprime.MassMigration(
                 time=t_MA1_Losch, source=5, destination=4,
                 proportion=1.0),
+            # Neanderthal start change in population size
+            msprime.PopulationParametersChange(
+                time=t_NeaPopSizeChange, initial_size=N_Nean,
+                growth_rate=r_NeanGrowth, population_id=8),
             # Han merges into Loschbour
             msprime.MassMigration(
                 time=t_Han_Losch, source=6, destination=4,
@@ -956,10 +966,6 @@ class _KammAncientEurasia(HomoSapiensModel):
             msprime.PopulationParametersChange(
                 time=t_Mbu_Losch, initial_size=N_Mbu_Losch,
                 population_id=4),
-            # Neanderthal change population size
-            msprime.PopulationParametersChange(
-                time=t_NeaPopSizeChange, initial_size=N_Nean_Losch,
-                population_id=8),
             # Neanderthal merge into Loschbour / modern humans
             msprime.MassMigration(
                 time=t_Nean_Losch, source=8, destination=4,
