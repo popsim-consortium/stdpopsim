@@ -50,3 +50,4 @@ these models.
 
 .. autoclass:: stdpopsim.PiecewiseConstantSize
 
+.. autoclass:: stdpopsim.GenericIM
