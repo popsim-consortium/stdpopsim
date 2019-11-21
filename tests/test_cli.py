@@ -434,7 +434,9 @@ class TestWriteCitations(unittest.TestCase):
         contig = stdpopsim.Contig()
         species = stdpopsim.get_species("homsap")
         model = species.get_model("ooa_3")
-        stdout, stderr = capture_output(cli.write_citations, contig, model)
+        engine = stdpopsim.get_default_engine()
+        stdout, stderr = capture_output(
+                cli.write_citations, engine, model, contig)
         self.assertEqual(len(stdout), 0)
         # TODO Parse out the output for the model and check that the text is
         # in there.
@@ -444,7 +446,9 @@ class TestWriteCitations(unittest.TestCase):
         species = stdpopsim.get_species("homsap")
         contig = species.get_contig("chr22", genetic_map="HapmapII_GRCh37")
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
-        stdout, stderr = capture_output(cli.write_citations, contig, model)
+        engine = stdpopsim.get_default_engine()
+        stdout, stderr = capture_output(
+                cli.write_citations, engine, model, contig)
         self.assertEqual(len(stdout), 0)
         # TODO Parse out the output for the model and check that the text is
         # in there.

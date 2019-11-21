@@ -51,3 +51,18 @@ these models.
 .. autoclass:: stdpopsim.PiecewiseConstantSize
 
 .. autoclass:: stdpopsim.GenericIM
+
+
+*****************
+Simulation Engine
+*****************
+
+Support for additional simulation engines can be implemented by subclassing
+the abstract :class:`.Engine` class, and registering an instance of the
+subclass with :func:`.register_engine`.
+These are usually not intended to be instantiated directly, but should be
+accessed through the main entrypoint, :func:`.get_engine`.
+
+.. autoclass:: stdpopsim.Engine
+    :members:
+

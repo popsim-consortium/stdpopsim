@@ -14,6 +14,7 @@ from . species import *  # NOQA
 from . genomes import *  # NOQA
 from . cache import *  # NOQA
 from . citations import *  # NOQA
+from . engines import * # NOQA
 
 # We import these here to build the catalog, but the internal classes
 # defined are not part of the external API.

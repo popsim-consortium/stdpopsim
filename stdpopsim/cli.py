@@ -217,7 +217,7 @@ def write_output(ts, args):
         ts.dump(args.output)
 
 
-def write_citations(contig, model):
+def write_citations(engine, model, contig):
     """
     Write out citation information so that the user knows what papers to cite
     for the simulation engine, the model and the mutation/recombination rate
@@ -231,9 +231,10 @@ def write_citations(contig, model):
     printerr("******************")
     printerr("Simulation engine:")
     printerr("******************")
-    printerr(
-        "\tmsprime: Kelleher et al. 2016: "
-        "https://doi.org/10.1371/journal.pcbi.1004842")
+    printerr(f"{engine.name}:")
+    for citation in engine.citations:
+        printerr(f"\t{citation.author} {citation.year}")
+        printerr(f"\t{citation.doi}")
     printerr("******************")
     printerr("Genetic map:")
     printerr("******************")
@@ -370,14 +371,18 @@ def add_simulate_species_parser(parser, species):
         contig = species.get_contig(
             args.chromosome, genetic_map=args.genetic_map,
             length_multiplier=args.length_multiplier)
+        engine = stdpopsim.get_engine(args.engine)
         logger.info(
             f"Running simulation model {model.name} for {species.name} on "
-            f"{contig} with {len(samples)} samples")
-        ts = model.simulate(contig, samples, args.seed)
+            f"{contig} with {len(samples)} samples using {engine.name}.")
+
+        kwargs = vars(args)
+        kwargs.update(model=model, contig=contig, samples=samples)
+        ts = engine.simulate(**kwargs)
         summarise_usage()
         write_output(ts, args)
         if not args.quiet:
-            write_citations(contig, model)
+            write_citations(engine, model, contig)
 
     species_parser.set_defaults(runner=run_simulation)
 
@@ -417,6 +422,17 @@ def stdpopsim_cli_parser():
             "STDPOPSIM_CACHE. If both the environment variable and this "
             "option are set, the option takes precedence. "
             f"Default: {stdpopsim.get_cache_dir()}"))
+
+    top_parser.add_argument(
+        "-e", "--engine",
+        default=stdpopsim.get_default_engine().id,
+        choices=[e.id for e in stdpopsim.all_engines()],
+        help="Specify a simulation engine.")
+
+    for engine in stdpopsim.all_engines():
+        group = top_parser.add_argument_group(
+                f"{engine.name} specific parameters")
+        engine.add_arguments(group)
 
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True
