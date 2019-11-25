@@ -4,10 +4,51 @@
 Development
 ===========
 
-If you would like to help with ``stdpopsim`` development, please read the
-following. If you think there is anything missing,
-please open an `issue <http://github.com/popgensims/stdpopsim/issues>`_ or
-`pull request <http://github.com/popgensims/stdpopsim/pulls>`_ on GitHub!
+``stdpopsim`` **is a community effort, and YOU are welcome to join in!**
+
+We envision at least three main types of ``stdpopsim`` developers:
+
+1. Model contributors
+2. API developers
+3. Documentation and tutorial curators
+
+`Model contributors` add simulation code of published models. This could be your
+own published model or any other published model you think would be useful.
+This is the main way we expect biologists to continually add to the catalog
+of models. See the section `Model review process`_.
+
+`API developers` work on infrastructure development for the PopSim Consortium,
+which could include improvements and additions to the internal code base of
+``stdpopsim``, establishment of benchmarking pipelines,
+and new projects that align with consortium goals.
+
+`Documentation and tutorial curators` help maintain the documentation and tutorials.
+This can be as easy as pointing out confusing bits of the documentation in a
+GitHub `issue <http://github.com/popgensims/stdpopsim/issues>`_., or adding or editing
+the documentation. See the section `Documentation`_.
+
+Get into contact with the ``stdpopsim`` community by subscribing to our email list
+`serve <https://lists.uoregon.edu/mailman/listinfo/popgen_benchmark>`_
+and by creating and commenting on
+Github `issue <http://github.com/popgensims/stdpopsim/issues>`_.
+There is a lot of chatter through
+`Github <http://github.com/popgensims/stdpopsim>`_, and we’ve been building code
+there cooperatively.
+If you want to help out and don't know where to start, you can look through the
+list of
+`Good first issues
+<https://github.com/popgensims/stdpopsim/issues?q=is%3Aopen+is%3Aissue+label%3A%22
+good+first+issue%22>`_
+or
+`Help wanted issues
+<https://github.com/popgensims/stdpopsim/issues?q=is%3Aopen+is%3Aissue+label%3A%22
+help+wanted%22>`_
+
+
+To get started helping with ``stdpopsim`` development, please read the
+following sections to learn how to contribute.
+
+
 
 ************
 Installation
