@@ -119,8 +119,8 @@ class Species(object):
             length_multiplier times the length of the specified chromosome.
             This option cannot currently be used in conjunction with the
             ``genetic_map`` argument.
-        :rtype: Contig
-        :return: A Contig describing a simulation of the section of genome.
+        :rtype: :class:`.Contig`
+        :return: A :class:`.Contig` describing a simulation of the section of genome.
         """
         chrom = self.genome.get_chromosome(chromosome)
         if genetic_map is None:
