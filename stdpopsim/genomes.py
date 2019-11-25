@@ -83,11 +83,16 @@ class Chromosome(object):
 class Contig(object):
     """
     Class representing a contiguous region of genome that is to be
-    simulated. This contains all information required to simulate
-    the region, including mutation, recombination rates, etc.
+    simulated. This contains the information about mutation rates
+    and recombination rates that are needed to simulate this region.
 
-
-    .. todo:: Document properly.
+    :ivar mutation_rate: The rate of mutation per base per generation.
+    :vartype mutation_rate: float
+    :ivar recombination_map: The recombination map for the region. See the
+        `msprime documentation
+        <https://msprime.readthedocs.io/en/stable/api.html#msprime.RecombinationMap>`_
+        for more details.
+    :vartype recombination_map: msprime.simulations.RecombinationMap
     """
     recombination_map = attr.ib(default=None, kw_only=True)
     mutation_rate = attr.ib(default=None, type=float, kw_only=True)

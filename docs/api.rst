@@ -26,6 +26,9 @@ accessed through the main entrypoint, :func:`.get_species`.
 .. autoclass:: stdpopsim.Chromosome
     :members:
 
+.. autoclass:: stdpopsim.Contig
+    :members:
+
 .. autoclass:: stdpopsim.GeneticMap
     :members:
 
