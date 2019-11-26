@@ -66,7 +66,7 @@ _gm = stdpopsim.GeneticMap(
         "Please see this repo for details on how this was done: "
         "https://github.com/LohmuellerLab/arabidopsis_recomb_maps"),
     citations=[stdpopsim.Citation(
-        doi="FIXME",
+        doi="https://doi.org/10.1038/hdy.2011.95",
         author="Salome et al.",
         year=2012)]
     )
