@@ -112,18 +112,33 @@ def verify_demographic_events_equal(
 class Population(object):
     """
     Class recording metadata representing a population in a simulation.
+
+    :ivar name: the name of the population
+    :vartype name: str
+    :ivar description: a short description of the population
+    :vartype description: str
+    :ivar sampling_time: an integer value which indicates how many
+        generations prior to the present individuals should samples should
+        be drawn from this population. If `None`, sampling not allowed from this
+        population (default = 0).
+    :vartype sampling_time: int
     """
     # TODO change this to use the usual id, name combination
-    def __init__(self, name, description, allow_samples=True):
+    def __init__(self, name, description, sampling_time=0):
         self.name = name
         self.description = description
-        self.allow_samples = allow_samples
+        self.sampling_time = sampling_time
+
+    @property
+    def allow_samples(self):
+        return self.sampling_time is not None
 
     def asdict(self):
         """
         Returns a dictionary representing the metadata about this population.
         """
-        return {"name": self.name, "description": self.description}
+        return {"name": self.name, "description": self.description,
+                "sampling_time": self.sampling_time}
 
 
 class Model(object):
@@ -216,7 +231,14 @@ class Model(object):
         """
         samples = []
         for pop_index, n in enumerate(args):
-            samples.extend([msprime.Sample(pop_index, time=0)] * n)
+            if self.populations[pop_index].allow_samples:
+                sample = msprime.Sample(
+                                        pop_index,
+                                        time=self.populations[pop_index].sampling_time)
+                samples.extend([sample] * n)
+            elif n > 0:
+                raise ValueError("Samples requested from non-sampling population"
+                                 f" {pop_index}")
         return samples
 
 
@@ -224,7 +246,7 @@ class Model(object):
 _pop0 = Population(name="pop0", description="Generic population")
 _pop1 = Population(name="pop1", description="Generic population")
 _popAnc = Population(name="popAnc", description="Generic ancestral population",
-                     allow_samples=False)
+                     sampling_time=None)
 
 
 class PiecewiseConstantSize(Model):

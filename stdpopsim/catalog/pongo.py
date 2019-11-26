@@ -7,6 +7,7 @@ import msprime
 
 import stdpopsim.models as models
 
+import stdpopsim
 
 # TODO we need to add a Genome here. Should we just take a copy of the human
 # genome?
@@ -16,6 +17,12 @@ class LockeEtAlPongoIM(models.Model):
     '''
     http://doi.org/10.1038/nature09687
     '''
+    populations = [
+        stdpopsim.Population(
+            "Bornean", "Pongo pygmaeus (Bornean) population"),
+        stdpopsim.Population(
+            "Sumatran", " Pongo abelii (Sumatran) population"),
+    ]
 
     def __init__(self):
         super().__init__()
@@ -52,9 +59,12 @@ class LockeEtAlPongoIM(models.Model):
         # Population IDs correspond to their indexes in the population
         # configuration array. Therefore, we have 0=B and 1=S
         # initially.
+
         self.population_configurations = [
-            msprime.PopulationConfiguration(initial_size=N_B, growth_rate=r_B),
-            msprime.PopulationConfiguration(initial_size=N_S, growth_rate=r_S),
+            msprime.PopulationConfiguration(initial_size=N_B, growth_rate=r_B,
+                                            metadata=self.populations[0].asdict()),
+            msprime.PopulationConfiguration(initial_size=N_S, growth_rate=r_S,
+                                            metadata=self.populations[1].asdict()),
         ]
         self.migration_matrix = [
             [      0, m_B_S],  # NOQA
