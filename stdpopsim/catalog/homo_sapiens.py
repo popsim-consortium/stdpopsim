@@ -416,8 +416,7 @@ class _BrowningAmerica(HomoSapiensModel):
         demographic history to simulate an admixed population with admixture
         occurring 12 generations ago. The admixed population had an initial size
         of 30,000 and grew at a rate of 5% per generation, with 1/6 of the
-        population of African ancestry, 1/3 European, and 1
-        2 Asian.
+        population of African ancestry, 1/3 European, and 1/2 Asian.
     """
 
     populations = [
@@ -425,8 +424,7 @@ class _BrowningAmerica(HomoSapiensModel):
         stdpopsim.Population(name="EUR", description="Contemporary European population"),
         stdpopsim.Population(name="ASIA", description="Contemporary Asian population"),
         stdpopsim.Population(
-            name="ADMIX", description="Ancient admixed population",
-            sampling_time=None),
+            name="ADMIX", description="Modern admixed population"),
     ]
 
     citations = [
