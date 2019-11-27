@@ -164,6 +164,18 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
         self.assertEqual(args.samples, [2])
         self.assertEqual(args.cache_dir, "/some/cache_dir")
 
+    def test_bibtex(self):
+        parser = cli.stdpopsim_cli_parser()
+        cmd = "homsap"
+        output = "/stuff/tmp.trees"
+        bib = "tmp.bib"
+
+        with mock.patch.object(argparse.FileType, '__call__') as call:
+            args = parser.parse_args([cmd, "--bibtex_file", bib, "-o", output, "2"])
+            self.assertEqual(args.output, output)
+            self.assertEqual(args.samples, [2])
+            call.assert_called_with(bib)
+
 
 class TestEndToEnd(unittest.TestCase):
     """
@@ -428,6 +440,28 @@ class TestHelp(unittest.TestCase):
     def test_all_species_species_help(self):
         for species in stdpopsim.all_species():
             self.run_stdpopsim(f"{species} --help-species")
+
+
+class TestWriteBibtex(unittest.TestCase):
+    """
+    Test that citations are able to be converted to bibtex
+    and written to file."""
+    def test_whole_bibex(self):
+        # Test end to end
+        seed = 1
+        with tempfile.TemporaryDirectory() as tmpdir:
+            filename = pathlib.Path(tmpdir) / "output.trees"
+            bibfile = pathlib.Path(tmpdir) / "bib.bib"
+            full_cmd = (f"homsap -c chr22 -l0.1 20 "
+                        f"-o {filename} -m ooa_3 --seed={seed} "
+                        f"--bibtex={bibfile}")
+            with mock.patch("stdpopsim.cli.setup_logging"):
+                with mock.patch.object(stdpopsim.citations.Citation,
+                                       "fetch_bibtex") as mocked_bib:
+                    with mock.patch("argparse.FileType"):
+                        stdout, stderr = capture_output(cli.stdpopsim_main,
+                                                        full_cmd.split())
+                        mocked_bib.assert_called()
 
 
 class TestWriteCitations(unittest.TestCase):

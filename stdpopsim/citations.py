@@ -4,6 +4,7 @@ citation information associated with different entities derived from the
 literature that are used within a simulation.
 """
 import attr
+import urllib.request
 
 
 @attr.s
@@ -25,3 +26,10 @@ class Citation(object):
 
     def __str__(self):
         return f"{self.author}, {self.year}: {self.doi}"
+
+    def fetch_bibtex(self):
+        """Retrieve the bibtex of a citation from Crossref."""
+        req = urllib.request.Request(self.doi)
+        req.add_header("Accept", "text/bibliography; style=bibtex")
+        with urllib.request.urlopen(req) as con:
+            return con.read().decode()
