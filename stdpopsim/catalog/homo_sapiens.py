@@ -426,7 +426,7 @@ class _BrowningAmerica(HomoSapiensModel):
         stdpopsim.Population(name="ASIA", description="Contemporary Asian population"),
         stdpopsim.Population(
             name="ADMIX", description="Ancient admixed population",
-            allow_samples=False),
+            sampling_time=None),
     ]
 
     citations = [
@@ -538,9 +538,9 @@ class _RagsdaleArchaic(HomoSapiensModel):
         _ceu_population,
         _chb_population,
         stdpopsim.Population(
-            "Neanderthal", "Putative Neanderthals", allow_samples=False),
+            "Neanderthal", "Putative Neanderthals", sampling_time=None),
         stdpopsim.Population(
-            "ArchaicAFR", "Putative Archaic Africans", allow_samples=False),
+            "ArchaicAFR", "Putative Archaic Africans", sampling_time=None),
     ]
     citations = [
         stdpopsim.Citation(
@@ -728,7 +728,7 @@ class _SchiffelsZigzag(HomoSapiensModel):
 
         self.population_configurations = [
             msprime.PopulationConfiguration(
-                initial_size=N0)
+                initial_size=N0, metadata=self.populations[0].asdict())
         ]
 
         self.migration_matrix = [
@@ -783,9 +783,6 @@ class _KammAncientEurasia(HomoSapiensModel):
     populations = [
         stdpopsim.Population(name="Mbuti",
                              description="Present-day African Mbuti"),
-        stdpopsim.Population(name="BasalEurasian",
-                             description="Basal Eurasians",
-                             allow_samples=False),
         stdpopsim.Population(name="LBK",
                              description="Early European farmer (EEF)"),
         stdpopsim.Population(name="Sardinian",
@@ -799,7 +796,10 @@ class _KammAncientEurasia(HomoSapiensModel):
         stdpopsim.Population(name="UstIshim",
                              description="early Palaeolithic Ust'-Ishim"),
         stdpopsim.Population(name="Neanderthal",
-                             description="Altai Neanderthal from Siberia")
+                             description="Altai Neanderthal from Siberia"),
+        stdpopsim.Population(name="BasalEurasian",
+                             description="Basal Eurasians",
+                             sampling_time=None),
     ]
     citations = [
         stdpopsim.Citation(
@@ -880,94 +880,96 @@ class _KammAncientEurasia(HomoSapiensModel):
             [0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0]
         ]
-        # Population IDs: Mbuti = 0; Basal Eurasian = 1;
-        # LBK = 2; Sardinian = 3; Loschbour = 4
-        # MA1 = 5; Han = 6; Ust Ishim = 7; Neanderthal = 8
+        # Population IDs: Mbuti = 0; LBK = 1;
+        # Sardinian = 2; Loschbour = 3; MA1 = 4;
+        # Han = 5; Ust Ishim = 6; Neanderthal = 7;
+        # Basal Eurasian = 8;
         self.population_configurations = [
             msprime.PopulationConfiguration(
                 initial_size=N_Mbu, metadata=self.populations[0].asdict()),
             msprime.PopulationConfiguration(
-                initial_size=N_Basal, metadata=self.populations[1].asdict()),
+                initial_size=N_LBK, metadata=self.populations[1].asdict()),
             msprime.PopulationConfiguration(
-                initial_size=N_LBK, metadata=self.populations[2].asdict()),
+                initial_size=N_Sard, metadata=self.populations[2].asdict()),
             msprime.PopulationConfiguration(
-                initial_size=N_Sard, metadata=self.populations[3].asdict()),
+                initial_size=N_Losch, metadata=self.populations[3].asdict()),
             msprime.PopulationConfiguration(
-                initial_size=N_Losch, metadata=self.populations[4].asdict()),
+                initial_size=N_MA1, metadata=self.populations[4].asdict()),
             msprime.PopulationConfiguration(
-                initial_size=N_MA1, metadata=self.populations[5].asdict()),
+                initial_size=N_Han, metadata=self.populations[5].asdict()),
             msprime.PopulationConfiguration(
-                initial_size=N_Han, metadata=self.populations[6].asdict()),
+                initial_size=N_Ust, metadata=self.populations[6].asdict()),
             msprime.PopulationConfiguration(
-                initial_size=N_Ust, metadata=self.populations[7].asdict()),
+                initial_size=N_Nean, metadata=self.populations[7].asdict()),
             msprime.PopulationConfiguration(
-                initial_size=N_Nean, metadata=self.populations[8].asdict())
+                initial_size=N_Basal, metadata=self.populations[8].asdict())
         ]
         self.demographic_events = [
             # Sardinian receives admixture from Loschbour / WHG
             msprime.MassMigration(
-                time=t_GhostWHG_to_Sard, source=3, destination=4,
+                time=t_GhostWHG_to_Sard, source=2, destination=3,
                 proportion=p_GhostWHG_to_Sard),
             # Sardinian merges into LBK / EEF
+            # Now pop 1: Sardinian-LBK ancestral pop
             msprime.MassMigration(
-                time=t_Sard_LBK, source=3, destination=2,
+                time=t_Sard_LBK, source=2, destination=1,
                 proportion=1.0),
             # Sardinian-LBK ancestral pop size change
             msprime.PopulationParametersChange(
                 time=t_Sard_LBK, initial_size=N_Sard_LBK,
-                population_id=2),
+                population_id=1),
             # LBK / EEF receives admixture from Basal Eurasians
             msprime.MassMigration(
-                time=t_Basal_to_EEF, source=2, destination=1,
+                time=t_Basal_to_EEF, source=1, destination=8,
                 proportion=p_Basal_to_EEF),
             # LBK / EEF merges into Loschbour
             msprime.MassMigration(
-                time=t_LBK_Losch, source=2, destination=4,
+                time=t_LBK_Losch, source=1, destination=3,
                 proportion=1.0),
             # MA1 merges into Loschbour
             msprime.MassMigration(
-                time=t_MA1_Losch, source=5, destination=4,
+                time=t_MA1_Losch, source=4, destination=3,
                 proportion=1.0),
             # Han merges into Loschbour
             msprime.MassMigration(
-                time=t_Han_Losch, source=6, destination=4,
+                time=t_Han_Losch, source=5, destination=3,
                 proportion=1.0),
             # Change in population size in Han-Losch ancestral pop
             msprime.PopulationParametersChange(
                 time=t_Han_Losch, initial_size=N_Han_Losch,
-                population_id=4),
+                population_id=3),
             # UstIshim merges into Loschbour
             msprime.MassMigration(
-                time=t_Ust_Losch, source=7, destination=4,
+                time=t_Ust_Losch, source=6, destination=3,
                 proportion=1.0),
             # Loschbour / Non-Africans receive admixture from Neanderthals
             msprime.MassMigration(
-                time=t_Nean_to_Eurasian, source=4, destination=8,
+                time=t_Nean_to_Eurasian, source=3, destination=7,
                 proportion=p_Nean_to_Eurasian),
             # Basal Eurasians merge into Loschbour / Non-Africans
             msprime.MassMigration(
-                time=t_Basal_Losch, source=1, destination=4,
+                time=t_Basal_Losch, source=8, destination=3,
                 proportion=1.0),
             # Mbuti merge into Loschbour / Non-Africans
             msprime.MassMigration(
-                time=t_Mbu_Losch, source=0, destination=4,
+                time=t_Mbu_Losch, source=0, destination=3,
                 proportion=1.0),
             # Change in population size in Mbuti-Losch ancestral pop
             msprime.PopulationParametersChange(
                 time=t_Mbu_Losch, initial_size=N_Mbu_Losch,
-                population_id=4),
+                population_id=3),
             # Neanderthal change population size
             msprime.PopulationParametersChange(
                 time=t_NeaPopSizeChange, initial_size=N_Nean_Losch,
-                population_id=8),
+                population_id=7),
             # Neanderthal merge into Loschbour / modern humans
             msprime.MassMigration(
-                time=t_Nean_Losch, source=8, destination=4,
+                time=t_Nean_Losch, source=7, destination=3,
                 proportion=1.0),
             # Ancestral hominin population size change
             msprime.PopulationParametersChange(
                 time=t_Nean_Losch, initial_size=N_Nean_Losch,
-                population_id=4),
+                population_id=3),
         ]
 
 

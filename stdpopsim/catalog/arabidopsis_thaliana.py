@@ -137,7 +137,8 @@ class _Durvasula2017MSMC(ArabidopsisThalianaModel):
         self.migration_matrix = [[0]]
 
         self.population_configurations = [
-           msprime.PopulationConfiguration(initial_size=self.sizes[0])
+           msprime.PopulationConfiguration(initial_size=self.sizes[0],
+                                           metadata=self.populations[0].asdict())
         ]
 
 
