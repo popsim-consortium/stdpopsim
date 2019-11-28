@@ -416,8 +416,7 @@ class _BrowningAmerica(HomoSapiensModel):
         demographic history to simulate an admixed population with admixture
         occurring 12 generations ago. The admixed population had an initial size
         of 30,000 and grew at a rate of 5% per generation, with 1/6 of the
-        population of African ancestry, 1/3 European, and 1
-        2 Asian.
+        population of African ancestry, 1/3 European, and 1/2 Asian.
     """
 
     populations = [
@@ -425,8 +424,7 @@ class _BrowningAmerica(HomoSapiensModel):
         stdpopsim.Population(name="EUR", description="Contemporary European population"),
         stdpopsim.Population(name="ASIA", description="Contemporary Asian population"),
         stdpopsim.Population(
-            name="ADMIX", description="Ancient admixed population",
-            allow_samples=False),
+            name="ADMIX", description="Modern admixed population"),
     ]
 
     citations = [
@@ -538,9 +536,9 @@ class _RagsdaleArchaic(HomoSapiensModel):
         _ceu_population,
         _chb_population,
         stdpopsim.Population(
-            "Neanderthal", "Putative Neanderthals", allow_samples=False),
+            "Neanderthal", "Putative Neanderthals", sampling_time=None),
         stdpopsim.Population(
-            "ArchaicAFR", "Putative Archaic Africans", allow_samples=False),
+            "ArchaicAFR", "Putative Archaic Africans", sampling_time=None),
     ]
     citations = [
         stdpopsim.Citation(
@@ -728,7 +726,7 @@ class _SchiffelsZigzag(HomoSapiensModel):
 
         self.population_configurations = [
             msprime.PopulationConfiguration(
-                initial_size=N0)
+                initial_size=N0, metadata=self.populations[0].asdict())
         ]
 
         self.migration_matrix = [
@@ -811,10 +809,10 @@ class _KammAncientEurasia(HomoSapiensModel):
         # Note: this date is incorrect but used in Kamm et al.
         stdpopsim.Population(name="Neanderthal",
                              description="Altai Neanderthal from Siberia",
-                             sampling_time=1800)
+                             sampling_time=1800),
         stdpopsim.Population(name="BasalEurasian",
                              description="Basal Eurasians",
-                             sampling_time=None)
+                             sampling_time=None),
     ]
     citations = [
         stdpopsim.Citation(
@@ -909,6 +907,7 @@ class _KammAncientEurasia(HomoSapiensModel):
                 time=t_GhostWHG_to_Sard, source=2, destination=3,
                 proportion=p_GhostWHG_to_Sard),
             # Sardinian merges into LBK / EEF
+            # Now pop 1: Sardinian-LBK ancestral pop
             msprime.MassMigration(
                 time=t_Sard_LBK, source=2, destination=1,
                 proportion=1.0),

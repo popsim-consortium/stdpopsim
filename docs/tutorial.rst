@@ -114,7 +114,8 @@ the models directly rather than retrieving them from the catalog.
     contig = species.get_contig("chr22", length_multiplier=0.1)
     model = stdpopsim.PiecewiseConstantSize(species.population_size)
     samples = model.get_samples(10)
-    ts = model.simulate(contig, samples)
+    engine = stdpopsim.get_default_engine()
+    ts = engine.simulate(model, contig, samples)
 
 
 Here, we simulate 10% of human chromosome 22 under a constant size

@@ -26,6 +26,9 @@ accessed through the main entrypoint, :func:`.get_species`.
 .. autoclass:: stdpopsim.Chromosome
     :members:
 
+.. autoclass:: stdpopsim.Contig
+    :members:
+
 .. autoclass:: stdpopsim.GeneticMap
     :members:
 
@@ -49,4 +52,20 @@ Please see the :ref:`sec_tutorial_generic_models` for examples of using
 these models.
 
 .. autoclass:: stdpopsim.PiecewiseConstantSize
+
+.. autoclass:: stdpopsim.GenericIM
+
+
+*****************
+Simulation Engine
+*****************
+
+Support for additional simulation engines can be implemented by subclassing
+the abstract :class:`.Engine` class, and registering an instance of the
+subclass with :func:`.register_engine`.
+These are usually not intended to be instantiated directly, but should be
+accessed through the main entrypoint, :func:`.get_engine`.
+
+.. autoclass:: stdpopsim.Engine
+    :members:
 

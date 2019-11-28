@@ -112,23 +112,38 @@ def verify_demographic_events_equal(
 class Population(object):
     """
     Class recording metadata representing a population in a simulation.
+
+    :ivar name: the name of the population
+    :vartype name: str
+    :ivar description: a short description of the population
+    :vartype description: str
+    :ivar sampling_time: an integer value which indicates how many
+        generations prior to the present individuals should samples should
+        be drawn from this population. If `None`, sampling not allowed from this
+        population (default = 0).
+    :vartype sampling_time: int
     """
     # TODO change this to use the usual id, name combination
-    def __init__(self, name, description, allow_samples=True):
+    def __init__(self, name, description, sampling_time=0):
         self.name = name
         self.description = description
-        self.allow_samples = allow_samples
+        self.sampling_time = sampling_time
+
+    @property
+    def allow_samples(self):
+        return self.sampling_time is not None
 
     def asdict(self):
         """
         Returns a dictionary representing the metadata about this population.
         """
-        return {"name": self.name, "description": self.description}
+        return {"name": self.name, "description": self.description,
+                "sampling_time": self.sampling_time}
 
 
 class Model(object):
     """
-    Class representating a simulation model that can be run to output a tree sequence.
+    Class representing a simulation model that can be run to output a tree sequence.
     Concrete subclasses must define population_configurations, demographic_events
     and migration_matrix instance variables which define the model.
 
@@ -216,33 +231,43 @@ class Model(object):
         """
         samples = []
         for pop_index, n in enumerate(args):
-            samples.extend([msprime.Sample(pop_index, time=0)] * n)
+            if self.populations[pop_index].allow_samples:
+                sample = msprime.Sample(
+                                        pop_index,
+                                        time=self.populations[pop_index].sampling_time)
+                samples.extend([sample] * n)
+            elif n > 0:
+                raise ValueError("Samples requested from non-sampling population"
+                                 f" {pop_index}")
         return samples
-
-    def simulate(self, contig, samples, seed=None):
-        """
-        Simulates this model for the specified contig (defining the recombination
-        map and mutation rate) and samples.
-        """
-        ts = msprime.simulate(
-            samples=samples,
-            recombination_map=contig.recombination_map,
-            mutation_rate=contig.mutation_rate,
-            population_configurations=self.population_configurations,
-            migration_matrix=self.migration_matrix,
-            demographic_events=self.demographic_events,
-            random_seed=seed)
-        return ts
 
 
 # Reusable generic populations
 _pop0 = Population(name="pop0", description="Generic population")
 _pop1 = Population(name="pop1", description="Generic population")
 _popAnc = Population(name="popAnc", description="Generic ancestral population",
-                     allow_samples=False)
+                     sampling_time=None)
 
 
 class PiecewiseConstantSize(Model):
+    """
+    Class representing a generic simulation model that can be run to output a
+    tree sequence. This is a piecewise constant size model, which allows for
+    instantaneous population size change over multiple epochs in a single population.
+
+    :ivar N0: The initial effective population size
+    :vartype N0: float
+    :ivar args: Each subsequent argument is a tuple (t, N) which gives the
+        time at which the size change takes place and the population size.
+
+    The usage is best illustrated by an example:
+
+    .. code-block:: python
+
+        model1 = stdpopsim.PiecewiseConstantSize(N0, (t1, N1)) # One change
+        model2 = stdpopsim.PiecewiseConstantSize(N0, (t1, N1), (t2, N2)) # Two changes
+    """
+
     id = "constant"
     name = "Piecewise constant size"
     description = "Piecewise constant size population model over multiple epochs."
@@ -266,10 +291,33 @@ class PiecewiseConstantSize(Model):
 
 class GenericIM(Model):
     """
-    Takes parameters N0, N1, N2, T, M12, and M21, as list of arguments:
-    (NA, N1, N2, T, M12, M21).
-    Sampling is disallowed in population index 0, as this is the ancestral
-    population.
+    Class representing a generic simulation model that can be run to output a tree
+    sequence. A generic isolation with migration model where a single ancestral
+    population of size NA splits into two populations of constant size N1
+    and N2 time T generations ago, with migration rates M12 and M21 between
+    the split populations. Sampling is disallowed in population index 0,
+    as this is the ancestral population.
+
+    :ivar NA: The initial ancestral effective population size
+    :vartype NA: float
+    :ivar N1: The effective population size of population 1
+    :vartype N1: float
+    :ivar N2: The effective population size of population 2
+    :vartype N2: float
+    :ivar T: Time of split between populations 1 and 2 (in generations)
+    :vartype T: float
+    :ivar M12: Migration rate from population 1 to 2
+    :vartype M12: float
+    :ivar M21: Migration rate from population 2 to 1
+    :vartype M21: float
+
+
+    Example usage:
+
+    .. code-block:: python
+
+        model1 = stdpopsim.GenericIM(NA, N1, N2, T, M12, M21)
+
     """
     id = "IM"
     name = "Isolation with migration"

@@ -31,8 +31,16 @@ class ModelTestMixin(object):
         # With a recombination_map of None, we simulate a coalescent without
         # recombination in msprime, with no mutation.
         contig = stdpopsim.Contig()
-        samples = self.model.get_samples(*([2] * self.model.num_populations))
-        ts = self.model.simulate(contig, samples)
+        # Generate vector with 2 samples for each pop with sampling enabled
+        sample_count = []
+        for p in self.model.populations:
+            if p.allow_samples:
+                sample_count.append(2)
+            else:
+                sample_count.append(0)
+        samples = self.model.get_samples(*sample_count)
+        engine = stdpopsim.get_default_engine()
+        ts = engine.simulate(self.model, contig, samples)
         self.assertEqual(ts.num_populations, self.model.num_populations)
 
 
@@ -407,3 +415,52 @@ class TestGenericIM(unittest.TestCase):
         self.assertEqual(model.migration_matrix[1][0], 0.003)
         # check these are the only two nonzero entries in the migration matrix
         self.assertEqual(np.sum(np.array(model.migration_matrix) != 0), 2)
+
+
+class TestPopulationSampling(unittest.TestCase):
+    # Create populations to test on
+    _pop1 = stdpopsim.Population("pop0", "Test pop. 0")
+    _pop2 = stdpopsim.Population("pop1", "Test pop. 1",
+                                 sampling_time=10)
+    _pop3 = stdpopsim.Population("pop2", "Test pop. 2",
+                                 sampling_time=None)
+
+    # Create an empty model to hold populations
+    base_mod = stdpopsim.Model()
+    base_mod.populations = [_pop1, _pop2, _pop3]
+
+    def test_num_sampling_populations(self):
+        self.assertEqual(self.base_mod.num_sampling_populations, 2)
+
+    def test_get_samples(self):
+        test_samples = self.base_mod.get_samples(2, 1)
+        self.assertEqual(len(test_samples), 3)
+        # Check for error when prohibited sampling asked for
+        with self.assertRaises(ValueError):
+            self.base_mod.get_samples(2, 2, 1)
+        # Get the population corresponding to each sample
+        sample_populations = [i.population for i in test_samples]
+        # Check sample populations
+        self.assertEqual(sample_populations, [0, 0, 1])
+        # Test sampling times
+        sample_times = [i.time for i in test_samples]
+        self.assertEqual(sample_times, [0, 0, 10])
+
+    # Test that all sampling populations are specified before non-sampling populations
+    # in the model.populations list
+    def test_population_order(self):
+        for model in stdpopsim.all_models():
+            allow_sample_status = [int(p.allow_samples) for p in model.populations]
+            num_sampling = sum(allow_sample_status)
+            # All sampling populations must be at the start of the list
+            self.assertEqual(sum(allow_sample_status[num_sampling:]), 0)
+
+    # Test that populations are listed in the same order in model.populations and
+    # model.population_configurations
+    def test_population_config_order_equal(self):
+        for model in stdpopsim.all_models():
+            pop_names = [pop.name for pop in model.populations]
+            config_names = [
+                config.metadata["name"] for config in model.population_configurations]
+            for p, c in zip(pop_names, config_names):
+                self.assertEqual(p, c)

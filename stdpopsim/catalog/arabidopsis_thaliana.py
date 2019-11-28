@@ -66,7 +66,7 @@ _gm = stdpopsim.GeneticMap(
         "Please see this repo for details on how this was done: "
         "https://github.com/LohmuellerLab/arabidopsis_recomb_maps"),
     citations=[stdpopsim.Citation(
-        doi="FIXME",
+        doi="https://doi.org/10.1038/hdy.2011.95",
         author="Salome et al.",
         year=2012)]
     )
@@ -137,7 +137,8 @@ class _Durvasula2017MSMC(ArabidopsisThalianaModel):
         self.migration_matrix = [[0]]
 
         self.population_configurations = [
-           msprime.PopulationConfiguration(initial_size=self.sizes[0])
+           msprime.PopulationConfiguration(initial_size=self.sizes[0],
+                                           metadata=self.populations[0].asdict())
         ]
 
 
