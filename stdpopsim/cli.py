@@ -249,29 +249,18 @@ def write_citations(engine, model, contig):
     information.
     """
     printerr = functools.partial(print, file=sys.stderr)
-
-    # TODO say this better
-    printerr(
-        "If you use this simulation in published work, please cite the following "
-        "papers:")
-    printerr("******************")
-    printerr("Simulation engine:")
-    printerr("******************")
-    printerr(f"{engine.name}:")
+    printerr("If you use this simulation in published work, please cite:")
+    printerr(f"Simulation engine: {engine.name}")
     for citation in engine.citations:
-        printerr(f"\t{citation.author} {citation.year}")
-        printerr(f"\t{citation.doi}")
-
-    printerr("******************")
-    printerr("Genetic map:")
-    printerr("******************")
-    printerr("\tTODO\n")
-    # TODO need some way to get a GeneticMap instance from the chromosome. We'll also
-    # want to be able to output mutation map, and perhaps other information too, so
-    # we want to keep some flexibility for this in mind.
-    printerr("Simulation model:", model.name)
-    for citatiion in model.citations:
-        printerr("\t", citation, sep="")
+        printerr(f"  {citation}")
+    if contig.genetic_map is not None:
+        printerr(f"Genetic map: {contig.genetic_map.name}")
+        for citation in contig.genetic_map.citations:
+            printerr(f"  {citation}")
+    if len(model.citations) > 0:
+        printerr(f"Simulation model: {model.name}")
+        for citation in model.citations:
+            printerr(f"  {citation}")
 
 
 def summarise_usage():
