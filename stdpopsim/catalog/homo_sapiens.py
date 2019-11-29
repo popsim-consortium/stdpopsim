@@ -85,7 +85,7 @@ _gm = stdpopsim.GeneticMap(
     species=_species,
     name="HapmapII_GRCh37",
     url=(
-        "http://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
+        "https://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
         "20110106_recombination_hotspots/"
         "HapmapII_GRCh37_RecombinationHotspots.tar.gz"),
     file_pattern="genetic_map_GRCh37_{name}.txt",
@@ -97,15 +97,6 @@ _gm = stdpopsim.GeneticMap(
             doi="https://doi.org/10.1038/nature06258",
             year=2007,
             author="1000 Genomes Project consortium"),
-        # TODO update the citation class to accept a plain URL as well
-        # for things like this.
-        stdpopsim.Citation(
-            doi=(
-                "<ftp://ftp-trace.ncbi.nih.gov/1000genomes"
-                "/ftp/technical/working/20110106_recombination_hotspots"
-                "/README_hapmapII_GRCh37_map>"),
-            year=None,
-            author=None)
         ]
     )
 _species.add_genetic_map(_gm)
