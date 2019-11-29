@@ -10,7 +10,7 @@ API
 Species definitions
 *******************
 
-The :ref:`sec_catalog` contains a large number of species and simulation
+The :ref:`Catalog <sec_catalog>` contains a large number of species and simulation
 model definitions, which are built using a number of classes defined here.
 These are usually not intended to be instantiated directly, but should be
 accessed through the main entrypoint, :func:`.get_species`.
@@ -45,7 +45,7 @@ accessed through the main entrypoint, :func:`.get_species`.
 Generic models
 **************
 
-The :ref:`sec_catalog` contains simulation models from the literature
+The :ref:`Catalog <sec_catalog>` contains simulation models from the literature
 that are defined for particular species. It is also useful to be able
 to simulate more generic models, which are documented here.
 Please see the :ref:`sec_tutorial_generic_models` for examples of using
