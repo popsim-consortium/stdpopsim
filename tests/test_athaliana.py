@@ -45,4 +45,4 @@ class TestHuberTwoEpoch(unittest.TestCase, test_models.QcdModelTestMixin):
     Basic tests for the Durvasula MSMC model.
     """
     model = stdpopsim.arabidopsis_thaliana._HuberTwoEpoch()
-    qc_model = stdpopsim.arabidopsis_thaliana._HuberTwoEpoch()  # FIXME add QC
+    qc_model = arabidopsis_thaliana_qc.HuberTwoEpoch()
