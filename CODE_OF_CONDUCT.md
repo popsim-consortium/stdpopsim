@@ -4,7 +4,7 @@
 
 A primary goal of PopSim Consortium is to be inclusive to the largest number of contributors, with the most varied and diverse backgrounds possible. As such, we are committed to providing a friendly, safe and welcoming environment for all, regardless of gender, sexual orientation, ability, ethnicity, socioeconomic status, and religion (or lack thereof).
 
-This code of conduct outlines our expectations for all those who participate in our community, as well as the consequences for unacceptable behavior.
+This code of conduct outlines our expectations for all those who participate in our community, as well as the consequences for unacceptable behavior. If you choose to participate in the group then you are implicitly agreeing to abide by this code of conduct.
 
 We invite all those who participate in PopSim Consortium to help us create safe and positive experiences for everyone.
 
@@ -65,7 +65,7 @@ Additionally, community organizers are available to help community members engag
 
 ## 8. Addressing Grievances
 
-If you feel you have been falsely or unfairly accused of violating this Code of Conduct, you should notify PopSim Consortium with a concise description of your grievance. Your grievance will be handled in accordance with our existing governing policies. 
+If you feel you have been falsely or unfairly accused of violating this Code of Conduct, you should notify PopSim Consortium with a concise description of your grievance. Your grievance will be considered by the organizers. 
 
 
 
