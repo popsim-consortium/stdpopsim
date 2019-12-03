@@ -14,6 +14,7 @@ Welcome to stdpopsim's documentation!
    installation
    catalog
    tutorial
+   cli_arguments
    api
    development
    changelogs
