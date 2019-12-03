@@ -38,11 +38,3 @@ class TestDurvasula2017MSMC(unittest.TestCase, test_models.QcdModelTestMixin):
     """
     model = stdpopsim.arabidopsis_thaliana._Durvasula2017MSMC()
     qc_model = arabidopsis_thaliana_qc.Durvasula2017MSMC()
-
-
-class TestHuberTwoEpoch(unittest.TestCase, test_models.QcdModelTestMixin):
-    """
-    Basic tests for the Durvasula MSMC model.
-    """
-    model = stdpopsim.arabidopsis_thaliana._HuberTwoEpoch()
-    qc_model = stdpopsim.arabidopsis_thaliana._HuberTwoEpoch()  # FIXME add QC
