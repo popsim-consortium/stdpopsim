@@ -224,7 +224,7 @@ class TestEndToEnd(unittest.TestCase):
         self.verify(cmd, num_samples=8)
 
     def test_durvusula_2017_msmc(self):
-        cmd = "aratha -l 0.001 -m fixme 7"
+        cmd = "aratha -l 0.001 -m SMA_1pop 7"
         self.verify(cmd, num_samples=7)
 
     def test_lapierre_constant(self):

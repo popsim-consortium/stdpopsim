@@ -89,20 +89,22 @@ class ArabidopsisThalianaModel(stdpopsim.Model):
 
 # FIXME this documentation needs to be filled out.
 class _Durvasula2017MSMC(ArabidopsisThalianaModel):
-    id = "fixme"  # FIXME
-    name = "Please give me a descriptive name"
+    id = "SMA_1pop"
+    name = "South Middle Atlas population size history"
     description = """
         Model estimated from two homozygous individuals from the South Middle Atlas
         using MSMC (TODO: more detail).
     """
     populations = [
         stdpopsim.Population(
-            name="a_thaliana", description="Arabidopsis Thaliana population")
+            name="a_thaliana", description="""
+            Arabidopsis Thaliana South Middle Atlas population
+        """)
     ]
     citations = [stdpopsim.Citation(
         author="Durvasula et al.",
         year=2017,
-        doi="TODO")  # FIXME
+        doi="https://doi.org/10.1073/pnas.1616736114")
     ]
 
     def __init__(self):
@@ -143,3 +145,40 @@ class _Durvasula2017MSMC(ArabidopsisThalianaModel):
 
 
 _species.add_model(_Durvasula2017MSMC())
+
+
+class _HuberTwoEpoch(ArabidopsisThalianaModel):
+    id = "Afr_2epoch"
+    name = "African two epoch model"
+    description = """
+        Model estimated from site frequency spectrum of synonymous
+        SNPs from African samples using Williamson et al. (2005)
+        methodology.
+    """
+    populations = [
+        stdpopsim.Population(
+            name="a_thaliana", description="Arabidopsis thaliana African population")
+    ]
+    citations = [stdpopsim.Citation(
+        author="Huber et al.",
+        year=2018,
+        doi="https://doi.org/10.1038/s41467-018-05281-7")
+    ]
+
+    def __init__(self):
+        super().__init__()
+        N_A = 746148
+        N_0 = 100218
+        t_1 = 568344
+        self.generation_time = 1
+        self.demographic_events = []
+        self.population_configurations = [
+            msprime.PopulationConfiguration(initial_size=N_0,
+                                            metadata=self.populations[0].asdict())]
+        self.demographic_events = [
+            msprime.PopulationParametersChange(
+                time=t_1, initial_size=N_A, population_id=0)]
+        self.migration_matrix = [[0]]
+
+
+_species.add_model(_HuberTwoEpoch())
