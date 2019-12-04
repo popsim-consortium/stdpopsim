@@ -149,6 +149,21 @@ class HelpGeneticMaps(argparse.Action):
         parser.exit()
 
 
+def get_species_help(species_id):
+    """
+    Generate help text for the given species with some of the species attributes
+    that are not covered by the other helps.
+    """
+    species = stdpopsim.get_species(species_id)
+    species_text = f"\nDefault population parameters for {species.name}:\n"
+
+    species_text += f"Generation time: {species.generation_time}\n"
+    species_text += f"Population size: {species.population_size}\n"
+    species_text += f"Mutation rate: {species.genome.mean_mutation_rate}\n"
+    species_text += f"Recombination rate: {species.genome.mean_recombination_rate}\n"
+    return species_text
+
+
 def get_environment():
     """
     Returns a dictionary describing the environment in which stdpopsim
@@ -271,7 +286,7 @@ def add_simulate_species_parser(parser, species):
         "option to specify a filename."
     )
 
-    description_text = textwrap.fill(header)
+    description_text = textwrap.fill(header) + "\n" + get_species_help(species.id)
 
     species_parser = parser.add_parser(
         f"{species.id}",

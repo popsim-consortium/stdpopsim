@@ -425,6 +425,10 @@ class TestHelp(unittest.TestCase):
         for species in stdpopsim.all_species():
             self.run_stdpopsim(f"{species} --help-genetic-maps")
 
+    def test_all_species_species_help(self):
+        for species in stdpopsim.all_species():
+            self.run_stdpopsim(f"{species} --help-species")
+
 
 class TestWriteCitations(unittest.TestCase):
     """
