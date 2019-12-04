@@ -91,6 +91,11 @@ class TestRagsdaleArchaic(unittest.TestCase, test_models.QcdModelTestMixin):
     qc_model = homo_sapiens_qc.RagsdaleArchaic()
 
 
+class TestKammAncientEurasia(unittest.TestCase, test_models.QcdModelTestMixin):
+    model = homo_sapiens._KammAncientEurasia()
+    qc_model = homo_sapiens_qc.KammAncientSamples()
+
+
 # Models that have not been QC'd:
 
 class TestGutenkunstThreePopOutOfAfrica(unittest.TestCase, test_models.ModelTestMixin):
@@ -99,7 +104,3 @@ class TestGutenkunstThreePopOutOfAfrica(unittest.TestCase, test_models.ModelTest
 
 class TestSchiffelsZigzag(unittest.TestCase, test_models.ModelTestMixin):
     model = homo_sapiens._SchiffelsZigzag()
-
-
-class TestKammAncientEurasia(unittest.TestCase, test_models.ModelTestMixin):
-    model = homo_sapiens._KammAncientEurasia()
