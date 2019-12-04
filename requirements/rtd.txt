@@ -3,4 +3,5 @@ setuptools_scm
 attrs
 appdirs
 numpy
+tskit
 sphinx-argparse
