@@ -3,5 +3,9 @@ setuptools_scm
 attrs
 appdirs
 numpy
-tskit
 sphinx-argparse
+# These are all needed to import the CLI for running 
+# sphinx-argparse.
+tskit
+humanize
+daiquiri
