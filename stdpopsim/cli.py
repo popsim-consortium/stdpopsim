@@ -232,6 +232,16 @@ def write_output(ts, args):
         ts.dump(args.output)
 
 
+def write_bibtex(engine, model, contig, bibtex_file):
+    """
+    Write bibtex for available citations to a file."""
+    for citation in engine.citations:
+        bibtex_file.write(citation.fetch_bibtex())
+
+    for citation in model.citations:
+        bibtex_file.write(citation.fetch_bibtex())
+
+
 def write_citations(engine, model, contig):
     """
     Write out citation information so that the user knows what papers to cite
@@ -239,6 +249,7 @@ def write_citations(engine, model, contig):
     information.
     """
     printerr = functools.partial(print, file=sys.stderr)
+
     # TODO say this better
     printerr(
         "If you use this simulation in published work, please cite the following "
@@ -250,15 +261,16 @@ def write_citations(engine, model, contig):
     for citation in engine.citations:
         printerr(f"\t{citation.author} {citation.year}")
         printerr(f"\t{citation.doi}")
+
     printerr("******************")
     printerr("Genetic map:")
     printerr("******************")
-    printerr("\tTODO")
+    printerr("\tTODO\n")
     # TODO need some way to get a GeneticMap instance from the chromosome. We'll also
     # want to be able to output mutation map, and perhaps other information too, so
     # we want to keep some flexibility for this in mind.
     printerr("Simulation model:", model.name)
-    for citation in model.citations:
+    for citatiion in model.citations:
         printerr("\t", citation, sep="")
 
 
@@ -302,6 +314,12 @@ def add_simulate_species_parser(parser, species):
             "Print descriptions of simulation models and exit. If a model ID "
             "is provided as an argument show help for this model; otherwise "
             "show help for all available models"))
+    species_parser.add_argument(
+        "--bibtex_file",
+        type=argparse.FileType('w'),
+        help="Write citations to a given bib file. This will overwrite the file.",
+        default=None,
+        action='store')
 
     # Set metavar="" to prevent help text from writing out the explicit list
     # of options, which can be too long and ugly.
@@ -398,6 +416,8 @@ def add_simulate_species_parser(parser, species):
         write_output(ts, args)
         if not args.quiet:
             write_citations(engine, model, contig)
+        if args.bibtex_file is not None:
+            write_bibtex(engine, model, contig, args.bibtex_file)
 
     species_parser.set_defaults(runner=run_simulation)
 
