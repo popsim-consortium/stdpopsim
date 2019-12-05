@@ -171,7 +171,7 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
         bib = "tmp.bib"
 
         with mock.patch.object(argparse.FileType, '__call__') as call:
-            args = parser.parse_args([cmd, "--bibtex_file", bib, "-o", output, "2"])
+            args = parser.parse_args([cmd, "-b", bib, "-o", output, "2"])
             self.assertEqual(args.output, output)
             self.assertEqual(args.samples, [2])
             call.assert_called_with(bib)
@@ -462,6 +462,27 @@ class TestWriteBibtex(unittest.TestCase):
                         stdout, stderr = capture_output(cli.stdpopsim_main,
                                                         full_cmd.split())
                         mocked_bib.assert_called()
+
+    def test_number_of_calls(self):
+        # Test that genetic map citations are converted.
+        species = stdpopsim.get_species("homsap")
+        genetic_map = species.get_genetic_map("HapmapII_GRCh37")
+        contig = species.get_contig("chr22", genetic_map=genetic_map.name)
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        engine = stdpopsim.get_default_engine()
+        ncite = (len(genetic_map.citations) +
+                 len(model.citations) +
+                 len(engine.citations))
+        # Patch out writing to a file, then
+        # ensure that the method is called
+        # the correct number of times.
+        with mock.patch("builtins.open", mock.mock_open()):
+            with open('tmp.bib', 'w') as bib:
+                with mock.patch.object(
+                        stdpopsim.citations.Citation,
+                        "fetch_bibtex") as mock_bib:
+                    cli.write_bibtex(engine, model, contig, bib)
+                    self.assertEqual(mock_bib.call_count, ncite)
 
 
 class TestWriteCitations(unittest.TestCase):
