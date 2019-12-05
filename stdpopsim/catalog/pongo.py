@@ -117,8 +117,6 @@ class LockeEtAlPongoIM(models.Model):
     ]
 
     def __init__(self):
-        super().__init__()
-
         # Parameters from paper:
         # ancestral size, before split
         Na = 17934

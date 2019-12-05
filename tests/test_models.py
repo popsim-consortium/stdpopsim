@@ -342,12 +342,14 @@ class TestModelsEqual(unittest.TestCase):
 
 
 class TestModelProperties(unittest.TestCase):
-    def test_model_generation_time(self):
-        self.assertTrue(models.Model().generation_time == -1)
-        known_models = list(stdpopsim.all_models())
-        n = len(known_models)
-        for j in range(n):
-            self.assertTrue(known_models[j].generation_time > -2)
+    def test_model_properties(self):
+        self.assertTrue(models.Model().generation_time is None)
+        for model in stdpopsim.all_models():
+            self.assertTrue(model.generation_time > 0)
+            self.assertIsInstance(model.population_configurations, list)
+            self.assertIsInstance(model.demographic_events, list)
+            self.assertGreater(len(model.migration_matrix), 0)
+            self.assertIsInstance(model.migration_matrix[0], list)
 
 
 class TestConstantSizeModel(unittest.TestCase, ModelTestMixin):

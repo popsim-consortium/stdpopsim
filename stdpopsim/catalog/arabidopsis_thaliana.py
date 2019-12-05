@@ -80,15 +80,8 @@ _species.add_genetic_map(_gm)
 ###########################################################
 
 
-class ArabidopsisThalianaModel(stdpopsim.Model):
-    """
-    TODO: documentation
-    """
-    species = _species
-
-
 # FIXME this documentation needs to be filled out.
-class _Durvasula2017MSMC(ArabidopsisThalianaModel):
+class _Durvasula2017MSMC(stdpopsim.Model):
     id = "SMA_1pop"
     name = "South Middle Atlas population size history"
     description = """
@@ -108,7 +101,6 @@ class _Durvasula2017MSMC(ArabidopsisThalianaModel):
     ]
 
     def __init__(self):
-        super().__init__()
         # the size during the interval times[k] to times[k+1] = sizes[k]
         self.times = np.array([
             699, 2796, 6068, 9894, 14370, 19606, 25730, 32894, 41275,
@@ -147,7 +139,7 @@ class _Durvasula2017MSMC(ArabidopsisThalianaModel):
 _species.add_model(_Durvasula2017MSMC())
 
 
-class _HuberTwoEpoch(ArabidopsisThalianaModel):
+class _HuberTwoEpoch(stdpopsim.Model):
     id = "Afr_2epoch"
     name = "African two epoch model"
     description = """
@@ -166,7 +158,6 @@ class _HuberTwoEpoch(ArabidopsisThalianaModel):
     ]
 
     def __init__(self):
-        super().__init__()
         N_A = 746148
         N_0 = 100218
         t_1 = 568344
