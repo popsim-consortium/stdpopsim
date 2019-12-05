@@ -1,6 +1,5 @@
 import msprime
 import numpy as np
-import math
 import stdpopsim.models as models
 
 
@@ -9,7 +8,7 @@ class Durvasula2017MSMC(models.Model):
         super().__init__()
 
         # Both of the following are directly
-        # converted from MSMC output scaled by A.Thaliana 
+        # converted from MSMC output scaled by A.Thaliana
         # mutation rate 7e-9 and 1 generation
         # per year.
 
@@ -33,13 +32,13 @@ class Durvasula2017MSMC(models.Model):
             2.1775200e+05, 1.9801900e+05, 1.6521000e+05, 1.2179600e+05,
             1.2179600e+05, 7.3989000e+04, 7.3989000e+04, 7.3989000e+04])
 
-        # The first 8 epochs are "masked" to 
-        # the last Ne at 40kya due to 
-        # the limitations of MSMC to infer 
+        # The first 8 epochs are "masked" to
+        # the last Ne at 40kya due to
+        # the limitations of MSMC to infer
         # population size in this range.
         #
-        # Similarly, the last 2 entries 
-        # are set to equal the third last. 
+        # Similarly, the last 2 entries
+        # are set to equal the third last.
         #
         # Durvasula et al 2017 shows that
         # MSMC has power in A.Thaliana
@@ -70,8 +69,7 @@ class HuberTwoEpoch(models.Model):
 
     def __init__(self):
         super().__init__()
-        
-        generation_time = 1
+
         # Time of second epoch
         T_2 = 568344
         # population sizes
@@ -92,4 +90,3 @@ class HuberTwoEpoch(models.Model):
             msprime.PopulationParametersChange(
                 time=T_2, initial_size=N_ANC, population_id=0),
         ]
-           
