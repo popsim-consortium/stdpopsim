@@ -24,7 +24,7 @@ jobs:
       - run:
           name: Lint Python
           command: |
-            flake8 --max-line-length 89 stdpopsim setup.py tests
+            flake8 --max-line-length 89 stdpopsim setup.py tests qc
 
       - run:
           name: Run Python tests 
