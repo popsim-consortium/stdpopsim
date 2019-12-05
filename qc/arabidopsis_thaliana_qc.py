@@ -3,6 +3,7 @@ import numpy as np
 import math
 import stdpopsim.models as models
 
+
 class Durvasula2017MSMC(models.Model):
     def __init__(self):
         super().__init__()
@@ -62,5 +63,33 @@ class Durvasula2017MSMC(models.Model):
         self.migration_matrix = [[0]]
 
 
+class HuberTwoEpoch(models.Model):
+    populations = [
+        models.Population(name="ATL", description="A. thalina"),
+    ]
 
-            
+    def __init__(self):
+        super().__init__()
+        
+        generation_time = 1
+        # Time of second epoch
+        T_2 = 568344
+        # population sizes
+        N_ANC = 746148
+        N_2 = 100218
+
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N_2,
+                metadata=self.populations[0].asdict()),
+        ]
+
+        self.migration_matrix = [
+            [0]
+        ]
+
+        self.demographic_events = [
+            msprime.PopulationParametersChange(
+                time=T_2, initial_size=N_ANC, population_id=0),
+        ]
+           

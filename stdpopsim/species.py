@@ -125,6 +125,7 @@ class Species(object):
         chrom = self.genome.get_chromosome(chromosome)
         if genetic_map is None:
             logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.id}")
+            gm = None
             recomb_map = msprime.RecombinationMap.uniform_map(
                 chrom.length * length_multiplier, chrom.recombination_rate)
         else:
@@ -135,7 +136,8 @@ class Species(object):
             recomb_map = gm.get_chromosome_map(chrom.id)
 
         ret = genomes.Contig(
-            recombination_map=recomb_map, mutation_rate=chrom.mutation_rate)
+            recombination_map=recomb_map, mutation_rate=chrom.mutation_rate,
+            genetic_map=gm)
         return ret
 
     def get_model(self, id):

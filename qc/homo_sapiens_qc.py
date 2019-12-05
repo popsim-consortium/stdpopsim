@@ -367,3 +367,157 @@ class RagsdaleArchaic(models.Model):
             msprime.MassMigration(
                 time=T_NEAN_split, source = 3, dest = 0, proportion=1.0)
         ]
+
+
+class KammAncientSamples(models.Model):
+    """
+    Demographic inferred by momi described in Kamm et al. (2019). The model is
+    illustrated in Figure 3, with parameters given in Table 2.
+    """
+    def __init__(self):
+        super().__init__()
+
+        generation_time = 25
+
+        # population sizes
+        N_Losch = 1.92e3
+        N_Mbu = 1.73e4
+        N_Mbu_Losch = 2.91e4
+        N_Han = 6.3e3
+        N_Han_Losch = 2.34e3
+        N_Nean_Losch = 1.82e4
+        N_Nean = 86.9
+        N_LBK = 75.7
+        N_Sard = 1.5e4
+        N_Sard_LBK = 1.2e4
+
+        # unknown population sizes
+        # these should be set to ancestral Eurasian population size,
+        # but at the moment it's unclear to me if that is N_Han_Losch? N_Losch?
+        N_Basal = N_Losch
+        N_Ust = N_Basal
+        N_MA1 = N_Basal
+
+        # population merge times in years, divided by generation time
+        t_Mbu_Losch = 9.58e4 / generation_time
+        t_Han_Losch = 5.04e4 / generation_time
+        t_Ust_Losch = 5.15e4 / generation_time
+        t_Nean_Losch = 6.96e5 / generation_time
+        t_MA1_Losch = 4.49e4 / generation_time
+        t_LBK_Losch = 3.77e4 / generation_time
+        t_Basal_Losch = 7.98e4 / generation_time
+        t_Sard_LBK = 7.69e3 / generation_time
+        # t_GhostWHG_Losch = 1.56e3 / generation_time
+
+        # pulse admixture times and fractions
+        p_Nean_to_Eur = 0.0296
+        t_Nean_to_Eur = 5.68e4 / generation_time
+        p_Basal_to_EEF = 0.0936
+        t_Basal_to_EEF = 3.37e4 / generation_time
+        p_GhostWHG_to_Sard = 0.0317
+        t_GhostWHG_to_Sard = 1.23e3 / generation_time
+
+        # sample_times (in years), divided by estimated generation time
+        t_Mbuti = 0
+        t_Han = 0
+        t_Sardinian = 0
+        t_Loschbour = 7.5e3 / generation_time
+        t_LBK = 8e3 / generation_time
+        t_MA1 = 24e3 / generation_time
+        t_UstIshim = 45e3 / generation_time
+        t_Altai = 50e3 / generation_time
+
+        # set up populations
+        self.population_configurations = [
+            msprime.PopulationConfiguration(  # Mbuti
+                initial_size=N_Mbu, growth_rate=0,
+                metadata={"name": "Mbuti", "sampling_time": t_Mbuti}),
+            msprime.PopulationConfiguration(  # LBK
+                initial_size=N_LBK, growth_rate=0,
+                metadata={"name": "LBK", "sampling_time": t_LBK}),
+            msprime.PopulationConfiguration(  # Sardinian
+                initial_size=N_Sard, growth_rate=0,
+                metadata={"name": "Sardinian", "sampling_time": t_Sardinian}),
+            msprime.PopulationConfiguration(  # Loschbour
+                initial_size=N_Losch, growth_rate=0,
+                metadata={"name": "Loschbour", "sampling_time": t_Loschbour}),
+            msprime.PopulationConfiguration(  # MA1
+                initial_size=N_MA1, growth_rate=0,
+                metadata={"name": "MA1", "sampling_time": t_MA1}),
+            msprime.PopulationConfiguration(  # Han
+                initial_size=N_Han, growth_rate=0,
+                metadata={"name": "Han", "sampling_time": t_Han}),
+            msprime.PopulationConfiguration(  # UstIshim
+                initial_size=N_Ust, growth_rate=0,
+                metadata={"name": "UstIshim", "sampling_time": t_UstIshim}),
+            msprime.PopulationConfiguration(  # Neanderthal
+                initial_size=N_Nean, growth_rate=0,
+                metadata={"name": "Altai", "sampling_time": t_Altai}),
+            msprime.PopulationConfiguration(  # Basal Eurasian
+                initial_size=N_Basal, growth_rate=0,
+                metadata={"name": "Basal", "sampling_time": -1})
+        ]
+
+        # no migration rates, only pulse events, so set mig mat to zeros
+        num_pops = len(self.population_configurations)
+        self.migration_matrix = [[0] * num_pops] * num_pops
+
+        # Compute Neanderthal pop size decline rate
+        # I'm assuming that the N_Nean is the size of Neanderthal population
+        # at the time of sampling the Altai individual
+        r_Nean = -np.log(N_Nean_Losch/N_Nean) / (t_Mbu_Losch-t_Altai)
+
+        # Using columns in figure in Kamm paper as proxies for pop number
+        self.demographic_events = [
+            msprime.MassMigration(
+                time=t_GhostWHG_to_Sard, source=2,
+                destination=3, proportion=p_GhostWHG_to_Sard),
+            msprime.MassMigration(
+                time=t_Sard_LBK, source=2, destination=1,
+                proportion=1.),
+            msprime.PopulationParametersChange(
+                time=t_Sard_LBK, initial_size=N_Sard_LBK,
+                population_id=1),
+            msprime.MassMigration(
+                time=t_Basal_to_EEF, source=1, destination=8,
+                proportion=p_Basal_to_EEF),
+            msprime.MassMigration(
+                time=t_LBK_Losch, source=1, destination=3,
+                proportion=1.),
+            msprime.MassMigration(
+                time=t_MA1_Losch, source=4, destination=3,
+                proportion=1.),
+            msprime.PopulationParametersChange(
+                time=t_Altai, initial_size=N_Nean,
+                growth_rate=r_Nean, population_id=7),
+            msprime.MassMigration(
+                time=t_Han_Losch, source=5, destination=3,
+                proportion=1.),
+            msprime.PopulationParametersChange(
+                time=t_Han_Losch, initial_size=N_Han_Losch,
+                population_id=3),
+            msprime.MassMigration(
+                time=t_Ust_Losch, source=6, destination=3,
+                proportion=1.),
+            msprime.MassMigration(
+                time=t_Nean_to_Eur, source=3, destination=7,
+                proportion=p_Nean_to_Eur),
+            msprime.MassMigration(
+                time=t_Basal_Losch, source=8, destination=3,
+                proportion=1.),
+            msprime.MassMigration(
+                time=t_Mbu_Losch, source=0, destination=3,
+                proportion=1.),
+            msprime.PopulationParametersChange(
+                time=t_Mbu_Losch, initial_size=N_Mbu_Losch,
+                population_id=3),
+            msprime.PopulationParametersChange(
+                time=t_Mbu_Losch, initial_size=N_Nean_Losch,
+                growth_rate=0, population_id=7),
+            msprime.MassMigration(
+                time=t_Nean_Losch, source=7, destination=3,
+                proportion=1.),
+            msprime.PopulationParametersChange(
+                time=t_Nean_Losch, initial_size=N_Nean_Losch,
+                population_id=3)
+        ]
