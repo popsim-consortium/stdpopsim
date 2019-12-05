@@ -1,8 +1,8 @@
 .. _sec_tutorial:
 
-========
-Tutorial
-========
+=========
+Tutorials
+=========
 There are two main ways of accessing the resources of the ``stdpopsim`` package
 that will be detailed in this tutorial. The first is via the command line
 interface (CLI). This is useful if you want to do a straightforward run of the
@@ -12,11 +12,15 @@ complicated however it allows for more advanced tasks. This tutorial will walk
 through both ways of using the ``stdpopsim`` package as well as some more
 advanced tasks you may wish to do.
 
+*********************
+Running ``stdpopsim``
+*********************
+
 .. sec_cli_tute:
 
-****************************************************
-Using the ``stdpopsim`` Command-Line Interface (CLI)
-****************************************************
+The command-line interface (CLI)
+********************************
+
 In order to use the ``stdpopsim`` CLI the ``stdpopsim`` package must be
 installed (see :ref:`Installation <sec_installation>`). The CLI provides access
 to the :ref:`catalog <sec_catalog>` of models that have already been implemented
@@ -108,9 +112,9 @@ For reproducibility we can also choose set seed for the simulator using the
 Lastly, the CLI also outputs the relevant citations for both the simulator used
 and the resources used for simulation scenario.
 
+
 .. sec_python_tute:
 
-*****************************
 The Python interface
 *****************************
 
@@ -217,7 +221,7 @@ See the tskit documentation (:meth:`tskit.TreeSequence.write_vcf`) for more info
 
 Taking a look at the vcf file, we see something like this:
 
-.. code-block::
+.. code-block:: none
 
     ##fileformat=VCFv4.2
     ##source=tskit 0.2.2
@@ -233,3 +237,165 @@ Taking a look at the vcf file, we see something like this:
     1	992	.	0	1	.	PASS	.	GT	1	1	0	1	0	1	1	1	0	1
 
 
+************************************
+Example analyses with ``stdpopsim``
+************************************
+
+.. sec_tute_divergence:
+
+Calculating genetic divergence
+******************************
+
+In this tutorial, we will simulate some samples of human chromosomes
+from different populations,
+and then estimate the genetic divergence between each population pair. 
+
+-------------------------
+1. Simulating the dataset
+-------------------------
+
+First, let's use the ``--help-models`` option to see the selection of demographic
+models available to us:
+
+.. code-block:: console
+
+    $ stdpopsim homsap --help-models
+
+This prints detailed information about all of the available models to
+the terminal.
+In this tutorial, we will use the model of African-American admixture from
+`2011 Browning et al <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.  
+From the help output (or the :ref:`Catalog <sec_catalog>`),
+we can see that this model has id ``america``,
+and allows samples to be drawn from 4 contemporary populations representing African,
+European, Asian and African-American groups.
+
+Using the ``--help-genetic-maps`` option, we can also see what recombination maps
+are available:
+
+.. code-block:: console
+
+    $ stdpopsim homsap --help-genetic-maps
+
+Let's go with ``HapmapII_GRCh37``.
+The next command simulates 4 samples of chromosome 1 from each of the four
+populations, and saves the output to a file called ``afr-america-chr1.trees``.
+For the purposes of this tutorial, we'll also specify a random seed using the
+``-s`` option.
+(Note: This took around 8 minutes to run on a laptop.)
+
+.. code-block:: console
+
+    $ stdpopsim homsap -c chr1 -o afr-america-chr1.trees -s 13 -g HapmapII_GRCh37\
+    --model america 4 4 4 4
+
+--------------------------
+2. Calculating divergences
+--------------------------
+
+We should now have a file called ``afr-america-chr1.trees``.
+Our work with ``stdpopsim`` is done; we'll now switch to a Python console and import
+the ``tskit`` package to load and analyse this simulated tree sequence file.
+
+.. code-block:: python
+
+    >>> import tskit
+    >>> ts = tskit.load("afr-america-chr1.trees")
+
+Recall that `genetic divergence` is the probability that two randomly sampled
+chromosomes differ at a nucleotide base.
+For a given pair of populations, a pair-specific divergence value is obtained
+by randomly sampling one chromosome from each population.
+These quantities can be estimated directly from our sample using tskit's
+inbuilt :meth:`tskit.TreeSequence.diversity` method.
+
+By looking at
+`the documentation <https://tskit.readthedocs.io/en/latest/python-api.html#tskit.TreeSequence.divergence>`_
+for this method, we can see that we'll need two inputs: ``sample_sets`` and
+``indexes``.
+Let's think about what these inputs are, and how we can obtain them with 
+Python commands.
+In our case, the sample sets correspond to the lists 
+of sample chromosomes (nodes) from each separate population.
+We can obtain the necessary list of lists like this:
+
+.. code-block:: python
+
+    >>> sample_list = []
+    >>> for pop in range(0, ts.num_populations):
+    ...     sample_list.append(ts.samples(pop).tolist())
+    >>> print(sample_list)
+    [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]]
+
+Note that the samples with node IDs 0 - 3 are from population 0,
+samples with node IDs 4 - 7 are from population 1 and so on. 
+
+The indexes are the pairs of integer indexes corresponding to the populations
+that we wish to compare.
+We can do this quickly with the ``itertools`` module:
+
+.. code-block:: python
+
+    >>> import itertools
+    >>> inds = itertools.combinations_with_replacement(range(0, ts.num_populations), 2)
+    >>> inds = list(inds)
+    >>> print(inds)
+    [(0, 0), (0, 1), (0, 2), (0, 3), (1, 1), (1, 2), (1, 3), (2, 2), (2, 3),
+     (3, 3)]
+
+We are now ready to calculate the genetic divergences.
+
+.. code-block:: python
+
+    >>> divs = ts.divergence(sample_sets=sample_list, indexes=inds)
+    >>> print(divs)
+    array([0.00035424, 0.0003687 , 0.00036707, 0.0003705 , 0.00026696,
+       0.00029148, 0.00029008, 0.00025767, 0.0002701 , 0.00028184])
+
+---------------------------
+3. Plotting the divergences
+---------------------------
+
+The output lists the divergences of all population pairs that are specified in
+``indexes``, in the same order.
+However, instead of simply printing these values to the console, it might be nicer
+to create a heatmap of the values.
+Here is some (more advanced) code that does this.
+It relies on the ``numpy``, ``seaborn`` and ``matplotlib`` packages.
+
+.. code-block:: python
+    
+    >>> import numpy as np
+    >>> import seaborn
+    >>> import matplotlib.pyplot as plt
+    >>> import matplotlib.ticker as ticker
+    >>> div_matrix = np.zeros((ts.num_populations, ts.num_populations))
+    >>> for pair in range(0, len(inds)):
+    ...     pop0, pop1 = inds[pair]
+    ...     div_matrix[pop0, pop1] = divs[pair]
+    ...     div_matrix[pop1, pop0] = divs[pair]
+    >>> seaborn.heatmap(div_matrix, vmin=0, vmax=0.0005, square=True)
+    >>> ax = plt.subplot()
+    >>> plt.title("Genetic divergence")
+    >>> plt.xlabel("Populations", fontweight="bold")
+    >>> plt.ylabel("Populations", fontweight="bold")
+    >>> ax.set_xticks([0,1,2,3], minor=True)
+    >>> ax.set_xticklabels(['AFR', 'EUR', 'ASI', 'ADM'], minor=False)
+    >>> ax.tick_params(which='minor', length=0)
+    >>> ax.set_yticks([0,1,2,3], minor=True)
+    >>> ax.set_yticklabels(['AFR', 'EUR', 'ASI', 'ADM'], minor=False)
+    >>> ax.tick_params(which='minor', length=0)
+
+.. image:: _static/tute-divergence.png
+    :width: 400px
+    :align: center
+    :height: 265px
+    :alt: Heatmap of divergence values.
+
+These values make sense given the model of demography we have specified:
+the highest divergence estimates were obtained when African samples were
+compared with samples from other populations, and the lowest divergence
+estimates were obtained when Asian samples were compared with themselves. 
+However, the overwhelming sameness of the sample chromosomes is also evident:
+on average, any two sample chromosomes differ at less than 0.04% of positions,
+regardless of the populations they come from.
