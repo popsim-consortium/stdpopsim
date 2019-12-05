@@ -104,14 +104,17 @@ class _MsprimeEngine(Engine):
 
     def simulate(self, model=None, contig=None, samples=None, seed=None,
                  **kwargs):
-        return msprime.simulate(
+        ts = msprime.simulate(
                 samples=samples,
                 recombination_map=contig.recombination_map,
-                mutation_rate=contig.mutation_rate,
                 population_configurations=model.population_configurations,
                 migration_matrix=model.migration_matrix,
                 demographic_events=model.demographic_events,
                 random_seed=seed)
+        mutation_model = msprime.InfiniteSites(msprime.NUCLEOTIDES)
+        return msprime.mutate(
+            ts, rate=contig.mutation_rate, model=mutation_model,
+            random_seed=seed)
 
     def get_version(self):
         return msprime.__version__
