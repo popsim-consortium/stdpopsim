@@ -64,9 +64,18 @@ class GeneticMapTestClass(genetic_maps.GeneticMap):
 
 # TODO add some parameters here to check different compression options,
 # number of chromosomes etc.
-def get_genetic_map_tarball():
+def get_genetic_map_tarball(custom_file_f=None, filter=None):
     """
     Returns a genetic map in hapmap format in a tarball as a bytes object.
+
+    :param func custom_file_f: A function that accepts a single parameter
+        (a folder name), which may be used to create additional files under
+        the given folder. All files in the folder will be included in the
+        returned tarball.
+    :param func filter: A function which is passed as the ``filter`` argument
+        to ``TarFile.add()``. This function can be used to change the info
+        field for each file in the returned tarball. See tarfile documentation
+        for more details.
     """
     with tempfile.TemporaryDirectory() as map_dir:
         for j in range(1, 10):
@@ -77,13 +86,17 @@ def get_genetic_map_tarball():
                 print("chr1        82571   2.082414        0.080572", file=f)
                 print("chr1        88169   0               0.092229", file=f)
 
+        if custom_file_f is not None:
+            # Do arbitrary things under map_dir.
+            custom_file_f(map_dir)
+
         # For the tarfile to be in the right format, we must be in the right directory.
         with genetic_maps.cd(map_dir):
             # Now tar up this map_directory
             with tempfile.TemporaryFile('wb+') as tmp_file:
                 with tarfile.open(fileobj=tmp_file, mode="w:gz") as tar_file:
                     for filename in os.listdir("."):
-                        tar_file.add(filename)
+                        tar_file.add(filename, filter=filter)
                 # Read back the tarball
                 tmp_file.seek(0)
                 tarball = tmp_file.read()
@@ -169,6 +182,59 @@ class TestGeneticMapDownload(tests.CacheWritingTest):
                 gm.download()
         finally:
             gm.is_cached = saved
+
+
+class TestGeneticMapDownloadSecurity(tests.CacheWritingTest):
+    """
+    Security related tests for the genetic map downloading code.
+
+    For an extended discussion of tar-related security issues see:
+    https://bugs.python.org/issue21109
+    """
+
+    def test_tar_path_traversal_attack(self):
+        # Test for vulnerability to path-traversal attacks.
+        def mock_retrieve_factory():
+            for dest in ("../nonexistant", "/nonexistant"):
+                def retrieve(url, filename):
+                    tarball = get_genetic_map_tarball(
+                            custom_file_f=lambda map_dir: os.symlink(
+                                dest, os.path.join(map_dir, "my-link")))
+                    with open(filename, "wb") as f:
+                        f.write(tarball)
+                yield retrieve, f"path-traversal: {dest}"
+        self.assert_bad_tar(mock_retrieve_factory)
+
+    def test_bad_tar_members(self):
+        # Pretend we downloaded a tarball containing a FIFO or device file.
+        # There is no reasonable use for these types of files in a genetic
+        # map tarball, and their presence likely indicates a maliciously
+        # crafted tarball.
+        # Creating a character or block special device file requires root
+        # privileges, so we instead modify the ``type`` field of each file
+        # in the tar.
+        def mock_retrieve_factory():
+            for file_type, assert_msg in zip(
+                    (tarfile.FIFOTYPE, tarfile.CHRTYPE, tarfile.BLKTYPE),
+                    ("FIFO", "char device", "block device")):
+                def retrieve(url, filename):
+                    def filt(info):
+                        info.type = file_type
+                        return info
+                    tarball = get_genetic_map_tarball(filter=filt)
+                    with open(filename, "wb") as f:
+                        f.write(tarball)
+                yield retrieve, assert_msg
+
+        self.assert_bad_tar(mock_retrieve_factory)
+
+    def assert_bad_tar(self, mock_retrieve_factory):
+        gm = GeneticMapTestClass()
+        for retrieve, assert_msg in mock_retrieve_factory():
+            with mock.patch("urllib.request.urlretrieve", new=retrieve):
+                with self.assertRaises(ValueError, msg=assert_msg):
+                    gm.download()
+            self.assertFalse(gm.is_cached())
 
 
 class TestAllGeneticMaps(tests.CacheReadingTest):

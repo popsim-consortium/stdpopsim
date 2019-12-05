@@ -466,9 +466,9 @@ class TestWriteBibtex(unittest.TestCase):
 
 class TestWriteCitations(unittest.TestCase):
     """
-    Make sure all models can write citation information.
+    Make sure citation information is written.
     """
-    def test_model(self):
+    def test_model_citations(self):
         contig = stdpopsim.Contig()
         species = stdpopsim.get_species("homsap")
         model = species.get_model("ooa_3")
@@ -476,21 +476,36 @@ class TestWriteCitations(unittest.TestCase):
         stdout, stderr = capture_output(
                 cli.write_citations, engine, model, contig)
         self.assertEqual(len(stdout), 0)
-        # TODO Parse out the output for the model and check that the text is
-        # in there.
-        self.assertGreater(len(stderr), 0)
+        genetic_map = None
+        self.check_citations(engine, species, genetic_map, model, stderr)
 
-    def test_genetic_map(self):
+    def test_genetic_map_citations(self):
         species = stdpopsim.get_species("homsap")
-        contig = species.get_contig("chr22", genetic_map="HapmapII_GRCh37")
+        genetic_map = species.get_genetic_map("HapmapII_GRCh37")
+        contig = species.get_contig("chr22", genetic_map=genetic_map.name)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
         stdout, stderr = capture_output(
                 cli.write_citations, engine, model, contig)
         self.assertEqual(len(stdout), 0)
-        # TODO Parse out the output for the model and check that the text is
-        # in there.
-        self.assertGreater(len(stderr), 0)
+        self.check_citations(engine, species, genetic_map, model, stderr)
+
+    def check_citations(self, engine, species, genetic_map, model, stderr):
+        if genetic_map is None:
+            genetic_map = stdpopsim.GeneticMap(species.id, citations=[])
+        for citations, assert_msg in zip(
+                (engine.citations, model.citations, genetic_map.citations,
+                    species.generation_time_citations,
+                    species.population_size_citations),
+                (f"engine citation not written for {engine.id}",
+                    f"model citation not written for {model.id}",
+                    f"genetic map citation not written for {genetic_map.name}",
+                    f"generation time citation not written for {species.id}",
+                    f"population size citation not written for {species.id}")):
+            for citation in citations:
+                self.assertTrue(citation.author in stderr, msg=assert_msg)
+                self.assertTrue(str(citation.year) in stderr, msg=assert_msg)
+                self.assertTrue(citation.doi in stderr, msg=assert_msg)
 
 
 class TestCacheDir(unittest.TestCase):
