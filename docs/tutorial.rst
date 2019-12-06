@@ -16,7 +16,7 @@ advanced tasks you may wish to do.
 Running ``stdpopsim``
 *********************
 
-.. sec_cli_tute:
+.. _sec_cli_tute:
 
 The command-line interface (CLI)
 ********************************
@@ -111,7 +111,7 @@ Lastly, the CLI also outputs the relevant citations for both the simulator used
 and the resources used for simulation scenario.
 
 
-.. sec_python_tute:
+.. _sec_python_tute:
 
 The Python interface
 *****************************
@@ -277,12 +277,17 @@ The next command simulates 4 samples of chromosome 1 from each of the four
 populations, and saves the output to a file called ``afr-america-chr1.trees``.
 For the purposes of this tutorial, we'll also specify a random seed using the
 ``-s`` option.
-(Note: This took around 8 minutes to run on a laptop.)
+To check that we have set up the simulation correctly, we may first wish to perform a
+dry run using the ``-D`` option.
+This will print information about the simulation to the terminal:
+
+.. command-output:: stdpopsim HomSap -c chr1 -o   afr-america-chr1.trees -s 13 -g HapMapII_GRCh37 -d AmericanAdmixture_4B11 4 4 4 4 -D
+
+Once we're sure, we can remove the ``-D`` flag to run the simulation. (Note: This took around 8 minutes to run on a laptop.)
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -c chr1 -o afr-america-chr1.trees -s 13 -g HapMapII_GRCh37\
-    -d AmericanAdmixture_4B11 4 4 4 4
+    $ stdpopsim HomSap -c chr1 -o afr-america-chr1.trees -s 13 -g HapMapII_GRCh37 -d AmericanAdmixture_4B11 4 4 4 4
 
 --------------------------
 2. Calculating divergences
@@ -394,3 +399,176 @@ estimates were obtained when Asian samples were compared with themselves.
 However, the overwhelming sameness of the sample chromosomes is also evident:
 on average, any two sample chromosomes differ at less than 0.04% of positions,
 regardless of the populations they come from.
+
+.. sec_tute_sfs:
+
+Calculating the site frequency spectrum
+***************************************
+
+In this tutorial, we will simulate some samples of *Arabidopsis thaliana* chromosomes
+from different populations, 
+and analyse the site frequency spectrum (SFS) for each population.
+
+---------------------------
+1. Simulating the dataset
+---------------------------
+
+In this tutorial, we will use the :meth:`stdpopsim.IsolationWithMigration` model.
+Since this is a generic model that can be used for any species, we must use the Python
+interface for this simulation.
+See our :ref:`Python tutorial <sec_python_tute>` for an introduction to this interface.
+
+We begin by importing ``stdpopsim`` into a Python environment and specifying our desired
+species, *Arabidopsis thaliana*. From the :ref:`Catalog <sec_catalog>`, we can see that this
+specis has the ID ``AraTha``:
+
+.. code-block:: python
+
+    >>> import stdpopsim
+    >>> species = stdpopsim.get_species("AraTha")
+
+After skimming the :ref:`Catalog <sec_catalog>` to see our options, we'll specify our
+desired chromosome ``chr4`` and recombination map ``SalomeAveraged_TAIR7``.
+
+.. code-block:: python
+
+    >>> contig = species.get_contig("chr4", genetic_map="SalomeAveraged_TAIR7")
+
+
+From the API description, we can see that the :meth:`stdpopsim.IsolationWithMigration`
+model allows us to sample from a pair of populations that diverged from a common
+ancestral population. We'll specify that the effective population size of the ancestral
+population was 5000, that the population sizes of the two modern populations are 4000
+and 1000, that the populations diverged 1000 generations ago,
+and that rates of migration between the populations are 0.
+
+.. code-block:: python
+
+    >>> model = stdpopsim.IsolationWithMigration(NA=5000, N1=4000, N2=1000, T=1000, M12=0, M21=0)
+
+We'll simulate 10 chromosomes from each of the populations using the default
+simulation engine, which at the time of writing is ``msprime``.
+
+.. code-block:: python
+
+    >>> samples = model.get_samples(10,10)
+    >>> engine = stdpopsim.get_default_engine()
+
+Finally, we'll run a simulation using the objects we've created and store the outputted
+dataset in an object called ``ts``. For the purposes of this tutorial, we'll also run this
+simulation using a random seed:
+
+.. code-block:: python
+
+    >>> ts = engine.simulate(model, contig, samples, seed=13)
+
+--------------------------
+2. Calculating the SFS
+--------------------------
+
+Recall that the *site frequency spectrum* (SFS) summarises the distribution of allele
+frequencies in a given sample.
+At each site, there is an ancestral and (sometimes more than one) derived allele,
+and each allele is observed in the sample with some frequency.
+Each entry in the SFS corresponds to a particular sample frequency,
+and records the total number of derived alleles with that frequency.
+We can calculate the SFS directly from our tree sequence using the
+:meth:`tskit.TreeSequence.allele_frequency_spectrum` method.
+
+Since we wish to estimate the SFS separately for each of our two populations, we will
+first need to obtain subsets of the data corresponding to each set of samples. The
+:meth:`tskit.TreeSequence.samples`
+method in tskit allows us to find the IDs of samples from each population:
+
+.. code-block:: python
+
+    >>> pop0_samples = ts.samples(0)
+    >>> pop1_samples = ts.samples(1)
+    >>> print(pop0_samples)
+    >>> print(pop1_samples)
+    [0 1 2 3 4 5 6 7 8 9]
+    [10 11 12 13 14 15 16 17 18 19]
+
+We can then use :meth:`tskit.TreeSequence.simplify` to get the tree sequences
+corresponding to these subsets of samples from populations 0 and 1.
+To hold these, we'll create objects ``ts0`` and ``ts1`` respectively.
+
+.. code-block:: python
+
+    >>> ts0 = ts.simplify(samples=pop0_samples)
+    >>> ts1 = ts.simplify(samples=pop1_samples)
+
+We are now ready to calculate the SFS.
+Since our dataset was generated using the default ``msprime`` simulation engine,
+we know that it has exactly one derived allele at any polymorphic site.
+We also know what the derived and ancestral states are.
+We can therefore calculate the *polarised* SFS using tskit's inbuilt
+:meth:`tskit.TreeSequence.allele_frequency_spectrum` method:
+
+.. code-block:: python
+
+    >>> sfs0 = ts0.allele_frequency_spectrum(polarised=True,span_normalise=False)
+    >>> print(sfs0)
+    [   0. 1165.  391.  232.  120.  117.   80.   91.   54.   55.    0.]
+
+.. code-block:: python
+
+    >>> sfs1 = ts1.allele_frequency_spectrum(polarised=True,span_normalise=False)
+    >>> print(sfs1)
+    [  0. 510. 251. 177. 159.  98.  72.  73.  73.  83.   0.]
+
+(Note: the ``polarised=True`` option indicates that we wish to calculate the statistic
+for derived alleles only, and the ``span_normalise=False`` option disables tskit's
+default behaviour of dividing by the sequence length.)
+
+We will do further analysis in the next section, but you might first wish to convince
+yourself that this output makes sense to you.
+We can see that amongst the mutated alleles held in population 1, there are 510
+singletons, 251 doubletons and so on.
+You might also wish to check that the total sum of sites is the sum of the SFS entries:
+
+.. note::
+    
+    why isn't it???
+
+.. code-block:: python
+
+    >>> sum(sfs1)
+    1068.0
+    >>> ts1.num_sites
+    1121
+
+----------------------
+3. Plotting the SFS
+----------------------
+
+Here is some more advanced code that compares the estimated SFS from each population.
+It relies on the ``matplotlib`` and ``numpy`` packages.
+We will scale each SFS by the number of mutated sites in the corresponding sample set.
+
+.. code-block:: python
+
+    >>> import matplotlib.pyplot as plt
+    >>> import numpy as np
+    >>> bar_width = 0.4
+    >>> r1 = np.arange(0,11) - 0.2
+    >>> r2 = [x + bar_width for x in r1]
+    >>> ax = plt.subplot()
+    >>> plt.bar(x = r1, height = sfs0/ts0.num_sites, width=bar_width)
+    >>> plt.bar(x = r2, height = sfs1/ts1.num_sites, width=bar_width)
+    >>> plt.xlabel("Allele count", fontweight="bold")
+    >>> plt.ylabel("Proportion of mutated sites in sample", fontweight="bold")
+    >>> ax.set_xticks(np.arange(0,11))
+    >>> ax.legend(['pop0', 'pop1'])
+    >>> plt.plot()
+
+.. image:: _static/tute-sfs.png
+    :align: center
+    :alt: SFS plots.
+
+This figure shows that population 0 contains a higher proportion of singletons than population 1, but that alleles of any other frequency are relatively more common in population 1.
+This disparity in proportion increases with the frequency of the allele.
+This makes sense given the demography we have specified;
+since population 1 is much smaller, it is subject to higher rates of genetic drift.
+Any mutations arising in population 1 that are lucky enough to survive are more likely to drift to higher frequencies.
+(By default, tree sequences do not show any information about mutations that have been lost through drift).

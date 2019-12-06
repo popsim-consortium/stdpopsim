@@ -29,7 +29,7 @@ and saves the output to a file called ``test.trees``:
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -c chr22 -o test.trees -g HapMapII_GRCh37 --model OutOfAfrica_3G09 2 2 2
+    $ stdpopsim HomSap -c chr22 -o test.trees -g HapMapII_GRCh37 -d OutOfAfrica_3G09 2 2 2
 
 (To learn more about using ``stdpopsim`` via the command-line, read our :ref:`sec_tutorial`
 about it.)
