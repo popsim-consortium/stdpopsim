@@ -4,6 +4,7 @@ attrs
 appdirs
 numpy
 sphinx-argparse
+sphinxcontrib-programoutput
 # These are all needed to import the CLI for running 
 # sphinx-argparse.
 tskit

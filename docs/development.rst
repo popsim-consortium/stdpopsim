@@ -48,7 +48,7 @@ help+wanted%22>`_
 To get started helping with ``stdpopsim`` development, please read the
 following sections to learn how to contribute.
 
-
+.. sec_development_installation:
 
 ************
 Installation
@@ -63,7 +63,9 @@ For ``pip`` users, install the packages required for development using::
 
     $ python3 -m pip install -r requirements/development.txt
 
+You can then install the development version of ``stdpopsim`` like this::
 
+    $ python3 setup.py install
 
 For ``conda`` users, you will need to add the conda-forge channel to your conda
 environment and then should be able to install the development requirements using::
@@ -569,4 +571,6 @@ It is defined in the ``docs`` directory.
 To build the documentation type ``make`` in the ``docs`` directory. This should build
 HTML output in the ``_build/html/`` directory.
 
+.. note::
 
+    You will need ``stdpopsim`` to be installed for the build to work.
