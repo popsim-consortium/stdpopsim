@@ -237,9 +237,12 @@ def write_bibtex(engine, model, contig, bibtex_file):
     Write bibtex for available citations to a file."""
     for citation in engine.citations:
         bibtex_file.write(citation.fetch_bibtex())
-
+    if contig.genetic_map is not None:
+        for citation in contig.genetic_map.citations:
+            bibtex_file.write(citation.fetch_bibtex())
     for citation in model.citations:
         bibtex_file.write(citation.fetch_bibtex())
+    bibtex_file.close()
 
 
 def write_citations(engine, model, contig):
@@ -304,7 +307,7 @@ def add_simulate_species_parser(parser, species):
             "is provided as an argument show help for this model; otherwise "
             "show help for all available models"))
     species_parser.add_argument(
-        "--bibtex_file",
+        "-b", "--bibtex-file",
         type=argparse.FileType('w'),
         help="Write citations to a given bib file. This will overwrite the file.",
         default=None,

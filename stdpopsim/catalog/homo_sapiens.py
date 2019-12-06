@@ -278,7 +278,7 @@ class _TennessenTwoPopOutOfAfrica(HomoSapiensModel):
         stdpopsim.Citation(
             author="Fu et al.",
             year=2013,
-            doi="https://doi.org/10.1038 nature11690")
+            doi="https://doi.org/10.1038/nature11690")
     ]
 
     def __init__(self):
