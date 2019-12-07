@@ -41,7 +41,7 @@ can look at the help again as follows.
 For conciseness we do not show all the output here but this time you should see a
 different output which shows options for performing the simulation itself and
 the species default parameters. This includes selecting the demographic model,
-chromosome, recombination map, and number of samples. 
+chromosome, recombination map, and number of samples.
 
 The most basic simulation we can run is to draw two samples using the species'
 defaults as seen in the species help (``stdpopsim homsap --help``). These
@@ -57,7 +57,7 @@ tree-sequence formated output should be written to the file ``foo.ts`` with the
     $ stdpopsim homsap -c chr22 -o foo.ts 2
 
 .. warning:: It's important to remember to either redirect the output of ``stdpopsim``
-                to file or to use the ``-o/--output`` option. If you do not, the 
+                to file or to use the ``-o/--output`` option. If you do not, the
                 binary output may mess up your terminal session.
 
 Say we want to use a specific demographic model. We look up the available models
@@ -67,8 +67,9 @@ using the ``--help-models`` flag:
     :ellipsis: 20
 
 This gives all of the possible demographic models we could simulate. We choose
-the the two population out-of-Africa model from `Tennesen et al. (2012)
-<https://doi.org/10.1126/science.1219240>`_ . By looking at the model help we
+the two population out-of-Africa :ref:`model <sec_catalog_homsap_models_ooa_2>`
+from `Tennesen et al. (2012) <https://doi.org/10.1126/science.1219240>`_ .
+By looking at the model help we
 find that the name for this model is ``ooa_2`` and that we can specify it using
 the ``--model`` option. We choose to draw two samples from the African
 population and three samples from the European population. To increase
@@ -90,7 +91,8 @@ African American samples and three European American samples.
 
 Now we want to add an empirical recombination map to make the simulation more
 realistic. We can run ``stdpopsim homsap --help-genetic-maps`` to view the
-available recombination maps. In this case we choose the HapmapII map. Empirical
+available recombination maps. In this case we choose the
+:ref:`sec_catalog_homsap_genetic_maps_hapmapii_grch37` map. Empirical
 recombination maps cannot be used with length multipliers so we have to remove
 the ``-l`` option. (NOTE: this may a minute or so to run).
 
@@ -244,7 +246,7 @@ Calculating genetic divergence
 
 In this tutorial, we will simulate some samples of human chromosomes
 from different populations,
-and then estimate the genetic divergence between each population pair. 
+and then estimate the genetic divergence between each population pair.
 
 -------------------------
 1. Simulating the dataset
@@ -259,7 +261,7 @@ models available to us:
 This prints detailed information about all of the available models to
 the terminal.
 In this tutorial, we will use the model of African-American admixture from
-`2011 Browning et al <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.  
+`2011 Browning et al <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.
 From the help output (or the :ref:`Catalog <sec_catalog>`),
 we can see that this model has id ``america``,
 and allows samples to be drawn from 4 contemporary populations representing African,
@@ -306,9 +308,9 @@ By looking at
 `the documentation <https://tskit.readthedocs.io/en/latest/python-api.html#tskit.TreeSequence.divergence>`_
 for this method, we can see that we'll need two inputs: ``sample_sets`` and
 ``indexes``.
-Let's think about what these inputs are, and how we can obtain them with 
+Let's think about what these inputs are, and how we can obtain them with
 Python commands.
-In our case, the sample sets correspond to the lists 
+In our case, the sample sets correspond to the lists
 of sample chromosomes (nodes) from each separate population.
 We can obtain the necessary list of lists like this:
 
@@ -321,7 +323,7 @@ We can obtain the necessary list of lists like this:
     [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]]
 
 Note that the samples with node IDs 0 - 3 are from population 0,
-samples with node IDs 4 - 7 are from population 1 and so on. 
+samples with node IDs 4 - 7 are from population 1 and so on.
 
 The indexes are the pairs of integer indexes corresponding to the populations
 that we wish to compare.
@@ -357,7 +359,7 @@ Here is some (more advanced) code that does this.
 It relies on the ``numpy``, ``seaborn`` and ``matplotlib`` packages.
 
 .. code-block:: python
-    
+
     >>> import numpy as np
     >>> import seaborn
     >>> import matplotlib.pyplot as plt
@@ -388,7 +390,7 @@ It relies on the ``numpy``, ``seaborn`` and ``matplotlib`` packages.
 These values make sense given the model of demography we have specified:
 the highest divergence estimates were obtained when African samples were
 compared with samples from other populations, and the lowest divergence
-estimates were obtained when Asian samples were compared with themselves. 
+estimates were obtained when Asian samples were compared with themselves.
 However, the overwhelming sameness of the sample chromosomes is also evident:
 on average, any two sample chromosomes differ at less than 0.04% of positions,
 regardless of the populations they come from.

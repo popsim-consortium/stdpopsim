@@ -68,4 +68,3 @@ accessed through the main entrypoint, :func:`.get_engine`.
 
 .. autoclass:: stdpopsim.Engine
     :members:
-
