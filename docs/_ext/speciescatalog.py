@@ -101,8 +101,8 @@ def citation_list(citable):
     return bullet_list
 
 
-def model_parameter_table(model):
-    path = pathlib.Path(f"parameter_tables/{model.species.id}/{model.id}.csv")
+def model_parameter_table(species, model):
+    path = pathlib.Path(f"parameter_tables/{species.id}/{model.id}.csv")
     if not path.exists():
         # TODO integrate with messages?
         print("Skipping model parameters", model.id)
@@ -282,7 +282,7 @@ def model_section(species, model):
     section += nodes.rubric(text="Citations")
     section += citation_list(model)
     section += nodes.rubric(text="Model parameters")
-    section += model_parameter_table(model)
+    section += model_parameter_table(species, model)
     return section
 
 

@@ -84,8 +84,6 @@ _species.add_genetic_map(_gm)
 #
 ###########################################################
 
-default_generation_time = 0.1
-
 
 # population definitions that are reused.
 _afr_population = stdpopsim.Population(
@@ -94,18 +92,7 @@ _eur_population = stdpopsim.Population(
    name="EUR", description="European D. melanogaster population")
 
 
-class DrosophilaMelanogasterModel(stdpopsim.Model):
-    """
-    TODO: documentation
-    """
-    species = _species
-
-    def __init__(self):
-        super().__init__()
-        self.generation_time = _species.generation_time
-
-
-class _SheehanSongThreeEpoch(DrosophilaMelanogasterModel):
+class _SheehanSongThreeEpoch(stdpopsim.Model):
     id = "afr_3epoch"
     name = "Three epoch African population"
     description = """
@@ -125,7 +112,6 @@ class _SheehanSongThreeEpoch(DrosophilaMelanogasterModel):
     ]
 
     def __init__(self):
-        super().__init__()
         # Parameter values from "Simulating Data" section
         # these are assumptions, not estimates
         N_ref = 100000
@@ -139,7 +125,8 @@ class _SheehanSongThreeEpoch(DrosophilaMelanogasterModel):
         # generation_time = 10 / year
         t_1 = t_1_coal * 4 * N_ref
         t_2 = (t_1_coal + t_2_coal) * 4 * N_ref
-        self.generation_time = default_generation_time
+        self.generation_time = _species.generation_time
+        self.citations.extend(_species.generation_time_citations)
 
         self.population_configurations = [
             msprime.PopulationConfiguration(
@@ -159,7 +146,7 @@ class _SheehanSongThreeEpoch(DrosophilaMelanogasterModel):
 _species.add_model(_SheehanSongThreeEpoch())
 
 
-class _LiStephanTwoPopulation(DrosophilaMelanogasterModel):
+class _LiStephanTwoPopulation(stdpopsim.Model):
     id = "ooa_2"  # TODO is this true??
     name = "Three epoch model for African and European populations"
     description = """
@@ -175,13 +162,13 @@ class _LiStephanTwoPopulation(DrosophilaMelanogasterModel):
     ]
 
     def __init__(self):
-        super().__init__()
         # African Parameter values from "Demographic History of the African
         # Population" section
         N_A0 = 8.603e06
         t_A0 = 600000  # assuming 10 generations / year
         N_A1 = N_A0 / 5.0
-        self.generation_time = default_generation_time
+        self.generation_time = _species.generation_time
+        self.citations.extend(_species.generation_time_citations)
 
         # European Parameter values from "Demo History of Euro Population"
         N_E0 = 1.075e06

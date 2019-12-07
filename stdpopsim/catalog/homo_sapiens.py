@@ -149,17 +149,6 @@ _tennessen_et_al = stdpopsim.Citation(
     doi="https://doi.org/10.1126/science.1219240")
 
 
-# TODO: remove this superclass
-class HomoSapiensModel(stdpopsim.Model):
-    species = _species
-    """
-    TODO: documentation
-    """
-    def __init__(self):
-        super().__init__()
-        self.generation_time = _species.generation_time
-
-
 # TODO we want to move away from defining these as classes which
 # can be instantiated and rather to creating *instances* of the Model
 # class which has this behaviour. However, it's not clear what form
@@ -168,7 +157,7 @@ class HomoSapiensModel(stdpopsim.Model):
 # like this, but should be found via the species catalog.
 
 
-class _GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
+class _GutenkunstThreePopOutOfAfrica(stdpopsim.Model):
     id = "ooa_3"
     name = "Three population out-of-Africa"
     description = """
@@ -191,7 +180,9 @@ class _GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
     ]
 
     def __init__(self):
-        super().__init__()
+        self.generation_time = _species.generation_time
+        self.citations.extend(_species.generation_time_citations)
+
         # First we set out the maximum likelihood values of the various parameters
         # given in Table 1.
         N_A = 7300
@@ -258,7 +249,7 @@ class _GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
 _species.add_model(_GutenkunstThreePopOutOfAfrica())
 
 
-class _TennessenTwoPopOutOfAfrica(HomoSapiensModel):
+class _TennessenTwoPopOutOfAfrica(stdpopsim.Model):
     id = "ooa_2"
     name = "Two population out-of-Africa"
     description = """
@@ -268,7 +259,6 @@ class _TennessenTwoPopOutOfAfrica(HomoSapiensModel):
         and two distinct periods of subsequent European population growth over the past
         23kya. Model parameters are taken from Fig. S5 in Fu et al.
     """
-
     populations = [
         stdpopsim.Population(name="AFR", description="African Americans"),
         stdpopsim.Population(name="EUR", description="European Americans")
@@ -282,7 +272,8 @@ class _TennessenTwoPopOutOfAfrica(HomoSapiensModel):
     ]
 
     def __init__(self):
-        super().__init__()
+        self.generation_time = _species.generation_time
+        self.citations.extend(_species.generation_time_citations)
 
         T_AF = 148e3 / self.generation_time
         T_OOA = 51e3 / self.generation_time
@@ -348,7 +339,7 @@ class _TennessenTwoPopOutOfAfrica(HomoSapiensModel):
 _species.add_model(_TennessenTwoPopOutOfAfrica())
 
 
-class _TennessenOnePopAfrica(HomoSapiensModel):
+class _TennessenOnePopAfrica(stdpopsim.Model):
     id = "african"
     name = "African population"
     description = """
@@ -362,7 +353,8 @@ class _TennessenOnePopAfrica(HomoSapiensModel):
     citations = [_tennessen_et_al]
 
     def __init__(self):
-        super().__init__()
+        self.generation_time = _species.generation_time
+        self.citations.extend(_species.generation_time_citations)
 
         T_AF = 148e3 / self.generation_time
         T_EG = 5115 / self.generation_time
@@ -398,7 +390,7 @@ class _TennessenOnePopAfrica(HomoSapiensModel):
 _species.add_model(_TennessenOnePopAfrica())
 
 
-class _BrowningAmerica(HomoSapiensModel):
+class _BrowningAmerica(stdpopsim.Model):
     id = "america"
     name = "American admixture"
     description = """
@@ -409,7 +401,6 @@ class _BrowningAmerica(HomoSapiensModel):
         of 30,000 and grew at a rate of 5% per generation, with 1/6 of the
         population of African ancestry, 1/3 European, and 1/2 Asian.
     """
-
     populations = [
         stdpopsim.Population(name="AFR", description="Contemporary African population"),
         stdpopsim.Population(name="EUR", description="Contemporary European population"),
@@ -426,7 +417,9 @@ class _BrowningAmerica(HomoSapiensModel):
     ]
 
     def __init__(self):
-        super().__init__()
+        self.generation_time = _species.generation_time
+        self.citations.extend(_species.generation_time_citations)
+
         # Model code was ported from Supplementary File 1.
         N0 = 7310  # initial population size
         Thum = 5920  # time (gens) of advent of modern humans
@@ -510,7 +503,7 @@ class _BrowningAmerica(HomoSapiensModel):
 _species.add_model(_BrowningAmerica())
 
 
-class _RagsdaleArchaic(HomoSapiensModel):
+class _RagsdaleArchaic(stdpopsim.Model):
     id = "ooa_archaic"
     name = "Three population out-of-Africa with archaic admixture"
     description = """
@@ -539,8 +532,6 @@ class _RagsdaleArchaic(HomoSapiensModel):
     ]
 
     def __init__(self):
-        super().__init__()
-
         # First we set out the maximum likelihood values of the various parameters
         # given in Table 1 (under archaic admixture).
         N_0 = 3600
@@ -668,7 +659,7 @@ class _RagsdaleArchaic(HomoSapiensModel):
 _species.add_model(_RagsdaleArchaic())
 
 
-class _SchiffelsZigzag(HomoSapiensModel):
+class _SchiffelsZigzag(stdpopsim.Model):
     id = "zigzag"
     name = "Periodic growth and decline."
     description = """
@@ -687,8 +678,6 @@ class _SchiffelsZigzag(HomoSapiensModel):
     ]
 
     def __init__(self):
-        super().__init__()
-
         self.generation_time = 29
         N0 = 14312
 
@@ -743,7 +732,7 @@ class _SchiffelsZigzag(HomoSapiensModel):
 _species.add_model(_SchiffelsZigzag())
 
 
-class _KammAncientEurasia(HomoSapiensModel):
+class _KammAncientEurasia(stdpopsim.Model):
     id = "kamm_ancient_eurasia"
     name = "Multi-population model of ancient Eurasia (Kamm et al. 2019)"
     description = """
@@ -812,7 +801,6 @@ class _KammAncientEurasia(HomoSapiensModel):
     ]
 
     def __init__(self):
-        super().__init__()
         # Times are provided in years, so we convert into generations.
         self.generation_time = 25
         # Mutation_rate in Kamm et al. = 1.22e-8
