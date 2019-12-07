@@ -4,7 +4,6 @@
 Catalog
 =======
 
-
 With ``stdpopsim``, you can run simulations from a number of demographic models
 that were implemented from published demographic histories. These models have been
 rigorously checked and tested by multiple people, so you can rest easy knowing that

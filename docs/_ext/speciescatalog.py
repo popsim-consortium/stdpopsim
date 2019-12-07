@@ -12,8 +12,11 @@ import pathlib
 
 from docutils import nodes
 from sphinx.util.docutils import SphinxDirective
+from sphinx.util import logging
 
 import stdpopsim
+
+logger = logging.getLogger(__name__)
 
 
 class SpeciesCatalogDirective(SphinxDirective):
@@ -129,9 +132,11 @@ class SpeciesCatalogDirective(SphinxDirective):
     def model_parameter_table(self, species, model):
         path = pathlib.Path(f"parameter_tables/{species.id}/{model.id}.csv")
         if not path.exists():
-            # There doesn't seem to be a better way to do this...
-            print(
-                f"FIXME: Skipping model parameters for {model.id} due to missing table")
+            message = f"Skipping model parameters for {model.id} due to missing table"
+            # TODO change this to emit a warning once we have the model tables filled
+            # in. See issue #272.
+            print(message)
+            # logger.warn(message)
             return None
 
         with open(path) as csv_file:
@@ -178,14 +183,43 @@ class SpeciesCatalogDirective(SphinxDirective):
 
         return table
 
-    def population_list(self, model):
-        pop_list = nodes.enumerated_list(start=0)
-        for population in model.populations:
-            list_item = nodes.list_item()
-            # TODO add the population name in Strong here somehow.
-            list_item += nodes.paragraph(text=population.description)
-            pop_list += list_item
-        return pop_list
+    def population_table(self, model):
+        table = nodes.table()
+        tgroup = nodes.tgroup(cols=2)
+        colspec = nodes.colspec(colwidth=1)
+        tgroup.append(colspec)
+        colspec = nodes.colspec(colwidth=1)
+        tgroup.append(colspec)
+
+        table += tgroup
+
+        thead = nodes.thead()
+        tgroup += thead
+        row = nodes.row()
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="Index")
+        row += entry
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="Description")
+        row += entry
+        thead.append(row)
+
+        rows = []
+        for index, population in enumerate(model.populations):
+            row = nodes.row()
+            rows.append(row)
+
+            entry = nodes.entry()
+            entry += nodes.paragraph(text=str(index))
+            row += entry
+
+            entry = nodes.entry()
+            entry += nodes.paragraph(text=population.description)
+            row += entry
+        tbody = nodes.tbody()
+        tbody.extend(rows)
+        tgroup += tbody
+        return table
 
     def genetic_map_section(self, species, genetic_map):
         # NOTE: Ids must be lowercase to work properly. When this was developed,
@@ -200,9 +234,8 @@ class SpeciesCatalogDirective(SphinxDirective):
 
     def genetic_maps_table(self, species):
         table = nodes.table()
-        tgroup = nodes.tgroup(cols=2)
+        tgroup = nodes.tgroup(cols=3)
         colspec = nodes.colspec(colwidth=1)
-
         tgroup.append(colspec)
         colspec = nodes.colspec(colwidth=1)
         tgroup.append(colspec)
@@ -231,11 +264,11 @@ class SpeciesCatalogDirective(SphinxDirective):
             row = nodes.row()
             rows.append(row)
 
-            # map_id = f"sec_catalog_{species.id}_genetic_maps_{genetic_map.name}"
-            # TODO figure out how to make a link here to the corresponding detail
-            # section.
+            map_id = f"sec_catalog_{species.id}_genetic_maps_{genetic_map.name}"
             entry = nodes.entry()
-            entry += nodes.paragraph(text=genetic_map.name)
+            para = nodes.paragraph()
+            entry += para
+            para += nodes.reference(internal=True, refid=map_id, text=genetic_map.name)
             row += entry
 
             entry = nodes.entry()
@@ -258,12 +291,10 @@ class SpeciesCatalogDirective(SphinxDirective):
     def chromosomes_table(self, species):
 
         table = nodes.table()
-        tgroup = nodes.tgroup(cols=2)
-        colspec = nodes.colspec(colwidth=1)
-        tgroup.append(colspec)
-        colspec = nodes.colspec(colwidth=1)
-        tgroup.append(colspec)
-
+        tgroup = nodes.tgroup(cols=4)
+        for _ in range(4):
+            colspec = nodes.colspec(colwidth=1)
+            tgroup.append(colspec)
         table += tgroup
 
         thead = nodes.thead()
@@ -275,6 +306,14 @@ class SpeciesCatalogDirective(SphinxDirective):
 
         entry = nodes.entry()
         entry += nodes.paragraph(text="Length")
+        row += entry
+
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="Recombination rate")
+        row += entry
+
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="Mutation rate")
         row += entry
 
         thead.append(row)
@@ -290,8 +329,64 @@ class SpeciesCatalogDirective(SphinxDirective):
             entry += nodes.paragraph(text="{:d}".format(chrom.length))
             row += entry
 
+            entry = nodes.entry()
+            entry += nodes.paragraph(text="{:g}".format(chrom.recombination_rate))
+            row += entry
+
+            entry = nodes.entry()
+            entry += nodes.paragraph(text="{:g}".format(chrom.mutation_rate))
+            row += entry
+
             # TODO add mutation/recombination rate.
             rows.append(row)
+        tbody = nodes.tbody()
+        tbody.extend(rows)
+        tgroup += tbody
+
+        return table
+
+    def models_table(self, species):
+        table = nodes.table()
+        tgroup = nodes.tgroup(cols=3)
+        for _ in range(3):
+            colspec = nodes.colspec(colwidth=1)
+            tgroup.append(colspec)
+        table += tgroup
+
+        thead = nodes.thead()
+        tgroup += thead
+        row = nodes.row()
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="ID")
+        row += entry
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="Name")
+        row += entry
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="# Pops")
+        row += entry
+
+        thead.append(row)
+
+        rows = []
+        for model in species.models:
+            row = nodes.row()
+            rows.append(row)
+
+            mid = f"sec_catalog_{species.id}_models_{model.id}"
+            entry = nodes.entry()
+            para = nodes.paragraph()
+            entry += para
+            para += nodes.reference(internal=True, refid=mid, text=model.id)
+            row += entry
+
+            entry = nodes.entry()
+            entry += nodes.paragraph(text=model.name)
+            row += entry
+
+            entry = nodes.entry()
+            entry += nodes.paragraph(text=model.num_populations)
+            row += entry
         tbody = nodes.tbody()
         tbody.extend(rows)
         tgroup += tbody
@@ -307,11 +402,12 @@ class SpeciesCatalogDirective(SphinxDirective):
         section += nodes.rubric(text="Details")
         section += self.model_table(model)
         section += nodes.rubric(text="Populations")
-        section += self.population_list(model)
+        section += self.population_table(model)
         section += nodes.rubric(text="Citations")
         section += self.citation_list(model)
         section += nodes.rubric(text="Model parameters")
         section += self.model_parameter_table(species, model)
+        section += nodes.transition()
         return [target, section]
 
     def run(self):
@@ -338,11 +434,7 @@ class SpeciesCatalogDirective(SphinxDirective):
 
         models_section = nodes.section(ids=[f"sec_catalog_{species.id}_models"])
         models_section += nodes.title(text="Models")
-        # TODO we need some styling here to break this up visually. How does
-        # sphinx autoclass do this? We should probably have a table of all the
-        # models, and try to use the Sphinx styling to make it all work visually.
-        # TODO add a table summarising the models with links to the detailed
-        # descriptions
+        models_section += self.models_table(species)
         for model in species.models:
             models_section += self.model_section(species, model)
         section += models_section
