@@ -11,5 +11,4 @@ msprime
 kastore
 attrs
 appdirs
-daiquiri
 humanize

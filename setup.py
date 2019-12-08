@@ -32,7 +32,7 @@ setup(
         ]
     },
     # NOTE: make sure this is the 'attrs' package, not 'attr'!
-    install_requires=["msprime", "attrs", "appdirs", "humanize", "daiquiri"],
+    install_requires=["msprime", "attrs", "appdirs", "humanize"],
     url='https://github.com/popgensims/stdpopsim',
     project_urls={
         'Bug Reports': 'https://github.com/popgensims/stdpopsim/issues',
