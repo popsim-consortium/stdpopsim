@@ -13,12 +13,8 @@ sphinx:
 conda:
   environment: requirements/rtd-conda-environment.yml
 
-# Comment out for now while debugging conda build.
-# python:
-#   version: 3.7
-#   install:
-#     - requirements: requirements/rtd.txt
-#     # Install using setuptools so that we don't automatically pull in msprime
-#     # (which won't build because GSL is missing).
-#     - method: setuptools 
-#       path: .
+python:
+  # Install the local package using pip so that stdpopsim is in the path.
+  install:
+    - method: pip 
+      path: .
