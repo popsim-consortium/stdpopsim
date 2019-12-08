@@ -10,11 +10,15 @@ sphinx:
   configuration: docs/conf.py
   fail_on_warning: true
 
-python:
-  version: 3.7
-  install:
-    - requirements: requirements/rtd.txt
-    # Install using setuptools so that we don't automatically pull in msprime
-    # (which won't build because GSL is missing).
-    - method: setuptools 
-      path: .
+conda:
+  environment: requirements/rtd-conda-environment.yml
+
+# Comment out for now while debugging conda build.
+# python:
+#   version: 3.7
+#   install:
+#     - requirements: requirements/rtd.txt
+#     # Install using setuptools so that we don't automatically pull in msprime
+#     # (which won't build because GSL is missing).
+#     - method: setuptools 
+#       path: .
