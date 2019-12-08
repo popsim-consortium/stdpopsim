@@ -10,3 +10,7 @@ dependencies:
   - msprime
   - sphinx-argparse
   - sphinxcontrib-programoutput
+  - humanize
+  - pip:
+    - daiquiri
+
