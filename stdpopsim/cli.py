@@ -16,7 +16,6 @@ import functools
 import msprime
 import tskit
 import humanize
-import daiquiri
 
 import stdpopsim
 
@@ -41,13 +40,16 @@ def exit(message):
     sys.exit(f"{sys.argv[0]}: {message}")
 
 
+LOG_FORMAT = "%(asctime)s [%(process)d] %(levelname)s %(name)s: %(message)s"
+
+
 def setup_logging(args):
     log_level = "WARN"
     if args.verbosity > 0:
         log_level = "INFO"
     if args.verbosity > 1:
         log_level = "DEBUG"
-    daiquiri.setup(level=log_level)
+    logging.basicConfig(format=LOG_FORMAT, level=log_level)
 
 
 def get_species_wrapper(species_id):

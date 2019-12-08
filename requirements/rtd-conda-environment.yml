@@ -11,6 +11,3 @@ dependencies:
   - sphinx-argparse
   - sphinxcontrib-programoutput
   - humanize
-  - pip:
-    - daiquiri
-

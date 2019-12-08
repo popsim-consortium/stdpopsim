@@ -344,23 +344,26 @@ class TestSetupLogging(unittest.TestCase):
     def test_default(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(self.basic_cmd)
-        with mock.patch("daiquiri.setup") as mocked_setup:
+        with mock.patch("logging.basicConfig") as mocked_config:
             cli.setup_logging(args)
-            mocked_setup.assert_called_once_with(level="WARN")
+            mocked_config.assert_called_once_with(
+                format=cli.LOG_FORMAT, level="WARN")
 
     def test_verbose(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["-v"] + self.basic_cmd)
-        with mock.patch("daiquiri.setup") as mocked_setup:
+        with mock.patch("logging.basicConfig") as mocked_config:
             cli.setup_logging(args)
-            mocked_setup.assert_called_once_with(level="INFO")
+            mocked_config.assert_called_once_with(
+                format=cli.LOG_FORMAT, level="INFO")
 
     def test_very_verbose(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["-vv"] + self.basic_cmd)
-        with mock.patch("daiquiri.setup") as mocked_setup:
+        with mock.patch("logging.basicConfig") as mocked_config:
             cli.setup_logging(args)
-            mocked_setup.assert_called_once_with(level="DEBUG")
+            mocked_config.assert_called_once_with(
+                format=cli.LOG_FORMAT, level="DEBUG")
 
 
 class TestErrors(unittest.TestCase):

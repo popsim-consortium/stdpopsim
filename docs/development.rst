@@ -81,11 +81,6 @@ encounter problems with it.
 .. Note:: If you have trouble installing any of the requirements, your ``pip`` may be the wrong version.
     Try ``pip3 install -r requirements/development.txt``
 
-.. Warning:: The dependency ``daiquiri`` is not currently a conda package.
-    So, ``conda install`` will fail.
-    See the `GitHub issue
-    <https://github.com/popgensims/stdpopsim/issues/161>`_
-
 ---------------------------
 Using a Virtual Environment
 ---------------------------
@@ -467,14 +462,14 @@ follow these steps for it to be officially supported by stdpopsim:
     2. Developer A creates an issue tracking the QC for the model which includes
        information about the primary sources used to create the model and the
        population indices used for their msprime implementation. Developer B is
-       then assigned/volunteers to do a blind implementation of the model. 
+       then assigned/volunteers to do a blind implementation of the model.
 
     3. M creates an issue for the CLI implementation of the model.
 
     4. Developer B creates a blind implementation of the model in the
        ``qc/species_name_qc.py`` file. Note that if you are adding a new species
        you will have to add a new import to ``qc/__init__.py``.
-    
+
     5. Developer B adds the automatic checking of this model for
        equality with the production model to the suite of unit tests in for the
        demograpic model in ``tests/test_species_name_.py`` following the
@@ -485,7 +480,7 @@ follow these steps for it to be officially supported by stdpopsim:
             self.assertTrue(model.equals(homo_sapiens_qc.BrowningAmerica()))
 
        Developer B then creates a PR, and all being good, this PR is merged and
-       the QC issue is closed. 
+       the QC issue is closed.
 
     6. Someone then makes a PR updating the CLI, checking that the
        documentation, citations etc all work properly, and adds the model to
@@ -551,8 +546,8 @@ To run the test simply use::
 If you would like to automatically run this test before a commit is permitted,
 add the following line in the file ``stdpopsim/.git/hooks/pre-commit.sample``::
 
-    exec flake8 --max-line-length 89 setup.py stdpopsim tests 
- 
+    exec flake8 --max-line-length 89 setup.py stdpopsim tests
+
 before::
 
     # If there are whitespace errors, print the offending file names and fail.
