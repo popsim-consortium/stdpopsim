@@ -3,6 +3,7 @@ Common infrastructure for specifying demographic models.
 """
 import sys
 
+import attr
 import msprime
 import numpy as np
 
@@ -141,33 +142,54 @@ class Population(object):
                 "sampling_time": self.sampling_time}
 
 
+@attr.s(kw_only=True)
 class Model(object):
     """
-    Class representing a simulation model that can be run to output a tree sequence.
-    Concrete subclasses must define population_configurations, demographic_events
-    and migration_matrix instance variables which define the model.
+    Class representing a demographic model.
+
+    This class is indended to be used by model implementors. To instead
+    obtain a pre-specified model, see :class:`Species.get_model`.
 
     :ivar id: The unique identifier for this model. Model IDs should be
-        short and memorable, perhaps as an abbreviation of the model's
-        name.
+        short and memorable, perhaps as an abbreviation of the model's name.
     :vartype id: str
     :ivar name: The informal name for this model as it would be used in
         written text, e.g., "Three population Out-of-Africa"
     :vartype informal_name: str
-    """
-    # TODO the infrastructure here is left over from a structure that
-    # rigidly used class definitions as a way to define population
-    # models. This contructor should take all the instance variables
-    # as parameteters, and we should use factory functions to define
-    # the model instances that are added to the catalog rather than
-    # subclasses.
+    :ivar description: A concise, but detailed, summary of the model.
+    :vartype description: str
+    :ivar generation_time: Mean inter-generation interval, in years.
+    :vartype generation_time: int
+    :ivar populations: TODO
+    :vartype populations: list of :class:`.Population`
 
-    def __init__(self):
-        self.population_configurations = []
-        self.demographic_events = []
-        # Defaults to a single population
-        self.migration_matrix = [[0]]
-        self.generation_time = None
+    :ivar citations: TODO
+    :vartype citations: list of :class:`.Citation`
+    :ivar demographic_events: TODO
+    :vartype demographic_events: list of :class:`msprime.DemographicEvent`
+    :ivar population_configurations: TODO
+    :vartype population_configurations: list of :class:`msprime.PopulationConfiguration`
+    :ivar migration_matrix: TODO
+    :vartype migration_matrix: list of list of int
+    """
+
+    # required attributes
+    id = attr.ib(type=str)
+    name = attr.ib(type=str)
+    description = attr.ib(type=str)
+    generation_time = attr.ib(type=int)
+    populations = attr.ib(type=list)
+
+    # optional attributes
+    citations = attr.ib(factory=list)
+    demographic_events = attr.ib(factory=list)
+    population_configurations = attr.ib(factory=list)
+    migration_matrix = attr.ib()
+
+    @migration_matrix.default
+    def _migration_matrix_default(self):
+        npops = len(self.population_configurations)
+        return [[0]*npops]*npops
 
     @property
     def num_populations(self):
@@ -176,6 +198,19 @@ class Model(object):
     @property
     def num_sampling_populations(self):
         return sum(int(pop.allow_samples) for pop in self.populations)
+
+    @staticmethod
+    def empty(**kwargs):
+        """
+        Return a model with the mandatory attributes filled out.
+        """
+        kwargs.update(
+                id=kwargs.get("id", ""),
+                name=kwargs.get("name", ""),
+                description=kwargs.get("description", ""),
+                populations=kwargs.get("populations", []),
+                generation_time=kwargs.get("generation_time", -1))
+        return Model(**kwargs)
 
     def equals(self, other, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
         """

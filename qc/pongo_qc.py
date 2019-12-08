@@ -6,7 +6,6 @@ import stdpopsim.models as models
 
 class LockePongo(models.Model):
     def __init__(self):
-        super().__init__()
         # This is a split-migration style model, with exponential growth or
         # decay allowed in each population after the split. They assumed a
         # generation time of 20 years and a mutation rate of 2e-8 per bp per gen

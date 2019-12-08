@@ -5,7 +5,6 @@ import stdpopsim.models as models
 
 class Durvasula2017MSMC(models.Model):
     def __init__(self):
-        super().__init__()
 
         # Both of the following are directly
         # converted from MSMC output scaled by A.Thaliana
@@ -68,7 +67,6 @@ class HuberTwoEpoch(models.Model):
     ]
 
     def __init__(self):
-        super().__init__()
 
         # Time of second epoch
         T_2 = 568344

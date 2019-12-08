@@ -272,15 +272,9 @@ class TestDemographicEventsEqual(unittest.TestCase):
                 models.verify_demographic_events_equal([a], [b], 1)
 
 
-class DummyModel(models.Model):
-    """
-    Dummy subclass to make sure we're filtering models correctly.
-    """
-
-
 class TestAllModels(unittest.TestCase):
     """
-    Tests that we can get all known simulation models.
+    Tests for registered simulation models.
     """
     def test_non_empty(self):
         self.assertGreater(len(list(stdpopsim.all_models())), 0)
@@ -289,13 +283,18 @@ class TestAllModels(unittest.TestCase):
         for model in stdpopsim.all_models():
             self.assertIsInstance(model, models.Model)
 
-    def test_filtering_outside_classes(self):
-        for model in stdpopsim.all_models():
-            self.assertNotIsInstance(model, DummyModel)
+            self.assertGreater(len(model.id), 0)
+            self.assertGreater(len(model.name), 0)
+            self.assertGreater(len(model.description), 0)
+            self.assertGreater(len(model.citations), 0)
+            self.assertGreater(model.generation_time, 0)
 
-    def test_generation_times_non_empty(self):
-        self.assertGreater(len([model.generation_time for model in
-                                stdpopsim.all_models()]), 0)
+            npops = len(model.populations)
+            self.assertGreater(npops, 0)
+            self.assertEqual(len(model.population_configurations), npops)
+            self.assertEqual(len(model.migration_matrix), npops)
+            self.assertEqual(len(model.migration_matrix[0]), npops)
+            self.assertIsInstance(model.demographic_events, list)
 
 
 class TestModelsEqual(unittest.TestCase):
@@ -304,25 +303,25 @@ class TestModelsEqual(unittest.TestCase):
     """
     def test_known_models(self):
         # All models should be equal to themselves.
-        other_model = models.Model()
+        other_model = models.Model.empty()
         for model in stdpopsim.all_models():
             self.assertTrue(model.equals(model))
             self.assertFalse(model.equals(other_model))
 
     def test_different_objects(self):
-        m1 = models.Model()
+        m1 = models.Model.empty()
         self.assertFalse(m1.equals(self))
         self.assertFalse(m1.equals({}))
         self.assertFalse(m1.equals(None))
 
     def test_default_models(self):
-        m1 = models.Model()
-        m2 = models.Model()
+        m1 = models.Model.empty()
+        m2 = models.Model.empty()
         self.assertTrue(m1.equals(m2))
 
     def test_migration_matrices(self):
-        m1 = models.Model()
-        m2 = models.Model()
+        m1 = models.Model.empty()
+        m2 = models.Model.empty()
         m1.migration_matrix = [[]]
         self.assertFalse(m1.equals(m2))
         m2.migration_matrix = [[]]
@@ -339,17 +338,6 @@ class TestModelsEqual(unittest.TestCase):
         self.assertTrue(m1.equals(m2))
         # If we have higher tolerances we catch the differences
         self.assertFalse(m1.equals(m2, atol=1e-10, rtol=1e-9))
-
-
-class TestModelProperties(unittest.TestCase):
-    def test_model_properties(self):
-        self.assertTrue(models.Model().generation_time is None)
-        for model in stdpopsim.all_models():
-            self.assertTrue(model.generation_time > 0)
-            self.assertIsInstance(model.population_configurations, list)
-            self.assertIsInstance(model.demographic_events, list)
-            self.assertGreater(len(model.migration_matrix), 0)
-            self.assertIsInstance(model.migration_matrix[0], list)
 
 
 class TestConstantSizeModel(unittest.TestCase, ModelTestMixin):
@@ -428,8 +416,7 @@ class TestPopulationSampling(unittest.TestCase):
                                  sampling_time=None)
 
     # Create an empty model to hold populations
-    base_mod = stdpopsim.Model()
-    base_mod.populations = [_pop1, _pop2, _pop3]
+    base_mod = models.Model.empty(populations=[_pop1, _pop2, _pop3])
 
     def test_num_sampling_populations(self):
         self.assertEqual(self.base_mod.num_sampling_populations, 2)
