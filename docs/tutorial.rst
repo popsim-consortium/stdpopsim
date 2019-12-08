@@ -28,20 +28,17 @@ by ``stdpopsim``. The first step for using the CLI is to select the species that
 you are interested in simulating data for. In order to see which species are
 available run
 
-.. code-block:: console
-
-    $ stdpopsim --help
+.. command-output:: stdpopsim --help
 
 This shows the species currently supported by ``stdpopsim``. This means that
 ``stdpopsim`` knows various traits of these species including chromosome size
 and recombination rates. Once we've selected a species, in this case humans, we
 can look at the help again as follows.
 
-.. code-block:: console
+.. command-output:: stdpopsim homsap --help
+    :ellipsis: 20
 
-    $ stdpopsim homsap --help
-
-For conciseness we do not show the output here but this time you should see a
+For conciseness we do not show all the output here but this time you should see a
 different output which shows options for performing the simulation itself and
 the species default parameters. This includes selecting the demographic model,
 chromosome, recombination map, and number of samples. 
@@ -66,9 +63,8 @@ tree-sequence formated output should be written to the file ``foo.ts`` with the
 Say we want to use a specific demographic model. We look up the available models
 using the ``--help-models`` flag:
 
-.. code-block:: console
-
-    $ stdpopsim homsap --help-models
+.. command-output:: stdpopsim homsap --help-models
+    :ellipsis: 20
 
 This gives all of the possible demographic models we could simulate. We choose
 the the two population out-of-Africa model from `Tennesen et al. (2012)
@@ -257,9 +253,8 @@ and then estimate the genetic divergence between each population pair.
 First, let's use the ``--help-models`` option to see the selection of demographic
 models available to us:
 
-.. code-block:: console
-
-    $ stdpopsim homsap --help-models
+.. command-output:: stdpopsim homsap --help-models
+    :ellipsis: 20
 
 This prints detailed information about all of the available models to
 the terminal.
@@ -273,9 +268,7 @@ European, Asian and African-American groups.
 Using the ``--help-genetic-maps`` option, we can also see what recombination maps
 are available:
 
-.. code-block:: console
-
-    $ stdpopsim homsap --help-genetic-maps
+.. command-output:: stdpopsim homsap --help-genetic-maps
 
 Let's go with ``HapmapII_GRCh37``.
 The next command simulates 4 samples of chromosome 1 from each of the four

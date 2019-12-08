@@ -56,4 +56,5 @@ jobs:
       - run:
           name: Build docs
           command: |
+            source venv/bin/activate
             cd docs && make && make singlehtml
