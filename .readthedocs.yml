@@ -14,5 +14,7 @@ python:
   version: 3.7
   install:
     - requirements: requirements/rtd.txt
-    - method: pip 
+    # Install using setuptools so that we don't automatically pull in msprime
+    # (which won't build because GSL is missing).
+    - method: setuptools 
       path: .
