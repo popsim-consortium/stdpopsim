@@ -56,3 +56,4 @@ class TestHuberThreeEpoch(unittest.TestCase, test_models.ModelTestMixin):
     Basic tests for the Huber three epoch model.
     """
     model = species.get_demographic_model("Afr_3epoch")
+    qc_model = arabidopsis_thaliana_qc.HuberThreeEpoch()
