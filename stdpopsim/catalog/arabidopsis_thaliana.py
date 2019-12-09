@@ -44,6 +44,10 @@ _species = stdpopsim.Species(
     genome=_genome,
     # TODO reference for these
     generation_time=1.0,
+    generation_time_citations=[stdpopsim.Citation(
+        doi="https://doi.org/10.1890/0012-9658(2002)083[1006:GTINSO]2.0.CO;2",
+        year="2002",
+        author="Donohue")],
     population_size=10**3)
 
 stdpopsim.register_species(_species)
