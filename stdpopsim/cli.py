@@ -335,8 +335,10 @@ def add_simulate_species_parser(parser, species):
             "-g", "--genetic-map",
             choices=choices, metavar="", default=None,
             help=(
-                "Specify a particular genetic map. If no genetic map is specified "
-                "use a flat map by default. Available maps: "
+                "Specify a particular genetic map. By default, a chromosome-specific "
+                "uniform recombination rate is used. These default rates are listed in "
+                "the catalog: <https://stdpopsim.readthedocs.io/en/latest/catalog.html> "
+                "Available maps: "
                 f"{', '.join(choices)}. "))
 
     if len(species.genome.chromosomes) > 1:
