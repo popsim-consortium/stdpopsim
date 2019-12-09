@@ -4,7 +4,6 @@ Tests for the human data definitions.
 import unittest
 
 import stdpopsim
-from stdpopsim.catalog import homo_sapiens
 
 from tests import test_models
 from tests import test_species
@@ -71,36 +70,39 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
                 contig.recombination_map.mean_recombination_rate)
 
 
+species = stdpopsim.get_species("homsap")
+
+
 class TestTennessenTwoPopOutOfAfrica(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = homo_sapiens._TennessenTwoPopOutOfAfrica()
+    model = species.get_model("ooa_2")
     qc_model = homo_sapiens_qc.TennessenTwoPopOutOfAfrica()
 
 
 class TestTennessenOnePopAfrica(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = homo_sapiens._TennessenOnePopAfrica()
+    model = species.get_model("african")
     qc_model = homo_sapiens_qc.TennessenOnePopAfrica()
 
 
 class TestBrowningAmerica(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = homo_sapiens._BrowningAmerica()
+    model = species.get_model("america")
     qc_model = homo_sapiens_qc.BrowningAmerica()
 
 
 class TestRagsdaleArchaic(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = homo_sapiens._RagsdaleArchaic()
+    model = species.get_model("ooa_archaic")
     qc_model = homo_sapiens_qc.RagsdaleArchaic()
 
 
 class TestKammAncientEurasia(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = homo_sapiens._KammAncientEurasia()
+    model = species.get_model("kamm_ancient_eurasia")
     qc_model = homo_sapiens_qc.KammAncientSamples()
 
 
 # Models that have not been QC'd:
 
 class TestGutenkunstThreePopOutOfAfrica(unittest.TestCase, test_models.ModelTestMixin):
-    model = homo_sapiens._GutenkunstThreePopOutOfAfrica()
+    model = species.get_model("ooa_3")
 
 
 class TestSchiffelsZigzag(unittest.TestCase, test_models.ModelTestMixin):
-    model = homo_sapiens._SchiffelsZigzag()
+    model = species.get_model("zigzag")

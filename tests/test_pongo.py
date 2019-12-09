@@ -54,5 +54,5 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
 
 
 class TestPongo(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = pongo.LockeEtAlPongoIM()
+    model = pongo._orangutan()
     qc_model = pongo_qc.LockePongo()

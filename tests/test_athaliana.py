@@ -32,19 +32,22 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         self.assertEqual(genome.get_chromosome("chr5").length, 26975502)
 
 
+species = stdpopsim.get_species("aratha")
+
+
 class TestDurvasula2017MSMC(unittest.TestCase, test_models.QcdModelTestMixin):
     """
     Basic tests for the Durvasula MSMC model.
     """
-    model = stdpopsim.arabidopsis_thaliana._Durvasula2017MSMC()
+    model = species.get_model("SMA_1pop")
     qc_model = arabidopsis_thaliana_qc.Durvasula2017MSMC()
 
 
 class TestHuberTwoEpoch(unittest.TestCase, test_models.QcdModelTestMixin):
     """
-    Basic tests for the Durvasula MSMC model.
+    Basic tests for the Huber et al. two epoch model.
     """
-    model = stdpopsim.arabidopsis_thaliana._HuberTwoEpoch()
+    model = species.get_model("Afr_2epoch")
     qc_model = arabidopsis_thaliana_qc.HuberTwoEpoch()
 
 
@@ -52,4 +55,4 @@ class TestHuberThreeEpoch(unittest.TestCase, test_models.ModelTestMixin):
     """
     Basic tests for the Huber three epoch model.
     """
-    model = stdpopsim.arabidopsis_thaliana._HuberThreeEpoch()
+    model = species.get_model("Afr_3epoch")

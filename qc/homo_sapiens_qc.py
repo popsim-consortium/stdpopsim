@@ -7,7 +7,6 @@ import stdpopsim.models as models
 
 class TennessenOnePopAfrica(models.Model):
     def __init__(self):
-        super().__init__()
         # This model is the same as the Tennessen two population model except
         # the European population has been removed.
 
@@ -62,7 +61,6 @@ class TennessenOnePopAfrica(models.Model):
 
 class TennessenTwoPopOutOfAfrica(models.Model):
     def __init__(self):
-        super().__init__()
         # Since the Tennessen two population model largely uses parameters from
         # the Gravel et al 2001, we begin by taking the maximum likelihood
         # value from the table 2 of Gravel et al. 2011 using the Low-coverage +
@@ -154,7 +152,6 @@ class TennessenTwoPopOutOfAfrica(models.Model):
 
 class BrowningAmerica(models.Model):
     def __init__(self):
-        super().__init__()
         # Parameters are taken from the Methods - Simulated data section
         # Population sizes
         N_AF0 = 7310  # Initial african population size
@@ -251,7 +248,6 @@ class BrowningAmerica(models.Model):
 
 class RagsdaleArchaic(models.Model):
     def __init__(self):
-        super().__init__()
 
         # All parameters were taken from table 1 of Ragsdale et al. (2019)
         generation_time = 29
@@ -385,7 +381,6 @@ class KammAncientSamples(models.Model):
     illustrated in Figure 3, with parameters given in Table 2.
     """
     def __init__(self):
-        super().__init__()
 
         generation_time = 25
 

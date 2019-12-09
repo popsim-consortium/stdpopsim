@@ -4,7 +4,6 @@ import stdpopsim.models as models
 
 class LiStephanTwoPopulation(models.Model):
     def __init__(self):
-        super().__init__()
         # Parameters for the African population are taken from the section Demographic
         # History of the African Population
         generation_time = 0.1  # 10  generations per year
@@ -52,7 +51,6 @@ class LiStephanTwoPopulation(models.Model):
 
 class SheehanSongThreeEpic(models.Model):
     def __init__(self):
-        super().__init__()
         # Model from paper https://doi.org/10.1371/journal.pcbi.1004845
 
         # Parameters are taken from table 7 using the average stat prediction values

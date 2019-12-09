@@ -39,11 +39,14 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         self.assertEqual(genome.get_chromosome("chrY").length, 3667352)
 
 
+species = stdpopsim.get_species("dromel")
+
+
 class TestSheehanSongThreeEpoch(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = stdpopsim.drosophila_melanogaster._SheehanSongThreeEpoch()
+    model = species.get_model("afr_3epoch")
     qc_model = drosophlia_melanogaster_qc.SheehanSongThreeEpic()
 
 
 class TestLiStephanTwoPopulation(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = stdpopsim.drosophila_melanogaster._LiStephanTwoPopulation()
+    model = species.get_model("ooa_2")
     qc_model = drosophlia_melanogaster_qc.LiStephanTwoPopulation()
