@@ -463,3 +463,24 @@ class TestPopulationSampling(unittest.TestCase):
                 config.metadata["name"] for config in model.population_configurations]
             for p, c in zip(pop_names, config_names):
                 self.assertEqual(p, c)
+
+    # Test that we are indeed getting a valid DDB back
+    # admittedly a pretty bad test...
+    def test_demography_debugger(self):
+        for model in stdpopsim.all_demographic_models():
+            ddb = model.get_demography_debugger()
+            self.assertIsInstance(ddb, msprime.DemographyDebugger)
+
+    # test for equality of ddbs
+    def test_demography_debugger_equal(self):
+        for model in stdpopsim.all_demographic_models():
+            ddb1 = model.get_demography_debugger()
+            ddb2 = msprime.DemographyDebugger(
+                population_configurations=model.population_configurations,
+                migration_matrix=model.migration_matrix,
+                demographic_events=model.demographic_events)
+            f1 = io.StringIO()
+            f2 = io.StringIO()
+            ddb1.print_history(f1)
+            ddb2.print_history(f2)
+            self.assertEqual(f1.getvalue(), f2.getvalue())
