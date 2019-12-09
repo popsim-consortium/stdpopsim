@@ -113,8 +113,9 @@ class Species(object):
         :param str chromosome: The ID of the chromosome to simulate.
         :param str genetic_map: If specified, obtain recombination rate information
             from the genetic map with the specified ID. If None, simulate
-            a flat recombination rate on a region with the length of the specified
-            chromosome. (Default: None)
+            using a default uniform recombination rate on a region with the length of
+            the specified chromosome. The default rates are species- and chromosome-
+            specific, and can be found in the :ref:`sec_catalog`. (Default: None)
         :param float length_multiplier: If specified simulate a contig of length
             length_multiplier times the length of the specified chromosome.
             This option cannot currently be used in conjunction with the
