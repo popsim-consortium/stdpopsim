@@ -49,9 +49,9 @@ def all_genetic_maps():
             yield genetic_map
 
 
-def all_models():
+def all_demographic_models():
     for species in all_species():
-        for model in species.models:
+        for model in species.demographic_models:
             yield model
 
 
@@ -74,7 +74,7 @@ class Species(object):
         of this species' genome.
     :vartype genome: stdpopsim.Genome
     :ivar generation_time: The current best estimate for the generation
-        time of this species in years. Note that individual population
+        time of this species in years. Note that individual demographic
         models in the catalog may or may not use this estimate: each
         model uses the generation time that was used in the original
         publication(s).
@@ -83,7 +83,7 @@ class Species(object):
         providing justification for the genertion time estimate.
     :vartype generation_time_citations: list
     :ivar population_size: The current best estimate for the population
-        size of this species. Note that individual population
+        size of this species. Note that individual demographic
         models in the catalog may or may not use this estimate: each
         model uses the populations sizes defined in the original
         publication(s).
@@ -91,9 +91,9 @@ class Species(object):
     :ivar population_size_citations: A list of :class:`.Citation` objects
         providing justification for the population size estimate.
     :vartype population_size_citations: list
-    :ivar models: This list of :class:`Model` instances in the catalog
-        for this species.
-    :vartype models: list()
+    :ivar demographic_models: This list of :class:`DemographicModel`
+        instances in the catalog for this species.
+    :vartype demographic_models: list()
     """
 
     id = attr.ib(type=str, kw_only=True)
@@ -103,7 +103,7 @@ class Species(object):
     generation_time_citations = attr.ib(factory=list, kw_only=True)
     population_size = attr.ib(default=1, kw_only=True)
     population_size_citations = attr.ib(factory=list, kw_only=True)
-    models = attr.ib(factory=list, kw_only=True)
+    demographic_models = attr.ib(factory=list, kw_only=True)
     genetic_maps = attr.ib(factory=list, kw_only=True)
 
     def get_contig(self, chromosome, genetic_map=None, length_multiplier=1):
@@ -143,21 +143,22 @@ class Species(object):
             genetic_map=gm)
         return ret
 
-    def get_model(self, id):
+    def get_demographic_model(self, id):
         """
         Returns a model with the specified id.
 
         - TODO explain where we find models from the catalog.
         """
-        for model in self.models:
+        for model in self.demographic_models:
             if model.id == id:
                 return model
-        raise ValueError(f"Model '{self.id}/{id}' not in catalog")
+        raise ValueError(f"DemographicModel '{self.id}/{id}' not in catalog")
 
-    def add_model(self, model):
-        if model.id in [m.id for m in self.models]:
-            raise ValueError(f"Model '{self.id}/{model.id}' already in catalog.")
-        self.models.append(model)
+    def add_demographic_model(self, model):
+        if model.id in [m.id for m in self.demographic_models]:
+            raise ValueError(
+                    f"DemographicModel '{self.id}/{model.id}' already in catalog.")
+        self.demographic_models.append(model)
 
     def add_genetic_map(self, genetic_map):
         if genetic_map.name in [gm.name for gm in self.genetic_maps]:

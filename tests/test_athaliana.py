@@ -39,7 +39,7 @@ class TestDurvasula2017MSMC(unittest.TestCase, test_models.QcdModelTestMixin):
     """
     Basic tests for the Durvasula MSMC model.
     """
-    model = species.get_model("SMA_1pop")
+    model = species.get_demographic_model("SMA_1pop")
     qc_model = arabidopsis_thaliana_qc.Durvasula2017MSMC()
 
 
@@ -47,7 +47,7 @@ class TestHuberTwoEpoch(unittest.TestCase, test_models.QcdModelTestMixin):
     """
     Basic tests for the Huber et al. two epoch model.
     """
-    model = species.get_model("Afr_2epoch")
+    model = species.get_demographic_model("Afr_2epoch")
     qc_model = arabidopsis_thaliana_qc.HuberTwoEpoch()
 
 
@@ -55,4 +55,4 @@ class TestHuberThreeEpoch(unittest.TestCase, test_models.ModelTestMixin):
     """
     Basic tests for the Huber three epoch model.
     """
-    model = species.get_model("Afr_3epoch")
+    model = species.get_demographic_model("Afr_3epoch")

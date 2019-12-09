@@ -43,10 +43,10 @@ species = stdpopsim.get_species("dromel")
 
 
 class TestSheehanSongThreeEpoch(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = species.get_model("afr_3epoch")
+    model = species.get_demographic_model("afr_3epoch")
     qc_model = drosophlia_melanogaster_qc.SheehanSongThreeEpic()
 
 
 class TestLiStephanTwoPopulation(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = species.get_model("ooa_2")
+    model = species.get_demographic_model("ooa_2")
     qc_model = drosophlia_melanogaster_qc.LiStephanTwoPopulation()

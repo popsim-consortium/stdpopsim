@@ -61,7 +61,7 @@ def get_species_wrapper(species_id):
 
 def get_model_wrapper(species, model_id):
     try:
-        return species.get_model(model_id)
+        return species.get_demographic_model(model_id)
     except ValueError as ve:
         exit(str(ve))
 
@@ -81,7 +81,7 @@ def get_models_help(species_id, model_id):
     species = stdpopsim.get_species(species_id)
     if model_id is None:
         models_text = f"\nAll simulation models for {species.name}\n\n"
-        models = [model.id for model in species.models]
+        models = [model.id for model in species.demographic_models]
     else:
         models = [model_id]
         models_text = f"\nModel description\n\n"
@@ -362,11 +362,11 @@ def add_simulate_species_parser(parser, species):
     model_help = (
         "Specify a simulation model. If no model is specified, a single population"
         "constant size model is used. Available models:"
-        f"{', '.join(model.id for model in species.models)}"
+        f"{', '.join(model.id for model in species.demographic_models)}"
         ". Please see --help-models for details of these models.")
     species_parser.add_argument(
         "-m", "--model", default=None, metavar="",
-        choices=[model.id for model in species.models],
+        choices=[model.id for model in species.demographic_models],
         help=model_help)
     species_parser.add_argument(
         "-o", "--output",
@@ -408,7 +408,7 @@ def add_simulate_species_parser(parser, species):
             f"{contig} with {len(samples)} samples using {engine.name}.")
 
         kwargs = vars(args)
-        kwargs.update(model=model, contig=contig, samples=samples)
+        kwargs.update(demographic_model=model, contig=contig, samples=samples)
         ts = engine.simulate(**kwargs)
         summarise_usage()
         write_output(ts, args)

@@ -2,7 +2,7 @@ import msprime
 import stdpopsim.models as models
 
 
-class LiStephanTwoPopulation(models.Model):
+class LiStephanTwoPopulation(models.DemographicModel):
     def __init__(self):
         # Parameters for the African population are taken from the section Demographic
         # History of the African Population
@@ -49,7 +49,7 @@ class LiStephanTwoPopulation(models.Model):
         ]
 
 
-class SheehanSongThreeEpic(models.Model):
+class SheehanSongThreeEpic(models.DemographicModel):
     def __init__(self):
         # Model from paper https://doi.org/10.1371/journal.pcbi.1004845
 

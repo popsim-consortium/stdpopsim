@@ -198,7 +198,7 @@ def _ooa_3():
     m_AF_AS = 1.9e-5
     m_EU_AS = 9.6e-5
 
-    return stdpopsim.Model(
+    return stdpopsim.DemographicModel(
         id=id,
         name=name,
         description=description,
@@ -245,7 +245,7 @@ def _ooa_3():
         )
 
 
-_species.add_model(_ooa_3())
+_species.add_demographic_model(_ooa_3())
 
 
 def _ooa_2():
@@ -298,7 +298,7 @@ def _ooa_2():
     N_EU = N_EU1 / math.exp(-r_EU * T_EG)
     N_AF = N_AF1 / math.exp(-r_AF * T_EG)
 
-    return stdpopsim.Model(
+    return stdpopsim.DemographicModel(
         id=id,
         name=name,
         description=description,
@@ -340,7 +340,7 @@ def _ooa_2():
         )
 
 
-_species.add_model(_ooa_2())
+_species.add_demographic_model(_ooa_2())
 
 
 def _african():
@@ -372,7 +372,7 @@ def _african():
     # present Ne
     N_AF = N_AF1 / math.exp(-r_AF * T_EG)
 
-    return stdpopsim.Model(
+    return stdpopsim.DemographicModel(
         id=id,
         name=name,
         description=description,
@@ -393,7 +393,7 @@ def _african():
         )
 
 
-_species.add_model(_african())
+_species.add_demographic_model(_african())
 
 
 def _america():
@@ -504,7 +504,7 @@ def _america():
     ]
     demographic_events = admixture_event + eu_event + ooa_event + init_event
 
-    return stdpopsim.Model(
+    return stdpopsim.DemographicModel(
         id=id,
         name=name,
         description=description,
@@ -517,7 +517,7 @@ def _america():
         )
 
 
-_species.add_model(_america())
+_species.add_demographic_model(_america())
 
 
 def _ooa_archaic():
@@ -671,7 +671,7 @@ def _ooa_archaic():
             time=T_nean_split, source=3, destination=0, proportion=1.0)
     ]
 
-    return stdpopsim.Model(
+    return stdpopsim.DemographicModel(
         id=id,
         name=name,
         description=description,
@@ -684,7 +684,7 @@ def _ooa_archaic():
         )
 
 
-_species.add_model(_ooa_archaic())
+_species.add_demographic_model(_ooa_archaic())
 
 
 def _zigzag():
@@ -751,7 +751,7 @@ def _zigzag():
                 time=t_ancient, initial_size=n_ancient, growth_rate=0)
     ]
 
-    return stdpopsim.Model(
+    return stdpopsim.DemographicModel(
         id=id,
         name=name,
         description=description,
@@ -763,7 +763,7 @@ def _zigzag():
         )
 
 
-_species.add_model(_zigzag())
+_species.add_demographic_model(_zigzag())
 
 
 def _kamm_ancient_eurasia():
@@ -973,7 +973,7 @@ def _kamm_ancient_eurasia():
             population_id=3),
     ]
 
-    return stdpopsim.Model(
+    return stdpopsim.DemographicModel(
         id=id,
         name=name,
         description=description,
@@ -985,4 +985,4 @@ def _kamm_ancient_eurasia():
         )
 
 
-_species.add_model(_kamm_ancient_eurasia())
+_species.add_demographic_model(_kamm_ancient_eurasia())

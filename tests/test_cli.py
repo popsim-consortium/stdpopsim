@@ -495,7 +495,7 @@ class TestWriteCitations(unittest.TestCase):
     def test_model_citations(self):
         contig = stdpopsim.Contig()
         species = stdpopsim.get_species("homsap")
-        model = species.get_model("ooa_3")
+        model = species.get_demographic_model("ooa_3")
         engine = stdpopsim.get_default_engine()
         stdout, stderr = capture_output(
                 cli.write_citations, engine, model, contig)
@@ -610,7 +610,8 @@ class TestSearchWrappers(unittest.TestCase):
         species = stdpopsim.get_species("homsap")
         with mock.patch("stdpopsim.cli.exit") as mocked_exit:
             cli.get_model_wrapper(species, "XXX")
-            mocked_exit.assert_called_once_with("Model 'homsap/XXX' not in catalog")
+            mocked_exit.assert_called_once_with(
+                    "DemographicModel 'homsap/XXX' not in catalog")
 
     def test_bad_genetic_map(self):
         species = stdpopsim.get_species("homsap")

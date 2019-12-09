@@ -127,7 +127,7 @@ def _afr_3epoch():
     t_1 = t_1_coal * 4 * N_ref
     t_2 = (t_1_coal + t_2_coal) * 4 * N_ref
 
-    return stdpopsim.Model(
+    return stdpopsim.DemographicModel(
         id=id,
         name=name,
         description=description,
@@ -149,7 +149,7 @@ def _afr_3epoch():
         )
 
 
-_species.add_model(_afr_3epoch())
+_species.add_demographic_model(_afr_3epoch())
 
 
 def _ooa_2():
@@ -181,7 +181,7 @@ def _ooa_2():
     t_AE = 158000  # generations
     t_E1 = t_AE - 3400
 
-    return stdpopsim.Model(
+    return stdpopsim.DemographicModel(
         id=id,
         name=name,
         description=description,
@@ -208,4 +208,4 @@ def _ooa_2():
         )
 
 
-_species.add_model(_ooa_2())
+_species.add_demographic_model(_ooa_2())

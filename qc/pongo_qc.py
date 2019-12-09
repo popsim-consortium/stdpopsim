@@ -4,7 +4,7 @@ import numpy as np
 import stdpopsim.models as models
 
 
-class LockePongo(models.Model):
+class LockePongo(models.DemographicModel):
     def __init__(self):
         # This is a split-migration style model, with exponential growth or
         # decay allowed in each population after the split. They assumed a

@@ -8,14 +8,14 @@ Development
 
 We envision at least three main types of ``stdpopsim`` developers:
 
-1. Model contributors
+1. DemographicModel contributors
 2. API developers
 3. Documentation and tutorial curators
 
-`Model contributors` add simulation code of published models. This could be your
+`DemographicModel contributors` add simulation code of published models. This could be your
 own published model or any other published model you think would be useful.
 This is the main way we expect biologists to continually add to the catalog
-of models. See the section `Model review process`_.
+of models. See the section `DemographicModel review process`_.
 
 `API developers` work on infrastructure development for the PopSim Consortium,
 which could include improvements and additions to the internal code base of
@@ -445,9 +445,9 @@ finally force-push to the remote topic branch on your fork::
 Hard resetting and force pushing are not reversible operations, so please
 beware!
 
-********************
-Model review process
-********************
+*******************************
+DemographicModel review process
+*******************************
 
 When Developer A creates a new demographic model on their local fork they must
 follow these steps for it to be officially supported by stdpopsim:
