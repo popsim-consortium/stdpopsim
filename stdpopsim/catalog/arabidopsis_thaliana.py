@@ -177,3 +177,47 @@ class _HuberTwoEpoch(stdpopsim.Model):
 
 
 _species.add_model(_HuberTwoEpoch())
+
+
+class _HuberThreeEpoch(stdpopsim.Model):
+    id = "Afr_3epoch"
+    name = "African three epoch model"
+    description = """
+        Model estimated from site frequency spectrum of synonymous
+        SNPs from African samples using Williamson et al. (2005)
+        methodology.
+    """
+    populations = [
+        stdpopsim.Population(
+            name="a_thaliana", description="Arabidopsis thaliana African population")
+    ]
+    citations = [stdpopsim.Citation(
+        author="Huber et al.",
+        year=2018,
+        doi="https://doi.org/10.1038/s41467-018-05281-7")
+    ]
+
+    def __init__(self):
+        # values from the supplementary Table 1.
+        # the size changed as N_A -> N_2 -> N_3.
+        # t_2 is time of 2nd epoch and t_3 of the third epoch
+        N_A = 161744
+        N_2 = 24076
+        N_3 = 203077
+        t_2 = 7420
+        t_3 = 14534
+
+        self.generation_time = 1
+        self.demographic_events = []
+        self.population_configurations = [
+            msprime.PopulationConfiguration(initial_size=N_3,
+                                            metadata=self.populations[0].asdict())]
+        self.demographic_events = [
+            msprime.PopulationParametersChange(
+                time=t_3, initial_size=N_2, population_id=0),
+            msprime.PopulationParametersChange(
+                time=t_2 + t_3, initial_size=N_A, population_id=0)]
+        self.migration_matrix = [[0]]
+
+
+_species.add_model(_HuberThreeEpoch())

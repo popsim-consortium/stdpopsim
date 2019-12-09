@@ -46,3 +46,10 @@ class TestHuberTwoEpoch(unittest.TestCase, test_models.QcdModelTestMixin):
     """
     model = stdpopsim.arabidopsis_thaliana._HuberTwoEpoch()
     qc_model = arabidopsis_thaliana_qc.HuberTwoEpoch()
+
+
+class TestHuberThreeEpoch(unittest.TestCase, test_models.ModelTestMixin):
+    """
+    Basic tests for the Huber three epoch model.
+    """
+    model = stdpopsim.arabidopsis_thaliana._HuberThreeEpoch()
