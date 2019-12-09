@@ -405,7 +405,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         section += self.population_table(model)
         section += nodes.rubric(text="Citations")
         section += self.citation_list(model)
-        section += nodes.rubric(text="DemographicModel parameters")
+        section += nodes.rubric(text="Demographic Model parameters")
         section += self.model_parameter_table(species, model)
         section += nodes.transition()
         return [target, section]
