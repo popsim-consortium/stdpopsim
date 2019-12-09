@@ -88,3 +88,36 @@ class HuberTwoEpoch(models.DemographicModel):
             msprime.PopulationParametersChange(
                 time=T_2, initial_size=N_ANC, population_id=0),
         ]
+
+
+class HuberThreeEpoch(models.DemographicModel):
+    populations = [
+        models.Population(name="ATL", description="A. thalina"),
+    ]
+
+    def __init__(self):
+
+        # Time of second epoch
+        T_2 = 7420
+        T_3 = 14534
+        # population sizes
+        N_ANC = 161744
+        N_2 = 24076
+        N_3 = 203077
+
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N_3,
+                metadata=self.populations[0].asdict()),
+        ]
+
+        self.migration_matrix = [
+            [0]
+        ]
+
+        self.demographic_events = [
+            msprime.PopulationParametersChange(
+                time=T_3, initial_size=N_2, population_id=0),
+            msprime.PopulationParametersChange(
+                time=T_2 + T_3, initial_size=N_ANC, population_id=0),
+        ]
