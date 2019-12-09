@@ -123,7 +123,7 @@ def _sma_1pop():
     ]
 
     return stdpopsim.DemographicModel(
-        id="SMA_1pop",
+        id="SouthMiddleAtlas_1D17",
         name="South Middle Atlas population size history",
         description="""
             Model estimated from two homozygous individuals from
@@ -156,7 +156,7 @@ def _afr_2epoch():
             name="a_thaliana", description="Arabidopsis thaliana African population")
     ]
     return stdpopsim.DemographicModel(
-        id="Afr_2epoch",
+        id="African2Epoch_1H18",
         name="African two epoch model",
         description="""
             Model estimated from site frequency spectrum of synonymous
@@ -198,7 +198,7 @@ def _afr_3epoch():
             name="a_thaliana", description="Arabidopsis thaliana African population")
     ]
     return stdpopsim.DemographicModel(
-        id="Afr_3epoch",
+        id="African3Epoch_1H18",
         name="African three epoch model",
         description="""
             Model estimated from site frequency spectrum of synonymous

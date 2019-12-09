@@ -93,7 +93,7 @@ _eur_population = stdpopsim.Population(
 
 
 def _afr_3epoch():
-    id = "afr_3epoch"
+    id = "African3Epoch_1S16"
     name = "Three epoch African population"
     description = """
         The three epoch (modern, bottleneck, ancestral) model estimated for a
@@ -153,7 +153,7 @@ _species.add_demographic_model(_afr_3epoch())
 
 
 def _ooa_2():
-    id = "ooa_2"  # TODO is this true??
+    id = "OutOfAfrica_2L06"
     name = "Three epoch model for African and European populations"
     description = """
         The three epoch (modern, bottleneck, ancestral) model estimated for two

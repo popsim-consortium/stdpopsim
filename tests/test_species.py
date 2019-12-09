@@ -60,7 +60,7 @@ class TestSpecies(unittest.TestCase):
 
     def test_add_duplicate_model(self):
         species = stdpopsim.get_species("homsap")
-        model = species.get_demographic_model("ooa_3")
+        model = species.get_demographic_model("OutOfAfrica_3G09")
         with self.assertRaises(ValueError):
             species.add_demographic_model(model)
 

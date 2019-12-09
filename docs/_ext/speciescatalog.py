@@ -23,6 +23,12 @@ class SpeciesCatalogDirective(SphinxDirective):
 
     required_arguments = 1
 
+    def get_demographic_model_id(self, species, model):
+        # It seems that we have to lowercase any IDs for sphinx. Need to
+        # look into this, as it means we need to enforce IDs unique
+        # without regard to case.
+        return f"sec_catalog_{species.id}_models_{model.id}".lower()
+
     def get_target(self, tid):
         """
         Returns a target node for the specified ID.
@@ -373,7 +379,7 @@ class SpeciesCatalogDirective(SphinxDirective):
             row = nodes.row()
             rows.append(row)
 
-            mid = f"sec_catalog_{species.id}_models_{model.id}"
+            mid = self.get_demographic_model_id(species, model)
             entry = nodes.entry()
             para = nodes.paragraph()
             entry += para
@@ -394,7 +400,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         return table
 
     def model_section(self, species, model):
-        mid = f"sec_catalog_{species.id}_models_{model.id}"
+        mid = self.get_demographic_model_id(species, model)
         target = self.get_target(mid)
         section = nodes.section(ids=[mid])
         section += nodes.title(text=model.name)

@@ -90,9 +90,9 @@ stdpopsim.register_species(_species)
 
 
 def _orangutan():
-    id = "orangutan"
+    id = "TwoSpecies_2L11"
     name = "Two population orangutan model"
-    description = """i
+    description = """
         The two orang-utan species, Sumatran (Pongo abelii) and Bornean (Pongo
         pygmaeus) inferred from the joint-site frequency spectrum with ten
         individuals from each population. This model is an isolation-with-

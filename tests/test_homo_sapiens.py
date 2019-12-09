@@ -73,36 +73,43 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
 species = stdpopsim.get_species("homsap")
 
 
-class TestTennessenTwoPopOutOfAfrica(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = species.get_demographic_model("ooa_2")
+class TestTennessenTwoPopOutOfAfrica(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("OutOfAfrica_2T12")
     qc_model = homo_sapiens_qc.TennessenTwoPopOutOfAfrica()
 
 
-class TestTennessenOnePopAfrica(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = species.get_demographic_model("african")
+class TestTennessenOnePopAfrica(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("Africa_1T12")
     qc_model = homo_sapiens_qc.TennessenOnePopAfrica()
 
 
-class TestBrowningAmerica(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = species.get_demographic_model("america")
+class TestBrowningAmerica(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("AmericanAdmixture_4B11")
     qc_model = homo_sapiens_qc.BrowningAmerica()
 
 
-class TestRagsdaleArchaic(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = species.get_demographic_model("ooa_archaic")
+class TestRagsdaleArchaic(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("OutOfAfricaArchaicAdmixture_5R19")
     qc_model = homo_sapiens_qc.RagsdaleArchaic()
 
 
-class TestKammAncientEurasia(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = species.get_demographic_model("kamm_ancient_eurasia")
+class TestKammAncientEurasia(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("AncientEurasia_9K19")
     qc_model = homo_sapiens_qc.KammAncientSamples()
 
 
 # Models that have not been QC'd:
 
-class TestGutenkunstThreePopOutOfAfrica(unittest.TestCase, test_models.ModelTestMixin):
-    model = species.get_demographic_model("ooa_3")
+class TestGutenkunstThreePopOutOfAfrica(
+        unittest.TestCase, test_models.CatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("OutOfAfrica_3G09")
 
 
-class TestSchiffelsZigzag(unittest.TestCase, test_models.ModelTestMixin):
-    model = species.get_demographic_model("zigzag")
+class TestSchiffelsZigzag(
+        unittest.TestCase, test_models.CatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("Zigzag_1S14")
