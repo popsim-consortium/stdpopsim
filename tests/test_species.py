@@ -32,6 +32,11 @@ class TestSpecies(unittest.TestCase):
             with self.assertRaises(ValueError):
                 stdpopsim.get_species(species_name)
 
+    def test_add_duplicate_species(self):
+        species = stdpopsim.get_species("homsap")
+        with self.assertRaises(ValueError):
+            stdpopsim.register_species(species)
+
     def test_get_known_genetic_map(self):
         good = ["HapmapII_GRCh37", "Decode_2010_sex_averaged"]
         species = stdpopsim.get_species("homsap")
@@ -46,6 +51,18 @@ class TestSpecies(unittest.TestCase):
         for name in bad:
             with self.assertRaises(ValueError):
                 species.get_genetic_map(name)
+
+    def test_add_duplicate_genetic_map(self):
+        species = stdpopsim.get_species("homsap")
+        genetic_map = species.get_genetic_map("HapmapII_GRCh37")
+        with self.assertRaises(ValueError):
+            species.add_genetic_map(genetic_map)
+
+    def test_add_duplicate_model(self):
+        species = stdpopsim.get_species("homsap")
+        model = species.get_model("ooa_3")
+        with self.assertRaises(ValueError):
+            species.add_model(model)
 
 
 class SpeciesTestMixin(object):

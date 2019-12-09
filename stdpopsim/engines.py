@@ -13,6 +13,8 @@ def register_engine(engine):
     """
     Registers the specified simulation engine.
     """
+    if engine.id in _registered_engines:
+        raise ValueError(f"Simulation engine '{engine.id}' already registered.")
     logger.debug(f"Registering simulation engine '{engine.id}'")
     _registered_engines[engine.id] = engine
 
