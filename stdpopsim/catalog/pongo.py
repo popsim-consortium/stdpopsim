@@ -147,7 +147,7 @@ def _orangutan():
     # configuration array. Therefore, we have 0=B and 1=S
     # initially.
 
-    return stdpopsim.Model(
+    return stdpopsim.DemographicModel(
         id=id,
         name=name,
         description=description,

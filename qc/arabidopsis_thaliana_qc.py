@@ -3,7 +3,7 @@ import numpy as np
 import stdpopsim.models as models
 
 
-class Durvasula2017MSMC(models.Model):
+class Durvasula2017MSMC(models.DemographicModel):
     def __init__(self):
 
         # Both of the following are directly
@@ -61,7 +61,7 @@ class Durvasula2017MSMC(models.Model):
         self.migration_matrix = [[0]]
 
 
-class HuberTwoEpoch(models.Model):
+class HuberTwoEpoch(models.DemographicModel):
     populations = [
         models.Population(name="ATL", description="A. thalina"),
     ]

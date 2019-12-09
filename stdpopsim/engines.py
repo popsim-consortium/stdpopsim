@@ -60,7 +60,7 @@ class Engine(object):
         Simulates the model for the specified contig and samples.
 
         :param model: The demographic model to simulate.
-        :type model: :class:`.Model`
+        :type model: :class:`.DemographicModel`
         :param contig: The contig, defining the length and recombination
             rate(s).
         :type contig: :class:`msprime.simulations.Contig`
@@ -104,15 +104,15 @@ class _MsprimeEngine(Engine):
                 author="Kelleher et al."),
             ]
 
-    def simulate(self, model=None, contig=None, samples=None, seed=None,
+    def simulate(self, demographic_model=None, contig=None, samples=None, seed=None,
                  **kwargs):
         return msprime.simulate(
                 samples=samples,
                 recombination_map=contig.recombination_map,
                 mutation_rate=contig.mutation_rate,
-                population_configurations=model.population_configurations,
-                migration_matrix=model.migration_matrix,
-                demographic_events=model.demographic_events,
+                population_configurations=demographic_model.population_configurations,
+                migration_matrix=demographic_model.migration_matrix,
+                demographic_events=demographic_model.demographic_events,
                 random_seed=seed)
 
     def get_version(self):

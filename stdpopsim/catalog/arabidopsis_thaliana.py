@@ -118,7 +118,7 @@ def _sma_1pop():
             description="Arabidopsis Thaliana South Middle Atlas population")
     ]
 
-    return stdpopsim.Model(
+    return stdpopsim.DemographicModel(
         id="SMA_1pop",
         name="South Middle Atlas population size history",
         description="""
@@ -140,7 +140,7 @@ def _sma_1pop():
         )
 
 
-_species.add_model(_sma_1pop())
+_species.add_demographic_model(_sma_1pop())
 
 
 def _afr_2epoch():
@@ -151,7 +151,7 @@ def _afr_2epoch():
         stdpopsim.Population(
             name="a_thaliana", description="Arabidopsis thaliana African population")
     ]
-    return stdpopsim.Model(
+    return stdpopsim.DemographicModel(
         id="Afr_2epoch",
         name="African two epoch model",
         description="""
@@ -177,7 +177,7 @@ def _afr_2epoch():
         )
 
 
-_species.add_model(_afr_2epoch())
+_species.add_demographic_model(_afr_2epoch())
 
 
 def _afr_3epoch():
@@ -193,7 +193,7 @@ def _afr_3epoch():
         stdpopsim.Population(
             name="a_thaliana", description="Arabidopsis thaliana African population")
     ]
-    return stdpopsim.Model(
+    return stdpopsim.DemographicModel(
         id="Afr_3epoch",
         name="African three epoch model",
         description="""
@@ -219,4 +219,4 @@ def _afr_3epoch():
         )
 
 
-_species.add_model(_afr_3epoch())
+_species.add_demographic_model(_afr_3epoch())

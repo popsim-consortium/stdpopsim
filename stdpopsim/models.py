@@ -143,14 +143,14 @@ class Population(object):
 
 
 @attr.s(kw_only=True)
-class Model(object):
+class DemographicModel(object):
     """
     Class representing a demographic model.
 
     This class is indended to be used by model implementors. To instead
-    obtain a pre-specified model, see :class:`Species.get_model`.
+    obtain a pre-specified model, see :class:`Species.get_demographic_model`.
 
-    :ivar id: The unique identifier for this model. Model IDs should be
+    :ivar id: The unique identifier for this model. DemographicModel IDs should be
         short and memorable, perhaps as an abbreviation of the model's name.
     :vartype id: str
     :ivar name: The informal name for this model as it would be used in
@@ -210,7 +210,7 @@ class Model(object):
                 description=kwargs.get("description", ""),
                 populations=kwargs.get("populations", []),
                 generation_time=kwargs.get("generation_time", -1))
-        return Model(**kwargs)
+        return DemographicModel(**kwargs)
 
     def equals(self, other, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
         """
@@ -284,7 +284,7 @@ _popAnc = Population(name="popAnc", description="Generic ancestral population",
                      sampling_time=None)
 
 
-class PiecewiseConstantSize(Model):
+class PiecewiseConstantSize(DemographicModel):
     """
     Class representing a generic simulation model that can be run to output a
     tree sequence. This is a piecewise constant size model, which allows for
@@ -324,7 +324,7 @@ class PiecewiseConstantSize(Model):
                 time=t, initial_size=N, growth_rate=0, population_id=0))
 
 
-class GenericIM(Model):
+class GenericIM(DemographicModel):
     """
     Class representing a generic simulation model that can be run to output a tree
     sequence. A generic isolation with migration model where a single ancestral

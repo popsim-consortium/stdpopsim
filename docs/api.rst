@@ -32,7 +32,7 @@ accessed through the main entrypoint, :func:`.get_species`.
 .. autoclass:: stdpopsim.GeneticMap
     :members:
 
-.. autoclass:: stdpopsim.Model
+.. autoclass:: stdpopsim.DemographicModel
     :members:
 
 .. autoclass:: stdpopsim.Citation

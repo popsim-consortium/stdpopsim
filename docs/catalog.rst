@@ -16,7 +16,7 @@ It is organised around a number of choices that you'll need to make about the
 
 1. Which **chromosome**? (ie. which :class:`.Genome` object?)
 2. Which **genetic map**? (ie. which :class:`.GeneticMap` object?)
-3. Which **model of demographic history**? (ie. which :class:`.Model` object)
+3. Which **model of demographic history**? (ie. which :class:`.DemographicModel` object)
 
 For instance, suppose you are interested in simulating modern human samples of
 

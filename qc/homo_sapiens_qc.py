@@ -5,7 +5,7 @@ import math
 import stdpopsim.models as models
 
 
-class TennessenOnePopAfrica(models.Model):
+class TennessenOnePopAfrica(models.DemographicModel):
     def __init__(self):
         # This model is the same as the Tennessen two population model except
         # the European population has been removed.
@@ -59,7 +59,7 @@ class TennessenOnePopAfrica(models.Model):
         ]
 
 
-class TennessenTwoPopOutOfAfrica(models.Model):
+class TennessenTwoPopOutOfAfrica(models.DemographicModel):
     def __init__(self):
         # Since the Tennessen two population model largely uses parameters from
         # the Gravel et al 2001, we begin by taking the maximum likelihood
@@ -150,7 +150,7 @@ class TennessenTwoPopOutOfAfrica(models.Model):
         ]
 
 
-class BrowningAmerica(models.Model):
+class BrowningAmerica(models.DemographicModel):
     def __init__(self):
         # Parameters are taken from the Methods - Simulated data section
         # Population sizes
@@ -246,7 +246,7 @@ class BrowningAmerica(models.Model):
         ]
 
 
-class RagsdaleArchaic(models.Model):
+class RagsdaleArchaic(models.DemographicModel):
     def __init__(self):
 
         # All parameters were taken from table 1 of Ragsdale et al. (2019)
@@ -375,7 +375,7 @@ class RagsdaleArchaic(models.Model):
         ]
 
 
-class KammAncientSamples(models.Model):
+class KammAncientSamples(models.DemographicModel):
     """
     Demographic inferred by momi described in Kamm et al. (2019). The model is
     illustrated in Figure 3, with parameters given in Table 2.

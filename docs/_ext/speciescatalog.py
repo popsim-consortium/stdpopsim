@@ -369,7 +369,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         thead.append(row)
 
         rows = []
-        for model in species.models:
+        for model in species.demographic_models:
             row = nodes.row()
             rows.append(row)
 
@@ -405,7 +405,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         section += self.population_table(model)
         section += nodes.rubric(text="Citations")
         section += self.citation_list(model)
-        section += nodes.rubric(text="Model parameters")
+        section += nodes.rubric(text="Demographic Model parameters")
         section += self.model_parameter_table(species, model)
         section += nodes.transition()
         return [target, section]
@@ -435,7 +435,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         models_section = nodes.section(ids=[f"sec_catalog_{species.id}_models"])
         models_section += nodes.title(text="Models")
         models_section += self.models_table(species)
-        for model in species.models:
+        for model in species.demographic_models:
             models_section += self.model_section(species, model)
         section += models_section
 

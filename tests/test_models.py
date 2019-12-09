@@ -277,11 +277,11 @@ class TestAllModels(unittest.TestCase):
     Tests for registered simulation models.
     """
     def test_non_empty(self):
-        self.assertGreater(len(list(stdpopsim.all_models())), 0)
+        self.assertGreater(len(list(stdpopsim.all_demographic_models())), 0)
 
     def test_all_instances(self):
-        for model in stdpopsim.all_models():
-            self.assertIsInstance(model, models.Model)
+        for model in stdpopsim.all_demographic_models():
+            self.assertIsInstance(model, models.DemographicModel)
 
             self.assertGreater(len(model.id), 0)
             self.assertGreater(len(model.name), 0)
@@ -299,29 +299,29 @@ class TestAllModels(unittest.TestCase):
 
 class TestModelsEqual(unittest.TestCase):
     """
-    Tests Model object equality comparison.
+    Tests DemographicModel object equality comparison.
     """
     def test_known_models(self):
         # All models should be equal to themselves.
-        other_model = models.Model.empty()
-        for model in stdpopsim.all_models():
+        other_model = models.DemographicModel.empty()
+        for model in stdpopsim.all_demographic_models():
             self.assertTrue(model.equals(model))
             self.assertFalse(model.equals(other_model))
 
     def test_different_objects(self):
-        m1 = models.Model.empty()
+        m1 = models.DemographicModel.empty()
         self.assertFalse(m1.equals(self))
         self.assertFalse(m1.equals({}))
         self.assertFalse(m1.equals(None))
 
     def test_default_models(self):
-        m1 = models.Model.empty()
-        m2 = models.Model.empty()
+        m1 = models.DemographicModel.empty()
+        m2 = models.DemographicModel.empty()
         self.assertTrue(m1.equals(m2))
 
     def test_migration_matrices(self):
-        m1 = models.Model.empty()
-        m2 = models.Model.empty()
+        m1 = models.DemographicModel.empty()
+        m2 = models.DemographicModel.empty()
         m1.migration_matrix = [[]]
         self.assertFalse(m1.equals(m2))
         m2.migration_matrix = [[]]
@@ -416,7 +416,7 @@ class TestPopulationSampling(unittest.TestCase):
                                  sampling_time=None)
 
     # Create an empty model to hold populations
-    base_mod = models.Model.empty(populations=[_pop1, _pop2, _pop3])
+    base_mod = models.DemographicModel.empty(populations=[_pop1, _pop2, _pop3])
 
     def test_num_sampling_populations(self):
         self.assertEqual(self.base_mod.num_sampling_populations, 2)
@@ -438,7 +438,7 @@ class TestPopulationSampling(unittest.TestCase):
     # Test that all sampling populations are specified before non-sampling populations
     # in the model.populations list
     def test_population_order(self):
-        for model in stdpopsim.all_models():
+        for model in stdpopsim.all_demographic_models():
             allow_sample_status = [int(p.allow_samples) for p in model.populations]
             num_sampling = sum(allow_sample_status)
             # All sampling populations must be at the start of the list
@@ -447,7 +447,7 @@ class TestPopulationSampling(unittest.TestCase):
     # Test that populations are listed in the same order in model.populations and
     # model.population_configurations
     def test_population_config_order_equal(self):
-        for model in stdpopsim.all_models():
+        for model in stdpopsim.all_demographic_models():
             pop_names = [pop.name for pop in model.populations]
             config_names = [
                 config.metadata["name"] for config in model.population_configurations]
