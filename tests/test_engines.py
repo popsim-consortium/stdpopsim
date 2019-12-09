@@ -36,10 +36,14 @@ class TestEngine_API(unittest.TestCase):
         # remove engine to avoid possible problems with other tests
         del stdpopsim.engines._registered_engines[engine1.id]
 
+    def test_register_duplicate(self):
+        engine = stdpopsim.get_default_engine()
+        with self.assertRaises(ValueError):
+            stdpopsim.register_engine(engine)
+
     def test_get_engine(self):
-        def fail_func():
+        with self.assertRaises(ValueError):
             stdpopsim.get_engine("nonexistent")
-        self.assertRaises(ValueError, fail_func)
 
     def test_abstract_base_class(self):
         e = stdpopsim.Engine()

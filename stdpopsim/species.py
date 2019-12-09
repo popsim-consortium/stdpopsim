@@ -18,6 +18,8 @@ def register_species(species):
     """
     Registers the specified species.
     """
+    if species.id in registered_species:
+        raise ValueError(f"{species.id} already registered.")
     logger.debug(f"Registering species '{species.id}'")
     registered_species[species.id] = species
 
@@ -153,9 +155,15 @@ class Species(object):
         raise ValueError(f"Model '{self.id}/{id}' not in catalog")
 
     def add_model(self, model):
+        if model.id in [m.id for m in self.models]:
+            raise ValueError(f"Model '{self.id}/{model.id}' already in catalog.")
         self.models.append(model)
 
     def add_genetic_map(self, genetic_map):
+        if genetic_map.name in [gm.name for gm in self.genetic_maps]:
+            raise ValueError(
+                    f"Genetic map '{self.id}/{genetic_map.name}' "
+                    "already in catalog.")
         genetic_map.species = self
         self.genetic_maps.append(genetic_map)
 
