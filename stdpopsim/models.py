@@ -324,7 +324,7 @@ class PiecewiseConstantSize(DemographicModel):
                 time=t, initial_size=N, growth_rate=0, population_id=0))
 
 
-class GenericIM(DemographicModel):
+class IsolationWithMigration(DemographicModel):
     """
     Class representing a generic simulation model that can be run to output a tree
     sequence. A generic isolation with migration model where a single ancestral
@@ -351,7 +351,7 @@ class GenericIM(DemographicModel):
 
     .. code-block:: python
 
-        model1 = stdpopsim.GenericIM(NA, N1, N2, T, M12, M21)
+        model1 = stdpopsim.IsolationWithMigration(NA, N1, N2, T, M12, M21)
 
     """
     id = "IM"
