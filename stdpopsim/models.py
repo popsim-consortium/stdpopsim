@@ -248,10 +248,7 @@ class DemographicModel(object):
     def debug(self, out_file=sys.stdout):
         # Use the demography debugger to print out the demographic history
         # that we have just described.
-        dd = msprime.DemographyDebugger(
-            population_configurations=self.population_configurations,
-            migration_matrix=self.migration_matrix,
-            demographic_events=self.demographic_events)
+        dd = self.get_demography_debugger()
         dd.print_history(out_file)
 
     def get_samples(self, *args):
@@ -275,6 +272,21 @@ class DemographicModel(object):
                 raise ValueError("Samples requested from non-sampling population"
                                  f" {pop_index}")
         return samples
+
+    def get_demography_debugger(self):
+        """
+        Returns an :class:`msprime.DemographyDebugger` instance initialized
+        with the parameters for this model. Please see the msprime documentation
+        for details on how to use a DemographyDebugger.
+
+        :return: A DemographyDebugger instance for this DemographicModel.
+        :rtype: msprime.DemographyDebugger
+        """
+        ddb = msprime.DemographyDebugger(
+            population_configurations=self.population_configurations,
+            migration_matrix=self.migration_matrix,
+            demographic_events=self.demographic_events)
+        return ddb
 
 
 # Reusable generic populations
