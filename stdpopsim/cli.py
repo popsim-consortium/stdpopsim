@@ -329,6 +329,9 @@ def add_simulate_species_parser(parser, species):
     species_parser.add_argument(
         "-q", "--quiet", action='store_true',
         help="Do not write out citation information")
+    species_parser.add_argument(
+        "-D", "--dry-run", action='store_true', default=False,
+        help="Do not run actual simulation")
 
     if len(species.genetic_maps) > 0:
         species_parser.add_argument(
@@ -409,15 +412,56 @@ def add_simulate_species_parser(parser, species):
 
         kwargs = vars(args)
         kwargs.update(demographic_model=model, contig=contig, samples=samples)
-        ts = engine.simulate(**kwargs)
-        summarise_usage()
-        write_output(ts, args)
+        if not args.quiet:
+            write_simulation_summary(engine=engine, model=model, contig=contig,
+                                     samples=samples, seed=args.seed)
+        if not args.dry_run:
+            ts = engine.simulate(**kwargs)
+            summarise_usage()
+            write_output(ts, args)
         if not args.quiet:
             write_citations(engine, model, contig)
         if args.bibtex_file is not None:
             write_bibtex(engine, model, contig, args.bibtex_file)
 
     species_parser.set_defaults(runner=run_simulation)
+
+
+def write_simulation_summary(engine, model, contig, samples, seed=None):
+    # Setup writer
+    printerr = functools.partial(print, file=sys.stderr)
+    indent = " " * 4
+    # Header
+    dry_run_text = "Simulation information:\n"
+    # Get information about the engine
+    dry_run_text += f"{indent}Engine: {engine.id} ({engine.get_version()})\n"
+    # Get information about model
+    dry_run_text += f"{indent}Model id: {model.id}\n"
+    dry_run_text += f"{indent}Model name: {model.name}\n"
+    # Add seed information if extant
+    if seed is not None:
+        dry_run_text += f"{indent}Seed: {seed}\n"
+    # Get information about the number of samples
+    dry_run_text += f"{indent}Population: number_samples (sampling_time_generations):\n"
+    sample_counts = [0] * model.num_sampling_populations
+    for s in samples:
+        sample_counts[s.population] += 1
+    for p in range(0, model.num_sampling_populations):
+        pop_name = model.populations[p].name
+        sample_time = model.populations[p].sampling_time
+        dry_run_text += f"{indent * 2}{pop_name}: "
+        dry_run_text += f"{sample_counts[p]} ({sample_time})\n"
+    # Get information about relevant contig
+    gmap = "None" if contig.genetic_map is None else contig.genetic_map.name
+    mean_recomb_rate = contig.recombination_map.mean_recombination_rate
+    mut_rate = contig.mutation_rate
+    contig_len = contig.recombination_map.get_length()
+    dry_run_text += f"Contig Description:\n"
+    dry_run_text += f"{indent}Contig length: {contig_len}\n"
+    dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"
+    dry_run_text += f"{indent}Mean mutation rate: {mut_rate}\n"
+    dry_run_text += f"{indent}Genetic map: {gmap}\n"
+    printerr(dry_run_text)
 
 
 def run_download_genetic_maps(args):

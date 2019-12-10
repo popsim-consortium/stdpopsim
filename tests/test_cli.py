@@ -9,6 +9,7 @@ import json
 import sys
 import io
 import argparse  # NOQA
+import os
 from unittest import mock
 
 import tskit
@@ -619,3 +620,15 @@ class TestSearchWrappers(unittest.TestCase):
             cli.get_genetic_map_wrapper(species, "XXX")
             mocked_exit.assert_called_once_with(
                 "Genetic map 'homsap/XXX' not in catalog")
+
+
+class TestDryRun(unittest.TestCase):
+    """
+    Checks that simulations we run from the CLI with the --dry-run option have no output
+    """
+    def test_dry_run(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            filename = pathlib.Path(tmpdir) / "output.trees"
+            cmd = f"{sys.executable} -m stdpopsim homsap -D -q -l 0.01 -o {filename} 2"
+            subprocess.run(cmd, shell=True, check=True)
+            self.assertFalse(os.path.isfile(filename))
