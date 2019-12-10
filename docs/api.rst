@@ -53,7 +53,7 @@ these models.
 
 .. autoclass:: stdpopsim.PiecewiseConstantSize
 
-.. autoclass:: stdpopsim.GenericIM
+.. autoclass:: stdpopsim.IsolationWithMigration
 
 
 *****************
