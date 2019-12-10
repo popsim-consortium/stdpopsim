@@ -204,23 +204,23 @@ class TestEndToEnd(unittest.TestCase):
         self.verify(cmd, num_samples=20)
 
     def test_tennessen_two_pop_ooa(self):
-        cmd = "homsap -c chr22 -l0.1 -m ooa_2 2 3"
+        cmd = "homsap -c chr22 -l0.1 -m OutOfAfrica_2T12 2 3"
         self.verify(cmd, num_samples=5)
 
     def test_gutenkunst_three_pop_ooa(self):
-        cmd = "homsap -c chr1 -l0.01 -m ooa_3 10"
+        cmd = "homsap -c chr1 -l0.01 -m OutOfAfrica_3G09 10"
         self.verify(cmd, num_samples=10)
 
     def test_browning_america(self):
-        cmd = "homsap -c chr1 -l0.01 -m america 10"
+        cmd = "homsap -c chr1 -l0.01 -m AmericanAdmixture_4B11 10"
         self.verify(cmd, num_samples=10)
 
     def test_ragsdale_archaic(self):
-        cmd = "homsap -c chr1 -l0.01 -m ooa_archaic 10"
+        cmd = "homsap -c chr1 -l0.01 -m OutOfAfricaArchaicAdmixture_5R19 10"
         self.verify(cmd, num_samples=10)
 
     def test_schiffels_zigzag(self):
-        cmd = "homsap -c chr1 -l0.01 -m zigzag 2"
+        cmd = "homsap -c chr1 -l0.01 -m Zigzag_1S14 2"
         self.verify(cmd, num_samples=2)
 
     def test_dromel_constant(self):
@@ -228,7 +228,7 @@ class TestEndToEnd(unittest.TestCase):
         self.verify(cmd, num_samples=4)
 
     def test_li_stephan_two_population(self):
-        cmd = "dromel -c chr2L -l0.001 -m ooa_2 3"
+        cmd = "dromel -c chr2L -l0.001 -m OutOfAfrica_2L06 3"
         self.verify(cmd, num_samples=3)
 
     def test_aratha_constant(self):
@@ -236,7 +236,7 @@ class TestEndToEnd(unittest.TestCase):
         self.verify(cmd, num_samples=8)
 
     def test_durvusula_2017_msmc(self):
-        cmd = "aratha -l 0.001 -m SMA_1pop 7"
+        cmd = "aratha -l 0.001 -m SouthMiddleAtlas_1D17 7"
         self.verify(cmd, num_samples=7)
 
     def test_lapierre_constant(self):
@@ -399,13 +399,13 @@ class TestErrors(unittest.TestCase):
         self.verify_bad_samples("homsap -q 2 3 ")
 
     def test_tennessen_model(self):
-        self.verify_bad_samples("homsap  -q -m ooa_2 2 3 4")
+        self.verify_bad_samples("homsap  -q -m OutOfAfrica_2T12 2 3 4")
 
     def test_gutenkunst_three_pop_ooa(self):
-        self.verify_bad_samples("homsap -q -m ooa_3 2 3 4 5")
+        self.verify_bad_samples("homsap -q -m OutOfAfrica_3G09 2 3 4 5")
 
     def test_browning_america(self):
-        self.verify_bad_samples("homsap -q -m america 2 3 4 5 6")
+        self.verify_bad_samples("homsap -q -m AmericanAdmixture_4B11 2 3 4 5 6")
 
 
 class TestHelp(unittest.TestCase):
@@ -426,7 +426,7 @@ class TestHelp(unittest.TestCase):
 
     def test_homsap_models_help(self):
         self.run_stdpopsim("homsap --help-models")
-        self.run_stdpopsim("homsap --help-models ooa_3")
+        self.run_stdpopsim("homsap --help-models OutOfAfrica_3G09")
 
     def test_all_species_model_help(self):
         for species in stdpopsim.all_species():
@@ -456,7 +456,7 @@ class TestWriteBibtex(unittest.TestCase):
             filename = pathlib.Path(tmpdir) / "output.trees"
             bibfile = pathlib.Path(tmpdir) / "bib.bib"
             full_cmd = (f"homsap -c chr22 -l0.1 20 "
-                        f"-o {filename} -m ooa_3 --seed={seed} "
+                        f"-o {filename} -m OutOfAfrica_3G09 --seed={seed} "
                         f"--bibtex={bibfile}")
             with mock.patch("stdpopsim.cli.setup_logging"):
                 with mock.patch.object(stdpopsim.citations.Citation,
@@ -495,7 +495,7 @@ class TestWriteCitations(unittest.TestCase):
     def test_model_citations(self):
         contig = stdpopsim.Contig()
         species = stdpopsim.get_species("homsap")
-        model = species.get_demographic_model("ooa_3")
+        model = species.get_demographic_model("OutOfAfrica_3G09")
         engine = stdpopsim.get_default_engine()
         stdout, stderr = capture_output(
                 cli.write_citations, engine, model, contig)

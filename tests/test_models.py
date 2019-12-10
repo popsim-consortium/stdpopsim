@@ -10,9 +10,10 @@ import msprime
 
 import stdpopsim
 from stdpopsim import models
+from stdpopsim import utils
 
 
-class ModelTestMixin(object):
+class DemographicModelTestMixin(object):
     """
     Mixin for testing specific models. Subclasses should extend
     unittest.TestCase and this mixin, and define the self.model (as the
@@ -44,7 +45,16 @@ class ModelTestMixin(object):
         self.assertEqual(ts.num_populations, self.model.num_populations)
 
 
-class QcdModelTestMixin(ModelTestMixin):
+class CatalogDemographicModelTestMixin(DemographicModelTestMixin):
+    """
+    Mixin for demographic models in the catalog.
+    """
+
+    def test_id_valid(self):
+        self.assertTrue(utils.is_valid_demographic_model_id(self.model.id))
+
+
+class QcdCatalogDemographicModelTestMixin(CatalogDemographicModelTestMixin):
     """
     Extends the tests to also check that the qc model is equal to
     the production model.
@@ -340,11 +350,11 @@ class TestModelsEqual(unittest.TestCase):
         self.assertFalse(m1.equals(m2, atol=1e-10, rtol=1e-9))
 
 
-class TestConstantSizeModel(unittest.TestCase, ModelTestMixin):
+class TestConstantSizeModel(unittest.TestCase, DemographicModelTestMixin):
     model = models.PiecewiseConstantSize(100)
 
 
-class TestTwoEpochModel(unittest.TestCase, ModelTestMixin):
+class TestTwoEpochModel(unittest.TestCase, DemographicModelTestMixin):
     model = models.PiecewiseConstantSize(100, (10, 10))
 
 

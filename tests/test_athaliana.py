@@ -35,25 +35,28 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
 species = stdpopsim.get_species("aratha")
 
 
-class TestDurvasula2017MSMC(unittest.TestCase, test_models.QcdModelTestMixin):
+class TestDurvasula2017MSMC(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
     """
     Basic tests for the Durvasula MSMC model.
     """
-    model = species.get_demographic_model("SMA_1pop")
+    model = species.get_demographic_model("SouthMiddleAtlas_1D17")
     qc_model = arabidopsis_thaliana_qc.Durvasula2017MSMC()
 
 
-class TestHuberTwoEpoch(unittest.TestCase, test_models.QcdModelTestMixin):
+class TestHuberTwoEpoch(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
     """
     Basic tests for the Huber et al. two epoch model.
     """
-    model = species.get_demographic_model("Afr_2epoch")
+    model = species.get_demographic_model("African2Epoch_1H18")
     qc_model = arabidopsis_thaliana_qc.HuberTwoEpoch()
 
 
-class TestHuberThreeEpoch(unittest.TestCase, test_models.ModelTestMixin):
+class TestHuberThreeEpoch(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
     """
     Basic tests for the Huber three epoch model.
     """
-    model = species.get_demographic_model("Afr_3epoch")
+    model = species.get_demographic_model("African3Epoch_1H18")
     qc_model = arabidopsis_thaliana_qc.HuberThreeEpoch()

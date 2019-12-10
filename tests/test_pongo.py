@@ -53,6 +53,6 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         self.assertEqual(genome.get_chromosome("chrX").length, 151242693)
 
 
-class TestPongo(unittest.TestCase, test_models.QcdModelTestMixin):
+class TestPongo(unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
     model = pongo._orangutan()
     qc_model = pongo_qc.LockePongo()

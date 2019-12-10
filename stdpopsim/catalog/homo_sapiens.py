@@ -150,7 +150,7 @@ _tennessen_et_al = stdpopsim.Citation(
 
 
 def _ooa_3():
-    id = "ooa_3"
+    id = "OutOfAfrica_3G09"
     name = "Three population out-of-Africa"
     description = """
         The three population Out-of-Africa model from Gutenkunst et al. 2009.
@@ -249,7 +249,7 @@ _species.add_demographic_model(_ooa_3())
 
 
 def _ooa_2():
-    id = "ooa_2"
+    id = "OutOfAfrica_2T12"
     name = "Two population out-of-Africa"
     description = """
         The model is derived from the Tennesen et al. analysis of the
@@ -344,7 +344,7 @@ _species.add_demographic_model(_ooa_2())
 
 
 def _african():
-    id = "african"
+    id = "Africa_1T12"
     name = "African population"
     description = """
         The model is a simplification of the two population Tennesen et al.
@@ -397,7 +397,7 @@ _species.add_demographic_model(_african())
 
 
 def _america():
-    id = "america"
+    id = "AmericanAdmixture_4B11"
     name = "American admixture"
     description = """
         Demographic model for American admixture, taken from Browning et al. 2011.
@@ -521,7 +521,7 @@ _species.add_demographic_model(_america())
 
 
 def _ooa_archaic():
-    id = "ooa_archaic"
+    id = "OutOfAfricaArchaicAdmixture_5R19"
     name = "Three population out-of-Africa with archaic admixture"
     description = """
         The three population out-of-African model popularized by Gutenkunst et al. (2009)
@@ -688,7 +688,7 @@ _species.add_demographic_model(_ooa_archaic())
 
 
 def _zigzag():
-    id = "zigzag"
+    id = "Zigzag_1S14"
     name = "Periodic growth and decline."
     description = """
         A validation model used by Schiffels and Durbin (2014) and Terhorst and
@@ -767,7 +767,7 @@ _species.add_demographic_model(_zigzag())
 
 
 def _kamm_ancient_eurasia():
-    id = "kamm_ancient_eurasia"
+    id = "AncientEurasia_9K19"
     name = "Multi-population model of ancient Eurasia (Kamm et al. 2019)"
     description = """
         This is the best-fitting model of a history of

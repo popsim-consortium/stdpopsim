@@ -67,7 +67,7 @@ using the ``--help-models`` flag:
     :ellipsis: 20
 
 This gives all of the possible demographic models we could simulate. We choose
-the two population out-of-Africa :ref:`model <sec_catalog_homsap_models_ooa_2>`
+the two population out-of-Africa :ref:`model <sec_catalog_homsap_models_outofafrica_2t12>`
 from `Tennesen et al. (2012) <https://doi.org/10.1126/science.1219240>`_ .
 By looking at the model help we
 find that the name for this model is ``ooa_2`` and that we can specify it using

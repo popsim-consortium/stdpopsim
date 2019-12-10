@@ -42,11 +42,13 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
 species = stdpopsim.get_species("dromel")
 
 
-class TestSheehanSongThreeEpoch(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = species.get_demographic_model("afr_3epoch")
+class TestSheehanSongThreeEpoch(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("African3Epoch_1S16")
     qc_model = drosophlia_melanogaster_qc.SheehanSongThreeEpic()
 
 
-class TestLiStephanTwoPopulation(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = species.get_demographic_model("ooa_2")
+class TestLiStephanTwoPopulation(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("OutOfAfrica_2L06")
     qc_model = drosophlia_melanogaster_qc.LiStephanTwoPopulation()
