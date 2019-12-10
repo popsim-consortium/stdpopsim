@@ -15,7 +15,7 @@ class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
 
     def test_basic_attributes(self):
         self.assertEqual(self.species.population_size, 10**4)
-        self.assertEqual(self.species.generation_time, 25)
+        self.assertEqual(self.species.generation_time, 30)
 
 
 class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
