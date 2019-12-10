@@ -10,7 +10,7 @@ class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
     species = stdpopsim.get_species("aratha")
 
     def test_basic_attributes(self):
-        self.assertEqual(self.species.population_size, 10**3)
+        self.assertEqual(self.species.population_size, 10**4)
         self.assertEqual(self.species.generation_time, 1)
 
 
