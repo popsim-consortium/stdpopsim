@@ -96,7 +96,8 @@ _gm = stdpopsim.GeneticMap(
         stdpopsim.Citation(
             doi="https://doi.org/10.1038/nature06258",
             year=2007,
-            author="1000 Genomes Project consortium"),
+            author="1000 Genomes Project consortium",
+            reasons={stdpopsim.CiteReason.GEN_MAP}),
         ]
     )
 _species.add_genetic_map(_gm)
@@ -116,7 +117,8 @@ _gm = stdpopsim.GeneticMap(
         stdpopsim.Citation(
             year=2010,
             author="Kong et al",
-            doi="https://doi.org/10.1038/nature09525")]
+            doi="https://doi.org/10.1038/nature09525",
+            reasons={stdpopsim.CiteReason.GEN_MAP})]
     )
 # TODO add a URL citation (see above) here for this:
 # "Please see https://www.decode.com/addendum/ for more details."),
@@ -168,7 +170,8 @@ def _ooa_3():
     citations = [stdpopsim.Citation(
         author="Gutenkunst et al.",
         year=2009,
-        doi="https://doi.org/10.1371/journal.pgen.1000695")
+        doi="https://doi.org/10.1371/journal.pgen.1000695",
+        reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
     generation_time = _species.generation_time
@@ -263,11 +266,12 @@ def _ooa_2():
         stdpopsim.Population(name="EUR", description="European Americans")
     ]
     citations = [
-        _tennessen_et_al,
+        _tennessen_et_al.because(stdpopsim.CiteReason.DEM_MODEL),
         stdpopsim.Citation(
             author="Fu et al.",
             year=2013,
-            doi="https://doi.org/10.1038/nature11690")
+            doi="https://doi.org/10.1038/nature11690",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
     generation_time = _species.generation_time
@@ -354,7 +358,7 @@ def _african():
     populations = [
         stdpopsim.Population(name="AFR", description="African"),
     ]
-    citations = [_tennessen_et_al]
+    citations = [_tennessen_et_al.because(stdpopsim.CiteReason.DEM_MODEL)]
 
     generation_time = _species.generation_time
     citations.extend(_species.generation_time_citations)
@@ -419,7 +423,8 @@ def _america():
         stdpopsim.Citation(
             author="Browning et al.",
             year=2011,
-            doi="http://dx.doi.org/10.1371/journal.pgen.1007385")
+            doi="http://dx.doi.org/10.1371/journal.pgen.1007385",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
     generation_time = _species.generation_time
@@ -545,7 +550,8 @@ def _ooa_archaic():
         stdpopsim.Citation(
             author="Ragsdale and Gravel",
             year=2019,
-            doi="https://doi.org/10.1371/journal.pgen.1008204")
+            doi="https://doi.org/10.1371/journal.pgen.1008204",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
     # First we set out the maximum likelihood values of the various parameters
@@ -702,7 +708,8 @@ def _zigzag():
         stdpopsim.Citation(
             author="Schiffels and Durbin",
             year=2014,
-            doi="https://doi.org/10.1038/ng.3015")
+            doi="https://doi.org/10.1038/ng.3015",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
     generation_time = 29
@@ -831,7 +838,8 @@ def _kamm_ancient_eurasia():
         stdpopsim.Citation(
             author="Kamm et al.",
             year=2019,
-            doi="https://doi.org/10.1080/01621459.2019.1635482")
+            doi="https://doi.org/10.1080/01621459.2019.1635482",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
     # Times are provided in years, so we convert into generations.

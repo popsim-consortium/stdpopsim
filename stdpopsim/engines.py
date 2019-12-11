@@ -101,7 +101,8 @@ class _MsprimeEngine(Engine):
             stdpopsim.Citation(
                 doi="https://doi.org/10.1371/journal.pcbi.1004842",
                 year="2016",
-                author="Kelleher et al."),
+                author="Kelleher et al.",
+                reasons={stdpopsim.CiteReason.ENGINE}),
             ]
 
     def simulate(self, demographic_model=None, contig=None, samples=None, seed=None,

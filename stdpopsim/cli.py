@@ -253,19 +253,15 @@ def write_citations(engine, model, contig):
     for the simulation engine, the model and the mutation/recombination rate
     information.
     """
-    printerr = functools.partial(print, file=sys.stderr)
-    printerr("If you use this simulation in published work, please cite:")
-    printerr(f"Simulation engine: {engine.name}")
-    for citation in engine.citations:
-        printerr(f"  {citation}")
+    print("If you use this simulation in published work, please cite:",
+          file=sys.stderr)
+    citations = engine.citations[:]
     if contig.genetic_map is not None:
-        printerr(f"Genetic map: {contig.genetic_map.name}")
-        for citation in contig.genetic_map.citations:
-            printerr(f"  {citation}")
-    if len(model.citations) > 0:
-        printerr(f"Simulation model: {model.name}")
-        for citation in model.citations:
-            printerr(f"  {citation}")
+        citations.extend(contig.genetic_map.citations)
+    citations.extend(model.citations)
+
+    for citation in stdpopsim.Citation.merge(citations):
+        citation.print(file=sys.stderr)
 
 
 def summarise_usage():

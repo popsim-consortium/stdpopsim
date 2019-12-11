@@ -57,9 +57,11 @@ _species = stdpopsim.Species(
     name="Drosophila melanogaster",
     genome=_genome,
     generation_time=0.1,
-    generation_time_citations=[_LiAndStephan],
+    generation_time_citations=[
+        _LiAndStephan.because(stdpopsim.CiteReason.GEN_TIME)],
     population_size=1720600,
-    population_size_citations=[_LiAndStephan])
+    population_size_citations=[
+        _LiAndStephan.because(stdpopsim.CiteReason.POP_SIZE)])
 
 stdpopsim.register_species(_species)
 
@@ -84,7 +86,8 @@ _gm = stdpopsim.GeneticMap(
     citations=[stdpopsim.Citation(
         author="Comeron et al",
         doi="https://doi.org/10.1371/journal.pgen.1002905",
-        year=2012)]
+        year=2012,
+        reasons={stdpopsim.CiteReason.GEN_MAP})]
     )
 
 _species.add_genetic_map(_gm)
@@ -120,7 +123,8 @@ def _afr_3epoch():
     citations = [stdpopsim.Citation(
         author="Sheehan and Song",
         year=2016,
-        doi="https://doi.org/10.1371/journal.pcbi.1004845")
+        doi="https://doi.org/10.1371/journal.pcbi.1004845",
+        reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
     generation_time = _species.generation_time
     citations.extend(_species.generation_time_citations)
@@ -173,7 +177,7 @@ def _ooa_2():
         from Li and Stephan (2006).
     """
     populations = [_afr_population, _eur_population]
-    citations = [_LiAndStephan]
+    citations = [_LiAndStephan.because(stdpopsim.CiteReason.DEM_MODEL)]
     generation_time = _species.generation_time
     citations.extend(_species.generation_time_citations)
 
