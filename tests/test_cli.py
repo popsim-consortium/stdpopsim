@@ -515,14 +515,10 @@ class TestWriteCitations(unittest.TestCase):
         if genetic_map is None:
             genetic_map = stdpopsim.GeneticMap(species.id, citations=[])
         for citations, assert_msg in zip(
-                (engine.citations, model.citations, genetic_map.citations,
-                    species.generation_time_citations,
-                    species.population_size_citations),
+                (engine.citations, model.citations, genetic_map.citations),
                 (f"engine citation not written for {engine.id}",
                     f"model citation not written for {model.id}",
-                    f"genetic map citation not written for {genetic_map.name}",
-                    f"generation time citation not written for {species.id}",
-                    f"population size citation not written for {species.id}")):
+                    f"genetic map citation not written for {genetic_map.name}")):
             for citation in citations:
                 self.assertTrue(citation.author in stderr, msg=assert_msg)
                 self.assertTrue(str(citation.year) in stderr, msg=assert_msg)
