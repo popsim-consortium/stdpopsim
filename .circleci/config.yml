@@ -51,7 +51,7 @@ jobs:
             pip install dist/*.tar.gz 
             python3 -m stdpopsim -V
             # Run a small simulation to make sure it all works.
-            stdpopsim homsap -c chr22 -l 0.001 2 > /dev/null
+            stdpopsim HomSap -c chr22 -l 0.001 2 > /dev/null
 
       - run:
           name: Build docs

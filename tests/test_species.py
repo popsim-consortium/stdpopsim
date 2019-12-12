@@ -20,7 +20,7 @@ class TestSpecies(unittest.TestCase):
             self.assertGreater(len(s), 0)
 
     def test_get_known_species(self):
-        good = ["homsap", "esccol"]
+        good = ["HomSap", "EscCol"]
         for species_id in good:
             species = stdpopsim.get_species(species_id)
             self.assertIsInstance(species, stdpopsim.Species)
@@ -33,13 +33,13 @@ class TestSpecies(unittest.TestCase):
                 stdpopsim.get_species(species_name)
 
     def test_add_duplicate_species(self):
-        species = stdpopsim.get_species("homsap")
+        species = stdpopsim.get_species("HomSap")
         with self.assertRaises(ValueError):
             stdpopsim.register_species(species)
 
     def test_get_known_genetic_map(self):
         good = ["HapmapII_GRCh37", "Decode_2010_sex_averaged"]
-        species = stdpopsim.get_species("homsap")
+        species = stdpopsim.get_species("HomSap")
         for name in good:
             gmap = species.get_genetic_map(name)
             self.assertIsInstance(gmap, stdpopsim.GeneticMap)
@@ -47,19 +47,19 @@ class TestSpecies(unittest.TestCase):
 
     def test_get_unknown_genetic_map(self):
         bad = ["GDXXX", "", None]
-        species = stdpopsim.get_species("homsap")
+        species = stdpopsim.get_species("HomSap")
         for name in bad:
             with self.assertRaises(ValueError):
                 species.get_genetic_map(name)
 
     def test_add_duplicate_genetic_map(self):
-        species = stdpopsim.get_species("homsap")
+        species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapmapII_GRCh37")
         with self.assertRaises(ValueError):
             species.add_genetic_map(genetic_map)
 
     def test_add_duplicate_model(self):
-        species = stdpopsim.get_species("homsap")
+        species = stdpopsim.get_species("HomSap")
         model = species.get_demographic_model("OutOfAfrica_3G09")
         with self.assertRaises(ValueError):
             species.add_demographic_model(model)
@@ -132,7 +132,7 @@ class TestGetContig(unittest.TestCase):
     """
     Tests for the get contig method.
     """
-    species = stdpopsim.get_species("homsap")
+    species = stdpopsim.get_species("HomSap")
 
     def test_length_multiplier(self):
         contig1 = self.species.get_contig("chr22")
