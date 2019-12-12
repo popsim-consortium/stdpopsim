@@ -354,7 +354,8 @@ def add_simulate_species_parser(parser, species):
                 f"Default={choices[0]}."))
     species_parser.add_argument(
         "-l", "--length-multiplier", default=1, type=float,
-        help="Simulate a chromsome of length l times the named chromosome")
+        help="Simulate a sequence of length l times the named chromosome's length, "
+             "using the named chromosome's mutation and recombination rates.")
     species_parser.add_argument(
         "-s", "--seed", default=None, type=int,
         help=(
