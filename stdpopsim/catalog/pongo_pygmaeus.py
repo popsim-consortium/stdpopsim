@@ -63,8 +63,8 @@ for line in _chromosome_data.splitlines():
 _genome = stdpopsim.Genome(chromosomes=_chromosomes)
 
 _species = stdpopsim.Species(
-    id="pongo",
-    name="Pongo",
+    id="PonPyg",
+    name="Pongo pygmaeus",
     genome=_genome,
     generation_time=20,
     population_size=1.79e4)

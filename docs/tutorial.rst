@@ -35,7 +35,7 @@ This shows the species currently supported by ``stdpopsim``. This means that
 and recombination rates. Once we've selected a species, in this case humans, we
 can look at the help again as follows.
 
-.. command-output:: stdpopsim homsap --help
+.. command-output:: stdpopsim HomSap --help
     :ellipsis: 20
 
 For conciseness we do not show all the output here but this time you should see a
@@ -44,7 +44,7 @@ the species default parameters. This includes selecting the demographic model,
 chromosome, recombination map, and number of samples.
 
 The most basic simulation we can run is to draw two samples using the species'
-defaults as seen in the species help (``stdpopsim homsap --help``). These
+defaults as seen in the species help (``stdpopsim HomSap --help``). These
 defaults include constant size population, uniform recombination map, and a
 default chromosome. To save time we will also specify that the simulation use
 chromosome 22 with the ``-c`` option. We also specify that the resulting
@@ -54,7 +54,7 @@ tree-sequence formated output should be written to the file ``foo.ts`` with the
 
 .. code-block:: console
 
-    $ stdpopsim homsap -c chr22 -o foo.ts 2
+    $ stdpopsim HomSap -c chr22 -o foo.ts 2
 
 .. warning:: It's important to remember to either redirect the output of ``stdpopsim``
                 to file or to use the ``-o/--output`` option. If you do not, the
@@ -63,7 +63,7 @@ tree-sequence formated output should be written to the file ``foo.ts`` with the
 Say we want to use a specific demographic model. We look up the available models
 using the ``--help-models`` flag:
 
-.. command-output:: stdpopsim homsap --help-models
+.. command-output:: stdpopsim HomSap --help-models
     :ellipsis: 20
 
 This gives all of the possible demographic models we could simulate. We choose
@@ -81,7 +81,7 @@ uniform recombination map. The command now looks like this:
 
 .. code-block:: console
 
-    $ stdpopsim homsap -c chr22 -l 0.05 -o foo.ts --model ooa_2 2 3
+    $ stdpopsim HomSap -c chr22 -l 0.05 -o foo.ts --model ooa_2 2 3
 
 Note that there are now two numbers after the model option. This is because the
 model simulates two populations so we have to specify a number of samples to
@@ -90,7 +90,7 @@ specified in the model documentation). In this case, we are simulating two
 African American samples and three European American samples.
 
 Now we want to add an empirical recombination map to make the simulation more
-realistic. We can run ``stdpopsim homsap --help-genetic-maps`` to view the
+realistic. We can run ``stdpopsim HomSap --help-genetic-maps`` to view the
 available recombination maps. In this case we choose the
 :ref:`sec_catalog_homsap_genetic_maps_hapmapii_grch37` map. Empirical
 recombination maps cannot be used with length multipliers so we have to remove
@@ -98,14 +98,14 @@ the ``-l`` option. (NOTE: this may a minute or so to run).
 
 .. code-block:: console
 
-    $ stdpopsim homsap -g HapmapII_GRCh37 -c chr22 -o foo.ts --model ooa_2 2 3
+    $ stdpopsim HomSap -g HapmapII_GRCh37 -c chr22 -o foo.ts --model ooa_2 2 3
 
 For reproducibility we can also choose set seed for the simulator using the
 ``-s`` flag.
 
 .. code-block:: console
 
-    $ stdpopsim homsap -s 1046 -g HapmapII_GRCh37 -c chr22 -o foo.ts --model ooa_2 2 3
+    $ stdpopsim HomSap -s 1046 -g HapmapII_GRCh37 -c chr22 -o foo.ts --model ooa_2 2 3
 
 Lastly, the CLI also outputs the relevant citations for both the simulator used
 and the resources used for simulation scenario.
@@ -143,12 +143,12 @@ effective population size from the :ref:`sec_catalog`.
     >>> import stdpopsim
 
 2. Get the particular species information. In this case, we are using
-`Homo sapiens`, which has the id "homsap".
+`Homo sapiens`, which has the id "HomSap".
 But, you could use any species from the :ref:`sec_catalog`.
 
 .. code-block:: python
 
-    >>> species = stdpopsim.get_species("homsap")
+    >>> species = stdpopsim.get_species("HomSap")
 
 3. Set the contig length. We are simulating 0.1 x chromosome 22,
 which is about 5Mb. Again, you could use a fraction of any of the
@@ -255,7 +255,7 @@ and then estimate the genetic divergence between each population pair.
 First, let's use the ``--help-models`` option to see the selection of demographic
 models available to us:
 
-.. command-output:: stdpopsim homsap --help-models
+.. command-output:: stdpopsim HomSap --help-models
     :ellipsis: 20
 
 This prints detailed information about all of the available models to
@@ -270,7 +270,7 @@ European, Asian and African-American groups.
 Using the ``--help-genetic-maps`` option, we can also see what recombination maps
 are available:
 
-.. command-output:: stdpopsim homsap --help-genetic-maps
+.. command-output:: stdpopsim HomSap --help-genetic-maps
 
 Let's go with ``HapmapII_GRCh37``.
 The next command simulates 4 samples of chromosome 1 from each of the four
@@ -281,7 +281,7 @@ For the purposes of this tutorial, we'll also specify a random seed using the
 
 .. code-block:: console
 
-    $ stdpopsim homsap -c chr1 -o afr-america-chr1.trees -s 13 -g HapmapII_GRCh37\
+    $ stdpopsim HomSap -c chr1 -o afr-america-chr1.trees -s 13 -g HapmapII_GRCh37\
     --model america 4 4 4 4
 
 --------------------------

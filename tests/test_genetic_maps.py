@@ -253,7 +253,7 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
     """
     Tests if we get chromosome maps using the HapmapII_GRCh37 human map.
     """
-    species = stdpopsim.get_species("homsap")
+    species = stdpopsim.get_species("HomSap")
     genetic_map = species.get_genetic_map("HapmapII_GRCh37")
 
     def test_warning_from_no_mapped_chromosome(self):

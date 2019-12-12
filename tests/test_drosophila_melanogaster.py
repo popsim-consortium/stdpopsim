@@ -10,7 +10,7 @@ from qc import drosophlia_melanogaster_qc
 
 
 class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
-    species = stdpopsim.get_species("dromel")
+    species = stdpopsim.get_species("DroMel")
 
     def test_basic_attributes(self):
         self.assertEqual(self.species.population_size, 1720600)
@@ -21,7 +21,7 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     """
     Tests for the drosophila_melanogaster genome.
     """
-    genome = stdpopsim.get_species("dromel").genome
+    genome = stdpopsim.get_species("DroMel").genome
 
     def test_basic_attributes(self):
         self.assertEqual(len(self.genome.chromosomes), 8)
@@ -39,7 +39,7 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         self.assertEqual(genome.get_chromosome("chrY").length, 3667352)
 
 
-species = stdpopsim.get_species("dromel")
+species = stdpopsim.get_species("DroMel")
 
 
 class TestSheehanSongThreeEpoch(

@@ -11,7 +11,7 @@ from qc import homo_sapiens_qc
 
 
 class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
-    species = stdpopsim.get_species("homsap")
+    species = stdpopsim.get_species("HomSap")
 
     def test_basic_attributes(self):
         self.assertEqual(self.species.population_size, 10**4)
@@ -22,7 +22,7 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     """
     Tests for the human genome.
     """
-    genome = stdpopsim.get_species("homsap").genome
+    genome = stdpopsim.get_species("HomSap").genome
 
     def test_basic_attributes(self):
         self.assertEqual(len(self.genome.chromosomes), 24)
@@ -58,7 +58,7 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         # recompute recombination rates from HapmapII_GRCh37 map then
         # compare the results to the current recombination rates for each chromosome
         genetic_map = "HapmapII_GRCh37"
-        species = stdpopsim.get_species("homsap")
+        species = stdpopsim.get_species("HomSap")
         for chrom in self.genome.chromosomes:
             if chrom.id == "chrY":
                 with self.assertWarns(Warning):
@@ -70,7 +70,7 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
                 contig.recombination_map.mean_recombination_rate)
 
 
-species = stdpopsim.get_species("homsap")
+species = stdpopsim.get_species("HomSap")
 
 
 class TestTennessenTwoPopOutOfAfrica(

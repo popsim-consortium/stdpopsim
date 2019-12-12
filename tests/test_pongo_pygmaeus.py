@@ -2,14 +2,14 @@ import unittest
 
 
 import stdpopsim
-from stdpopsim import pongo
+from stdpopsim import pongo_pygmaeus
 from tests import test_models
 from tests import test_species
-from qc import pongo_qc
+from qc import pongo_pygmaeus_qc
 
 
 class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
-    species = stdpopsim.get_species("pongo")
+    species = stdpopsim.get_species("PonPyg")
 
     def test_basic_attributes(self):
         self.assertEqual(self.species.population_size, 1.79*10**4)
@@ -18,9 +18,9 @@ class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
 
 class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     """
-    Tests for the pongo genome.
+    Tests for the Pongo pygmaeus genome.
     """
-    genome = stdpopsim.get_species("pongo").genome
+    genome = stdpopsim.get_species("PonPyg").genome
 
     def test_basic_attributes(self):
         self.assertEqual(len(self.genome.chromosomes), 24)
@@ -54,5 +54,5 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
 
 
 class TestPongo(unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    model = pongo._orangutan()
-    qc_model = pongo_qc.LockePongo()
+    model = pongo_pygmaeus._orangutan()
+    qc_model = pongo_pygmaeus_qc.LockePongo()
