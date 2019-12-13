@@ -234,38 +234,39 @@ def write_output(ts, args):
         ts.dump(args.output)
 
 
-def write_bibtex(engine, model, contig, bibtex_file):
+def get_citations(engine, model, contig, species):
+    """
+    Return a list of all the citations.
+    """
+    citations = engine.citations[:]
+    citations.extend(species.genome.mutation_rate_citations)
+    citations.extend(species.genome.recombination_rate_citations)
+    if contig.genetic_map is not None:
+        citations.extend(contig.genetic_map.citations)
+    citations.extend(model.citations)
+    return stdpopsim.Citation.merge(citations)
+
+
+def write_bibtex(engine, model, contig, species, bibtex_file):
     """
     Write bibtex for available citations to a file."""
-    for citation in engine.citations:
-        bibtex_file.write(citation.fetch_bibtex())
-    if contig.genetic_map is not None:
-        for citation in contig.genetic_map.citations:
-            bibtex_file.write(citation.fetch_bibtex())
-    for citation in model.citations:
+    citations = get_citations(engine, model, contig, species)
+    for citation in citations:
         bibtex_file.write(citation.fetch_bibtex())
     bibtex_file.close()
 
 
-def write_citations(engine, model, contig):
+def write_citations(engine, model, contig, species):
     """
     Write out citation information so that the user knows what papers to cite
     for the simulation engine, the model and the mutation/recombination rate
     information.
     """
-    printerr = functools.partial(print, file=sys.stderr)
-    printerr("If you use this simulation in published work, please cite:")
-    printerr(f"Simulation engine: {engine.name}")
-    for citation in engine.citations:
-        printerr(f"  {citation}")
-    if contig.genetic_map is not None:
-        printerr(f"Genetic map: {contig.genetic_map.name}")
-        for citation in contig.genetic_map.citations:
-            printerr(f"  {citation}")
-    if len(model.citations) > 0:
-        printerr(f"Simulation model: {model.name}")
-        for citation in model.citations:
-            printerr(f"  {citation}")
+    print("If you use this simulation in published work, please cite:",
+          file=sys.stderr)
+    citations = get_citations(engine, model, contig, species)
+    for citation in citations:
+        citation.print(file=sys.stderr)
 
 
 def summarise_usage():
@@ -421,9 +422,9 @@ def add_simulate_species_parser(parser, species):
             summarise_usage()
             write_output(ts, args)
         if not args.quiet:
-            write_citations(engine, model, contig)
+            write_citations(engine, model, contig, species)
         if args.bibtex_file is not None:
-            write_bibtex(engine, model, contig, args.bibtex_file)
+            write_bibtex(engine, model, contig, species, args.bibtex_file)
 
     species_parser.set_defaults(runner=run_simulation)
 

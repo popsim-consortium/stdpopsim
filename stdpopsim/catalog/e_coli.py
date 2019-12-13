@@ -38,8 +38,10 @@ _species = stdpopsim.Species(
     name="Escherichia coli",
     genome=_genome,
     generation_time=0.00003805175,  # 1.0 / (525600 min/year / 20 min/gen)
-    generation_time_citations=[_sezonov_et_al],
+    generation_time_citations=[
+        _sezonov_et_al.because(stdpopsim.CiteReason.GEN_TIME)],
     population_size=1.8e8,
-    population_size_citations=[_lapierre_et_al])
+    population_size_citations=[
+        _lapierre_et_al.because(stdpopsim.CiteReason.POP_SIZE)])
 
 stdpopsim.register_species(_species)

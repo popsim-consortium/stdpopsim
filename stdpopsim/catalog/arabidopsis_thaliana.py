@@ -46,12 +46,14 @@ _species = stdpopsim.Species(
     generation_time_citations=[stdpopsim.Citation(
         doi="https://doi.org/10.1890/0012-9658(2002)083[1006:GTINSO]2.0.CO;2",
         year="2002",
-        author="Donohue")],
+        author="Donohue",
+        reasons={stdpopsim.CiteReason.GEN_TIME})],
     population_size=10**4,
     population_size_citations=[stdpopsim.Citation(
         doi="https://doi.org/10.1016/j.cell.2016.05.063",
         year="2016",
-        author="1001GenomesConsortium")]
+        author="1001GenomesConsortium",
+        reasons={stdpopsim.CiteReason.POP_SIZE})]
     )
 
 stdpopsim.register_species(_species)
@@ -76,7 +78,8 @@ _gm = stdpopsim.GeneticMap(
     citations=[stdpopsim.Citation(
         doi="https://doi.org/10.1038/hdy.2011.95",
         author="Salome et al.",
-        year=2012)]
+        year=2012,
+        reasons={stdpopsim.CiteReason.GEN_MAP})]
     )
 _species.add_genetic_map(_gm)
 
@@ -133,7 +136,8 @@ def _sma_1pop():
         citations=[stdpopsim.Citation(
             author="Durvasula et al.",
             year=2017,
-            doi="https://doi.org/10.1073/pnas.1616736114")
+            doi="https://doi.org/10.1073/pnas.1616736114",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
         ],
         generation_time=1,
         demographic_events=demographic_events,
@@ -167,7 +171,8 @@ def _afr_2epoch():
         citations=[stdpopsim.Citation(
             author="Huber et al.",
             year=2018,
-            doi="https://doi.org/10.1038/s41467-018-05281-7")
+            doi="https://doi.org/10.1038/s41467-018-05281-7",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
         ],
         generation_time=1,
         population_configurations=[
@@ -209,7 +214,8 @@ def _afr_3epoch():
         citations=[stdpopsim.Citation(
             author="Huber et al.",
             year=2018,
-            doi="https://doi.org/10.1038/s41467-018-05281-7")
+            doi="https://doi.org/10.1038/s41467-018-05281-7",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
         ],
         generation_time=1,
         population_configurations=[
