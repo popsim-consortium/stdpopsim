@@ -515,6 +515,33 @@ Lines of code should be no more than 89 characters.
 Conformance to this style is checked as part of the Continuous Integration
 testing suite.
 
+******************
+Naming conventions
+******************
+
+To ensure uniformity in naming schemes across objects in ``stdpopsim``
+we have strict conventions for species, genetic maps, and demographic
+models. 
+
+Species names follow a ``${first_3_letters_genus}${first_3_letters_species}``
+convention with capitilization such that Homo sapiens becomes "HomSap". This
+is similar to the UCSC Genome Browser naming convention and should be familiar.
+
+Genetic maps are named using a descriptive name and the assembly version according
+to ``${CamelCaseDescriptiveName}_${Assembly}``. e.g., the HapMap phase 2 map on
+the GRCh37 assembly becomes HapMapII_GRCh37.
+
+Finally demographic models are named using a combination of a descriptive name,
+information about the simulation, and information about the publication it was
+presented in. Specifically we use 
+``${SomethingDescriptive}_${number_of_populations}${first_author_initial}${two_digit_date}``
+where the descriptive text is meant to capture something about the model
+(i.e. an admixture model, a population crash, etc.) and the number of populations
+is the number of populations implemented in the model (not necessarily the number
+from which samples are drawn). For author initial we will use a single letter, the 1st,
+until an ID collision, in which case we will include the 2nd letter, and so forth.
+
+
 **********
 Unit tests
 **********
