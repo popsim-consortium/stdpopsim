@@ -148,7 +148,8 @@ _chb_population = stdpopsim.Population(
 _tennessen_et_al = stdpopsim.Citation(
     author="Tennessen et al.",
     year=2012,
-    doi="https://doi.org/10.1126/science.1219240")
+    doi="https://doi.org/10.1126/science.1219240",
+    reasons={stdpopsim.CiteReason.DEM_MODEL})
 
 
 def _ooa_3():
@@ -266,7 +267,7 @@ def _ooa_2():
         stdpopsim.Population(name="EUR", description="European Americans")
     ]
     citations = [
-        _tennessen_et_al.because(stdpopsim.CiteReason.DEM_MODEL),
+        _tennessen_et_al,
         stdpopsim.Citation(
             author="Fu et al.",
             year=2013,
@@ -358,7 +359,7 @@ def _african():
     populations = [
         stdpopsim.Population(name="AFR", description="African"),
     ]
-    citations = [_tennessen_et_al.because(stdpopsim.CiteReason.DEM_MODEL)]
+    citations = [_tennessen_et_al]
 
     generation_time = _species.generation_time
     citations.extend(_species.generation_time_citations)
