@@ -66,7 +66,7 @@ stdpopsim.register_species(_species)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    name="Salome2012",
+    name="Salome2012_TAIR7",
     url=(
         "http://www.eeb.ucla.edu/Faculty/Lohmueller/data/"
         "uploads/salome2012_maps.tar.gz"),
