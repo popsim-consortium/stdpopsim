@@ -50,7 +50,10 @@ for line in _chromosome_data.splitlines():
 # class:`stdpopsim.Genome` definition for D. melanogaster. Chromosome length data is
 # based on `dm6 <https://www.ncbi.nlm.nih.gov/assembly/GCF_000001215.4/>`_.
 
-_genome = stdpopsim.Genome(chromosomes=_chromosomes)
+_genome = stdpopsim.Genome(
+        chromosomes=_chromosomes,
+        mutation_rate_citations=[
+            _SchriderEtAl.because(stdpopsim.CiteReason.MUT_RATE)])
 
 _species = stdpopsim.Species(
     id="DroMel",

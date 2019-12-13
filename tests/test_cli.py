@@ -470,9 +470,14 @@ class TestWriteBibtex(unittest.TestCase):
         contig = species.get_contig("chr22", genetic_map=genetic_map.name)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
-        ncite = (len(genetic_map.citations) +
-                 len(model.citations) +
-                 len(engine.citations))
+        cites_and_cites = [
+                genetic_map.citations,
+                model.citations,
+                engine.citations,
+                species.genome.mutation_rate_citations,
+                species.genome.recombination_rate_citations,
+                ]
+        ncite = len(set([ref.doi for cites in cites_and_cites for ref in cites]))
         # Patch out writing to a file, then
         # ensure that the method is called
         # the correct number of times.
@@ -481,7 +486,7 @@ class TestWriteBibtex(unittest.TestCase):
                 with mock.patch.object(
                         stdpopsim.citations.Citation,
                         "fetch_bibtex") as mock_bib:
-                    cli.write_bibtex(engine, model, contig, bib)
+                    cli.write_bibtex(engine, model, contig, species, bib)
                     self.assertEqual(mock_bib.call_count, ncite)
 
 
@@ -495,7 +500,7 @@ class TestWriteCitations(unittest.TestCase):
         model = species.get_demographic_model("OutOfAfrica_3G09")
         engine = stdpopsim.get_default_engine()
         stdout, stderr = capture_output(
-                cli.write_citations, engine, model, contig)
+                cli.write_citations, engine, model, contig, species)
         self.assertEqual(len(stdout), 0)
         genetic_map = None
         self.check_citations(engine, species, genetic_map, model, stderr)
@@ -507,7 +512,7 @@ class TestWriteCitations(unittest.TestCase):
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
         stdout, stderr = capture_output(
-                cli.write_citations, engine, model, contig)
+                cli.write_citations, engine, model, contig, species)
         self.assertEqual(len(stdout), 0)
         self.check_citations(engine, species, genetic_map, model, stderr)
 
