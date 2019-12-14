@@ -113,8 +113,8 @@ _eur_population = stdpopsim.Population(
 
 def _afr_3epoch():
     id = "African3Epoch_1S16"
-    name = "Three epoch African population"
-    description = """
+    description = "Three epoch African population"
+    long_description = """
         The three epoch (modern, bottleneck, ancestral) model estimated for a
         single African Drosophila Melanogaster population from Sheehan and Song (2016).
         Population sizes are estimated by a
@@ -149,8 +149,8 @@ def _afr_3epoch():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,
@@ -174,8 +174,8 @@ _species.add_demographic_model(_afr_3epoch())
 
 def _ooa_2():
     id = "OutOfAfrica_2L06"
-    name = "Three epoch model for African and European populations"
-    description = """
+    description = "Three epoch model for African and European populations"
+    long_description = """
         The three epoch (modern, bottleneck, ancestral) model estimated for two
         Drosophila Melanogaster populations: African (ancestral) and European (derived)
         from Li and Stephan (2006).
@@ -199,8 +199,8 @@ def _ooa_2():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,

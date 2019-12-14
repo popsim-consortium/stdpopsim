@@ -91,7 +91,7 @@ def get_models_help(species_id, model_id):
     wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
     for model_id in models:
         model = get_model_wrapper(species, model_id)
-        models_text += f"{model.id}: {model.name}\n"
+        models_text += f"{model.id}: {model.description}\n"
         models_text += wrapper.fill(textwrap.dedent(model.description))
         models_text += "\n\n"
 
@@ -409,8 +409,8 @@ def add_simulate_species_parser(parser, species):
             length_multiplier=args.length_multiplier)
         engine = stdpopsim.get_engine(args.engine)
         logger.info(
-            f"Running simulation model {model.name} for {species.name} on "
-            f"{contig} with {len(samples)} samples using {engine.name}.")
+            f"Running simulation model {model.id} for {species.id} on "
+            f"{contig} with {len(samples)} samples using {engine.id}.")
 
         kwargs = vars(args)
         kwargs.update(demographic_model=model, contig=contig, samples=samples)
@@ -439,7 +439,7 @@ def write_simulation_summary(engine, model, contig, samples, seed=None):
     dry_run_text += f"{indent}Engine: {engine.id} ({engine.get_version()})\n"
     # Get information about model
     dry_run_text += f"{indent}Model id: {model.id}\n"
-    dry_run_text += f"{indent}Model name: {model.name}\n"
+    dry_run_text += f"{indent}Model desciption: {model.description}\n"
     # Add seed information if extant
     if seed is not None:
         dry_run_text += f"{indent}Seed: {seed}\n"
@@ -510,7 +510,7 @@ def stdpopsim_cli_parser():
 
     for engine in stdpopsim.all_engines():
         group = top_parser.add_argument_group(
-                f"{engine.name} specific parameters")
+                f"{engine.id} specific parameters")
         engine.add_arguments(group)
 
     subparsers = top_parser.add_subparsers(dest="subcommand")

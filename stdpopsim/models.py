@@ -153,11 +153,12 @@ class DemographicModel(object):
     :ivar id: The unique identifier for this model. DemographicModel IDs should be
         short and memorable, perhaps as an abbreviation of the model's name.
     :vartype id: str
-    :ivar name: The informal name for this model as it would be used in
-        written text, e.g., "Three population Out-of-Africa"
-    :vartype informal_name: str
-    :ivar description: A concise, but detailed, summary of the model.
+    :ivar description: A short description of this model as it would be used in
+        written text, e.g., "Three population Out-of-Africa". This should
+        describe the model itself and not contain author or year information.
     :vartype description: str
+    :ivar long_description: A concise, but detailed, summary of the model.
+    :vartype long_description: str
     :ivar generation_time: Mean inter-generation interval, in years.
     :vartype generation_time: int
     :ivar populations: TODO
@@ -175,8 +176,8 @@ class DemographicModel(object):
 
     # required attributes
     id = attr.ib(type=str)
-    name = attr.ib(type=str)
     description = attr.ib(type=str)
+    long_description = attr.ib(type=str)
     generation_time = attr.ib(type=int)
     populations = attr.ib(type=list)
 
@@ -206,8 +207,8 @@ class DemographicModel(object):
         """
         kwargs.update(
                 id=kwargs.get("id", ""),
-                name=kwargs.get("name", ""),
                 description=kwargs.get("description", ""),
+                long_description=kwargs.get("long_description", ""),
                 populations=kwargs.get("populations", []),
                 generation_time=kwargs.get("generation_time", -1))
         return DemographicModel(**kwargs)

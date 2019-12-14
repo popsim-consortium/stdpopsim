@@ -155,8 +155,8 @@ _tennessen_et_al = stdpopsim.Citation(
 
 def _ooa_3():
     id = "OutOfAfrica_3G09"
-    name = "Three population out-of-Africa"
-    description = """
+    description = "Three population out-of-Africa"
+    long_description = """
         The three population Out-of-Africa model from Gutenkunst et al. 2009.
         It describes the ancestral human population in Africa, the out of Africa
         event, and the subsequent European-Asian population split.
@@ -205,8 +205,8 @@ def _ooa_3():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,
@@ -255,8 +255,8 @@ _species.add_demographic_model(_ooa_3())
 
 def _ooa_2():
     id = "OutOfAfrica_2T12"
-    name = "Two population out-of-Africa"
-    description = """
+    description = "Two population out-of-Africa"
+    long_description = """
         The model is derived from the Tennesen et al. analysis of the
         jSFS from European Americans and African Americans.
         It describes the ancestral human population in Africa, the out of Africa event,
@@ -306,8 +306,8 @@ def _ooa_2():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,
@@ -351,8 +351,8 @@ _species.add_demographic_model(_ooa_2())
 
 def _african():
     id = "Africa_1T12"
-    name = "African population"
-    description = """
+    description = "African population"
+    long_description = """
         The model is a simplification of the two population Tennesen et al.
         model with the European-American population removed so that we are
         modeling the African population in isolation.
@@ -380,8 +380,8 @@ def _african():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,
@@ -404,8 +404,8 @@ _species.add_demographic_model(_african())
 
 def _america():
     id = "AmericanAdmixture_4B11"
-    name = "American admixture"
-    description = """
+    description = "American admixture"
+    long_description = """
         Demographic model for American admixture, taken from Browning et al. 2011.
         This model extends the Gravel et al. (2011) model of African/European/Asian
         demographic history to simulate an admixed population with admixture
@@ -513,8 +513,8 @@ def _america():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,
@@ -529,8 +529,8 @@ _species.add_demographic_model(_america())
 
 def _ooa_archaic():
     id = "OutOfAfricaArchaicAdmixture_5R19"
-    name = "Three population out-of-Africa with archaic admixture"
-    description = """
+    description = "Three population out-of-Africa with archaic admixture"
+    long_description = """
         The three population out-of-African model popularized by Gutenkunst et al. (2009)
         and augmented by archaic contributions to both Eurasian and African populations.
         Two archaic populations split early in human history, before the African
@@ -681,8 +681,8 @@ def _ooa_archaic():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,
@@ -697,8 +697,8 @@ _species.add_demographic_model(_ooa_archaic())
 
 def _zigzag():
     id = "Zigzag_1S14"
-    name = "Periodic growth and decline."
-    description = """
+    description = "Periodic growth and decline."
+    long_description = """
         A validation model used by Schiffels and Durbin (2014) and Terhorst and
         Terhorst, Kamm, and Song (2017) with periods of exponential growth and
         decline in a single population.
@@ -762,8 +762,8 @@ def _zigzag():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,
@@ -777,8 +777,8 @@ _species.add_demographic_model(_zigzag())
 
 def _kamm_ancient_eurasia():
     id = "AncientEurasia_9K19"
-    name = "Multi-population model of ancient Eurasia (Kamm et al. 2019)"
-    description = """
+    description = "Multi-population model of ancient Eurasia"
+    long_description = """
         This is the best-fitting model of a history of
         multiple ancient and present-day human populations
         sampled across Eurasia over the past 120,000 years.
@@ -985,8 +985,8 @@ def _kamm_ancient_eurasia():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,

@@ -105,7 +105,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         entry += nodes.paragraph(text="name")
         row += entry
         entry = nodes.entry()
-        entry += nodes.paragraph(text=model.name)
+        entry += nodes.paragraph(text=model.description)
         row += entry
 
         row = nodes.row()
@@ -387,7 +387,7 @@ class SpeciesCatalogDirective(SphinxDirective):
             row += entry
 
             entry = nodes.entry()
-            entry += nodes.paragraph(text=model.name)
+            entry += nodes.paragraph(text=model.description)
             row += entry
 
             entry = nodes.entry()
@@ -403,8 +403,8 @@ class SpeciesCatalogDirective(SphinxDirective):
         mid = self.get_demographic_model_id(species, model)
         target = self.get_target(mid)
         section = nodes.section(ids=[mid])
-        section += nodes.title(text=model.name)
-        section += nodes.paragraph(text=model.description)
+        section += nodes.title(text=model.description)
+        section += nodes.paragraph(text=model.long_description)
         section += nodes.rubric(text="Details")
         section += self.model_table(model)
         section += nodes.rubric(text="Populations")

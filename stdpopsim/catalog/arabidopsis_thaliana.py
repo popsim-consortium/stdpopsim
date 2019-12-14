@@ -128,8 +128,10 @@ def _sma_1pop():
 
     return stdpopsim.DemographicModel(
         id="SouthMiddleAtlas_1D17",
-        name="South Middle Atlas population size history",
-        description="""
+        description="South Middle Atlas piecewise constant size",
+        # TODO more detail here. We should at least explain that we're skipping
+        # some of the estimates from MSMC because we don't think they're accurate.
+        long_description="""
             Model estimated from two homozygous individuals from
             the South Middle Atlas using MSMC (TODO: more detail).
         """,
@@ -162,8 +164,8 @@ def _afr_2epoch():
     ]
     return stdpopsim.DemographicModel(
         id="African2Epoch_1H18",
-        name="African two epoch model",
-        description="""
+        description="African two epoch model",
+        long_description="""
             Model estimated from site frequency spectrum of synonymous
             SNPs from African samples using Williamson et al. (2005)
             methodology.
@@ -205,8 +207,8 @@ def _afr_3epoch():
     ]
     return stdpopsim.DemographicModel(
         id="African3Epoch_1H18",
-        name="African three epoch model",
-        description="""
+        description="African three epoch model",
+        long_description="""
             Model estimated from site frequency spectrum of synonymous
             SNPs from African samples using Williamson et al. (2005)
             methodology.

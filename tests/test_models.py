@@ -294,8 +294,8 @@ class TestAllModels(unittest.TestCase):
             self.assertIsInstance(model, models.DemographicModel)
 
             self.assertGreater(len(model.id), 0)
-            self.assertGreater(len(model.name), 0)
             self.assertGreater(len(model.description), 0)
+            self.assertGreater(len(model.long_description), 0)
             self.assertGreater(len(model.citations), 0)
             self.assertGreater(model.generation_time, 0)
 
