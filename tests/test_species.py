@@ -38,7 +38,7 @@ class TestSpecies(unittest.TestCase):
             stdpopsim.register_species(species)
 
     def test_get_known_genetic_map(self):
-        good = ["HapmapII_GRCh37", "Decode_2010_sex_averaged"]
+        good = ["HapmapII_GRCh37", "Decode2010_GRCh36"]
         species = stdpopsim.get_species("HomSap")
         for name in good:
             gmap = species.get_genetic_map(name)

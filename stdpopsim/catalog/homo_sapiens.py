@@ -104,13 +104,13 @@ _species.add_genetic_map(_gm)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    name="Decode_2010_sex_averaged",
+    name="Decode2010_GRCh36",
     url=(
         "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
         "decode_2010_sex-averaged_map.tar.gz"),
     file_pattern="genetic_map_decode_2010_sex-averaged_{name}.txt",
     description=(
-        "Decode fine scale genetic map from Kong, A et al. Fine scale "
+        "Decode sex-averaged genetic map from Kong, A et al. Fine scale "
         "recombination rate differences between sexes, populations and "
         "individuals. Nature (28 October 2010). "),
     citations=[
