@@ -79,14 +79,15 @@ stdpopsim.register_species(_species)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    name="Comeron2012_dm6",
+    id="Comeron2012_dm6",
+    description="Comeron",
+    long_description=(
+        # TODO more detail
+        "Comeron et al. (2012) maps (lifted over to dm6)."),
     url=(
         "http://sesame.uoregon.edu/~adkern/dmel_recombination_map/"
         "comeron2012_maps.tar.gz"),
     file_pattern="genetic_map_comeron2012_dm6_{name}.txt",
-    description=(
-        # TODO more detail
-        "Comeron et al. (2012) maps (lifted over to dm6)."),
     citations=[stdpopsim.Citation(
         author="Comeron et al",
         doi="https://doi.org/10.1371/journal.pgen.1002905",

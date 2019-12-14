@@ -44,7 +44,7 @@ class TestSpecies(unittest.TestCase):
         for name in good:
             gmap = species.get_genetic_map(name)
             self.assertIsInstance(gmap, stdpopsim.GeneticMap)
-            self.assertEqual(gmap.name, name)
+            self.assertEqual(gmap.id, name)
 
     def test_get_unknown_genetic_map(self):
         bad = ["GDXXX", "", None]

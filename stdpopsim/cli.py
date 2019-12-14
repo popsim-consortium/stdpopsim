@@ -125,7 +125,7 @@ def get_genetic_maps_help(species_id, genetic_map_id):
     species = stdpopsim.get_species(species_id)
     if genetic_map_id is None:
         maps_text = f"\nAll genetic maps for {species.name}\n\n"
-        maps = [genetic_map.name for genetic_map in species.genetic_maps]
+        maps = [genetic_map.id for genetic_map in species.genetic_maps]
     else:
         maps = [genetic_map_id]
         maps_text = f"\nGenetic map description\n\n"
@@ -134,7 +134,7 @@ def get_genetic_maps_help(species_id, genetic_map_id):
     wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
     for map_id in maps:
         map = get_genetic_map_wrapper(species, map_id)
-        maps_text += f"{map.name}\n"
+        maps_text += f"{map.id}\n"
         maps_text += wrapper.fill(textwrap.dedent(map.description))
         maps_text += "\n\n"
 
@@ -318,7 +318,7 @@ def add_simulate_species_parser(parser, species):
 
     # Set metavar="" to prevent help text from writing out the explicit list
     # of options, which can be too long and ugly.
-    choices = [gm.name for gm in species.genetic_maps]
+    choices = [gm.id for gm in species.genetic_maps]
     if len(species.genetic_maps) > 0:
         species_parser.add_argument(
             "--help-genetic-maps", action=HelpGeneticMaps, nargs="?",
@@ -454,7 +454,7 @@ def write_simulation_summary(engine, model, contig, samples, seed=None):
         dry_run_text += f"{indent * 2}{pop_name}: "
         dry_run_text += f"{sample_counts[p]} ({sample_time})\n"
     # Get information about relevant contig
-    gmap = "None" if contig.genetic_map is None else contig.genetic_map.name
+    gmap = "None" if contig.genetic_map is None else contig.genetic_map.id
     mean_recomb_rate = contig.recombination_map.mean_recombination_rate
     mut_rate = contig.mutation_rate
     contig_len = contig.recombination_map.get_length()
@@ -473,7 +473,7 @@ def run_download_genetic_maps(args):
     for species_id in species_names:
         species = get_species_wrapper(species_id)
         if len(args.genetic_maps) == 0:
-            genetic_maps = [gmap.name for gmap in species.genetic_maps]
+            genetic_maps = [gmap.id for gmap in species.genetic_maps]
         else:
             genetic_maps = args.genetic_maps
         for genetic_map_id in genetic_maps:

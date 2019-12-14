@@ -84,15 +84,16 @@ stdpopsim.register_species(_species)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    name="HapmapII_GRCh37",
+    id="HapmapII_GRCh37",
+    description="Hapmap Phase II",
+    long_description=(
+        "The Phase II HapMap Genetic map (lifted over to GRCh37) used in "
+        "1000 Genomes. Please see the README for more details."),
     url=(
         "https://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
         "20110106_recombination_hotspots/"
         "HapmapII_GRCh37_RecombinationHotspots.tar.gz"),
     file_pattern="genetic_map_GRCh37_{name}.txt",
-    description=(
-        "The Phase II HapMap Genetic map (lifted over to GRCh37) used in "
-        "1000 Genomes. Please see the README for more details."),
     citations=[
         stdpopsim.Citation(
             doi="https://doi.org/10.1038/nature06258",
@@ -105,15 +106,16 @@ _species.add_genetic_map(_gm)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    name="Decode2010_GRCh36",
+    id="Decode2010_GRCh36",
+    description="Decode sex-averaged",
+    # TODO need more detail here. Which map did we choose, carrier or non-carrier?
+    long_description=(
+        "Decode sex-averaged genetic map."
+        "See https://www.decode.com/addendum/ for more details"),
     url=(
         "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
         "decode_2010_sex-averaged_map.tar.gz"),
     file_pattern="genetic_map_decode_2010_sex-averaged_{name}.txt",
-    description=(
-        "Decode sex-averaged genetic map from Kong, A et al. Fine scale "
-        "recombination rate differences between sexes, populations and "
-        "individuals. Nature (28 October 2010). "),
     citations=[
         stdpopsim.Citation(
             year=2010,
@@ -121,8 +123,6 @@ _gm = stdpopsim.GeneticMap(
             doi="https://doi.org/10.1038/nature09525",
             reasons={stdpopsim.CiteReason.GEN_MAP})]
     )
-# TODO add a URL citation (see above) here for this:
-# "Please see https://www.decode.com/addendum/ for more details."),
 _species.add_genetic_map(_gm)
 
 

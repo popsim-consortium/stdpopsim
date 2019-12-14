@@ -169,15 +169,15 @@ class Species(object):
         self.demographic_models.append(model)
 
     def add_genetic_map(self, genetic_map):
-        if genetic_map.name in [gm.name for gm in self.genetic_maps]:
+        if genetic_map.id in [gm.id for gm in self.genetic_maps]:
             raise ValueError(
-                    f"Genetic map '{self.id}/{genetic_map.name}' "
+                    f"Genetic map '{self.id}/{genetic_map.id}' "
                     "already in catalog.")
         genetic_map.species = self
         self.genetic_maps.append(genetic_map)
 
     def get_genetic_map(self, id):
         for gm in self.genetic_maps:
-            if gm.name == id:
+            if gm.id == id:
                 return gm
         raise ValueError(f"Genetic map '{self.id}/{id}' not in catalog")

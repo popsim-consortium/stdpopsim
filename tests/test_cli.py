@@ -467,7 +467,7 @@ class TestWriteBibtex(unittest.TestCase):
         # Test that genetic map citations are converted.
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapmapII_GRCh37")
-        contig = species.get_contig("chr22", genetic_map=genetic_map.name)
+        contig = species.get_contig("chr22", genetic_map=genetic_map.id)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
         cites_and_cites = [
@@ -508,7 +508,7 @@ class TestWriteCitations(unittest.TestCase):
     def test_genetic_map_citations(self):
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapmapII_GRCh37")
-        contig = species.get_contig("chr22", genetic_map=genetic_map.name)
+        contig = species.get_contig("chr22", genetic_map=genetic_map.id)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
         stdout, stderr = capture_output(
@@ -523,7 +523,7 @@ class TestWriteCitations(unittest.TestCase):
                 (engine.citations, model.citations, genetic_map.citations),
                 (f"engine citation not written for {engine.id}",
                     f"model citation not written for {model.id}",
-                    f"genetic map citation not written for {genetic_map.name}")):
+                    f"genetic map citation not written for {genetic_map.id}")):
             for citation in citations:
                 self.assertTrue(citation.author in stderr, msg=assert_msg)
                 self.assertTrue(str(citation.year) in stderr, msg=assert_msg)
@@ -589,7 +589,7 @@ class TestDownloadGeneticMaps(unittest.TestCase):
 
     def test_homsap_specify_maps(self):
         species = stdpopsim.get_species("HomSap")
-        maps = [gmap.name for gmap in species.genetic_maps]
+        maps = [gmap.id for gmap in species.genetic_maps]
         for j in range(len(maps)):
             args = " ".join(maps[:j + 1])
             self.run_download("HomSap " + args, j + 1)

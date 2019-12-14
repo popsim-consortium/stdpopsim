@@ -30,7 +30,7 @@ saved_urls = {}
 def setUpModule():
     destination = pathlib.Path("_test_cache/tarballs")
     for genetic_map in stdpopsim.all_genetic_maps():
-        key = genetic_map.name
+        key = genetic_map.id
         local_file = destination / (key + ".tar.gz")
         if not local_file.exists():
             cache_dir = local_file.parent
@@ -43,7 +43,7 @@ def setUpModule():
 
 def tearDownModule():
     for genetic_map in stdpopsim.all_genetic_maps():
-        genetic_map.url = saved_urls[genetic_map.name]
+        genetic_map.url = saved_urls[genetic_map.id]
 
 
 class GeneticMapTestClass(genetic_maps.GeneticMap):
@@ -58,7 +58,7 @@ class GeneticMapTestClass(genetic_maps.GeneticMap):
             genome=genome)
         super().__init__(
             species=_species,
-            name="test_map",
+            id="test_map",
             url="http://example.com/genetic_map.tar.gz",
             file_pattern="prefix_{name}.txt")
 
@@ -137,7 +137,7 @@ class TestGeneticMap(tests.CacheWritingTest):
         cache_dir = stdpopsim.get_cache_dir() / "genetic_maps"
         self.assertEqual(gm.cache_dir, cache_dir)
         self.assertEqual(gm.species_cache_dir, gm.cache_dir / gm.species.id)
-        self.assertEqual(gm.map_cache_dir, gm.species_cache_dir / gm.name)
+        self.assertEqual(gm.map_cache_dir, gm.species_cache_dir / gm.id)
 
     def test_str(self):
         gm = GeneticMapTestClass()

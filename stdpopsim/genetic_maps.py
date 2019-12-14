@@ -37,8 +37,7 @@ class GeneticMap(object):
     Class representing a genetic map for a species. Provides functionality for
     downloading and cacheing recombination maps from a remote URL.
 
-    Specific genetic maps are defined by subclassing this abstract superclass
-    and registering the map.
+    .. todo: Document the attributes in this class
 
     :ivar url: The URL where the packed and compressed genetic map can be obtained.
     :vartype url: str
@@ -48,10 +47,12 @@ class GeneticMap(object):
     """
 
     def __init__(
-            self, species, name=None, url=None, file_pattern=None,
-            description=None, citations=None):
+            self, species, id=None, url=None, file_pattern=None,
+            description=None, long_description=None, citations=None):
+        self.id = id
         self.species = species
-        self.name = name
+        self.description = description
+        self.long_description = long_description
         self.url = url
         self.file_pattern = file_pattern
         self.description = description
@@ -67,12 +68,12 @@ class GeneticMap(object):
 
     @property
     def map_cache_dir(self):
-        return self.species_cache_dir / self.name
+        return self.species_cache_dir / self.id
 
     def __str__(self):
         s = "GeneticMap:\n"
         s += "\tspecies   = {}\n".format(self.species.name)
-        s += "\tname      = {}\n".format(self.name)
+        s += "\tid        = {}\n".format(self.id)
         s += "\turl       = {}\n".format(self.url)
         s += "\tcached    = {}\n".format(self.is_cached())
         s += "\tcache_dir = {}\n".format(self.map_cache_dir)
@@ -100,7 +101,7 @@ class GeneticMap(object):
         logger.debug(f"Checking species cache directory {self.species_cache_dir}")
         os.makedirs(self.species_cache_dir, exist_ok=True)
 
-        logger.info(f"Downloading genetic map '{self.name}' from {self.url}")
+        logger.info(f"Downloading genetic map '{self.id}' from {self.url}")
         # os.rename will not work on some Unixes if the source and dest are on
         # different file systems. Keep the tempdir in the same directory as
         # the destination to ensure it's on the same file system.
@@ -154,7 +155,7 @@ class GeneticMap(object):
                 "Warning: recombination map not found for chromosome: '{}'"
                 " on map: '{}', substituting a flat map with chromosome "
                 "recombination rate {}".format(
-                    name, self.name, chrom.recombination_rate))
+                    name, self.id, chrom.recombination_rate))
             ret = msprime.RecombinationMap.uniform_map(
                     chrom.length, chrom.recombination_rate)
         return ret

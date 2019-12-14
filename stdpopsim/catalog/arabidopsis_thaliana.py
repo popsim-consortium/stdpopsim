@@ -67,15 +67,16 @@ stdpopsim.register_species(_species)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    name="Salome2012_TAIR7",
+    id="Salome2012_TAIR7",
+    description="Salome map FIXME",
+    long_description=(
+        "Genetic map from Salome 2012 averaged across population crosses. "
+        "Please see this repo for details on how this was done: "
+        "https://github.com/LohmuellerLab/arabidopsis_recomb_maps"),
     url=(
         "http://www.eeb.ucla.edu/Faculty/Lohmueller/data/"
         "uploads/salome2012_maps.tar.gz"),
     file_pattern="arab_{name}_map_loess.txt",
-    description=(
-        "Genetic map from Salome 2012 averaged across population crosses. "
-        "Please see this repo for details on how this was done: "
-        "https://github.com/LohmuellerLab/arabidopsis_recomb_maps"),
     citations=[stdpopsim.Citation(
         doi="https://doi.org/10.1038/hdy.2011.95",
         author="Salome et al.",
