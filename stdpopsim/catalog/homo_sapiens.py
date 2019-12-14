@@ -66,6 +66,7 @@ _genome = stdpopsim.Genome(chromosomes=_chromosomes)
 _species = stdpopsim.Species(
     id="HomSap",
     name="Homo sapiens",
+    common_name="Human",
     genome=_genome,
     # TODO reference for these
     generation_time=25,

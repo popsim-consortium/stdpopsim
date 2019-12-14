@@ -54,7 +54,8 @@ class GeneticMapTestClass(genetic_maps.GeneticMap):
     def __init__(self):
         genome = stdpopsim.Genome(chromosomes=[])
         _species = stdpopsim.Species(
-            id="tesspe", name="Test species", genome=genome)
+            id="TesSpe", name="Test species", common_name="Testy McTestface",
+            genome=genome)
         super().__init__(
             species=_species,
             name="test_map",

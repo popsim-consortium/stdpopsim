@@ -7,6 +7,7 @@ import math
 import msprime
 
 import stdpopsim
+from stdpopsim import utils
 
 
 class TestSpecies(unittest.TestCase):
@@ -75,6 +76,18 @@ class SpeciesTestMixin(object):
         s = str(self.species)
         self.assertGreater(len(s), 0)
         self.assertIsInstance(s, str)
+
+    def test_id(self):
+        self.assertIsInstance(self.species.id, str)
+        self.assertTrue(utils.is_valid_species_id(self.species.id))
+
+    def test_name(self):
+        self.assertIsInstance(self.species.name, str)
+        self.assertTrue(utils.is_valid_species_name(self.species.name))
+
+    def test_common_name(self):
+        self.assertIsInstance(self.species.name, str)
+        self.assertTrue(utils.is_valid_species_common_name(self.species.common_name))
 
 
 class GenomeTestMixin(object):

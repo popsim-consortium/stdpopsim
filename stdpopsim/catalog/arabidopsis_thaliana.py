@@ -41,6 +41,7 @@ _genome = stdpopsim.Genome(chromosomes=_chromosomes)
 _species = stdpopsim.Species(
     id="AraTha",
     name="Arabidopsis thaliana",
+    common_name="A. thaliana",
     genome=_genome,
     generation_time=1.0,
     generation_time_citations=[stdpopsim.Citation(

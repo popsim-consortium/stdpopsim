@@ -58,6 +58,7 @@ _genome = stdpopsim.Genome(
 _species = stdpopsim.Species(
     id="DroMel",
     name="Drosophila melanogaster",
+    common_name="D. melanogaster",
     genome=_genome,
     generation_time=0.1,
     generation_time_citations=[

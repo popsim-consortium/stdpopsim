@@ -65,6 +65,7 @@ _genome = stdpopsim.Genome(chromosomes=_chromosomes)
 _species = stdpopsim.Species(
     id="PonPyg",
     name="Pongo pygmaeus",
+    common_name="Bornean orangutan",
     genome=_genome,
     generation_time=20,
     population_size=1.79e4)
