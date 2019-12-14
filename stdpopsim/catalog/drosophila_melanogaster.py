@@ -107,9 +107,9 @@ _species.add_genetic_map(_gm)
 
 # population definitions that are reused.
 _afr_population = stdpopsim.Population(
-   name="AFR", description="African D. melanogaster population")
+   id="AFR", description="African D. melanogaster population")
 _eur_population = stdpopsim.Population(
-   name="EUR", description="European D. melanogaster population")
+   id="EUR", description="European D. melanogaster population")
 
 
 def _afr_3epoch():

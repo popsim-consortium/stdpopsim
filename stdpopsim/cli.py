@@ -100,7 +100,7 @@ def get_models_help(species_id, model_id):
         for population in model.populations:
             if population.allow_samples:
                 models_text += indent * 2
-                models_text += f"{population.name}: {population.description}\n"
+                models_text += f"{population.id}: {population.description}\n"
         models_text += "\n"
 
     return models_text
@@ -449,7 +449,7 @@ def write_simulation_summary(engine, model, contig, samples, seed=None):
     for s in samples:
         sample_counts[s.population] += 1
     for p in range(0, model.num_sampling_populations):
-        pop_name = model.populations[p].name
+        pop_name = model.populations[p].id
         sample_time = model.populations[p].sampling_time
         dry_run_text += f"{indent * 2}{pop_name}: "
         dry_run_text += f"{sample_counts[p]} ({sample_time})\n"

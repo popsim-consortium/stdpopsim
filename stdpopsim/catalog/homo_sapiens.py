@@ -134,15 +134,15 @@ _species.add_genetic_map(_gm)
 
 # population definitions that are reused.
 _yri_population = stdpopsim.Population(
-    name="YRI",
+    id="YRI",
     description="1000 Genomes YRI (Yorubans)")
 _ceu_population = stdpopsim.Population(
-    name="CEU",
+    id="CEU",
     description=(
         "1000 Genomes CEU (Utah Residents (CEPH) with Northern and "
         "Western European Ancestry"))
 _chb_population = stdpopsim.Population(
-    name="CHB",
+    id="CHB",
     description="1000 Genomes CHB (Han Chinese in Beijing, China)")
 
 
@@ -264,8 +264,8 @@ def _ooa_2():
         23kya. Model parameters are taken from Fig. S5 in Fu et al.
     """
     populations = [
-        stdpopsim.Population(name="AFR", description="African Americans"),
-        stdpopsim.Population(name="EUR", description="European Americans")
+        stdpopsim.Population(id="AFR", description="African Americans"),
+        stdpopsim.Population(id="EUR", description="European Americans")
     ]
     citations = [
         _tennessen_et_al,
@@ -358,7 +358,7 @@ def _african():
         modeling the African population in isolation.
     """
     populations = [
-        stdpopsim.Population(name="AFR", description="African"),
+        stdpopsim.Population(id="AFR", description="African"),
     ]
     citations = [_tennessen_et_al]
 
@@ -414,11 +414,11 @@ def _america():
         population of African ancestry, 1/3 European, and 1/2 Asian.
     """
     populations = [
-        stdpopsim.Population(name="AFR", description="Contemporary African population"),
-        stdpopsim.Population(name="EUR", description="Contemporary European population"),
-        stdpopsim.Population(name="ASIA", description="Contemporary Asian population"),
+        stdpopsim.Population(id="AFR", description="Contemporary African population"),
+        stdpopsim.Population(id="EUR", description="Contemporary European population"),
+        stdpopsim.Population(id="ASIA", description="Contemporary Asian population"),
         stdpopsim.Population(
-            name="ADMIX", description="Modern admixed population"),
+            id="ADMIX", description="Modern admixed population"),
     ]
 
     citations = [
@@ -803,36 +803,36 @@ def _kamm_ancient_eurasia():
     """
     # Sampling times are assuming 25 years per generation
     populations = [
-        stdpopsim.Population(name="Mbuti",
+        stdpopsim.Population(id="Mbuti",
                              description="Present-day African Mbuti",
                              sampling_time=0),
         # LBK: 8,000 years ago
-        stdpopsim.Population(name="LBK",
+        stdpopsim.Population(id="LBK",
                              description="Early European farmer (EEF)",
                              sampling_time=320),
-        stdpopsim.Population(name="Sardinian",
+        stdpopsim.Population(id="Sardinian",
                              description="Present-day Sardinian",
                              sampling_time=0),
         # Loschbour: 7,500 years ago
-        stdpopsim.Population(name="Loschbour",
+        stdpopsim.Population(id="Loschbour",
                              description="Western hunter-gatherer (WHG)",
                              sampling_time=300),
         # MA1: 24,000 years ago
-        stdpopsim.Population(name="MA1",
+        stdpopsim.Population(id="MA1",
                              description="Upper Palaeolithic MAl'ta culture",
                              sampling_time=960),
-        stdpopsim.Population(name="Han",
+        stdpopsim.Population(id="Han",
                              description="Present-day Han Chinese",
                              sampling_time=0),
         # Ust Ishim: 45,000 years ago
-        stdpopsim.Population(name="UstIshim",
+        stdpopsim.Population(id="UstIshim",
                              description="early Palaeolithic Ust'-Ishim",
                              sampling_time=1800),
         # Altai Neanderthal: 50,000 years ago
-        stdpopsim.Population(name="Neanderthal",
+        stdpopsim.Population(id="Neanderthal",
                              description="Altai Neanderthal from Siberia",
                              sampling_time=2000),
-        stdpopsim.Population(name="BasalEurasian",
+        stdpopsim.Population(id="BasalEurasian",
                              description="Basal Eurasians",
                              sampling_time=None),
     ]

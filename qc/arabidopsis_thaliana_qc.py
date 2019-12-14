@@ -63,7 +63,7 @@ class Durvasula2017MSMC(models.DemographicModel):
 
 class HuberTwoEpoch(models.DemographicModel):
     populations = [
-        models.Population(name="ATL", description="A. thalina"),
+        models.Population(id="ATL", description="A. thalina"),
     ]
 
     def __init__(self):
@@ -92,7 +92,7 @@ class HuberTwoEpoch(models.DemographicModel):
 
 class HuberThreeEpoch(models.DemographicModel):
     populations = [
-        models.Population(name="ATL", description="A. thalina"),
+        models.Population(id="ATL", description="A. thalina"),
     ]
 
     def __init__(self):

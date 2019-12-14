@@ -458,10 +458,10 @@ class TestPopulationSampling(unittest.TestCase):
     # model.population_configurations
     def test_population_config_order_equal(self):
         for model in stdpopsim.all_demographic_models():
-            pop_names = [pop.name for pop in model.populations]
-            config_names = [
-                config.metadata["name"] for config in model.population_configurations]
-            for p, c in zip(pop_names, config_names):
+            pop_ids = [pop.id for pop in model.populations]
+            config_ids = [
+                config.metadata["id"] for config in model.population_configurations]
+            for p, c in zip(pop_ids, config_ids):
                 self.assertEqual(p, c)
 
     # Test that we are indeed getting a valid DDB back

@@ -123,7 +123,7 @@ def _sma_1pop():
 
     populations = [
         stdpopsim.Population(
-            name="a_thaliana",
+            id="SouthMiddleAtlas",
             description="Arabidopsis Thaliana South Middle Atlas population")
     ]
 
@@ -161,7 +161,7 @@ def _afr_2epoch():
     t_1 = 568344
     populations = [
         stdpopsim.Population(
-            name="a_thaliana", description="Arabidopsis thaliana African population")
+            id="Africa", description="Arabidopsis thaliana African population")
     ]
     return stdpopsim.DemographicModel(
         id="African2Epoch_1H18",
@@ -204,7 +204,7 @@ def _afr_3epoch():
     t_3 = 14534
     populations = [
         stdpopsim.Population(
-            name="a_thaliana", description="Arabidopsis thaliana African population")
+            id="Africa", description="Arabidopsis thaliana African population")
     ]
     return stdpopsim.DemographicModel(
         id="African3Epoch_1H18",
