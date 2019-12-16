@@ -96,7 +96,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         row = nodes.row()
         rows.append(row)
         entry = nodes.entry()
-        entry += nodes.paragraph(text="id")
+        entry += nodes.paragraph(text="ID")
         row += entry
         entry = nodes.entry()
         entry += nodes.paragraph(text=model.id)
@@ -105,7 +105,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         row = nodes.row()
         rows.append(row)
         entry = nodes.entry()
-        entry += nodes.paragraph(text="name")
+        entry += nodes.paragraph(text="Description")
         row += entry
         entry = nodes.entry()
         entry += nodes.paragraph(text=model.description)
@@ -114,7 +114,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         row = nodes.row()
         rows.append(row)
         entry = nodes.entry()
-        entry += nodes.paragraph(text="num_populations")
+        entry += nodes.paragraph(text="Num populations")
         row += entry
         entry = nodes.entry()
         entry += nodes.paragraph(text=model.num_populations)
@@ -194,11 +194,10 @@ class SpeciesCatalogDirective(SphinxDirective):
 
     def population_table(self, model):
         table = nodes.table()
-        tgroup = nodes.tgroup(cols=2)
-        colspec = nodes.colspec(colwidth=1)
-        tgroup.append(colspec)
-        colspec = nodes.colspec(colwidth=1)
-        tgroup.append(colspec)
+        tgroup = nodes.tgroup(cols=4)
+        for _ in range(4):
+            colspec = nodes.colspec(colwidth=1)
+            tgroup.append(colspec)
 
         table += tgroup
 
@@ -207,6 +206,12 @@ class SpeciesCatalogDirective(SphinxDirective):
         row = nodes.row()
         entry = nodes.entry()
         entry += nodes.paragraph(text="Index")
+        row += entry
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="ID")
+        row += entry
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="Sampling time")
         row += entry
         entry = nodes.entry()
         entry += nodes.paragraph(text="Description")
@@ -220,6 +225,14 @@ class SpeciesCatalogDirective(SphinxDirective):
 
             entry = nodes.entry()
             entry += nodes.paragraph(text=str(index))
+            row += entry
+
+            entry = nodes.entry()
+            entry += nodes.paragraph(text=population.id)
+            row += entry
+
+            entry = nodes.entry()
+            entry += nodes.paragraph(text=f"{population.sampling_time}")
             row += entry
 
             entry = nodes.entry()
@@ -254,7 +267,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         tgroup += thead
         row = nodes.row()
         entry = nodes.entry()
-        entry += nodes.paragraph(text="Name")
+        entry += nodes.paragraph(text="ID")
         row += entry
         entry = nodes.entry()
         entry += nodes.paragraph(text="Year")
@@ -307,7 +320,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         tgroup += thead
         row = nodes.row()
         entry = nodes.entry()
-        entry += nodes.paragraph(text="Name")
+        entry += nodes.paragraph(text="ID")
         row += entry
 
         entry = nodes.entry()
@@ -353,8 +366,8 @@ class SpeciesCatalogDirective(SphinxDirective):
 
     def models_table(self, species):
         table = nodes.table()
-        tgroup = nodes.tgroup(cols=3)
-        for _ in range(3):
+        tgroup = nodes.tgroup(cols=2)
+        for _ in range(2):
             colspec = nodes.colspec(colwidth=1)
             tgroup.append(colspec)
         table += tgroup
@@ -366,10 +379,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         entry += nodes.paragraph(text="ID")
         row += entry
         entry = nodes.entry()
-        entry += nodes.paragraph(text="Name")
-        row += entry
-        entry = nodes.entry()
-        entry += nodes.paragraph(text="# Pops")
+        entry += nodes.paragraph(text="Description")
         row += entry
 
         thead.append(row)
@@ -390,9 +400,6 @@ class SpeciesCatalogDirective(SphinxDirective):
             entry += nodes.paragraph(text=model.description)
             row += entry
 
-            entry = nodes.entry()
-            entry += nodes.paragraph(text=model.num_populations)
-            row += entry
         tbody = nodes.tbody()
         tbody.extend(rows)
         tgroup += tbody
