@@ -27,30 +27,36 @@ logger = logging.getLogger(__name__)
 # which reports 0.95 +/- 0.72 cM/Mb
 _chromosome_data = """\
 chr1    227913704  0.95e-8
-chr2A	109511694  0.95e-8
-chr2B	129937803  0.95e-8
-chr3	193656255  0.95e-8
-chr4	189387572  0.95e-8
-chr5	179185813  0.95e-8
-chr6	169501136  0.95e-8
-chr7	145408105  0.95e-8
-chr8	144036388  0.95e-8
-chr9	112206110  0.95e-8
-chr10	132178492  0.95e-8
-chr11	128122151  0.95e-8
-chr12	132184051  0.95e-8
-chr13	98475126   0.95e-8
-chr14	88963417   0.95e-8
-chr15	82547911   0.95e-8
-chr16	68237989   0.95e-8
-chr17	75914007   0.95e-8
-chr18	75923960   0.95e-8
-chr19	57575784   0.95e-8
-chr20	60841859   0.95e-8
-chr21	34683425   0.95e-8
-chr22	35308119   0.95e-8
-chrX	151242693  0.95e-8
+chr2A    109511694  0.95e-8
+chr2B    129937803  0.95e-8
+chr3    193656255  0.95e-8
+chr4    189387572  0.95e-8
+chr5    179185813  0.95e-8
+chr6    169501136  0.95e-8
+chr7    145408105  0.95e-8
+chr8    144036388  0.95e-8
+chr9    112206110  0.95e-8
+chr10    132178492  0.95e-8
+chr11    128122151  0.95e-8
+chr12    132184051  0.95e-8
+chr13    98475126   0.95e-8
+chr14    88963417   0.95e-8
+chr15    82547911   0.95e-8
+chr16    68237989   0.95e-8
+chr17    75914007   0.95e-8
+chr18    75923960   0.95e-8
+chr19    57575784   0.95e-8
+chr20    60841859   0.95e-8
+chr21    34683425   0.95e-8
+chr22    35308119   0.95e-8
+chrX    151242693  0.95e-8
 """
+
+_locke2011 = stdpopsim.Citation(
+    author="Locke et al.",
+    year=2011,
+    doi="http://doi.org/10.1038/nature09687"
+)
 
 _chromosomes = []
 for line in _chromosome_data.splitlines():
@@ -60,7 +66,10 @@ for line in _chromosome_data.splitlines():
         mutation_rate=2.0e-8,
         recombination_rate=float(mean_rr)))
 
-_genome = stdpopsim.Genome(chromosomes=_chromosomes)
+_genome = stdpopsim.Genome(
+        chromosomes=_chromosomes,
+        mutation_rate_citations=[
+            _locke2011.because(stdpopsim.CiteReason.MUT_RATE)])
 
 _species = stdpopsim.Species(
     id="PonPyg",
@@ -68,7 +77,11 @@ _species = stdpopsim.Species(
     common_name="Bornean orangutan",
     genome=_genome,
     generation_time=20,
-    population_size=1.79e4)
+    generation_time_citations=[
+        _locke2011.because(stdpopsim.CiteReason.GEN_TIME)],
+    population_size=1.79e4,
+    population_size_citations=[
+        _locke2011.because(stdpopsim.CiteReason.POP_SIZE)])
 
 stdpopsim.register_species(_species)
 
@@ -102,11 +115,7 @@ def _orangutan():
         Bornean population slightly declines.
     """
 
-    citations = [stdpopsim.Citation(
-        author="Locke et al.",
-        year=2011,
-        doi="http://doi.org/10.1038/nature09687")
-    ]
+    citations = [_locke2011]
 
     populations = [
         stdpopsim.Population(
@@ -122,7 +131,7 @@ def _orangutan():
     # time of split
     T_split_years = 403149
     # get split time in units of generations
-    generation_time = 20
+    generation_time = _species.generation_time
     T_split = T_split_years / generation_time
 
     # proportion of ancestral pop to branch B
