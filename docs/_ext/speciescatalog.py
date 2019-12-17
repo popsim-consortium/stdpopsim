@@ -142,10 +142,8 @@ class SpeciesCatalogDirective(SphinxDirective):
         path = pathlib.Path(f"parameter_tables/{species.id}/{model.id}.csv")
         if not path.exists():
             message = f"Skipping model parameters for {model.id} due to missing table"
-            # TODO change this to emit a warning once we have the model tables filled
-            # in. See issue #272.
             print(message)
-            # logger.warn(message)
+            logger.warn(message)
             return None
 
         with open(path) as csv_file:
