@@ -39,7 +39,7 @@ class TestSpecies(unittest.TestCase):
             stdpopsim.register_species(species)
 
     def test_get_known_genetic_map(self):
-        good = ["HapmapII_GRCh37", "Decode2010_GRCh36"]
+        good = ["HapMapII_GRCh37", "DeCodeSexAveraged_GRCh36"]
         species = stdpopsim.get_species("HomSap")
         for name in good:
             gmap = species.get_genetic_map(name)
@@ -55,7 +55,7 @@ class TestSpecies(unittest.TestCase):
 
     def test_add_duplicate_genetic_map(self):
         species = stdpopsim.get_species("HomSap")
-        genetic_map = species.get_genetic_map("HapmapII_GRCh37")
+        genetic_map = species.get_genetic_map("HapMapII_GRCh37")
         with self.assertRaises(ValueError):
             species.add_genetic_map(genetic_map)
 
@@ -158,9 +158,9 @@ class TestGetContig(unittest.TestCase):
     def test_length_multiplier_on_empirical_map(self):
         with self.assertRaises(ValueError):
             self.species.get_contig(
-                "chr1", genetic_map="HapmapII_GRCh37", length_multiplier=2)
+                "chr1", genetic_map="HapMapII_GRCh37", length_multiplier=2)
 
     def test_genetic_map(self):
         # TODO we should use a different map here so we're not hitting the cache.
-        contig = self.species.get_contig("chr22", genetic_map="HapmapII_GRCh37")
+        contig = self.species.get_contig("chr22", genetic_map="HapMapII_GRCh37")
         self.assertIsInstance(contig.recombination_map, msprime.RecombinationMap)

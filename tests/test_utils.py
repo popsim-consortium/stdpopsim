@@ -61,6 +61,40 @@ class TestValidDemographicModelId(unittest.TestCase):
             self.assertTrue(utils.is_valid_demographic_model_id(good_id))
 
 
+class TestValidGeneticMapId(unittest.TestCase):
+    """
+    Tests for the is_valid_demographic_model_id function.
+    """
+
+    def test_empty_string(self):
+        self.assertFalse(utils.is_valid_genetic_map_id(""))
+
+    def test_contains_spaces(self):
+        bad_ids = [
+            "CamelCase ABCD", " CamelCase_ABCD", "CamelCase_ABCD "]
+        for bad_id in bad_ids:
+            self.assertFalse(utils.is_valid_genetic_map_id(bad_id))
+
+    def test_bad_name(self):
+        bad_ids = [
+            "camelCase_ABCD", "1CamelCase_ABCD", "Camel-Case_ABCD"]
+        for bad_id in bad_ids:
+            self.assertFalse(utils.is_valid_genetic_map_id(bad_id))
+
+    def test_bad_assembly(self):
+        bad_ids = [
+            "CamelCase_AB CD", "CamelCase_", "CamelCase_AB-CD", "CamelCase_AB.CD"]
+        for bad_id in bad_ids:
+            self.assertFalse(utils.is_valid_genetic_map_id(bad_id))
+
+    def test_good_ids(self):
+        good_ids = [
+            "CamelCase_ABCD", "CamelCase_a", "CamelCase_1000",
+            "C_ABCD", "C_X"]
+        for good_id in good_ids:
+            self.assertTrue(utils.is_valid_genetic_map_id(good_id))
+
+
 class TestValidSpeciesId(unittest.TestCase):
     """
     Tests for the is_valid_demographic_model_id function.

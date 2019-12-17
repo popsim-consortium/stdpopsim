@@ -112,21 +112,28 @@ stdpopsim.register_species(_species)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    id="HapmapII_GRCh37",
-    description="Hapmap Phase II",
-    long_description=(
-        "The Phase II HapMap Genetic map (lifted over to GRCh37) used in "
-        "1000 Genomes. Please see the README for more details."),
+    id="HapMapII_GRCh37",
+    description="HapMap Phase II lifted over to GRCh37",
+    long_description="""
+        This genetic map is from the Phase II Hapmap project
+        and based on 3.1 million genotyped SNPs
+        from 270 individuals across four populations (YRI, CEU, CHB and JPT).
+        Genome wide recombination rates were estimated using LDHat.
+        This version of the HapMap genetic map was lifted over to GRCh37
+        (and adjusted in regions where the genome assembly had rearranged)
+        for use in the 1000 Genomes project. Please see the README file on
+        the 1000 Genomes download site for details of these adjustments.
+        """,
     url=(
         "https://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
         "20110106_recombination_hotspots/"
         "HapmapII_GRCh37_RecombinationHotspots.tar.gz"),
-    file_pattern="genetic_map_GRCh37_{name}.txt",
+    file_pattern="genetic_map_GRCh37_{id}.txt",
     citations=[
         stdpopsim.Citation(
             doi="https://doi.org/10.1038/nature06258",
             year=2007,
-            author="1000 Genomes Project consortium",
+            author="The International HapMap Consortium",
             reasons={stdpopsim.CiteReason.GEN_MAP}),
         ]
     )
@@ -134,16 +141,20 @@ _species.add_genetic_map(_gm)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    id="Decode2010_GRCh36",
-    description="Decode sex-averaged",
-    # TODO need more detail here. Which map did we choose, carrier or non-carrier?
-    long_description=(
-        "Decode sex-averaged genetic map."
-        "See https://www.decode.com/addendum/ for more details"),
+    id="DeCodeSexAveraged_GRCh36",
+    description="Sex averaged map from deCode family study",
+    long_description="""
+        This genetic map is from the deCode study of recombination
+        events in 15,257 parent-offspring pairs from Iceland.
+        289,658 phased autosomal SNPs were used to call recombinations
+        within these families, and recombination rates computed from the
+        density of these events. This is the combined male and female
+        (sex averaged) map. See
+        https://www.decode.com/addendum/ for more details.""",
     url=(
         "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
         "decode_2010_sex-averaged_map.tar.gz"),
-    file_pattern="genetic_map_decode_2010_sex-averaged_{name}.txt",
+    file_pattern="genetic_map_decode_2010_sex-averaged_{id}.txt",
     citations=[
         stdpopsim.Citation(
             year=2010,

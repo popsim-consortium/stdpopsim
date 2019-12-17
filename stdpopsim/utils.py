@@ -15,6 +15,17 @@ def is_valid_demographic_model_id(model_id):
     return regex.fullmatch(model_id) is not None
 
 
+def is_valid_genetic_map_id(gmap_id):
+    """
+    Returns True if the specified string is a valid genetic map ID. This must
+    be a string with the following pattern:
+
+    {CamelCaseName}_{assembly ID}
+    """
+    regex = re.compile(r"[A-Z][A-Za-z0-9]*_\w+")
+    return regex.fullmatch(gmap_id) is not None
+
+
 def is_valid_species_id(species_id):
     """
     Returns True if the specified string is a valid species ID. This must

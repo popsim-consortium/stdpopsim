@@ -14,6 +14,7 @@ import msprime
 
 import stdpopsim
 from stdpopsim import genetic_maps
+from stdpopsim import utils
 import tests
 
 
@@ -249,13 +250,18 @@ class TestAllGeneticMaps(tests.CacheReadingTest):
         for gm in stdpopsim.all_genetic_maps():
             self.assertIsInstance(gm, genetic_maps.GeneticMap)
 
+    def test_ids(self):
+        for gm in stdpopsim.all_genetic_maps():
+            self.assertIsInstance(gm.id, str)
+            self.assertTrue(utils.is_valid_genetic_map_id(gm.id))
+
 
 class TestGetChromosomeMap(tests.CacheReadingTest):
     """
-    Tests if we get chromosome maps using the HapmapII_GRCh37 human map.
+    Tests if we get chromosome maps using the HapMapII_GRCh37 human map.
     """
     species = stdpopsim.get_species("HomSap")
-    genetic_map = species.get_genetic_map("HapmapII_GRCh37")
+    genetic_map = species.get_genetic_map("HapMapII_GRCh37")
 
     def test_warning_from_no_mapped_chromosome(self):
         chrom = self.species.genome.get_chromosome("chrY")

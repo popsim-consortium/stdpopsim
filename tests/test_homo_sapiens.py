@@ -55,9 +55,9 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         self.assertEqual(genome.get_chromosome("chrY").length, 59373566)
 
     def test_recombination_rates(self):
-        # recompute recombination rates from HapmapII_GRCh37 map then
+        # recompute recombination rates from HapMapII_GRCh37 map then
         # compare the results to the current recombination rates for each chromosome
-        genetic_map = "HapmapII_GRCh37"
+        genetic_map = "HapMapII_GRCh37"
         species = stdpopsim.get_species("HomSap")
         for chrom in self.genome.chromosomes:
             if chrom.id == "chrY":

@@ -246,7 +246,9 @@ class SpeciesCatalogDirective(SphinxDirective):
         target = self.get_target(map_id)
         section = nodes.section(ids=[map_id])
         section += nodes.title(text=genetic_map.id)
-        section += nodes.paragraph(text=genetic_map.description)
+        section += nodes.paragraph(text=genetic_map.long_description)
+        section += nodes.rubric(text="Citations")
+        section += self.citation_list(genetic_map)
         return [target, section]
 
     def genetic_maps_table(self, species):
@@ -271,7 +273,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         entry += nodes.paragraph(text="Year")
         row += entry
         entry = nodes.entry()
-        entry += nodes.paragraph(text="Reference")
+        entry += nodes.paragraph(text="Description")
         row += entry
 
         thead.append(row)
@@ -294,9 +296,7 @@ class SpeciesCatalogDirective(SphinxDirective):
 
             entry = nodes.entry()
             para = nodes.paragraph()
-            doi = genetic_map.citations[0].doi
-            para += nodes.reference(internal=False, refuri=doi, text=doi)
-            entry += para
+            entry += nodes.paragraph(text=genetic_map.description)
             row += entry
 
         tbody = nodes.tbody()
