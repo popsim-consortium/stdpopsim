@@ -53,24 +53,52 @@ chrX 	 155270560 	 1.164662223273842e-08
 chrY 	 59373566 	 0.0
 """
 
+_tian2019 = stdpopsim.Citation(
+    doi="https://doi.org/10.1016/j.ajhg.2019.09.012",
+    year="2019",
+    author="Tian, Browning, and Browning",
+    reasons={stdpopsim.CiteReason.MUT_RATE}
+)
+
+_tremblay2000 = stdpopsim.Citation(
+    doi="https://doi.org/10.1086/302770",
+    year="2000",
+    author="Tremblay and Vezina",
+    reasons={stdpopsim.CiteReason.GEN_TIME}
+)
+
+_takahata1993 = stdpopsim.Citation(
+    doi="https://doi.org/10.1093/oxfordjournals.molbev.a039995",
+    year="1993",
+    author="Takahata",
+    reasons={stdpopsim.CiteReason.POP_SIZE}
+)
+
 _chromosomes = []
 for line in _chromosome_data.splitlines():
     name, length, mean_rr = line.split()[:3]
     _chromosomes.append(stdpopsim.Chromosome(
         id=name, length=int(length),
-        mutation_rate=1e-8,  # WRONG!,
+        mutation_rate=1.29e-8,
         recombination_rate=float(mean_rr)))
 
-_genome = stdpopsim.Genome(chromosomes=_chromosomes)
+_genome = stdpopsim.Genome(
+        chromosomes=_chromosomes,
+        mutation_rate_citations=[
+            _tian2019.because(stdpopsim.CiteReason.MUT_RATE)])
 
 _species = stdpopsim.Species(
     id="HomSap",
     name="Homo sapiens",
     common_name="Human",
     genome=_genome,
-    # TODO reference for these
-    generation_time=25,
-    population_size=10**4)
+    generation_time=30,
+    generation_time_citations=[
+        _tremblay2000.because(stdpopsim.CiteReason.GEN_TIME)],
+    population_size=10**4,
+    population_size_citations=[
+        _takahata1993.because(stdpopsim.CiteReason.POP_SIZE)]
+    )
 
 stdpopsim.register_species(_species)
 
@@ -176,8 +204,7 @@ def _ooa_3():
         reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
-    generation_time = _species.generation_time
-    citations.extend(_species.generation_time_citations)
+    generation_time = 25
 
     # First we set out the maximum likelihood values of the various parameters
     # given in Table 1.
@@ -276,8 +303,7 @@ def _ooa_2():
             reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
-    generation_time = _species.generation_time
-    citations.extend(_species.generation_time_citations)
+    generation_time = 25
 
     T_AF = 148e3 / generation_time
     T_OOA = 51e3 / generation_time
@@ -362,8 +388,7 @@ def _african():
     ]
     citations = [_tennessen_et_al]
 
-    generation_time = _species.generation_time
-    citations.extend(_species.generation_time_citations)
+    generation_time = 25
 
     T_AF = 148e3 / generation_time
     T_EG = 5115 / generation_time
@@ -429,8 +454,7 @@ def _america():
             reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
-    generation_time = _species.generation_time
-    citations.extend(_species.generation_time_citations)
+    generation_time = 25
 
     # Model code was ported from Supplementary File 1.
     N0 = 7310  # initial population size
@@ -568,6 +592,7 @@ def _ooa_archaic():
     # In the published model, the authors used a generation time of 29 years to
     # convert from genetic to physical units
     generation_time = 29
+
     T_AF = 300e3 / generation_time
     T_B = 60.7e3 / generation_time
     T_EU_AS = 36.0e3 / generation_time
