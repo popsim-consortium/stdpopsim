@@ -80,7 +80,7 @@ class TestEverythingHappensForAReason(unittest.TestCase):
                         len(citation.reasons), 0,
                         msg=f"No reason given for '{citation.author}' citation "
                             f"in genetic map "
-                            f"{genetic_map.species.id}/{genetic_map.name}")
+                            f"{genetic_map.species.id}/{genetic_map.id}")
 
     def test_reason_for_model_citations(self):
         for model in stdpopsim.all_demographic_models():

@@ -29,6 +29,9 @@ class SpeciesCatalogDirective(SphinxDirective):
         # without regard to case.
         return f"sec_catalog_{species.id}_models_{model.id}".lower()
 
+    def get_genetic_map_id(self, species, genetic_map):
+        return f"sec_catalog_{species.id}_genetic_maps_{genetic_map.id}".lower()
+
     def get_target(self, tid):
         """
         Returns a target node for the specified ID.
@@ -105,7 +108,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         entry += nodes.paragraph(text="name")
         row += entry
         entry = nodes.entry()
-        entry += nodes.paragraph(text=model.name)
+        entry += nodes.paragraph(text=model.description)
         row += entry
 
         row = nodes.row()
@@ -228,13 +231,10 @@ class SpeciesCatalogDirective(SphinxDirective):
         return table
 
     def genetic_map_section(self, species, genetic_map):
-        # NOTE: Ids must be lowercase to work properly. When this was developed,
-        # genetic maps didn't have standardised lowercase IDs. The .lower() here
-        # should be removed in the future when this is sorted out.
-        map_id = f"sec_catalog_{species.id}_genetic_maps_{genetic_map.name}".lower()
+        map_id = self.get_genetic_map_id(species, genetic_map)
         target = self.get_target(map_id)
         section = nodes.section(ids=[map_id])
-        section += nodes.title(text=genetic_map.name)
+        section += nodes.title(text=genetic_map.id)
         section += nodes.paragraph(text=genetic_map.description)
         return [target, section]
 
@@ -270,11 +270,11 @@ class SpeciesCatalogDirective(SphinxDirective):
             row = nodes.row()
             rows.append(row)
 
-            map_id = f"sec_catalog_{species.id}_genetic_maps_{genetic_map.name}"
+            map_id = self.get_genetic_map_id(species, genetic_map)
             entry = nodes.entry()
             para = nodes.paragraph()
             entry += para
-            para += nodes.reference(internal=True, refid=map_id, text=genetic_map.name)
+            para += nodes.reference(internal=True, refid=map_id, text=genetic_map.id)
             row += entry
 
             entry = nodes.entry()
@@ -387,7 +387,7 @@ class SpeciesCatalogDirective(SphinxDirective):
             row += entry
 
             entry = nodes.entry()
-            entry += nodes.paragraph(text=model.name)
+            entry += nodes.paragraph(text=model.description)
             row += entry
 
             entry = nodes.entry()
@@ -403,8 +403,8 @@ class SpeciesCatalogDirective(SphinxDirective):
         mid = self.get_demographic_model_id(species, model)
         target = self.get_target(mid)
         section = nodes.section(ids=[mid])
-        section += nodes.title(text=model.name)
-        section += nodes.paragraph(text=model.description)
+        section += nodes.title(text=model.description)
+        section += nodes.paragraph(text=model.long_description)
         section += nodes.rubric(text="Details")
         section += self.model_table(model)
         section += nodes.rubric(text="Populations")

@@ -66,6 +66,7 @@ _genome = stdpopsim.Genome(chromosomes=_chromosomes)
 _species = stdpopsim.Species(
     id="HomSap",
     name="Homo sapiens",
+    common_name="Human",
     genome=_genome,
     # TODO reference for these
     generation_time=25,
@@ -83,15 +84,16 @@ stdpopsim.register_species(_species)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    name="HapmapII_GRCh37",
+    id="HapmapII_GRCh37",
+    description="Hapmap Phase II",
+    long_description=(
+        "The Phase II HapMap Genetic map (lifted over to GRCh37) used in "
+        "1000 Genomes. Please see the README for more details."),
     url=(
         "https://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
         "20110106_recombination_hotspots/"
         "HapmapII_GRCh37_RecombinationHotspots.tar.gz"),
     file_pattern="genetic_map_GRCh37_{name}.txt",
-    description=(
-        "The Phase II HapMap Genetic map (lifted over to GRCh37) used in "
-        "1000 Genomes. Please see the README for more details."),
     citations=[
         stdpopsim.Citation(
             doi="https://doi.org/10.1038/nature06258",
@@ -104,15 +106,16 @@ _species.add_genetic_map(_gm)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    name="Decode2010_GRCh36",
+    id="Decode2010_GRCh36",
+    description="Decode sex-averaged",
+    # TODO need more detail here. Which map did we choose, carrier or non-carrier?
+    long_description=(
+        "Decode sex-averaged genetic map."
+        "See https://www.decode.com/addendum/ for more details"),
     url=(
         "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
         "decode_2010_sex-averaged_map.tar.gz"),
     file_pattern="genetic_map_decode_2010_sex-averaged_{name}.txt",
-    description=(
-        "Decode sex-averaged genetic map from Kong, A et al. Fine scale "
-        "recombination rate differences between sexes, populations and "
-        "individuals. Nature (28 October 2010). "),
     citations=[
         stdpopsim.Citation(
             year=2010,
@@ -120,8 +123,6 @@ _gm = stdpopsim.GeneticMap(
             doi="https://doi.org/10.1038/nature09525",
             reasons={stdpopsim.CiteReason.GEN_MAP})]
     )
-# TODO add a URL citation (see above) here for this:
-# "Please see https://www.decode.com/addendum/ for more details."),
 _species.add_genetic_map(_gm)
 
 
@@ -133,15 +134,15 @@ _species.add_genetic_map(_gm)
 
 # population definitions that are reused.
 _yri_population = stdpopsim.Population(
-    name="YRI",
+    id="YRI",
     description="1000 Genomes YRI (Yorubans)")
 _ceu_population = stdpopsim.Population(
-    name="CEU",
+    id="CEU",
     description=(
         "1000 Genomes CEU (Utah Residents (CEPH) with Northern and "
         "Western European Ancestry"))
 _chb_population = stdpopsim.Population(
-    name="CHB",
+    id="CHB",
     description="1000 Genomes CHB (Han Chinese in Beijing, China)")
 
 
@@ -154,8 +155,8 @@ _tennessen_et_al = stdpopsim.Citation(
 
 def _ooa_3():
     id = "OutOfAfrica_3G09"
-    name = "Three population out-of-Africa"
-    description = """
+    description = "Three population out-of-Africa"
+    long_description = """
         The three population Out-of-Africa model from Gutenkunst et al. 2009.
         It describes the ancestral human population in Africa, the out of Africa
         event, and the subsequent European-Asian population split.
@@ -204,8 +205,8 @@ def _ooa_3():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,
@@ -254,8 +255,8 @@ _species.add_demographic_model(_ooa_3())
 
 def _ooa_2():
     id = "OutOfAfrica_2T12"
-    name = "Two population out-of-Africa"
-    description = """
+    description = "Two population out-of-Africa"
+    long_description = """
         The model is derived from the Tennesen et al. analysis of the
         jSFS from European Americans and African Americans.
         It describes the ancestral human population in Africa, the out of Africa event,
@@ -263,8 +264,8 @@ def _ooa_2():
         23kya. Model parameters are taken from Fig. S5 in Fu et al.
     """
     populations = [
-        stdpopsim.Population(name="AFR", description="African Americans"),
-        stdpopsim.Population(name="EUR", description="European Americans")
+        stdpopsim.Population(id="AFR", description="African Americans"),
+        stdpopsim.Population(id="EUR", description="European Americans")
     ]
     citations = [
         _tennessen_et_al,
@@ -305,8 +306,8 @@ def _ooa_2():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,
@@ -350,14 +351,14 @@ _species.add_demographic_model(_ooa_2())
 
 def _african():
     id = "Africa_1T12"
-    name = "African population"
-    description = """
+    description = "African population"
+    long_description = """
         The model is a simplification of the two population Tennesen et al.
         model with the European-American population removed so that we are
         modeling the African population in isolation.
     """
     populations = [
-        stdpopsim.Population(name="AFR", description="African"),
+        stdpopsim.Population(id="AFR", description="African"),
     ]
     citations = [_tennessen_et_al]
 
@@ -379,8 +380,8 @@ def _african():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,
@@ -403,8 +404,8 @@ _species.add_demographic_model(_african())
 
 def _america():
     id = "AmericanAdmixture_4B11"
-    name = "American admixture"
-    description = """
+    description = "American admixture"
+    long_description = """
         Demographic model for American admixture, taken from Browning et al. 2011.
         This model extends the Gravel et al. (2011) model of African/European/Asian
         demographic history to simulate an admixed population with admixture
@@ -413,11 +414,11 @@ def _america():
         population of African ancestry, 1/3 European, and 1/2 Asian.
     """
     populations = [
-        stdpopsim.Population(name="AFR", description="Contemporary African population"),
-        stdpopsim.Population(name="EUR", description="Contemporary European population"),
-        stdpopsim.Population(name="ASIA", description="Contemporary Asian population"),
+        stdpopsim.Population(id="AFR", description="Contemporary African population"),
+        stdpopsim.Population(id="EUR", description="Contemporary European population"),
+        stdpopsim.Population(id="ASIA", description="Contemporary Asian population"),
         stdpopsim.Population(
-            name="ADMIX", description="Modern admixed population"),
+            id="ADMIX", description="Modern admixed population"),
     ]
 
     citations = [
@@ -512,8 +513,8 @@ def _america():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,
@@ -528,8 +529,8 @@ _species.add_demographic_model(_america())
 
 def _ooa_archaic():
     id = "OutOfAfricaArchaicAdmixture_5R19"
-    name = "Three population out-of-Africa with archaic admixture"
-    description = """
+    description = "Three population out-of-Africa with archaic admixture"
+    long_description = """
         The three population out-of-African model popularized by Gutenkunst et al. (2009)
         and augmented by archaic contributions to both Eurasian and African populations.
         Two archaic populations split early in human history, before the African
@@ -680,8 +681,8 @@ def _ooa_archaic():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,
@@ -696,8 +697,8 @@ _species.add_demographic_model(_ooa_archaic())
 
 def _zigzag():
     id = "Zigzag_1S14"
-    name = "Periodic growth and decline."
-    description = """
+    description = "Periodic growth and decline."
+    long_description = """
         A validation model used by Schiffels and Durbin (2014) and Terhorst and
         Terhorst, Kamm, and Song (2017) with periods of exponential growth and
         decline in a single population.
@@ -761,8 +762,8 @@ def _zigzag():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,
@@ -776,8 +777,8 @@ _species.add_demographic_model(_zigzag())
 
 def _kamm_ancient_eurasia():
     id = "AncientEurasia_9K19"
-    name = "Multi-population model of ancient Eurasia (Kamm et al. 2019)"
-    description = """
+    description = "Multi-population model of ancient Eurasia"
+    long_description = """
         This is the best-fitting model of a history of
         multiple ancient and present-day human populations
         sampled across Eurasia over the past 120,000 years.
@@ -802,36 +803,36 @@ def _kamm_ancient_eurasia():
     """
     # Sampling times are assuming 25 years per generation
     populations = [
-        stdpopsim.Population(name="Mbuti",
+        stdpopsim.Population(id="Mbuti",
                              description="Present-day African Mbuti",
                              sampling_time=0),
         # LBK: 8,000 years ago
-        stdpopsim.Population(name="LBK",
+        stdpopsim.Population(id="LBK",
                              description="Early European farmer (EEF)",
                              sampling_time=320),
-        stdpopsim.Population(name="Sardinian",
+        stdpopsim.Population(id="Sardinian",
                              description="Present-day Sardinian",
                              sampling_time=0),
         # Loschbour: 7,500 years ago
-        stdpopsim.Population(name="Loschbour",
+        stdpopsim.Population(id="Loschbour",
                              description="Western hunter-gatherer (WHG)",
                              sampling_time=300),
         # MA1: 24,000 years ago
-        stdpopsim.Population(name="MA1",
+        stdpopsim.Population(id="MA1",
                              description="Upper Palaeolithic MAl'ta culture",
                              sampling_time=960),
-        stdpopsim.Population(name="Han",
+        stdpopsim.Population(id="Han",
                              description="Present-day Han Chinese",
                              sampling_time=0),
         # Ust Ishim: 45,000 years ago
-        stdpopsim.Population(name="UstIshim",
+        stdpopsim.Population(id="UstIshim",
                              description="early Palaeolithic Ust'-Ishim",
                              sampling_time=1800),
         # Altai Neanderthal: 50,000 years ago
-        stdpopsim.Population(name="Neanderthal",
+        stdpopsim.Population(id="Neanderthal",
                              description="Altai Neanderthal from Siberia",
                              sampling_time=2000),
-        stdpopsim.Population(name="BasalEurasian",
+        stdpopsim.Population(id="BasalEurasian",
                              description="Basal Eurasians",
                              sampling_time=None),
     ]
@@ -984,8 +985,8 @@ def _kamm_ancient_eurasia():
 
     return stdpopsim.DemographicModel(
         id=id,
-        name=name,
         description=description,
+        long_description=long_description,
         populations=populations,
         citations=citations,
         generation_time=generation_time,

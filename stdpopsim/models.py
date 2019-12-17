@@ -114,8 +114,8 @@ class Population(object):
     """
     Class recording metadata representing a population in a simulation.
 
-    :ivar name: the name of the population
-    :vartype name: str
+    :ivar id: The id of the population.
+    :vartype id: str
     :ivar description: a short description of the population
     :vartype description: str
     :ivar sampling_time: an integer value which indicates how many
@@ -124,9 +124,8 @@ class Population(object):
         population (default = 0).
     :vartype sampling_time: int
     """
-    # TODO change this to use the usual id, name combination
-    def __init__(self, name, description, sampling_time=0):
-        self.name = name
+    def __init__(self, id, description, sampling_time=0):
+        self.id = id
         self.description = description
         self.sampling_time = sampling_time
 
@@ -138,7 +137,7 @@ class Population(object):
         """
         Returns a dictionary representing the metadata about this population.
         """
-        return {"name": self.name, "description": self.description,
+        return {"id": self.id, "description": self.description,
                 "sampling_time": self.sampling_time}
 
 
@@ -153,11 +152,12 @@ class DemographicModel(object):
     :ivar id: The unique identifier for this model. DemographicModel IDs should be
         short and memorable, perhaps as an abbreviation of the model's name.
     :vartype id: str
-    :ivar name: The informal name for this model as it would be used in
-        written text, e.g., "Three population Out-of-Africa"
-    :vartype informal_name: str
-    :ivar description: A concise, but detailed, summary of the model.
+    :ivar description: A short description of this model as it would be used in
+        written text, e.g., "Three population Out-of-Africa". This should
+        describe the model itself and not contain author or year information.
     :vartype description: str
+    :ivar long_description: A concise, but detailed, summary of the model.
+    :vartype long_description: str
     :ivar generation_time: Mean inter-generation interval, in years.
     :vartype generation_time: int
     :ivar populations: TODO
@@ -175,8 +175,8 @@ class DemographicModel(object):
 
     # required attributes
     id = attr.ib(type=str)
-    name = attr.ib(type=str)
     description = attr.ib(type=str)
+    long_description = attr.ib(type=str)
     generation_time = attr.ib(type=int)
     populations = attr.ib(type=list)
 
@@ -206,8 +206,8 @@ class DemographicModel(object):
         """
         kwargs.update(
                 id=kwargs.get("id", ""),
-                name=kwargs.get("name", ""),
                 description=kwargs.get("description", ""),
+                long_description=kwargs.get("long_description", ""),
                 populations=kwargs.get("populations", []),
                 generation_time=kwargs.get("generation_time", -1))
         return DemographicModel(**kwargs)
@@ -290,9 +290,9 @@ class DemographicModel(object):
 
 
 # Reusable generic populations
-_pop0 = Population(name="pop0", description="Generic population")
-_pop1 = Population(name="pop1", description="Generic population")
-_popAnc = Population(name="popAnc", description="Generic ancestral population",
+_pop0 = Population(id="pop0", description="Generic population")
+_pop1 = Population(id="pop1", description="Generic population")
+_popAnc = Population(id="popAnc", description="Generic ancestral population",
                      sampling_time=None)
 
 
@@ -315,8 +315,7 @@ class PiecewiseConstantSize(DemographicModel):
         model2 = stdpopsim.PiecewiseConstantSize(N0, (t1, N1), (t2, N2)) # Two changes
     """
 
-    id = "constant"
-    name = "Piecewise constant size"
+    id = "PiecewiseConstant"
     description = "Piecewise constant size population model over multiple epochs."
     citations = []
     populations = [_pop0]
@@ -366,8 +365,7 @@ class IsolationWithMigration(DemographicModel):
         model1 = stdpopsim.IsolationWithMigration(NA, N1, N2, T, M12, M21)
 
     """
-    id = "IM"
-    name = "Isolation with migration"
+    id = "IsolationWithMigration"
     description = """
         A generic isolation with migration model where a single ancestral
         population of size NA splits into two populations of constant size N1

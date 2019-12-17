@@ -68,9 +68,14 @@ class Species(object):
         approach used in the UCSC genome browser), e.g., "HomSap"
         is the ID for Homo Sapiens.
     :vartype id: str
-    :ivar name: The informal name for this species as it would
-        be used in written text, e.g., "Homo sapiens"
-    :vartype informal_name: str
+    :ivar name: The full name of this species in binominal nomenclature as
+        it would be used in written text, e.g., "Homo sapiens".
+    :vartype name: str
+    :ivar common_name: The name of this species as it would most often be
+        used informally in written text, e.g., "human", or "Orang-utan".
+        Where no common name for the species exist, use the most common
+        abbreviation, e.g., "E. Coli".
+    :vartype common_name: str
     :ivar genome: The :class:`.Genome` instance describing the details
         of this species' genome.
     :vartype genome: stdpopsim.Genome
@@ -99,6 +104,7 @@ class Species(object):
 
     id = attr.ib(type=str, kw_only=True)
     name = attr.ib(type=str, kw_only=True)
+    common_name = attr.ib(type=str, kw_only=True)
     genome = attr.ib(type=int, kw_only=True)
     generation_time = attr.ib(default=1, kw_only=True)
     generation_time_citations = attr.ib(factory=list, kw_only=True)
@@ -163,15 +169,15 @@ class Species(object):
         self.demographic_models.append(model)
 
     def add_genetic_map(self, genetic_map):
-        if genetic_map.name in [gm.name for gm in self.genetic_maps]:
+        if genetic_map.id in [gm.id for gm in self.genetic_maps]:
             raise ValueError(
-                    f"Genetic map '{self.id}/{genetic_map.name}' "
+                    f"Genetic map '{self.id}/{genetic_map.id}' "
                     "already in catalog.")
         genetic_map.species = self
         self.genetic_maps.append(genetic_map)
 
     def get_genetic_map(self, id):
         for gm in self.genetic_maps:
-            if gm.name == id:
+            if gm.id == id:
                 return gm
         raise ValueError(f"Genetic map '{self.id}/{id}' not in catalog")

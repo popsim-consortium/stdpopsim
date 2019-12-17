@@ -41,6 +41,7 @@ _genome = stdpopsim.Genome(chromosomes=_chromosomes)
 _species = stdpopsim.Species(
     id="AraTha",
     name="Arabidopsis thaliana",
+    common_name="A. thaliana",
     genome=_genome,
     generation_time=1.0,
     generation_time_citations=[stdpopsim.Citation(
@@ -66,15 +67,16 @@ stdpopsim.register_species(_species)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    name="Salome2012_TAIR7",
+    id="Salome2012_TAIR7",
+    description="Salome map FIXME",
+    long_description=(
+        "Genetic map from Salome 2012 averaged across population crosses. "
+        "Please see this repo for details on how this was done: "
+        "https://github.com/LohmuellerLab/arabidopsis_recomb_maps"),
     url=(
         "http://www.eeb.ucla.edu/Faculty/Lohmueller/data/"
         "uploads/salome2012_maps.tar.gz"),
     file_pattern="arab_{name}_map_loess.txt",
-    description=(
-        "Genetic map from Salome 2012 averaged across population crosses. "
-        "Please see this repo for details on how this was done: "
-        "https://github.com/LohmuellerLab/arabidopsis_recomb_maps"),
     citations=[stdpopsim.Citation(
         doi="https://doi.org/10.1038/hdy.2011.95",
         author="Salome et al.",
@@ -121,14 +123,16 @@ def _sma_1pop():
 
     populations = [
         stdpopsim.Population(
-            name="a_thaliana",
+            id="SouthMiddleAtlas",
             description="Arabidopsis Thaliana South Middle Atlas population")
     ]
 
     return stdpopsim.DemographicModel(
         id="SouthMiddleAtlas_1D17",
-        name="South Middle Atlas population size history",
-        description="""
+        description="South Middle Atlas piecewise constant size",
+        # TODO more detail here. We should at least explain that we're skipping
+        # some of the estimates from MSMC because we don't think they're accurate.
+        long_description="""
             Model estimated from two homozygous individuals from
             the South Middle Atlas using MSMC (TODO: more detail).
         """,
@@ -157,12 +161,12 @@ def _afr_2epoch():
     t_1 = 568344
     populations = [
         stdpopsim.Population(
-            name="a_thaliana", description="Arabidopsis thaliana African population")
+            id="Africa", description="Arabidopsis thaliana African population")
     ]
     return stdpopsim.DemographicModel(
         id="African2Epoch_1H18",
-        name="African two epoch model",
-        description="""
+        description="African two epoch model",
+        long_description="""
             Model estimated from site frequency spectrum of synonymous
             SNPs from African samples using Williamson et al. (2005)
             methodology.
@@ -200,12 +204,12 @@ def _afr_3epoch():
     t_3 = 14534
     populations = [
         stdpopsim.Population(
-            name="a_thaliana", description="Arabidopsis thaliana African population")
+            id="Africa", description="Arabidopsis thaliana African population")
     ]
     return stdpopsim.DemographicModel(
         id="African3Epoch_1H18",
-        name="African three epoch model",
-        description="""
+        description="African three epoch model",
+        long_description="""
             Model estimated from site frequency spectrum of synonymous
             SNPs from African samples using Williamson et al. (2005)
             methodology.
