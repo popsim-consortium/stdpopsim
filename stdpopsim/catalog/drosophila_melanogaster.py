@@ -79,15 +79,20 @@ stdpopsim.register_species(_species)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    id="Comeron2012_dm6",
-    description="Comeron",
-    long_description=(
-        # TODO more detail
-        "Comeron et al. (2012) maps (lifted over to dm6)."),
+    id="ComeronCrossover_dm6",
+    description="Crossover map from meioses products of 8 lab crosses",
+    long_description="""
+        The crossover map from a study of 8 crosses of 12 highly
+        inbred lines of D. melanogaster. This is based on the
+        products of 5,860 female meioses from whole genome sequencing data.
+        Recombination rates were calculated from the density of individual
+        recombination events that were detected in crosses. This map was
+        subsequently lifted over to the dm6 assembly.
+        """,
     url=(
         "http://sesame.uoregon.edu/~adkern/dmel_recombination_map/"
         "comeron2012_maps.tar.gz"),
-    file_pattern="genetic_map_comeron2012_dm6_{name}.txt",
+    file_pattern="genetic_map_comeron2012_dm6_{id}.txt",
     citations=[stdpopsim.Citation(
         author="Comeron et al",
         doi="https://doi.org/10.1371/journal.pgen.1002905",

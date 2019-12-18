@@ -67,19 +67,23 @@ stdpopsim.register_species(_species)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    id="Salome2012_TAIR7",
-    description="Salome map FIXME",
-    long_description=(
-        "Genetic map from Salome 2012 averaged across population crosses. "
-        "Please see this repo for details on how this was done: "
-        "https://github.com/LohmuellerLab/arabidopsis_recomb_maps"),
+    id="SalomeAveraged_TAIR7",
+    description="Crossover frequency map averaged over 17 populations",
+    long_description="""
+        This map is based on the study of crossover frequencies in over 7000
+        plants in 17 F2 populations derived from crosses between 18 A. thaliana
+        accessions. Salomé et al provide genetic maps for each of these
+        populations. To get a single map for each chromosome, the Haldane map function
+        distances were converted to recombination rates (cM/Mb) for each cross
+        and then averaged across the 17 populations using loess.
+        """,
     url=(
         "http://www.eeb.ucla.edu/Faculty/Lohmueller/data/"
         "uploads/salome2012_maps.tar.gz"),
-    file_pattern="arab_{name}_map_loess.txt",
+    file_pattern="arab_{id}_map_loess.txt",
     citations=[stdpopsim.Citation(
         doi="https://doi.org/10.1038/hdy.2011.95",
-        author="Salome et al.",
+        author="Salomé et al.",
         year=2012,
         reasons={stdpopsim.CiteReason.GEN_MAP})]
     )

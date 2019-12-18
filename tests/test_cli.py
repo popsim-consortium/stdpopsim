@@ -435,7 +435,7 @@ class TestHelp(unittest.TestCase):
 
     def test_homsap_genetic_maps_help(self):
         self.run_stdpopsim("HomSap --help-genetic-maps")
-        self.run_stdpopsim("HomSap --help-genetic-maps HapmapII_GRCh37")
+        self.run_stdpopsim("HomSap --help-genetic-maps HapMapII_GRCh37")
 
     def test_all_species_genetic_maps_help(self):
         for species in stdpopsim.all_species():
@@ -466,7 +466,7 @@ class TestWriteBibtex(unittest.TestCase):
     def test_number_of_calls(self):
         # Test that genetic map citations are converted.
         species = stdpopsim.get_species("HomSap")
-        genetic_map = species.get_genetic_map("HapmapII_GRCh37")
+        genetic_map = species.get_genetic_map("HapMapII_GRCh37")
         contig = species.get_contig("chr22", genetic_map=genetic_map.id)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
@@ -507,7 +507,7 @@ class TestWriteCitations(unittest.TestCase):
 
     def test_genetic_map_citations(self):
         species = stdpopsim.get_species("HomSap")
-        genetic_map = species.get_genetic_map("HapmapII_GRCh37")
+        genetic_map = species.get_genetic_map("HapMapII_GRCh37")
         contig = species.get_contig("chr22", genetic_map=genetic_map.id)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()

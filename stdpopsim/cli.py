@@ -92,7 +92,7 @@ def get_models_help(species_id, model_id):
     for model_id in models:
         model = get_model_wrapper(species, model_id)
         models_text += f"{model.id}: {model.description}\n"
-        models_text += wrapper.fill(textwrap.dedent(model.description))
+        models_text += wrapper.fill(textwrap.dedent(model.long_description))
         models_text += "\n\n"
 
         models_text += indent + "Populations:\n"
@@ -133,9 +133,9 @@ def get_genetic_maps_help(species_id, genetic_map_id):
     indent = " " * 4
     wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
     for map_id in maps:
-        map = get_genetic_map_wrapper(species, map_id)
-        maps_text += f"{map.id}\n"
-        maps_text += wrapper.fill(textwrap.dedent(map.description))
+        gmap = get_genetic_map_wrapper(species, map_id)
+        maps_text += f"{gmap.id}\n"
+        maps_text += wrapper.fill(textwrap.dedent(gmap.long_description))
         maps_text += "\n\n"
 
     return maps_text

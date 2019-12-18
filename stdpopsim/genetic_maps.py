@@ -136,18 +136,18 @@ class GeneticMap(object):
                     "Error occured renaming map directory. Are several threads/processes"
                     "downloading this map at the same time?")
 
-    def get_chromosome_map(self, name):
+    def get_chromosome_map(self, id):
         """
-        Returns the genetic map for the chromosome with the specified name.
+        Returns the genetic map for the chromosome with the specified id.
         """
-        chrom = self.species.genome.get_chromosome(name)
+        chrom = self.species.genome.get_chromosome(id)
         if not self.is_cached():
             self.download()
         # We assume that if the map file does not exist this is a property of the
         # map itself and not a download error. If a failure occurs reading the map
         # this is propagated to the user, as this indicates a corrupted map which
         # needs to be redownloaded.
-        map_file = os.path.join(self.map_cache_dir, self.file_pattern.format(name=name))
+        map_file = os.path.join(self.map_cache_dir, self.file_pattern.format(id=id))
         if os.path.exists(map_file):
             ret = msprime.RecombinationMap.read_hapmap(map_file)
         else:
@@ -155,7 +155,7 @@ class GeneticMap(object):
                 "Warning: recombination map not found for chromosome: '{}'"
                 " on map: '{}', substituting a flat map with chromosome "
                 "recombination rate {}".format(
-                    name, self.id, chrom.recombination_rate))
+                    id, self.id, chrom.recombination_rate))
             ret = msprime.RecombinationMap.uniform_map(
                     chrom.length, chrom.recombination_rate)
         return ret
