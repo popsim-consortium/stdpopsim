@@ -8,7 +8,7 @@ with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='stdpopsim',
-    description='Standard simulation models for msprime',
+    description='A library of population genetic simulation models',
     long_description=long_description,
     author='PopSim Consortium',
     # TODO probably should have a different email address?
@@ -33,10 +33,10 @@ setup(
     },
     # NOTE: make sure this is the 'attrs' package, not 'attr'!
     install_requires=["msprime", "attrs", "appdirs", "humanize"],
-    url='https://github.com/popgensims/stdpopsim',
+    url='https://github.com/popsim-consortium/stdpopsim',
     project_urls={
-        'Bug Reports': 'https://github.com/popgensims/stdpopsim/issues',
-        'Source': 'https://github.com/tsckit-dev/stdpopsim',
+        'Bug Reports': 'https://github.com/popsim-consortium/stdpopsim/issues',
+        'Source': 'https://github.com/popsim-consortium/stdpopsim',
     },
     license="GNU GPLv3+",
     platforms=["POSIX", "MacOS X", "Windows"],
