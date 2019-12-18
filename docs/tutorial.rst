@@ -69,11 +69,11 @@ using the ``--help-models`` flag:
 This gives all of the possible demographic models we could simulate. We choose
 the two population out-of-Africa :ref:`model <sec_catalog_homsap_models_outofafrica_2t12>`
 from `Tennesen et al. (2012) <https://doi.org/10.1126/science.1219240>`_ .
-By looking at the model help we
-find that the name for this model is ``OutOfAfrica_2T12`` and that we can specify it using
-the ``--model`` option. We choose to draw two samples from the African
-population and three samples from the European population. To increase
-simulation speed we can also chose to simulate a sequence a fraction of the
+By looking at the model help we find that the name for this model is 
+``OutOfAfrica_2T12`` and that we can specify it using
+the ``--demographic-model`` or ``-d`` option. We choose to draw two samples from the
+African population and three samples from the European population. To increase
+simulation speed we can also choose to simulate a sequence that is a fraction of the
 length of the specified chromosome using the ``-l`` option (e.g. 5%). This is
 just specifying a sequence length, not actually selecting a subset of the
 chromosome to sequence and as such cannot be used with anything other than a
@@ -81,7 +81,7 @@ uniform recombination map. The command now looks like this:
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -c chr22 -l 0.05 -o foo.ts --model OutOfAfrica_2T12 2 3
+    $ stdpopsim HomSap -c chr22 -l 0.05 -o foo.ts -d OutOfAfrica_2T12 2 3
 
 Note that there are now two numbers after the model option. This is because the
 model simulates two populations so we have to specify a number of samples to
@@ -98,14 +98,14 @@ the ``-l`` option. (NOTE: this may a minute or so to run).
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -g HapMapII_GRCh37 -c chr22 -o foo.ts --model OutOfAfrica_2T12 2 3
+    $ stdpopsim HomSap -g HapMapII_GRCh37 -c chr22 -o foo.ts -d OutOfAfrica_2T12 2 3
 
 For reproducibility we can also choose set seed for the simulator using the
 ``-s`` flag.
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -s 1046 -g HapMapII_GRCh37 -c chr22 -o foo.ts --model OutOfAfrica_2T12 2 3
+    $ stdpopsim HomSap -s 1046 -g HapMapII_GRCh37 -c chr22 -o foo.ts -d OutOfAfrica_2T12 2 3
 
 Lastly, the CLI also outputs the relevant citations for both the simulator used
 and the resources used for simulation scenario.
@@ -282,7 +282,7 @@ For the purposes of this tutorial, we'll also specify a random seed using the
 .. code-block:: console
 
     $ stdpopsim HomSap -c chr1 -o afr-america-chr1.trees -s 13 -g HapMapII_GRCh37\
-    --model AmericanAdmixture_4B11 4 4 4 4
+    -d AmericanAdmixture_4B11 4 4 4 4
 
 --------------------------
 2. Calculating divergences
