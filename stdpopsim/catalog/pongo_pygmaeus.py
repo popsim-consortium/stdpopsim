@@ -115,7 +115,7 @@ def _orangutan():
         Bornean population slightly declines.
     """
 
-    citations = [_locke2011]
+    citations = [_locke2011.because(stdpopsim.CiteReason.DEM_MODEL)]
 
     populations = [
         stdpopsim.Population(
@@ -183,3 +183,6 @@ def _orangutan():
                 time=T_split, initial_size=Na, growth_rate=0, population_id=0),
         ],
         )
+
+
+_species.add_demographic_model(_orangutan())
