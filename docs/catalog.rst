@@ -43,6 +43,8 @@ Then, if you feel ready, make an issue on our
 
 .. speciescatalog:: HomSap
 
+.. speciescatalog:: PonPyg
+
 .. speciescatalog:: DroMel
 
 .. speciescatalog:: AraTha
