@@ -108,7 +108,7 @@ class Contig(object):
     genetic_map = attr.ib(default=None, kw_only=True)
 
     def __str__(self):
-        gmap = "None" if self.genetic_map is None else self.genetic_map.name
+        gmap = "None" if self.genetic_map is None else self.genetic_map.id
         s = (
             "Contig(length={:.2G}, recombination_rate={:.2G}, "
             "mutation_rate={:.2G}, genetic_map={})").format(
