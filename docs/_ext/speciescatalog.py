@@ -45,86 +45,46 @@ class SpeciesCatalogDirective(SphinxDirective):
         self.state.document.note_explicit_target(target)
         return target
 
-    def species_summary_table(self, species):
-        table = nodes.table()
-        tgroup = nodes.tgroup(cols=2)
-        colspec = nodes.colspec(colwidth=1)
-        tgroup.append(colspec)
-        colspec = nodes.colspec(colwidth=1)
-        tgroup.append(colspec)
-        colspec = nodes.colspec(colwidth=1)
-        tgroup.append(colspec)
+    def make_field_list(self, data):
 
-        table += tgroup
+        field_list = nodes.field_list()
+        for name, text, citation in data:
+            field = nodes.field()
+            field_name = nodes.field_name(text=name)
+            field_body = nodes.field_body()
+            para = nodes.paragraph(text=text)
 
+            if citation is not None:
+                text = f" ({citation.author}, {citation.year})"
+                para += nodes.reference(
+                    internal=False, refuri=citation.doi, text=text)
+
+            field_body += para
+            field += field_name
+            field += field_body
+            field_list += field
+
+        return field_list
+
+    def species_summary(self, species):
         data = [
-            ("id", species.id, ""),
-            ("name", species.name, ""),
-            ("generation_time", species.generation_time,
-                "TODO: Notes for generation_time"),
-            ("population_size", species.population_size,
-                "TODO: Notes for population_size"),
+            ("ID", species.id, None),
+            ("Name", species.name, None),
+            ("Common name", species.common_name, None),
+            ("Generation time", species.generation_time,
+                species.generation_time_citations[0]),
+            ("Population size", species.population_size,
+                species.population_size_citations[0]),
         ]
+        return self.make_field_list(data)
 
-        rows = []
-        for row_data in data:
-            row = nodes.row()
-            rows.append(row)
-            for entry_data in row_data:
-                entry = nodes.entry()
-                entry += nodes.paragraph(text=entry_data)
-                row += entry
-
-        tbody = nodes.tbody()
-        tbody.extend(rows)
-        tgroup += tbody
-
-        return table
-
-    def model_table(self, model):
-        table = nodes.table()
-        tgroup = nodes.tgroup(cols=2)
-
-        colspec = nodes.colspec(colwidth=1)
-        tgroup.append(colspec)
-        colspec = nodes.colspec(colwidth=1)
-        tgroup.append(colspec)
-
-        table += tgroup
-
-        rows = []
-        row = nodes.row()
-        rows.append(row)
-        entry = nodes.entry()
-        entry += nodes.paragraph(text="ID")
-        row += entry
-        entry = nodes.entry()
-        entry += nodes.paragraph(text=model.id)
-        row += entry
-
-        row = nodes.row()
-        rows.append(row)
-        entry = nodes.entry()
-        entry += nodes.paragraph(text="Description")
-        row += entry
-        entry = nodes.entry()
-        entry += nodes.paragraph(text=model.description)
-        row += entry
-
-        row = nodes.row()
-        rows.append(row)
-        entry = nodes.entry()
-        entry += nodes.paragraph(text="Num populations")
-        row += entry
-        entry = nodes.entry()
-        entry += nodes.paragraph(text=model.num_populations)
-        row += entry
-
-        tbody = nodes.tbody()
-        tbody.extend(rows)
-        tgroup += tbody
-
-        return table
+    def model_summary(self, model):
+        data = [
+            ("ID", model.id, None),
+            ("Description", model.description, None),
+            ("Num populations", model.num_populations, None),
+        ]
+        return self.make_field_list(data)
 
     def citation_list(self, citable):
         bullet_list = nodes.bullet_list()
@@ -411,7 +371,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         section += nodes.title(text=model.description)
         section += nodes.paragraph(text=model.long_description)
         section += nodes.rubric(text="Details")
-        section += self.model_table(model)
+        section += self.model_summary(model)
         section += nodes.rubric(text="Populations")
         section += self.population_table(model)
         section += nodes.rubric(text="Citations")
@@ -427,7 +387,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         species_target = self.get_target(sid)
         section = nodes.section(ids=[sid], names=[sid])
         section += nodes.title(text=species.name)
-        section += self.species_summary_table(species)
+        section += self.species_summary(species)
 
         genome_section = nodes.section(ids=[f"sec_catalog_{species.id}_genome"])
         genome_section += nodes.title(text="Genome")
