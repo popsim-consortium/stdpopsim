@@ -70,7 +70,7 @@ This gives all of the possible demographic models we could simulate. We choose
 the two population out-of-Africa :ref:`model <sec_catalog_homsap_models_outofafrica_2t12>`
 from `Tennesen et al. (2012) <https://doi.org/10.1126/science.1219240>`_ .
 By looking at the model help we
-find that the name for this model is ``ooa_2`` and that we can specify it using
+find that the name for this model is ``OutOfAfrica_2T12`` and that we can specify it using
 the ``--model`` option. We choose to draw two samples from the African
 population and three samples from the European population. To increase
 simulation speed we can also chose to simulate a sequence a fraction of the
@@ -81,7 +81,7 @@ uniform recombination map. The command now looks like this:
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -c chr22 -l 0.05 -o foo.ts --model ooa_2 2 3
+    $ stdpopsim HomSap -c chr22 -l 0.05 -o foo.ts --model OutOfAfrica_2T12 2 3
 
 Note that there are now two numbers after the model option. This is because the
 model simulates two populations so we have to specify a number of samples to
@@ -98,14 +98,14 @@ the ``-l`` option. (NOTE: this may a minute or so to run).
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -g HapmapII_GRCh37 -c chr22 -o foo.ts --model ooa_2 2 3
+    $ stdpopsim HomSap -g HapMapII_GRCh37 -c chr22 -o foo.ts --model OutOfAfrica_2T12 2 3
 
 For reproducibility we can also choose set seed for the simulator using the
 ``-s`` flag.
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -s 1046 -g HapmapII_GRCh37 -c chr22 -o foo.ts --model ooa_2 2 3
+    $ stdpopsim HomSap -s 1046 -g HapMapII_GRCh37 -c chr22 -o foo.ts --model OutOfAfrica_2T12 2 3
 
 Lastly, the CLI also outputs the relevant citations for both the simulator used
 and the resources used for simulation scenario.
@@ -262,8 +262,8 @@ This prints detailed information about all of the available models to
 the terminal.
 In this tutorial, we will use the model of African-American admixture from
 `2011 Browning et al <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.
-From the help output (or the :ref:`Catalog <sec_catalog>`),
-we can see that this model has id ``america``,
+From the help output (or the :ref:`Catalog <sec_catalog_homsap_models_americanadmixture_4b11>`),
+we can see that this model has id ``AmericanAdmixture_4B11``,
 and allows samples to be drawn from 4 contemporary populations representing African,
 European, Asian and African-American groups.
 
@@ -272,7 +272,7 @@ are available:
 
 .. command-output:: stdpopsim HomSap --help-genetic-maps
 
-Let's go with ``HapmapII_GRCh37``.
+Let's go with ``HapMapII_GRCh37``.
 The next command simulates 4 samples of chromosome 1 from each of the four
 populations, and saves the output to a file called ``afr-america-chr1.trees``.
 For the purposes of this tutorial, we'll also specify a random seed using the
@@ -281,8 +281,8 @@ For the purposes of this tutorial, we'll also specify a random seed using the
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -c chr1 -o afr-america-chr1.trees -s 13 -g HapmapII_GRCh37\
-    --model america 4 4 4 4
+    $ stdpopsim HomSap -c chr1 -o afr-america-chr1.trees -s 13 -g HapMapII_GRCh37\
+    --model AmericanAdmixture_4B11 4 4 4 4
 
 --------------------------
 2. Calculating divergences
