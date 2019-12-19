@@ -14,6 +14,11 @@ _lapierre_et_al = stdpopsim.Citation(
     year="2016",
     doi="https://doi.org/10.1093/molbev/msw048")
 
+_sezonov_et_al = stdpopsim.Citation(
+    author="Sezonov et al.",
+    year="2007",
+    doi="https://doi.org/10.1128/JB.01368-07")
+
 _chromosomes = []
 _chromosomes.append(stdpopsim.Chromosome(
         id=None,
@@ -29,13 +34,15 @@ _chromosomes.append(stdpopsim.Chromosome(
 _genome = stdpopsim.Genome(chromosomes=_chromosomes)
 
 _species = stdpopsim.Species(
-    id="esccol",
+    id="EscCol",
     name="Escherichia coli",
+    common_name="E. coli",
     genome=_genome,
-    # TODO reference for these
     generation_time=0.00003805175,  # 1.0 / (525600 min/year / 20 min/gen)
-    generation_time_citations=[],  # FIXME
+    generation_time_citations=[
+        _sezonov_et_al.because(stdpopsim.CiteReason.GEN_TIME)],
     population_size=1.8e8,
-    population_size_citations=[_lapierre_et_al])
+    population_size_citations=[
+        _lapierre_et_al.because(stdpopsim.CiteReason.POP_SIZE)])
 
 stdpopsim.register_species(_species)

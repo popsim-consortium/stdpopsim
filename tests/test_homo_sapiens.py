@@ -4,7 +4,6 @@ Tests for the human data definitions.
 import unittest
 
 import stdpopsim
-from stdpopsim.catalog import homo_sapiens
 
 from tests import test_models
 from tests import test_species
@@ -12,18 +11,18 @@ from qc import homo_sapiens_qc
 
 
 class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
-    species = stdpopsim.get_species("homsap")
+    species = stdpopsim.get_species("HomSap")
 
     def test_basic_attributes(self):
         self.assertEqual(self.species.population_size, 10**4)
-        self.assertEqual(self.species.generation_time, 25)
+        self.assertEqual(self.species.generation_time, 30)
 
 
 class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     """
     Tests for the human genome.
     """
-    genome = stdpopsim.get_species("homsap").genome
+    genome = stdpopsim.get_species("HomSap").genome
 
     def test_basic_attributes(self):
         self.assertEqual(len(self.genome.chromosomes), 24)
@@ -56,10 +55,10 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         self.assertEqual(genome.get_chromosome("chrY").length, 59373566)
 
     def test_recombination_rates(self):
-        # recompute recombination rates from HapmapII_GRCh37 map then
+        # recompute recombination rates from HapMapII_GRCh37 map then
         # compare the results to the current recombination rates for each chromosome
-        genetic_map = "HapmapII_GRCh37"
-        species = stdpopsim.get_species("homsap")
+        genetic_map = "HapMapII_GRCh37"
+        species = stdpopsim.get_species("HomSap")
         for chrom in self.genome.chromosomes:
             if chrom.id == "chrY":
                 with self.assertWarns(Warning):
@@ -71,36 +70,46 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
                 contig.recombination_map.mean_recombination_rate)
 
 
-class TestTennessenTwoPopOutOfAfrica(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = homo_sapiens._TennessenTwoPopOutOfAfrica()
+species = stdpopsim.get_species("HomSap")
+
+
+class TestTennessenTwoPopOutOfAfrica(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("OutOfAfrica_2T12")
     qc_model = homo_sapiens_qc.TennessenTwoPopOutOfAfrica()
 
 
-class TestTennessenOnePopAfrica(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = homo_sapiens._TennessenOnePopAfrica()
+class TestTennessenOnePopAfrica(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("Africa_1T12")
     qc_model = homo_sapiens_qc.TennessenOnePopAfrica()
 
 
-class TestBrowningAmerica(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = homo_sapiens._BrowningAmerica()
+class TestBrowningAmerica(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("AmericanAdmixture_4B11")
     qc_model = homo_sapiens_qc.BrowningAmerica()
 
 
-class TestRagsdaleArchaic(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = homo_sapiens._RagsdaleArchaic()
+class TestRagsdaleArchaic(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("OutOfAfricaArchaicAdmixture_5R19")
     qc_model = homo_sapiens_qc.RagsdaleArchaic()
 
 
-class TestKammAncientEurasia(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = homo_sapiens._KammAncientEurasia()
+class TestKammAncientEurasia(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("AncientEurasia_9K19")
     qc_model = homo_sapiens_qc.KammAncientSamples()
 
 
 # Models that have not been QC'd:
 
-class TestGutenkunstThreePopOutOfAfrica(unittest.TestCase, test_models.ModelTestMixin):
-    model = homo_sapiens._GutenkunstThreePopOutOfAfrica()
+class TestGutenkunstThreePopOutOfAfrica(
+        unittest.TestCase, test_models.CatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("OutOfAfrica_3G09")
 
 
-class TestSchiffelsZigzag(unittest.TestCase, test_models.ModelTestMixin):
-    model = homo_sapiens._SchiffelsZigzag()
+class TestSchiffelsZigzag(
+        unittest.TestCase, test_models.CatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("Zigzag_1S14")

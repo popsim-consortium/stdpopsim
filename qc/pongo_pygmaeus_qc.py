@@ -1,17 +1,16 @@
 # This script is a QC implementation of the Pongo model
 import msprime
 import numpy as np
-import math
 import stdpopsim.models as models
 
-class LockePongo(models.Model):
+
+class LockePongo(models.DemographicModel):
     def __init__(self):
-        super().__init__()
         # This is a split-migration style model, with exponential growth or
         # decay allowed in each population after the split. They assumed a
         # generation time of 20 years and a mutation rate of 2e-8 per bp per gen
         generation_time = 20
-        
+
         # Parameters given in Table S21-2
         Ne = 17934
         s = 0.592
@@ -22,7 +21,7 @@ class LockePongo(models.Model):
         mSB = 0.395 / 2 / Ne
         mBS = 0.239 / 2 / Ne
         T = 403149 / generation_time
-        
+
         rB = np.log(NBF/NB0) / T
         rS = np.log(NSF/NS0) / T
 
@@ -43,5 +42,5 @@ class LockePongo(models.Model):
             msprime.MigrationRateChange(
                 time=T, rate=0),
             msprime.PopulationParametersChange(
-                time=T, initial_size=Ne, growth_rate=0, population_id=0)    
+                time=T, initial_size=Ne, growth_rate=0, population_id=0)
         ]

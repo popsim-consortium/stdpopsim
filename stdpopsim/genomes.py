@@ -9,20 +9,29 @@ import attr
 logger = logging.getLogger(__name__)
 
 
-# TODO not clear whether it's worth using attrs here, since we only have one
-# instance variable that we supply. If we add more then we probably should
-# use attrs for consistency.
-
+@attr.s
 class Genome(object):
     """
     Class representing the genome for a species.
 
-    .. todo:: Define the facilities that this object provides.
+    :ivar chromosomes: A list of :class:`.Chromosome` objects.
+    :vartype chromosomes: list
+    :ivar mutation_rate_citations: A list of :class:`.Citation` objects
+        providing justification for the mutation rate estimate.
+    :vartype mutation_rate_citations: list
+    :ivar recombination_rate_citations: A list of :class:`.Citation` objects
+        providing justification for the recombination rate estimate.
+    :vartype recombination_rate_citations: list
+    :ivar length: The total length of the genome.
+    :vartype length: int
     """
-    def __init__(self, chromosomes):
-        self.chromosomes = chromosomes
-        self.length = 0
-        for chromosome in chromosomes:
+    chromosomes = attr.ib(factory=list)
+    mutation_rate_citations = attr.ib(factory=list, kw_only=True)
+    recombination_rate_citations = attr.ib(factory=list, kw_only=True)
+    length = attr.ib(default=0, init=False)
+
+    def __attrs_post_init__(self):
+        for chromosome in self.chromosomes:
             self.length += chromosome.length
 
     def __str__(self):
@@ -99,7 +108,7 @@ class Contig(object):
     genetic_map = attr.ib(default=None, kw_only=True)
 
     def __str__(self):
-        gmap = "None" if self.genetic_map is None else self.genetic_map.name
+        gmap = "None" if self.genetic_map is None else self.genetic_map.id
         s = (
             "Contig(length={:.2G}, recombination_rate={:.2G}, "
             "mutation_rate={:.2G}, genetic_map={})").format(

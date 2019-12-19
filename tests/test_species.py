@@ -7,6 +7,7 @@ import math
 import msprime
 
 import stdpopsim
+from stdpopsim import utils
 
 
 class TestSpecies(unittest.TestCase):
@@ -20,7 +21,7 @@ class TestSpecies(unittest.TestCase):
             self.assertGreater(len(s), 0)
 
     def test_get_known_species(self):
-        good = ["homsap", "esccol"]
+        good = ["HomSap", "EscCol"]
         for species_id in good:
             species = stdpopsim.get_species(species_id)
             self.assertIsInstance(species, stdpopsim.Species)
@@ -32,20 +33,37 @@ class TestSpecies(unittest.TestCase):
             with self.assertRaises(ValueError):
                 stdpopsim.get_species(species_name)
 
+    def test_add_duplicate_species(self):
+        species = stdpopsim.get_species("HomSap")
+        with self.assertRaises(ValueError):
+            stdpopsim.register_species(species)
+
     def test_get_known_genetic_map(self):
-        good = ["HapmapII_GRCh37", "Decode_2010_sex_averaged"]
-        species = stdpopsim.get_species("homsap")
+        good = ["HapMapII_GRCh37", "DeCodeSexAveraged_GRCh36"]
+        species = stdpopsim.get_species("HomSap")
         for name in good:
             gmap = species.get_genetic_map(name)
             self.assertIsInstance(gmap, stdpopsim.GeneticMap)
-            self.assertEqual(gmap.name, name)
+            self.assertEqual(gmap.id, name)
 
     def test_get_unknown_genetic_map(self):
         bad = ["GDXXX", "", None]
-        species = stdpopsim.get_species("homsap")
+        species = stdpopsim.get_species("HomSap")
         for name in bad:
             with self.assertRaises(ValueError):
                 species.get_genetic_map(name)
+
+    def test_add_duplicate_genetic_map(self):
+        species = stdpopsim.get_species("HomSap")
+        genetic_map = species.get_genetic_map("HapMapII_GRCh37")
+        with self.assertRaises(ValueError):
+            species.add_genetic_map(genetic_map)
+
+    def test_add_duplicate_model(self):
+        species = stdpopsim.get_species("HomSap")
+        model = species.get_demographic_model("OutOfAfrica_3G09")
+        with self.assertRaises(ValueError):
+            species.add_demographic_model(model)
 
 
 class SpeciesTestMixin(object):
@@ -58,6 +76,18 @@ class SpeciesTestMixin(object):
         s = str(self.species)
         self.assertGreater(len(s), 0)
         self.assertIsInstance(s, str)
+
+    def test_id(self):
+        self.assertIsInstance(self.species.id, str)
+        self.assertTrue(utils.is_valid_species_id(self.species.id))
+
+    def test_name(self):
+        self.assertIsInstance(self.species.name, str)
+        self.assertTrue(utils.is_valid_species_name(self.species.name))
+
+    def test_common_name(self):
+        self.assertIsInstance(self.species.name, str)
+        self.assertTrue(utils.is_valid_species_common_name(self.species.common_name))
 
 
 class GenomeTestMixin(object):
@@ -115,7 +145,7 @@ class TestGetContig(unittest.TestCase):
     """
     Tests for the get contig method.
     """
-    species = stdpopsim.get_species("homsap")
+    species = stdpopsim.get_species("HomSap")
 
     def test_length_multiplier(self):
         contig1 = self.species.get_contig("chr22")
@@ -128,9 +158,9 @@ class TestGetContig(unittest.TestCase):
     def test_length_multiplier_on_empirical_map(self):
         with self.assertRaises(ValueError):
             self.species.get_contig(
-                "chr1", genetic_map="HapmapII_GRCh37", length_multiplier=2)
+                "chr1", genetic_map="HapMapII_GRCh37", length_multiplier=2)
 
     def test_genetic_map(self):
         # TODO we should use a different map here so we're not hitting the cache.
-        contig = self.species.get_contig("chr22", genetic_map="HapmapII_GRCh37")
+        contig = self.species.get_contig("chr22", genetic_map="HapMapII_GRCh37")
         self.assertIsInstance(contig.recombination_map, msprime.RecombinationMap)

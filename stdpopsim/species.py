@@ -18,6 +18,8 @@ def register_species(species):
     """
     Registers the specified species.
     """
+    if species.id in registered_species:
+        raise ValueError(f"{species.id} already registered.")
     logger.debug(f"Registering species '{species.id}'")
     registered_species[species.id] = species
 
@@ -47,9 +49,9 @@ def all_genetic_maps():
             yield genetic_map
 
 
-def all_models():
+def all_demographic_models():
     for species in all_species():
-        for model in species.models:
+        for model in species.demographic_models:
             yield model
 
 
@@ -59,20 +61,26 @@ class Species(object):
     Class representing a species in the catalog.
 
     :ivar id: The unique identifier for this species. The species ID is
-        usually an abbreviation of the species name, which does not
-        contain any spaces or puncutation.. The usual scheme is to
+        the three first letters of the genus name followed by the first
+        three letters of the species name, and does not
+        contain any spaces or punctuation. The usual scheme is to
         use the first three letters of the genus and species (similar to the
-        approach used in the UCSC genome browser), e.g., "homsap"
+        approach used in the UCSC genome browser), e.g., "HomSap"
         is the ID for Homo Sapiens.
     :vartype id: str
-    :ivar name: The informal name for this species as it would
-        be used in written text, e.g., "Homo sapiens"
-    :vartype informal_name: str
+    :ivar name: The full name of this species in binominal nomenclature as
+        it would be used in written text, e.g., "Homo sapiens".
+    :vartype name: str
+    :ivar common_name: The name of this species as it would most often be
+        used informally in written text, e.g., "human", or "Orang-utan".
+        Where no common name for the species exist, use the most common
+        abbreviation, e.g., "E. Coli".
+    :vartype common_name: str
     :ivar genome: The :class:`.Genome` instance describing the details
         of this species' genome.
     :vartype genome: stdpopsim.Genome
     :ivar generation_time: The current best estimate for the generation
-        time of this species in years. Note that individual population
+        time of this species in years. Note that individual demographic
         models in the catalog may or may not use this estimate: each
         model uses the generation time that was used in the original
         publication(s).
@@ -81,7 +89,7 @@ class Species(object):
         providing justification for the genertion time estimate.
     :vartype generation_time_citations: list
     :ivar population_size: The current best estimate for the population
-        size of this species. Note that individual population
+        size of this species. Note that individual demographic
         models in the catalog may or may not use this estimate: each
         model uses the populations sizes defined in the original
         publication(s).
@@ -89,19 +97,20 @@ class Species(object):
     :ivar population_size_citations: A list of :class:`.Citation` objects
         providing justification for the population size estimate.
     :vartype population_size_citations: list
-    :ivar models: This list of :class:`Model` instances in the catalog
-        for this species.
-    :vartype models: list()
+    :ivar demographic_models: This list of :class:`DemographicModel`
+        instances in the catalog for this species.
+    :vartype demographic_models: list()
     """
 
     id = attr.ib(type=str, kw_only=True)
     name = attr.ib(type=str, kw_only=True)
+    common_name = attr.ib(type=str, kw_only=True)
     genome = attr.ib(type=int, kw_only=True)
     generation_time = attr.ib(default=1, kw_only=True)
     generation_time_citations = attr.ib(factory=list, kw_only=True)
     population_size = attr.ib(default=1, kw_only=True)
     population_size_citations = attr.ib(factory=list, kw_only=True)
-    models = attr.ib(factory=list, kw_only=True)
+    demographic_models = attr.ib(factory=list, kw_only=True)
     genetic_maps = attr.ib(factory=list, kw_only=True)
 
     def get_contig(self, chromosome, genetic_map=None, length_multiplier=1):
@@ -113,10 +122,12 @@ class Species(object):
         :param str chromosome: The ID of the chromosome to simulate.
         :param str genetic_map: If specified, obtain recombination rate information
             from the genetic map with the specified ID. If None, simulate
-            a flat recombination rate on a region with the length of the specified
-            chromosome. (Default: None)
-        :param float length_multiplier: If specified simulate a contig of length
-            length_multiplier times the length of the specified chromosome.
+            using a default uniform recombination rate on a region with the length of
+            the specified chromosome. The default rates are species- and chromosome-
+            specific, and can be found in the :ref:`sec_catalog`. (Default: None)
+        :param float length_multiplier: If specified, simulate a region of length
+            `length_multiplier` times the length of the specified chromosome with the
+            same chromosome-specific mutation and recombination rates.
             This option cannot currently be used in conjunction with the
             ``genetic_map`` argument.
         :rtype: :class:`.Contig`
@@ -140,26 +151,33 @@ class Species(object):
             genetic_map=gm)
         return ret
 
-    def get_model(self, id):
+    def get_demographic_model(self, id):
         """
         Returns a model with the specified id.
 
         - TODO explain where we find models from the catalog.
         """
-        for model in self.models:
+        for model in self.demographic_models:
             if model.id == id:
                 return model
-        raise ValueError(f"Model '{self.id}/{id}' not in catalog")
+        raise ValueError(f"DemographicModel '{self.id}/{id}' not in catalog")
 
-    def add_model(self, model):
-        self.models.append(model)
+    def add_demographic_model(self, model):
+        if model.id in [m.id for m in self.demographic_models]:
+            raise ValueError(
+                    f"DemographicModel '{self.id}/{model.id}' already in catalog.")
+        self.demographic_models.append(model)
 
     def add_genetic_map(self, genetic_map):
+        if genetic_map.id in [gm.id for gm in self.genetic_maps]:
+            raise ValueError(
+                    f"Genetic map '{self.id}/{genetic_map.id}' "
+                    "already in catalog.")
         genetic_map.species = self
         self.genetic_maps.append(genetic_map)
 
     def get_genetic_map(self, id):
         for gm in self.genetic_maps:
-            if gm.name == id:
+            if gm.id == id:
                 return gm
         raise ValueError(f"Genetic map '{self.id}/{id}' not in catalog")

@@ -8,7 +8,7 @@ with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='stdpopsim',
-    description='Standard simulation models for msprime',
+    description='A library of population genetic simulation models',
     long_description=long_description,
     author='PopSim Consortium',
     # TODO probably should have a different email address?
@@ -17,7 +17,7 @@ setup(
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
-        'License :: OSI Approved :: MIT License',
+        "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
@@ -32,14 +32,13 @@ setup(
         ]
     },
     # NOTE: make sure this is the 'attrs' package, not 'attr'!
-    install_requires=["msprime", "attrs", "appdirs", "humanize", "daiquiri",
-                      "pyslim"],
-    url='https://github.com/popgensims/stdpopsim',
+    install_requires=["msprime", "attrs", "appdirs", "humanize", "pyslim"],
+    url='https://github.com/popsim-consortium/stdpopsim',
     project_urls={
-        'Bug Reports': 'https://github.com/popgensims/stdpopsim/issues',
-        'Source': 'https://github.com/tsckit-dev/stdpopsim',
+        'Bug Reports': 'https://github.com/popsim-consortium/stdpopsim/issues',
+        'Source': 'https://github.com/popsim-consortium/stdpopsim',
     },
-    license="MIT",
+    license="GNU GPLv3+",
     platforms=["POSIX", "MacOS X", "Windows"],
     setup_requires=['setuptools_scm'],
     use_scm_version={"write_to": "stdpopsim/_version.py"},

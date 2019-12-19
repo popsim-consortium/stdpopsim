@@ -8,14 +8,14 @@ Development
 
 We envision at least three main types of ``stdpopsim`` developers:
 
-1. Model contributors
+1. Demographic model contributors
 2. API developers
 3. Documentation and tutorial curators
 
-`Model contributors` add simulation code of published models. This could be your
+`Demographic model contributors` add simulation code of published models. This could be your
 own published model or any other published model you think would be useful.
 This is the main way we expect biologists to continually add to the catalog
-of models. See the section `Model review process`_.
+of models. See the section `Demographic model review process`_.
 
 `API developers` work on infrastructure development for the PopSim Consortium,
 which could include improvements and additions to the internal code base of
@@ -48,7 +48,7 @@ help+wanted%22>`_
 To get started helping with ``stdpopsim`` development, please read the
 following sections to learn how to contribute.
 
-
+.. sec_development_installation:
 
 ************
 Installation
@@ -63,7 +63,9 @@ For ``pip`` users, install the packages required for development using::
 
     $ python3 -m pip install -r requirements/development.txt
 
+You can then install the development version of ``stdpopsim`` like this::
 
+    $ python3 setup.py install
 
 For ``conda`` users, you will need to add the conda-forge channel to your conda
 environment and then should be able to install the development requirements using::
@@ -78,11 +80,6 @@ encounter problems with it.
 
 .. Note:: If you have trouble installing any of the requirements, your ``pip`` may be the wrong version.
     Try ``pip3 install -r requirements/development.txt``
-
-.. Warning:: The dependency ``daiquiri`` is not currently a conda package.
-    So, ``conda install`` will fail.
-    See the `GitHub issue
-    <https://github.com/popgensims/stdpopsim/issues/161>`_
 
 ---------------------------
 Using a Virtual Environment
@@ -448,9 +445,9 @@ finally force-push to the remote topic branch on your fork::
 Hard resetting and force pushing are not reversible operations, so please
 beware!
 
-********************
-Model review process
-********************
+********************************
+Demographic model review process
+********************************
 
 When Developer A creates a new demographic model on their local fork they must
 follow these steps for it to be officially supported by stdpopsim:
@@ -465,14 +462,14 @@ follow these steps for it to be officially supported by stdpopsim:
     2. Developer A creates an issue tracking the QC for the model which includes
        information about the primary sources used to create the model and the
        population indices used for their msprime implementation. Developer B is
-       then assigned/volunteers to do a blind implementation of the model. 
+       then assigned/volunteers to do a blind implementation of the model.
 
     3. M creates an issue for the CLI implementation of the model.
 
     4. Developer B creates a blind implementation of the model in the
        ``qc/species_name_qc.py`` file. Note that if you are adding a new species
        you will have to add a new import to ``qc/__init__.py``.
-    
+
     5. Developer B adds the automatic checking of this model for
        equality with the production model to the suite of unit tests in for the
        demograpic model in ``tests/test_species_name_.py`` following the
@@ -483,7 +480,7 @@ follow these steps for it to be officially supported by stdpopsim:
             self.assertTrue(model.equals(homo_sapiens_qc.BrowningAmerica()))
 
        Developer B then creates a PR, and all being good, this PR is merged and
-       the QC issue is closed. 
+       the QC issue is closed.
 
     6. Someone then makes a PR updating the CLI, checking that the
        documentation, citations etc all work properly, and adds the model to
@@ -518,6 +515,33 @@ Lines of code should be no more than 89 characters.
 Conformance to this style is checked as part of the Continuous Integration
 testing suite.
 
+******************
+Naming conventions
+******************
+
+To ensure uniformity in naming schemes across objects in ``stdpopsim``
+we have strict conventions for species, genetic maps, and demographic
+models. 
+
+Species names follow a ``${first_3_letters_genus}${first_3_letters_species}``
+convention with capitilization such that Homo sapiens becomes "HomSap". This
+is similar to the UCSC Genome Browser naming convention and should be familiar.
+
+Genetic maps are named using a descriptive name and the assembly version according
+to ``${CamelCaseDescriptiveName}_${Assembly}``. e.g., the HapMap phase 2 map on
+the GRCh37 assembly becomes HapMapII_GRCh37.
+
+Finally demographic models are named using a combination of a descriptive name,
+information about the simulation, and information about the publication it was
+presented in. Specifically we use 
+``${SomethingDescriptive}_${number_of_populations}${first_author_initial}${two_digit_date}``
+where the descriptive text is meant to capture something about the model
+(i.e. an admixture model, a population crash, etc.) and the number of populations
+is the number of populations implemented in the model (not necessarily the number
+from which samples are drawn). For author initial we will use a single letter, the 1st,
+until an ID collision, in which case we will include the 2nd letter, and so forth.
+
+
 **********
 Unit tests
 **********
@@ -549,8 +573,8 @@ To run the test simply use::
 If you would like to automatically run this test before a commit is permitted,
 add the following line in the file ``stdpopsim/.git/hooks/pre-commit.sample``::
 
-    exec flake8 --max-line-length 89 setup.py stdpopsim tests 
- 
+    exec flake8 --max-line-length 89 setup.py stdpopsim tests
+
 before::
 
     # If there are whitespace errors, print the offending file names and fail.
@@ -569,4 +593,6 @@ It is defined in the ``docs`` directory.
 To build the documentation type ``make`` in the ``docs`` directory. This should build
 HTML output in the ``_build/html/`` directory.
 
+.. note::
 
+    You will need ``stdpopsim`` to be installed for the build to work.

@@ -14,6 +14,7 @@ import msprime
 
 import stdpopsim
 from stdpopsim import genetic_maps
+from stdpopsim import utils
 import tests
 
 
@@ -30,7 +31,7 @@ saved_urls = {}
 def setUpModule():
     destination = pathlib.Path("_test_cache/tarballs")
     for genetic_map in stdpopsim.all_genetic_maps():
-        key = genetic_map.name
+        key = genetic_map.id
         local_file = destination / (key + ".tar.gz")
         if not local_file.exists():
             cache_dir = local_file.parent
@@ -43,7 +44,7 @@ def setUpModule():
 
 def tearDownModule():
     for genetic_map in stdpopsim.all_genetic_maps():
-        genetic_map.url = saved_urls[genetic_map.name]
+        genetic_map.url = saved_urls[genetic_map.id]
 
 
 class GeneticMapTestClass(genetic_maps.GeneticMap):
@@ -54,10 +55,11 @@ class GeneticMapTestClass(genetic_maps.GeneticMap):
     def __init__(self):
         genome = stdpopsim.Genome(chromosomes=[])
         _species = stdpopsim.Species(
-            id="tesspe", name="Test species", genome=genome)
+            id="TesSpe", name="Test species", common_name="Testy McTestface",
+            genome=genome)
         super().__init__(
             species=_species,
-            name="test_map",
+            id="test_map",
             url="http://example.com/genetic_map.tar.gz",
             file_pattern="prefix_{name}.txt")
 
@@ -136,7 +138,7 @@ class TestGeneticMap(tests.CacheWritingTest):
         cache_dir = stdpopsim.get_cache_dir() / "genetic_maps"
         self.assertEqual(gm.cache_dir, cache_dir)
         self.assertEqual(gm.species_cache_dir, gm.cache_dir / gm.species.id)
-        self.assertEqual(gm.map_cache_dir, gm.species_cache_dir / gm.name)
+        self.assertEqual(gm.map_cache_dir, gm.species_cache_dir / gm.id)
 
     def test_str(self):
         gm = GeneticMapTestClass()
@@ -248,13 +250,18 @@ class TestAllGeneticMaps(tests.CacheReadingTest):
         for gm in stdpopsim.all_genetic_maps():
             self.assertIsInstance(gm, genetic_maps.GeneticMap)
 
+    def test_ids(self):
+        for gm in stdpopsim.all_genetic_maps():
+            self.assertIsInstance(gm.id, str)
+            self.assertTrue(utils.is_valid_genetic_map_id(gm.id))
+
 
 class TestGetChromosomeMap(tests.CacheReadingTest):
     """
-    Tests if we get chromosome maps using the HapmapII_GRCh37 human map.
+    Tests if we get chromosome maps using the HapMapII_GRCh37 human map.
     """
-    species = stdpopsim.get_species("homsap")
-    genetic_map = species.get_genetic_map("HapmapII_GRCh37")
+    species = stdpopsim.get_species("HomSap")
+    genetic_map = species.get_genetic_map("HapMapII_GRCh37")
 
     def test_warning_from_no_mapped_chromosome(self):
         chrom = self.species.genome.get_chromosome("chrY")

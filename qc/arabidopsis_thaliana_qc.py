@@ -1,15 +1,13 @@
 import msprime
 import numpy as np
-import math
 import stdpopsim.models as models
 
 
-class Durvasula2017MSMC(models.Model):
+class Durvasula2017MSMC(models.DemographicModel):
     def __init__(self):
-        super().__init__()
 
         # Both of the following are directly
-        # converted from MSMC output scaled by A.Thaliana 
+        # converted from MSMC output scaled by A.Thaliana
         # mutation rate 7e-9 and 1 generation
         # per year.
 
@@ -33,13 +31,13 @@ class Durvasula2017MSMC(models.Model):
             2.1775200e+05, 1.9801900e+05, 1.6521000e+05, 1.2179600e+05,
             1.2179600e+05, 7.3989000e+04, 7.3989000e+04, 7.3989000e+04])
 
-        # The first 8 epochs are "masked" to 
-        # the last Ne at 40kya due to 
-        # the limitations of MSMC to infer 
+        # The first 8 epochs are "masked" to
+        # the last Ne at 40kya due to
+        # the limitations of MSMC to infer
         # population size in this range.
         #
-        # Similarly, the last 2 entries 
-        # are set to equal the third last. 
+        # Similarly, the last 2 entries
+        # are set to equal the third last.
         #
         # Durvasula et al 2017 shows that
         # MSMC has power in A.Thaliana
@@ -63,15 +61,13 @@ class Durvasula2017MSMC(models.Model):
         self.migration_matrix = [[0]]
 
 
-class HuberTwoEpoch(models.Model):
+class HuberTwoEpoch(models.DemographicModel):
     populations = [
-        models.Population(name="ATL", description="A. thalina"),
+        models.Population(id="ATL", description="A. thalina"),
     ]
 
     def __init__(self):
-        super().__init__()
-        
-        generation_time = 1
+
         # Time of second epoch
         T_2 = 568344
         # population sizes
@@ -92,4 +88,36 @@ class HuberTwoEpoch(models.Model):
             msprime.PopulationParametersChange(
                 time=T_2, initial_size=N_ANC, population_id=0),
         ]
-           
+
+
+class HuberThreeEpoch(models.DemographicModel):
+    populations = [
+        models.Population(id="ATL", description="A. thalina"),
+    ]
+
+    def __init__(self):
+
+        # Time of second epoch
+        T_2 = 7420
+        T_3 = 14534
+        # population sizes
+        N_ANC = 161744
+        N_2 = 24076
+        N_3 = 203077
+
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N_3,
+                metadata=self.populations[0].asdict()),
+        ]
+
+        self.migration_matrix = [
+            [0]
+        ]
+
+        self.demographic_events = [
+            msprime.PopulationParametersChange(
+                time=T_3, initial_size=N_2, population_id=0),
+            msprime.PopulationParametersChange(
+                time=T_2 + T_3, initial_size=N_ANC, population_id=0),
+        ]

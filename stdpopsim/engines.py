@@ -13,6 +13,8 @@ def register_engine(engine):
     """
     Registers the specified simulation engine.
     """
+    if engine.id in _registered_engines:
+        raise ValueError(f"Simulation engine '{engine.id}' already registered.")
     logger.debug(f"Registering simulation engine '{engine.id}'")
     _registered_engines[engine.id] = engine
 
@@ -40,15 +42,15 @@ class Engine(object):
     Abstract class representing a simulation engine.
 
     To implement a new simulation engine, one should inherit from this
-    class. At a minimum, the ``id``, ``name`` and ``citations`` attributes must
+    class. At a minimum, the ``id``, ``description``
+    and ``citations`` attributes must
     be set, and the :func:`simulate()` and :func:`get_version()` methods must
     be implemented. See msprime example in ``engines.py``.
 
     :ivar id: The unique identifier for the simulation engine.
     :vartype id: str
-    :ivar name: The name for this engine as it would be used in written text
-        such as the CLI or error messages.
-    :vartype name: str
+    :ivar description: A short description of this engine.
+    :vartype description: str
     :ivar citations: A list of citations for the simulation engine.
     :vartype citations: list of :class:`.Citation`
     """
@@ -58,7 +60,7 @@ class Engine(object):
         Simulates the model for the specified contig and samples.
 
         :param model: The demographic model to simulate.
-        :type model: :class:`.Model`
+        :type model: :class:`.DemographicModel`
         :param contig: The contig, defining the length and recombination
             rate(s).
         :type contig: :class:`msprime.simulations.Contig`
@@ -94,23 +96,24 @@ class Engine(object):
 
 class _MsprimeEngine(Engine):
     id = "msprime"
-    name = "msprime"
+    description = "Msprime coalescent simulator"
     citations = [
             stdpopsim.Citation(
                 doi="https://doi.org/10.1371/journal.pcbi.1004842",
                 year="2016",
-                author="Kelleher et al."),
+                author="Kelleher et al.",
+                reasons={stdpopsim.CiteReason.ENGINE}),
             ]
 
-    def simulate(self, model=None, contig=None, samples=None, seed=None,
+    def simulate(self, demographic_model=None, contig=None, samples=None, seed=None,
                  **kwargs):
         return msprime.simulate(
                 samples=samples,
                 recombination_map=contig.recombination_map,
                 mutation_rate=contig.mutation_rate,
-                population_configurations=model.population_configurations,
-                migration_matrix=model.migration_matrix,
-                demographic_events=model.demographic_events,
+                population_configurations=demographic_model.population_configurations,
+                migration_matrix=demographic_model.migration_matrix,
+                demographic_events=demographic_model.demographic_events,
                 random_seed=seed)
 
     def get_version(self):

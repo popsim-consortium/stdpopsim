@@ -16,7 +16,7 @@ It is organised around a number of choices that you'll need to make about the
 
 1. Which **chromosome**? (ie. which :class:`.Genome` object?)
 2. Which **genetic map**? (ie. which :class:`.GeneticMap` object?)
-3. Which **model of demographic history**? (ie. which :class:`.Model` object)
+3. Which **model of demographic history**? (ie. which :class:`.DemographicModel` object)
 
 For instance, suppose you are interested in simulating modern human samples of
 
@@ -29,7 +29,7 @@ and saves the output to a file called ``test.trees``:
 
 .. code-block:: console
 
-    $ stdpopsim homsap -c chr22 -o test.trees -g HapmapII_GRCh37  --model ooa_3 2 2 2
+    $ stdpopsim HomSap -c chr22 -o test.trees -g HapMapII_GRCh37 --model OutOfAfrica_3G09 2 2 2
 
 (To learn more about using ``stdpopsim`` via the command-line, read our :ref:`sec_tutorial`
 about it.)
@@ -41,10 +41,12 @@ Then, if you feel ready, make an issue on our
 `GitHub page <https://github.com/popgensims/stdpopsim/issues>`_.
 
 
-.. speciescatalog:: homsap
+.. speciescatalog:: HomSap
 
-.. speciescatalog:: dromel
+.. speciescatalog:: PonPyg
 
-.. speciescatalog:: aratha
+.. speciescatalog:: DroMel
 
-.. speciescatalog:: esccol
+.. speciescatalog:: AraTha
+
+.. speciescatalog:: EscCol

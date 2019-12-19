@@ -16,7 +16,6 @@ import functools
 import msprime
 import tskit
 import humanize
-import daiquiri
 
 import stdpopsim
 
@@ -41,13 +40,16 @@ def exit(message):
     sys.exit(f"{sys.argv[0]}: {message}")
 
 
+LOG_FORMAT = "%(asctime)s [%(process)d] %(levelname)s %(name)s: %(message)s"
+
+
 def setup_logging(args):
     log_level = "WARN"
     if args.verbosity > 0:
         log_level = "INFO"
     if args.verbosity > 1:
         log_level = "DEBUG"
-    daiquiri.setup(level=log_level)
+    logging.basicConfig(format=LOG_FORMAT, level=log_level)
 
 
 def get_species_wrapper(species_id):
@@ -59,7 +61,7 @@ def get_species_wrapper(species_id):
 
 def get_model_wrapper(species, model_id):
     try:
-        return species.get_model(model_id)
+        return species.get_demographic_model(model_id)
     except ValueError as ve:
         exit(str(ve))
 
@@ -79,7 +81,7 @@ def get_models_help(species_id, model_id):
     species = stdpopsim.get_species(species_id)
     if model_id is None:
         models_text = f"\nAll simulation models for {species.name}\n\n"
-        models = [model.id for model in species.models]
+        models = [model.id for model in species.demographic_models]
     else:
         models = [model_id]
         models_text = f"\nModel description\n\n"
@@ -89,8 +91,8 @@ def get_models_help(species_id, model_id):
     wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
     for model_id in models:
         model = get_model_wrapper(species, model_id)
-        models_text += f"{model.id}: {model.name}\n"
-        models_text += wrapper.fill(textwrap.dedent(model.description))
+        models_text += f"{model.id}: {model.description}\n"
+        models_text += wrapper.fill(textwrap.dedent(model.long_description))
         models_text += "\n\n"
 
         models_text += indent + "Populations:\n"
@@ -98,7 +100,7 @@ def get_models_help(species_id, model_id):
         for population in model.populations:
             if population.allow_samples:
                 models_text += indent * 2
-                models_text += f"{population.name}: {population.description}\n"
+                models_text += f"{population.id}: {population.description}\n"
         models_text += "\n"
 
     return models_text
@@ -123,7 +125,7 @@ def get_genetic_maps_help(species_id, genetic_map_id):
     species = stdpopsim.get_species(species_id)
     if genetic_map_id is None:
         maps_text = f"\nAll genetic maps for {species.name}\n\n"
-        maps = [genetic_map.name for genetic_map in species.genetic_maps]
+        maps = [genetic_map.id for genetic_map in species.genetic_maps]
     else:
         maps = [genetic_map_id]
         maps_text = f"\nGenetic map description\n\n"
@@ -131,9 +133,9 @@ def get_genetic_maps_help(species_id, genetic_map_id):
     indent = " " * 4
     wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
     for map_id in maps:
-        map = get_genetic_map_wrapper(species, map_id)
-        maps_text += f"{map.name}\n"
-        maps_text += wrapper.fill(textwrap.dedent(map.description))
+        gmap = get_genetic_map_wrapper(species, map_id)
+        maps_text += f"{gmap.id}\n"
+        maps_text += wrapper.fill(textwrap.dedent(gmap.long_description))
         maps_text += "\n\n"
 
     return maps_text
@@ -232,35 +234,39 @@ def write_output(ts, args):
         ts.dump(args.output)
 
 
-def write_bibtex(engine, model, contig, bibtex_file):
+def get_citations(engine, model, contig, species):
+    """
+    Return a list of all the citations.
+    """
+    citations = engine.citations[:]
+    citations.extend(species.genome.mutation_rate_citations)
+    citations.extend(species.genome.recombination_rate_citations)
+    if contig.genetic_map is not None:
+        citations.extend(contig.genetic_map.citations)
+    citations.extend(model.citations)
+    return stdpopsim.Citation.merge(citations)
+
+
+def write_bibtex(engine, model, contig, species, bibtex_file):
     """
     Write bibtex for available citations to a file."""
-    for citation in engine.citations:
+    citations = get_citations(engine, model, contig, species)
+    for citation in citations:
         bibtex_file.write(citation.fetch_bibtex())
-
-    for citation in model.citations:
-        bibtex_file.write(citation.fetch_bibtex())
+    bibtex_file.close()
 
 
-def write_citations(engine, model, contig):
+def write_citations(engine, model, contig, species):
     """
     Write out citation information so that the user knows what papers to cite
     for the simulation engine, the model and the mutation/recombination rate
     information.
     """
-    printerr = functools.partial(print, file=sys.stderr)
-    printerr("If you use this simulation in published work, please cite:")
-    printerr(f"Simulation engine: {engine.name}")
-    for citation in engine.citations:
-        printerr(f"  {citation}")
-    if contig.genetic_map is not None:
-        printerr(f"Genetic map: {contig.genetic_map.name}")
-        for citation in contig.genetic_map.citations:
-            printerr(f"  {citation}")
-    if len(model.citations) > 0:
-        printerr(f"Simulation model: {model.name}")
-        for citation in model.citations:
-            printerr(f"  {citation}")
+    print("If you use this simulation in published work, please cite:",
+          file=sys.stderr)
+    citations = get_citations(engine, model, contig, species)
+    for citation in citations:
+        citation.print(file=sys.stderr)
 
 
 def summarise_usage():
@@ -304,7 +310,7 @@ def add_simulate_species_parser(parser, species):
             "is provided as an argument show help for this model; otherwise "
             "show help for all available models"))
     species_parser.add_argument(
-        "--bibtex_file",
+        "-b", "--bibtex-file",
         type=argparse.FileType('w'),
         help="Write citations to a given bib file. This will overwrite the file.",
         default=None,
@@ -312,7 +318,7 @@ def add_simulate_species_parser(parser, species):
 
     # Set metavar="" to prevent help text from writing out the explicit list
     # of options, which can be too long and ugly.
-    choices = [gm.name for gm in species.genetic_maps]
+    choices = [gm.id for gm in species.genetic_maps]
     if len(species.genetic_maps) > 0:
         species_parser.add_argument(
             "--help-genetic-maps", action=HelpGeneticMaps, nargs="?",
@@ -324,14 +330,19 @@ def add_simulate_species_parser(parser, species):
     species_parser.add_argument(
         "-q", "--quiet", action='store_true',
         help="Do not write out citation information")
+    species_parser.add_argument(
+        "-D", "--dry-run", action='store_true', default=False,
+        help="Do not run actual simulation")
 
     if len(species.genetic_maps) > 0:
         species_parser.add_argument(
             "-g", "--genetic-map",
             choices=choices, metavar="", default=None,
             help=(
-                "Specify a particular genetic map. If no genetic map is specified "
-                "use a flat map by default. Available maps: "
+                "Specify a particular genetic map. By default, a chromosome-specific "
+                "uniform recombination rate is used. These default rates are listed in "
+                "the catalog: <https://stdpopsim.readthedocs.io/en/latest/catalog.html> "
+                "Available maps: "
                 f"{', '.join(choices)}. "))
 
     if len(species.genome.chromosomes) > 1:
@@ -344,7 +355,8 @@ def add_simulate_species_parser(parser, species):
                 f"Default={choices[0]}."))
     species_parser.add_argument(
         "-l", "--length-multiplier", default=1, type=float,
-        help="Simulate a chromsome of length l times the named chromosome")
+        help="Simulate a sequence of length l times the named chromosome's length, "
+             "using the named chromosome's mutation and recombination rates.")
     species_parser.add_argument(
         "-s", "--seed", default=None, type=int,
         help=(
@@ -355,11 +367,11 @@ def add_simulate_species_parser(parser, species):
     model_help = (
         "Specify a simulation model. If no model is specified, a single population"
         "constant size model is used. Available models:"
-        f"{', '.join(model.id for model in species.models)}"
+        f"{', '.join(model.id for model in species.demographic_models)}"
         ". Please see --help-models for details of these models.")
     species_parser.add_argument(
-        "-m", "--model", default=None, metavar="",
-        choices=[model.id for model in species.models],
+        "-d", "--demographic-model", default=None, metavar="",
+        choices=[model.id for model in species.demographic_models],
         help=model_help)
     species_parser.add_argument(
         "-o", "--output",
@@ -379,11 +391,13 @@ def add_simulate_species_parser(parser, species):
             "populations; those that are omitted are set to zero."))
 
     def run_simulation(args):
-        if args.model is None:
+        if args.demographic_model is None:
             model = stdpopsim.PiecewiseConstantSize(species.population_size)
-            model.citations = species.population_size_citations
+            model.generation_time = species.generation_time
+            model.citations.extend(species.population_size_citations)
+            model.citations.extend(species.generation_time_citations)
         else:
-            model = get_model_wrapper(species, args.model)
+            model = get_model_wrapper(species, args.demographic_model)
         if len(args.samples) > model.num_sampling_populations:
             exit(
                 f"Cannot sample from more than {model.num_sampling_populations} "
@@ -395,21 +409,62 @@ def add_simulate_species_parser(parser, species):
             length_multiplier=args.length_multiplier)
         engine = stdpopsim.get_engine(args.engine)
         logger.info(
-            f"Running simulation model {model.name} for {species.name} on "
-            f"{contig} with {len(samples)} samples using {engine.name}.")
+            f"Running simulation model {model.id} for {species.id} on "
+            f"{contig} with {len(samples)} samples using {engine.id}.")
 
         kwargs = vars(args)
-        kwargs.update(model=model, contig=contig, samples=samples)
-        ts = engine.simulate(**kwargs)
-        summarise_usage()
-        if ts is not None:
-            write_output(ts, args)
+        kwargs.update(demographic_model=model, contig=contig, samples=samples)
         if not args.quiet:
-            write_citations(engine, model, contig)
+            write_simulation_summary(engine=engine, model=model, contig=contig,
+                                     samples=samples, seed=args.seed)
+        if not args.dry_run:
+            ts = engine.simulate(**kwargs)
+            summarise_usage()
+            if ts is not None:
+                write_output(ts, args)
+        if not args.quiet:
+            write_citations(engine, model, contig, species)
         if args.bibtex_file is not None:
-            write_bibtex(engine, model, contig, args.bibtex_file)
+            write_bibtex(engine, model, contig, species, args.bibtex_file)
 
     species_parser.set_defaults(runner=run_simulation)
+
+
+def write_simulation_summary(engine, model, contig, samples, seed=None):
+    # Setup writer
+    printerr = functools.partial(print, file=sys.stderr)
+    indent = " " * 4
+    # Header
+    dry_run_text = "Simulation information:\n"
+    # Get information about the engine
+    dry_run_text += f"{indent}Engine: {engine.id} ({engine.get_version()})\n"
+    # Get information about model
+    dry_run_text += f"{indent}Model id: {model.id}\n"
+    dry_run_text += f"{indent}Model desciption: {model.description}\n"
+    # Add seed information if extant
+    if seed is not None:
+        dry_run_text += f"{indent}Seed: {seed}\n"
+    # Get information about the number of samples
+    dry_run_text += f"{indent}Population: number_samples (sampling_time_generations):\n"
+    sample_counts = [0] * model.num_sampling_populations
+    for s in samples:
+        sample_counts[s.population] += 1
+    for p in range(0, model.num_sampling_populations):
+        pop_name = model.populations[p].id
+        sample_time = model.populations[p].sampling_time
+        dry_run_text += f"{indent * 2}{pop_name}: "
+        dry_run_text += f"{sample_counts[p]} ({sample_time})\n"
+    # Get information about relevant contig
+    gmap = "None" if contig.genetic_map is None else contig.genetic_map.id
+    mean_recomb_rate = contig.recombination_map.mean_recombination_rate
+    mut_rate = contig.mutation_rate
+    contig_len = contig.recombination_map.get_length()
+    dry_run_text += f"Contig Description:\n"
+    dry_run_text += f"{indent}Contig length: {contig_len}\n"
+    dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"
+    dry_run_text += f"{indent}Mean mutation rate: {mut_rate}\n"
+    dry_run_text += f"{indent}Genetic map: {gmap}\n"
+    printerr(dry_run_text)
 
 
 def run_download_genetic_maps(args):
@@ -419,7 +474,7 @@ def run_download_genetic_maps(args):
     for species_id in species_names:
         species = get_species_wrapper(species_id)
         if len(args.genetic_maps) == 0:
-            genetic_maps = [gmap.name for gmap in species.genetic_maps]
+            genetic_maps = [gmap.id for gmap in species.genetic_maps]
         else:
             genetic_maps = args.genetic_maps
         for genetic_map_id in genetic_maps:
@@ -456,7 +511,7 @@ def stdpopsim_cli_parser():
 
     for engine in stdpopsim.all_engines():
         group = top_parser.add_argument_group(
-                f"{engine.name} specific parameters")
+                f"{engine.id} specific parameters")
         engine.add_arguments(group)
 
     subparsers = top_parser.add_subparsers(dest="subcommand")

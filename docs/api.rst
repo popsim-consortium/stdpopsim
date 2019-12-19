@@ -32,7 +32,7 @@ accessed through the main entrypoint, :func:`.get_species`.
 .. autoclass:: stdpopsim.GeneticMap
     :members:
 
-.. autoclass:: stdpopsim.Model
+.. autoclass:: stdpopsim.DemographicModel
     :members:
 
 .. autoclass:: stdpopsim.Citation
@@ -53,7 +53,7 @@ these models.
 
 .. autoclass:: stdpopsim.PiecewiseConstantSize
 
-.. autoclass:: stdpopsim.GenericIM
+.. autoclass:: stdpopsim.IsolationWithMigration
 
 
 *****************
@@ -68,4 +68,3 @@ accessed through the main entrypoint, :func:`.get_engine`.
 
 .. autoclass:: stdpopsim.Engine
     :members:
-
