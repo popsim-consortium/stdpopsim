@@ -26,6 +26,16 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
   - conda install --yes --file=requirements/conda-minimal.txt
+  # pyslim is not yet on conda-forge.
+  - pip install pyslim
+
+  # build SLiM
+  - wget http://benhaller.com/slim/SLiM.zip
+  - unzip SLiM.zip
+  - mkdir SLiM/build
+  - cd SLiM/build && cmake .. && make
+  - cp slim $HOME/miniconda/bin/
+  - cd ../../
 
 script:
   - nosetests -vs tests
