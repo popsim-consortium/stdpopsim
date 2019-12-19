@@ -3,6 +3,7 @@ Common infrastructure for specifying demographic models.
 """
 import sys
 
+import attr
 import msprime
 import numpy as np
 
@@ -113,8 +114,8 @@ class Population(object):
     """
     Class recording metadata representing a population in a simulation.
 
-    :ivar name: the name of the population
-    :vartype name: str
+    :ivar id: The id of the population.
+    :vartype id: str
     :ivar description: a short description of the population
     :vartype description: str
     :ivar sampling_time: an integer value which indicates how many
@@ -123,9 +124,8 @@ class Population(object):
         population (default = 0).
     :vartype sampling_time: int
     """
-    # TODO change this to use the usual id, name combination
-    def __init__(self, name, description, sampling_time=0):
-        self.name = name
+    def __init__(self, id, description, sampling_time=0):
+        self.id = id
         self.description = description
         self.sampling_time = sampling_time
 
@@ -137,37 +137,59 @@ class Population(object):
         """
         Returns a dictionary representing the metadata about this population.
         """
-        return {"name": self.name, "description": self.description,
+        return {"id": self.id, "description": self.description,
                 "sampling_time": self.sampling_time}
 
 
-class Model(object):
+@attr.s(kw_only=True)
+class DemographicModel(object):
     """
-    Class representing a simulation model that can be run to output a tree sequence.
-    Concrete subclasses must define population_configurations, demographic_events
-    and migration_matrix instance variables which define the model.
+    Class representing a demographic model.
 
-    :ivar id: The unique identifier for this model. Model IDs should be
-        short and memorable, perhaps as an abbreviation of the model's
-        name.
+    This class is indended to be used by model implementors. To instead
+    obtain a pre-specified model, see :class:`Species.get_demographic_model`.
+
+    :ivar id: The unique identifier for this model. DemographicModel IDs should be
+        short and memorable, perhaps as an abbreviation of the model's name.
     :vartype id: str
-    :ivar name: The informal name for this model as it would be used in
-        written text, e.g., "Three population Out-of-Africa"
-    :vartype informal_name: str
-    """
-    # TODO the infrastructure here is left over from a structure that
-    # rigidly used class definitions as a way to define population
-    # models. This contructor should take all the instance variables
-    # as parameteters, and we should use factory functions to define
-    # the model instances that are added to the catalog rather than
-    # subclasses.
+    :ivar description: A short description of this model as it would be used in
+        written text, e.g., "Three population Out-of-Africa". This should
+        describe the model itself and not contain author or year information.
+    :vartype description: str
+    :ivar long_description: A concise, but detailed, summary of the model.
+    :vartype long_description: str
+    :ivar generation_time: Mean inter-generation interval, in years.
+    :vartype generation_time: int
+    :ivar populations: TODO
+    :vartype populations: list of :class:`.Population`
 
-    def __init__(self):
-        self.population_configurations = []
-        self.demographic_events = []
-        # Defaults to a single population
-        self.migration_matrix = [[0]]
-        self.generation_time = -1
+    :ivar citations: TODO
+    :vartype citations: list of :class:`.Citation`
+    :ivar demographic_events: TODO
+    :vartype demographic_events: list of :class:`msprime.DemographicEvent`
+    :ivar population_configurations: TODO
+    :vartype population_configurations: list of :class:`msprime.PopulationConfiguration`
+    :ivar migration_matrix: TODO
+    :vartype migration_matrix: list of list of int
+    """
+
+    # required attributes
+    id = attr.ib(type=str)
+    description = attr.ib(type=str)
+    long_description = attr.ib(type=str)
+    generation_time = attr.ib(type=int)
+    populations = attr.ib(type=list)
+
+    # optional attributes
+    citations = attr.ib(factory=list)
+    demographic_events = attr.ib(factory=list)
+    population_configurations = attr.ib(factory=list)
+    migration_matrix = attr.ib()
+
+    @migration_matrix.default
+    def _migration_matrix_default(self):
+        npops = len(self.population_configurations)
+        return [[0]*npops]*npops
 
     @property
     def num_populations(self):
@@ -176,6 +198,19 @@ class Model(object):
     @property
     def num_sampling_populations(self):
         return sum(int(pop.allow_samples) for pop in self.populations)
+
+    @staticmethod
+    def empty(**kwargs):
+        """
+        Return a model with the mandatory attributes filled out.
+        """
+        kwargs.update(
+                id=kwargs.get("id", ""),
+                description=kwargs.get("description", ""),
+                long_description=kwargs.get("long_description", ""),
+                populations=kwargs.get("populations", []),
+                generation_time=kwargs.get("generation_time", -1))
+        return DemographicModel(**kwargs)
 
     def equals(self, other, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
         """
@@ -213,10 +248,7 @@ class Model(object):
     def debug(self, out_file=sys.stdout):
         # Use the demography debugger to print out the demographic history
         # that we have just described.
-        dd = msprime.DemographyDebugger(
-            population_configurations=self.population_configurations,
-            migration_matrix=self.migration_matrix,
-            demographic_events=self.demographic_events)
+        dd = self.get_demography_debugger()
         dd.print_history(out_file)
 
     def get_samples(self, *args):
@@ -241,15 +273,30 @@ class Model(object):
                                  f" {pop_index}")
         return samples
 
+    def get_demography_debugger(self):
+        """
+        Returns an :class:`msprime.DemographyDebugger` instance initialized
+        with the parameters for this model. Please see the msprime documentation
+        for details on how to use a DemographyDebugger.
+
+        :return: A DemographyDebugger instance for this DemographicModel.
+        :rtype: msprime.DemographyDebugger
+        """
+        ddb = msprime.DemographyDebugger(
+            population_configurations=self.population_configurations,
+            migration_matrix=self.migration_matrix,
+            demographic_events=self.demographic_events)
+        return ddb
+
 
 # Reusable generic populations
-_pop0 = Population(name="pop0", description="Generic population")
-_pop1 = Population(name="pop1", description="Generic population")
-_popAnc = Population(name="popAnc", description="Generic ancestral population",
+_pop0 = Population(id="pop0", description="Generic population")
+_pop1 = Population(id="pop1", description="Generic population")
+_popAnc = Population(id="popAnc", description="Generic ancestral population",
                      sampling_time=None)
 
 
-class PiecewiseConstantSize(Model):
+class PiecewiseConstantSize(DemographicModel):
     """
     Class representing a generic simulation model that can be run to output a
     tree sequence. This is a piecewise constant size model, which allows for
@@ -268,8 +315,7 @@ class PiecewiseConstantSize(Model):
         model2 = stdpopsim.PiecewiseConstantSize(N0, (t1, N1), (t2, N2)) # Two changes
     """
 
-    id = "constant"
-    name = "Piecewise constant size"
+    id = "PiecewiseConstant"
     description = "Piecewise constant size population model over multiple epochs."
     citations = []
     populations = [_pop0]
@@ -289,7 +335,7 @@ class PiecewiseConstantSize(Model):
                 time=t, initial_size=N, growth_rate=0, population_id=0))
 
 
-class GenericIM(Model):
+class IsolationWithMigration(DemographicModel):
     """
     Class representing a generic simulation model that can be run to output a tree
     sequence. A generic isolation with migration model where a single ancestral
@@ -316,11 +362,10 @@ class GenericIM(Model):
 
     .. code-block:: python
 
-        model1 = stdpopsim.GenericIM(NA, N1, N2, T, M12, M21)
+        model1 = stdpopsim.IsolationWithMigration(NA, N1, N2, T, M12, M21)
 
     """
-    id = "IM"
-    name = "Isolation with migration"
+    id = "IsolationWithMigration"
     description = """
         A generic isolation with migration model where a single ancestral
         population of size NA splits into two populations of constant size N1

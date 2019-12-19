@@ -216,7 +216,7 @@ function (void)setup(void) {
 def slim_makescript(
         script_file,
         trees_file,
-        model,
+        demographic_model,
         samples,
         Q,
         check_coalescence,
@@ -234,7 +234,7 @@ def slim_makescript(
     if len(recombination_map.get_positions()) > 2:
         raise Exception("recombination_map not supported")
 
-    pop_names = [pc.metadata["name"] for pc in population_configurations]
+    pop_names = [pc.metadata["id"] for pc in population_configurations]
 
     # The demography debugger constructs event epochs, which we use
     # to define the forwards-time events.
@@ -306,10 +306,10 @@ def slim_makescript(
     printsc('/*')
     printsc(' * stdpopsim ' + stdpopsim.__version__)
     printsc(' *')
-    printsc(' * Simulation model: ' + model.name)
+    printsc(' * Demographic model: ' + demographic_model.id)
     printsc(' * ' + "\n * ".join(
-        [line.strip() for line in model.description.split('\n')]))
-    for citation in model.citations:
+        [line.strip() for line in demographic_model.description.split('\n')]))
+    for citation in demographic_model.citations:
         printsc(' * ' + str(citation))
     printsc(' */')
 
@@ -465,7 +465,7 @@ def simplify_remembered(ts):
 
 
 def slim_simulate(
-        model,
+        demographic_model,
         samples,
         mutation_rate,
         generation_time,
@@ -500,7 +500,7 @@ def slim_simulate(
 
         slim_makescript(script_file,
                         trees_file.name,
-                        model=model,
+                        demographic_model=demographic_model,
                         samples=samples,
                         Q=Q,
                         check_coalescence=check_coalescence,
@@ -548,26 +548,28 @@ class _SLiMEngine(stdpopsim.Engine):
             stdpopsim.Citation(
                 doi="https://doi.org/10.1111/1755-0998.12968",
                 year=2019,
-                author="Haller et al."),
+                author="Haller et al.",
+                reasons={stdpopsim.CiteReason.ENGINE}),
             ]
 
     def get_version(self):
         s = subprocess.check_output(["slim", "-v"])
         return s.split()[2].decode("ascii").rstrip(",")
 
-    def simulate(self, contig=None, model=None, samples=None,
+    def simulate(self, contig=None, demographic_model=None, samples=None,
                  seed=None, verbosity=0,
                  slim_script_file=None, slim_rescale=10, slim_no_burnin=False,
                  **kwargs):
         return slim_simulate(
-                    model=model,
+                    demographic_model=demographic_model,
                     samples=samples,
                     recombination_map=contig.recombination_map,
                     mutation_rate=contig.mutation_rate,
-                    generation_time=model.generation_time,
-                    population_configurations=model.population_configurations,
-                    migration_matrix=model.migration_matrix,
-                    demographic_events=model.demographic_events,
+                    generation_time=demographic_model.generation_time,
+                    population_configurations=(
+                            demographic_model.population_configurations),
+                    migration_matrix=demographic_model.migration_matrix,
+                    demographic_events=demographic_model.demographic_events,
                     slim_script_file=slim_script_file,
                     Q=slim_rescale,
                     check_coalescence=not slim_no_burnin,

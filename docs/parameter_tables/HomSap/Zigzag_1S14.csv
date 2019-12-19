@@ -1,0 +1,14 @@
+Population size,"1,431",Ancient pop. size
+Population size,"14,312",Recent pop. size
+Growth rate (per gen.),"8.99448 x10^(-5)",Growth rate for 1st growth
+Growth rate (per gen.),-0.00035977,Growth rate for 1st decline
+Growth rate (per gen.),0.0014391,Growth rate for 2nd growth
+Growth rate (per gen.),-0.005756,Growth rate for 2rd decline
+Growth rate (per gen.),0.023025,Growth rate for 3st growth
+Time (gen.),"34,133.31",Begining of 1st growth
+Time (gen.),"8,533.33",Begining of 1st decline
+Time (gen.),"2,133.33",Begining of 2nd growth
+Time (gen.),533.33,Begining of 2nd decline
+Time (gen.),33.333,Begining of 3rd growth
+Time (gen.),133.33,End of 3rd growth
+Generation time (yrs.),29,Generation time

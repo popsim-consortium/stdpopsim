@@ -6,10 +6,10 @@ setuptools_scm
 sphinx
 sphinx-argparse
 sphinx_rtd_theme
+sphinxcontrib-programoutput
 msprime
 kastore
 attrs
 appdirs
-daiquiri
 humanize
 pyslim

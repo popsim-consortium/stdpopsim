@@ -10,10 +10,10 @@ from qc import drosophlia_melanogaster_qc
 
 
 class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
-    species = stdpopsim.get_species("dromel")
+    species = stdpopsim.get_species("DroMel")
 
     def test_basic_attributes(self):
-        self.assertEqual(self.species.population_size, 10**4)
+        self.assertEqual(self.species.population_size, 1720600)
         self.assertEqual(self.species.generation_time, 0.1)
 
 
@@ -21,7 +21,7 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     """
     Tests for the drosophila_melanogaster genome.
     """
-    genome = stdpopsim.get_species("dromel").genome
+    genome = stdpopsim.get_species("DroMel").genome
 
     def test_basic_attributes(self):
         self.assertEqual(len(self.genome.chromosomes), 8)
@@ -39,11 +39,16 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         self.assertEqual(genome.get_chromosome("chrY").length, 3667352)
 
 
-class TestSheehanSongThreeEpoch(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = stdpopsim.drosophila_melanogaster._SheehanSongThreeEpoch()
+species = stdpopsim.get_species("DroMel")
+
+
+class TestSheehanSongThreeEpoch(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("African3Epoch_1S16")
     qc_model = drosophlia_melanogaster_qc.SheehanSongThreeEpic()
 
 
-class TestLiStephanTwoPopulation(unittest.TestCase, test_models.QcdModelTestMixin):
-    model = stdpopsim.drosophila_melanogaster._LiStephanTwoPopulation()
+class TestLiStephanTwoPopulation(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("OutOfAfrica_2L06")
     qc_model = drosophlia_melanogaster_qc.LiStephanTwoPopulation()

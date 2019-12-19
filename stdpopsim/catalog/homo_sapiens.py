@@ -53,23 +53,52 @@ chrX 	 155270560 	 1.164662223273842e-08
 chrY 	 59373566 	 0.0
 """
 
+_tian2019 = stdpopsim.Citation(
+    doi="https://doi.org/10.1016/j.ajhg.2019.09.012",
+    year="2019",
+    author="Tian, Browning, and Browning",
+    reasons={stdpopsim.CiteReason.MUT_RATE}
+)
+
+_tremblay2000 = stdpopsim.Citation(
+    doi="https://doi.org/10.1086/302770",
+    year="2000",
+    author="Tremblay and Vezina",
+    reasons={stdpopsim.CiteReason.GEN_TIME}
+)
+
+_takahata1993 = stdpopsim.Citation(
+    doi="https://doi.org/10.1093/oxfordjournals.molbev.a039995",
+    year="1993",
+    author="Takahata",
+    reasons={stdpopsim.CiteReason.POP_SIZE}
+)
+
 _chromosomes = []
 for line in _chromosome_data.splitlines():
     name, length, mean_rr = line.split()[:3]
     _chromosomes.append(stdpopsim.Chromosome(
         id=name, length=int(length),
-        mutation_rate=1e-8,  # WRONG!,
+        mutation_rate=1.29e-8,
         recombination_rate=float(mean_rr)))
 
-_genome = stdpopsim.Genome(chromosomes=_chromosomes)
+_genome = stdpopsim.Genome(
+        chromosomes=_chromosomes,
+        mutation_rate_citations=[
+            _tian2019.because(stdpopsim.CiteReason.MUT_RATE)])
 
 _species = stdpopsim.Species(
-    id="homsap",
+    id="HomSap",
     name="Homo sapiens",
+    common_name="Human",
     genome=_genome,
-    # TODO reference for these
-    generation_time=25,
-    population_size=10**4)
+    generation_time=30,
+    generation_time_citations=[
+        _tremblay2000.because(stdpopsim.CiteReason.GEN_TIME)],
+    population_size=10**4,
+    population_size_citations=[
+        _takahata1993.because(stdpopsim.CiteReason.POP_SIZE)]
+    )
 
 stdpopsim.register_species(_species)
 
@@ -83,43 +112,56 @@ stdpopsim.register_species(_species)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    name="HapmapII_GRCh37",
+    id="HapMapII_GRCh37",
+    description="HapMap Phase II lifted over to GRCh37",
+    long_description="""
+        This genetic map is from the Phase II Hapmap project
+        and based on 3.1 million genotyped SNPs
+        from 270 individuals across four populations (YRI, CEU, CHB and JPT).
+        Genome wide recombination rates were estimated using LDHat.
+        This version of the HapMap genetic map was lifted over to GRCh37
+        (and adjusted in regions where the genome assembly had rearranged)
+        for use in the 1000 Genomes project. Please see the README file on
+        the 1000 Genomes download site for details of these adjustments.
+        """,
     url=(
         "https://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
         "20110106_recombination_hotspots/"
         "HapmapII_GRCh37_RecombinationHotspots.tar.gz"),
-    file_pattern="genetic_map_GRCh37_{name}.txt",
-    description=(
-        "The Phase II HapMap Genetic map (lifted over to GRCh37) used in "
-        "1000 Genomes. Please see the README for more details."),
+    file_pattern="genetic_map_GRCh37_{id}.txt",
     citations=[
         stdpopsim.Citation(
             doi="https://doi.org/10.1038/nature06258",
             year=2007,
-            author="1000 Genomes Project consortium"),
+            author="The International HapMap Consortium",
+            reasons={stdpopsim.CiteReason.GEN_MAP}),
         ]
     )
 _species.add_genetic_map(_gm)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
-    name="Decode_2010_sex_averaged",
+    id="DeCodeSexAveraged_GRCh36",
+    description="Sex averaged map from deCode family study",
+    long_description="""
+        This genetic map is from the deCode study of recombination
+        events in 15,257 parent-offspring pairs from Iceland.
+        289,658 phased autosomal SNPs were used to call recombinations
+        within these families, and recombination rates computed from the
+        density of these events. This is the combined male and female
+        (sex averaged) map. See
+        https://www.decode.com/addendum/ for more details.""",
     url=(
         "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
         "decode_2010_sex-averaged_map.tar.gz"),
-    file_pattern="genetic_map_decode_2010_sex-averaged_{name}.txt",
-    description=(
-        "Decode fine scale genetic map from Kong, A et al. Fine scale "
-        "recombination rate differences between sexes, populations and "
-        "individuals. Nature (28 October 2010). "),
+    file_pattern="genetic_map_decode_2010_sex-averaged_{id}.txt",
     citations=[
         stdpopsim.Citation(
             year=2010,
             author="Kong et al",
-            doi="https://doi.org/10.1038/nature09525")]
+            doi="https://doi.org/10.1038/nature09525",
+            reasons={stdpopsim.CiteReason.GEN_MAP})]
     )
-# TODO add a URL citation (see above) here for this:
-# "Please see https://www.decode.com/addendum/ for more details."),
 _species.add_genetic_map(_gm)
 
 
@@ -131,47 +173,29 @@ _species.add_genetic_map(_gm)
 
 # population definitions that are reused.
 _yri_population = stdpopsim.Population(
-    name="YRI",
+    id="YRI",
     description="1000 Genomes YRI (Yorubans)")
 _ceu_population = stdpopsim.Population(
-    name="CEU",
+    id="CEU",
     description=(
         "1000 Genomes CEU (Utah Residents (CEPH) with Northern and "
         "Western European Ancestry"))
 _chb_population = stdpopsim.Population(
-    name="CHB",
+    id="CHB",
     description="1000 Genomes CHB (Han Chinese in Beijing, China)")
 
 
 _tennessen_et_al = stdpopsim.Citation(
     author="Tennessen et al.",
     year=2012,
-    doi="https://doi.org/10.1126/science.1219240")
+    doi="https://doi.org/10.1126/science.1219240",
+    reasons={stdpopsim.CiteReason.DEM_MODEL})
 
 
-# TODO: remove this superclass
-class HomoSapiensModel(stdpopsim.Model):
-    species = _species
-    """
-    TODO: documentation
-    """
-    def __init__(self):
-        super().__init__()
-        self.generation_time = _species.generation_time
-
-
-# TODO we want to move away from defining these as classes which
-# can be instantiated and rather to creating *instances* of the Model
-# class which has this behaviour. However, it's not clear what form
-# the refactored versions would have. Marking these classes with a
-# __ to emphasise that they're not supposed to be used externally
-# like this, but should be found via the species catalog.
-
-
-class _GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
-    id = "ooa_3"
-    name = "Three population out-of-Africa"
-    description = """
+def _ooa_3():
+    id = "OutOfAfrica_3G09"
+    description = "Three population out-of-Africa"
+    long_description = """
         The three population Out-of-Africa model from Gutenkunst et al. 2009.
         It describes the ancestral human population in Africa, the out of Africa
         event, and the subsequent European-Asian population split.
@@ -187,55 +211,63 @@ class _GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
     citations = [stdpopsim.Citation(
         author="Gutenkunst et al.",
         year=2009,
-        doi="https://doi.org/10.1371/journal.pgen.1000695")
+        doi="https://doi.org/10.1371/journal.pgen.1000695",
+        reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
-    def __init__(self):
-        super().__init__()
-        # First we set out the maximum likelihood values of the various parameters
-        # given in Table 1.
-        N_A = 7300
-        N_B = 2100
-        N_AF = 12300
-        N_EU0 = 1000
-        N_AS0 = 510
-        # Times are provided in years, so we convert into generations.
+    generation_time = 25
 
-        # self.generation_time = default_generation_time
-        T_AF = 220e3 / self.generation_time
-        T_B = 140e3 / self.generation_time
-        T_EU_AS = 21.2e3 / self.generation_time
-        # We need to work out the starting (diploid) population sizes based on
-        # the growth rates provided for these two populations
-        r_EU = 0.004
-        r_AS = 0.0055
-        N_EU = N_EU0 / math.exp(-r_EU * T_EU_AS)
-        N_AS = N_AS0 / math.exp(-r_AS * T_EU_AS)
-        # Migration rates during the various epochs.
-        m_AF_B = 25e-5
-        m_AF_EU = 3e-5
-        m_AF_AS = 1.9e-5
-        m_EU_AS = 9.6e-5
+    # First we set out the maximum likelihood values of the various parameters
+    # given in Table 1.
+    N_A = 7300
+    N_B = 2100
+    N_AF = 12300
+    N_EU0 = 1000
+    N_AS0 = 510
+    # Times are provided in years, so we convert into generations.
+
+    T_AF = 220e3 / generation_time
+    T_B = 140e3 / generation_time
+    T_EU_AS = 21.2e3 / generation_time
+    # We need to work out the starting (diploid) population sizes based on
+    # the growth rates provided for these two populations
+    r_EU = 0.004
+    r_AS = 0.0055
+    N_EU = N_EU0 / math.exp(-r_EU * T_EU_AS)
+    N_AS = N_AS0 / math.exp(-r_AS * T_EU_AS)
+    # Migration rates during the various epochs.
+    m_AF_B = 25e-5
+    m_AF_EU = 3e-5
+    m_AF_AS = 1.9e-5
+    m_EU_AS = 9.6e-5
+
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=generation_time,
 
         # Population IDs correspond to their indexes in the population
         # configuration array. Therefore, we have 0=YRI, 1=CEU and 2=CHB
         # initially.
-        self.population_configurations = [
+        population_configurations=[
             msprime.PopulationConfiguration(
-                initial_size=N_AF, metadata=self.populations[0].asdict()),
+                initial_size=N_AF, metadata=populations[0].asdict()),
             msprime.PopulationConfiguration(
                 initial_size=N_EU, growth_rate=r_EU,
-                metadata=self.populations[1].asdict()),
+                metadata=populations[1].asdict()),
             msprime.PopulationConfiguration(
                 initial_size=N_AS, growth_rate=r_AS,
-                metadata=self.populations[2].asdict()),
-        ]
-        self.migration_matrix = [
+                metadata=populations[2].asdict()),
+        ],
+        migration_matrix=[
             [      0, m_AF_EU, m_AF_AS],  # noqa
             [m_AF_EU,       0, m_EU_AS],  # noqa
             [m_AF_AS, m_EU_AS,       0],  # noqa
-        ]
-        self.demographic_events = [
+        ],
+        demographic_events=[
             # CEU and CHB merge into B with rate changes at T_EU_AS
             msprime.MassMigration(
                 time=T_EU_AS, source=2, destination=1, proportion=1.0),
@@ -252,78 +284,83 @@ class _GutenkunstThreePopOutOfAfrica(HomoSapiensModel):
             # Size changes to N_A at T_AF
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0)
-        ]
+        ],
+        )
 
 
-_species.add_model(_GutenkunstThreePopOutOfAfrica())
+_species.add_demographic_model(_ooa_3())
 
 
-class _TennessenTwoPopOutOfAfrica(HomoSapiensModel):
-    id = "ooa_2"
-    name = "Two population out-of-Africa"
-    description = """
+def _ooa_2():
+    id = "OutOfAfrica_2T12"
+    description = "Two population out-of-Africa"
+    long_description = """
         The model is derived from the Tennesen et al. analysis of the
         jSFS from European Americans and African Americans.
         It describes the ancestral human population in Africa, the out of Africa event,
         and two distinct periods of subsequent European population growth over the past
         23kya. Model parameters are taken from Fig. S5 in Fu et al.
     """
-
     populations = [
-        stdpopsim.Population(name="AFR", description="African Americans"),
-        stdpopsim.Population(name="EUR", description="European Americans")
+        stdpopsim.Population(id="AFR", description="African Americans"),
+        stdpopsim.Population(id="EUR", description="European Americans")
     ]
     citations = [
         _tennessen_et_al,
         stdpopsim.Citation(
             author="Fu et al.",
             year=2013,
-            doi="https://doi.org/10.1038 nature11690")
+            doi="https://doi.org/10.1038/nature11690",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
-    def __init__(self):
-        super().__init__()
+    generation_time = 25
 
-        T_AF = 148e3 / self.generation_time
-        T_OOA = 51e3 / self.generation_time
-        T_EU0 = 23e3 / self.generation_time
-        T_EG = 5115 / self.generation_time
+    T_AF = 148e3 / generation_time
+    T_OOA = 51e3 / generation_time
+    T_EU0 = 23e3 / generation_time
+    T_EG = 5115 / generation_time
 
-        # Growth rates
-        r_EU0 = 0.00307
-        r_EU = 0.0195
-        r_AF = 0.0166
+    # Growth rates
+    r_EU0 = 0.00307
+    r_EU = 0.0195
+    r_AF = 0.0166
 
-        # population sizes
-        N_A = 7310
-        N_AF1 = 14474
-        N_B = 1861
-        N_EU0 = 1032
-        N_EU1 = N_EU0 / math.exp(-r_EU0 * (T_EU0-T_EG))
+    # population sizes
+    N_A = 7310
+    N_AF1 = 14474
+    N_B = 1861
+    N_EU0 = 1032
+    N_EU1 = N_EU0 / math.exp(-r_EU0 * (T_EU0-T_EG))
 
-        # migration rates
-        m_AF_B = 15e-5
-        m_AF_EU = 2.5e-5
+    # migration rates
+    m_AF_B = 15e-5
+    m_AF_EU = 2.5e-5
 
-        # present Ne
-        N_EU = N_EU1 / math.exp(-r_EU * T_EG)
-        N_AF = N_AF1 / math.exp(-r_AF * T_EG)
+    # present Ne
+    N_EU = N_EU1 / math.exp(-r_EU * T_EG)
+    N_AF = N_AF1 / math.exp(-r_AF * T_EG)
 
-        self.population_configurations = [
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=generation_time,
+        population_configurations=[
             msprime.PopulationConfiguration(
                 initial_size=N_AF, growth_rate=r_AF,
-                metadata=self.populations[0].asdict()),
+                metadata=populations[0].asdict()),
             msprime.PopulationConfiguration(
                 initial_size=N_EU, growth_rate=r_EU,
-                metadata=self.populations[1].asdict())
-        ]
-
-        self.migration_matrix = [
+                metadata=populations[1].asdict())
+        ],
+        migration_matrix=[
             [0, m_AF_EU],
             [m_AF_EU, 0],
-        ]
-
-        self.demographic_events = [
+        ],
+        demographic_events=[
             msprime.MigrationRateChange(
                 time=T_EG, rate=m_AF_EU, matrix_index=(0, 1)),
             msprime.MigrationRateChange(
@@ -342,66 +379,69 @@ class _TennessenTwoPopOutOfAfrica(HomoSapiensModel):
                 time=T_OOA, source=1, destination=0, proportion=1.0),
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0)
-        ]
+        ],
+        )
 
 
-_species.add_model(_TennessenTwoPopOutOfAfrica())
+_species.add_demographic_model(_ooa_2())
 
 
-class _TennessenOnePopAfrica(HomoSapiensModel):
-    id = "african"
-    name = "African population"
-    description = """
+def _african():
+    id = "Africa_1T12"
+    description = "African population"
+    long_description = """
         The model is a simplification of the two population Tennesen et al.
         model with the European-American population removed so that we are
         modeling the African population in isolation.
     """
     populations = [
-        stdpopsim.Population(name="AFR", description="African"),
+        stdpopsim.Population(id="AFR", description="African"),
     ]
     citations = [_tennessen_et_al]
 
-    def __init__(self):
-        super().__init__()
+    generation_time = 25
 
-        T_AF = 148e3 / self.generation_time
-        T_EG = 5115 / self.generation_time
+    T_AF = 148e3 / generation_time
+    T_EG = 5115 / generation_time
 
-        # Growth rate
-        r_AF = 0.0166
+    # Growth rate
+    r_AF = 0.0166
 
-        # population sizes
-        N_A = 7310
-        N_AF1 = 14474
+    # population sizes
+    N_A = 7310
+    N_AF1 = 14474
 
-        # present Ne
-        N_AF = N_AF1 / math.exp(-r_AF * T_EG)
+    # present Ne
+    N_AF = N_AF1 / math.exp(-r_AF * T_EG)
 
-        self.population_configurations = [
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=generation_time,
+        population_configurations=[
             msprime.PopulationConfiguration(
                 initial_size=N_AF, growth_rate=r_AF,
-                metadata=self.populations[0].asdict()),
-        ]
-
-        self.migration_matrix = [
-            [0]
-        ]
-
-        self.demographic_events = [
+                metadata=populations[0].asdict()),
+        ],
+        demographic_events=[
             msprime.PopulationParametersChange(
                 time=T_EG, growth_rate=0, initial_size=N_AF1, population_id=0),
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0)
-        ]
+        ],
+        )
 
 
-_species.add_model(_TennessenOnePopAfrica())
+_species.add_demographic_model(_african())
 
 
-class _BrowningAmerica(HomoSapiensModel):
-    id = "america"
-    name = "American admixture"
-    description = """
+def _america():
+    id = "AmericanAdmixture_4B11"
+    description = "American admixture"
+    long_description = """
         Demographic model for American admixture, taken from Browning et al. 2011.
         This model extends the Gravel et al. (2011) model of African/European/Asian
         demographic history to simulate an admixed population with admixture
@@ -409,111 +449,123 @@ class _BrowningAmerica(HomoSapiensModel):
         of 30,000 and grew at a rate of 5% per generation, with 1/6 of the
         population of African ancestry, 1/3 European, and 1/2 Asian.
     """
-
     populations = [
-        stdpopsim.Population(name="AFR", description="Contemporary African population"),
-        stdpopsim.Population(name="EUR", description="Contemporary European population"),
-        stdpopsim.Population(name="ASIA", description="Contemporary Asian population"),
+        stdpopsim.Population(id="AFR", description="Contemporary African population"),
+        stdpopsim.Population(id="EUR", description="Contemporary European population"),
+        stdpopsim.Population(id="ASIA", description="Contemporary Asian population"),
         stdpopsim.Population(
-            name="ADMIX", description="Modern admixed population"),
+            id="ADMIX", description="Modern admixed population"),
     ]
 
     citations = [
         stdpopsim.Citation(
             author="Browning et al.",
             year=2011,
-            doi="http://dx.doi.org/10.1371/journal.pgen.1007385")
+            doi="http://dx.doi.org/10.1371/journal.pgen.1007385",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
-    def __init__(self):
-        super().__init__()
-        # Model code was ported from Supplementary File 1.
-        N0 = 7310  # initial population size
-        Thum = 5920  # time (gens) of advent of modern humans
-        Naf = 14474  # size of african population
-        Tooa = 2040  # number of generations back to Out of Africa
-        Nb = 1861  # size of out of Africa population
-        mafb = 1.5e-4  # migration rate Africa and Out-of-Africa
-        Teu = 920  # number generations back to Asia-Europe split
-        Neu = 1032  # bottleneck population sizes
-        Nas = 554
-        mafeu = 2.5e-5  # mig. rates
-        mafas = 7.8e-6
-        meuas = 3.11e-5
-        reu = 0.0038  # growth rate per generation in Europe
-        ras = 0.0048  # growth rate per generation in Asia
-        Tadmix = 12  # time of admixture
-        Nadmix = 30000  # initial size of admixed population
-        radmix = .05  # growth rate of admixed population
-        # pop0 is Africa, pop1 is Europe, pop2 is Asia,  pop3 is admixed
+    generation_time = 25
 
-        self.population_configurations = [
-            msprime.PopulationConfiguration(
-                initial_size=Naf, growth_rate=0.0,
-                metadata=self.populations[0].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=Neu*math.exp(reu*Teu), growth_rate=reu,
-                metadata=self.populations[1].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=Nas*math.exp(ras*Teu), growth_rate=ras,
-                metadata=self.populations[2].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=Nadmix*math.exp(radmix*Tadmix), growth_rate=radmix,
-                metadata=self.populations[3].asdict())
-        ]
+    # Model code was ported from Supplementary File 1.
+    N0 = 7310  # initial population size
+    Thum = 5920  # time (gens) of advent of modern humans
+    Naf = 14474  # size of african population
+    Tooa = 2040  # number of generations back to Out of Africa
+    Nb = 1861  # size of out of Africa population
+    mafb = 1.5e-4  # migration rate Africa and Out-of-Africa
+    Teu = 920  # number generations back to Asia-Europe split
+    Neu = 1032  # bottleneck population sizes
+    Nas = 554
+    mafeu = 2.5e-5  # mig. rates
+    mafas = 7.8e-6
+    meuas = 3.11e-5
+    reu = 0.0038  # growth rate per generation in Europe
+    ras = 0.0048  # growth rate per generation in Asia
+    Tadmix = 12  # time of admixture
+    Nadmix = 30000  # initial size of admixed population
+    radmix = .05  # growth rate of admixed population
+    # pop0 is Africa, pop1 is Europe, pop2 is Asia,  pop3 is admixed
 
-        self.migration_matrix = [
-            [0, mafeu, mafas, 0],
-            [mafeu, 0, meuas, 0],
-            [mafas, meuas, 0, 0],
-            [0, 0, 0, 0]
-        ]
-        # Admixture event, 1/6 Africa, 2/6 Europe, 3/6 Asia
-        admixture_event = [
-            msprime.MassMigration(
-                time=Tadmix, source=3, destination=0, proportion=1.0/6.0),
-            msprime.MassMigration(
-                time=Tadmix+0.0001, source=3, destination=1, proportion=2.0/5.0),
-            msprime.MassMigration(
-                time=Tadmix+0.0002, source=3, destination=2, proportion=1.0)
-        ]
-        # Asia and Europe split
-        eu_event = [
-            msprime.MigrationRateChange(
-                time=Teu, rate=0.0),
-            msprime.MassMigration(
-                time=Teu+0.0001, source=2, destination=1, proportion=1.0),
-            msprime.PopulationParametersChange(
-                time=Teu+0.0002, initial_size=Nb, growth_rate=0.0, population_id=1),
-            msprime.MigrationRateChange(
-                time=Teu+0.0003, rate=mafb, matrix_index=(0, 1)),
-            msprime.MigrationRateChange(
-                time=Teu+0.0003, rate=mafb, matrix_index=(1, 0))
-        ]
-        # Out of Africa event
-        ooa_event = [
-            msprime.MigrationRateChange(
-                time=Tooa, rate=0.0),
-            msprime.MassMigration(
-                time=Tooa+0.0001, source=1, destination=0, proportion=1.0)
-        ]
-        # initial population size
-        init_event = [
-            msprime.PopulationParametersChange(
-                time=Thum,
-                initial_size=N0,
-                population_id=0)
-        ]
-        self.demographic_events = admixture_event + eu_event + ooa_event + init_event
+    population_configurations = [
+        msprime.PopulationConfiguration(
+            initial_size=Naf, growth_rate=0.0,
+            metadata=populations[0].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=Neu*math.exp(reu*Teu), growth_rate=reu,
+            metadata=populations[1].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=Nas*math.exp(ras*Teu), growth_rate=ras,
+            metadata=populations[2].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=Nadmix*math.exp(radmix*Tadmix), growth_rate=radmix,
+            metadata=populations[3].asdict())
+    ]
+
+    migration_matrix = [
+        [0, mafeu, mafas, 0],
+        [mafeu, 0, meuas, 0],
+        [mafas, meuas, 0, 0],
+        [0, 0, 0, 0]
+    ]
+    # Admixture event, 1/6 Africa, 2/6 Europe, 3/6 Asia
+    admixture_event = [
+        msprime.MassMigration(
+            time=Tadmix, source=3, destination=0, proportion=1.0/6.0),
+        msprime.MassMigration(
+            time=Tadmix+0.0001, source=3, destination=1, proportion=2.0/5.0),
+        msprime.MassMigration(
+            time=Tadmix+0.0002, source=3, destination=2, proportion=1.0)
+    ]
+    # Asia and Europe split
+    eu_event = [
+        msprime.MigrationRateChange(
+            time=Teu, rate=0.0),
+        msprime.MassMigration(
+            time=Teu+0.0001, source=2, destination=1, proportion=1.0),
+        msprime.PopulationParametersChange(
+            time=Teu+0.0002, initial_size=Nb, growth_rate=0.0, population_id=1),
+        msprime.MigrationRateChange(
+            time=Teu+0.0003, rate=mafb, matrix_index=(0, 1)),
+        msprime.MigrationRateChange(
+            time=Teu+0.0003, rate=mafb, matrix_index=(1, 0))
+    ]
+    # Out of Africa event
+    ooa_event = [
+        msprime.MigrationRateChange(
+            time=Tooa, rate=0.0),
+        msprime.MassMigration(
+            time=Tooa+0.0001, source=1, destination=0, proportion=1.0)
+    ]
+    # initial population size
+    init_event = [
+        msprime.PopulationParametersChange(
+            time=Thum,
+            initial_size=N0,
+            population_id=0)
+    ]
+    demographic_events = admixture_event + eu_event + ooa_event + init_event
+
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=generation_time,
+        population_configurations=population_configurations,
+        migration_matrix=migration_matrix,
+        demographic_events=demographic_events,
+        )
 
 
-_species.add_model(_BrowningAmerica())
+_species.add_demographic_model(_america())
 
 
-class _RagsdaleArchaic(HomoSapiensModel):
-    id = "ooa_archaic"
-    name = "Three population out-of-Africa with archaic admixture"
-    description = """
+def _ooa_archaic():
+    id = "OutOfAfricaArchaicAdmixture_5R19"
+    description = "Three population out-of-Africa with archaic admixture"
+    long_description = """
         The three population out-of-African model popularized by Gutenkunst et al. (2009)
         and augmented by archaic contributions to both Eurasian and African populations.
         Two archaic populations split early in human history, before the African
@@ -535,143 +587,154 @@ class _RagsdaleArchaic(HomoSapiensModel):
         stdpopsim.Citation(
             author="Ragsdale and Gravel",
             year=2019,
-            doi="https://doi.org/10.1371/journal.pgen.1008204")
+            doi="https://doi.org/10.1371/journal.pgen.1008204",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
-    def __init__(self):
-        super().__init__()
+    # First we set out the maximum likelihood values of the various parameters
+    # given in Table 1 (under archaic admixture).
+    N_0 = 3600
+    N_YRI = 13900
+    N_B = 880
+    N_CEU0 = 2300
+    N_CHB0 = 650
 
-        # First we set out the maximum likelihood values of the various parameters
-        # given in Table 1 (under archaic admixture).
-        N_0 = 3600
-        N_YRI = 13900
-        N_B = 880
-        N_CEU0 = 2300
-        N_CHB0 = 650
+    # Times are provided in years, so we convert into generations.
+    # In the published model, the authors used a generation time of 29 years to
+    # convert from genetic to physical units
+    generation_time = 29
 
-        # Times are provided in years, so we convert into generations.
-        # In the published model, the authors used a generation time of 29 years to
-        # convert from genetic to physical units
-        self.generation_time = 29
-        T_AF = 300e3 / self.generation_time
-        T_B = 60.7e3 / self.generation_time
-        T_EU_AS = 36.0e3 / self.generation_time
-        T_arch_afr_split = 499e3 / self.generation_time
-        T_arch_afr_mig = 125e3 / self.generation_time
-        T_nean_split = 559e3 / self.generation_time
-        T_arch_adm_end = 18.7e3 / self.generation_time
+    T_AF = 300e3 / generation_time
+    T_B = 60.7e3 / generation_time
+    T_EU_AS = 36.0e3 / generation_time
+    T_arch_afr_split = 499e3 / generation_time
+    T_arch_afr_mig = 125e3 / generation_time
+    T_nean_split = 559e3 / generation_time
+    T_arch_adm_end = 18.7e3 / generation_time
 
-        # We need to work out the starting (diploid) population sizes based on
-        # the growth rates provided for these two populations
-        r_CEU = 0.00125
-        r_CHB = 0.00372
-        N_CEU = N_CEU0 / math.exp(-r_CEU * T_EU_AS)
-        N_CHB = N_CHB0 / math.exp(-r_CHB * T_EU_AS)
+    # We need to work out the starting (diploid) population sizes based on
+    # the growth rates provided for these two populations
+    r_CEU = 0.00125
+    r_CHB = 0.00372
+    N_CEU = N_CEU0 / math.exp(-r_CEU * T_EU_AS)
+    N_CHB = N_CHB0 / math.exp(-r_CHB * T_EU_AS)
 
-        # Migration rates during the various epochs.
-        m_AF_B = 52.2e-5
-        m_YRI_CEU = 2.48e-5
-        m_YRI_CHB = 0e-5
-        m_CEU_CHB = 11.3e-5
-        m_AF_arch_af = 1.98e-5
-        m_OOA_nean = 0.825e-5
+    # Migration rates during the various epochs.
+    m_AF_B = 52.2e-5
+    m_YRI_CEU = 2.48e-5
+    m_YRI_CHB = 0e-5
+    m_CEU_CHB = 11.3e-5
+    m_AF_arch_af = 1.98e-5
+    m_OOA_nean = 0.825e-5
 
-        # Population IDs correspond to their indexes in the population
-        # configuration array. Therefore, we have 0=YRI, 1=CEU and 2=CHB
-        # initially.
-        # We also have two archaic populations, putative Neanderthals and
-        # archaicAfrican, which are population indices 3=Nean and 4=arch_afr.
-        # Their sizes are equal to the ancestral reference population size N_0.
-        self.population_configurations = [
-            msprime.PopulationConfiguration(
-                initial_size=N_YRI, metadata=self.populations[0].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=N_CEU, growth_rate=r_CEU,
-                metadata=self.populations[1].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=N_CHB, growth_rate=r_CHB,
-                metadata=self.populations[2].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=N_0,
-                metadata=self.populations[3].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=N_0,
-                metadata=self.populations[4].asdict())
-        ]
-        self.migration_matrix = [                   # noqa
-            [      0, m_YRI_CEU, m_YRI_CHB, 0, 0],  # noqa
-            [m_YRI_CEU,       0, m_CEU_CHB, 0, 0],  # noqa
-            [m_YRI_CHB, m_CEU_CHB,       0, 0, 0],  # noqa
-            [      0,         0,         0, 0, 0],  # noqa
-            [      0,         0,         0, 0, 0]   # noqa
-        ]                                           # noqa
-        self.demographic_events = [
-            # first event is migration turned on between modern and archaic humans
-            msprime.MigrationRateChange(
-                time=T_arch_adm_end, rate=m_AF_arch_af, matrix_index=(0, 4)),
-            msprime.MigrationRateChange(
-                time=T_arch_adm_end, rate=m_AF_arch_af, matrix_index=(4, 0)),
-            msprime.MigrationRateChange(
-                time=T_arch_adm_end, rate=m_OOA_nean, matrix_index=(1, 3)),
-            msprime.MigrationRateChange(
-                time=T_arch_adm_end, rate=m_OOA_nean, matrix_index=(3, 1)),
-            msprime.MigrationRateChange(
-                time=T_arch_adm_end, rate=m_OOA_nean, matrix_index=(2, 3)),
-            msprime.MigrationRateChange(
-                time=T_arch_adm_end, rate=m_OOA_nean, matrix_index=(3, 2)),
+    # Population IDs correspond to their indexes in the population
+    # configuration array. Therefore, we have 0=YRI, 1=CEU and 2=CHB
+    # initially.
+    # We also have two archaic populations, putative Neanderthals and
+    # archaicAfrican, which are population indices 3=Nean and 4=arch_afr.
+    # Their sizes are equal to the ancestral reference population size N_0.
+    population_configurations = [
+        msprime.PopulationConfiguration(
+            initial_size=N_YRI, metadata=populations[0].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_CEU, growth_rate=r_CEU,
+            metadata=populations[1].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_CHB, growth_rate=r_CHB,
+            metadata=populations[2].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_0,
+            metadata=populations[3].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_0,
+            metadata=populations[4].asdict())
+    ]
+    migration_matrix = [                   # noqa
+        [      0, m_YRI_CEU, m_YRI_CHB, 0, 0],  # noqa
+        [m_YRI_CEU,       0, m_CEU_CHB, 0, 0],  # noqa
+        [m_YRI_CHB, m_CEU_CHB,       0, 0, 0],  # noqa
+        [      0,         0,         0, 0, 0],  # noqa
+        [      0,         0,         0, 0, 0]   # noqa
+    ]                                           # noqa
+    demographic_events = [
+        # first event is migration turned on between modern and archaic humans
+        msprime.MigrationRateChange(
+            time=T_arch_adm_end, rate=m_AF_arch_af, matrix_index=(0, 4)),
+        msprime.MigrationRateChange(
+            time=T_arch_adm_end, rate=m_AF_arch_af, matrix_index=(4, 0)),
+        msprime.MigrationRateChange(
+            time=T_arch_adm_end, rate=m_OOA_nean, matrix_index=(1, 3)),
+        msprime.MigrationRateChange(
+            time=T_arch_adm_end, rate=m_OOA_nean, matrix_index=(3, 1)),
+        msprime.MigrationRateChange(
+            time=T_arch_adm_end, rate=m_OOA_nean, matrix_index=(2, 3)),
+        msprime.MigrationRateChange(
+            time=T_arch_adm_end, rate=m_OOA_nean, matrix_index=(3, 2)),
 
-            # CEU and CHB merge into B with rate changes at T_EU_AS
-            msprime.MassMigration(
-                time=T_EU_AS, source=2, destination=1, proportion=1.0),
-            msprime.MigrationRateChange(time=T_EU_AS, rate=0),
-            msprime.MigrationRateChange(
-                time=T_EU_AS, rate=m_AF_B, matrix_index=(0, 1)),
-            msprime.MigrationRateChange(
-                time=T_EU_AS, rate=m_AF_B, matrix_index=(1, 0)),
-            msprime.MigrationRateChange(
-                time=T_EU_AS, rate=m_AF_arch_af, matrix_index=(0, 4)),
-            msprime.MigrationRateChange(
-                time=T_EU_AS, rate=m_AF_arch_af, matrix_index=(4, 0)),
-            msprime.MigrationRateChange(
-                time=T_EU_AS, rate=m_OOA_nean, matrix_index=(1, 3)),
-            msprime.MigrationRateChange(
-                time=T_EU_AS, rate=m_OOA_nean, matrix_index=(3, 1)),
-            msprime.PopulationParametersChange(
-                time=T_EU_AS, initial_size=N_B, growth_rate=0, population_id=1),
+        # CEU and CHB merge into B with rate changes at T_EU_AS
+        msprime.MassMigration(
+            time=T_EU_AS, source=2, destination=1, proportion=1.0),
+        msprime.MigrationRateChange(time=T_EU_AS, rate=0),
+        msprime.MigrationRateChange(
+            time=T_EU_AS, rate=m_AF_B, matrix_index=(0, 1)),
+        msprime.MigrationRateChange(
+            time=T_EU_AS, rate=m_AF_B, matrix_index=(1, 0)),
+        msprime.MigrationRateChange(
+            time=T_EU_AS, rate=m_AF_arch_af, matrix_index=(0, 4)),
+        msprime.MigrationRateChange(
+            time=T_EU_AS, rate=m_AF_arch_af, matrix_index=(4, 0)),
+        msprime.MigrationRateChange(
+            time=T_EU_AS, rate=m_OOA_nean, matrix_index=(1, 3)),
+        msprime.MigrationRateChange(
+            time=T_EU_AS, rate=m_OOA_nean, matrix_index=(3, 1)),
+        msprime.PopulationParametersChange(
+            time=T_EU_AS, initial_size=N_B, growth_rate=0, population_id=1),
 
-            # Population B merges into YRI at T_B
-            msprime.MassMigration(
-                time=T_B, source=1, destination=0, proportion=1.0),
-            msprime.MigrationRateChange(time=T_B, rate=0),
-            msprime.MigrationRateChange(
-                time=T_B, rate=m_AF_arch_af, matrix_index=(0, 4)),
-            msprime.MigrationRateChange(
-                time=T_B, rate=m_AF_arch_af, matrix_index=(4, 0)),
+        # Population B merges into YRI at T_B
+        msprime.MassMigration(
+            time=T_B, source=1, destination=0, proportion=1.0),
+        msprime.MigrationRateChange(time=T_B, rate=0),
+        msprime.MigrationRateChange(
+            time=T_B, rate=m_AF_arch_af, matrix_index=(0, 4)),
+        msprime.MigrationRateChange(
+            time=T_B, rate=m_AF_arch_af, matrix_index=(4, 0)),
 
-            # Beginning of migration between African and archaic African populations
-            msprime.MigrationRateChange(time=T_arch_afr_mig, rate=0),
+        # Beginning of migration between African and archaic African populations
+        msprime.MigrationRateChange(time=T_arch_afr_mig, rate=0),
 
-            # Size changes to N_0 at T_AF
-            msprime.PopulationParametersChange(
-                time=T_AF, initial_size=N_0, population_id=0),
+        # Size changes to N_0 at T_AF
+        msprime.PopulationParametersChange(
+            time=T_AF, initial_size=N_0, population_id=0),
 
-            # Archaic African merges with moderns
-            msprime.MassMigration(
-                time=T_arch_afr_split, source=4, destination=0, proportion=1.0),
+        # Archaic African merges with moderns
+        msprime.MassMigration(
+            time=T_arch_afr_split, source=4, destination=0, proportion=1.0),
 
-            # Neanderthal merges with moderns
-            msprime.MassMigration(
-                time=T_nean_split, source=3, destination=0, proportion=1.0)
-        ]
+        # Neanderthal merges with moderns
+        msprime.MassMigration(
+            time=T_nean_split, source=3, destination=0, proportion=1.0)
+    ]
+
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=generation_time,
+        population_configurations=population_configurations,
+        migration_matrix=migration_matrix,
+        demographic_events=demographic_events,
+        )
 
 
-_species.add_model(_RagsdaleArchaic())
+_species.add_demographic_model(_ooa_archaic())
 
 
-class _SchiffelsZigzag(HomoSapiensModel):
-    id = "zigzag"
-    name = "Periodic growth and decline."
-    description = """
+def _zigzag():
+    id = "Zigzag_1S14"
+    description = "Periodic growth and decline."
+    long_description = """
         A validation model used by Schiffels and Durbin (2014) and Terhorst and
         Terhorst, Kamm, and Song (2017) with periods of exponential growth and
         decline in a single population.
@@ -683,70 +746,75 @@ class _SchiffelsZigzag(HomoSapiensModel):
         stdpopsim.Citation(
             author="Schiffels and Durbin",
             year=2014,
-            doi="https://doi.org/10.1038/ng.3015")
+            doi="https://doi.org/10.1038/ng.3015",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
-    def __init__(self):
-        super().__init__()
+    generation_time = 29
+    N0 = 14312
 
-        self.generation_time = 29
-        N0 = 14312
+    g_1 = 0.023025
+    t_1 = 33.333
+    n_1 = N0
 
-        g_1 = 0.023025
-        t_1 = 33.333
-        n_1 = N0
+    g_2 = -0.005756
+    t_2 = 133.33
+    n_2 = N0/10
 
-        g_2 = -0.005756
-        t_2 = 133.33
-        n_2 = N0/10
+    g_3 = 0.0014391
+    t_3 = 533.33
+    n_3 = N0
 
-        g_3 = 0.0014391
-        t_3 = 533.33
-        n_3 = N0
+    g_4 = -0.00035977
+    t_4 = 2133.33
+    n_4 = N0/10
 
-        g_4 = -0.00035977
-        t_4 = 2133.33
-        n_4 = N0/10
+    g_5 = 8.99448e-5
+    t_5 = 8533.33
+    n_5 = N0
 
-        g_5 = 8.99448e-5
-        t_5 = 8533.33
-        n_5 = N0
+    n_ancient = N0/10
+    t_ancient = 34133.31
 
-        n_ancient = N0/10
-        t_ancient = 34133.31
+    population_configurations = [
+        msprime.PopulationConfiguration(
+            initial_size=N0, metadata=populations[0].asdict())
+    ]
 
-        self.population_configurations = [
-            msprime.PopulationConfiguration(
-                initial_size=N0, metadata=self.populations[0].asdict())
-        ]
+    demographic_events = [
+            msprime.PopulationParametersChange(
+                initial_size=n_1, time=t_1, growth_rate=g_1),
+            msprime.PopulationParametersChange(
+                initial_size=n_2, time=t_2, growth_rate=g_2),
+            msprime.PopulationParametersChange(
+                initial_size=n_3, time=t_3, growth_rate=g_3),
+            msprime.PopulationParametersChange(
+                initial_size=n_4, time=t_4, growth_rate=g_4),
+            msprime.PopulationParametersChange(
+                initial_size=n_5, time=t_5, growth_rate=g_5),
+            msprime.PopulationParametersChange(
+                time=t_ancient, initial_size=n_ancient, growth_rate=0)
+    ]
 
-        self.migration_matrix = [
-            [0]
-        ]
-
-        self.demographic_events = [
-                msprime.PopulationParametersChange(
-                    initial_size=n_1, time=t_1, growth_rate=g_1),
-                msprime.PopulationParametersChange(
-                    initial_size=n_2, time=t_2, growth_rate=g_2),
-                msprime.PopulationParametersChange(
-                    initial_size=n_3, time=t_3, growth_rate=g_3),
-                msprime.PopulationParametersChange(
-                    initial_size=n_4, time=t_4, growth_rate=g_4),
-                msprime.PopulationParametersChange(
-                    initial_size=n_5, time=t_5, growth_rate=g_5),
-                msprime.PopulationParametersChange(
-                    time=t_ancient, initial_size=n_ancient, growth_rate=0)
-        ]
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=generation_time,
+        population_configurations=population_configurations,
+        demographic_events=demographic_events,
+        )
 
 
-_species.add_model(_SchiffelsZigzag())
+_species.add_demographic_model(_zigzag())
 
 
-class _KammAncientEurasia(HomoSapiensModel):
-    id = "kamm_ancient_eurasia"
-    name = "Multi-population model of ancient Eurasia (Kamm et al. 2019)"
-    description = """
+def _kamm_ancient_eurasia():
+    id = "AncientEurasia_9K19"
+    description = "Multi-population model of ancient Eurasia"
+    long_description = """
         This is the best-fitting model of a history of
         multiple ancient and present-day human populations
         sampled across Eurasia over the past 120,000 years.
@@ -771,36 +839,36 @@ class _KammAncientEurasia(HomoSapiensModel):
     """
     # Sampling times are assuming 25 years per generation
     populations = [
-        stdpopsim.Population(name="Mbuti",
+        stdpopsim.Population(id="Mbuti",
                              description="Present-day African Mbuti",
                              sampling_time=0),
         # LBK: 8,000 years ago
-        stdpopsim.Population(name="LBK",
+        stdpopsim.Population(id="LBK",
                              description="Early European farmer (EEF)",
                              sampling_time=320),
-        stdpopsim.Population(name="Sardinian",
+        stdpopsim.Population(id="Sardinian",
                              description="Present-day Sardinian",
                              sampling_time=0),
         # Loschbour: 7,500 years ago
-        stdpopsim.Population(name="Loschbour",
+        stdpopsim.Population(id="Loschbour",
                              description="Western hunter-gatherer (WHG)",
                              sampling_time=300),
         # MA1: 24,000 years ago
-        stdpopsim.Population(name="MA1",
+        stdpopsim.Population(id="MA1",
                              description="Upper Palaeolithic MAl'ta culture",
                              sampling_time=960),
-        stdpopsim.Population(name="Han",
+        stdpopsim.Population(id="Han",
                              description="Present-day Han Chinese",
                              sampling_time=0),
         # Ust Ishim: 45,000 years ago
-        stdpopsim.Population(name="UstIshim",
+        stdpopsim.Population(id="UstIshim",
                              description="early Palaeolithic Ust'-Ishim",
                              sampling_time=1800),
         # Altai Neanderthal: 50,000 years ago
-        stdpopsim.Population(name="Neanderthal",
+        stdpopsim.Population(id="Neanderthal",
                              description="Altai Neanderthal from Siberia",
                              sampling_time=2000),
-        stdpopsim.Population(name="BasalEurasian",
+        stdpopsim.Population(id="BasalEurasian",
                              description="Basal Eurasians",
                              sampling_time=None),
     ]
@@ -808,160 +876,159 @@ class _KammAncientEurasia(HomoSapiensModel):
         stdpopsim.Citation(
             author="Kamm et al.",
             year=2019,
-            doi="https://doi.org/10.1080/01621459.2019.1635482")
+            doi="https://doi.org/10.1080/01621459.2019.1635482",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
-    def __init__(self):
-        super().__init__()
-        # Times are provided in years, so we convert into generations.
-        self.generation_time = 25
-        # Mutation_rate in Kamm et al. = 1.22e-8
-        # Effective population sizes
-        N_Losch = 1920
-        N_Mbu = 17300
-        N_Mbu_Losch = 29100
-        N_Han = 6300
-        N_Han_Losch = 2340
-        N_Nean_Losch = 18200
-        N_Nean = 86.9
-        N_LBK = 75.7
-        N_Sard = 15000
-        N_Sard_LBK = 12000
-        # Table A.1 has Altai at 50,000 years ago
-        t_NeaPopSizeChange = 50000 / self.generation_time
-        # Unknown but suspected parameters...
-        N_Basal = N_Losch
-        N_MA1 = N_Losch
-        N_Ust = N_Losch
-        # Population split times
-        t_Mbu_Losch = 95800 / self.generation_time
-        t_Han_Losch = 50400 / self.generation_time
-        t_Ust_Losch = 51500 / self.generation_time
-        t_Nean_Losch = 696000 / self.generation_time
-        t_MA1_Losch = 44900 / self.generation_time
-        t_LBK_Losch = 37700 / self.generation_time
-        t_Basal_Losch = 79800 / self.generation_time
-        t_Sard_LBK = 7690 / self.generation_time
-        # Given that we're using best model estimate,
-        # ghost WHG is directly descended from Loschbour,
-        # so this parameter is not used
-        # t_GhostWHG_Losch = 1560 / self.generation_time
-        # Admixture times
-        t_Nean_to_Eurasian = 56800 / self.generation_time
-        t_Basal_to_EEF = 33700 / self.generation_time
-        t_GhostWHG_to_Sard = 1230 / self.generation_time
-        t_NeanGrowth = t_Mbu_Losch - t_NeaPopSizeChange
-        logdiffNeanGrowth = math.log(N_Nean/N_Nean_Losch)
-        r_NeanGrowth = logdiffNeanGrowth / t_NeanGrowth
-        p_Nean_to_Eurasian = 0.0296
-        p_Basal_to_EEF = 0.0936
-        p_GhostWHG_to_Sard = 0.0317
-        self.migration_matrix = [
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        ]
-        # Population IDs: Mbuti = 0; LBK = 1;
-        # Sardinian = 2; Loschbour = 3; MA1 = 4;
-        # Han = 5; Ust Ishim = 6; Neanderthal = 7;
-        # Basal Eurasian = 8
-        self.population_configurations = [
-            msprime.PopulationConfiguration(
-                initial_size=N_Mbu, metadata=self.populations[0].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=N_LBK, metadata=self.populations[1].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=N_Sard, metadata=self.populations[2].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=N_Losch, metadata=self.populations[3].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=N_MA1, metadata=self.populations[4].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=N_Han, metadata=self.populations[5].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=N_Ust, metadata=self.populations[6].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=N_Nean, metadata=self.populations[7].asdict()),
-            msprime.PopulationConfiguration(
-                initial_size=N_Basal, metadata=self.populations[8].asdict())
-        ]
-        self.demographic_events = [
-            # Sardinian receives admixture from Loschbour / WHG
-            msprime.MassMigration(
-                time=t_GhostWHG_to_Sard, source=2, destination=3,
-                proportion=p_GhostWHG_to_Sard),
-            # Sardinian merges into LBK / EEF
-            # Now pop 1: Sardinian-LBK ancestral pop
-            msprime.MassMigration(
-                time=t_Sard_LBK, source=2, destination=1,
-                proportion=1.0),
-            # Sardinian-LBK ancestral pop size change
-            msprime.PopulationParametersChange(
-                time=t_Sard_LBK, initial_size=N_Sard_LBK,
-                population_id=1),
-            # LBK / EEF receives admixture from Basal Eurasians
-            msprime.MassMigration(
-                time=t_Basal_to_EEF, source=1, destination=8,
-                proportion=p_Basal_to_EEF),
-            # LBK / EEF merges into Loschbour
-            msprime.MassMigration(
-                time=t_LBK_Losch, source=1, destination=3,
-                proportion=1.0),
-            # MA1 merges into Loschbour
-            msprime.MassMigration(
-                time=t_MA1_Losch, source=4, destination=3,
-                proportion=1.0),
-            # Neanderthal start change in population size
-            msprime.PopulationParametersChange(
-                time=t_NeaPopSizeChange, initial_size=N_Nean,
-                growth_rate=r_NeanGrowth, population_id=7),
-            # Han merges into Loschbour
-            msprime.MassMigration(
-                time=t_Han_Losch, source=5, destination=3,
-                proportion=1.0),
-            # Change in population size in Han-Losch ancestral pop
-            msprime.PopulationParametersChange(
-                time=t_Han_Losch, initial_size=N_Han_Losch,
-                population_id=3),
-            # UstIshim merges into Loschbour
-            msprime.MassMigration(
-                time=t_Ust_Losch, source=6, destination=3,
-                proportion=1.0),
-            # Loschbour / Non-Africans receive admixture from Neanderthals
-            msprime.MassMigration(
-                time=t_Nean_to_Eurasian, source=3, destination=7,
-                proportion=p_Nean_to_Eurasian),
-            # Basal Eurasians merge into Loschbour / Non-Africans
-            msprime.MassMigration(
-                time=t_Basal_Losch, source=8, destination=3,
-                proportion=1.0),
-            # Mbuti merge into Loschbour / Non-Africans
-            msprime.MassMigration(
-                time=t_Mbu_Losch, source=0, destination=3,
-                proportion=1.0),
-            # Change in population size in Mbuti-Losch ancestral pop
-            msprime.PopulationParametersChange(
-                time=t_Mbu_Losch, initial_size=N_Mbu_Losch,
-                population_id=3),
-            # Change in population size in Neanderthal, growth rate 0
-            msprime.PopulationParametersChange(
-                time=t_Mbu_Losch, initial_size=N_Nean_Losch, growth_rate=0,
-                population_id=7),
-            # Neanderthal merge into Loschbour / modern humans
-            msprime.MassMigration(
-                time=t_Nean_Losch, source=7, destination=3,
-                proportion=1.0),
-            # Ancestral hominin population size change
-            msprime.PopulationParametersChange(
-                time=t_Nean_Losch, initial_size=N_Nean_Losch,
-                population_id=3),
-        ]
+    # Times are provided in years, so we convert into generations.
+    generation_time = 25
+    # Mutation_rate in Kamm et al. = 1.22e-8
+    # Effective population sizes
+    N_Losch = 1920
+    N_Mbu = 17300
+    N_Mbu_Losch = 29100
+    N_Han = 6300
+    N_Han_Losch = 2340
+    N_Nean_Losch = 18200
+    N_Nean = 86.9
+    N_LBK = 75.7
+    N_Sard = 15000
+    N_Sard_LBK = 12000
+    # Table A.1 has Altai at 50,000 years ago
+    t_NeaPopSizeChange = 50000 / generation_time
+    # Unknown but suspected parameters...
+    N_Basal = N_Losch
+    N_MA1 = N_Losch
+    N_Ust = N_Losch
+    # Population split times
+    t_Mbu_Losch = 95800 / generation_time
+    t_Han_Losch = 50400 / generation_time
+    t_Ust_Losch = 51500 / generation_time
+    t_Nean_Losch = 696000 / generation_time
+    t_MA1_Losch = 44900 / generation_time
+    t_LBK_Losch = 37700 / generation_time
+    t_Basal_Losch = 79800 / generation_time
+    t_Sard_LBK = 7690 / generation_time
+    # Given that we're using best model estimate,
+    # ghost WHG is directly descended from Loschbour,
+    # so this parameter is not used
+    # t_GhostWHG_Losch = 1560 / generation_time
+    # Admixture times
+    t_Nean_to_Eurasian = 56800 / generation_time
+    t_Basal_to_EEF = 33700 / generation_time
+    t_GhostWHG_to_Sard = 1230 / generation_time
+    t_NeanGrowth = t_Mbu_Losch - t_NeaPopSizeChange
+    logdiffNeanGrowth = math.log(N_Nean/N_Nean_Losch)
+    r_NeanGrowth = logdiffNeanGrowth / t_NeanGrowth
+    p_Nean_to_Eurasian = 0.0296
+    p_Basal_to_EEF = 0.0936
+    p_GhostWHG_to_Sard = 0.0317
+    # Population IDs: Mbuti = 0; LBK = 1;
+    # Sardinian = 2; Loschbour = 3; MA1 = 4;
+    # Han = 5; Ust Ishim = 6; Neanderthal = 7;
+    # Basal Eurasian = 8
+    population_configurations = [
+        msprime.PopulationConfiguration(
+            initial_size=N_Mbu, metadata=populations[0].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_LBK, metadata=populations[1].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_Sard, metadata=populations[2].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_Losch, metadata=populations[3].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_MA1, metadata=populations[4].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_Han, metadata=populations[5].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_Ust, metadata=populations[6].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_Nean, metadata=populations[7].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_Basal, metadata=populations[8].asdict())
+    ]
+    demographic_events = [
+        # Sardinian receives admixture from Loschbour / WHG
+        msprime.MassMigration(
+            time=t_GhostWHG_to_Sard, source=2, destination=3,
+            proportion=p_GhostWHG_to_Sard),
+        # Sardinian merges into LBK / EEF
+        # Now pop 1: Sardinian-LBK ancestral pop
+        msprime.MassMigration(
+            time=t_Sard_LBK, source=2, destination=1,
+            proportion=1.0),
+        # Sardinian-LBK ancestral pop size change
+        msprime.PopulationParametersChange(
+            time=t_Sard_LBK, initial_size=N_Sard_LBK,
+            population_id=1),
+        # LBK / EEF receives admixture from Basal Eurasians
+        msprime.MassMigration(
+            time=t_Basal_to_EEF, source=1, destination=8,
+            proportion=p_Basal_to_EEF),
+        # LBK / EEF merges into Loschbour
+        msprime.MassMigration(
+            time=t_LBK_Losch, source=1, destination=3,
+            proportion=1.0),
+        # MA1 merges into Loschbour
+        msprime.MassMigration(
+            time=t_MA1_Losch, source=4, destination=3,
+            proportion=1.0),
+        # Neanderthal start change in population size
+        msprime.PopulationParametersChange(
+            time=t_NeaPopSizeChange, initial_size=N_Nean,
+            growth_rate=r_NeanGrowth, population_id=7),
+        # Han merges into Loschbour
+        msprime.MassMigration(
+            time=t_Han_Losch, source=5, destination=3,
+            proportion=1.0),
+        # Change in population size in Han-Losch ancestral pop
+        msprime.PopulationParametersChange(
+            time=t_Han_Losch, initial_size=N_Han_Losch,
+            population_id=3),
+        # UstIshim merges into Loschbour
+        msprime.MassMigration(
+            time=t_Ust_Losch, source=6, destination=3,
+            proportion=1.0),
+        # Loschbour / Non-Africans receive admixture from Neanderthals
+        msprime.MassMigration(
+            time=t_Nean_to_Eurasian, source=3, destination=7,
+            proportion=p_Nean_to_Eurasian),
+        # Basal Eurasians merge into Loschbour / Non-Africans
+        msprime.MassMigration(
+            time=t_Basal_Losch, source=8, destination=3,
+            proportion=1.0),
+        # Mbuti merge into Loschbour / Non-Africans
+        msprime.MassMigration(
+            time=t_Mbu_Losch, source=0, destination=3,
+            proportion=1.0),
+        # Change in population size in Mbuti-Losch ancestral pop
+        msprime.PopulationParametersChange(
+            time=t_Mbu_Losch, initial_size=N_Mbu_Losch,
+            population_id=3),
+        # Change in population size in Neanderthal, growth rate 0
+        msprime.PopulationParametersChange(
+            time=t_Mbu_Losch, initial_size=N_Nean_Losch, growth_rate=0,
+            population_id=7),
+        # Neanderthal merge into Loschbour / modern humans
+        msprime.MassMigration(
+            time=t_Nean_Losch, source=7, destination=3,
+            proportion=1.0),
+        # Ancestral hominin population size change
+        msprime.PopulationParametersChange(
+            time=t_Nean_Losch, initial_size=N_Nean_Losch,
+            population_id=3),
+    ]
+
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=generation_time,
+        population_configurations=population_configurations,
+        demographic_events=demographic_events,
+        )
 
 
-_species.add_model(_KammAncientEurasia())
+_species.add_demographic_model(_kamm_ancient_eurasia())

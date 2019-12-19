@@ -15,11 +15,7 @@ install:
   - cmd: conda install --yes --file=requirements\conda-minimal.txt
   - cmd: conda info -a
   - cmd: python --version
-  # daiquiri isn't available on conda-forge. This will be a problem when 
-  # building our own packages, so we either need to package daiquiri or 
-  # remove the dependency.
-  - cmd: python -m pip install daiquiri
-  # Likewise, pyslim is not on conda-forge.
+  # pyslim is not yet on conda-forge.
   - cmd: python -m pip install pyslim
 
 build_script:

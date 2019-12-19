@@ -51,6 +51,6 @@ If you use ``stdpopsim`` in your work, please cite us:
 Licence and usage
 -----------------
 
-.. todo::
-	Does ``stdpopsim`` have usage terms or some particular Creative Commons licence?
-	Let's mention it here.
+``stdpopsim`` is available under the GPLv3 public license.
+The terms of this license can be read
+`here <https://www.gnu.org/licenses/gpl-3.0.en.html>`_.

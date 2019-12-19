@@ -59,3 +59,33 @@ class TestFetchBibtex(unittest.TestCase):
                                       author="Authors", year="2000")
         with self.assertRaises(urllib.error.HTTPError):
             citation.fetch_bibtex()
+
+
+class TestEverythingHappensForAReason(unittest.TestCase):
+    """
+    Test that citations have a reason.
+    """
+    def test_reasons_for_engine_citations(self):
+        for engine in stdpopsim.all_engines():
+            for citation in engine.citations:
+                self.assertGreater(
+                        len(citation.reasons), 0,
+                        msg=f"No reason given for '{citation.author}' citation "
+                            f"in engine {engine.id}")
+
+    def test_reason_for_genetic_map_citations(self):
+        for genetic_map in stdpopsim.all_genetic_maps():
+            for citation in genetic_map.citations:
+                self.assertGreater(
+                        len(citation.reasons), 0,
+                        msg=f"No reason given for '{citation.author}' citation "
+                            f"in genetic map "
+                            f"{genetic_map.species.id}/{genetic_map.id}")
+
+    def test_reason_for_model_citations(self):
+        for model in stdpopsim.all_demographic_models():
+            for citation in model.citations:
+                self.assertGreater(
+                        len(citation.reasons), 0,
+                        msg=f"No reason given for '{citation.author}' citation "
+                            f"in model {model.id}")

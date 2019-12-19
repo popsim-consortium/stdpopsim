@@ -8,7 +8,7 @@ from tests import test_species
 
 
 class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
-    species = stdpopsim.get_species("esccol")
+    species = stdpopsim.get_species("EscCol")
 
     def test_basic_attributes(self):
         # From paper https://doi.org/10.1093/molbev/msw048
@@ -23,7 +23,7 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     """
     Tests for the e_coli genome.
     """
-    genome = stdpopsim.get_species("esccol").genome
+    genome = stdpopsim.get_species("EscCol").genome
 
     def test_basic_attributes(self):
         self.assertEqual(len(self.genome.chromosomes), 1)

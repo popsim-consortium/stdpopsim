@@ -9,6 +9,7 @@ import json
 import sys
 import io
 import argparse  # NOQA
+import os
 from unittest import mock
 
 import tskit
@@ -119,7 +120,7 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
 
     def test_defaults(self):
         parser = cli.stdpopsim_cli_parser()
-        cmd = "homsap"
+        cmd = "HomSap"
         args = parser.parse_args([cmd, "2"])
         self.assertEqual(args.output, None)
         self.assertEqual(args.seed, None)
@@ -127,7 +128,7 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
 
     def test_output(self):
         parser = cli.stdpopsim_cli_parser()
-        cmd = "homsap"
+        cmd = "HomSap"
         output = "/stuff/tmp.trees"
 
         args = parser.parse_args([cmd, "2", "-o", output])
@@ -144,7 +145,7 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
 
     def test_seed(self):
         parser = cli.stdpopsim_cli_parser()
-        cmd = "homsap"
+        cmd = "HomSap"
         args = parser.parse_args([cmd, "2", "-s", "1234"])
         self.assertEqual(args.samples, [2])
         self.assertEqual(args.seed, 1234)
@@ -155,7 +156,7 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
 
     def test_cache_dir(self):
         parser = cli.stdpopsim_cli_parser()
-        cmd = "homsap"
+        cmd = "HomSap"
         args = parser.parse_args(["-c", "cache_dir", cmd, "2"])
         self.assertEqual(args.samples, [2])
         self.assertEqual(args.cache_dir, "cache_dir")
@@ -166,12 +167,12 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
 
     def test_bibtex(self):
         parser = cli.stdpopsim_cli_parser()
-        cmd = "homsap"
+        cmd = "HomSap"
         output = "/stuff/tmp.trees"
         bib = "tmp.bib"
 
         with mock.patch.object(argparse.FileType, '__call__') as call:
-            args = parser.parse_args([cmd, "--bibtex_file", bib, "-o", output, "2"])
+            args = parser.parse_args([cmd, "-b", bib, "-o", output, "2"])
             self.assertEqual(args.output, output)
             self.assertEqual(args.samples, [2])
             call.assert_called_with(bib)
@@ -196,51 +197,51 @@ class TestEndToEnd(unittest.TestCase):
         self.assertEqual(prov_seed, seed)
 
     def test_homsap_seed(self):
-        cmd = "homsap -c chr22 -l0.1 20"
+        cmd = "HomSap -c chr22 -l0.1 20"
         self.verify(cmd, num_samples=20, seed=1234)
 
     def test_homsap_constant(self):
-        cmd = "homsap -c chr22 -l0.1 20"
+        cmd = "HomSap -c chr22 -l0.1 20"
         self.verify(cmd, num_samples=20)
 
     def test_tennessen_two_pop_ooa(self):
-        cmd = "homsap -c chr22 -l0.1 -m ooa_2 2 3"
+        cmd = "HomSap -c chr22 -l0.1 -d OutOfAfrica_2T12 2 3"
         self.verify(cmd, num_samples=5)
 
     def test_gutenkunst_three_pop_ooa(self):
-        cmd = "homsap -c chr1 -l0.01 -m ooa_3 10"
+        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 10"
         self.verify(cmd, num_samples=10)
 
     def test_browning_america(self):
-        cmd = "homsap -c chr1 -l0.01 -m america 10"
+        cmd = "HomSap -c chr1 -l0.01 -d AmericanAdmixture_4B11 10"
         self.verify(cmd, num_samples=10)
 
     def test_ragsdale_archaic(self):
-        cmd = "homsap -c chr1 -l0.01 -m ooa_archaic 10"
+        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfricaArchaicAdmixture_5R19 10"
         self.verify(cmd, num_samples=10)
 
     def test_schiffels_zigzag(self):
-        cmd = "homsap -c chr1 -l0.01 -m zigzag 2"
+        cmd = "HomSap -c chr1 -l0.01 -d Zigzag_1S14 2"
         self.verify(cmd, num_samples=2)
 
     def test_dromel_constant(self):
-        cmd = "dromel -c chr2L -l0.001 4"
+        cmd = "DroMel -c chr2L -l0.001 4"
         self.verify(cmd, num_samples=4)
 
     def test_li_stephan_two_population(self):
-        cmd = "dromel -c chr2L -l0.001 -m ooa_2 3"
+        cmd = "DroMel -c chr2L -l0.001 -d OutOfAfrica_2L06 3"
         self.verify(cmd, num_samples=3)
 
     def test_aratha_constant(self):
-        cmd = "aratha -l 0.001 8"
+        cmd = "AraTha -l 0.001 8"
         self.verify(cmd, num_samples=8)
 
     def test_durvusula_2017_msmc(self):
-        cmd = "aratha -l 0.001 -m SMA_1pop 7"
+        cmd = "AraTha -l 0.001 -d SouthMiddleAtlas_1D17 7"
         self.verify(cmd, num_samples=7)
 
     def test_lapierre_constant(self):
-        cmd = "esccol -l 1e-7 2"
+        cmd = "EscCol -l 1e-7 2"
         self.verify(cmd, num_samples=2)
 
 
@@ -275,7 +276,7 @@ class TestWriteOutput(unittest.TestCase):
     def test_stdout(self):
         ts = msprime.simulate(10, random_seed=2)
         parser = cli.stdpopsim_cli_parser()
-        args = parser.parse_args(["aratha", "2"])
+        args = parser.parse_args(["AraTha", "2"])
         with mock.patch("shutil.copyfileobj") as mocked_copy:
             cli.write_output(ts, args)
             mocked_copy.assert_called_once()
@@ -284,7 +285,7 @@ class TestWriteOutput(unittest.TestCase):
         ts = msprime.simulate(10, random_seed=2)
         parser = cli.stdpopsim_cli_parser()
         output_file = "mocked.trees"
-        args = parser.parse_args(["homsap", "2", "-o", output_file])
+        args = parser.parse_args(["HomSap", "2", "-o", output_file])
         with mock.patch("tskit.TreeSequence.dump") as mocked_dump:
             cli.write_output(ts, args)
             mocked_dump.assert_called_once_with(output_file)
@@ -327,11 +328,11 @@ class TestRedirection(unittest.TestCase):
             self.verify_files(filename1, filename2)
 
     def test_quiet(self):
-        cmd = "homsap -q -s 2 10 -c chr22 -l 0.001"
+        cmd = "HomSap -q -s 2 10 -c chr22 -l 0.001"
         self.verify(cmd)
 
     def test_no_quiet(self):
-        cmd = "homsap -s 3 10 -c chr22 -l 0.001"
+        cmd = "HomSap -s 3 10 -c chr22 -l 0.001"
         self.verify(cmd)
 
 
@@ -339,28 +340,31 @@ class TestSetupLogging(unittest.TestCase):
     """
     Tests that setup logging has the desired effect.
     """
-    basic_cmd = ["homsap", "10"]
+    basic_cmd = ["HomSap", "10"]
 
     def test_default(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(self.basic_cmd)
-        with mock.patch("daiquiri.setup") as mocked_setup:
+        with mock.patch("logging.basicConfig") as mocked_config:
             cli.setup_logging(args)
-            mocked_setup.assert_called_once_with(level="WARN")
+            mocked_config.assert_called_once_with(
+                format=cli.LOG_FORMAT, level="WARN")
 
     def test_verbose(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["-v"] + self.basic_cmd)
-        with mock.patch("daiquiri.setup") as mocked_setup:
+        with mock.patch("logging.basicConfig") as mocked_config:
             cli.setup_logging(args)
-            mocked_setup.assert_called_once_with(level="INFO")
+            mocked_config.assert_called_once_with(
+                format=cli.LOG_FORMAT, level="INFO")
 
     def test_very_verbose(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["-vv"] + self.basic_cmd)
-        with mock.patch("daiquiri.setup") as mocked_setup:
+        with mock.patch("logging.basicConfig") as mocked_config:
             cli.setup_logging(args)
-            mocked_setup.assert_called_once_with(level="DEBUG")
+            mocked_config.assert_called_once_with(
+                format=cli.LOG_FORMAT, level="DEBUG")
 
 
 class TestErrors(unittest.TestCase):
@@ -393,16 +397,16 @@ class TestErrors(unittest.TestCase):
             mocked_exit.assert_called_once()
 
     def test_default(self):
-        self.verify_bad_samples("homsap -q 2 3 ")
+        self.verify_bad_samples("HomSap -q 2 3 ")
 
     def test_tennessen_model(self):
-        self.verify_bad_samples("homsap  -q -m ooa_2 2 3 4")
+        self.verify_bad_samples("HomSap  -q -d OutOfAfrica_2T12 2 3 4")
 
     def test_gutenkunst_three_pop_ooa(self):
-        self.verify_bad_samples("homsap -q -m ooa_3 2 3 4 5")
+        self.verify_bad_samples("HomSap -q -d OutOfAfrica_3G09 2 3 4 5")
 
     def test_browning_america(self):
-        self.verify_bad_samples("homsap -q -m america 2 3 4 5 6")
+        self.verify_bad_samples("HomSap -q -d AmericanAdmixture_4B11 2 3 4 5 6")
 
 
 class TestHelp(unittest.TestCase):
@@ -419,27 +423,23 @@ class TestHelp(unittest.TestCase):
         self.run_stdpopsim("--help")
 
     def test_homsap_help(self):
-        self.run_stdpopsim("homsap --help")
+        self.run_stdpopsim("HomSap --help")
 
     def test_homsap_models_help(self):
-        self.run_stdpopsim("homsap --help-models")
-        self.run_stdpopsim("homsap --help-models ooa_3")
+        self.run_stdpopsim("HomSap --help-models")
+        self.run_stdpopsim("HomSap --help-models OutOfAfrica_3G09")
 
     def test_all_species_model_help(self):
         for species in stdpopsim.all_species():
             self.run_stdpopsim(f"{species} --help-models")
 
     def test_homsap_genetic_maps_help(self):
-        self.run_stdpopsim("homsap --help-genetic-maps")
-        self.run_stdpopsim("homsap --help-genetic-maps HapmapII_GRCh37")
+        self.run_stdpopsim("HomSap --help-genetic-maps")
+        self.run_stdpopsim("HomSap --help-genetic-maps HapMapII_GRCh37")
 
     def test_all_species_genetic_maps_help(self):
         for species in stdpopsim.all_species():
             self.run_stdpopsim(f"{species} --help-genetic-maps")
-
-    def test_all_species_species_help(self):
-        for species in stdpopsim.all_species():
-            self.run_stdpopsim(f"{species} --help-species")
 
 
 class TestWriteBibtex(unittest.TestCase):
@@ -452,8 +452,8 @@ class TestWriteBibtex(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
             bibfile = pathlib.Path(tmpdir) / "bib.bib"
-            full_cmd = (f"homsap -c chr22 -l0.1 20 "
-                        f"-o {filename} -m ooa_3 --seed={seed} "
+            full_cmd = (f"HomSap -c chr22 -l0.1 20 "
+                        f"-o {filename} -d OutOfAfrica_3G09 --seed={seed} "
                         f"--bibtex={bibfile}")
             with mock.patch("stdpopsim.cli.setup_logging"):
                 with mock.patch.object(stdpopsim.citations.Citation,
@@ -463,6 +463,32 @@ class TestWriteBibtex(unittest.TestCase):
                                                         full_cmd.split())
                         mocked_bib.assert_called()
 
+    def test_number_of_calls(self):
+        # Test that genetic map citations are converted.
+        species = stdpopsim.get_species("HomSap")
+        genetic_map = species.get_genetic_map("HapMapII_GRCh37")
+        contig = species.get_contig("chr22", genetic_map=genetic_map.id)
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        engine = stdpopsim.get_default_engine()
+        cites_and_cites = [
+                genetic_map.citations,
+                model.citations,
+                engine.citations,
+                species.genome.mutation_rate_citations,
+                species.genome.recombination_rate_citations,
+                ]
+        ncite = len(set([ref.doi for cites in cites_and_cites for ref in cites]))
+        # Patch out writing to a file, then
+        # ensure that the method is called
+        # the correct number of times.
+        with mock.patch("builtins.open", mock.mock_open()):
+            with open('tmp.bib', 'w') as bib:
+                with mock.patch.object(
+                        stdpopsim.citations.Citation,
+                        "fetch_bibtex") as mock_bib:
+                    cli.write_bibtex(engine, model, contig, species, bib)
+                    self.assertEqual(mock_bib.call_count, ncite)
+
 
 class TestWriteCitations(unittest.TestCase):
     """
@@ -470,23 +496,23 @@ class TestWriteCitations(unittest.TestCase):
     """
     def test_model_citations(self):
         contig = stdpopsim.Contig()
-        species = stdpopsim.get_species("homsap")
-        model = species.get_model("ooa_3")
+        species = stdpopsim.get_species("HomSap")
+        model = species.get_demographic_model("OutOfAfrica_3G09")
         engine = stdpopsim.get_default_engine()
         stdout, stderr = capture_output(
-                cli.write_citations, engine, model, contig)
+                cli.write_citations, engine, model, contig, species)
         self.assertEqual(len(stdout), 0)
         genetic_map = None
         self.check_citations(engine, species, genetic_map, model, stderr)
 
     def test_genetic_map_citations(self):
-        species = stdpopsim.get_species("homsap")
-        genetic_map = species.get_genetic_map("HapmapII_GRCh37")
-        contig = species.get_contig("chr22", genetic_map=genetic_map.name)
+        species = stdpopsim.get_species("HomSap")
+        genetic_map = species.get_genetic_map("HapMapII_GRCh37")
+        contig = species.get_contig("chr22", genetic_map=genetic_map.id)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
         stdout, stderr = capture_output(
-                cli.write_citations, engine, model, contig)
+                cli.write_citations, engine, model, contig, species)
         self.assertEqual(len(stdout), 0)
         self.check_citations(engine, species, genetic_map, model, stderr)
 
@@ -494,14 +520,10 @@ class TestWriteCitations(unittest.TestCase):
         if genetic_map is None:
             genetic_map = stdpopsim.GeneticMap(species.id, citations=[])
         for citations, assert_msg in zip(
-                (engine.citations, model.citations, genetic_map.citations,
-                    species.generation_time_citations,
-                    species.population_size_citations),
+                (engine.citations, model.citations, genetic_map.citations),
                 (f"engine citation not written for {engine.id}",
                     f"model citation not written for {model.id}",
-                    f"genetic map citation not written for {genetic_map.name}",
-                    f"generation time citation not written for {species.id}",
-                    f"population size citation not written for {species.id}")):
+                    f"genetic map citation not written for {genetic_map.id}")):
             for citation in citations:
                 self.assertTrue(citation.author in stderr, msg=assert_msg)
                 self.assertTrue(str(citation.year) in stderr, msg=assert_msg)
@@ -528,12 +550,12 @@ class TestCacheDir(unittest.TestCase):
 
     def test_homsap_simulation(self):
         cache_dir = "/some/cache/dir"
-        cmd = f"-c {cache_dir} homsap 2 -o tmp.trees"
+        cmd = f"-c {cache_dir} HomSap 2 -o tmp.trees"
         self.check_cache_dir_set(cmd, cache_dir)
 
     def test_dromel_simulation(self):
         cache_dir = "cache_dir"
-        cmd = f"--cache-dir {cache_dir} dromel 2 -o tmp.trees"
+        cmd = f"--cache-dir {cache_dir} DroMel 2 -o tmp.trees"
         self.check_cache_dir_set(cmd, cache_dir)
 
     def test_download_genetic_maps(self):
@@ -560,17 +582,17 @@ class TestDownloadGeneticMaps(unittest.TestCase):
         self.run_download("", num_maps)
 
     def test_homsap_defaults(self):
-        species = stdpopsim.get_species("homsap")
+        species = stdpopsim.get_species("HomSap")
         num_maps = len(species.genetic_maps)
         self.assertGreater(num_maps, 0)
-        self.run_download("homsap", num_maps)
+        self.run_download("HomSap", num_maps)
 
     def test_homsap_specify_maps(self):
-        species = stdpopsim.get_species("homsap")
-        maps = [gmap.name for gmap in species.genetic_maps]
+        species = stdpopsim.get_species("HomSap")
+        maps = [gmap.id for gmap in species.genetic_maps]
         for j in range(len(maps)):
             args = " ".join(maps[:j + 1])
-            self.run_download("homsap " + args, j + 1)
+            self.run_download("HomSap " + args, j + 1)
 
 
 class TestSearchWrappers(unittest.TestCase):
@@ -583,14 +605,27 @@ class TestSearchWrappers(unittest.TestCase):
             mocked_exit.assert_called_once_with("Species 'XXX' not in catalog")
 
     def test_bad_model(self):
-        species = stdpopsim.get_species("homsap")
+        species = stdpopsim.get_species("HomSap")
         with mock.patch("stdpopsim.cli.exit") as mocked_exit:
             cli.get_model_wrapper(species, "XXX")
-            mocked_exit.assert_called_once_with("Model 'homsap/XXX' not in catalog")
+            mocked_exit.assert_called_once_with(
+                    "DemographicModel 'HomSap/XXX' not in catalog")
 
     def test_bad_genetic_map(self):
-        species = stdpopsim.get_species("homsap")
+        species = stdpopsim.get_species("HomSap")
         with mock.patch("stdpopsim.cli.exit") as mocked_exit:
             cli.get_genetic_map_wrapper(species, "XXX")
             mocked_exit.assert_called_once_with(
-                "Genetic map 'homsap/XXX' not in catalog")
+                "Genetic map 'HomSap/XXX' not in catalog")
+
+
+class TestDryRun(unittest.TestCase):
+    """
+    Checks that simulations we run from the CLI with the --dry-run option have no output
+    """
+    def test_dry_run(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            filename = pathlib.Path(tmpdir) / "output.trees"
+            cmd = f"{sys.executable} -m stdpopsim HomSap -D -q -l 0.01 -o {filename} 2"
+            subprocess.run(cmd, shell=True, check=True)
+            self.assertFalse(os.path.isfile(filename))

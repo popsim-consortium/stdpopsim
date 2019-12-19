@@ -10,9 +10,10 @@ import msprime
 
 import stdpopsim
 from stdpopsim import models
+from stdpopsim import utils
 
 
-class ModelTestMixin(object):
+class DemographicModelTestMixin(object):
     """
     Mixin for testing specific models. Subclasses should extend
     unittest.TestCase and this mixin, and define the self.model (as the
@@ -44,7 +45,16 @@ class ModelTestMixin(object):
         self.assertEqual(ts.num_populations, self.model.num_populations)
 
 
-class QcdModelTestMixin(ModelTestMixin):
+class CatalogDemographicModelTestMixin(DemographicModelTestMixin):
+    """
+    Mixin for demographic models in the catalog.
+    """
+
+    def test_id_valid(self):
+        self.assertTrue(utils.is_valid_demographic_model_id(self.model.id))
+
+
+class QcdCatalogDemographicModelTestMixin(CatalogDemographicModelTestMixin):
     """
     Extends the tests to also check that the qc model is equal to
     the production model.
@@ -272,57 +282,56 @@ class TestDemographicEventsEqual(unittest.TestCase):
                 models.verify_demographic_events_equal([a], [b], 1)
 
 
-class DummyModel(models.Model):
-    """
-    Dummy subclass to make sure we're filtering models correctly.
-    """
-
-
 class TestAllModels(unittest.TestCase):
     """
-    Tests that we can get all known simulation models.
+    Tests for registered simulation models.
     """
     def test_non_empty(self):
-        self.assertGreater(len(list(stdpopsim.all_models())), 0)
+        self.assertGreater(len(list(stdpopsim.all_demographic_models())), 0)
 
     def test_all_instances(self):
-        for model in stdpopsim.all_models():
-            self.assertIsInstance(model, models.Model)
+        for model in stdpopsim.all_demographic_models():
+            self.assertIsInstance(model, models.DemographicModel)
 
-    def test_filtering_outside_classes(self):
-        for model in stdpopsim.all_models():
-            self.assertNotIsInstance(model, DummyModel)
+            self.assertGreater(len(model.id), 0)
+            self.assertGreater(len(model.description), 0)
+            self.assertGreater(len(model.long_description), 0)
+            self.assertGreater(len(model.citations), 0)
+            self.assertGreater(model.generation_time, 0)
 
-    def test_generation_times_non_empty(self):
-        self.assertGreater(len([model.generation_time for model in
-                                stdpopsim.all_models()]), 0)
+            npops = len(model.populations)
+            self.assertGreater(npops, 0)
+            self.assertEqual(len(model.population_configurations), npops)
+            self.assertEqual(len(model.migration_matrix), npops)
+            self.assertEqual(len(model.migration_matrix[0]), npops)
+            self.assertIsInstance(model.demographic_events, list)
 
 
 class TestModelsEqual(unittest.TestCase):
     """
-    Tests Model object equality comparison.
+    Tests DemographicModel object equality comparison.
     """
     def test_known_models(self):
         # All models should be equal to themselves.
-        other_model = models.Model()
-        for model in stdpopsim.all_models():
+        other_model = models.DemographicModel.empty()
+        for model in stdpopsim.all_demographic_models():
             self.assertTrue(model.equals(model))
             self.assertFalse(model.equals(other_model))
 
     def test_different_objects(self):
-        m1 = models.Model()
+        m1 = models.DemographicModel.empty()
         self.assertFalse(m1.equals(self))
         self.assertFalse(m1.equals({}))
         self.assertFalse(m1.equals(None))
 
     def test_default_models(self):
-        m1 = models.Model()
-        m2 = models.Model()
+        m1 = models.DemographicModel.empty()
+        m2 = models.DemographicModel.empty()
         self.assertTrue(m1.equals(m2))
 
     def test_migration_matrices(self):
-        m1 = models.Model()
-        m2 = models.Model()
+        m1 = models.DemographicModel.empty()
+        m2 = models.DemographicModel.empty()
         m1.migration_matrix = [[]]
         self.assertFalse(m1.equals(m2))
         m2.migration_matrix = [[]]
@@ -341,20 +350,11 @@ class TestModelsEqual(unittest.TestCase):
         self.assertFalse(m1.equals(m2, atol=1e-10, rtol=1e-9))
 
 
-class TestModelProperties(unittest.TestCase):
-    def test_model_generation_time(self):
-        self.assertTrue(models.Model().generation_time == -1)
-        known_models = list(stdpopsim.all_models())
-        n = len(known_models)
-        for j in range(n):
-            self.assertTrue(known_models[j].generation_time > -2)
-
-
-class TestConstantSizeModel(unittest.TestCase, ModelTestMixin):
+class TestConstantSizeModel(unittest.TestCase, DemographicModelTestMixin):
     model = models.PiecewiseConstantSize(100)
 
 
-class TestTwoEpochModel(unittest.TestCase, ModelTestMixin):
+class TestTwoEpochModel(unittest.TestCase, DemographicModelTestMixin):
     model = models.PiecewiseConstantSize(100, (10, 10))
 
 
@@ -391,25 +391,25 @@ class TestPiecewiseConstantSize(unittest.TestCase):
         self.assertEqual(event.growth_rate, 0)
 
 
-class TestGenericIM(unittest.TestCase):
+class TestIsolationWithMigration(unittest.TestCase):
     """
     Tests for the generic IM model.
     """
     def test_pop_configs(self):
-        model = models.GenericIM(100, 200, 300, 50, 0, 0)
+        model = models.IsolationWithMigration(100, 200, 300, 50, 0, 0)
         self.assertEqual(len(model.population_configurations), 3)
         self.assertEqual(model.population_configurations[0].initial_size, 200)
         self.assertEqual(model.population_configurations[1].initial_size, 300)
         self.assertEqual(model.population_configurations[2].initial_size, 100)
 
     def test_split(self):
-        model = models.GenericIM(100, 200, 300, 50, 0, 0)
+        model = models.IsolationWithMigration(100, 200, 300, 50, 0, 0)
         self.assertEqual(len(model.demographic_events), 2)
         self.assertEqual(model.demographic_events[0].time, 50)
         self.assertEqual(model.demographic_events[1].time, 50)
 
     def test_migration_rates(self):
-        model = models.GenericIM(100, 200, 300, 50, 0.002, 0.003)
+        model = models.IsolationWithMigration(100, 200, 300, 50, 0.002, 0.003)
         self.assertEqual(np.shape(model.migration_matrix), (3, 3))
         self.assertEqual(model.migration_matrix[0][1], 0.002)
         self.assertEqual(model.migration_matrix[1][0], 0.003)
@@ -426,8 +426,7 @@ class TestPopulationSampling(unittest.TestCase):
                                  sampling_time=None)
 
     # Create an empty model to hold populations
-    base_mod = stdpopsim.Model()
-    base_mod.populations = [_pop1, _pop2, _pop3]
+    base_mod = models.DemographicModel.empty(populations=[_pop1, _pop2, _pop3])
 
     def test_num_sampling_populations(self):
         self.assertEqual(self.base_mod.num_sampling_populations, 2)
@@ -449,7 +448,7 @@ class TestPopulationSampling(unittest.TestCase):
     # Test that all sampling populations are specified before non-sampling populations
     # in the model.populations list
     def test_population_order(self):
-        for model in stdpopsim.all_models():
+        for model in stdpopsim.all_demographic_models():
             allow_sample_status = [int(p.allow_samples) for p in model.populations]
             num_sampling = sum(allow_sample_status)
             # All sampling populations must be at the start of the list
@@ -458,9 +457,30 @@ class TestPopulationSampling(unittest.TestCase):
     # Test that populations are listed in the same order in model.populations and
     # model.population_configurations
     def test_population_config_order_equal(self):
-        for model in stdpopsim.all_models():
-            pop_names = [pop.name for pop in model.populations]
-            config_names = [
-                config.metadata["name"] for config in model.population_configurations]
-            for p, c in zip(pop_names, config_names):
+        for model in stdpopsim.all_demographic_models():
+            pop_ids = [pop.id for pop in model.populations]
+            config_ids = [
+                config.metadata["id"] for config in model.population_configurations]
+            for p, c in zip(pop_ids, config_ids):
                 self.assertEqual(p, c)
+
+    # Test that we are indeed getting a valid DDB back
+    # admittedly a pretty bad test...
+    def test_demography_debugger(self):
+        for model in stdpopsim.all_demographic_models():
+            ddb = model.get_demography_debugger()
+            self.assertIsInstance(ddb, msprime.DemographyDebugger)
+
+    # test for equality of ddbs
+    def test_demography_debugger_equal(self):
+        for model in stdpopsim.all_demographic_models():
+            ddb1 = model.get_demography_debugger()
+            ddb2 = msprime.DemographyDebugger(
+                population_configurations=model.population_configurations,
+                migration_matrix=model.migration_matrix,
+                demographic_events=model.demographic_events)
+            f1 = io.StringIO()
+            f2 = io.StringIO()
+            ddb1.print_history(f1)
+            ddb2.print_history(f2)
+            self.assertEqual(f1.getvalue(), f2.getvalue())
