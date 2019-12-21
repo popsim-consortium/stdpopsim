@@ -6,6 +6,8 @@ here = os.path.abspath(os.path.dirname(__file__))
 with codecs.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
+msprime_ver = "msprime>=0.7.1"
+
 setup(
     name='stdpopsim',
     description='A library of population genetic simulation models',
@@ -32,7 +34,7 @@ setup(
         ]
     },
     # NOTE: make sure this is the 'attrs' package, not 'attr'!
-    install_requires=["msprime", "attrs", "appdirs", "humanize"],
+    install_requires=[msprime_ver, "attrs", "appdirs", "humanize"],
     url='https://github.com/popsim-consortium/stdpopsim',
     project_urls={
         'Bug Reports': 'https://github.com/popsim-consortium/stdpopsim/issues',
