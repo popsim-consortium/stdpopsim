@@ -476,6 +476,7 @@ class TestWriteBibtex(unittest.TestCase):
                 engine.citations,
                 species.genome.mutation_rate_citations,
                 species.genome.recombination_rate_citations,
+                species.genome.assembly_citations,
                 ]
         ncite = len(set([ref.doi for cites in cites_and_cites for ref in cites]))
         # Patch out writing to a file, then

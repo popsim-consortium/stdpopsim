@@ -239,6 +239,7 @@ def get_citations(engine, model, contig, species):
     Return a list of all the citations.
     """
     citations = engine.citations[:]
+    citations.extend(species.genome.assembly_citations)
     citations.extend(species.genome.mutation_rate_citations)
     citations.extend(species.genome.recombination_rate_citations)
     if contig.genetic_map is not None:

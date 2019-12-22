@@ -53,6 +53,14 @@ chrX 	 155270560 	 1.164662223273842e-08
 chrY 	 59373566 	 0.0
 """
 
+
+_genome2001 = stdpopsim.Citation(
+    doi="http://dx.doi.org/10.1038/35057062",
+    year="2001",
+    author="The Genome Sequencing Consortium",
+    reasons={stdpopsim.CiteReason.ASSEMBLY}
+)
+
 _tian2019 = stdpopsim.Citation(
     doi="https://doi.org/10.1016/j.ajhg.2019.09.012",
     year="2019",
@@ -85,7 +93,9 @@ for line in _chromosome_data.splitlines():
 _genome = stdpopsim.Genome(
         chromosomes=_chromosomes,
         mutation_rate_citations=[
-            _tian2019.because(stdpopsim.CiteReason.MUT_RATE)])
+            _tian2019.because(stdpopsim.CiteReason.MUT_RATE)],
+        assembly_citations=[
+            _genome2001])
 
 _species = stdpopsim.Species(
     id="HomSap",

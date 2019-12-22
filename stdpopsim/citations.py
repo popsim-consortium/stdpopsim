@@ -18,6 +18,7 @@ class CiteReason(object):
     GEN_TIME = "generation time"
     MUT_RATE = "mutation rate"
     REC_RATE = "recombination rate"
+    ASSEMBLY = "genome assembly"
 
 
 @attr.s

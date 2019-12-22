@@ -36,7 +36,17 @@ for line in _chromosome_data.splitlines():
         mutation_rate=7e-9,
         recombination_rate=8.1e-9))
 
-_genome = stdpopsim.Genome(chromosomes=_chromosomes)
+_SwarbreckEtAl = stdpopsim.Citation(
+    doi="https://doi.org/10.1093/nar/gkm965",
+    year="2007",
+    author="Swarbreck et al.",
+    reasons={stdpopsim.CiteReason.ASSEMBLY}
+)
+
+_genome = stdpopsim.Genome(
+        chromosomes=_chromosomes,
+        assembly_citations=[
+            _SwarbreckEtAl])
 
 _species = stdpopsim.Species(
     id="AraTha",
