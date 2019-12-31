@@ -37,6 +37,13 @@ _SchriderEtAl = stdpopsim.Citation(
     year=2013,
     doi="https://doi.org/10.1534/genetics.113.151670")
 
+_DosSantosEtAl = stdpopsim.Citation(
+    doi="https://doi.org/10.1093/nar/gku1099",
+    year="2015",
+    author="dos Santos et al.",
+    reasons={stdpopsim.CiteReason.ASSEMBLY}
+)
+
 _chromosomes = []
 for line in _chromosome_data.splitlines():
     name, length = line.split()[:2]
@@ -53,7 +60,9 @@ for line in _chromosome_data.splitlines():
 _genome = stdpopsim.Genome(
         chromosomes=_chromosomes,
         mutation_rate_citations=[
-            _SchriderEtAl.because(stdpopsim.CiteReason.MUT_RATE)])
+            _SchriderEtAl.because(stdpopsim.CiteReason.MUT_RATE)],
+        assembly_citations=[
+            _DosSantosEtAl])
 
 _species = stdpopsim.Species(
     id="DroMel",

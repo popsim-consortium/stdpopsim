@@ -22,12 +22,16 @@ class Genome(object):
     :ivar recombination_rate_citations: A list of :class:`.Citation` objects
         providing justification for the recombination rate estimate.
     :vartype recombination_rate_citations: list
+    :ivar assembly_citations: A list of :class:`.Citation` objects
+        providing reference to the source of the genome assembly.
+    :vartype assembly_citations: list
     :ivar length: The total length of the genome.
     :vartype length: int
     """
     chromosomes = attr.ib(factory=list)
     mutation_rate_citations = attr.ib(factory=list, kw_only=True)
     recombination_rate_citations = attr.ib(factory=list, kw_only=True)
+    assembly_citations = attr.ib(factory=list, kw_only=True)
     length = attr.ib(default=0, init=False)
 
     def __attrs_post_init__(self):
