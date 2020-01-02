@@ -28,7 +28,7 @@ author = 'PopSim Consortium'
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.1.0'
+release = '0.1.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -49,7 +49,8 @@ extensions = [
     'sphinx.ext.viewcode',
     'speciescatalog',
     'sphinxarg.ext',
-    'sphinxcontrib.programoutput'
+    'sphinxcontrib.programoutput',
+    'sphinx_issues',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -199,3 +200,6 @@ intersphinx_mapping = {
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+# Github repo
+issues_github_path = "popsim-consortium/stdpopsim"

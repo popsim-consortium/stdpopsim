@@ -9,5 +9,6 @@ dependencies:
   - appdirs
   - msprime
   - sphinx-argparse
+  - sphinx-issues
   - sphinxcontrib-programoutput
   - humanize
