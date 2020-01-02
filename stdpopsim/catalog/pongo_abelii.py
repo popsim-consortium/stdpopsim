@@ -20,36 +20,36 @@ logger = logging.getLogger(__name__)
 # List of chromosomes.
 
 # length information can be found here
-# <http://https://www.ncbi.nlm.nih.gov/genome/325>
-# Orangutan Jan. 2018 (Susie_PABv2/ponAbe3) Browser Sequences
-# Note: no chrY
-# Average recombination rate estimated in Locke et al (doi:10.1038/nature09687)
-# which reports 0.95 +/- 0.72 cM/Mb
+# <https://www.ncbi.nlm.nih.gov/genome/325>
+# Orangutan July 201 (WUGSC 2.0.2/ponAbe2) Browser Sequences
+# Average recombination rates per chromosome taken from the Pongo abelii
+# recombination map inferred in Nater et al (doi:10.1016/j.cub.2017.09.047)
+# For chromosome X, we use the rate assumed in Locke et al.
 _chromosome_data = """\
-chr1    227913704  0.95e-8
-chr2A    109511694  0.95e-8
-chr2B    129937803  0.95e-8
-chr3    193656255  0.95e-8
-chr4    189387572  0.95e-8
-chr5    179185813  0.95e-8
-chr6    169501136  0.95e-8
-chr7    145408105  0.95e-8
-chr8    144036388  0.95e-8
-chr9    112206110  0.95e-8
-chr10    132178492  0.95e-8
-chr11    128122151  0.95e-8
-chr12    132184051  0.95e-8
-chr13    98475126   0.95e-8
-chr14    88963417   0.95e-8
-chr15    82547911   0.95e-8
-chr16    68237989   0.95e-8
-chr17    75914007   0.95e-8
-chr18    75923960   0.95e-8
-chr19    57575784   0.95e-8
-chr20    60841859   0.95e-8
-chr21    34683425   0.95e-8
-chr22    35308119   0.95e-8
-chrX    151242693  0.95e-8
+chr1     229942017   5.19e-9
+chr2a    113028656   5.43e-9
+chr2b    135000294   5.38e-9
+chr3     202140232   5.36e-9
+chr4     198332218   5.43e-9
+chr5     183952662   5.20e-9
+chr6     174210431   5.22e-9
+chr7     157549271   5.73e-9
+chr8     153482349   5.67e-9
+chr9     135191526   5.34e-9
+chr10    133410057   5.91e-9
+chr11    132107971   5.29e-9
+chr12    136387465   5.44e-9
+chr13    117095149   4.91e-9
+chr14    108868599   4.70e-9
+chr15    99152023    4.82e-9
+chr16    77800216    6.12e-9
+chr17    73212453    7.26e-9
+chr18    94050890    4.57e-9
+chr19    60714840    7.56e-9
+chr20    62736349    5.83e-9
+chr21    48394510    4.98e-9
+chr22    46535552    6.03e-9
+chrX     156195299   9.50e-9
 """
 
 _locke2011 = stdpopsim.Citation(
@@ -58,23 +58,29 @@ _locke2011 = stdpopsim.Citation(
     doi="http://doi.org/10.1038/nature09687"
 )
 
+_nater2017 = stdpopsim.Citation(
+    author="Nater et al.",
+    year=2017,
+    doi="https://doi.org/10.1016/j.cub.2017.09.047"
+)
+
 _chromosomes = []
 for line in _chromosome_data.splitlines():
     name, length, mean_rr = line.split()[:3]
     _chromosomes.append(stdpopsim.Chromosome(
         id=name, length=int(length),
-        mutation_rate=2.0e-8,
+        mutation_rate=1.5e-8,
         recombination_rate=float(mean_rr)))
 
 _genome = stdpopsim.Genome(
-        chromosomes=_chromosomes,
-        mutation_rate_citations=[
-            _locke2011.because(stdpopsim.CiteReason.MUT_RATE)])
+    chromosomes=_chromosomes,
+    mutation_rate_citations=[
+        _nater2017.because(stdpopsim.CiteReason.MUT_RATE)])
 
 _species = stdpopsim.Species(
-    id="PonPyg",
-    name="Pongo pygmaeus",
-    common_name="Bornean orangutan",
+    id="PonAbe",
+    name="Pongo abelii",
+    common_name="Sumatran orangutan",
     genome=_genome,
     generation_time=20,
     generation_time_citations=[
@@ -83,11 +89,7 @@ _species = stdpopsim.Species(
     population_size_citations=[
         _locke2011.because(stdpopsim.CiteReason.POP_SIZE)])
 
-
-# FIXME not registering this species because of the mixup with PonPyg
-# and PonAbe and the lack of clarity on how to deal with multi-species
-# population models. See #365 and #354.
-# stdpopsim.register_species(_species)
+stdpopsim.register_species(_species)
 
 
 ###########################################################
@@ -96,8 +98,57 @@ _species = stdpopsim.Species(
 #
 ###########################################################
 
+# There are two genetic maps available for Orangutan species: one for Pongo
+# abelii (Sumatran orangutan) and one for Pongo pygmaeus (Bornean orangutan).
+# Both recombination maps were inferred using LDhat in Nater et al. (2017),
+# doi: 10.1016/j.cub.2017.09.047. Both recombination maps are mapped to PonAbe2.
+# Recombination maps from Nater et al. were converted from rho/kbp to cM using
+# Watterson's estimator of theta to estimate Ne = 41,000 (Sumatra) and
+# Ne = 27,000 (Borneo). See supporting information in Nater et al. for details.
 
-# To do
+
+_gm_pa = stdpopsim.GeneticMap(
+    species=_species,
+    id="NaterPA_PonAbe2",
+    description="From Nater et al. (2017) for Pongo abelii",
+    long_description="""
+        This genetic map is from the Nater et al. (2017) study, inferred using
+        LDhat from n=15 whole-genome sequenced Sumatran orangutan individuals.
+        See https://doi.org/10.1016/j.cub.2017.09.047 for more details.
+        """,
+    url=(
+        "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/PonAbe/NaterPA_PonAbe2.tar.gz"),  # NOQA
+    file_pattern="Nater_et_al_PA_{id}_PonAbe2.txt",
+    citations=[
+        stdpopsim.Citation(
+            doi="https://doi.org/10.1016/j.cub.2017.09.047",
+            year=2017,
+            author="Nater et al.",
+            reasons={stdpopsim.CiteReason.GEN_MAP}),
+    ]
+)
+_species.add_genetic_map(_gm_pa)
+
+_gm_pp = stdpopsim.GeneticMap(
+    species=_species,
+    id="NaterPP_PonAbe2",
+    description="From Nater et al. (2017) for Pongo pygmaeus",
+    long_description="""
+        This genetic map is from the Nater et al. (2017) study, inferred using
+        LDhat from n=20 whole-genome sequenced Bornean orangutan individuals.
+        See https://doi.org/10.1016/j.cub.2017.09.047 for more details.
+        """,
+    url=(
+        "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/PonPyg/NaterPP_PonAbe2.tar.gz"),  # NOQA
+    file_pattern="Nater_et_al_PP_{id}_PonAbe2.txt",
+    citations=[
+        stdpopsim.Citation(
+            doi="https://doi.org/10.1016/j.cub.2017.09.047",
+            year=2017,
+            author="Nater et al.",
+            reasons={stdpopsim.CiteReason.GEN_MAP})]
+)
+_species.add_genetic_map(_gm_pp)
 
 
 ###########################################################
@@ -175,7 +226,7 @@ def _orangutan():
                                             metadata=populations[1].asdict())  # NOQA
         ],
         migration_matrix=[
-            [      0, m_B_S],  # NOQA
+            [0, m_B_S],  # NOQA
             [m_S_B,       0],  # NOQA
         ],
         demographic_events=[

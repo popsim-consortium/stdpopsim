@@ -42,6 +42,8 @@ Then, if you feel ready, make an issue on our
 
 .. speciescatalog:: HomSap
 
+.. speciescatalog:: PonAbe
+
 .. speciescatalog:: DroMel
 
 .. speciescatalog:: AraTha
