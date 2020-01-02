@@ -27,8 +27,30 @@ Stdpopsim requires Python 3.5 or later.
 Conda
 *****
 
-.. todo:: The conda package for stdpopsim is currently under development and will
-    be available shortly. Please use pip for now.
+Pre-built binary packages for ``stdpopsim`` are available through
+`conda <https://conda.io/docs/>`_, and built using `conda-forge <https://conda-forge.org/>`_.
+Packages for recent version of Python are available for Linux, OSX and Windows. Install
+using::
+
+    $ conda install -c conda-forge stdpopsim
+
+
++++++++++++
+Quick Start
++++++++++++
+
+1. Install ``conda`` using `miniconda <https://conda.io/miniconda.html>`_.
+   Make sure you follow the instructions to fully activate your ``conda``
+   installation!
+2. Set up the `conda-forge channel <https://conda-forge.org/>`_ using
+   ``conda config --add channels conda-forge``.
+3. Install stdpopsim: ``conda install stdpopsim``.
+4. Try it out: ``stdpopsim --version``.
+
+
+There are several different ways to obtain ``conda``. Please see the
+`anaconda installation documentation <https://docs.anaconda.com/anaconda/install/>`_
+for full details.
 
 
 .. _sec_installation_pip:
