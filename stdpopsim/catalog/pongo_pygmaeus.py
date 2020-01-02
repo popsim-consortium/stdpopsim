@@ -83,7 +83,11 @@ _species = stdpopsim.Species(
     population_size_citations=[
         _locke2011.because(stdpopsim.CiteReason.POP_SIZE)])
 
-stdpopsim.register_species(_species)
+
+# FIXME not registering this species because of the mixup with PonPyg
+# and PonAbe and the lack of clarity on how to deal with multi-species
+# population models. See #365 and #354.
+# stdpopsim.register_species(_species)
 
 
 ###########################################################
