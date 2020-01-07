@@ -113,3 +113,8 @@ class TestGutenkunstThreePopOutOfAfrica(
 class TestSchiffelsZigzag(
         unittest.TestCase, test_models.CatalogDemographicModelTestMixin):
     model = species.get_demographic_model("Zigzag_1S14")
+
+
+class TestJacobsPapuansOutOfAfrica(
+        unittest.TestCase, test_models.CatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("PapuansOutOfAfrica_10J19")

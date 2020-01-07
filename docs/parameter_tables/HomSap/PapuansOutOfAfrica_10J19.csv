@@ -1,0 +1,53 @@
+Population size,"48,433",African pop. size
+Population size,"6,962",European pop. size
+Population size,"9,025",East Asian pop. size
+Population size,"8,834",Papuan pop. size
+Population size,"5,083",Altai Denisovan pop. size
+Population size,"826",Altai Neandertal pop. size
+Population size,"13,249",Introgressing Denisovan D1 pop. size
+Population size,"13,249",Introgressing Denisovan D2 pop. size
+Population size,"13,249",Introgressing Neandertal pop. size
+Population size,"8,516",Ghost (out-of-Africa lineage) pop. size
+Population size,"12,971",(European + East Asian) pop. size before divergence
+Population size,"41,563",(Ghost + African) pop. size before divergence
+Population size,"13,249",(Denisovan + Neandertal) pop. size before divergence
+Population size,"32,671",(Human + Archaic) pop. size before divergence
+Population size,100,(Altai Denisovan + Introgressing Denisovan D1) pop. size before divergence
+Population size,100,(Altai Denisovan + Introgressing Denisovan D2) pop. size before divergence
+Population size,"13,249",(Altai Neandertal + Introgressing Neandertal) pop. size before divergence
+Time (yrs.),"37,497",Time of European and East Asian split
+Time (yrs.),"50,982",Time of Ghost and (European + East Asian) split
+Time (yrs.),"51,736",Time of Ghost and Papuan split
+Time (yrs.),"64,322",Time of Ghost and African split
+Time (yrs.),"59,682",Time of Altai Neandertal and Introgressing Neandertal split
+Time (yrs.),"282,750",Time of Altai Denisovan and Introgressing Denisovan D1 split
+Time (yrs.),"362,500",Time of Altai Denisovan and Introgressing Denisovan D2 split
+Time (yrs.),"437,610",Time of Denisovan and Neandertal split
+Time (yrs.),"586,525",Time of Human and Archaic split
+Population size,"2,231",(European + East Asian) bottleneck pop. size
+Population size,243,Papuan bottleneck pop. size
+Population size,"1,394",Ghost (out-of-Africa) bottleneck pop. size
+Time (yrs.),"48,111",Time of the (European + East Asian) bottleneck
+Time (yrs.),"48,865",Time of the Papuan bottleneck
+Time (yrs.),"61,451",Time of the Ghost (out-of-Africa) bottleneck
+ADMIX percentage,"2.2",Amount of Denisovan D1 admixture in Papaun pop.
+ADMIX percentage,"1.8",Amount of Denisovan D2 admixture in Papaun pop.
+ADMIX percentage,"2.4",Amount of Neandertal admixture in Ghost pop.
+ADMIX percentage,"1.1",Amount of Neandertal admixture in (European + East Asian) pop.
+ADMIX percentage,"0.2",Amount of Neandertal admixture in Papuan pop.
+ADMIX percentage,"0.2",Amount of Neandertal admixture in East Asian pop.
+Time (yrs.),"29,800",Time of Denisovan D1 to Papuan admixture
+Time (yrs.),"45,700",Time of Denisovan D2 to Papuan admixture
+Time (yrs.),"53,737",Time of Neandertal to Ghost admixture
+Time (yrs.),"45,414",Time of Neandertal to (European + East Asian) admixture
+Time (yrs.),"40,948",Time of Neandertal to Papuan admixture
+Time (yrs.),"25,607",Time of Neandertal to East Asian admixture
+Migration rate (x10^-4),1.79,Ghost--African migration rate
+Migration rate (x10^-4),4.42,Ghost--European migration rate
+Migration rate (x10^-4),31.4,European--East Asian migration rate
+Migration rate (x10^-4),57.2,East Asian--Papuan migration rate
+Migration rate (x10^-4),5.72,(European + East Asian)--Papuan migration rate
+Migration rate (x10^-4),4.42,(European + East Asian)--Ghost migration rate
+Time (yrs.),"37,497",(European + East Asian)--Papuan migration begins
+Time (yrs.),"37,497",(European + East Asian)--Ghost migration begins
+Generation time (yrs.),29,Generation time
