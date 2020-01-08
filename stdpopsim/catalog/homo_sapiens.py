@@ -1352,7 +1352,7 @@ def _papuans_10j19():
             time=T_Den2_Papuan_mig,
             proportion=m_Den2_Papuan,
             source=pop["Papuan"],
-            destination=pop["Den1"]),
+            destination=pop["Den2"]),
         msprime.MassMigration(
             time=T_Nea1_Ghost_mig,
             proportion=m_Nea1_Ghost,
