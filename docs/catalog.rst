@@ -48,3 +48,5 @@ Then, if you feel ready, make an issue on our
 .. speciescatalog:: AraTha
 
 .. speciescatalog:: EscCol
+
+.. speciescatalog:: CanFam
