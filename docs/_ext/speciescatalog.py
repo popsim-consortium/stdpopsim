@@ -48,16 +48,21 @@ class SpeciesCatalogDirective(SphinxDirective):
     def make_field_list(self, data):
 
         field_list = nodes.field_list()
-        for name, text, citation in data:
+        for name, text, citations in data:
             field = nodes.field()
             field_name = nodes.field_name(text=name)
             field_body = nodes.field_body()
             para = nodes.paragraph(text=text)
 
-            if citation is not None:
-                text = f" ({citation.author}, {citation.year})"
-                para += nodes.reference(
-                    internal=False, refuri=citation.doi, text=text)
+            if citations is not None and len(citations) > 0:
+                para += nodes.Text(" (")
+                for i, citation in enumerate(citations):
+                    text = f"{citation.author}, {citation.year}"
+                    para += nodes.reference(
+                        internal=False, refuri=citation.doi, text=text)
+                    if i != len(citations)-1:
+                        para += nodes.Text("; ")
+                para += nodes.Text(")")
 
             field_body += para
             field += field_name
@@ -72,9 +77,9 @@ class SpeciesCatalogDirective(SphinxDirective):
             ("Name", species.name, None),
             ("Common name", species.common_name, None),
             ("Generation time", species.generation_time,
-                species.generation_time_citations[0]),
+                species.generation_time_citations),
             ("Population size", species.population_size,
-                species.population_size_citations[0]),
+                species.population_size_citations),
         ]
         return self.make_field_list(data)
 
