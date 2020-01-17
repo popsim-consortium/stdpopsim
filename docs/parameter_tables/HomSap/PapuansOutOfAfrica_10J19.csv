@@ -1,3 +1,4 @@
+Generation time (yrs.),29,Generation time
 Population size,"48,433",African pop. size
 Population size,"6,962",European pop. size
 Population size,"9,025",East Asian pop. size
@@ -19,7 +20,7 @@ Time (yrs.),"37,497",Time of European and East Asian split
 Time (yrs.),"50,982",Time of Ghost and (European + East Asian) split
 Time (yrs.),"51,736",Time of Ghost and Papuan split
 Time (yrs.),"64,322",Time of Ghost and African split
-Time (yrs.),"59,682",Time of Altai Neandertal and Introgressing Neandertal split
+Time (yrs.),"97,875",Time of Altai Neandertal and Introgressing Neandertal split
 Time (yrs.),"282,750",Time of Altai Denisovan and Introgressing Denisovan D1 split
 Time (yrs.),"362,500",Time of Altai Denisovan and Introgressing Denisovan D2 split
 Time (yrs.),"437,610",Time of Denisovan and Neandertal split
@@ -50,4 +51,3 @@ Migration rate (x10^-4),5.72,(European + East Asian)--Papuan migration rate
 Migration rate (x10^-4),4.42,(European + East Asian)--Ghost migration rate
 Time (yrs.),"37,497",(European + East Asian)--Papuan migration begins
 Time (yrs.),"37,497",(European + East Asian)--Ghost migration begins
-Generation time (yrs.),29,Generation time

@@ -1165,7 +1165,7 @@ def _papuans_10j19():
     T_Eurasian_Ghost_split = 1758
     T_Papuan_Ghost_split = 1784
     T_Ghost_Afr_split = 2218
-    T_NeaA_Nea1_split = 2058
+    T_NeaA_Nea1_split = 3375
     T_DenA_Den1_split = 9750
     T_DenA_Den2_split = 12500
     T_Den_Nea_split = 15090
@@ -1334,11 +1334,11 @@ def _papuans_10j19():
         msprime.MigrationRateChange(
             time=T_EU_AS_split,
             rate=m_Eurasian_Ghost,
-            matrix_index=(pop["Papuan"], pop["Ghost"])),
+            matrix_index=(pop["CHB"], pop["Ghost"])),
         msprime.MigrationRateChange(
             time=T_EU_AS_split,
             rate=m_Eurasian_Ghost,
-            matrix_index=(pop["Ghost"], pop["Papuan"])),
+            matrix_index=(pop["Ghost"], pop["CHB"])),
         # all migrations off
         msprime.MigrationRateChange(time=Tb_Eurasia, rate=0),
 
