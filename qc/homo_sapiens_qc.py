@@ -526,3 +526,248 @@ class KammAncientSamples(models.DemographicModel):
                 time=t_Nean_Losch, initial_size=N_Nean_Losch,
                 population_id=3)
         ]
+
+
+class DenisovanAncestryInPapuans(models.DemographicModel):
+    """
+    Demographic model from Jacobs et al (2019). The model is
+    illustrated on Figure S5, parameters are in Table S5
+    """
+    def __init__(self):
+        self.generation_time = 29  # Just information
+
+        # sizes of populations
+        N_YRI = 48433
+        N_CEU = 6962
+        N_CHB = 9025
+        N_Papuan = 8834
+        N_DenA = 5083
+        t_DenA = 2058  # generations
+        N_NeanA = 826
+        t_NeanA = 2612  # generations
+        N_Nean1 = 13249
+        N_Den1 = N_Nean1
+        N_Den2 = N_Nean1
+        N_Ghost = 8516
+        # after coalescences
+        N_CEU_CHB = 12971
+        N_Human = 41563
+        N_DenAnc = 100
+        N_A = 32671
+
+        # bottlenecks
+        N_CEU_CHB_bot = 2231
+        N_GhostA_bot = 1394
+        N_Papuan_bot = 243
+
+        # times of coalesces
+        t_CEU_CHB = 1293
+        t_CEU_Ghost = 1758
+        t_Papuan_Ghost = 1784
+        t_YRI_GhostA = 2218
+        t_Nean1_NeanA = 3375
+        t_Den1_DenA = 9750
+        t_Den1_Den2 = 12500
+        t_Den_Nean = 15090
+        t_Human_Den_Nean = 20225
+
+        # times of bottlenecks
+        t_CEU_CHB_bot = 1659
+        t_Papuan_bot = 1685
+        t_GhostA_bot = 2119
+
+        # migrations
+        m_YRI_Ghost = 0.000179
+        m_Ghost_CEU = 0.000442
+        m_CEU_CHB = 3.14e-5
+        m_CHB_Papuan = 5.72e-5
+        m_CEUCHB_Papua = 0.000572
+        m_Ghost_CEUCHB = 0.000442
+
+        # times and proportions of admixtures
+        p1 = 0.55
+        t_Nean1_to_CHB = 883
+        p_Nean1_to_CHB = 0.002
+        t_Den2_to_Papuan = 45.7e3 / self.generation_time
+        p_Den2_to_Papuan = (1 - p1) * 0.04
+        t_Den1_to_Papuan = 29.8e3 / self.generation_time
+        p_Den1_to_Papuan = p1 * 0.04
+        t_Nean1_to_Papuan = 1412
+        p_Nean1_to_Papuan = 0.002
+        t_Nean1_to_CEU_CHB = 1566
+        p_Nean1_to_CEU_CHB = 0.011
+        t_Nean1_to_GhostA = 1853
+        p_Nean1_to_GhostA = 0.024
+
+        # set up populations
+        self.population_configurations = [
+            msprime.PopulationConfiguration(  # 0 YRI
+                initial_size=N_YRI, growth_rate=0,
+                metadata={"name": "YRI", "sampling_time": 0}),
+            msprime.PopulationConfiguration(  # 1 CEU
+                initial_size=N_CEU, growth_rate=0,
+                metadata={"name": "CEU", "sampling_time": 0}),
+            msprime.PopulationConfiguration(  # 2 CHB
+                initial_size=N_CHB, growth_rate=0,
+                metadata={"name": "CHB", "sampling_time": 0}),
+            msprime.PopulationConfiguration(  # 3 Papuan
+                initial_size=N_Papuan, growth_rate=0,
+                metadata={"name": "Papuan", "sampling_time": 0}),
+            msprime.PopulationConfiguration(  # 4 DenA
+                initial_size=N_DenA, growth_rate=0,
+                metadata={"name": "DenA", "sampling_time": t_DenA}),
+            msprime.PopulationConfiguration(  # 5 NeanA
+                initial_size=N_NeanA, growth_rate=0,
+                metadata={"name": "NeanA", "sampling_time": t_NeanA}),
+            msprime.PopulationConfiguration(  # 6 Den1
+                initial_size=N_Den1, growth_rate=0,
+                metadata={"name": "Den1", "sampling_time": 0}),
+            msprime.PopulationConfiguration(  # 7 Den2
+                initial_size=N_Den2, growth_rate=0,
+                metadata={"name": "Den2", "sampling_time": 0}),
+            msprime.PopulationConfiguration(  # 8 Nean1
+                initial_size=N_Nean1, growth_rate=0,
+                metadata={"name": "Nean1", "sampling_time": 0}),
+            msprime.PopulationConfiguration(  # 9 Ghost
+                initial_size=N_Ghost, growth_rate=0,
+                metadata={"name": "Ghost", "sampling_time": 0})
+        ]
+
+        self.migration_matrix = [[0]*10 for _ in range(10)]
+        self.migration_matrix[0][9] = m_YRI_Ghost
+        self.migration_matrix[9][0] = m_YRI_Ghost
+        self.migration_matrix[1][9] = m_Ghost_CEU
+        self.migration_matrix[9][1] = m_Ghost_CEU
+        self.migration_matrix[1][2] = m_CEU_CHB
+        self.migration_matrix[2][1] = m_CEU_CHB
+        self.migration_matrix[2][3] = m_CHB_Papuan
+        self.migration_matrix[3][2] = m_CHB_Papuan
+
+        self.demographic_events = [
+            # Coalescence of CEU and CHB into CHB
+            msprime.MassMigration(
+                time=t_CEU_CHB, source=1,
+                destination=2, proportion=1.),
+            # Set size of CEU+CHB population
+            msprime.PopulationParametersChange(
+                time=t_CEU_CHB, initial_size=N_CEU_CHB,
+                population_id=2),
+            # Change migration matrix
+            msprime.MigrationRateChange(
+                time=t_CEU_CHB, rate=0, matrix_index=(2, 1)),
+            msprime.MigrationRateChange(
+                time=t_CEU_CHB, rate=0, matrix_index=(1, 2)),
+            msprime.MigrationRateChange(
+                time=t_CEU_CHB, rate=0, matrix_index=(3, 2)),
+            msprime.MigrationRateChange(
+                time=t_CEU_CHB, rate=0, matrix_index=(2, 3)),
+            msprime.MigrationRateChange(
+                time=t_CEU_CHB, rate=0, matrix_index=(9, 1)),
+            msprime.MigrationRateChange(
+                time=t_CEU_CHB, rate=0, matrix_index=(1, 9)),
+            msprime.MigrationRateChange(
+                time=t_CEU_CHB, rate=m_CEUCHB_Papua, matrix_index=(2, 3)),
+            msprime.MigrationRateChange(
+                time=t_CEU_CHB, rate=m_CEUCHB_Papua, matrix_index=(3, 2)),
+            msprime.MigrationRateChange(
+                time=t_CEU_CHB, rate=m_Ghost_CEUCHB, matrix_index=(2, 9)),
+            msprime.MigrationRateChange(
+                time=t_CEU_CHB, rate=m_Ghost_CEUCHB, matrix_index=(9, 2)),
+            # Set bottleneck size of CEU+CHB population
+            msprime.PopulationParametersChange(
+                time=t_CEU_CHB_bot, initial_size=N_CEU_CHB_bot,
+                population_id=2),
+            # Change migration matrix
+            msprime.MigrationRateChange(time=t_CEU_CHB_bot, rate=0),
+            # Set bottleneck size of Papuan population
+            msprime.PopulationParametersChange(
+                time=t_Papuan_bot, initial_size=N_Papuan_bot,
+                population_id=3),
+            # Coalescence of CEU+CHB and Ghost to Ghost
+            msprime.MassMigration(
+                time=t_CEU_Ghost, source=2,
+                destination=9, proportion=1.),
+            # Coalescence of Papuan and Ghost to GhostA
+            msprime.MassMigration(
+                time=t_Papuan_Ghost, source=3,
+                destination=9, proportion=1.),
+            # Set bottleneck size of GhostA population
+            msprime.PopulationParametersChange(
+                time=t_GhostA_bot, initial_size=N_GhostA_bot,
+                population_id=9),
+            # Coalescence of Ghost and YRI into Human (YRI)
+            msprime.MassMigration(
+                time=t_YRI_GhostA, source=9,
+                destination=0, proportion=1.),
+            # Set size of Human population
+            msprime.PopulationParametersChange(
+                time=t_YRI_GhostA, initial_size=N_Human,
+                population_id=0),
+            # Coalescence of NeanA and Nean1 into NeanAnc
+            msprime.MassMigration(
+                time=t_Nean1_NeanA, source=8,
+                destination=5, proportion=1.),
+            # Set size of NeanAnc population
+            msprime.PopulationParametersChange(
+                time=t_Nean1_NeanA, initial_size=N_Nean1,
+                population_id=5),
+            # Coalescence of Den1 and DenA into DenAnc (DenA)
+            msprime.MassMigration(
+                time=t_Den1_DenA, source=6,
+                destination=4, proportion=1.),
+            # Set size of DenA population
+            msprime.PopulationParametersChange(
+                time=t_Den1_DenA, initial_size=N_DenAnc,
+                population_id=4),
+            # Coalescence of DenAnc and Den2 into DenAnc
+            msprime.MassMigration(
+                time=t_Den1_Den2, source=7,
+                destination=4, proportion=1.),
+            # Set size of DenA population
+            msprime.PopulationParametersChange(
+                time=t_Den1_Den2, initial_size=N_DenAnc,
+                population_id=4),
+            # Coalescence of DenAnc and NeanAnc into Den_Nean (Nean1)
+            msprime.MassMigration(
+                time=t_Den_Nean, source=5,
+                destination=4, proportion=1.),
+            # Set size of Den_Nean population
+            msprime.PopulationParametersChange(
+                time=t_Den_Nean, initial_size=N_Nean1,
+                population_id=4),
+            # Coalescence of Den_Nean and Human into Anc (YRI)
+            msprime.MassMigration(
+                time=t_Human_Den_Nean, source=4,
+                destination=0, proportion=1.),
+            # Set ancestral size of population
+            msprime.PopulationParametersChange(
+                time=t_Human_Den_Nean, initial_size=N_A,
+                population_id=0),
+
+            # Admixture events
+            # Admixture from Den1 to Papuans
+            msprime.MassMigration(
+                time=t_Den1_to_Papuan, source=3,
+                destination=6, proportion=p_Den1_to_Papuan),
+            # Admixture from Den2 to Papuans
+            msprime.MassMigration(
+                time=t_Den2_to_Papuan, source=3,
+                destination=7, proportion=p_Den2_to_Papuan),
+            # Admixture from Nean1 to GhostA
+            msprime.MassMigration(
+                time=t_Nean1_to_GhostA, source=9,
+                destination=8, proportion=p_Nean1_to_GhostA),
+            # Admixture from Nean1 to CEU+CHB
+            msprime.MassMigration(
+                time=t_Nean1_to_CEU_CHB, source=2,
+                destination=8, proportion=p_Nean1_to_CEU_CHB),
+            # Admixture from Nean1 to Papuans
+            msprime.MassMigration(
+                time=t_Nean1_to_Papuan, source=3,
+                destination=8, proportion=p_Nean1_to_Papuan),
+            # Admixture from Neandertal to East Asia population
+            msprime.MassMigration(
+                time=t_Nean1_to_CHB, proportion=p_Nean1_to_CHB, source=2,
+                destination=8),
+        ]
+        self.demographic_events.sort(key=lambda x: x.time)
