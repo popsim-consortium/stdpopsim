@@ -103,6 +103,12 @@ class TestKammAncientEurasia(
     qc_model = homo_sapiens_qc.KammAncientSamples()
 
 
+class TestJacobsPapuansOutOfAfrica(
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
+    model = species.get_demographic_model("PapuansOutOfAfrica_10J19")
+    qc_model = homo_sapiens_qc.DenisovanAncestryInPapuans()
+
+
 # Models that have not been QC'd:
 
 class TestGutenkunstThreePopOutOfAfrica(
@@ -113,8 +119,3 @@ class TestGutenkunstThreePopOutOfAfrica(
 class TestSchiffelsZigzag(
         unittest.TestCase, test_models.CatalogDemographicModelTestMixin):
     model = species.get_demographic_model("Zigzag_1S14")
-
-
-class TestJacobsPapuansOutOfAfrica(
-        unittest.TestCase, test_models.CatalogDemographicModelTestMixin):
-    model = species.get_demographic_model("PapuansOutOfAfrica_10J19")
