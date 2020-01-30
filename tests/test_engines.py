@@ -2,8 +2,10 @@
 Tests for simulation engine infrastructure.
 """
 import unittest
+from unittest import mock
 
 import stdpopsim
+import stdpopsim.cli
 
 
 class TestEngine_API(unittest.TestCase):
@@ -49,3 +51,16 @@ class TestEngine_API(unittest.TestCase):
         e = stdpopsim.Engine()
         self.assertRaises(NotImplementedError, e.simulate)
         self.assertRaises(NotImplementedError, e.get_version)
+
+
+class TestMsprimeDTWF(unittest.TestCase):
+
+    def test_engine_can_simulate(self):
+        cmd = f"-e msprime-dtwf AraTha -l 0.001 --seed 1234 -q 10"
+        with mock.patch("sys.stdout"):
+            stdpopsim.cli.stdpopsim_main(cmd.split())
+
+    def test_simulation_model_switching(self):
+        cmd = f"-e msprime-dtwf --time-hudson 50 AraTha -l 0.001 --seed 1234 -q 10"
+        with mock.patch("sys.stdout"):
+            stdpopsim.cli.stdpopsim_main(cmd.split())
