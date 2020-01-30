@@ -128,3 +128,50 @@ def get_default_engine():
     Returns the default simulation engine (msprime).
     """
     return get_engine("msprime")
+
+
+class _MsprimeDTWFEngine(Engine):
+    id = "msprime-dtwf"
+    description = "Msprime discrete-time Wright Fisher simulator"
+    citations = [
+            stdpopsim.Citation(
+                # biorxiv; update upon publication
+                doi="https://doi.org/10.1101/674440",
+                year="2019",
+                author="Nelson et al.",
+                reasons={stdpopsim.CiteReason.ENGINE}),
+            ]
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+                "--time-hudson", metavar="GEN", type=int, default=None,
+                help="Time (generations in the past) at which the simulation "
+                     "switches from msprime's DTWF simulation model to a "
+                     "coalescent-with-recombination simulation model "
+                     "(Hudson's algorithm)")
+
+    def simulate(
+            self, demographic_model=None, contig=None, samples=None, seed=None,
+            time_hudson=None, **kwargs):
+
+        demographic_events = demographic_model.demographic_events.copy()
+        if time_hudson is not None:
+            model_change = msprime.SimulationModelChange(time_hudson, "hudson")
+            demographic_events.append(model_change)
+            demographic_events.sort(key=lambda x: x.time)
+
+        return msprime.simulate(
+                samples=samples,
+                recombination_map=contig.recombination_map,
+                mutation_rate=contig.mutation_rate,
+                population_configurations=demographic_model.population_configurations,
+                migration_matrix=demographic_model.migration_matrix,
+                demographic_events=demographic_events,
+                random_seed=seed,
+                model="dtwf")
+
+    def get_version(self):
+        return msprime.__version__
+
+
+register_engine(_MsprimeDTWFEngine())
