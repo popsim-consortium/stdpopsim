@@ -630,3 +630,52 @@ class TestDryRun(unittest.TestCase):
             cmd = f"{sys.executable} -m stdpopsim HomSap -D -q -l 0.01 -o {filename} 2"
             subprocess.run(cmd, shell=True, check=True)
             self.assertFalse(os.path.isfile(filename))
+
+
+class TestMsprimeEngine(unittest.TestCase):
+    def docmd(self, _cmd):
+        cmd = f"-e msprime {_cmd} AraTha -l 0.001 --seed 1 -o /dev/null -q 10"
+        return capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
+
+    def test_simulate(self):
+        self.docmd("")
+        self.docmd("--msprime-model hudson")
+        self.docmd("--msprime-model smc")
+        self.docmd("--msprime-model smc_prime")
+        self.docmd("--msprime-model dtwf "
+                   "--msprime-change-model 49.6 hudson")
+
+        self.docmd("--msprime-model hudson "
+                   "--msprime-change-model 10 dtwf "
+                   "--msprime-change-model 20 hudson "
+                   "--msprime-change-model 30 dtwf "
+                   "--msprime-change-model 40 hudson")
+
+    def test_invalid_CLI_parameters(self):
+        with self.assertRaises(SystemExit):
+            self.docmd("--msprime-model notamodel")
+        with self.assertRaises(SystemExit):
+            self.docmd("--msprime-model dtwf "
+                       "--msprime-change-model 50 notamodel")
+        with self.assertRaises(SystemExit):
+            self.docmd("--msprime-model dtwf "
+                       "--msprime-change-model notanumber hudson")
+        with self.assertRaises(SystemExit):
+            self.docmd("--msprime-model hudson "
+                       "--msprime-change-model dtwf")
+        with self.assertRaises(SystemExit):
+            self.docmd("--msprime-model hudson "
+                       "--msprime-change-model 10")
+
+    def test_invalid_API_parameters(self):
+        engine = stdpopsim.get_engine("msprime")
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("chr20")
+        model = species.get_demographic_model("OutOfAfrica_2T12")
+        samples = model.get_samples(10)
+        with self.assertRaises(ValueError):
+            engine.simulate(model, contig, samples, msprime_model="notamodel")
+        with self.assertRaises(ValueError):
+            engine.simulate(
+                    model, contig, samples,
+                    msprime_change_model=[(10, "notamodel"), ])

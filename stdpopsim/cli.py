@@ -509,10 +509,32 @@ def stdpopsim_cli_parser():
         choices=[e.id for e in stdpopsim.all_engines()],
         help="Specify a simulation engine.")
 
-    for engine in stdpopsim.all_engines():
-        group = top_parser.add_argument_group(
-                f"{engine.id} specific parameters")
-        engine.add_arguments(group)
+    supported_models = stdpopsim.get_engine("msprime").supported_models
+    msprime_parser = top_parser.add_argument_group("msprime specific parameters")
+    msprime_parser.add_argument(
+            "--msprime-model",
+            default=supported_models[0],
+            choices=supported_models,
+            help="Specify the simulation model used by msprime. "
+                 "See msprime API documentation for details.")
+
+    def time_or_model(arg, _arg_is_time=[True, ], parser=top_parser):
+        if _arg_is_time[0]:
+            try:
+                arg = float(arg)
+            except ValueError:
+                parser.error(f"`{arg}' is not a number")
+        else:
+            if arg not in supported_models:
+                parser.error(f"`{arg}' is not a supported model")
+        _arg_is_time[0] = not _arg_is_time[0]
+        return arg
+    msprime_parser.add_argument(
+            "--msprime-change-model",
+            metavar=("T", "MODEL"), type=time_or_model,
+            default=[], action="append", nargs=2,
+            help="Change to the specified simulation MODEL at generation T. "
+                 "This option may provided multiple times.")
 
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True
