@@ -302,6 +302,11 @@ def slim_makescript(
 
     pop_names = [pc.metadata["id"] for pc in population_configurations]
 
+    # Reassign event times according to integral SLiM generations.
+    # This collapses the time deltas used in HomSap/AmericanAdmixture_4B11.
+    for event in demographic_events:
+        event.time = int(event.time / Q) * Q
+
     # The demography debugger constructs event epochs, which we use
     # to define the forwards-time events.
     dd = msprime.DemographyDebugger(
@@ -328,11 +333,13 @@ def slim_makescript(
             if isinstance(de, msprime.MassMigration):
 
                 if de.proportion < 1:
+                    rem = 1 - np.sum([ap[3] for ap in admixture_pulses
+                                     if ap[0] == i and ap[1] == de.source])
                     admixture_pulses.append((
-                        f"_T[{i}]",
+                        i,
                         de.source,  # forwards-time dest
-                        de.dest,  # forwards-time source
-                        de.proportion))
+                        de.dest,    # forwards-time source
+                        rem*de.proportion))
                     continue
 
                 # Backwards: de.source is being merged into de.dest.
@@ -370,6 +377,9 @@ def slim_makescript(
                 pass
             else:
                 raise Exception(f"{type(de)} not yet supported")
+
+    # Output _T[...] variable rather than an index.
+    admixture_pulses = [(f"_T[{ap[0]}]", *ap[1:]) for ap in admixture_pulses]
 
     printsc = functools.partial(print, file=script_file)
 
