@@ -17,7 +17,7 @@ How backwards-time demographic events are mapped to forwards-time SLiM code:
  * `msprime.DemographyDebugger()` does much of the hard work by extracting
    epochs from the given model's `demographic_events`, and calculating a
    migration_matrix for each epoch from the `msprime.MigrationRateChange`
-   events. The epochs boundaries defined here are indirectly translated into
+   events. The epoch boundaries defined here are indirectly translated into
    "late events" in SLiM.
 
  * `msprime.PopulationParametersChange` events are translated into SLiM as
@@ -30,6 +30,9 @@ How backwards-time demographic events are mapped to forwards-time SLiM code:
  * `msprime.MassMigration` events with proportion<1 indicate an admixture
    pulse at a single point in time. In SLiM, we call `pop.setMigrationRates()`
    in the relevant generation, and turn off migrations in the next generation.
+   When multiple MassMigration events correspond to a single SLiM generation,
+   the migration proportions multiply, following the msprime behaviour and
+   event ordering.
 
  * The migration_matrix for each epoch describes continuous migrations that
    occur over long time periods. In SLiM, we call `pop.setMigrationRates()`.
@@ -333,6 +336,8 @@ def slim_makescript(
             if isinstance(de, msprime.MassMigration):
 
                 if de.proportion < 1:
+                    # Calculate remainder of population after previous
+                    # MassMigration events in this epoch.
                     rem = 1 - np.sum([ap[3] for ap in admixture_pulses
                                      if ap[0] == i and ap[1] == de.source])
                     admixture_pulses.append((
