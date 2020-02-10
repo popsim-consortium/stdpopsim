@@ -1,3 +1,43 @@
+"""
+SLiM simulation engine.
+
+This is a translation of the msprime API into SLiM's Eidos language, which
+resembles R. The generated SLiM script is designed differently to the recipes
+described in the SLiM reference manual. In our generated SLiM script, all the
+demographic model parameters are defined in multi-dimensional arrays at the
+top of the script, in the `initialize()` block. These arrays define the event
+generations, and event blocks are subsequently constructed programmatically
+using `sim.registerLateEvent()`, rather than writing out the blocks verbatim.
+This design is intended to permit modification of demographic parameters in
+the generated SLiM script, without needing to directly convert event times in
+the past into forwards-time generations.
+
+How backwards-time demographic events are mapped to forwards-time SLiM code:
+
+ * `msprime.DemographyDebugger()` does much of the hard work by extracting
+   epochs from the given model's `demographic_events`, and calculating a
+   migration_matrix for each epoch from the `msprime.MigrationRateChange`
+   events. The epoch boundaries defined here are indirectly translated into
+   "late events" in SLiM.
+
+ * `msprime.PopulationParametersChange` events are translated into SLiM as
+   `pop.setSubpopulationSize()`. If `growth_rate` is not None, the population
+   size is changed in every generation to match the specified rate.
+
+ * `msprime.MassMigration` events with proportion=1 are population splits
+   in forwards time. In SLiM, these are `sim.addSubpopSplit()`.
+
+ * `msprime.MassMigration` events with proportion<1 indicate an admixture
+   pulse at a single point in time. In SLiM, we call `pop.setMigrationRates()`
+   in the relevant generation, and turn off migrations in the next generation.
+   When multiple MassMigration events correspond to a single SLiM generation,
+   the migration proportions multiply, following the msprime behaviour and
+   event ordering.
+
+ * The migration_matrix for each epoch describes continuous migrations that
+   occur over long time periods. In SLiM, we call `pop.setMigrationRates()`.
+"""
+
 import string
 import tempfile
 import subprocess
