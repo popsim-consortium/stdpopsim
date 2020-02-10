@@ -68,3 +68,7 @@ accessed through the main entrypoint, :func:`.get_engine`.
 
 .. autoclass:: stdpopsim.Engine
     :members:
+
+.. autoclass:: stdpopsim.slim_engine._SLiMEngine
+    :show-inheritance:
+    :members: id, description, simulate
