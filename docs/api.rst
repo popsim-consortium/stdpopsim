@@ -80,3 +80,7 @@ accessed through the main entrypoint, :func:`.get_engine`.
 .. autoclass:: stdpopsim.engines._MsprimeEngine
     :show-inheritance:
     :members: id, description, simulate
+
+.. autoclass:: stdpopsim.slim_engine._SLiMEngine
+    :show-inheritance:
+    :members: id, description, simulate

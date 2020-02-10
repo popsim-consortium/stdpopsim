@@ -554,8 +554,8 @@ def simplify_remembered(ts):
 
 
 class _SLiMEngine(stdpopsim.Engine):
-    id = "slim"
-    name = "SLiM"
+    id = "slim"  #:
+    description = "SLiM forward-time Wright-Fisher simulator"  #:
     citations = [
             stdpopsim.Citation(
                 doi="https://doi.org/10.1111/1755-0998.12968",
@@ -577,6 +577,31 @@ class _SLiMEngine(stdpopsim.Engine):
             slim_script=False, slim_rescale=10, slim_no_burnin=False,
             slim_path=None,
             **kwargs):
+        """
+        Simulate the demographic model using SLiM.
+        See :meth:`.Engine.simulate()` for definitions of the
+        ``demographic_model``, ``contig``, and ``samples`` parameters.
+
+        :param seed: The seed for the random number generator.
+        :type seed: int
+        :param slim_script: If true, the simulation will not be executed.
+            Instead the generated SLiM script will be printed to stdout.
+        :type slim_script: bool
+        :param slim_rescale: Rescale model parameters by the given factor,
+            to speed up simulation. Population sizes and generation times are
+            divided by this factor, whereas the mutation rate, recombination
+            rate, and growth rates are multiplied by the factor.
+        :type slim_rescale: int
+        :param slim_no_burnin: Do not perform a `burn in` at the start of the
+            simulation. The default `burn in` behaviour is to wait until all
+            individuals in the ancestral population(s) have a common ancestor
+            within their respective population, and then wait another 10*N
+            generations.
+        :type slim_no_burnin: bool
+        :param slim_path: The full path to the slim executable, or the name of
+            a command in the current PATH.
+        :type slim_path: str
+        """
 
         run_slim = not slim_script
         check_coalescence = not slim_no_burnin
