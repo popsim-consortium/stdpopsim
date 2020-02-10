@@ -38,12 +38,14 @@ How backwards-time demographic events are mapped to forwards-time SLiM code:
    occur over long time periods. In SLiM, we call `pop.setMigrationRates()`.
 """
 
+import sys
 import string
 import tempfile
 import subprocess
 import functools
 import itertools
 import collections
+import contextlib
 
 import stdpopsim
 import numpy as np
@@ -568,13 +570,13 @@ def slim_simulate(
         migration_matrix=None,
         demographic_events=None,
         random_seed=None,
-        slim_script_file=None,
+        slim_script=None,
         check_coalescence=True,
         Q=None,
         verbosity=0,
         ):
 
-    run_slim = slim_script_file is None
+    run_slim = not slim_script
 
     if run_slim and not cmd_found("slim"):
         raise Exception("Couldn't find `slim' executable.")
@@ -585,10 +587,13 @@ def slim_simulate(
 
     mktemp = functools.partial(tempfile.NamedTemporaryFile, mode="w")
 
-    if slim_script_file is not None:
-        script_file_f = functools.partial(open, slim_script_file, "w")
-    else:
-        script_file_f = functools.partial(mktemp, suffix=".slim")
+    @contextlib.contextmanager
+    def script_file_f():
+        f = mktemp(suffix=".slim") if not slim_script else sys.stdout
+        yield f
+        # Don't close sys.stdout.
+        if not slim_script:
+            f.close()
 
     with script_file_f() as script_file, mktemp(suffix=".trees") as trees_file:
 
@@ -652,7 +657,7 @@ class _SLiMEngine(stdpopsim.Engine):
 
     def simulate(self, demographic_model=None, contig=None, samples=None,
                  seed=None, verbosity=0,
-                 slim_script_file=None, slim_rescale=10, slim_no_burnin=False,
+                 slim_script=False, slim_rescale=10, slim_no_burnin=False,
                  **kwargs):
         return slim_simulate(
                     demographic_model=demographic_model,
@@ -664,7 +669,7 @@ class _SLiMEngine(stdpopsim.Engine):
                             demographic_model.population_configurations),
                     migration_matrix=demographic_model.migration_matrix,
                     demographic_events=demographic_model.demographic_events,
-                    slim_script_file=slim_script_file,
+                    slim_script=slim_script,
                     Q=slim_rescale,
                     check_coalescence=not slim_no_burnin,
                     random_seed=seed,
@@ -676,8 +681,8 @@ class _SLiMEngine(stdpopsim.Engine):
                 help="Rescale model parameters by INT to speed up simulation "
                      "[%(default)s].")
         parser.add_argument(
-                "--slim-script-file", metavar="FILE", default=None,
-                help="Write script to FILE and exit without running SLiM.")
+                "--slim-script", action="store_true", default=False,
+                help="Write script to stdout and exit without running SLiM.")
         parser.add_argument(
                 "--slim-no-burnin", action="store_true", default=False,
                 help="Don't wait for coalescence in SLiM before proceeding.")
