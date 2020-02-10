@@ -556,7 +556,7 @@ class _SLiMEngine(stdpopsim.Engine):
         s = subprocess.check_output(["slim", "-v"])
         return s.split()[2].decode("ascii").rstrip(",")
 
-    def simulate(self, contig=None, demographic_model=None, samples=None,
+    def simulate(self, demographic_model=None, contig=None, samples=None,
                  seed=None, verbosity=0,
                  slim_script_file=None, slim_rescale=10, slim_no_burnin=False,
                  **kwargs):
