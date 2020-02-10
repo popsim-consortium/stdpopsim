@@ -285,39 +285,31 @@ function (void)setup(void) {
 
 
 def slim_makescript(
-        script_file,
-        trees_file,
-        model,
-        samples,
-        Q,
-        check_coalescence,
-        mutation_rate,
-        generation_time,
-        population_configurations,
-        recombination_map,
-        migration_matrix,
-        demographic_events,
-        verbosity):
+        script_file, trees_file,
+        demographic_model, contig, samples,
+        Q, check_coalescence, verbosity):
 
+    generation_time = demographic_model.generation_time
     if generation_time <= 0:
         raise Exception(f"generation_time={generation_time} is invalid")
 
+    recombination_map = contig.recombination_map
     if len(recombination_map.get_positions()) > 2:
         raise Exception("recombination_map not supported")
 
-    pop_names = [pc.metadata["name"] for pc in population_configurations]
+    pop_names = [pc.metadata["id"] for pc in demographic_model.population_configurations]
 
     # Reassign event times according to integral SLiM generations.
     # This collapses the time deltas used in HomSap/AmericanAdmixture_4B11.
-    for event in demographic_events:
+    for event in demographic_model.demographic_events:
         event.time = int(event.time / Q) * Q
 
     # The demography debugger constructs event epochs, which we use
     # to define the forwards-time events.
     dd = msprime.DemographyDebugger(
-            population_configurations=population_configurations,
-            migration_matrix=migration_matrix,
-            demographic_events=demographic_events)
+            population_configurations=demographic_model.population_configurations,
+            migration_matrix=demographic_model.migration_matrix,
+            demographic_events=demographic_model.demographic_events)
 
     epochs = sorted(dd.epochs, key=lambda e: e.start_time, reverse=True)
     T = [int(e.start_time*generation_time) for e in epochs]
@@ -402,7 +394,7 @@ def slim_makescript(
                 Q=Q if Q is not None else 1,
                 chromosome_length=int(recombination_map.get_length()),
                 recombination_rate=recombination_map.mean_recombination_rate,
-                mutation_rate=mutation_rate,
+                mutation_rate=contig.mutation_rate,
                 generation_time=generation_time,
                 trees_file=trees_file,
                 verbosity=verbosity,
@@ -560,86 +552,6 @@ def simplify_remembered(ts):
     return ts.simplify(samples=list(nodes))
 
 
-def slim_simulate(
-        model,
-        samples,
-        mutation_rate,
-        generation_time,
-        population_configurations,
-        recombination_map,
-        migration_matrix=None,
-        demographic_events=None,
-        random_seed=None,
-        slim_script=None,
-        check_coalescence=True,
-        Q=None,
-        verbosity=0,
-        ):
-
-    run_slim = not slim_script
-
-    if run_slim and not cmd_found("slim"):
-        raise Exception("Couldn't find `slim' executable.")
-
-    slim_cmd = ["slim"]
-    if random_seed is not None:
-        slim_cmd.extend(["-s", f"{random_seed}"])
-
-    mktemp = functools.partial(tempfile.NamedTemporaryFile, mode="w")
-
-    @contextlib.contextmanager
-    def script_file_f():
-        f = mktemp(suffix=".slim") if not slim_script else sys.stdout
-        yield f
-        # Don't close sys.stdout.
-        if not slim_script:
-            f.close()
-
-    with script_file_f() as script_file, mktemp(suffix=".trees") as trees_file:
-
-        slim_makescript(script_file,
-                        trees_file.name,
-                        model=model,
-                        samples=samples,
-                        Q=Q,
-                        check_coalescence=check_coalescence,
-                        mutation_rate=mutation_rate,
-                        generation_time=generation_time,
-                        population_configurations=population_configurations,
-                        recombination_map=recombination_map,
-                        demographic_events=demographic_events,
-                        migration_matrix=migration_matrix,
-                        verbosity=verbosity,
-                        )
-
-        script_file.flush()
-
-        if not run_slim:
-            return None
-
-        slim_cmd.append(script_file.name)
-        stdout = subprocess.DEVNULL if verbosity == 0 else None
-        subprocess.check_call(slim_cmd, stdout=stdout)
-
-        ts = pyslim.load(trees_file.name)
-
-    # random.seed(random_seed)
-    # s1, s2 = random.randint(1,2**32-1), random.randint(1,2**32-1)
-
-    # Recapitation.
-    # r = recombination_map.mean_recombination_rate
-    # N0 = ?
-    # ts = ts.recapitate(Ne=N0, recombination_rate=r, random_seed=s1)
-
-    ts = simplify_remembered(ts)
-
-    # Add neutral mutations.
-    # ts = pyslim.SlimTreeSequence(msprime.mutate(ts, rate=mutation_rate,
-    #                              keep=True, random_seed=s2))
-
-    return ts
-
-
 class _SLiMEngine(stdpopsim.Engine):
     id = "slim"
     name = "SLiM"
@@ -647,37 +559,78 @@ class _SLiMEngine(stdpopsim.Engine):
             stdpopsim.Citation(
                 doi="https://doi.org/10.1111/1755-0998.12968",
                 year=2019,
-                author="Haller et al."),
+                author="Haller et al.",
+                reasons={stdpopsim.CiteReason.ENGINE}),
             ]
 
     def get_version(self):
         s = subprocess.check_output(["slim", "-v"])
         return s.split()[2].decode("ascii").rstrip(",")
 
-    def simulate(self, demographic_model=None, contig=None, samples=None,
-                 seed=None, verbosity=0,
-                 slim_script=False, slim_rescale=10, slim_no_burnin=False,
-                 **kwargs):
-        return slim_simulate(
-                    model=model,
-                    samples=samples,
-                    recombination_map=contig.recombination_map,
-                    mutation_rate=contig.mutation_rate,
-                    generation_time=demographic_model.generation_time,
-                    population_configurations=(
-                            demographic_model.population_configurations),
-                    migration_matrix=demographic_model.migration_matrix,
-                    demographic_events=demographic_model.demographic_events,
-                    slim_script=slim_script,
-                    Q=slim_rescale,
-                    check_coalescence=not slim_no_burnin,
-                    random_seed=seed,
-                    verbosity=verbosity)
+    def simulate(
+            self, demographic_model=None, contig=None, samples=None,
+            seed=None, verbosity=0,
+            slim_script=False, slim_rescale=10, slim_no_burnin=False,
+            **kwargs):
+
+        run_slim = not slim_script
+        check_coalescence = not slim_no_burnin
+
+        if run_slim and not cmd_found("slim"):
+            raise Exception("Couldn't find `slim' executable.")
+
+        slim_cmd = ["slim"]
+        if seed is not None:
+            slim_cmd.extend(["-s", f"{seed}"])
+
+        mktemp = functools.partial(tempfile.NamedTemporaryFile, mode="w")
+
+        @contextlib.contextmanager
+        def script_file_f():
+            f = mktemp(suffix=".slim") if not slim_script else sys.stdout
+            yield f
+            # Don't close sys.stdout.
+            if not slim_script:
+                f.close()
+
+        with script_file_f() as script_file, mktemp(suffix=".ts") as ts_file:
+
+            slim_makescript(
+                    script_file, ts_file.name,
+                    demographic_model, contig, samples,
+                    slim_rescale, check_coalescence, verbosity)
+
+            script_file.flush()
+
+            if not run_slim:
+                return None
+
+            slim_cmd.append(script_file.name)
+            stdout = subprocess.DEVNULL if verbosity == 0 else None
+            subprocess.check_call(slim_cmd, stdout=stdout)
+
+            ts = pyslim.load(ts_file.name)
+
+        # random.seed(seed)
+        # s1, s2 = random.randint(1,2**32-1), random.randint(1,2**32-1)
+
+        # Recapitation.
+        # r = recombination_map.mean_recombination_rate
+        # N0 = ?
+        # ts = ts.recapitate(Ne=N0, recombination_rate=r, random_seed=s1)
+
+        ts = simplify_remembered(ts)
+
+        # Add neutral mutations.
+        # ts = pyslim.SlimTreeSequence(msprime.mutate(ts, rate=mutation_rate,
+        #                              keep=True, random_seed=s2))
+
+        return ts
 
     def add_arguments(self, parser):
         parser.add_argument(
-                "-Q", "--slim-rescale", metavar="INT", default=10,
-                help="Rescale model parameters by INT to speed up simulation "
+                "--slim-rescale", metavar="Q", default=10, type=int,
+                help="Rescale model parameters by Q to speed up simulation "
                      "[%(default)s].")
         parser.add_argument(
                 "--slim-script", action="store_true", default=False,
