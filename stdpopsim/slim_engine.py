@@ -38,6 +38,7 @@ How backwards-time demographic events are mapped to forwards-time SLiM code:
    occur over long time periods. In SLiM, we call `pop.setMigrationRates()`.
 """
 
+import os
 import sys
 import string
 import tempfile
@@ -563,23 +564,30 @@ class _SLiMEngine(stdpopsim.Engine):
                 reasons={stdpopsim.CiteReason.ENGINE}),
             ]
 
+    def slim_path(self):
+        return os.environ.get("SLIM", "slim")
+
     def get_version(self):
-        s = subprocess.check_output(["slim", "-v"])
+        s = subprocess.check_output([self.slim_path(), "-v"])
         return s.split()[2].decode("ascii").rstrip(",")
 
     def simulate(
             self, demographic_model=None, contig=None, samples=None,
             seed=None, verbosity=0,
             slim_script=False, slim_rescale=10, slim_no_burnin=False,
+            slim_path=None,
             **kwargs):
 
         run_slim = not slim_script
         check_coalescence = not slim_no_burnin
 
-        if run_slim and not cmd_found("slim"):
+        if slim_path is None:
+            slim_path = self.slim_path()
+
+        if run_slim and not cmd_found(slim_path):
             raise Exception("Couldn't find `slim' executable.")
 
-        slim_cmd = ["slim"]
+        slim_cmd = [slim_path]
         if seed is not None:
             slim_cmd.extend(["-s", f"{seed}"])
 
@@ -643,9 +651,16 @@ class _SLiMEngine(stdpopsim.Engine):
 #                help="Recapitate trees with pyslim, and overlay neutral "
 #                     "mutations with msprime, after running SLiM."
 #                     "This implies --slim-no-burnin.")
-#        parser.add_argument(
-#                "--slim-path", metavar="FILE", default=None,
-#                help="Full path to `slim' executable.")
+
+        def slim_exec(path):
+            # Hack to set the SLIM environment variable at parse time,
+            # before get_version() can be called.
+            if path is not None:
+                os.environ["SLIM"] = path
+            return path
+        parser.add_argument(
+                "--slim-path", metavar="PATH", type=slim_exec, default=None,
+                help="Full path to `slim' executable.")
 
 
 stdpopsim.register_engine(_SLiMEngine())
