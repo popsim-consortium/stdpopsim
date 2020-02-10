@@ -163,6 +163,12 @@ function (void)setup(void) {
                         growth_phase_end = G[i] - 1;
                     }
 
+                    if (growth_phase_start >= growth_phase_end) {
+                        // Some demographic models have duplicate epoch times,
+                        // which should be ignored.
+                        next;
+                    }
+
                     N0 = N[i,j];
                     r = Q * growth_rates[i,j];
 
@@ -185,7 +191,12 @@ function (void)setup(void) {
                     if (j==k | N[i,j] == 0 | N[i,k] == 0)
                         next;
 
+                    m_last = migration_matrices[k,j,i-1];
                     m = migration_matrices[k,j,i];
+                    if (m == m_last) {
+                        // Do nothing if the migration rate hasn't changed.
+                        next;
+                    }
                     g = G[i-1];
                     sim.registerLateEvent(NULL,
                         "{dbg(self.source); " +
@@ -193,6 +204,24 @@ function (void)setup(void) {
                         g, g);
                 }
             }
+        }
+    }
+
+    // Admixture pulses.
+    if (length(admixture_pulses) > 0 ) {
+        for (i in 0:(ncol(admixture_pulses)-1)) {
+            g = G_start + gdiff(T_0, admixture_pulses[0,i]);
+            dest = admixture_pulses[1,i];
+            src = admixture_pulses[2,i];
+            rate = admixture_pulses[3,i];
+            sim.registerLateEvent(NULL,
+                "{dbg(self.source); " +
+                "p"+dest+".setMigrationRates("+src+", "+rate+");}",
+                g, g);
+            sim.registerLateEvent(NULL,
+                "{dbg(self.source); " +
+                "p"+dest+".setMigrationRates("+src+", 0);}",
+                g+1, g+1);
         }
     }
 
@@ -236,6 +265,11 @@ def slim_makescript(
 
     pop_names = [pc.metadata["id"] for pc in population_configurations]
 
+    # Reassign event times according to integral SLiM generations.
+    # This collapses the time deltas used in HomSap/AmericanAdmixture_4B11.
+    for event in demographic_events:
+        event.time = int(event.time / Q) * Q
+
     # The demography debugger constructs event epochs, which we use
     # to define the forwards-time events.
     dd = msprime.DemographyDebugger(
@@ -255,10 +289,23 @@ def slim_makescript(
             N[i, j] = int(pop.end_size)
             growth_rates[i, j] = pop.growth_rate
 
+    admixture_pulses = []
     subpopulation_splits = []
     for i, epoch in enumerate(epochs):
         for de in epoch.demographic_events:
             if isinstance(de, msprime.MassMigration):
+
+                if de.proportion < 1:
+                    # Calculate remainder of population after previous
+                    # MassMigration events in this epoch.
+                    rem = 1 - np.sum([ap[3] for ap in admixture_pulses
+                                     if ap[0] == i and ap[1] == de.source])
+                    admixture_pulses.append((
+                        i,
+                        de.source,  # forwards-time dest
+                        de.dest,    # forwards-time source
+                        rem*de.proportion))
+                    continue
 
                 # Backwards: de.source is being merged into de.dest.
                 # Forwards: de.source is being created, taking individuals
@@ -268,11 +315,7 @@ def slim_makescript(
                 #       sim.addSubpopSplit(newpop, size, oldpop),
                 # which we trigger by adding a row to subpopulation_splits.
                 # This SLiM function creates newpop (=de.source), under the
-                # assumption that it doesn't already exist. But if
-                # proportion < 1, then de.source could already exist.
-                if de.proportion < 1:
-                    raise Exception("MassMigration with proportion<1.0 "
-                                    "not yet supported")
+                # assumption that it doesn't already exist.
 
                 subpopulation_splits.append((
                     f"_T[{i}]",
@@ -423,6 +466,17 @@ def slim_makescript(
             matrix2str(
                 subpopulation_splits,
                 col_comment="time, newpop, size, oldpop") +
+            ');')
+    printsc()
+
+    # Admixture pulses.
+    # Output _T[...] variable rather than an index.
+    admixture_pulses = [(f"_T[{ap[0]}]", *ap[1:]) for ap in admixture_pulses]
+    printsc('    // Admixture pulses, one row for each pulse.')
+    printsc('    defineConstant("admixture_pulses", ' +
+            matrix2str(
+                admixture_pulses,
+                col_comment="time, dest, source, rate") +
             ');')
     printsc()
 
