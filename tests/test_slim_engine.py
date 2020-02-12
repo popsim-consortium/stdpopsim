@@ -53,8 +53,7 @@ class TestAPI(unittest.TestCase):
         model.generation_time = species.generation_time
         samples = model.get_samples(10)
         ts = engine.simulate(
-                demographic_model=model, contig=contig, samples=samples,
-                slim_rescale=10)
+                demographic_model=model, contig=contig, samples=samples)
         self.assertEqual(ts.num_samples, 10)
 
 
