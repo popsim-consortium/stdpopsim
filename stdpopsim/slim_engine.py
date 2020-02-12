@@ -292,13 +292,9 @@ def slim_makescript(
         demographic_model, contig, samples,
         scaling_factor, check_coalescence, verbosity):
 
-    generation_time = demographic_model.generation_time
-    if generation_time <= 0:
-        raise Exception(f"generation_time={generation_time} is invalid")
-
     recombination_map = contig.recombination_map
     if len(recombination_map.get_positions()) > 2:
-        raise Exception("recombination_map not supported")
+        raise NotImplementedError("recombination_map not supported")
 
     pop_names = [pc.metadata["id"] for pc in demographic_model.population_configurations]
 
@@ -315,7 +311,7 @@ def slim_makescript(
             demographic_events=demographic_model.demographic_events)
 
     epochs = sorted(dd.epochs, key=lambda e: e.start_time, reverse=True)
-    T = [round(e.start_time*generation_time) for e in epochs]
+    T = [round(e.start_time*demographic_model.generation_time) for e in epochs]
     migration_matrices = [e.migration_matrix for e in epochs]
 
     N = np.empty(shape=(dd.num_populations, len(epochs)), dtype=int)
@@ -373,13 +369,6 @@ def slim_makescript(
                         migration_matrices[j][k][de.source] = 0
                         migration_matrices[j][de.source][k] = 0
 
-            elif isinstance(de, msprime.PopulationParametersChange):
-                pass
-            elif isinstance(de, msprime.MigrationRateChange):
-                pass
-            else:
-                raise Exception(f"{type(de)} not yet supported")
-
     printsc = functools.partial(print, file=script_file)
 
     # Header
@@ -398,7 +387,7 @@ def slim_makescript(
                 chromosome_length=int(recombination_map.get_length()),
                 recombination_rate=recombination_map.mean_recombination_rate,
                 mutation_rate=contig.mutation_rate,
-                generation_time=generation_time,
+                generation_time=demographic_model.generation_time,
                 trees_file=trees_file,
                 verbosity=verbosity,
                 check_coalescence="T" if check_coalescence else "F",
@@ -535,15 +524,6 @@ def slim_makescript(
     printsc(_slim_lower)
 
 
-def cmd_found(cmd):
-    try:
-        subprocess.Popen(cmd,
-                         stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
-    except OSError:
-        return False
-    return True
-
-
 def simplify_remembered(ts):
     """
     Remove all samples except those individuals that were explicity
@@ -612,9 +592,6 @@ class _SLiMEngine(stdpopsim.Engine):
 
         if slim_path is None:
             slim_path = self.slim_path()
-
-        if run_slim and not cmd_found(slim_path):
-            raise Exception("Couldn't find `slim' executable.")
 
         slim_cmd = [slim_path]
         if seed is not None:
@@ -686,8 +663,7 @@ class _SLiMEngine(stdpopsim.Engine):
         def slim_exec(path):
             # Hack to set the SLIM environment variable at parse time,
             # before get_version() can be called.
-            if path is not None:
-                os.environ["SLIM"] = path
+            os.environ["SLIM"] = path
             return path
         parser.add_argument(
                 "--slim-path", metavar="PATH", type=slim_exec, default=None,
