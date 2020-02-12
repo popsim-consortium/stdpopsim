@@ -1,6 +1,7 @@
 """
 Tests for SLiM simulation engine.
 """
+import os
 import sys
 import unittest
 import tempfile
@@ -38,6 +39,21 @@ class TestAPI(unittest.TestCase):
 
         model = species.get_demographic_model("AmericanAdmixture_4B11")
         samples = model.get_samples(10, 10, 10)
+        out, _ = capture_output(
+                engine.simulate,
+                demographic_model=model, contig=contig, samples=samples,
+                slim_script=True)
+        self.assertTrue("sim.registerLateEvent" in out)
+
+    # TODO: remove decorator once recombination maps are implemented.
+    @unittest.expectedFailure
+    def test_recombination_map(self):
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("chr1", genetic_map="HapMapII_GRCh37")
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        samples = model.get_samples(10)
+        model.generation_time = species.generation_time
         out, _ = capture_output(
                 engine.simulate,
                 demographic_model=model, contig=contig, samples=samples,
@@ -82,7 +98,37 @@ class TestCLI(unittest.TestCase):
             ts = tskit.load(f.name)
         self.assertEqual(ts.num_samples, 10)
 
+        saved_slim_env = os.environ.get("SLIM")
+
         with tempfile.NamedTemporaryFile(mode="w") as f:
-            self.docmd(f"--slim-no-burnin HomSap -o {f.name}")
+            self.docmd(f"--slim-no-burnin --slim-path slim HomSap -o {f.name}")
             ts = tskit.load(f.name)
         self.assertEqual(ts.num_samples, 10)
+
+        if saved_slim_env is None:
+            del os.environ["SLIM"]
+        else:
+            os.environ["SLIM"] = saved_slim_env
+
+    def test_bad_slim_environ_var(self):
+        saved_slim_env = os.environ.get("SLIM")
+
+        os.environ["SLIM"] = "nonexistent"
+        with self.assertRaises(FileNotFoundError):
+            self.docmd("HomSap")
+
+        if saved_slim_env is None:
+            del os.environ["SLIM"]
+        else:
+            os.environ["SLIM"] = saved_slim_env
+
+    def test_bad_slim_path(self):
+        saved_slim_env = os.environ.get("SLIM")
+
+        with self.assertRaises(FileNotFoundError):
+            self.docmd("--slim-path nonexistent HomSap")
+
+        if saved_slim_env is None:
+            del os.environ["SLIM"]
+        else:
+            os.environ["SLIM"] = saved_slim_env
