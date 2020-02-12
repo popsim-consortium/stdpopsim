@@ -5,3 +5,4 @@ tskit
 humanize
 attrs
 appdirs
+slim
