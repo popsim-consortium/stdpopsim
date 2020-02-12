@@ -58,11 +58,13 @@ initialize() {
     defineConstant("verbosity", $verbosity);
 
     // Scaling factor to speed up simulation.
-    defineConstant("Q", $Q);
+    // See SLiM manual:
+    // `5.5 Rescaling population sizes to improve simulation performance`.
+    defineConstant("Q", $scaling_factor);
 
     defineConstant("generation_time", $generation_time);
     defineConstant("mutation_rate", Q * $mutation_rate);
-    defineConstant("recombination_rate", Q * $recombination_rate);
+    defineConstant("recombination_rate", (1-(1-2*$recombination_rate)^Q)/2);
     defineConstant("chromosome_length", $chromosome_length);
     defineConstant("trees_file", "$trees_file");
     defineConstant("check_coalescence", $check_coalescence);
@@ -288,7 +290,7 @@ function (void)setup(void) {
 def slim_makescript(
         script_file, trees_file,
         demographic_model, contig, samples,
-        Q, check_coalescence, verbosity):
+        scaling_factor, check_coalescence, verbosity):
 
     generation_time = demographic_model.generation_time
     if generation_time <= 0:
@@ -303,7 +305,7 @@ def slim_makescript(
     # Reassign event times according to integral SLiM generations.
     # This collapses the time deltas used in HomSap/AmericanAdmixture_4B11.
     for event in demographic_model.demographic_events:
-        event.time = int(event.time / Q) * Q
+        event.time = round(event.time / scaling_factor) * scaling_factor
 
     # The demography debugger constructs event epochs, which we use
     # to define the forwards-time events.
@@ -313,7 +315,7 @@ def slim_makescript(
             demographic_events=demographic_model.demographic_events)
 
     epochs = sorted(dd.epochs, key=lambda e: e.start_time, reverse=True)
-    T = [int(e.start_time*generation_time) for e in epochs]
+    T = [round(e.start_time*generation_time) for e in epochs]
     migration_matrices = [e.migration_matrix for e in epochs]
 
     N = np.empty(shape=(dd.num_populations, len(epochs)), dtype=int)
@@ -392,7 +394,7 @@ def slim_makescript(
     printsc(' */')
 
     printsc(string.Template(_slim_upper).substitute(
-                Q=Q if Q is not None else 1,
+                scaling_factor=scaling_factor if scaling_factor is not None else 1,
                 chromosome_length=int(recombination_map.get_length()),
                 recombination_rate=recombination_map.mean_recombination_rate,
                 mutation_rate=contig.mutation_rate,
@@ -574,7 +576,7 @@ class _SLiMEngine(stdpopsim.Engine):
     def simulate(
             self, demographic_model=None, contig=None, samples=None,
             seed=None, verbosity=0,
-            slim_script=False, slim_rescale=10, slim_no_burnin=False,
+            slim_script=False, slim_scaling_factor=10, slim_no_burnin=False,
             slim_path=None,
             **kwargs):
         """
@@ -587,11 +589,13 @@ class _SLiMEngine(stdpopsim.Engine):
         :param slim_script: If true, the simulation will not be executed.
             Instead the generated SLiM script will be printed to stdout.
         :type slim_script: bool
-        :param slim_rescale: Rescale model parameters by the given factor,
+        :param slim_scaling_factor: Rescale model parameters by the given value,
             to speed up simulation. Population sizes and generation times are
             divided by this factor, whereas the mutation rate, recombination
             rate, and growth rates are multiplied by the factor.
-        :type slim_rescale: int
+            See SLiM manual: `5.5 Rescaling population sizes to improve
+            simulation performance.`
+        :type slim_scaling_factor: float
         :param slim_no_burnin: Do not perform a `burn in` at the start of the
             simulation. The default `burn in` behaviour is to wait until all
             individuals in the ancestral population(s) have a common ancestor
@@ -631,7 +635,7 @@ class _SLiMEngine(stdpopsim.Engine):
             slim_makescript(
                     script_file, ts_file.name,
                     demographic_model, contig, samples,
-                    slim_rescale, check_coalescence, verbosity)
+                    slim_scaling_factor, check_coalescence, verbosity)
 
             script_file.flush()
 
@@ -662,8 +666,10 @@ class _SLiMEngine(stdpopsim.Engine):
 
     def add_arguments(self, parser):
         parser.add_argument(
-                "--slim-rescale", metavar="Q", default=10, type=int,
+                "--slim-scaling-factor", metavar="Q", default=10, type=float,
                 help="Rescale model parameters by Q to speed up simulation "
+                     "See SLiM manual: `5.5 Rescaling population sizes to "
+                     "improve simulation performance`. "
                      "[%(default)s].")
         parser.add_argument(
                 "--slim-script", action="store_true", default=False,
