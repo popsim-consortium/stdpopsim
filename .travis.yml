@@ -29,13 +29,5 @@ install:
   # pyslim is not yet on conda-forge.
   - pip install pyslim
 
-  # build SLiM
-  - wget http://benhaller.com/slim/SLiM.zip
-  - unzip SLiM.zip
-  - mkdir SLiM/build
-  - cd SLiM/build && cmake .. && make
-  - cp slim $HOME/miniconda/bin/
-  - cd ../../
-
 script:
   - nosetests -vs tests
