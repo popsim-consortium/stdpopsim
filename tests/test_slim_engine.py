@@ -93,15 +93,9 @@ class TestCLI(unittest.TestCase):
 
     @unittest.skipIf(sys.platform.startswith("win"), "no conda slim package for windows")
     def test_simulate(self):
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            self.docmd(f"HomSap -o {f.name}")
-            ts = tskit.load(f.name)
-        self.assertEqual(ts.num_samples, 10)
-
         saved_slim_env = os.environ.get("SLIM")
-
         with tempfile.NamedTemporaryFile(mode="w") as f:
-            self.docmd(f"--slim-no-burnin --slim-path slim HomSap -o {f.name}")
+            self.docmd(f"--slim-path slim HomSap -o {f.name}")
             ts = tskit.load(f.name)
         self.assertEqual(ts.num_samples, 10)
 
@@ -109,6 +103,16 @@ class TestCLI(unittest.TestCase):
             del os.environ["SLIM"]
         else:
             os.environ["SLIM"] = saved_slim_env
+
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            self.docmd(f"--slim-no-recapitation HomSap -o {f.name}")
+            ts = tskit.load(f.name)
+        self.assertEqual(ts.num_samples, 10)
+
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            self.docmd(f"--slim-no-recapitation --slim-no-burnin HomSap -o {f.name}")
+            ts = tskit.load(f.name)
+        self.assertEqual(ts.num_samples, 10)
 
     def test_bad_slim_environ_var(self):
         saved_slim_env = os.environ.get("SLIM")

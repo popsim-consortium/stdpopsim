@@ -47,6 +47,7 @@ import functools
 import itertools
 import collections
 import contextlib
+import random
 
 import stdpopsim
 import numpy as np
@@ -122,7 +123,7 @@ function (void)end(void) {
     }
 }
 
-// Check if burn-in has completed.
+// Check if burn in has completed.
 1 {
     if (!check_coalescence) {
         setup();
@@ -152,7 +153,7 @@ function (void)end(void) {
         sim.registerEarlyEvent(NULL, "{setup();}", g, g);
     } else {
         if (sim.generation == 1)
-            dbg("Waiting for burn-in...");
+            dbg("Waiting for burn in...");
         // Reschedule the current script block 10 generations hence.
         // XXX: find a less arbitrary generation interval.
         g = sim.generation + 10;
@@ -165,7 +166,7 @@ function (void)setup(void) {
 
     dbg("setup()");
 
-    // Once burn-in is complete, we know the starting generation (which
+    // Once burn in is complete, we know the starting generation (which
     // corresponds to T_0) and can thus calculate the generation
     // for each remaining event.
     G_start = sim.generation;
@@ -554,11 +555,9 @@ class _SLiMEngine(stdpopsim.Engine):
         return s.split()[2].decode("ascii").rstrip(",")
 
     def simulate(
-            self, demographic_model=None, contig=None, samples=None,
-            seed=None, verbosity=0,
-            slim_script=False, slim_scaling_factor=10, slim_no_burnin=False,
-            slim_path=None,
-            **kwargs):
+            self, demographic_model=None, contig=None, samples=None, seed=None,
+            verbosity=0, slim_path=None, slim_script=False, slim_scaling_factor=10,
+            slim_no_recapitation=False, slim_no_burnin=False, **kwargs):
         """
         Simulate the demographic model using SLiM.
         See :meth:`.Engine.simulate()` for definitions of the
@@ -566,6 +565,9 @@ class _SLiMEngine(stdpopsim.Engine):
 
         :param seed: The seed for the random number generator.
         :type seed: int
+        :param slim_path: The full path to the slim executable, or the name of
+            a command in the current PATH.
+        :type slim_path: str
         :param slim_script: If true, the simulation will not be executed.
             Instead the generated SLiM script will be printed to stdout.
         :type slim_script: bool
@@ -576,22 +578,33 @@ class _SLiMEngine(stdpopsim.Engine):
             See SLiM manual: `5.5 Rescaling population sizes to improve
             simulation performance.`
         :type slim_scaling_factor: float
-        :param slim_no_burnin: Do not perform a `burn in` at the start of the
-            simulation. The default `burn in` behaviour is to wait until all
-            individuals in the ancestral population(s) have a common ancestor
-            within their respective population, and then wait another 10*N
-            generations.
+        :param slim_no_recapitation: Do an explicit burn in, and add
+            mutations, within the SLiM simulation. This may be much slower than
+            the defaults (recapitation and neutral mutation overlay with
+            msprime). The burn in behaviour is to wait until all individuals in
+            the ancestral populations have a common ancestor within their
+            respective population, and then wait another 10*N generations.
+        :type slim_no_recapitation: bool
+        :param slim_no_burnin: Do not perform a burn in at the start of the
+            simulation.  This option is only relevant when
+            ``slim_no_recapitation=True``.
         :type slim_no_burnin: bool
-        :param slim_path: The full path to the slim executable, or the name of
-            a command in the current PATH.
-        :type slim_path: str
         """
 
         run_slim = not slim_script
-        check_coalescence = not slim_no_burnin
+        do_recap = not slim_no_recapitation
+        check_coalescence = slim_no_recapitation and not slim_no_burnin
 
         if slim_path is None:
             slim_path = self.slim_path()
+
+        if do_recap:
+            mutation_rate = contig.mutation_rate
+            # Ensure no mutations are introduced by SLiM.
+            contig = stdpopsim.Contig(
+                    recombination_map=contig.recombination_map,
+                    mutation_rate=0,
+                    genetic_map=contig.genetic_map)
 
         slim_cmd = [slim_path]
         if seed is not None:
@@ -625,41 +638,28 @@ class _SLiMEngine(stdpopsim.Engine):
 
             ts = pyslim.load(ts_file.name)
 
-        # random.seed(seed)
-        # s1, s2 = random.randint(1,2**32-1), random.randint(1,2**32-1)
+        if do_recap:
+            rng = random.Random(seed)
+            s1, s2 = rng.randrange(1, 2**32), rng.randrange(1, 2**32)
 
-        # Recapitation.
-        # r = recombination_map.mean_recombination_rate
-        # N0 = ?
-        # ts = ts.recapitate(Ne=N0, recombination_rate=r, random_seed=s1)
+            # Recapitation.
+            r_map = contig.recombination_map
+            pop_configs = demographic_model.population_configurations
+            ts = ts.recapitate(
+                    recombination_rate=r_map.mean_recombination_rate,
+                    population_configurations=pop_configs,
+                    random_seed=s1)
 
         ts = simplify_remembered(ts)
 
-        # Add neutral mutations.
-        # ts = pyslim.SlimTreeSequence(msprime.mutate(ts, rate=mutation_rate,
-        #                              keep=True, random_seed=s2))
+        if do_recap:
+            # Add neutral mutations.
+            ts = pyslim.SlimTreeSequence(msprime.mutate(
+                ts, rate=mutation_rate, keep=True, random_seed=s2))
 
         return ts
 
     def add_arguments(self, parser):
-        parser.add_argument(
-                "--slim-scaling-factor", metavar="Q", default=10, type=float,
-                help="Rescale model parameters by Q to speed up simulation "
-                     "See SLiM manual: `5.5 Rescaling population sizes to "
-                     "improve simulation performance`. "
-                     "[%(default)s].")
-        parser.add_argument(
-                "--slim-script", action="store_true", default=False,
-                help="Write script to stdout and exit without running SLiM.")
-        parser.add_argument(
-                "--slim-no-burnin", action="store_true", default=False,
-                help="Don't wait for coalescence in SLiM before proceeding.")
-#        parser.add_argument(
-#                "--pyslim-recap", action="store_true", default=False,
-#                help="Recapitate trees with pyslim, and overlay neutral "
-#                     "mutations with msprime, after running SLiM."
-#                     "This implies --slim-no-burnin.")
-
         def slim_exec(path):
             # Hack to set the SLIM environment variable at parse time,
             # before get_version() can be called.
@@ -668,6 +668,26 @@ class _SLiMEngine(stdpopsim.Engine):
         parser.add_argument(
                 "--slim-path", metavar="PATH", type=slim_exec, default=None,
                 help="Full path to `slim' executable.")
+        parser.add_argument(
+                "--slim-script", action="store_true", default=False,
+                help="Write script to stdout and exit without running SLiM.")
+        parser.add_argument(
+                "--slim-scaling-factor", metavar="Q", default=10, type=float,
+                help="Rescale model parameters by Q to speed up simulation. "
+                     "See SLiM manual: `5.5 Rescaling population sizes to "
+                     "improve simulation performance`. "
+                     "[default=%(default)s].")
+        parser.add_argument(
+                "--slim-no-recapitation", action="store_true", default=False,
+                help="Explicitly wait for coalescence, and add "
+                     "mutations, within the SLiM simulation. This may be much "
+                     "slower than the defaults (recapitation and neutral mutation "
+                     "overlay with msprime).")
+        parser.add_argument(
+                "--slim-no-burnin", action="store_true", default=False,
+                help="Don't wait for coalescence in SLiM before proceeding. "
+                     "This option is only relevant in combination with "
+                     "--slim-no-recapitation.")
 
 
 stdpopsim.register_engine(_SLiMEngine())
