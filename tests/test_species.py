@@ -132,7 +132,7 @@ class GenomeTestMixin(object):
 
 class TestAllGenomes(unittest.TestCase):
     """
-    Tests for basic properties aon all genomes.
+    Tests for basic properties on all genomes.
     """
     def test_str(self):
         for species in stdpopsim.all_species():
@@ -164,3 +164,49 @@ class TestGetContig(unittest.TestCase):
         # TODO we should use a different map here so we're not hitting the cache.
         contig = self.species.get_contig("chr22", genetic_map="HapMapII_GRCh37")
         self.assertIsInstance(contig.recombination_map, msprime.RecombinationMap)
+
+
+class TestGetChunk(unittest.TestCase):
+    """
+    Tests for get_chunk().
+    """
+    species = stdpopsim.get_species("CanFam")
+
+    def test_random(self):
+        for x in map(int, [1e3, 1e5, 1e7]):
+            chunk = self.species.get_chunk(x)
+            self.assertEqual(x, chunk.recombination_map.get_length())
+            chunk = self.species.get_chunk(
+                    x, genetic_map="Campbell2016_CanFam3_1")
+            self.assertEqual(x, chunk.recombination_map.get_length())
+
+            chunk = self.species.get_chunk(x, "chr1")
+            self.assertEqual(x, chunk.recombination_map.get_length())
+            chunk = self.species.get_chunk(
+                    x, "chr1", genetic_map="Campbell2016_CanFam3_1")
+            self.assertEqual(x, chunk.recombination_map.get_length())
+
+    def test_region(self):
+        length = int(1e6)
+        chrom_end = self.species.genome.get_chromosome("chr1").length
+        for pos in [0, int(2e7), chrom_end-length]:
+            chunk = self.species.get_chunk(length, "chr1", pos)
+            self.assertEqual(length, chunk.recombination_map.get_length())
+
+    def test_bad_params(self):
+        with self.assertRaises(ValueError):
+            self.species.get_chunk(0)
+        with self.assertRaises(ValueError):
+            self.species.get_chunk(-5)
+        with self.assertRaises(ValueError):
+            self.species.get_chunk(3.1415)
+        with self.assertRaises(ValueError):
+            self.species.get_chunk(int(1e9), chromosome=None)
+        with self.assertRaises(ValueError):
+            self.species.get_chunk(int(1e9), chromosome="chr1")
+
+        with self.assertRaises(ValueError):
+            self.species.get_chunk(100, "chr-nope", 100)
+
+        with self.assertRaises(ValueError):
+            self.species.get_chunk(100, position=100)

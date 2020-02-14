@@ -12,6 +12,7 @@ import tempfile
 import pathlib
 import shutil
 import functools
+import random
 
 import msprime
 import tskit
@@ -348,6 +349,7 @@ def add_simulate_species_parser(parser, species):
 
     if len(species.genome.chromosomes) > 1:
         choices = [chrom.id for chrom in species.genome.chromosomes]
+        choices.append("any")
         species_parser.add_argument(
             "-c", "--chromosome", choices=choices, metavar="", default=choices[0],
             help=(
@@ -355,19 +357,44 @@ def add_simulate_species_parser(parser, species):
                 f"Options: {', '.join(choices)}. "
                 f"Default={choices[0]}."))
     species_parser.add_argument(
-        "-l", "--length-multiplier", default=1, type=float,
+        "-l", "--length-multiplier", default=1, type=float, metavar="l",
         help="Simulate a sequence of length l times the named chromosome's length, "
              "using the named chromosome's mutation and recombination rates.")
+
+    def length(arg, parser=species_parser):
+        x = 1
+        if arg[-1] == "k":
+            arg, x = arg[:-1], 1000
+        elif arg[-1] == "m":
+            arg, x = arg[:-1], 1000000
+        try:
+            arg = int(arg)
+        except ValueError:
+            parser.error(f"Invalid length: {arg}")
+        return x * arg
+    species_parser.add_argument(
+        "-L", "--length", type=length, metavar="L", default=None,
+        help="Simulate a sequence of length L, "
+             "using the named chromosome's mutation and recombination rates. "
+             "The suffixes `k` or `m` are permitted, which indicate kilobases "
+             "and megabases respectively. "
+             "If no genomic coordinate is specified, it will be drawn randomly. "
+             "If the special chromosome `any` is requested, a chromosome will "
+             "also be drawn at random, with probability proportional to the "
+             "chromosome length.")
+    species_parser.add_argument(
+        "-p", "--position", type=int, metavar="P", default=None,
+        help="Simulate a sequence starting from the zero-based genomic coordinate "
+             "P on the specified chromosome, and extending for L base pairs.")
     species_parser.add_argument(
         "-s", "--seed", default=None, type=int,
         help=(
             "The random seed to use for simulations. If not specified a "
             "high-quality random seed will be generated automatically. "
             "For msprime, seeds must be > 0 and < 2^32."))
-
     model_help = (
         "Specify a simulation model. If no model is specified, a single population"
-        "constant size model is used. Available models:"
+        "constant size model is used. Available models: "
         f"{', '.join(model.id for model in species.demographic_models)}"
         ". Please see --help-models for details of these models.")
     species_parser.add_argument(
@@ -387,11 +414,12 @@ def add_simulate_species_parser(parser, species):
             "two samples must be specified. The number of arguments that "
             "will be accepted depends on the simulation model that is "
             "specified: for a model that has n populations, we can specify "
-            "the number of samples to draw from each of these populations."
+            "the number of samples to draw from each of these populations. "
             "We do not need to provide sample numbers of each of the "
             "populations; those that are omitted are set to zero."))
 
     def run_simulation(args):
+        random.seed(args.seed)
         if args.demographic_model is None:
             model = stdpopsim.PiecewiseConstantSize(species.population_size)
             model.generation_time = species.generation_time
@@ -405,9 +433,20 @@ def add_simulate_species_parser(parser, species):
                 "populations")
         samples = model.get_samples(*args.samples)
 
-        contig = species.get_contig(
-            args.chromosome, genetic_map=args.genetic_map,
-            length_multiplier=args.length_multiplier)
+        if args.chromosome == "any":
+            if args.length is None:
+                exit("Must specify a valid chromosome unless a random genomic "
+                     "chunk is requested with -L.")
+            args.chromosome = None
+
+        if args.length is not None:
+            contig = species.get_chunk(
+                args.length, chromosome=args.chromosome, position=args.position,
+                genetic_map=args.genetic_map)
+        else:
+            contig = species.get_contig(
+                args.chromosome, genetic_map=args.genetic_map,
+                length_multiplier=args.length_multiplier)
         engine = stdpopsim.get_engine(args.engine)
         logger.info(
             f"Running simulation model {model.id} for {species.id} on "

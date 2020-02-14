@@ -15,6 +15,7 @@ from unittest import mock
 import tskit
 import msprime
 import kastore
+import numpy as np
 
 import stdpopsim
 import stdpopsim.cli as cli
@@ -630,3 +631,65 @@ class TestDryRun(unittest.TestCase):
             cmd = f"{sys.executable} -m stdpopsim HomSap -D -q -l 0.01 -o {filename} 2"
             subprocess.run(cmd, shell=True, check=True)
             self.assertFalse(os.path.isfile(filename))
+
+
+class TestGetChunk(unittest.TestCase):
+    """
+    Check that asking for a specific or random chunk works.
+    """
+    def verify(self, cmd, num_samples, length, seed=1):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            filename = pathlib.Path(tmpdir) / "output.trees"
+            full_cmd = cmd + f" -q -o {filename} --seed={seed}"
+            with mock.patch("stdpopsim.cli.setup_logging"):
+                stdout, stderr = capture_output(cli.stdpopsim_main, full_cmd.split())
+            self.assertEqual(len(stderr), 0)
+            self.assertEqual(len(stdout), 0)
+            ts = tskit.load(str(filename))
+        self.assertEqual(ts.num_samples, num_samples)
+        self.assertEqual(ts.sequence_length, length)
+        return ts
+
+    def test_get_chunk(self):
+        cmd = "HomSap -L 5k 10"
+        self.verify(cmd, 10, 5000)
+
+        cmd = "HomSap -c any -L 5k 10"
+        self.verify(cmd, 10, 5000)
+
+        cmd = "HomSap -c chr1 -p 50000000 -L 5k 10"
+        self.verify(cmd, 10, 5000)
+
+    def test_get_chunk_with_recomb_map(self):
+        cmd = "AraTha -g SalomeAveraged_TAIR7 -c chr5 -p 5000000 -L 1m 10"
+        self.verify(cmd, 10, 1e6)
+
+        cmd = "AraTha -g SalomeAveraged_TAIR7 -c chr5 -L 1m 10"
+        self.verify(cmd, 10, 1e6)
+
+        cmd = "AraTha -g SalomeAveraged_TAIR7 -c any -L 1m 10"
+        # With the same seed, we should get:
+        #   => the same random chunk
+        #   => the same recombination map
+        #   => the same genotype matrix
+        ts1 = self.verify(cmd, 10, 1e6, seed=1234)
+        ts2 = self.verify(cmd, 10, 1e6, seed=1234)
+        self.assertTrue(
+                np.array_equal(ts1.genotype_matrix(), ts2.genotype_matrix()))
+
+    def test_bad_CLI_params(self):
+        cmd = "DroMel -c any 10"
+        with self.assertRaises(SystemExit):
+            self.verify(cmd, 10, 999)
+
+        cmd = "DroMel -c any -L 1e3 10"
+        with self.assertRaises(SystemExit):
+            self.verify(cmd, 10, 999)
+
+        cmd = "DroMel -c any -L 100m 10"
+        with self.assertRaises(ValueError):
+            self.verify(cmd, 10, 999)
+
+        cmd = "DroMel -c any -p 100 -L 100m 10"
+        with self.assertRaises(ValueError):
+            self.verify(cmd, 10, 999)

@@ -3,6 +3,8 @@ Infrastructure for defining basic information about species and
 organising the species catalog.
 """
 import logging
+import random
+import bisect
 
 import attr
 import msprime
@@ -112,6 +114,76 @@ class Species(object):
     population_size_citations = attr.ib(factory=list, kw_only=True)
     demographic_models = attr.ib(factory=list, kw_only=True)
     genetic_maps = attr.ib(factory=list, kw_only=True)
+
+    def get_chunk(self, length, chromosome=None, position=None, genetic_map=None):
+        """
+        Returns a :class:`.Contig` instance describing a chunk of the genome
+        to be simulated, based on empirical information for a given species
+        and chromosome.
+        A chunk will be randomly drawn from the genome if only the ``length``
+        parameter is provided. If ``chromosome`` is specified, the chunk is
+        drawn from that chromosome. A specific region of the genome may be
+        requested by specifying both the ``chromosome`` and ``position``
+        paramters.
+
+        :param int length: The length of the requested chunk.
+        :param str chromosome: The chromosome from which the chunk should be
+            drawn.
+        :param int position: The zero-based genomic coordinate to which the
+            chunk should correspond.
+        :param str genetic_map: If specified, obtain recombination rate information
+            from the genetic map with the specified ID. If None, simulate
+            using a default uniform recombination rate.
+        :rtype: :class:`.Contig`
+        :return: A :class:`.Contig` describing a simulation of the section of genome.
+        """
+        if chromosome is None and position is not None:
+            raise ValueError(f"Position {position} provided without chromosome.")
+        if type(length) != int or length <= 0:
+            raise ValueError(f"Invalid length {length}.")
+
+        if chromosome is not None:
+            chrom = self.genome.get_chromosome(chromosome)
+            if length > chrom.length:
+                raise ValueError(f"{chrom.id} not long enough for length {length}")
+        else:
+            w = []
+            for i, ch in enumerate(self.genome.chromosomes):
+                wl = ch.length if ch.length >= length else 0
+                w.append(wl if i == 0 else wl + w[i-1])
+            if w[-1] == 0:
+                raise ValueError(f"No chromosomes long enough for length {length}")
+            chrom = random.choices(self.genome.chromosomes, cum_weights=w)[0]
+
+        if position is None:
+            position = random.randrange(chrom.length - length)
+
+        if genetic_map is None:
+            gm = None
+            recomb_map = msprime.RecombinationMap.uniform_map(
+                    length, chrom.recombination_rate)
+        else:
+            # Extract a subset of the full genetic map.
+            gm = self.get_genetic_map(genetic_map)
+            full_recomb_map = gm.get_chromosome_map(chrom.id)
+            full_positions = full_recomb_map.get_positions()
+            full_rates = full_recomb_map.get_rates()
+            i = bisect.bisect_left(full_positions, position)
+            j = bisect.bisect_right(full_positions, position+length, lo=i)
+            if j-i <= 1:
+                recomb_map = msprime.RecombinationMap.uniform_map(
+                    length, full_rates[i])
+            else:
+                positions = [pos - position for pos in full_positions[i:j]]
+                positions[0] = 0
+                positions[-1] = length
+                rates = full_rates[i:j]
+                rates[-1] = 0
+                recomb_map = msprime.RecombinationMap(positions, rates)
+        ret = genomes.Contig(
+            recombination_map=recomb_map, mutation_rate=chrom.mutation_rate,
+            genetic_map=gm)
+        return ret
 
     def get_contig(self, chromosome, genetic_map=None, length_multiplier=1):
         """
