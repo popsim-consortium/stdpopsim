@@ -48,6 +48,7 @@ import itertools
 import collections
 import contextlib
 import random
+import textwrap
 
 import stdpopsim
 import numpy as np
@@ -65,10 +66,14 @@ initialize() {
 
     defineConstant("generation_time", $generation_time);
     defineConstant("mutation_rate", Q * $mutation_rate);
-    defineConstant("recombination_rate", (1-(1-2*$recombination_rate)^Q)/2);
     defineConstant("chromosome_length", $chromosome_length);
     defineConstant("trees_file", "$trees_file");
     defineConstant("check_coalescence", $check_coalescence);
+
+    _recombination_rates = $recombination_rates;
+    _recombination_ends = $recombination_ends;
+    defineConstant("recombination_rates", (1-(1-2*_recombination_rates)^Q)/2);
+    defineConstant("recombination_ends", _recombination_ends);
 """
 
 _slim_lower = """
@@ -79,7 +84,7 @@ _slim_lower = """
     initializeMutationType("m1", 0.5, "f", 0);
     initializeGenomicElementType("g1", m1, 1.0);
     initializeGenomicElement(g1, 0, chromosome_length-1);
-    initializeRecombinationRate(recombination_rate);
+    initializeRecombinationRate(recombination_rates, recombination_ends);
 }
 
 function (void)dbg(string$ s, [integer$ debug_level = 2]) {
@@ -288,14 +293,19 @@ function (void)setup(void) {
 """
 
 
+def msprime_rm_to_slim_rm(recombination_map):
+    """
+    Convert recombination map from start position coords to end position coords.
+    """
+    rates = recombination_map.get_rates()
+    ends = [int(pos)-1 for pos in recombination_map.get_positions()]
+    return rates[:-1], ends[1:]
+
+
 def slim_makescript(
         script_file, trees_file,
         demographic_model, contig, samples,
         scaling_factor, check_coalescence, verbosity):
-
-    recombination_map = contig.recombination_map
-    if len(recombination_map.get_positions()) > 2:
-        raise NotImplementedError("recombination_map not supported")
 
     pop_names = [pc.metadata["id"] for pc in demographic_model.population_configurations]
 
@@ -383,10 +393,30 @@ def slim_makescript(
         printsc(' * ' + str(citation))
     printsc(' */')
 
+    recomb_rates, recomb_ends = msprime_rm_to_slim_rm(contig.recombination_map)
+    indent = 8*" "
+    recomb_rates_str = (
+            f"c(\n" +
+            textwrap.fill(
+                    ", ".join(map(str, recomb_rates)),
+                    width=80,
+                    initial_indent=indent,
+                    subsequent_indent=indent) +
+            ")")
+    recomb_ends_str = (
+            f"c(\n" +
+            textwrap.fill(
+                    ", ".join(map(str, recomb_ends)),
+                    width=80,
+                    initial_indent=indent,
+                    subsequent_indent=indent) +
+            ")")
+
     printsc(string.Template(_slim_upper).substitute(
                 scaling_factor=scaling_factor if scaling_factor is not None else 1,
-                chromosome_length=int(recombination_map.get_length()),
-                recombination_rate=recombination_map.mean_recombination_rate,
+                chromosome_length=int(contig.recombination_map.get_length()),
+                recombination_rates=recomb_rates_str,
+                recombination_ends=recomb_ends_str,
                 mutation_rate=contig.mutation_rate,
                 generation_time=demographic_model.generation_time,
                 trees_file=trees_file,
