@@ -40,6 +40,7 @@ How backwards-time demographic events are mapped to forwards-time SLiM code:
 
 import os
 import sys
+import copy
 import string
 import tempfile
 import subprocess
@@ -89,8 +90,6 @@ _slim_lower = """
 
     initializeTreeSeq();
     initializeMutationRate(mutation_rate);
-    initializeMutationType("m1", 0.5, "f", 0);
-    initializeGenomicElementType("g1", m1, 1.0);
     initializeGenomicElement(g1, 0, chromosome_length-1);
     initializeRecombinationRate(recombination_rates, recombination_ends);
 }
@@ -156,6 +155,11 @@ function (void)end(void) {
 }
 
 1 {
+    // save/restore bookkeeping
+    sim.setValue("n_restores", 0);
+    sim.setValue("n_saves", 0);
+    sim.setValue("restore_function", F);
+
     /*
      * Create initial populations and migration rates.
      */
@@ -188,7 +192,6 @@ function (void)end(void) {
         }
     }
 
-
     // The end of the burn-in is the starting generation, and corresponds to
     // time T_start. All remaining events are relative to this generation.
     N_max = max(N[0,0:(num_populations-1)]);
@@ -200,6 +203,52 @@ function (void)end(void) {
     /*
      * Register events occurring at time T_start or more recently.
      */
+
+    // Save/restore events. These should come before all other events.
+    if (length(drawn_mutations) > 0) {
+        for (i in 0:(ncol(drawn_mutations)-1)) {
+            save = drawn_mutations[4,i] == 1;
+            if (!save) {
+                next;
+            }
+            g = G_start + gdiff(T_start, drawn_mutations[0,i]);
+            // Unconditionally save the state before the mutation is drawn.
+            sim.registerLateEvent(NULL, "{save();}", g, g);
+        }
+    }
+    if (length(condition_on_allele_frequency) > 0) {
+        for (i in 0:(ncol(condition_on_allele_frequency)-1)) {
+            g_start = G_start + gdiff(T_start, condition_on_allele_frequency[0,i]);
+            g_end = G_start + gdiff(T_start, condition_on_allele_frequency[1,i]);
+            mut_type = asInteger(condition_on_allele_frequency[2,i]);
+            pop_id = asInteger(condition_on_allele_frequency[3,i]);
+            op = op_types[asInteger(drop(condition_on_allele_frequency[4,i]))];
+            af = condition_on_allele_frequency[5,i];
+            save = condition_on_allele_frequency[6,i] == 1;
+
+            if (g_start > g_end) {
+                err("Attempt to register AF conditioning callback with g_start="+
+                    g_start+" > g_end="+g_end);
+            }
+
+            if (save) {
+                // Save the state conditional on the allele frequency.
+                // If the condition isn't met, we restore.
+                sim.registerLateEvent(NULL,
+                    "{if (af(m"+mut_type+", p"+pop_id+") "+op+" "+af+")" +
+                    " save(); else restore();}",
+                    g_start, g_start);
+                g_start = g_start + 1;
+            }
+
+            if (g_start <= g_end) {
+                sim.registerLateEvent(NULL,
+                    "{if (!(af(m"+mut_type+", p"+pop_id+") "+op+" "+af+"))" +
+                    " restore();}",
+                    g_start, g_end);
+            }
+        }
+    }
 
     // Split events.
     if (length(subpopulation_splits) > 0 ) {
@@ -241,8 +290,10 @@ function (void)end(void) {
                     }
 
                     if (growth_phase_start >= growth_phase_end) {
-                        // Some demographic models have duplicate epoch times,
-                        // which should be ignored.
+                        // Demographic models could have duplicate epoch times,
+                        // which should be fixed.
+                        warn("growth_phase_start="+growth_phase_start+
+                             " >= growth_phase_end="+growth_phase_end);
                         next;
                     }
 
@@ -305,6 +356,53 @@ function (void)end(void) {
         }
     }
 
+    // Draw mutations.
+    if (length(drawn_mutations) > 0) {
+        for (i in 0:(ncol(drawn_mutations)-1)) {
+            g = G_start + gdiff(T_start, drawn_mutations[0,i]);
+            mut_type = drawn_mutations[1,i];
+            pop_id = drawn_mutations[2,i];
+            coordinate = drawn_mutations[3,i];
+            sim.registerLateEvent(NULL,
+                "{dbg(self.source); " +
+                "add_mut(m"+mut_type+", p"+pop_id+", "+coordinate+");}",
+                g, g);
+        }
+    }
+
+    // Setup fitness callbacks.
+    if (length(fitness_callbacks) > 0) {
+        for (i in 0:(ncol(fitness_callbacks)-1)) {
+            g_start = G_start + gdiff(T_start, fitness_callbacks[0,i]);
+            g_end = G_start + gdiff(T_start, fitness_callbacks[1,i]);
+            mut_type = asInteger(fitness_callbacks[2,i]);
+            pop_id = asInteger(fitness_callbacks[3,i]);
+            selection_coeff = Q * fitness_callbacks[4,i];
+            dominance_coeff = fitness_callbacks[5,i];
+
+            if (g_start > g_end) {
+                err("Attempt to register fitness callback with g_start="+
+                    g_start+" > g_end="+g_end);
+            }
+
+            sim.registerLateEvent(NULL,
+                "{dbg('s="+selection_coeff+", h="+dominance_coeff+
+                " for m"+mut_type+" in p"+pop_id+"');}",
+                g_start, g_start);
+            sim.registerLateEvent(NULL,
+                "{dbg('s, h defaults for m"+mut_type+" in p"+pop_id+"');}",
+                g_end, g_end);
+            /* We explicitly format() here to prevent integral-valued floats
+             * from getting converted to integers during string interpolation
+             * (this triggers a type error when the fitness callback runs). */
+            f_hom = format("%e", 1 + selection_coeff);
+            f_het = format("%e", 1 + selection_coeff * dominance_coeff);
+            sim.registerFitnessCallback(NULL,
+                "{if (homozygous) return "+f_hom+"; else return "+f_het+";}",
+                mut_type, pop_id, g_start, g_end);
+        }
+    }
+
     // Sample individuals.
     for (i in 0:(ncol(sampling_episodes)-1)) {
         pop = drop(sampling_episodes[0,i]);
@@ -336,6 +434,80 @@ function (void)end(void) {
         sim.simulationFinished();
     }
 }
+
+// Add `mut_type` mutation at `pos`, to a single individual in `pop`.
+function (void)add_mut(object$ mut_type, object$ pop, integer$ pos) {
+   targets = sample(pop.genomes, 1);
+   targets.addNewDrawnMutation(mut_type, pos);
+}
+
+// Return the allele frequency of a drawn mutation in the specified population.
+// Assumes there's only one mutation of the given type.
+function (float$)af(object$ mut_type, object$ pop) {
+    mut = sim.mutationsOfType(mut_type);
+    if (length(mut) == 0) {
+        return 0.0;
+    }
+    return sim.mutationFrequencies(pop, mut);
+}
+
+// Save the state of the simulation.
+function (void)save(void) {
+    if (sim.getValue("restore_function")) {
+        // Don't save if we're in the restore() function.
+        return;
+    }
+    n_saves = 1 + sim.getValue("n_saves");
+    sim.setValue("n_saves", n_saves);
+    dbg("save() "+n_saves);
+    sim.treeSeqOutput(trees_file);
+}
+
+// Restore the simulation state.
+function (void)restore(void) {
+    g_restore = sim.generation;
+    n_restores = 1 + sim.getValue("n_restores");
+    sim.setValue("n_restores", n_restores);
+    n_saves = sim.getValue("n_saves");
+    if (n_saves == 0) {
+        err("restore() in generation "+g_restore+", but nothing is saved.");
+    }
+    sim.readFromPopulationFile(trees_file);
+    dbg("restore() "+n_restores+" from generation "+g_restore+", returning "+
+        "to state at save() "+n_saves);
+
+    /*
+     * The generation counter sim.generation has now been reset to the
+     * value it had when save() was called. There are two issues relating
+     * to event scheduling which must now be dealt with.
+     *
+     * 1. There may be additional late events for the generation in which
+     * restore() was called, and they are still scheduled to run.
+     * So we deactivate all script blocks to avoid unexpected problems.
+     * They will be automatically reactivated at the start of the next
+     * generation (see SLiM manual section 23.10).
+     */
+    sim.scriptBlocks.active = F;
+
+    /*
+     * 2. The late events below were run in the save() generation,
+     * but after the save() call. We execute these again here, because
+     * the next late events to run will be for sim.generation + 1.
+     * Note that the save() event is indistinguishable from the other
+     * late events in this generation, so we set a flag `restore_function`
+     * to signal the save() function not to save again.
+     */
+    g = sim.generation;
+    sim.setValue("restore_function", T);
+    for (sb in sim.scriptBlocks) {
+        if (sb.type == "late" & g >= sb.start & g <= sb.end) {
+            self = sb;
+            executeLambda(sb.source);
+        }
+    }
+    sim.setValue("restore_function", F);
+}
+
 """
 
 
@@ -351,21 +523,43 @@ def msprime_rm_to_slim_rm(recombination_map):
 def slim_makescript(
         script_file, trees_file,
         demographic_model, contig, samples,
+        mutation_types, extended_events,
         scaling_factor, burn_in):
 
     pop_names = [pc.metadata["id"] for pc in demographic_model.population_configurations]
+    # Use copies of these so that the time frobbing below doesn't have
+    # side-effects in the caller's model.
+    demographic_events = copy.deepcopy(demographic_model.demographic_events)
+    if extended_events is None:
+        extended_events = []
+    else:
+        extended_events = copy.deepcopy(extended_events)
 
     # Reassign event times according to integral SLiM generations.
-    # This collapses the time deltas used in HomSap/AmericanAdmixture_4B11.
-    for event in demographic_model.demographic_events:
-        event.time = round(event.time / scaling_factor) * scaling_factor
+    # This collapses the time deltas used in HomSap/AmericanAdmixture_4B11,
+    # and calculates times for GenerationAfter objects.
+    def fix_time(event):
+        for attr in ("time", "start_time", "end_time"):
+            if not hasattr(event, attr):
+                continue
+            t = getattr(event, attr)
+            t_rounded = round(float(t) / scaling_factor) * scaling_factor
+            if isinstance(t, stdpopsim.ext.GenerationAfter):
+                t_rounded -= scaling_factor
+            if t_rounded < 0:
+                raise ValueError(f"Bad {attr}: {getattr(event, attr)}")
+            setattr(event, attr, t_rounded)
+    for event in demographic_events:
+        fix_time(event)
+    for event in extended_events:
+        fix_time(event)
 
     # The demography debugger constructs event epochs, which we use
     # to define the forwards-time events.
     dd = msprime.DemographyDebugger(
             population_configurations=demographic_model.population_configurations,
             migration_matrix=demographic_model.migration_matrix,
-            demographic_events=demographic_model.demographic_events)
+            demographic_events=demographic_events)
 
     epochs = sorted(dd.epochs, key=lambda e: e.start_time, reverse=True)
     T = [round(e.start_time*demographic_model.generation_time) for e in epochs]
@@ -425,6 +619,60 @@ def slim_makescript(
                     for k in range(dd.num_populations):
                         migration_matrices[j][k][de.source] = 0
                         migration_matrices[j][de.source][k] = 0
+
+    drawn_mutations = []
+    fitness_callbacks = []
+    condition_on_allele_frequency = []
+    op_id = stdpopsim.ext.ConditionOnAlleleFrequency.op_id
+    for ee in extended_events:
+        if hasattr(ee, "mutation_type_id"):
+            mt_id = getattr(ee, "mutation_type_id")
+            cls_name = ee.__class__.__name__
+            if mutation_types is None:
+                raise ValueError(
+                        f"Invalid {cls_name} event. No mutation types defined.")
+            if not (0 < ee.mutation_type_id <= len(mutation_types)):
+                # FIXME: use zero-based indexes
+                raise ValueError(
+                        f"Invalid {cls_name} event with mutation type id {mt_id}.")
+        if hasattr(ee, "start_time") and hasattr(ee, "end_time"):
+            # Now that GenerationAfter times have been accounted for, we can
+            # properly catch invalid start/end times.
+            start_time = getattr(ee, "start_time")
+            end_time = getattr(ee, "end_time")
+            stdpopsim.ext.validate_time_range(start_time, end_time)
+
+        if isinstance(ee, stdpopsim.ext.DrawMutation):
+            time = ee.time * demographic_model.generation_time
+            save = 1 if ee.save else 0
+            drawn_mutations.append((
+                time, ee.mutation_type_id, ee.population_id, ee.coordinate, save))
+        elif isinstance(ee, stdpopsim.ext.ChangeMutationFitness):
+            start_time = ee.start_time * demographic_model.generation_time
+            end_time = ee.end_time * demographic_model.generation_time
+            fitness_callbacks.append((
+                start_time, end_time, ee.mutation_type_id, ee.population_id,
+                ee.selection_coeff, ee.dominance_coeff))
+        elif isinstance(ee, stdpopsim.ext.ConditionOnAlleleFrequency):
+            start_time = ee.start_time * demographic_model.generation_time
+            end_time = ee.end_time * demographic_model.generation_time
+            save = 1 if ee.save else 0
+            condition_on_allele_frequency.append((
+                start_time, end_time, ee.mutation_type_id, ee.population_id,
+                op_id(ee.op), ee.allele_frequency, save))
+        else:
+            raise ValueError(f"Unknown extended event type {type(ee)}")
+
+    # Check that drawn mutations exist for extended events that need them.
+    drawn_mut_type_ids = {mt_id for _, mt_id, _, _, _ in drawn_mutations}
+    for ee in extended_events:
+        if (isinstance(ee, stdpopsim.ext.ChangeMutationFitness) or
+           isinstance(ee, stdpopsim.ext.ConditionOnAlleleFrequency)):
+            if ee.mutation_type_id not in drawn_mut_type_ids:
+                cls_name = ee.__class__.__name__
+                raise ValueError(
+                        f"Invalid {cls_name} event. No drawn mutation for "
+                        "mutation type id {ee.mutation_type_id}")
 
     printsc = functools.partial(print, file=script_file)
 
@@ -507,6 +755,25 @@ def slim_makescript(
 
         return "".join(s)
 
+    if mutation_types is None:
+        mutation_types = [stdpopsim.ext.MutationType()]
+
+    # Mutation type; genomic elements.
+    # FIXME: Change this to use zero-based indices---one-based indices are
+    #        inconsistent with everything else, e.g. population IDs.
+    for i, m in enumerate(mutation_types, 1):
+        distrib_args = ", ".join(map(str, m.distribution_args))
+        printsc(f'    initializeMutationType("m{i}", {m.dominance_coeff}, ' +
+                f'"{m.distribution_type}", {distrib_args});')
+        if not m.convert_to_substitution:
+            # T is the default for WF simulations.
+            printsc(f'    m{i}.convertToSubstitution = F;')
+    mut_weights = ", ".join(str(m.weight) for m in mutation_types)
+    printsc('    initializeGenomicElementType("g1", ' +
+            f'seq(1, {len(mutation_types)}), c({mut_weights}));')
+    printsc()
+
+    # Epoch times.
     printsc('    // Time of epoch boundaries, in years before present.')
     printsc('    // The first epoch spans from INF to _T[0].')
     printsc('    defineConstant("_T", c({}));'.format(", ".join(map(str, T))))
@@ -585,6 +852,38 @@ def slim_makescript(
             ');')
     printsc()
 
+    # Drawn mutations.
+    printsc('    // Drawn mutations, one row for each mutation.')
+    printsc('    defineConstant("drawn_mutations", ' +
+            matrix2str(
+                drawn_mutations,
+                col_comment="time, mut_type, pop_id, genomic_coordinate, save") +
+            ');')
+    printsc()
+
+    # Fitness callbacks.
+    printsc('    // Fitness callbacks, one row for each callback.')
+    printsc('    defineConstant("fitness_callbacks", ' +
+            matrix2str(
+                fitness_callbacks,
+                col_comment="start_time, end_time, mut_type, pop_id, "
+                            "selection_coeff, dominance_coeff") +
+            ');')
+    printsc()
+
+    # Allele frequency conditioning
+    op_types = ", ".join(
+            f"\"{op}\"" for op in stdpopsim.ext.ConditionOnAlleleFrequency.op_types)
+    printsc(f'    defineConstant("op_types", c({op_types}));')
+    printsc('    // Allele frequency conditioning, one row for each.')
+    printsc('    defineConstant("condition_on_allele_frequency", ' +
+            matrix2str(
+                condition_on_allele_frequency,
+                col_comment="start_time, end_time, mut_type, pop_id, "
+                            "op, allele_frequency, save") +
+            ');')
+    printsc()
+
     # Sampling episodes.
     sample_counts = collections.Counter([
         (sample.population, round(sample.time * demographic_model.generation_time))
@@ -639,6 +938,7 @@ class _SLiMEngine(stdpopsim.Engine):
 
     def simulate(
             self, demographic_model=None, contig=None, samples=None, seed=None,
+            mutation_types=None, extended_events=None,
             slim_path=None, slim_script=False, slim_scaling_factor=1.0,
             slim_burn_in=10.0, dry_run=False):
         """
@@ -684,11 +984,12 @@ class _SLiMEngine(stdpopsim.Engine):
 
         run_slim = not slim_script
 
+        # Ensure only "weighted" mutations are introduced by SLiM.
         mutation_rate = contig.mutation_rate
-        # Ensure no mutations are introduced by SLiM.
+        slim_frac = stdpopsim.ext.slim_mutation_frac(mutation_types)
         contig = stdpopsim.Contig(
                 recombination_map=contig.recombination_map,
-                mutation_rate=0,
+                mutation_rate=slim_frac * mutation_rate,
                 genetic_map=contig.genetic_map)
 
         mktemp = functools.partial(tempfile.NamedTemporaryFile, mode="w")
@@ -706,6 +1007,7 @@ class _SLiMEngine(stdpopsim.Engine):
             recap_epoch = slim_makescript(
                     script_file, ts_file.name,
                     demographic_model, contig, samples,
+                    mutation_types, extended_events,
                     slim_scaling_factor, slim_burn_in)
 
             script_file.flush()
@@ -723,7 +1025,8 @@ class _SLiMEngine(stdpopsim.Engine):
             ts = pyslim.load(ts_file.name)
 
         ts = self._recap_and_rescale(
-                ts, seed, recap_epoch, contig, mutation_rate, slim_scaling_factor)
+                ts, seed, recap_epoch, contig, mutation_rate, slim_frac,
+                slim_scaling_factor)
         return ts
 
     def _run_slim(self, script_file, slim_path=None, seed=None, dry_run=False):
@@ -780,7 +1083,8 @@ class _SLiMEngine(stdpopsim.Engine):
         return ts.simplify(samples=list(nodes), filter_populations=False)
 
     def _recap_and_rescale(
-            self, ts, seed, recap_epoch, contig, mutation_rate, slim_scaling_factor):
+            self, ts, seed, recap_epoch, contig, mutation_rate, slim_frac,
+            slim_scaling_factor):
         """
         Apply post-SLiM transformations to ``ts``. This rescales node times,
         does recapitation, simplification, and adds neutral mutations.
@@ -809,14 +1113,24 @@ class _SLiMEngine(stdpopsim.Engine):
 
         ts = self._simplify_remembered(ts)
 
-        # Add neutral mutations.
+        if slim_frac < 1:
+            # Add mutations to SLiM part of trees.
+            rate = (1 - slim_frac) * mutation_rate
+            ts = pyslim.SlimTreeSequence(msprime.mutate(
+                ts, rate=rate, keep=True, random_seed=s2,
+                end_time=ts.slim_generation))
+
+        # Add mutations to recapitated part of trees.
+        s3 = rng.randrange(1, 2**32)
         ts = pyslim.SlimTreeSequence(msprime.mutate(
-            ts, rate=mutation_rate, keep=True, random_seed=s2))
+            ts, rate=mutation_rate, keep=True, random_seed=s3,
+            start_time=ts.slim_generation))
 
         return ts
 
     def recap_and_rescale(
             self, ts, demographic_model, contig, samples,
+            mutation_types=None, extended_events=None,
             slim_scaling_factor=1.0, seed=None, **kwargs):
         """
         Apply post-SLiM transformations to ``ts``. This rescales node times,
@@ -841,14 +1155,24 @@ class _SLiMEngine(stdpopsim.Engine):
             should be consulted to determine if it's behaviour is appropriate
             for your case.
         """
+        # Only "weighted" mutations are introduced by SLiM.
+        mutation_rate = contig.mutation_rate
+        slim_frac = stdpopsim.ext.slim_mutation_frac(mutation_types)
+        contig = stdpopsim.Contig(
+                recombination_map=contig.recombination_map,
+                mutation_rate=slim_frac * mutation_rate,
+                genetic_map=contig.genetic_map)
+
         with open(os.devnull, "w") as script_file:
             recap_epoch = slim_makescript(
                     script_file, "unused.trees",
                     demographic_model, contig, samples,
+                    mutation_types, extended_events,
                     slim_scaling_factor, 1)
 
         ts = self._recap_and_rescale(
-                ts, seed, recap_epoch, contig, contig.mutation_rate, slim_scaling_factor)
+                ts, seed, recap_epoch, contig, mutation_rate, slim_frac,
+                slim_scaling_factor)
         return ts
 
 
