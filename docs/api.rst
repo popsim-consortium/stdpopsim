@@ -56,9 +56,11 @@ these models.
 .. autoclass:: stdpopsim.IsolationWithMigration
 
 
-*****************
-Simulation Engine
-*****************
+.. _sec_api_simulation_engines:
+
+******************
+Simulation Engines
+******************
 
 Support for additional simulation engines can be implemented by subclassing
 the abstract :class:`.Engine` class, and registering an instance of the
@@ -66,5 +68,15 @@ subclass with :func:`.register_engine`.
 These are usually not intended to be instantiated directly, but should be
 accessed through the main entrypoint, :func:`.get_engine`.
 
+.. autofunction:: stdpopsim.get_engine
+
+.. autofunction:: stdpopsim.get_default_engine
+
+.. autofunction:: stdpopsim.register_engine
+
 .. autoclass:: stdpopsim.Engine
     :members:
+
+.. autoclass:: stdpopsim.engines._MsprimeEngine
+    :show-inheritance:
+    :members: id, description, simulate
