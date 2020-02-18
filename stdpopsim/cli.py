@@ -499,6 +499,7 @@ def write_simulation_summary(engine, model, contig, samples, seed=None):
     mut_rate = contig.mutation_rate
     contig_len = contig.recombination_map.get_length()
     dry_run_text += f"Contig Description:\n"
+    dry_run_text += f"{indent}Contig origin: {contig.origin}\n"
     dry_run_text += f"{indent}Contig length: {contig_len}\n"
     dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"
     dry_run_text += f"{indent}Mean mutation rate: {mut_rate}\n"

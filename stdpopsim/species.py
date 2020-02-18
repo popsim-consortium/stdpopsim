@@ -180,9 +180,10 @@ class Species(object):
                 rates = full_rates[i:j]
                 rates[-1] = 0
                 recomb_map = msprime.RecombinationMap(positions, rates)
+        origin = f"{chrom.id}:{position}-{position+length}"
         ret = genomes.Contig(
             recombination_map=recomb_map, mutation_rate=chrom.mutation_rate,
-            genetic_map=gm)
+            genetic_map=gm, origin=origin)
         return ret
 
     def get_contig(self, chromosome, genetic_map=None, length_multiplier=1):
@@ -220,7 +221,7 @@ class Species(object):
 
         ret = genomes.Contig(
             recombination_map=recomb_map, mutation_rate=chrom.mutation_rate,
-            genetic_map=gm)
+            genetic_map=gm, origin=chrom.id)
         return ret
 
     def get_demographic_model(self, id):

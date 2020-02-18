@@ -92,7 +92,7 @@ class Chromosome(object):
     mutation_rate = attr.ib(type=float, kw_only=True)
 
 
-@attr.s(frozen=True)
+@attr.s(frozen=True, kw_only=True)
 class Contig(object):
     """
     Class representing a contiguous region of genome that is to be
@@ -107,17 +107,19 @@ class Contig(object):
         for more details.
     :vartype recombination_map: msprime.simulations.RecombinationMap
     """
-    recombination_map = attr.ib(default=None, kw_only=True)
-    mutation_rate = attr.ib(default=None, type=float, kw_only=True)
-    genetic_map = attr.ib(default=None, kw_only=True)
+    recombination_map = attr.ib(default=None)
+    mutation_rate = attr.ib(default=None, type=float)
+    genetic_map = attr.ib(default=None)
+    origin = attr.ib(default=None, type=str)
 
     def __str__(self):
         gmap = "None" if self.genetic_map is None else self.genetic_map.id
         s = (
             "Contig(length={:.2G}, recombination_rate={:.2G}, "
-            "mutation_rate={:.2G}, genetic_map={})").format(
+            "mutation_rate={:.2G}, genetic_map={}, origin={})").format(
                 self.recombination_map.get_length(),
                 self.recombination_map.mean_recombination_rate,
                 self.mutation_rate,
-                gmap)
+                gmap,
+                self.origin)
         return s
