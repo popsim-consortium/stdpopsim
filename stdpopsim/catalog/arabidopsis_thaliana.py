@@ -36,7 +36,17 @@ for line in _chromosome_data.splitlines():
         mutation_rate=7e-9,
         recombination_rate=8.1e-9))
 
-_genome = stdpopsim.Genome(chromosomes=_chromosomes)
+_SwarbreckEtAl = stdpopsim.Citation(
+    doi="https://doi.org/10.1093/nar/gkm965",
+    year="2007",
+    author="Swarbreck et al.",
+    reasons={stdpopsim.CiteReason.ASSEMBLY}
+)
+
+_genome = stdpopsim.Genome(
+        chromosomes=_chromosomes,
+        assembly_citations=[
+            _SwarbreckEtAl])
 
 _species = stdpopsim.Species(
     id="AraTha",
@@ -73,9 +83,9 @@ _gm = stdpopsim.GeneticMap(
         This map is based on the study of crossover frequencies in over 7000
         plants in 17 F2 populations derived from crosses between 18 A. thaliana
         accessions. Salomé et al provide genetic maps for each of these
-        populations. To get a single map for each chromosome, the Haldane map function
-        distances were converted to recombination rates (cM/Mb) for each cross
-        and then averaged across the 17 populations using loess.
+        populations. To get a single map for each chromosome, the Haldane map
+        function distances were converted to recombination rates (cM/Mb) for
+        each cross and then averaged across the 17 populations using loess.
         """,
     url=(
         "http://www.eeb.ucla.edu/Faculty/Lohmueller/data/"
@@ -97,7 +107,6 @@ _species.add_genetic_map(_gm)
 ###########################################################
 
 
-# FIXME this documentation needs to be filled out.
 def _sma_1pop():
     # the size during the interval times[k] to times[k+1] = sizes[k]
     times = np.array([
@@ -134,11 +143,15 @@ def _sma_1pop():
     return stdpopsim.DemographicModel(
         id="SouthMiddleAtlas_1D17",
         description="South Middle Atlas piecewise constant size",
-        # TODO more detail here. We should at least explain that we're skipping
-        # some of the estimates from MSMC because we don't think they're accurate.
         long_description="""
-            Model estimated from two homozygous individuals from
-            the South Middle Atlas using MSMC (TODO: more detail).
+            This model comes from MSMC using two randomly sampled homozygous
+            individuals (Khe32 and Ifr4) from the South Middle Atlas region
+            from the Middle Atlas Mountains in Morocco. The model is estimated
+            with 32 time periods. Because estimates from the recent and ancient
+            past are less accurate, we set the population size in the first 7
+            time periods equal to the size at the 8th time period and the size
+            during last 2 time periods equal to the size in the 30th time
+            period.
         """,
         populations=populations,
         citations=[stdpopsim.Citation(
@@ -165,15 +178,18 @@ def _afr_2epoch():
     t_1 = 568344
     populations = [
         stdpopsim.Population(
-            id="Africa", description="Arabidopsis thaliana African population")
+            id="SouthMiddleAtlas",
+            description="Arabidopsis Thaliana South Middle Atlas population")
     ]
     return stdpopsim.DemographicModel(
         id="African2Epoch_1H18",
-        description="African two epoch model",
+        description="South Middle Atlas African two epoch model",
         long_description="""
             Model estimated from site frequency spectrum of synonymous
-            SNPs from African samples using Williamson et al. (2005)
-            methodology.
+            SNPs from African South Middle Atlas samples using
+            Williamson et al. 2005 methodology. Values come from supplementary
+            table 1 of Huber et al 2018. Sizes change from N_A -> N_0 and t_1 is
+            time of the second epoch.
         """,
         populations=populations,
         citations=[stdpopsim.Citation(
@@ -208,15 +224,18 @@ def _afr_3epoch():
     t_3 = 14534
     populations = [
         stdpopsim.Population(
-            id="Africa", description="Arabidopsis thaliana African population")
+            id="SouthMiddleAtlas",
+            description="Arabidopsis Thaliana South Middle Atlas population")
     ]
     return stdpopsim.DemographicModel(
         id="African3Epoch_1H18",
-        description="African three epoch model",
+        description="South Middle Atlas African three epoch model",
         long_description="""
             Model estimated from site frequency spectrum of synonymous
-            SNPs from African samples using Williamson et al. (2005)
-            methodology.
+            SNPs from African (South Middle Atlas) samples using Williamson et
+            al. 2005 methodology. Values come from supplementary table 1 of
+            Huber et al 2018. Sizes change from N_A -> N_2 -> N_3 and t_2 is
+            the time of the second epoch and t_3 is the time of the 3rd epoch.
         """,
         populations=populations,
         citations=[stdpopsim.Citation(

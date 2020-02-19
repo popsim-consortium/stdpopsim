@@ -659,35 +659,5 @@ class _SLiMEngine(stdpopsim.Engine):
 
         return ts
 
-    def add_arguments(self, parser):
-        def slim_exec(path):
-            # Hack to set the SLIM environment variable at parse time,
-            # before get_version() can be called.
-            os.environ["SLIM"] = path
-            return path
-        parser.add_argument(
-                "--slim-path", metavar="PATH", type=slim_exec, default=None,
-                help="Full path to `slim' executable.")
-        parser.add_argument(
-                "--slim-script", action="store_true", default=False,
-                help="Write script to stdout and exit without running SLiM.")
-        parser.add_argument(
-                "--slim-scaling-factor", metavar="Q", default=10, type=float,
-                help="Rescale model parameters by Q to speed up simulation. "
-                     "See SLiM manual: `5.5 Rescaling population sizes to "
-                     "improve simulation performance`. "
-                     "[default=%(default)s].")
-        parser.add_argument(
-                "--slim-no-recapitation", action="store_true", default=False,
-                help="Explicitly wait for coalescence, and add "
-                     "mutations, within the SLiM simulation. This may be much "
-                     "slower than the defaults (recapitation and neutral mutation "
-                     "overlay with msprime).")
-        parser.add_argument(
-                "--slim-no-burnin", action="store_true", default=False,
-                help="Don't wait for coalescence in SLiM before proceeding. "
-                     "This option is only relevant in combination with "
-                     "--slim-no-recapitation.")
-
 
 stdpopsim.register_engine(_SLiMEngine())

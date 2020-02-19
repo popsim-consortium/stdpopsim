@@ -5,6 +5,7 @@ nose
 setuptools_scm
 sphinx
 sphinx-argparse
+sphinx-issues
 sphinx_rtd_theme
 sphinxcontrib-programoutput
 msprime

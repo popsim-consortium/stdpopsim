@@ -12,6 +12,7 @@ import tempfile
 import pathlib
 import shutil
 import functools
+import os
 
 import msprime
 import tskit
@@ -239,6 +240,7 @@ def get_citations(engine, model, contig, species):
     Return a list of all the citations.
     """
     citations = engine.citations[:]
+    citations.extend(species.genome.assembly_citations)
     citations.extend(species.genome.mutation_rate_citations)
     citations.extend(species.genome.recombination_rate_citations)
     if contig.genetic_map is not None:
@@ -509,10 +511,62 @@ def stdpopsim_cli_parser():
         choices=[e.id for e in stdpopsim.all_engines()],
         help="Specify a simulation engine.")
 
-    for engine in stdpopsim.all_engines():
-        group = top_parser.add_argument_group(
-                f"{engine.id} specific parameters")
-        engine.add_arguments(group)
+    supported_models = stdpopsim.get_engine("msprime").supported_models
+    msprime_parser = top_parser.add_argument_group("msprime specific parameters")
+    msprime_parser.add_argument(
+            "--msprime-model",
+            default=supported_models[0],
+            choices=supported_models,
+            help="Specify the simulation model used by msprime. "
+                 "See msprime API documentation for details.")
+
+    def time_or_model(arg, _arg_is_time=[True, ], parser=top_parser):
+        if _arg_is_time[0]:
+            try:
+                arg = float(arg)
+            except ValueError:
+                parser.error(f"`{arg}' is not a number")
+        else:
+            if arg not in supported_models:
+                parser.error(f"`{arg}' is not a supported model")
+        _arg_is_time[0] = not _arg_is_time[0]
+        return arg
+    msprime_parser.add_argument(
+            "--msprime-change-model",
+            metavar=("T", "MODEL"), type=time_or_model,
+            default=[], action="append", nargs=2,
+            help="Change to the specified simulation MODEL at generation T. "
+                 "This option may provided multiple times.")
+
+    def slim_exec(path):
+        # Hack to set the SLIM environment variable at parse time,
+        # before get_version() can be called.
+        os.environ["SLIM"] = path
+        return path
+    slim_parser = top_parser.add_argument_group("SLiM specific parameters")
+    slim_parser.add_argument(
+            "--slim-path", metavar="PATH", type=slim_exec, default=None,
+            help="Full path to `slim' executable.")
+    slim_parser.add_argument(
+            "--slim-script", action="store_true", default=False,
+            help="Write script to stdout and exit without running SLiM.")
+    slim_parser.add_argument(
+            "--slim-scaling-factor", metavar="Q", default=10, type=float,
+            help="Rescale model parameters by Q to speed up simulation. "
+                 "See SLiM manual: `5.5 Rescaling population sizes to "
+                 "improve simulation performance`. "
+                 "[default=%(default)s].")
+    slim_parser.add_argument(
+            "--slim-no-recapitation", action="store_true", default=False,
+            help="Explicitly wait for coalescence, and add "
+                 "mutations, within the SLiM simulation. This may be much "
+                 "slower than the defaults (recapitation and neutral mutation "
+                 "overlay with msprime).")
+    slim_parser.add_argument(
+            "--slim-no-burnin", action="store_true", default=False,
+            help="Don't wait for coalescence in SLiM before proceeding. "
+                 "This option is only relevant in combination with "
+                 "--slim-no-recapitation.")
 
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True

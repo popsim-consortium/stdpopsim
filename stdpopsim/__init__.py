@@ -23,5 +23,6 @@ from .catalog import pongo_pygmaeus  # NOQA
 from .catalog import arabidopsis_thaliana  # NOQA
 from .catalog import e_coli  # NOQA
 from .catalog import drosophila_melanogaster  # NOQA
+from .catalog import canis_familiaris  # NOQA
 
 from . slim_engine import * # NOQA

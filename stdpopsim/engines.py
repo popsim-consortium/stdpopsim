@@ -55,17 +55,21 @@ class Engine(object):
     :vartype citations: list of :class:`.Citation`
     """
 
-    def simulate(self, model=None, contig=None, samples=None, **kwargs):
+    def simulate(
+            self, demographic_model=None, contig=None, samples=None, seed=None,
+            **kwargs):
         """
         Simulates the model for the specified contig and samples.
 
-        :param model: The demographic model to simulate.
-        :type model: :class:`.DemographicModel`
+        :param demographic_model: The demographic model to simulate.
+        :type demographic_model: :class:`.DemographicModel`
         :param contig: The contig, defining the length and recombination
             rate(s).
         :type contig: :class:`msprime.simulations.Contig`
         :param samples: The samples to be obtained from the simulation.
         :type samples: list of :class:`msprime.simulations.Sample`
+        :param seed: The seed for the random number generator.
+        :type seed: int
         :return: A succinct tree sequence.
         :rtype: :class:`tskit.trees.TreeSequence`
         """
@@ -79,24 +83,10 @@ class Engine(object):
         """
         raise NotImplementedError()
 
-    def add_arguments(self, parser):
-        """
-        Defines engine specific command line parameters.
-
-        If implemented, this function should call :func:`parser.add_argument()`
-        to define engine specific command line parameters. The engine's
-        :func:`simulate()` method should accept keyword arguments matching the
-        names defined here.
-
-        :param parser: A CLI argument parser group.
-        :type parser: :class:`argparse._ArgumentGroup`
-        """
-        pass
-
 
 class _MsprimeEngine(Engine):
-    id = "msprime"
-    description = "Msprime coalescent simulator"
+    id = "msprime"  #:
+    description = "Msprime coalescent simulator"  #:
     citations = [
             stdpopsim.Citation(
                 doi="https://doi.org/10.1371/journal.pcbi.1004842",
@@ -104,17 +94,61 @@ class _MsprimeEngine(Engine):
                 author="Kelleher et al.",
                 reasons={stdpopsim.CiteReason.ENGINE}),
             ]
+    # We default to the first model in the list.
+    supported_models = ["hudson", "dtwf", "smc", "smc_prime"]
+    model_citations = {"dtwf": [
+             stdpopsim.Citation(
+                 # biorxiv; update upon publication
+                 doi="https://doi.org/10.1101/674440",
+                 year="2019",
+                 author="Nelson et al.",
+                 reasons={stdpopsim.CiteReason.ENGINE}),
+             ]}
 
-    def simulate(self, demographic_model=None, contig=None, samples=None, seed=None,
-                 **kwargs):
+    def simulate(
+            self, demographic_model=None, contig=None, samples=None, seed=None,
+            msprime_model=None, msprime_change_model=None, **kwargs):
+        """
+        Simulate the demographic model using msprime.
+        See :meth:`.Engine.simulate()` for definitions of parameters defined
+        for all engines.
+
+        :param msprime_model: The msprime simulation model to be used.
+            One of ``hudson``, ``dtwf``, ``smc``, or ``smc_prime``.
+            See msprime API documentation for details.
+        :type msprime_model: str
+        :param msprime_change_model: A list of (time, model) tuples, which
+            changes the simulation model to the new model at the time specified.
+        :type msprime_change_model: list of (float, str) tuples
+        """
+        if msprime_model is None:
+            msprime_model = self.supported_models[0]
+        else:
+            if msprime_model not in self.supported_models:
+                raise ValueError(f"Unrecognised model '{msprime_model}'")
+            if msprime_model in self.model_citations:
+                self.citations.extend(self.model_citations[msprime_model])
+
+        demographic_events = demographic_model.demographic_events.copy()
+        if msprime_change_model is not None:
+            for t, model in msprime_change_model:
+                if model not in self.supported_models:
+                    raise ValueError(f"Unrecognised model '{model}'")
+                model_change = msprime.SimulationModelChange(t, model)
+                demographic_events.append(model_change)
+                if model in self.model_citations:
+                    self.citations.extend(self.model_citations[model])
+            demographic_events.sort(key=lambda x: x.time)
+
         return msprime.simulate(
                 samples=samples,
                 recombination_map=contig.recombination_map,
                 mutation_rate=contig.mutation_rate,
                 population_configurations=demographic_model.population_configurations,
                 migration_matrix=demographic_model.migration_matrix,
-                demographic_events=demographic_model.demographic_events,
-                random_seed=seed)
+                demographic_events=demographic_events,
+                random_seed=seed,
+                model=msprime_model)
 
     def get_version(self):
         return msprime.__version__
