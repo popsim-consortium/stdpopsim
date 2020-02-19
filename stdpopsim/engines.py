@@ -47,9 +47,9 @@ class Engine(object):
     be set, and the :func:`simulate()` and :func:`get_version()` methods must
     be implemented. See msprime example in ``engines.py``.
 
-    :ivar id: The unique identifier for the simulation engine.
-    :vartype id: str
-    :ivar description: A short description of this engine.
+    :ivar ~.id: The unique identifier for the simulation engine.
+    :vartype ~.id: str
+    :ivar ~.description: A short description of this engine.
     :vartype description: str
     :ivar citations: A list of citations for the simulation engine.
     :vartype citations: list of :class:`.Citation`

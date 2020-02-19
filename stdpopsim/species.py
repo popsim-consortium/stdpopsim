@@ -60,14 +60,14 @@ class Species(object):
     """
     Class representing a species in the catalog.
 
-    :ivar id: The unique identifier for this species. The species ID is
+    :ivar ~.id: The unique identifier for this species. The species ID is
         the three first letters of the genus name followed by the first
         three letters of the species name, and does not
         contain any spaces or punctuation. The usual scheme is to
         use the first three letters of the genus and species (similar to the
         approach used in the UCSC genome browser), e.g., "HomSap"
         is the ID for Homo Sapiens.
-    :vartype id: str
+    :vartype ~.id: str
     :ivar name: The full name of this species in binominal nomenclature as
         it would be used in written text, e.g., "Homo sapiens".
     :vartype name: str
