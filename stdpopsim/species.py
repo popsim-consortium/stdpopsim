@@ -3,6 +3,7 @@ Infrastructure for defining basic information about species and
 organising the species catalog.
 """
 import logging
+import warnings
 
 import attr
 import msprime
@@ -133,6 +134,13 @@ class Species(object):
         :rtype: :class:`.Contig`
         :return: A :class:`.Contig` describing a simulation of the section of genome.
         """
+        # TODO: add non-autosomal support
+        if (chromosome is not None and
+                chromosome.lower() in ("x", "y", "m", "mt", "chrx", "chry", "chrm")):
+            warnings.warn(
+                    "Non-autosomal simulations are not yet supported. See "
+                    "https://github.com/popsim-consortium/stdpopsim/issues/383 and "
+                    "https://github.com/popsim-consortium/stdpopsim/issues/406")
         chrom = self.genome.get_chromosome(chromosome)
         if genetic_map is None:
             logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.id}")
