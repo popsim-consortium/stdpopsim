@@ -679,3 +679,22 @@ class TestMsprimeEngine(unittest.TestCase):
             engine.simulate(
                     model, contig, samples,
                     msprime_change_model=[(10, "notamodel"), ])
+
+
+class TestNonAutosomal(unittest.TestCase):
+    # TODO: This test should be removed when #383 is fixed.
+    # https://github.com/popsim-consortium/stdpopsim/issues/383
+    def test_chrX_gives_a_warning(self):
+        cmd = "HomSap -D -c chrX -o /dev/null -q 10".split()
+        with mock.patch("warnings.warn") as mock_warning:
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        self.assertTrue(mock_warning.called_once)
+
+    # TODO: This test should be removed when #405 and #406 are fixed.
+    # https://github.com/popsim-consortium/stdpopsim/issues/405
+    # https://github.com/popsim-consortium/stdpopsim/issues/406
+    def test_chrM_gives_a_warning(self):
+        cmd = "DroMel -D -c chrM -o /dev/null -q 10".split()
+        with mock.patch("warnings.warn") as mock_warning:
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        self.assertTrue(mock_warning.called_once)

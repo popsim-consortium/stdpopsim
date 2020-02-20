@@ -404,7 +404,6 @@ def add_simulate_species_parser(parser, species):
                 f"Cannot sample from more than {model.num_sampling_populations} "
                 "populations")
         samples = model.get_samples(*args.samples)
-
         contig = species.get_contig(
             args.chromosome, genetic_map=args.genetic_map,
             length_multiplier=args.length_multiplier)
