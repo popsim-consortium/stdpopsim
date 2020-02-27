@@ -114,6 +114,20 @@ class TestCLI(unittest.TestCase):
             ts = tskit.load(f.name)
         self.assertEqual(ts.num_samples, 10)
 
+        # verify sample counts for a multipopulation demographic model
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            cmd = (f"-e slim HomSap -o {f.name} -l 0.00001 -c chr1 -s 1234 -q "
+                   "-d OutOfAfrica_3G09 0 0 8").split()
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+            ts = tskit.load(f.name)
+        self.assertEqual(ts.num_populations, 3)
+        observed_counts = [0, 0, 0]
+        for sample in ts.samples():
+            observed_counts[ts.get_population(sample)] += 1
+        self.assertEqual(observed_counts[0], 0)
+        self.assertEqual(observed_counts[1], 0)
+        self.assertEqual(observed_counts[2], 8)
+
     def test_bad_slim_environ_var(self):
         saved_slim_env = os.environ.get("SLIM")
 
