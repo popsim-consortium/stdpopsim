@@ -13,3 +13,4 @@ kastore
 attrs
 appdirs
 humanize
+pyslim

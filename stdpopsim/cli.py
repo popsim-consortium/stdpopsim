@@ -12,6 +12,7 @@ import tempfile
 import pathlib
 import shutil
 import functools
+import os
 
 import msprime
 import tskit
@@ -420,7 +421,8 @@ def add_simulate_species_parser(parser, species):
         if not args.dry_run:
             ts = engine.simulate(**kwargs)
             summarise_usage()
-            write_output(ts, args)
+            if ts is not None:
+                write_output(ts, args)
         if not args.quiet:
             write_citations(engine, model, contig, species)
         if args.bibtex_file is not None:
@@ -534,6 +536,36 @@ def stdpopsim_cli_parser():
             default=[], action="append", nargs=2,
             help="Change to the specified simulation MODEL at generation T. "
                  "This option may provided multiple times.")
+
+    def slim_exec(path):
+        # Hack to set the SLIM environment variable at parse time,
+        # before get_version() can be called.
+        os.environ["SLIM"] = path
+        return path
+    slim_parser = top_parser.add_argument_group("SLiM specific parameters")
+    slim_parser.add_argument(
+            "--slim-path", metavar="PATH", type=slim_exec, default=None,
+            help="Full path to `slim' executable.")
+    slim_parser.add_argument(
+            "--slim-script", action="store_true", default=False,
+            help="Write script to stdout and exit without running SLiM.")
+    slim_parser.add_argument(
+            "--slim-scaling-factor", metavar="Q", default=10, type=float,
+            help="Rescale model parameters by Q to speed up simulation. "
+                 "See SLiM manual: `5.5 Rescaling population sizes to "
+                 "improve simulation performance`. "
+                 "[default=%(default)s].")
+    slim_parser.add_argument(
+            "--slim-no-recapitation", action="store_true", default=False,
+            help="Explicitly wait for coalescence, and add "
+                 "mutations, within the SLiM simulation. This may be much "
+                 "slower than the defaults (recapitation and neutral mutation "
+                 "overlay with msprime).")
+    slim_parser.add_argument(
+            "--slim-no-burnin", action="store_true", default=False,
+            help="Don't wait for coalescence in SLiM before proceeding. "
+                 "This option is only relevant in combination with "
+                 "--slim-no-recapitation.")
 
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True

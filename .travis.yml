@@ -26,6 +26,8 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
   - conda install --yes --file=requirements/conda-minimal.txt
+  # pyslim is not yet on conda-forge.
+  - pip install pyslim
 
 script:
   - nosetests -vs tests

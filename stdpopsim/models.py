@@ -114,10 +114,10 @@ class Population(object):
     """
     Class recording metadata representing a population in a simulation.
 
-    :ivar id: The id of the population.
-    :vartype id: str
-    :ivar description: a short description of the population
-    :vartype description: str
+    :ivar ~.id: The id of the population.
+    :vartype ~.id: str
+    :ivar ~.description: a short description of the population
+    :vartype ~.description: str
     :ivar sampling_time: an integer value which indicates how many
         generations prior to the present individuals should samples should
         be drawn from this population. If `None`, sampling not allowed from this
@@ -149,13 +149,13 @@ class DemographicModel(object):
     This class is indended to be used by model implementors. To instead
     obtain a pre-specified model, see :class:`Species.get_demographic_model`.
 
-    :ivar id: The unique identifier for this model. DemographicModel IDs should be
+    :ivar ~.id: The unique identifier for this model. DemographicModel IDs should be
         short and memorable, perhaps as an abbreviation of the model's name.
-    :vartype id: str
-    :ivar description: A short description of this model as it would be used in
+    :vartype ~.id: str
+    :ivar ~.description: A short description of this model as it would be used in
         written text, e.g., "Three population Out-of-Africa". This should
         describe the model itself and not contain author or year information.
-    :vartype description: str
+    :vartype ~.description: str
     :ivar long_description: A concise, but detailed, summary of the model.
     :vartype long_description: str
     :ivar generation_time: Mean inter-generation interval, in years.
