@@ -533,7 +533,7 @@ def simplify_remembered(ts):
     nodes = itertools.chain.from_iterable(
                 i.nodes for i in ts.individuals()
                 if i.flags & pyslim.INDIVIDUAL_REMEMBERED)
-    return ts.simplify(samples=list(nodes))
+    return ts.simplify(samples=list(nodes), filter_populations=False)
 
 
 class _SLiMEngine(stdpopsim.Engine):
