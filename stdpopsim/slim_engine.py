@@ -660,4 +660,6 @@ class _SLiMEngine(stdpopsim.Engine):
         return ts
 
 
-stdpopsim.register_engine(_SLiMEngine())
+# SLiM does not currently work on Windows.
+if sys.platform != "win32":
+    stdpopsim.register_engine(_SLiMEngine())

@@ -5,6 +5,7 @@ import os
 import sys
 import unittest
 import tempfile
+from unittest import mock
 
 import tskit
 
@@ -12,7 +13,10 @@ import stdpopsim
 import stdpopsim.cli
 from . test_cli import capture_output
 
+IS_WINDOWS = sys.platform.startswith("win")
 
+
+@unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
 class TestAPI(unittest.TestCase):
 
     def test_script_generation(self):
@@ -60,7 +64,6 @@ class TestAPI(unittest.TestCase):
                 slim_script=True)
         self.assertTrue("sim.registerLateEvent" in out)
 
-    @unittest.skipIf(sys.platform.startswith("win"), "no conda slim package for windows")
     def test_simulate(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("AraTha")
@@ -73,6 +76,7 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(ts.num_samples, 10)
 
 
+@unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
 class TestCLI(unittest.TestCase):
 
     def docmd(self, _cmd):
@@ -91,7 +95,6 @@ class TestCLI(unittest.TestCase):
         out, _ = self.docmd("--slim-script HomSap -d AmericanAdmixture_4B11")
         self.assertTrue("sim.registerLateEvent" in out)
 
-    @unittest.skipIf(sys.platform.startswith("win"), "no conda slim package for windows")
     def test_simulate(self):
         saved_slim_env = os.environ.get("SLIM")
         with tempfile.NamedTemporaryFile(mode="w") as f:
@@ -150,3 +153,19 @@ class TestCLI(unittest.TestCase):
             del os.environ["SLIM"]
         else:
             os.environ["SLIM"] = saved_slim_env
+
+
+class TestSlimAvailable(unittest.TestCase):
+    """
+    Checks whether SLiM is available or not on platforms that support it.
+    """
+    def test_parser_has_options(self):
+        parser = stdpopsim.cli.stdpopsim_cli_parser()
+        with mock.patch("sys.exit"):
+            _, stderr = capture_output(parser.parse_args, ["--help"])
+            # On windows we should have no "slim" options
+            self.assertEqual(IS_WINDOWS, "slim" not in stderr)
+
+    def test_engine_available(self):
+        all_engines = [engine.id for engine in stdpopsim.all_engines()]
+        self.assertEqual(IS_WINDOWS, "slim" not in all_engines)
