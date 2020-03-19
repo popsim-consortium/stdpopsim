@@ -26,6 +26,9 @@ install:
   - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION
   - source activate test-environment
   - conda install --yes --file=requirements/conda-minimal.txt
+  # SLiM is on conda-forge, but it's not available for windows so we don't
+  # include it in the 'minimal' requirements.
+  - conda install --yes slim
   # pyslim is not yet on conda-forge.
   - pip install pyslim
 

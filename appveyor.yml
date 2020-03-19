@@ -4,11 +4,9 @@ environment:
     - PYTHON_VERSION: "3.7"
 
 init:
-  - cmd: SET PYTHON=C:\\Miniconda37-x64
   - cmd: ECHO Using %PYTHON%
 
 install:
-  # - cmd: SET PATH=%PYTHON%;%PYTHON%\Scripts;%PATH%
   - cmd: C:\\Miniconda37-x64\Scripts\activate base
   - cmd: conda config --add channels conda-forge
   - cmd: conda create --yes -n testenv python=%PYTHON_VERSION%
