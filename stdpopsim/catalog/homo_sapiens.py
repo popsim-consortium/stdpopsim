@@ -61,6 +61,12 @@ _genome2001 = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.ASSEMBLY}
 )
 
+_hapmap2007 = stdpopsim.Citation(
+    doi="https://doi.org/10.1038/nature06258",
+    year=2007,
+    author="The International HapMap Consortium",
+)
+
 _tian2019 = stdpopsim.Citation(
     doi="https://doi.org/10.1016/j.ajhg.2019.09.012",
     year="2019",
@@ -94,6 +100,8 @@ _genome = stdpopsim.Genome(
         chromosomes=_chromosomes,
         mutation_rate_citations=[
             _tian2019.because(stdpopsim.CiteReason.MUT_RATE)],
+        recombination_rate_citations=[
+            _hapmap2007.because(stdpopsim.CiteReason.REC_RATE)],
         assembly_citations=[
             _genome2001])
 
@@ -140,12 +148,7 @@ _gm = stdpopsim.GeneticMap(
         "HapmapII_GRCh37_RecombinationHotspots.tar.gz"),
     file_pattern="genetic_map_GRCh37_{id}.txt",
     citations=[
-        stdpopsim.Citation(
-            doi="https://doi.org/10.1038/nature06258",
-            year=2007,
-            author="The International HapMap Consortium",
-            reasons={stdpopsim.CiteReason.GEN_MAP}),
-        ]
+        _hapmap2007.because(stdpopsim.CiteReason.GEN_MAP)],
     )
 _species.add_genetic_map(_gm)
 
