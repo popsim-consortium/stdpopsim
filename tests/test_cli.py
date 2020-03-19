@@ -634,8 +634,10 @@ class TestDryRun(unittest.TestCase):
 
 class TestMsprimeEngine(unittest.TestCase):
     def docmd(self, _cmd):
-        cmd = f"-e msprime {_cmd} AraTha -l 0.001 --seed 1 -o /dev/null -q 10"
-        return capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
+        with tempfile.TemporaryDirectory() as tmpdir:
+            filename = pathlib.Path(tmpdir) / "output.trees"
+            cmd = f"-e msprime {_cmd} AraTha -l 0.001 --seed 1 -o {filename} -q 10"
+            return capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
 
     def test_simulate(self):
         self.docmd("")

@@ -6,7 +6,7 @@ import unittest
 import stdpopsim
 
 
-class TestEngine_API(unittest.TestCase):
+class TestEngineAPI(unittest.TestCase):
     """
     Tests for the API exposed for simulation engines.
     """
