@@ -638,6 +638,14 @@ class _SLiMEngine(stdpopsim.Engine):
 
             ts = pyslim.load(ts_file.name)
 
+        # Node times come from SLiM generation numbers, which may have been
+        # divided by a scaling factor for computational tractibility.
+        tables = ts.dump_tables()
+        for table in (tables.nodes, tables.migrations):
+            table.time *= slim_scaling_factor
+        ts = pyslim.SlimTreeSequence.load_tables(tables)
+        ts.slim_generation *= slim_scaling_factor
+
         if do_recap:
             rng = random.Random(seed)
             s1, s2 = rng.randrange(1, 2**32), rng.randrange(1, 2**32)
