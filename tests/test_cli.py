@@ -277,9 +277,9 @@ class TestWriteOutput(unittest.TestCase):
         ts = msprime.simulate(10, random_seed=2)
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["AraTha", "2"])
-        with mock.patch("shutil.copyfileobj") as mocked_copy:
+        with mock.patch("stdpopsim.cli.write_to_stdout") as mocked_func:
             cli.write_output(ts, args)
-            mocked_copy.assert_called_once()
+            mocked_func.assert_called_once()
 
     def test_to_file(self):
         ts = msprime.simulate(10, random_seed=2)

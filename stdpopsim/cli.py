@@ -214,6 +214,13 @@ def get_provenance_dict():
     return document
 
 
+def write_to_stdout(fileobj):
+    """
+    Write the contents of the specified file to stdout.
+    """
+    shutil.copyfileobj(fileobj, sys.stdout.buffer)
+
+
 def write_output(ts, args):
     """
     Adds provenance information to the specified tree sequence (ensuring that the
@@ -231,7 +238,7 @@ def write_output(ts, args):
             tmpfile = pathlib.Path(tmpdir) / "tmp.trees"
             ts.dump(tmpfile)
             with open(tmpfile, "rb") as f:
-                shutil.copyfileobj(f, sys.stdout.buffer)
+                write_to_stdout(f)
     else:
         logger.info(f"Writing to {args.output}")
         ts.dump(args.output)
