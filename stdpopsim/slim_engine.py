@@ -682,23 +682,13 @@ class _SLiMEngine(stdpopsim.Engine):
             rng = random.Random(seed)
             s1, s2 = rng.randrange(1, 2**32), rng.randrange(1, 2**32)
 
-            recombination_map = contig.recombination_map
-            positions = recombination_map.get_positions()
-            if positions[-1] != ts.sequence_length:
-                # The recombination map passed in can have non-integer length
-                # (e.g. for contig length multiplier < 1), but SLiM trees will
-                # have integer sequence_length.
-                positions[-1] = ts.sequence_length
-                rates = recombination_map.get_rates()
-                recombination_map = msprime.RecombinationMap(positions, rates)
-
             population_configurations = [
                     msprime.PopulationConfiguration(
                         initial_size=pop.start_size,
                         growth_rate=pop.growth_rate)
                     for pop in recap_epoch.populations]
             ts = ts.recapitate(
-                    recombination_map=recombination_map,
+                    recombination_rate=contig.recombination_map.mean_recombination_rate,
                     population_configurations=population_configurations,
                     migration_matrix=recap_epoch.migration_matrix,
                     random_seed=s1)

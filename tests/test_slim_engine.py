@@ -65,14 +65,14 @@ class TestAPI(unittest.TestCase):
     def test_simulate(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("AraTha")
-        # Integral length (10kb) to hit specific code path in slim_engine.py
-        contig = species.get_contig("chr5", length_multiplier=10000/26975502)
+        contig = species.get_contig("chr5", length_multiplier=0.001)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         model.generation_time = species.generation_time
         samples = model.get_samples(10)
         ts = engine.simulate(
                 demographic_model=model, contig=contig, samples=samples)
         self.assertEqual(ts.num_samples, 10)
+        self.assertTrue(all(tree.num_roots == 1 for tree in ts.trees()))
 
 
 @unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
@@ -100,6 +100,7 @@ class TestCLI(unittest.TestCase):
             self.docmd(f"--slim-path slim HomSap -o {f.name}")
             ts = tskit.load(f.name)
         self.assertEqual(ts.num_samples, 10)
+        self.assertTrue(all(tree.num_roots == 1 for tree in ts.trees()))
 
         if saved_slim_env is None:
             del os.environ["SLIM"]
@@ -129,6 +130,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(observed_counts[0], 0)
         self.assertEqual(observed_counts[1], 0)
         self.assertEqual(observed_counts[2], 8)
+        self.assertTrue(all(tree.num_roots == 1 for tree in ts.trees()))
 
     def test_bad_slim_environ_var(self):
         saved_slim_env = os.environ.get("SLIM")
