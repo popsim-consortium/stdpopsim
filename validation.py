@@ -12,6 +12,7 @@ import time
 
 import numpy as np
 import tskit
+import msprime
 # Work around an issue on systems with large numbers of cores.
 # https://github.com/cggh/scikit-allel/issues/285
 os.environ["NUMEXPR_MAX_THREADS"] = f"{os.cpu_count()}"  # NOQA
@@ -38,23 +39,10 @@ def warning(msg):
 #
 
 
-def do_cmd(cmd, out_dir, seed):
-    cmd = cmd.split()
-    assert "-o" not in cmd and "--output" not in cmd
-    assert "-s" not in cmd and "--seed" not in cmd
-    out_file = out_dir / f"{seed}.trees"
-    full_cmd = cmd + f" -q -o {out_file} -s {seed}".split()
-    t0 = time.perf_counter()
-    stdpopsim.cli.stdpopsim_main(full_cmd)
-    t1 = time.perf_counter()
-    assert os.path.exists(out_file)
-    return out_file, t1 - t0
-
-
 def _onepop_PC(engine_id, out_dir, seed, N0=1000, *size_changes, **sim_kwargs):
     species = stdpopsim.get_species("CanFam")
     contig = species.get_contig("chr35", length_multiplier=0.01)  # ~265 kb
-    model = stdpopsim.PiecewiseConstantSize(N0=N0, *size_changes)
+    model = stdpopsim.PiecewiseConstantSize(N0, *size_changes)
     model.generation_time = species.generation_time
     samples = model.get_samples(100)
     engine = stdpopsim.get_engine(engine_id)
@@ -102,14 +90,130 @@ def onepop_constantN_slim3(out_dir, seed):
             slim_no_recapitation=True, slim_scaling_factor=10)
 
 
+def onepop_bottleneck_msprime1(out_dir, seed):
+    """
+    Single population with bottleneck and recovery.
+    """
+    return _onepop_PC("msprime", out_dir, seed, 5000, (800, 100), (1000, 1000))
+
+
+def onepop_bottleneck_slim1(out_dir, seed):
+    """
+    Single population with bottleneck and recovery.
+    """
+    return _onepop_PC("slim", out_dir, seed, 5000, (800, 100), (1000, 1000))
+
+
+def onepop_bottleneck_slim2(out_dir, seed):
+    """
+    Single population with bottleneck and recovery.
+    No recapitation. No scaling.
+    """
+    return _onepop_PC(
+            "slim", out_dir, seed, 5000, (800, 100), (1000, 1000),
+            slim_no_recapitation=True, slim_scaling_factor=1)
+
+
+def onepop_bottleneck_slim3(out_dir, seed):
+    """
+    Single population with bottleneck and recovery.
+    No recapitation. Time is rescaled by a factor of 10.
+    """
+    return _onepop_PC(
+            "slim", out_dir, seed, 5000, (800, 100), (1000, 1000),
+            slim_no_recapitation=True, slim_scaling_factor=10)
+
+
+class _PiecewiseSize(stdpopsim.DemographicModel):
+    """
+    A copy of stdpopsim.PiecewiseConstantSize that permits growth rates.
+    """
+    id = "Piecewise"
+    description = "Piecewise size population model over multiple epochs."
+    citations = []
+    populations = [stdpopsim.Population(id="pop0", description="Population 0")]
+    author = None
+    year = None
+    doi = None
+
+    def __init__(self, N0, growth_rate, *args):
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N0, growth_rate=growth_rate,
+                metadata=self.populations[0].asdict())
+        ]
+        self.migration_matrix = [[0]]
+        self.demographic_events = []
+        for t, initial_size, growth_rate in args:
+            self.demographic_events.append(msprime.PopulationParametersChange(
+                time=t, initial_size=initial_size, growth_rate=growth_rate,
+                population_id=0))
+
+
+def _onepop_expgrowth(
+        engine_id, out_dir, seed, N0=5000, N1=500, T=1000, **sim_kwargs):
+    growth_rate = - np.log(N1 / N0) / T
+    species = stdpopsim.get_species("DroMel")
+    contig = species.get_contig("chr2R", length_multiplier=0.01)  # ~250 kb
+    model = _PiecewiseSize(N0, growth_rate, (T, N1, 0))
+    model.generation_time = species.generation_time
+    samples = model.get_samples(100)
+    engine = stdpopsim.get_engine(engine_id)
+    t0 = time.perf_counter()
+    ts = engine.simulate(model, contig, samples, seed=seed, **sim_kwargs)
+    t1 = time.perf_counter()
+    out_file = out_dir / f"{seed}.trees"
+    ts.dump(out_file)
+    return out_file, t1 - t0
+
+
+def onepop_expgrowth_msprime1(out_dir, seed):
+    """
+    Single population with exponential population size growth.
+    """
+    return _onepop_expgrowth("msprime", out_dir, seed)
+
+
+def onepop_expgrowth_slim1(out_dir, seed):
+    """
+    Single population with exponential population size growth.
+    There are no demographic_events, so SLiM exits immediately, and
+    tree sequences are constructed via recapitation.
+    """
+    return _onepop_expgrowth("slim", out_dir, seed)
+
+
+def onepop_expgrowth_slim2(out_dir, seed):
+    """
+    Single population with exponential population size growth.
+    No recapitation. No scaling.
+    """
+    return _onepop_expgrowth(
+            "slim", out_dir, seed,
+            slim_no_recapitation=True, slim_scaling_factor=1)
+
+
+def onepop_expgrowth_slim3(out_dir, seed):
+    """
+    Single population with exponential population size growth.
+    No recapitation. Time is rescaled by a factor of 10.
+    """
+    return _onepop_expgrowth(
+            "slim", out_dir, seed,
+            slim_no_recapitation=True, slim_scaling_factor=10)
+
+
 def _twopop_IM(
         engine_id, out_dir, seed,
-        NA=1000, N1=500, N2=5000, T=1000, M12=0, M21=0,
+        NA=1000, N1=500, N2=5000, T=1000, M12=0, M21=0, pulse=None,
         **sim_kwargs):
     species = stdpopsim.get_species("AraTha")
     contig = species.get_contig("chr5", length_multiplier=0.01)  # ~270 kb
     model = stdpopsim.IsolationWithMigration(
             NA=NA, N1=N1, N2=N2, T=T, M12=M12, M21=M21)
+    if pulse is not None:
+        model.demographic_events.append(pulse)
+        model.demographic_events.sort(key=lambda x: x.time)
     model.generation_time = species.generation_time
     samples = model.get_samples(50, 50, 0)
     engine = stdpopsim.get_engine(engine_id)
@@ -171,6 +275,97 @@ def twopop_asymmetric_migration_slim2(out_dir, seed):
             slim_no_recapitation=True, slim_scaling_factor=1)
 
 
+_pulse_m21 = msprime.MassMigration(
+        time=20, proportion=0.1, source=1, destination=0)
+
+
+def twopop_pulse_migration_msprime1(out_dir, seed):
+    """
+    Two populations with different sizes and introgression from pop2 to pop1.
+    """
+    return _twopop_IM("msprime", out_dir, seed, pulse=_pulse_m21)
+
+
+def twopop_pulse_migration_slim1(out_dir, seed):
+    """
+    Two populations with different sizes and introgression from pop2 to pop1.
+    Recapitation. Default scaling factor of 10 is applied.
+    """
+    return _twopop_IM("slim", out_dir, seed, pulse=_pulse_m21)
+
+
+def twopop_pulse_migration_slim2(out_dir, seed):
+    """
+    Two populations with different sizes and introgression from pop2 to pop1.
+    No recapitation. No scaling.
+    """
+    return _twopop_IM(
+            "slim", out_dir, seed, pulse=_pulse_m21,
+            slim_no_recapitation=True, slim_scaling_factor=1)
+
+
+def do_cmd(cmd, out_dir, seed):
+    cmd = cmd.split()
+    assert "-o" not in cmd and "--output" not in cmd
+    assert "-s" not in cmd and "--seed" not in cmd
+    out_file = out_dir / f"{seed}.trees"
+    full_cmd = cmd + f" -q -o {out_file} -s {seed}".split()
+    t0 = time.perf_counter()
+    stdpopsim.cli.stdpopsim_main(full_cmd)
+    t1 = time.perf_counter()
+    assert os.path.exists(out_file)
+    return out_file, t1 - t0
+
+
+_homsap_250k = " HomSap -c chr1 -l 0.001 "
+
+
+def Africa_1T12_msprime1(out_dir, seed):
+    cmd = "-e msprime" + _homsap_250k + "-d Africa_1T12 100"
+    return do_cmd(cmd, out_dir, seed)
+
+
+def Africa_1T12_slim1(out_dir, seed):
+    cmd = "-e slim" + _homsap_250k + "-d Africa_1T12 100"
+    return do_cmd(cmd, out_dir, seed)
+
+
+def OutOfAfrica_3G09_msprime1(out_dir, seed):
+    samples = 3 * " 33"
+    cmd = "-e msprime" + _homsap_250k + "-d OutOfAfrica_3G09" + samples
+    return do_cmd(cmd, out_dir, seed)
+
+
+def OutOfAfrica_3G09_slim1(out_dir, seed):
+    samples = 3 * " 33"
+    cmd = "-e slim" + _homsap_250k + "-d OutOfAfrica_3G09" + samples
+    return do_cmd(cmd, out_dir, seed)
+
+
+def AmericanAdmixture_4B11_msprime1(out_dir, seed):
+    samples = 4 * " 25"
+    cmd = "-e msprime" + _homsap_250k + "-d AmericanAdmixture_4B11" + samples
+    return do_cmd(cmd, out_dir, seed)
+
+
+def AmericanAdmixture_4B11_slim1(out_dir, seed):
+    samples = 4 * " 25"
+    cmd = "-e slim" + _homsap_250k + "-d AmericanAdmixture_4B11" + samples
+    return do_cmd(cmd, out_dir, seed)
+
+
+def AncientEurasia_9K19_msprime1(out_dir, seed):
+    samples = 8 * " 12"
+    cmd = "-e msprime" + _homsap_250k + "-d AncientEurasia_9K19" + samples
+    return do_cmd(cmd, out_dir, seed)
+
+
+def AncientEurasia_9K19_slim1(out_dir, seed):
+    samples = 8 * " 12"
+    cmd = "-e slim" + _homsap_250k + "-d AncientEurasia_9K19" + samples
+    return do_cmd(cmd, out_dir, seed)
+
+
 #
 # Stats functions.
 #
@@ -228,7 +423,7 @@ def pairwise_pop_stats(ts):
     return stats
 
 
-def linkage_disequilibrium(ts, span=10**5, bins=50, min_num_sites=20):
+def linkage_disequilibrium(ts, span=2*10**5, bins=50, min_obs_per_bin=8):
     """
     Average R^2 in `bins` bins over the first `span` bases of ts.
     """
@@ -238,7 +433,8 @@ def linkage_disequilibrium(ts, span=10**5, bins=50, min_num_sites=20):
     num_sites = len(position)
     assert num_sites == int(ts.num_sites)
 
-    if num_sites >= min_num_sites:
+    nans = np.full(bins, np.nan)
+    if num_sites >= min_obs_per_bin:
         gts = np.expand_dims(ts.genotype_matrix(), axis=-1)
         gn = allel.GenotypeArray(gts, dtype='i1').to_n_alt()
         ld = allel.rogers_huff_r(gn)**2
@@ -256,12 +452,12 @@ def linkage_disequilibrium(ts, span=10**5, bins=50, min_num_sites=20):
                     r2[index] += ld[i]
                     n[index] += 1
                 i += 1
-        # divide `r2` by `n`, but return zero where n is zero.
-        r2 = np.divide(r2, n, out=np.zeros_like(r2), where=n != 0)
+        # divide `r2` by `n`, but return NaN where n has insufficient observations.
+        r2 = np.divide(r2, n, out=nans, where=n >= min_obs_per_bin)
     else:
         # Too few segregating sites to do anything meaningful.
         # LD plots may be blank.
-        r2 = [float("nan") for _ in range(bins)]
+        r2 = nans
 
     a = f"{span//bins//1000}k"  # width of one bin, in kb
     b = f"{span//8//1000}k"
@@ -280,12 +476,33 @@ _simulation_functions = [
     onepop_constantN_slim1,
     onepop_constantN_slim2,
     onepop_constantN_slim3,
+    onepop_bottleneck_msprime1,
+    onepop_bottleneck_slim1,
+    onepop_bottleneck_slim2,
+    onepop_bottleneck_slim3,
+    onepop_expgrowth_msprime1,
+    onepop_expgrowth_slim1,
+    onepop_expgrowth_slim2,
+    onepop_expgrowth_slim3,
+
     twopop_no_migration_msprime1,
     twopop_no_migration_slim1,
     twopop_no_migration_slim2,
     twopop_asymmetric_migration_msprime1,
     twopop_asymmetric_migration_slim1,
     twopop_asymmetric_migration_slim2,
+    twopop_pulse_migration_msprime1,
+    twopop_pulse_migration_slim1,
+    twopop_pulse_migration_slim2,
+
+    Africa_1T12_msprime1,
+    Africa_1T12_slim1,
+    OutOfAfrica_3G09_msprime1,
+    OutOfAfrica_3G09_slim1,
+    AmericanAdmixture_4B11_msprime1,
+    AmericanAdmixture_4B11_slim1,
+    AncientEurasia_9K19_msprime1,
+    AncientEurasia_9K19_slim1,
 ]
 
 _stats_functions = [
@@ -300,10 +517,23 @@ _default_comparisons = [
     (onepop_constantN_msprime1, onepop_constantN_slim1),
     (onepop_constantN_msprime1, onepop_constantN_slim2),
     (onepop_constantN_msprime1, onepop_constantN_slim3),
+    (onepop_bottleneck_msprime1, onepop_bottleneck_slim1),
+    (onepop_bottleneck_msprime1, onepop_bottleneck_slim2),
+    (onepop_expgrowth_msprime1, onepop_expgrowth_slim1),
+    (onepop_expgrowth_msprime1, onepop_expgrowth_slim2),
+    (onepop_expgrowth_msprime1, onepop_expgrowth_slim3),
+
     (twopop_no_migration_msprime1, twopop_no_migration_slim1),
     (twopop_no_migration_msprime1, twopop_no_migration_slim2),
     (twopop_asymmetric_migration_msprime1, twopop_asymmetric_migration_slim1),
     (twopop_asymmetric_migration_msprime1, twopop_asymmetric_migration_slim2),
+    (twopop_pulse_migration_msprime1, twopop_pulse_migration_slim1),
+    (twopop_pulse_migration_msprime1, twopop_pulse_migration_slim2),
+
+    (Africa_1T12_msprime1, Africa_1T12_slim1),
+    (OutOfAfrica_3G09_msprime1, OutOfAfrica_3G09_slim1),
+    (AmericanAdmixture_4B11_msprime1, AmericanAdmixture_4B11_slim1),
+    (AncientEurasia_9K19_msprime1, AncientEurasia_9K19_slim1),
 ]
 
 stats_functions = {f.__name__: f for f in _stats_functions}
@@ -372,7 +602,7 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
     # plot run times
     assert len(times1) > 0 and len(times2) > 0
     fig, ax = plt.subplots(figsize=figsize)
-    ax.boxplot([times1, times2])
+    ax.violinplot([times1, times2])
     ax.set_xticklabels([sim_key1, sim_key2])
     ax.set_title(f"{sim_key1} vs. {sim_key2}: run time")
     ax.set_ylabel("time (seconds)")
@@ -391,8 +621,10 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
         fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
         axs = np.array(axs).reshape(-1)
         assert len(axs) >= len(inner_keys)
+        imarkers = itertools.cycle(markers)
+        icolour = itertools.cycle(cmap.colors)
         save_fig = False
-        for i, (ax, inner_key) in enumerate(zip(axs, inner_keys)):
+        for ax, inner_key in zip(axs, inner_keys):
             x = [d[stat_key][inner_key] for d in stats1]
             y = [d[stat_key][inner_key] for d in stats2]
             assert len(x) > 0 and len(y) > 0
@@ -402,7 +634,7 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
             xq = np.nanquantile(x, quantiles)
             yq = np.nanquantile(y, quantiles)
 
-            ax.scatter(xq, yq, ec=cmap(i), fc="none", marker=markers[i])
+            ax.scatter(xq, yq, ec=next(icolour), fc="none", marker=next(imarkers))
             ax.set_title(inner_key)
 
             # draw a diagonal line
@@ -494,6 +726,7 @@ if __name__ == "__main__":
         for sim_keys in args.comparisons:
             j, k = sim_keys
             assert j != k
+            print(f"{j} / {k}.", end="")
 
             for key in sim_keys:
                 if key in files:
@@ -509,9 +742,13 @@ if __name__ == "__main__":
                     files[key], times[key] = find_simulations(
                             args.output_folder, key)
 
-                if args.no_plots:
-                    continue
+                print(".", end="")
 
-                stats[key] = list(executor.map(compute_stats, files[key]))
+                if not args.no_plots:
+                    stats[key] = list(executor.map(compute_stats, files[key]))
+                    print(".", end="")
 
-            do_plots(args.output_folder, j, k, times, stats)
+            if not args.no_plots:
+                do_plots(args.output_folder, j, k, times, stats)
+
+            print("done")
