@@ -67,7 +67,8 @@ class TestAPI(unittest.TestCase):
     def test_simulate(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("AraTha")
-        contig = species.get_contig("chr5", length_multiplier=0.0001)
+        # Integral length (10kb) to hit specific code path in slim_engine.py
+        contig = species.get_contig("chr5", length_multiplier=10000/26975502)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         model.generation_time = species.generation_time
         samples = model.get_samples(10)
