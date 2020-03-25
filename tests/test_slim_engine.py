@@ -49,8 +49,6 @@ class TestAPI(unittest.TestCase):
                 slim_script=True)
         self.assertTrue("sim.registerLateEvent" in out)
 
-    # TODO: remove decorator once recombination maps are implemented.
-    @unittest.expectedFailure
     def test_recombination_map(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
