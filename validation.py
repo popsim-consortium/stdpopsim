@@ -150,7 +150,7 @@ def twopop_asymmetric_migration_msprime1(out_dir, seed):
     """
     Two populations with different sizes and migrations from pop2 to pop1.
     """
-    return _twopop_IM("msprime", out_dir, seed, M12=0, M21=0.1)
+    return _twopop_IM("msprime", out_dir, seed, M12=0, M21=0.001)
 
 
 def twopop_asymmetric_migration_slim1(out_dir, seed):
@@ -158,7 +158,7 @@ def twopop_asymmetric_migration_slim1(out_dir, seed):
     Two populations with different sizes and migrations from pop2 to pop1.
     Recapitation. Default scaling factor of 10 is applied.
     """
-    return _twopop_IM("slim", out_dir, seed, M12=0, M21=0.1)
+    return _twopop_IM("slim", out_dir, seed, M12=0, M21=0.001)
 
 
 def twopop_asymmetric_migration_slim2(out_dir, seed):
@@ -167,7 +167,7 @@ def twopop_asymmetric_migration_slim2(out_dir, seed):
     No recapitation. No scaling.
     """
     return _twopop_IM(
-            "slim", out_dir, seed, M12=0, M21=0.1,
+            "slim", out_dir, seed, M12=0, M21=0.001,
             slim_no_recapitation=True, slim_scaling_factor=1)
 
 

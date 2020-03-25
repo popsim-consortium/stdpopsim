@@ -115,7 +115,7 @@ function (void)end(void) {
             if (j==k | N[i,j] == 0 | N[i,k] == 0)
                 next;
 
-            m = migration_matrices[k,j,i];
+            m = Q * migration_matrices[k,j,i];
             p = sim.subpopulations[j];
             dbg("p"+j+".setMigrationRates("+k+", "+m+");");
             p.setMigrationRates(k, m);
@@ -237,8 +237,8 @@ function (void)setup(void) {
                     if (j==k | N[i,j] == 0 | N[i,k] == 0)
                         next;
 
-                    m_last = migration_matrices[k,j,i-1];
-                    m = migration_matrices[k,j,i];
+                    m_last = Q * migration_matrices[k,j,i-1];
+                    m = Q * migration_matrices[k,j,i];
                     if (m == m_last) {
                         // Do nothing if the migration rate hasn't changed.
                         next;
