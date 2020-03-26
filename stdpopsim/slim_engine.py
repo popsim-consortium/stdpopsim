@@ -538,12 +538,14 @@ def slim_makescript(
     printsc()
 
     # Sampling episodes.
-    s_counts = collections.Counter([(s.population, s.time) for s in samples])
+    s_counts = collections.Counter([
+        (s.population, round(s.time * demographic_model.generation_time))
+        for s in samples])
     sampling_episodes = []
     for i, ((pop, time), count) in enumerate(s_counts.items()):
         # XXX: SLiM can only sample individuals, which we assume are diploid.
         n_inds = (count+1) // 2
-        sampling_episodes.append((pop, n_inds, int(time)))
+        sampling_episodes.append((pop, n_inds, time))
 
     printsc('    // One row for each sampling episode.')
     printsc('    defineConstant("sampling_episodes", ' +
