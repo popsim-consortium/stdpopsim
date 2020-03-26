@@ -205,7 +205,7 @@ def onepop_expgrowth_slim3(out_dir, seed):
 
 def _twopop_IM(
         engine_id, out_dir, seed,
-        NA=1000, N1=500, N2=5000, T=1000, M12=0, M21=0, pulse=None,
+        NA=1000, N1=500, N2=5000, T=1000, M12=0, M21=0, pulse=None, samples=None,
         **sim_kwargs):
     species = stdpopsim.get_species("AraTha")
     contig = species.get_contig("chr5", length_multiplier=0.01)  # ~270 kb
@@ -214,8 +214,11 @@ def _twopop_IM(
     if pulse is not None:
         model.demographic_events.append(pulse)
         model.demographic_events.sort(key=lambda x: x.time)
-    model.generation_time = species.generation_time
-    samples = model.get_samples(50, 50, 0)
+    # XXX: AraTha has species.generation_time == 1, but there is the potential
+    # for this to mask bugs related to generation_time scaling, so we use 3 here.
+    model.generation_time = 3
+    if samples is None:
+        samples = model.get_samples(50, 50, 0)
     engine = stdpopsim.get_engine(engine_id)
     t0 = time.perf_counter()
     ts = engine.simulate(model, contig, samples, seed=seed, **sim_kwargs)
@@ -301,6 +304,34 @@ def twopop_pulse_migration_slim2(out_dir, seed):
     """
     return _twopop_IM(
             "slim", out_dir, seed, pulse=_pulse_m21,
+            slim_no_recapitation=True, slim_scaling_factor=1)
+
+
+_ancient_samples = 50 * [msprime.Sample(0, time=0), msprime.Sample(1, time=500)]
+
+
+def twopop_ancient_samples_msprime1(out_dir, seed):
+    """
+    Two populations, with ancient sampling of the second population.
+    """
+    return _twopop_IM("msprime", out_dir, seed, samples=_ancient_samples)
+
+
+def twopop_ancient_samples_slim1(out_dir, seed):
+    """
+    Two populations, with ancient sampling of the second population.
+    Recapitation. Default scaling factor of 10 is applied.
+    """
+    return _twopop_IM("slim", out_dir, seed, samples=_ancient_samples)
+
+
+def twopop_ancient_samples_slim2(out_dir, seed):
+    """
+    Two populations, with ancient sampling of the second population.
+    No recapitation. No scaling.
+    """
+    return _twopop_IM(
+            "slim", out_dir, seed, samples=_ancient_samples,
             slim_no_recapitation=True, slim_scaling_factor=1)
 
 
@@ -399,7 +430,8 @@ def pooled_pop_stats(ts):
     Population statistics, with samples pooled from all populations.
     """
     n = ts.num_samples // 2
-    sample_sets = [ts.samples()[:n], ts.samples()[n:]]
+    samples = list(itertools.chain(*(ts.samples(i) for i in range(ts.num_populations))))
+    sample_sets = [samples[:n], samples[n:]]
     return {"diversity": ts.diversity(),
             "Tajimas_D": ts.Tajimas_D(),
             "$f_2$": ts.f2(sample_sets),
@@ -415,20 +447,22 @@ def pairwise_pop_stats(ts):
     pops = [i for i in range(ts.num_populations) if len(ts.samples(i)) > 0]
     if len(pops) < 2:
         return None
+    sample_sets = [ts.samples(i) for i in pops]
+    indexes = list(itertools.combinations(range(len(pops)), 2))
+    f2 = ts.f2(sample_sets, indexes)
+    Y2 = ts.Y2(sample_sets, indexes)
     stats = dict()
-    for j, k in itertools.combinations(pops, 2):
-        sample_sets = [ts.samples(j), ts.samples(k)]
-        stats[f"$f_2$[{j},{k}]"] = ts.f2(sample_sets)
-        stats[f"$Y_2$[{j},{k}]"] = ts.Y2(sample_sets)
+    for i, (j, k) in enumerate(indexes):
+        stats[f"$f_2$[{pops[j]},{pops[k]}]"] = f2[i]
+        stats[f"$Y_2$[{pops[j]},{pops[k]}]"] = Y2[i]
     return stats
 
 
-def linkage_disequilibrium(ts, span=2*10**5, bins=50, min_obs_per_bin=8):
+def linkage_disequilibrium(ts, span=40000, bins=20, min_obs_per_bin=8):
     """
-    Average R^2 in `bins` bins over the first `span` bases of ts.
+    R^2 as a function of site-separation distance, for `bins` bins up to a
+    site-separation distance of `span` bp.
     """
-    span = min(ts.sequence_length, span)
-    ts = ts.keep_intervals([(0, span)], record_provenance=False)
     position = [site.position for site in ts.sites()]
     num_sites = len(position)
     assert num_sites == int(ts.num_sites)
@@ -447,28 +481,40 @@ def linkage_disequilibrium(ts, span=2*10**5, bins=50, min_obs_per_bin=8):
         for j in range(num_sites):
             for k in range(j+1, num_sites):
                 distance = position[k] - position[j]
+                if distance >= span:
+                    break
                 index = int(distance * bins / span)
                 if not np.isnan(ld[i]):
                     r2[index] += ld[i]
                     n[index] += 1
                 i += 1
-        # divide `r2` by `n`, but return NaN where n has insufficient observations.
+        # Divide `r2` by `n`, but return NaN where n has insufficient observations.
         r2 = np.divide(r2, n, out=nans, where=n >= min_obs_per_bin)
     else:
         # Too few segregating sites to do anything meaningful.
         # LD plots may be blank.
         r2 = nans
 
-    a = f"{span//bins//1000}k"  # width of one bin, in kb
-    b = f"{span//8//1000}k"
-    c = f"{span//4//1000}k"
-    d = f"{span//2//1000}k"
+    return {f"$\Delta$bp$\in[{span*k/bins/1000:.0f}\,$k$,"  # NOQA
+            f"{span*(k+1)/bins/1000:.0f}\,$k$)$": r2[k]     # NOQA
+            for k in range(bins)}
 
-    return {f"$R^2$[<{a}]": r2[0],
-            f"$R^2$[{b}]": r2[bins//8],
-            f"$R^2$[{c}]": r2[bins//4],
-            f"$R^2$[{d}]": r2[bins//2]
-            }
+
+def allele_frequency_spectrum(ts, bins=20):
+    """
+    Allele frequency spectrum for `bins` allele frequency bins.
+    """
+    full_afs = ts.allele_frequency_spectrum(span_normalise=False, polarised=True)
+    afs = np.zeros(bins)
+    n = np.zeros(bins)
+    for j in range(1, len(full_afs)):
+        index = int((j - 1) * bins / (len(full_afs) - 1))
+        afs[index] += full_afs[j]
+        n[index] += 1
+    # Divide `afs` by `n`, but return NaN where n == 0.
+    afs = np.divide(afs, n, out=np.full(bins, np.nan), where=n != 0)
+    return {f"AF$\in$[{k/bins:.2f},{(k+1)/bins:.2f})": afs[k]  # NOQA
+            for k in range(bins)}
 
 
 _simulation_functions = [
@@ -494,6 +540,9 @@ _simulation_functions = [
     twopop_pulse_migration_msprime1,
     twopop_pulse_migration_slim1,
     twopop_pulse_migration_slim2,
+    twopop_ancient_samples_msprime1,
+    twopop_ancient_samples_slim1,
+    twopop_ancient_samples_slim2,
 
     Africa_1T12_msprime1,
     Africa_1T12_slim1,
@@ -511,6 +560,7 @@ _stats_functions = [
     pooled_pop_stats,
     pairwise_pop_stats,
     linkage_disequilibrium,
+    allele_frequency_spectrum,
 ]
 
 _default_comparisons = [
@@ -519,6 +569,7 @@ _default_comparisons = [
     (onepop_constantN_msprime1, onepop_constantN_slim3),
     (onepop_bottleneck_msprime1, onepop_bottleneck_slim1),
     (onepop_bottleneck_msprime1, onepop_bottleneck_slim2),
+    (onepop_bottleneck_msprime1, onepop_bottleneck_slim3),
     (onepop_expgrowth_msprime1, onepop_expgrowth_slim1),
     (onepop_expgrowth_msprime1, onepop_expgrowth_slim2),
     (onepop_expgrowth_msprime1, onepop_expgrowth_slim3),
@@ -529,6 +580,8 @@ _default_comparisons = [
     (twopop_asymmetric_migration_msprime1, twopop_asymmetric_migration_slim2),
     (twopop_pulse_migration_msprime1, twopop_pulse_migration_slim1),
     (twopop_pulse_migration_msprime1, twopop_pulse_migration_slim2),
+    (twopop_ancient_samples_msprime1, twopop_ancient_samples_slim1),
+    (twopop_ancient_samples_msprime1, twopop_ancient_samples_slim2),
 
     (Africa_1T12_msprime1, Africa_1T12_slim1),
     (OutOfAfrica_3G09_msprime1, OutOfAfrica_3G09_slim1),
@@ -584,6 +637,25 @@ def compute_stats(ts_file):
     return st
 
 
+def custom_violinplot(ax, data, labels):
+    """
+    Violin plot with a colour scheme shown in the matplotlib gallery.
+    https://matplotlib.org/3.1.3/gallery/statistics/customized_violin.html
+    """
+    inds = list(range(1, len(labels)+1))
+    quartile1, medians, quartile3 = np.percentile(data, [25, 50, 75], axis=1)
+    parts = ax.violinplot(data)
+    collections = [parts[x] for x in parts.keys() if x != "bodies"] + parts["bodies"]
+    for pc in collections:
+        pc.set_facecolor("#D43F3A")
+        pc.set_edgecolor("black")
+        pc.set_alpha(1)
+    ax.scatter(inds, medians, marker='o', fc="white", ec="black", s=30, zorder=3)
+    ax.vlines(inds, quartile1, quartile3, color='k', linestyle='-', lw=5)
+    ax.set_xticks(inds)
+    ax.set_xticklabels(labels)
+
+
 def do_plots(path, sim_key1, sim_key2, times, stats):
     plotdir = path / "plots"
     plotdir.mkdir(parents=True, exist_ok=True)
@@ -602,26 +674,34 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
     # plot run times
     assert len(times1) > 0 and len(times2) > 0
     fig, ax = plt.subplots(figsize=figsize)
-    ax.violinplot([times1, times2])
-    ax.set_xticklabels([sim_key1, sim_key2])
+    custom_violinplot(ax, [times1, times2], [sim_key1, sim_key2])
     ax.set_title(f"{sim_key1} vs. {sim_key2}: run time")
     ax.set_ylabel("time (seconds)")
     fig.tight_layout()
     pdf.savefig(figure=fig)
 
-    # plot stats
-    quantiles = np.linspace(0, 1, 100)
+    # QQ plots for each statistic
+    quantiles = np.linspace(0, 1, 101)  # Use 101 to include 0.5.
     for stat_key in stats_functions.keys():
         if stat_key not in stats1[0]:
             continue
         inner_keys = stats1[0][stat_key].keys()
         assert inner_keys == stats2[0][stat_key].keys()
-        nrows = int(np.ceil(np.sqrt(len(inner_keys))))
-        ncols = int(np.ceil(len(inner_keys) / nrows))
-        fig, axs = plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
+        ncols = int(np.ceil(np.sqrt(len(inner_keys))))
+        nrows = int(np.ceil(len(inner_keys) / ncols))
+        share = False
+        if stat_key in ("linkage_disequilibrium", "allele_frequency_spectrum"):
+            share = True
+            shared_min = 1e9
+            shared_max = -1e9
+        fig, axs = plt.subplots(
+                nrows=nrows, ncols=ncols, figsize=figsize,
+                sharex="all" if share is True else "none",
+                sharey="all" if share is True else "none",
+                )
         axs = np.array(axs).reshape(-1)
         assert len(axs) >= len(inner_keys)
-        imarkers = itertools.cycle(markers)
+        imarker = itertools.cycle(markers)
         icolour = itertools.cycle(cmap.colors)
         save_fig = False
         for ax, inner_key in zip(axs, inner_keys):
@@ -634,27 +714,55 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
             xq = np.nanquantile(x, quantiles)
             yq = np.nanquantile(y, quantiles)
 
-            ax.scatter(xq, yq, ec=next(icolour), fc="none", marker=next(imarkers))
+            # Tails of the distribution are distinguished using open markers,
+            # as opposed to solid/closed markers for the body. `hi` has +1 to
+            # get equal numbers of points in each tail.
+            lo, median, hi = 5, 50, 95+1
+            colour = next(icolour)
+            marker = next(imarker)
+            ax.scatter(xq[:lo], yq[:lo], ec=colour, fc="none", marker=marker)
+            ax.scatter(xq[hi:], yq[hi:], ec=colour, fc="none", marker=marker)
+            ax.scatter(xq[lo:hi], yq[lo:hi], ec=colour, fc=colour, marker=marker)
+            ax.scatter(xq[median], yq[median], ec="black", fc="black", marker=marker)
             ax.set_title(inner_key)
 
             # draw a diagonal line
             min_ = min(np.min(xq), np.min(yq))
             max_ = max(np.max(xq), np.max(yq))
-            ax.plot([min_, max_], [min_, max_],
-                    c="lightgray", ls="--", lw=1, zorder=-10)
+            if share:
+                shared_min = min(min_, shared_min)
+                shared_max = max(max_, shared_max)
+            else:
+                ax.plot([min_, max_], [min_, max_],
+                        c="lightgray", ls="--", lw=1, zorder=-10)
 
             save_fig = True
 
-        if save_fig:
-            # use a full-figure subplot for labels that span the other subplots
-            ax = fig.add_subplot(111, frameon=False)
-            ax.set_xticks([])
-            ax.set_yticks([])
-            ax.set_title(f"{sim_key1} vs. {sim_key2}: {stat_key}", pad=30)
-            ax.set_xlabel(sim_key1, labelpad=30)
-            ax.set_ylabel(sim_key2, labelpad=50)
-            fig.tight_layout()
-            pdf.savefig(figure=fig, bbox_inches='tight')
+        if not save_fig:
+            plt.close(fig)
+            continue
+
+        for i, ax in enumerate(axs):
+            if not share and len(axs) > 15:
+                # reduce clutter by hiding x labels when we have lots of subplots
+                ax.set_xticks([])
+                ax.set_xticklabels([])
+            if share and i < len(inner_keys):
+                ax.plot([shared_min, shared_max], [shared_min, shared_max],
+                        c="lightgray", ls="--", lw=1, zorder=-10)
+            if i >= len(inner_keys):
+                # hide axes that weren't drawn on
+                ax.set_axis_off()
+
+        # use a full-figure subplot for labels that span the other subplots
+        ax = fig.add_subplot(111, frameon=False)
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_title(f"{sim_key1} vs. {sim_key2}: {stat_key}", pad=30)
+        ax.set_xlabel(sim_key1, labelpad=30)
+        ax.set_ylabel(sim_key2, labelpad=50)
+        fig.tight_layout()
+        pdf.savefig(figure=fig, bbox_inches='tight')
         plt.close(fig)
 
     pdf.close()
