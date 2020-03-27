@@ -561,22 +561,15 @@ def stdpopsim_cli_parser():
                 "--slim-script", action="store_true", default=False,
                 help="Write script to stdout and exit without running SLiM.")
         slim_parser.add_argument(
-                "--slim-scaling-factor", metavar="Q", default=10, type=float,
+                "--slim-scaling-factor", metavar="Q", default=1, type=float,
                 help="Rescale model parameters by Q to speed up simulation. "
                      "See SLiM manual: `5.5 Rescaling population sizes to "
                      "improve simulation performance`. "
                      "[default=%(default)s].")
         slim_parser.add_argument(
-                "--slim-no-recapitation", action="store_true", default=False,
-                help="Explicitly wait for coalescence, and add "
-                     "mutations, within the SLiM simulation. This may be much "
-                     "slower than the defaults (recapitation and neutral mutation "
-                     "overlay with msprime).")
-        slim_parser.add_argument(
-                "--slim-no-burnin", action="store_true", default=False,
-                help="Don't wait for coalescence in SLiM before proceeding. "
-                     "This option is only relevant in combination with "
-                     "--slim-no-recapitation.")
+                "--slim-burn-in", metavar="X", default=10, type=float,
+                help="Length of the burn-in phase, in units of N generations "
+                     "[default=%(default)s].")
 
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True
