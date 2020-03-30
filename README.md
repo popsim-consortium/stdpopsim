@@ -5,3 +5,5 @@
 
 A community-maintained library of standard simulation population genetic simulation models.
 Please see the [documentation](https://stdpopsim.readthedocs.io/en/latest/) for further details.
+
+Click [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/popsim-consortium/stdpopsim/master?filepath=stdpopsim_example.ipynb) to start an interactive Jupyter Notebook and start playing with `stdpopsim` now!
