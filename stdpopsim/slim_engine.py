@@ -64,11 +64,11 @@ initialize() {
     // `5.5 Rescaling population sizes to improve simulation performance`.
     defineConstant("Q", $scaling_factor);
 
+    defineConstant("burn_in", $burn_in);
     defineConstant("generation_time", $generation_time);
     defineConstant("mutation_rate", Q * $mutation_rate);
     defineConstant("chromosome_length", $chromosome_length);
     defineConstant("trees_file", "$trees_file");
-    defineConstant("check_coalescence", $check_coalescence);
 
     _recombination_rates = $recombination_rates;
     _recombination_ends = $recombination_ends;
@@ -79,7 +79,7 @@ initialize() {
 _slim_lower = """
     defineConstant("N", asInteger(_N/Q));
 
-    initializeTreeSeq(checkCoalescence=check_coalescence);
+    initializeTreeSeq();
     initializeMutationRate(mutation_rate);
     initializeMutationType("m1", 0.5, "f", 0);
     initializeGenomicElementType("g1", m1, 1.0);
@@ -88,8 +88,9 @@ _slim_lower = """
 }
 
 function (void)dbg(string$ s, [integer$ debug_level = 2]) {
-    if (verbosity >= debug_level)
+    if (verbosity >= debug_level) {
         catn(sim.generation + ": " + s);
+    }
 }
 
 // Return the number of generations that separate t0 and t1.
@@ -103,9 +104,12 @@ function (void)end(void) {
     sim.simulationFinished();
 }
 
-// Create initial populations and migration rates.
 1 {
-    // Create initial populations.
+    /*
+     * Create initial populations and migration rates.
+     */
+
+    // Initial populations.
     for (i in 0:(num_populations-1)) {
         if (N[0,i] > 0) {
             dbg("sim.addSubpop("+i+", "+N[0,i]+");");
@@ -113,12 +117,13 @@ function (void)end(void) {
         }
     }
 
-    // Migration rates.
+    // Initial migration rates.
     i = 0;
     for (j in 0:(num_populations-1)) {
         for (k in 0:(num_populations-1)) {
-            if (j==k | N[i,j] == 0 | N[i,k] == 0)
+            if (j==k | N[i,j] == 0 | N[i,k] == 0) {
                 next;
+            }
 
             m = Q * migration_matrices[k,j,i];
             p = sim.subpopulations[j];
@@ -126,63 +131,24 @@ function (void)end(void) {
             p.setMigrationRates(k, m);
         }
     }
-}
 
-// Check if burn in has completed.
-1 {
-    if (!check_coalescence) {
-        setup();
-        return;
-    }
 
-    if (sim.treeSeqCoalesced()) {
-        /*
-         * All current generation individuals now have a common ancestor
-         * born after the start of our simulation.  But the genealogy at this
-         * first coalescence is not a good representative of an average
-         * genealogy, as the TMRCA is biased low.  To understand why,
-         * consider a haploid population with constant N=2.  At first
-         * coalescence, the TMRCA is always one generation, yet clearly
-         * genealogies with longer TMRCA's are possible for this population.
-         *
-         * To obtain a burn-in genealogy drawn from the full distribution
-         * of possible genealogies, we may continue the simulation forwards
-         * until this ergodic process converges.  Unfortunately, it's not
-         * clear how many more generations are required for convergence,
-         * and this is likely dependent on demography, and non-neutral
-         * processes (if any).  10*N appears to be reasonable for a single
-         * neutrally evolving population with constant N.
-         */
-        N_max = max(N[0,0:(num_populations-1)]);
-        g = sim.generation + 10 * N_max;
-        sim.registerEarlyEvent(NULL, "{setup();}", g, g);
-    } else {
-        if (sim.generation == 1)
-            dbg("Waiting for burn in...");
-        // Reschedule the current script block 10 generations hence.
-        // XXX: find a less arbitrary generation interval.
-        g = sim.generation + 10;
-        sim.rescheduleScriptBlock(self, g, g);
-    }
-}
+    // The end of the burn-in is the starting generation, and corresponds to
+    // time T_start. All remaining events are relative to this generation.
+    N_max = max(N[0,0:(num_populations-1)]);
+    G_start = sim.generation + asInteger(round(burn_in * N_max));
+    T_start = max(_T);
+    G = G_start + gdiff(T_start, _T);
+    G_end = max(G);
 
-// Register events occurring at time _T[0] or more recently.
-function (void)setup(void) {
-
-    dbg("setup()");
-
-    // Once burn in is complete, we know the starting generation (which
-    // corresponds to T_0) and can thus calculate the generation
-    // for each remaining event.
-    G_start = sim.generation;
-    T_0 = max(_T);
-    G = G_start + gdiff(T_0, _T);
-    G_end = max(G)+1;
+    /*
+     * Register events occurring at time T_start or more recently.
+     */
 
     // Split events.
     if (length(subpopulation_splits) > 0 ) {
         for (i in 0:(ncol(subpopulation_splits)-1)) {
-            g = G_start + gdiff(T_0, subpopulation_splits[0,i]);
+            g = G_start + gdiff(T_start, subpopulation_splits[0,i]);
             newpop = subpopulation_splits[1,i];
             size = asInteger(subpopulation_splits[2,i] / Q);
             oldpop = subpopulation_splits[3,i];
@@ -207,9 +173,9 @@ function (void)setup(void) {
 
                 if (growth_rates[i,j] != 0) {
                     growth_phase_start = g+1;
-                    if (i == num_epochs-1)
+                    if (i == num_epochs-1) {
                         growth_phase_end = G[i];
-                    else {
+                    } else {
                         // We already registered a size change at generation G[i].
                         growth_phase_end = G[i] - 1;
                     }
@@ -239,8 +205,9 @@ function (void)setup(void) {
         for (i in 1:(num_epochs-1)) {
             for (j in 0:(num_populations-1)) {
                 for (k in 0:(num_populations-1)) {
-                    if (j==k | N[i,j] == 0 | N[i,k] == 0)
+                    if (j==k | N[i,j] == 0 | N[i,k] == 0) {
                         next;
+                    }
 
                     m_last = Q * migration_matrices[k,j,i-1];
                     m = Q * migration_matrices[k,j,i];
@@ -261,7 +228,7 @@ function (void)setup(void) {
     // Admixture pulses.
     if (length(admixture_pulses) > 0 ) {
         for (i in 0:(ncol(admixture_pulses)-1)) {
-            g = G_start + gdiff(T_0, admixture_pulses[0,i]);
+            g = G_start + gdiff(T_start, admixture_pulses[0,i]);
             dest = admixture_pulses[1,i];
             src = admixture_pulses[2,i];
             rate = admixture_pulses[3,i];
@@ -280,7 +247,7 @@ function (void)setup(void) {
     for (i in 0:(ncol(sampling_episodes)-1)) {
         pop = sampling_episodes[0,i];
         n = sampling_episodes[1,i];
-        g = G_start + gdiff(T_0, sampling_episodes[2,i]);
+        g = G_start + gdiff(T_start, sampling_episodes[2,i]);
         sim.registerLateEvent(NULL,
             "{dbg(self.source); " +
             "inds=p"+pop+".sampleIndividuals("+n+"); " +
@@ -289,6 +256,10 @@ function (void)setup(void) {
     }
 
     sim.registerLateEvent(NULL, "{dbg(self.source); end();}", G_end, G_end);
+
+    if (G_start > sim.generation) {
+        dbg("Starting burn-in...");
+    }
 }
 """
 
@@ -305,7 +276,7 @@ def msprime_rm_to_slim_rm(recombination_map):
 def slim_makescript(
         script_file, trees_file,
         demographic_model, contig, samples,
-        scaling_factor, check_coalescence, verbosity):
+        scaling_factor, burn_in, verbosity):
 
     pop_names = [pc.metadata["id"] for pc in demographic_model.population_configurations]
 
@@ -413,7 +384,8 @@ def slim_makescript(
             ")")
 
     printsc(string.Template(_slim_upper).substitute(
-                scaling_factor=scaling_factor if scaling_factor is not None else 1,
+                scaling_factor=scaling_factor,
+                burn_in=float(burn_in),
                 chromosome_length=int(contig.recombination_map.get_length()),
                 recombination_rates=recomb_rates_str,
                 recombination_ends=recomb_ends_str,
@@ -421,7 +393,6 @@ def slim_makescript(
                 generation_time=demographic_model.generation_time,
                 trees_file=trees_file,
                 verbosity=verbosity,
-                check_coalescence="T" if check_coalescence else "F",
                 ))
 
     def matrix2str(matrix, row_comments=None, col_comment=None, indent=2,
@@ -590,8 +561,8 @@ class _SLiMEngine(stdpopsim.Engine):
 
     def simulate(
             self, demographic_model=None, contig=None, samples=None, seed=None,
-            verbosity=0, slim_path=None, slim_script=False, slim_scaling_factor=10,
-            slim_no_recapitation=False, slim_no_burnin=False, **kwargs):
+            verbosity=0, slim_path=None, slim_script=False, slim_scaling_factor=1.0,
+            slim_burn_in=10.0, **kwargs):
         """
         Simulate the demographic model using SLiM.
         See :meth:`.Engine.simulate()` for definitions of the
@@ -612,33 +583,27 @@ class _SLiMEngine(stdpopsim.Engine):
             See SLiM manual: `5.5 Rescaling population sizes to improve
             simulation performance.`
         :type slim_scaling_factor: float
-        :param slim_no_recapitation: Do an explicit burn in, and add
-            mutations, within the SLiM simulation. This may be much slower than
-            the defaults (recapitation and neutral mutation overlay with
-            msprime). The burn in behaviour is to wait until all individuals in
-            the ancestral populations have a common ancestor within their
-            respective population, and then wait another 10*N generations.
-        :type slim_no_recapitation: bool
-        :param slim_no_burnin: Do not perform a burn in at the start of the
-            simulation.  This option is only relevant when
-            ``slim_no_recapitation=True``.
-        :type slim_no_burnin: bool
+        :param slim_burn_in: Length of the burn-in phase, in units of N
+            generations.
+        :type slim_burn_in: float
         """
 
+        if slim_scaling_factor <= 0:
+            raise ValueError("slim_scaling_factor must be positive")
+        if slim_burn_in < 0:
+            raise ValueError("slim_burn_in must be non-negative")
+
         run_slim = not slim_script
-        do_recap = not slim_no_recapitation
-        check_coalescence = slim_no_recapitation and not slim_no_burnin
 
         if slim_path is None:
             slim_path = self.slim_path()
 
-        if do_recap:
-            mutation_rate = contig.mutation_rate
-            # Ensure no mutations are introduced by SLiM.
-            contig = stdpopsim.Contig(
-                    recombination_map=contig.recombination_map,
-                    mutation_rate=0,
-                    genetic_map=contig.genetic_map)
+        mutation_rate = contig.mutation_rate
+        # Ensure no mutations are introduced by SLiM.
+        contig = stdpopsim.Contig(
+                recombination_map=contig.recombination_map,
+                mutation_rate=0,
+                genetic_map=contig.genetic_map)
 
         slim_cmd = [slim_path]
         if seed is not None:
@@ -659,7 +624,7 @@ class _SLiMEngine(stdpopsim.Engine):
             recap_epoch = slim_makescript(
                     script_file, ts_file.name,
                     demographic_model, contig, samples,
-                    slim_scaling_factor, check_coalescence, verbosity)
+                    slim_scaling_factor, slim_burn_in, verbosity)
 
             script_file.flush()
 
@@ -673,34 +638,32 @@ class _SLiMEngine(stdpopsim.Engine):
             ts = pyslim.load(ts_file.name)
 
         # Node times come from SLiM generation numbers, which may have been
-        # divided by a scaling factor for computational tractibility.
+        # divided by a scaling factor for computational tractability.
         tables = ts.dump_tables()
         for table in (tables.nodes, tables.migrations):
             table.time *= slim_scaling_factor
         ts = pyslim.SlimTreeSequence.load_tables(tables)
         ts.slim_generation *= slim_scaling_factor
 
-        if do_recap:
-            rng = random.Random(seed)
-            s1, s2 = rng.randrange(1, 2**32), rng.randrange(1, 2**32)
+        rng = random.Random(seed)
+        s1, s2 = rng.randrange(1, 2**32), rng.randrange(1, 2**32)
 
-            population_configurations = [
-                    msprime.PopulationConfiguration(
-                        initial_size=pop.start_size,
-                        growth_rate=pop.growth_rate)
-                    for pop in recap_epoch.populations]
-            ts = ts.recapitate(
-                    recombination_rate=contig.recombination_map.mean_recombination_rate,
-                    population_configurations=population_configurations,
-                    migration_matrix=recap_epoch.migration_matrix,
-                    random_seed=s1)
+        population_configurations = [
+                msprime.PopulationConfiguration(
+                    initial_size=pop.start_size,
+                    growth_rate=pop.growth_rate)
+                for pop in recap_epoch.populations]
+        ts = ts.recapitate(
+                recombination_rate=contig.recombination_map.mean_recombination_rate,
+                population_configurations=population_configurations,
+                migration_matrix=recap_epoch.migration_matrix,
+                random_seed=s1)
 
         ts = simplify_remembered(ts)
 
-        if do_recap:
-            # Add neutral mutations.
-            ts = pyslim.SlimTreeSequence(msprime.mutate(
-                ts, rate=mutation_rate, keep=True, random_seed=s2))
+        # Add neutral mutations.
+        ts = pyslim.SlimTreeSequence(msprime.mutate(
+            ts, rate=mutation_rate, keep=True, random_seed=s2))
 
         return ts
 

@@ -19,6 +19,28 @@ IS_WINDOWS = sys.platform.startswith("win")
 @unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
 class TestAPI(unittest.TestCase):
 
+    def test_bad_params(self):
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("chr1")
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        samples = model.get_samples(10)
+        model.generation_time = species.generation_time
+
+        for scaling_factor in (0, -1, -1e-6):
+            with self.assertRaises(ValueError):
+                engine.simulate(
+                    demographic_model=model, contig=contig, samples=samples,
+                    slim_scaling_factor=scaling_factor,
+                    slim_script=True)
+
+        for burn_in in (-1, -1e-6):
+            with self.assertRaises(ValueError):
+                engine.simulate(
+                    demographic_model=model, contig=contig, samples=samples,
+                    slim_burn_in=burn_in,
+                    slim_script=True)
+
     def test_script_generation(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
@@ -70,7 +92,8 @@ class TestAPI(unittest.TestCase):
         model.generation_time = species.generation_time
         samples = model.get_samples(10)
         ts = engine.simulate(
-                demographic_model=model, contig=contig, samples=samples)
+                demographic_model=model, contig=contig, samples=samples,
+                slim_scaling_factor=10, slim_burn_in=0)
         self.assertEqual(ts.num_samples, 10)
         self.assertTrue(all(tree.num_roots == 1 for tree in ts.trees()))
 
@@ -79,7 +102,8 @@ class TestAPI(unittest.TestCase):
 class TestCLI(unittest.TestCase):
 
     def docmd(self, _cmd):
-        cmd = f"-e slim {_cmd} -l 0.00001 -c chr1 -s 1234 -q 10".split()
+        cmd = ("-e slim --slim-scaling-factor 20 --slim-burn-in 0 "
+               f"{_cmd} -l 0.001 -c chr1 -s 1234 -q 10").split()
         return capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
     def test_script_generation(self):
@@ -108,18 +132,14 @@ class TestCLI(unittest.TestCase):
             os.environ["SLIM"] = saved_slim_env
 
         with tempfile.NamedTemporaryFile(mode="w") as f:
-            self.docmd(f"--slim-no-recapitation HomSap -o {f.name}")
-            ts = tskit.load(f.name)
-        self.assertEqual(ts.num_samples, 10)
-
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            self.docmd(f"--slim-no-recapitation --slim-no-burnin HomSap -o {f.name}")
+            self.docmd(f"HomSap -o {f.name}")
             ts = tskit.load(f.name)
         self.assertEqual(ts.num_samples, 10)
 
         # verify sample counts for a multipopulation demographic model
         with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (f"-e slim HomSap -o {f.name} -l 0.00001 -c chr1 -s 1234 -q "
+            cmd = ("-e slim --slim-scaling-factor 20 --slim-burn-in 0 "
+                   f"HomSap -o {f.name} -l 0.001 -c chr1 -s 1234 -q "
                    "-d OutOfAfrica_3G09 0 0 8").split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
