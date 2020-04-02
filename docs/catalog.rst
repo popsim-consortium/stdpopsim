@@ -40,7 +40,6 @@ page to learn about the process for adding new items to the catalog.
 Then, if you feel ready, make an issue on our
 `GitHub page <https://github.com/popgensims/stdpopsim/issues>`_.
 
-
 .. speciescatalog:: HomSap
 
 .. speciescatalog:: DroMel
