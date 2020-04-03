@@ -90,7 +90,7 @@ def onepop_constantN_slim2(out_dir, seed):
 def onepop_constantN_slim3(out_dir, seed):
     """
     Single population with constant population size.
-    Time is rescaled by a factor of 10.
+    Time and Ne are rescaled by a factor of 10.
     """
     return _onepop_PC("slim", out_dir, seed, slim_scaling_factor=10)
 
@@ -122,7 +122,7 @@ def onepop_bottleneck_slim2(out_dir, seed):
 def onepop_bottleneck_slim3(out_dir, seed):
     """
     Single population with bottleneck and recovery.
-    Time is rescaled by a factor of 10.
+    Time and Ne are rescaled by a factor of 10.
     """
     return _onepop_PC(
             "slim", out_dir, seed, 5000, (800, 100), (1000, 1000),
@@ -198,7 +198,7 @@ def onepop_expgrowth_slim2(out_dir, seed):
 def onepop_expgrowth_slim3(out_dir, seed):
     """
     Single population with exponential population size growth.
-    Time is rescaled by a factor of 10.
+    Time and Ne are rescaled by a factor of 10.
     """
     return _onepop_expgrowth("slim", out_dir, seed, slim_scaling_factor=10)
 
@@ -246,7 +246,7 @@ def twopop_no_migration_slim1(out_dir, seed):
 def twopop_no_migration_slim2(out_dir, seed):
     """
     Two populations with different sizes and no migrations.
-    Burn-in is disabled. Time is rescaled by a factor of 10.
+    Burn-in is disabled. Time and Ne are rescaled by a factor of 10.
     """
     return _twopop_IM(
             "slim", out_dir, seed, slim_burn_in=0, slim_scaling_factor=10)
@@ -269,7 +269,7 @@ def twopop_asymmetric_migration_slim1(out_dir, seed):
 def twopop_asymmetric_migration_slim2(out_dir, seed):
     """
     Two populations with different sizes and migrations from pop2 to pop1.
-    Burn-in is disabled. Time is rescaled by a factor of 10.
+    Burn-in is disabled. Time and Ne are rescaled by a factor of 10.
     """
     return _twopop_IM(
             "slim", out_dir, seed, M12=0, M21=0.001,
@@ -297,7 +297,7 @@ def twopop_pulse_migration_slim1(out_dir, seed):
 def twopop_pulse_migration_slim2(out_dir, seed):
     """
     Two populations with different sizes and introgression from pop2 to pop1.
-    Burn-in is disabled. Time is rescaled by a factor of 10.
+    Burn-in is disabled. Time and Ne are rescaled by a factor of 10.
     """
     return _twopop_IM(
             "slim", out_dir, seed, pulse=_pulse_m21,
@@ -324,7 +324,7 @@ def twopop_ancient_samples_slim1(out_dir, seed):
 def twopop_ancient_samples_slim2(out_dir, seed):
     """
     Two populations, with ancient sampling of the second population.
-    Burn-in is disabled. Time is rescaled by a factor of 10.
+    Burn-in is disabled. Time and Ne are rescaled by a factor of 10.
     """
     return _twopop_IM(
             "slim", out_dir, seed, samples=_ancient_samples,
@@ -454,11 +454,14 @@ def pairwise_pop_stats(ts):
     return stats
 
 
-def linkage_disequilibrium(ts, span=40000, bins=20, min_obs_per_bin=8):
+def linkage_disequilibrium(
+        ts, span=40000, bins=20, min_obs_per_bin=8, max_sequence_length=1e6):
     """
     R^2 as a function of site-separation distance, for `bins` bins up to a
     site-separation distance of `span` bp.
     """
+    if ts.sequence_length > max_sequence_length:
+        ts = ts.keep_intervals([(0, max_sequence_length)], record_provenance=False)
     position = [site.position for site in ts.sites()]
     num_sites = len(position)
     assert num_sites == int(ts.num_sites)
@@ -499,18 +502,38 @@ def linkage_disequilibrium(ts, span=40000, bins=20, min_obs_per_bin=8):
 def allele_frequency_spectrum(ts, bins=20):
     """
     Allele frequency spectrum for `bins` allele frequency bins.
+    Values are log(1+counts) for each bin.
     """
     full_afs = ts.allele_frequency_spectrum(span_normalise=False, polarised=True)
     afs = np.zeros(bins)
-    n = np.zeros(bins)
     for j in range(1, len(full_afs)):
         index = int((j - 1) * bins / (len(full_afs) - 1))
         afs[index] += full_afs[j]
-        n[index] += 1
-    # Divide `afs` by `n`, but return NaN where n == 0.
-    afs = np.divide(afs, n, out=np.full(bins, np.nan), where=n != 0)
+    afs = np.log(1+afs)
     return {f"AF$\in$[{k/bins:.2f},{(k+1)/bins:.2f})": afs[k]  # NOQA
             for k in range(bins)}
+
+
+def node_arity(ts):
+    """
+    The number of children for internal nodes of each marginal tree.
+    In msprime with the hudson simulation model, this is always 2.
+    In SLiM, this might be more than 2, particularly with small population sizes.
+    """
+    max_arity = 0
+    non_binary = 0
+    for tree in ts.trees():
+        for node in tree.nodes():
+            if tree.is_internal(node):
+                num_children = len(tree.children(node))
+                if num_children > max_arity:
+                    max_arity = num_children
+                if num_children > 2:
+                    non_binary += 1
+
+    return {"max(node_arity)": max_arity,
+            "count(node_arity>2)": non_binary,
+            }
 
 
 _simulation_functions = [
@@ -557,6 +580,9 @@ _stats_functions = [
     pairwise_pop_stats,
     linkage_disequilibrium,
     allele_frequency_spectrum,
+
+    # Node arity stats are disabled as they're only relevant in special cases.
+    #node_arity,
 ]
 
 _default_comparisons = [
@@ -614,6 +640,7 @@ def find_simulations(path, key):
         times = np.loadtxt(times_file)
     else:
         warning(f"No times.txt found for {key}")
+        times = []
 
     return files, times
 
@@ -640,16 +667,16 @@ def custom_violinplot(ax, data, labels):
     """
     inds = list(range(1, len(labels)+1))
     quartile1, medians, quartile3 = np.percentile(data, [25, 50, 75], axis=1)
-    parts = ax.violinplot(data)
+    parts = ax.violinplot(data, vert=False)
     collections = [parts[x] for x in parts.keys() if x != "bodies"] + parts["bodies"]
     for pc in collections:
         pc.set_facecolor("#D43F3A")
         pc.set_edgecolor("black")
         pc.set_alpha(1)
-    ax.scatter(inds, medians, marker='o', fc="white", ec="black", s=30, zorder=3)
-    ax.vlines(inds, quartile1, quartile3, color='k', linestyle='-', lw=5)
-    ax.set_xticks(inds)
-    ax.set_xticklabels(labels)
+    ax.scatter(medians, inds, marker='o', fc="white", ec="black", s=30, zorder=3)
+    ax.hlines(inds, quartile1, quartile3, color='k', linestyle='-', lw=5)
+    ax.set_yticks(inds)
+    ax.set_yticklabels(labels)
 
 
 def do_plots(path, sim_key1, sim_key2, times, stats):
@@ -668,14 +695,23 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
     pdf = PdfPages(plotdir / f"{sim_key1}__{sim_key2}.pdf")
 
     # plot run times
-    assert len(times1) > 0 and len(times2) > 0
-    fig, ax = plt.subplots(figsize=figsize)
-    custom_violinplot(ax, [times1, times2], [sim_key1, sim_key2])
-    ax.set_title(f"{sim_key1} vs. {sim_key2}: run time")
-    ax.set_ylabel("time (seconds)")
-    fig.tight_layout()
-    pdf.savefig(figure=fig)
-    plt.close(fig)
+    if len(times1) > 0 and len(times2) > 0:
+        fig, ax = plt.subplots(figsize=figsize)
+        label1 = sim_key1
+        label2 = sim_key2
+        f1 = simulation_functions.get(sim_key1)
+        f2 = simulation_functions.get(sim_key2)
+        if f1 is not None and f1.__doc__:
+            label1 += "\n" + f1.__doc__
+        if f2 is not None and f2.__doc__:
+            label2 += "\n" + f2.__doc__
+        custom_violinplot(ax, [times1, times2], [label1, label2])
+        ax.set_title(f"Run time.")
+        ax.set_xlabel("time (seconds)")
+        ax.set_xlim(left=min(ax.get_xlim()[0], 0))
+        fig.tight_layout()
+        pdf.savefig(figure=fig)
+        plt.close(fig)
 
     # QQ plots for each statistic
     quantiles = np.linspace(0, 1, 101)  # Use 101 to include 0.5.
@@ -741,9 +777,11 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
 
         for i, ax in enumerate(axs):
             if not share and len(axs) > 15:
-                # reduce clutter by hiding x labels when we have lots of subplots
+                # reduce clutter by hiding labels when we have lots of subplots
                 ax.set_xticks([])
                 ax.set_xticklabels([])
+                ax.set_yticks([])
+                ax.set_yticklabels([])
             if share and i < len(inner_keys):
                 ax.plot([shared_min, shared_max], [shared_min, shared_max],
                         c="lightgray", ls="--", lw=1, zorder=-10)
@@ -755,7 +793,13 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
         ax = fig.add_subplot(111, frameon=False)
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_title(f"{sim_key1} vs. {sim_key2}: {stat_key}", pad=30)
+        stat_docs = stats_functions[stat_key].__doc__
+        if stat_docs:
+            title = f"{stat_key}: {stat_docs}"
+        else:
+            warning(f"No docstring for {stat_key}")
+            title = f"{stat_key}"
+        ax.set_title(title, pad=20)
         ax.set_xlabel(sim_key1, labelpad=30)
         ax.set_ylabel(sim_key2, labelpad=50)
         fig.tight_layout()
