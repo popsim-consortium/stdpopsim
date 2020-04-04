@@ -530,17 +530,6 @@ def slim_makescript(
     return epochs[0]
 
 
-def simplify_remembered(ts):
-    """
-    Remove all samples except those individuals that were explicity
-    sampled in SLiM with sim.treeSeqRememberIndividuals().
-    """
-    nodes = itertools.chain.from_iterable(
-                i.nodes for i in ts.individuals()
-                if i.flags & pyslim.INDIVIDUAL_REMEMBERED)
-    return ts.simplify(samples=list(nodes), filter_populations=False)
-
-
 class _SLiMEngine(stdpopsim.Engine):
     id = "slim"  #:
     description = "SLiM forward-time Wright-Fisher simulator"  #:
@@ -637,6 +626,26 @@ class _SLiMEngine(stdpopsim.Engine):
 
             ts = pyslim.load(ts_file.name)
 
+        ts = self._recap_and_rescale(
+                ts, seed, recap_epoch, contig, mutation_rate, slim_scaling_factor)
+        return ts
+
+    def _simplify_remembered(self, ts):
+        """
+        Remove all samples except those individuals that were explicity
+        sampled in SLiM with sim.treeSeqRememberIndividuals().
+        """
+        nodes = itertools.chain.from_iterable(
+                    i.nodes for i in ts.individuals()
+                    if i.flags & pyslim.INDIVIDUAL_REMEMBERED)
+        return ts.simplify(samples=list(nodes), filter_populations=False)
+
+    def _recap_and_rescale(
+            self, ts, seed, recap_epoch, contig, mutation_rate, slim_scaling_factor):
+        """
+        Apply post-SLiM transformations to ``ts``. This rescales node times,
+        does recapitation, simplification, and adds neutral mutations.
+        """
         # Node times come from SLiM generation numbers, which may have been
         # divided by a scaling factor for computational tractability.
         tables = ts.dump_tables()
@@ -659,12 +668,48 @@ class _SLiMEngine(stdpopsim.Engine):
                 migration_matrix=recap_epoch.migration_matrix,
                 random_seed=s1)
 
-        ts = simplify_remembered(ts)
+        ts = self._simplify_remembered(ts)
 
         # Add neutral mutations.
         ts = pyslim.SlimTreeSequence(msprime.mutate(
             ts, rate=mutation_rate, keep=True, random_seed=s2))
 
+        return ts
+
+    def recap_and_rescale(
+            self, ts, demographic_model, contig, samples,
+            slim_scaling_factor=1.0, seed=None, **kwargs):
+        """
+        Apply post-SLiM transformations to ``ts``. This rescales node times,
+        does recapitation, simplification, and adds neutral mutations.
+
+        If the SLiM engine was used to output a SLiM script, and the script was
+        run outside of stdpopsim, this function can be used to transform the
+        SLiM tree sequence following the procedure that would have been used
+        if stdpopsim had run SLiM itself.
+        The parameters after ``ts`` have the same meaning as for :func:`simulate`,
+        and the values for ``demographic_model``, ``contig``, ``samples``,
+        and ``slim_scaling_factor`` should match those that were used to
+        generate the SLiM script with :func:`simulate`.
+
+        :param ts: The tree sequence output by SLiM.
+        :type ts: :class:`pyslim.SlimTreeSequence`
+
+        .. warning::
+            The :func:`recap_and_rescale` function is provided in the hope that
+            it will be useful. But as we can't anticipate what changes you'll
+            make to the SLiM code before using it, the stdpopsim source code
+            should be consulted to determine if it's behaviour is appropriate
+            for your case.
+        """
+        with open(os.devnull, "w") as script_file:
+            recap_epoch = slim_makescript(
+                    script_file, "unused.trees",
+                    demographic_model, contig, samples,
+                    slim_scaling_factor, 1, 0)
+
+        ts = self._recap_and_rescale(
+                ts, seed, recap_epoch, contig, contig.mutation_rate, slim_scaling_factor)
         return ts
 
 

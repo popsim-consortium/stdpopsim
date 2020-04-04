@@ -2,12 +2,15 @@
 Tests for SLiM simulation engine.
 """
 import os
+import re
 import sys
 import unittest
 import tempfile
+import subprocess
 from unittest import mock
 
 import tskit
+import pyslim
 
 import stdpopsim
 import stdpopsim.cli
@@ -96,6 +99,51 @@ class TestAPI(unittest.TestCase):
                 slim_scaling_factor=10, slim_burn_in=0)
         self.assertEqual(ts.num_samples, 10)
         self.assertTrue(all(tree.num_roots == 1 for tree in ts.trees()))
+
+    def test_recap_and_rescale(self):
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("chr22", length_multiplier=0.001)
+        model = species.get_demographic_model("OutOfAfrica_3G09")
+        samples = model.get_samples(10, 10, 10)
+
+        seed = 12
+        ts1 = engine.simulate(
+                demographic_model=model, contig=contig, samples=samples,
+                slim_scaling_factor=10, slim_burn_in=0, seed=seed)
+
+        out, _ = capture_output(
+                engine.simulate,
+                demographic_model=model, contig=contig, samples=samples,
+                slim_script=True, slim_scaling_factor=10, slim_burn_in=0,
+                seed=seed)
+
+        match = re.search(r'"trees_file",\s*"([^"]*)"', out)
+        self.assertIsNotNone(match)
+        tmp_trees_file = match.group(1)
+
+        slim_cmd = [engine.slim_path(), "-s", str(seed)]
+
+        with tempfile.NamedTemporaryFile(mode="w") as slim_script, \
+                tempfile.NamedTemporaryFile(mode="w") as trees_file:
+            out = out.replace(tmp_trees_file, trees_file.name)
+            slim_script.write(out)
+            slim_script.flush()
+            slim_cmd.append(slim_script.name)
+            subprocess.check_call(slim_cmd, stdout=subprocess.DEVNULL)
+            ts2_headless = pyslim.load(trees_file.name)
+
+        ts2 = engine.recap_and_rescale(
+                ts2_headless,
+                demographic_model=model, contig=contig, samples=samples,
+                slim_scaling_factor=10, seed=seed)
+
+        tables1 = ts1.dump_tables()
+        tables2 = ts2.dump_tables()
+
+        self.assertEqual(tables1.nodes, tables2.nodes)
+        self.assertEqual(tables1.edges, tables2.edges)
+        self.assertEqual(tables1.mutations, tables2.mutations)
 
 
 @unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
