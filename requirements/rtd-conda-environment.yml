@@ -4,6 +4,11 @@ channels:
   - conda-forge
 
 dependencies:
+  - setuptools_scm
+  - attrs
+  - appdirs
+  - msprime
   - sphinx-argparse
   - sphinx-issues
   - sphinxcontrib-programoutput
+  - humanize
