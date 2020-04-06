@@ -29,7 +29,7 @@ and saves the output to a file called ``test.trees``:
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -c chr22 -o test.trees -g HapMapII_GRCh37 --model OutOfAfrica_3G09 2 2 2
+    $ stdpopsim HomSap -c chr22 -o test.trees -g HapMapII_GRCh37 -d OutOfAfrica_3G09 2 2 2
 
 (To learn more about using ``stdpopsim`` via the command-line, read our :ref:`sec_tutorial`
 about it.)
@@ -39,7 +39,6 @@ you'd like to see in ``stdpopsim``? Head to our :ref:`sec_development`
 page to learn about the process for adding new items to the catalog.
 Then, if you feel ready, make an issue on our
 `GitHub page <https://github.com/popgensims/stdpopsim/issues>`_.
-
 
 .. speciescatalog:: HomSap
 

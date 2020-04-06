@@ -253,13 +253,16 @@ class DemographicModel(object):
 
     def get_samples(self, *args):
         """
-        Returns a list of msprime.Sample objects as described by the args and
-        keyword args. Positional arguments are interpreted as the number of
-        samples to take from the given population.
-
-        .. todo:: Add a description how the positional arguments work and
-            perhaps link into a section of the tutorial showing it in action.
-
+        Returns a list of msprime.Sample objects, with the number of samples
+        from each population determined by the positional arguments.
+        For instance, ``model.get_samples(2, 5, 7)`` would return a list of 14 samples,
+        two of which are from the model's first population (i.e., with population ID
+        ``model.populations[0].id``), five are from the model's second population,
+        and seven are from the model's third population.
+        The number of of arguments must be less than or equal to the number of
+        "sampling" populations, ``model.num_sampling_populations``;
+        if the number of arguments is less than the number of sampling populations,
+        then remaining numbers are treated as zero.
         """
         samples = []
         for pop_index, n in enumerate(args):
