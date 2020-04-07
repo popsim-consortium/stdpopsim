@@ -5,7 +5,3 @@ channels:
 
 dependencies:
   - msprime==0.7.4
-  - python==3.8.2
-  - setuptools_scm==3.5.0
-  - svgwrite==1.4
-  - tskit==0.2.3
