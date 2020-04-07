@@ -4,12 +4,12 @@ channels:
   - conda-forge
 
 dependencies:
-  - python==3.6
-  - setuptools_scm
-  - attrs
-  - appdirs
-  - msprime
-  - sphinx-argparse
-  - sphinx-issues
-  - sphinxcontrib-programoutput
-  - humanize
+  - python==3.8
+  - setuptools_scm==3.5.0
+  - attrs==19.3.0
+  - appdirs==1.4.3
+  - msprime==0.7.4
+  - sphinx-argparse==0.2.5
+  - sphinx-issues==1.2.0
+  - sphinxcontrib-programoutput==0.16
+  - humanize==2.2.0
