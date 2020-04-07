@@ -13,7 +13,7 @@ sphinx:
 python:
   # Install the local package using pip so that stdpopsim is in the path.
   install:
-    - requirements: requirements/rtd-requirements.txt
+    - requirements: requirements/rtd.txt
     - method: pip 
       path: .
 
