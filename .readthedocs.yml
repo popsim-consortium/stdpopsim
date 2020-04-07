@@ -11,7 +11,7 @@ sphinx:
   fail_on_warning: true
 
 conda:
-  environment: requirements/conda-minimal.txt
+  environment: requirements/rtd-conda-environment.yml
 
 python:
   # Install the local package using pip so that stdpopsim is in the path.
