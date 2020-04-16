@@ -52,7 +52,7 @@ def _onepop_PC(engine_id, out_dir, seed, N0=1000, *size_changes, **sim_kwargs):
     species = stdpopsim.get_species("CanFam")
     contig = species.get_contig("chr35", length_multiplier=0.01)  # ~265 kb
     contig = irradiate(contig)
-    model = stdpopsim.PiecewiseConstantSize(N0, *size_changes)
+    model = stdpopsim.PiecewiseConstantSize(species, N0, *size_changes)
     model.generation_time = species.generation_time
     samples = model.get_samples(100)
     engine = stdpopsim.get_engine(engine_id)
@@ -211,7 +211,7 @@ def _twopop_IM(
     contig = species.get_contig("chr5", length_multiplier=0.01)  # ~270 kb
     contig = irradiate(contig)
     model = stdpopsim.IsolationWithMigration(
-            NA=NA, N1=N1, N2=N2, T=T, M12=M12, M21=M21)
+            species, NA=NA, N1=N1, N2=N2, T=T, M12=M12, M21=M21)
     if pulse is not None:
         model.demographic_events.append(pulse)
         model.demographic_events.sort(key=lambda x: x.time)

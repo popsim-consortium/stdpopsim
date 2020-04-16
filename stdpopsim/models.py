@@ -305,6 +305,8 @@ class PiecewiseConstantSize(DemographicModel):
     tree sequence. This is a piecewise constant size model, which allows for
     instantaneous population size change over multiple epochs in a single population.
 
+    :ivar species: The species to be used with this model
+    :vartype species: stdpopsim.Species
     :ivar N0: The initial effective population size
     :vartype N0: float
     :ivar args: Each subsequent argument is a tuple (t, N) which gives the
@@ -314,8 +316,10 @@ class PiecewiseConstantSize(DemographicModel):
 
     .. code-block:: python
 
-        model1 = stdpopsim.PiecewiseConstantSize(N0, (t1, N1)) # One change
-        model2 = stdpopsim.PiecewiseConstantSize(N0, (t1, N1), (t2, N2)) # Two changes
+        # One change
+        model1 = stdpopsim.PiecewiseConstantSize(species, N0, (t1, N1))
+        # Two changes
+        model2 = stdpopsim.PiecewiseConstantSize(species, N0, (t1, N1), (t2, N2))
     """
 
     id = "PiecewiseConstant"
@@ -326,7 +330,9 @@ class PiecewiseConstantSize(DemographicModel):
     year = None
     doi = None
 
-    def __init__(self, N0, *args):
+    def __init__(self, species, N0, *args):
+        self.generation_time = species.generation_time
+        self.citations.extend(species.generation_time_citations)
         self.population_configurations = [
             msprime.PopulationConfiguration(
                 initial_size=N0, metadata=self.populations[0].asdict())
@@ -347,6 +353,8 @@ class IsolationWithMigration(DemographicModel):
     the split populations. Sampling is disallowed in population index 0,
     as this is the ancestral population.
 
+    :ivar species: The species to be used with this model
+    :vartype species: stdpopsim.Species
     :ivar NA: The initial ancestral effective population size
     :vartype NA: float
     :ivar N1: The effective population size of population 1
@@ -365,7 +373,7 @@ class IsolationWithMigration(DemographicModel):
 
     .. code-block:: python
 
-        model1 = stdpopsim.IsolationWithMigration(NA, N1, N2, T, M12, M21)
+        model1 = stdpopsim.IsolationWithMigration(species, NA, N1, N2, T, M12, M21)
 
     """
     id = "IsolationWithMigration"
@@ -381,7 +389,9 @@ class IsolationWithMigration(DemographicModel):
     year = None
     doi = None
 
-    def __init__(self, NA, N1, N2, T, M12, M21):
+    def __init__(self, species, NA, N1, N2, T, M12, M21):
+        self.generation_time = species.generation_time
+        self.citations.extend(species.generation_time_citations)
         self.population_configurations = [
             msprime.PopulationConfiguration(
                 initial_size=N1, metadata=self.populations[0].asdict()),

@@ -501,11 +501,11 @@ Set up the generic model
 Next, we set the model to be the generic piecewise constant size model, using the
 predefined human effective population size (see :ref:`sec_catalog`).
 Since we are providing only one effective population size, the model is a
-single population of constant over all time.
+single population of constant size over all time.
 
 .. code-block:: python
 
-    model = stdpopsim.PiecewiseConstantSize(species.population_size)
+    model = stdpopsim.PiecewiseConstantSize(species, species.population_size)
 
 Each species has a "default" population size, ``species.population_size``,
 which for humans is 10,000.
@@ -1033,7 +1033,7 @@ and that rates of migration since the split between the populations are both zer
 
 .. code-block:: python
 
-    model = stdpopsim.IsolationWithMigration(NA=5000, N1=4000, N2=1000, T=1000, M12=0, M21=0)
+    model = stdpopsim.IsolationWithMigration(species, NA=5000, N1=4000, N2=1000, T=1000, M12=0, M21=0)
 
 We'll simulate 10 chromosomes from each of the populations using the ``msprime`` engine.
 

@@ -26,7 +26,7 @@ class TestAPI(unittest.TestCase):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("chr1")
-        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        model = stdpopsim.PiecewiseConstantSize(species, species.population_size)
         samples = model.get_samples(10)
         model.generation_time = species.generation_time
 
@@ -49,7 +49,7 @@ class TestAPI(unittest.TestCase):
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("chr1")
 
-        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        model = stdpopsim.PiecewiseConstantSize(species, species.population_size)
         samples = model.get_samples(10)
         model.generation_time = species.generation_time
         out, _ = capture_output(
@@ -78,7 +78,7 @@ class TestAPI(unittest.TestCase):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("chr1", genetic_map="HapMapII_GRCh37")
-        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        model = stdpopsim.PiecewiseConstantSize(species, species.population_size)
         samples = model.get_samples(10)
         model.generation_time = species.generation_time
         out, _ = capture_output(
@@ -91,7 +91,7 @@ class TestAPI(unittest.TestCase):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("AraTha")
         contig = species.get_contig("chr5", length_multiplier=0.001)
-        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        model = stdpopsim.PiecewiseConstantSize(species, species.population_size)
         model.generation_time = species.generation_time
         samples = model.get_samples(10)
         ts = engine.simulate(

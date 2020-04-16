@@ -468,7 +468,7 @@ class TestWriteBibtex(unittest.TestCase):
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapMapII_GRCh37")
         contig = species.get_contig("chr22", genetic_map=genetic_map.id)
-        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        model = stdpopsim.PiecewiseConstantSize(species, species.population_size)
         engine = stdpopsim.get_default_engine()
         cites_and_cites = [
                 genetic_map.citations,
@@ -510,7 +510,7 @@ class TestWriteCitations(unittest.TestCase):
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapMapII_GRCh37")
         contig = species.get_contig("chr22", genetic_map=genetic_map.id)
-        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        model = stdpopsim.PiecewiseConstantSize(species, species.population_size)
         engine = stdpopsim.get_default_engine()
         stdout, stderr = capture_output(
                 cli.write_citations, engine, model, contig, species)

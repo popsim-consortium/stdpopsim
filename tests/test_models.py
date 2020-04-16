@@ -351,25 +351,28 @@ class TestModelsEqual(unittest.TestCase):
 
 
 class TestConstantSizeModel(unittest.TestCase, DemographicModelTestMixin):
-    model = models.PiecewiseConstantSize(100)
+    model = models.PiecewiseConstantSize(stdpopsim.get_species("CanFam"), 100)
 
 
 class TestTwoEpochModel(unittest.TestCase, DemographicModelTestMixin):
-    model = models.PiecewiseConstantSize(100, (10, 10))
+    model = models.PiecewiseConstantSize(
+            stdpopsim.get_species("CanFam"), 100, (10, 10))
 
 
 class TestPiecewiseConstantSize(unittest.TestCase):
     """
     Specific tests for the piecewise constant model.
     """
+    species = stdpopsim.get_species("CanFam")
+
     def test_single_epoch(self):
-        model = models.PiecewiseConstantSize(100)
+        model = models.PiecewiseConstantSize(self.species, 100)
         self.assertEqual(model.population_configurations[0].initial_size, 100)
         self.assertEqual(len(model.population_configurations), 1)
         self.assertEqual(len(model.demographic_events), 0)
 
     def test_two_epoch(self):
-        model = models.PiecewiseConstantSize(50, (10, 100))
+        model = models.PiecewiseConstantSize(self.species, 50, (10, 100))
         self.assertEqual(model.population_configurations[0].initial_size, 50)
         self.assertEqual(len(model.demographic_events), 1)
         event = model.demographic_events[0]
@@ -378,7 +381,7 @@ class TestPiecewiseConstantSize(unittest.TestCase):
         self.assertEqual(event.growth_rate, 0)
 
     def test_three_epoch(self):
-        model = models.PiecewiseConstantSize(0.1, (0.1, 10), (0.2, 100))
+        model = models.PiecewiseConstantSize(self.species, 0.1, (0.1, 10), (0.2, 100))
         self.assertEqual(model.population_configurations[0].initial_size, 0.1)
         self.assertEqual(len(model.demographic_events), 2)
         event = model.demographic_events[0]
@@ -395,21 +398,24 @@ class TestIsolationWithMigration(unittest.TestCase):
     """
     Tests for the generic IM model.
     """
+    species = stdpopsim.get_species("AraTha")
+
     def test_pop_configs(self):
-        model = models.IsolationWithMigration(100, 200, 300, 50, 0, 0)
+        model = models.IsolationWithMigration(self.species, 100, 200, 300, 50, 0, 0)
         self.assertEqual(len(model.population_configurations), 3)
         self.assertEqual(model.population_configurations[0].initial_size, 200)
         self.assertEqual(model.population_configurations[1].initial_size, 300)
         self.assertEqual(model.population_configurations[2].initial_size, 100)
 
     def test_split(self):
-        model = models.IsolationWithMigration(100, 200, 300, 50, 0, 0)
+        model = models.IsolationWithMigration(self.species, 100, 200, 300, 50, 0, 0)
         self.assertEqual(len(model.demographic_events), 2)
         self.assertEqual(model.demographic_events[0].time, 50)
         self.assertEqual(model.demographic_events[1].time, 50)
 
     def test_migration_rates(self):
-        model = models.IsolationWithMigration(100, 200, 300, 50, 0.002, 0.003)
+        model = models.IsolationWithMigration(
+                self.species, 100, 200, 300, 50, 0.002, 0.003)
         self.assertEqual(np.shape(model.migration_matrix), (3, 3))
         self.assertEqual(model.migration_matrix[0][1], 0.002)
         self.assertEqual(model.migration_matrix[1][0], 0.003)
