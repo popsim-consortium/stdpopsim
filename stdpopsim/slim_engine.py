@@ -58,6 +58,8 @@ import pyslim
 
 _slim_upper = """
 initialize() {
+    if (!exists("dry_run"))
+        defineConstant("dry_run", F);
     defineConstant("verbosity", $verbosity);
 
     // Scaling factor to speed up simulation.
@@ -260,6 +262,10 @@ function (void)end(void) {
 
     if (G_start > sim.generation) {
         dbg("Starting burn-in...");
+    }
+
+    if (dry_run) {
+        sim.simulationFinished();
     }
 }
 """
@@ -560,7 +566,7 @@ class _SLiMEngine(stdpopsim.Engine):
     def simulate(
             self, demographic_model=None, contig=None, samples=None, seed=None,
             verbosity=0, slim_path=None, slim_script=False, slim_scaling_factor=1.0,
-            slim_burn_in=10.0, **kwargs):
+            slim_burn_in=10.0, dry_run=False, **kwargs):
         """
         Simulate the demographic model using SLiM.
         See :meth:`.Engine.simulate()` for definitions of the
@@ -584,6 +590,9 @@ class _SLiMEngine(stdpopsim.Engine):
         :param slim_burn_in: Length of the burn-in phase, in units of N
             generations.
         :type slim_burn_in: float
+        :param dry_run: If True, run the first generation setup and then end the
+            simulation.
+        :type dry_run: bool
         """
 
         if slim_scaling_factor <= 0:
@@ -606,6 +615,8 @@ class _SLiMEngine(stdpopsim.Engine):
         slim_cmd = [slim_path]
         if seed is not None:
             slim_cmd.extend(["-s", f"{seed}"])
+        if dry_run:
+            slim_cmd.extend(["-d", "dry_run=T"])
 
         mktemp = functools.partial(tempfile.NamedTemporaryFile, mode="w")
 
@@ -632,6 +643,9 @@ class _SLiMEngine(stdpopsim.Engine):
             slim_cmd.append(script_file.name)
             stdout = subprocess.DEVNULL if verbosity == 0 else None
             subprocess.check_call(slim_cmd, stdout=stdout)
+
+            if dry_run:
+                return None
 
             ts = pyslim.load(ts_file.name)
 

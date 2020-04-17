@@ -57,7 +57,7 @@ class Engine(object):
 
     def simulate(
             self, demographic_model=None, contig=None, samples=None, seed=None,
-            **kwargs):
+            dry_run=False, **kwargs):
         """
         Simulates the model for the specified contig and samples.
 
@@ -70,8 +70,11 @@ class Engine(object):
         :type samples: list of :class:`msprime.simulations.Sample`
         :param seed: The seed for the random number generator.
         :type seed: int
+        :param dry_run: If True, the simulation engine will return None without
+            running the simulation.
+        :type dry_run: bool
         :return: A succinct tree sequence.
-        :rtype: :class:`tskit.trees.TreeSequence`
+        :rtype: :class:`tskit.trees.TreeSequence` or None
         """
         raise NotImplementedError()
 
@@ -107,7 +110,7 @@ class _MsprimeEngine(Engine):
 
     def simulate(
             self, demographic_model=None, contig=None, samples=None, seed=None,
-            msprime_model=None, msprime_change_model=None, **kwargs):
+            msprime_model=None, msprime_change_model=None, dry_run=False, **kwargs):
         """
         Simulate the demographic model using msprime.
         See :meth:`.Engine.simulate()` for definitions of parameters defined
@@ -120,6 +123,9 @@ class _MsprimeEngine(Engine):
         :param msprime_change_model: A list of (time, model) tuples, which
             changes the simulation model to the new model at the time specified.
         :type msprime_change_model: list of (float, str) tuples
+        :param dry_run: If True, ``end_time=0`` is passed to :meth:`msprime.simulate()`
+            to initialise the simulation and then immediately return.
+        :type dry_run: bool
         """
         if msprime_model is None:
             msprime_model = self.supported_models[0]
@@ -140,7 +146,7 @@ class _MsprimeEngine(Engine):
                     self.citations.extend(self.model_citations[model])
             demographic_events.sort(key=lambda x: x.time)
 
-        return msprime.simulate(
+        ts = msprime.simulate(
                 samples=samples,
                 recombination_map=contig.recombination_map,
                 mutation_rate=contig.mutation_rate,
@@ -148,7 +154,11 @@ class _MsprimeEngine(Engine):
                 migration_matrix=demographic_model.migration_matrix,
                 demographic_events=demographic_events,
                 random_seed=seed,
-                model=msprime_model)
+                model=msprime_model,
+                end_time=0 if dry_run else None)
+        if dry_run:
+            ts = None
+        return ts
 
     def get_version(self):
         return msprime.__version__
