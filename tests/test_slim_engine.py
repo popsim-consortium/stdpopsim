@@ -35,14 +35,14 @@ class TestAPI(unittest.TestCase):
                 engine.simulate(
                     demographic_model=model, contig=contig, samples=samples,
                     slim_scaling_factor=scaling_factor,
-                    slim_script=True)
+                    dry_run=True)
 
         for burn_in in (-1, -1e-6):
             with self.assertRaises(ValueError):
                 engine.simulate(
                     demographic_model=model, contig=contig, samples=samples,
                     slim_burn_in=burn_in,
-                    slim_script=True)
+                    dry_run=True)
 
     def test_script_generation(self):
         engine = stdpopsim.get_engine("slim")
@@ -84,8 +84,7 @@ class TestAPI(unittest.TestCase):
         out, _ = capture_output(
                 engine.simulate,
                 demographic_model=model, contig=contig, samples=samples,
-                slim_script=True)
-        self.assertTrue("sim.registerLateEvent" in out)
+                dry_run=True)
 
     def test_simulate(self):
         engine = stdpopsim.get_engine("slim")
@@ -199,6 +198,17 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(observed_counts[1], 0)
         self.assertEqual(observed_counts[2], 8)
         self.assertTrue(all(tree.num_roots == 1 for tree in ts.trees()))
+
+    def test_dry_run(self):
+        # --dry-run should run slim, but not create an output file.
+        with mock.patch("subprocess.check_call") as mocked_subproc:
+            with tempfile.NamedTemporaryFile(mode="w") as f:
+                self.docmd(f"HomSap --dry-run -o {f.name}")
+        self.assertTrue(mocked_subproc.called_once)
+        self.assertTrue("slim" in mocked_subproc.call_args[0][0])
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            self.docmd(f"HomSap --dry-run -o {f.name}")
+            self.assertEqual(os.stat(f.name).st_size, 0)
 
     def test_bad_slim_environ_var(self):
         saved_slim_env = os.environ.get("SLIM")
