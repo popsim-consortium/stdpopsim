@@ -5,6 +5,8 @@ Development
 ===========
 
 ``stdpopsim`` **is a community effort, and YOU are welcome to join in!**
+We aim to be welcoming, inclusive and supportive:
+please see `our code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/master/CODE_OF_CONDUCT.md>`_ for our community standards.
 
 We envision at least three main types of ``stdpopsim`` developers:
 
