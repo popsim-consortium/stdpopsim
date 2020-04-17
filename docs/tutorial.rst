@@ -290,7 +290,7 @@ but should also make you *very* nervous.
 What actually *is* being simulated here?
 We can at least find out what the actual population sizes are in the SLiM simulation
 by asking the simulation to be more verbose.
-Prepending the ``-vv`` flag will request that SLiM print out information
+Prepending the ``-v`` flag will request that SLiM print out information
 every time a demographic event occurs
 (helpfully, this also gives us an idea of how quickly the simulation is going):
 This also outputs a fair bit of other debugging output,
@@ -298,7 +298,7 @@ which can be turned off with ``--quiet``:
 
 .. code-block:: console
 
-   $ stdpopsim -vv -e slim --slim-scaling-factor 1000 DroMel \
+   $ stdpopsim -v -e slim --slim-scaling-factor 1000 DroMel \
    $     -c chr2L -l 0.05 -o foo.ts -d African3Epoch_1S16 100 --quiet
 
 Trimming down the output somewhat, we get:

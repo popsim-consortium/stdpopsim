@@ -3,7 +3,6 @@ Citation management for stdpopsim. Provides utilities for printing
 citation information associated with different entities derived from the
 literature that are used within a simulation.
 """
-import sys
 import collections
 import urllib.request
 
@@ -42,13 +41,15 @@ class Citation(object):
     def __str__(self):
         return f"{self.author}, {self.year}: {self.doi}"
 
-    def print(self, file=sys.stdout):
-        print("[", end="", file=file)
+    def displaystr(self):
+        s = ["["]
         for i, reason in enumerate(self.reasons):
-            end = "" if i == len(self.reasons)-1 else ", "
-            print(reason, end=end, file=file)
-        print("]", file=file)
-        print("  "+str(self), file=file)
+            if i != 0:
+                s.append(", ")
+            s.append(reason)
+        s.append("]\n")
+        s.append(str(self))
+        return "".join(s)
 
     def because(self, reasons):
         """Returns a new Citation with the given reasons."""

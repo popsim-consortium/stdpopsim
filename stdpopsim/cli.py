@@ -11,8 +11,8 @@ import textwrap
 import tempfile
 import pathlib
 import shutil
-import functools
 import os
+import re
 
 import msprime
 import tskit
@@ -43,16 +43,31 @@ def exit(message):
     sys.exit(f"{sys.argv[0]}: {message}")
 
 
-LOG_FORMAT = "%(asctime)s [%(process)d] %(levelname)s %(name)s: %(message)s"
+class CLIFormatter(logging.Formatter):
+    def format(self, record):
+        if record.levelno == logging.INFO:
+            self._style = logging.PercentStyle("%(message)s")
+        else:
+            self._style = logging.PercentStyle("%(levelname)s: %(message)s")
+        if record.levelno == logging.WARNING:
+            # trim the ugly warnings.warn message
+            match = re.search(
+                    r"Warning:\s*(.*?)\s*warnings.warn\(", record.args[0], re.DOTALL)
+            if match is not None:
+                record.args = (match.group(1),)
+        return super().format(record)
 
 
 def setup_logging(args):
-    log_level = "WARN"
-    if args.verbosity > 0:
-        log_level = "INFO"
+    log_level = "INFO"
+    if args.quiet:
+        log_level = "WARN"
     if args.verbosity > 1:
         log_level = "DEBUG"
-    logging.basicConfig(format=LOG_FORMAT, level=log_level)
+    handler = logging.StreamHandler(sys.stderr)
+    handler.setFormatter(CLIFormatter())
+    logging.basicConfig(handlers=[handler], level=log_level)
+    logging.captureWarnings(True)
 
 
 def get_species_wrapper(species_id):
@@ -233,7 +248,7 @@ def write_output(ts, args):
             with open(tmpfile, "rb") as f:
                 shutil.copyfileobj(f, sys.stdout.buffer)
     else:
-        logger.info(f"Writing to {args.output}")
+        logger.debug(f"Writing to {args.output}")
         ts.dump(args.output)
 
 
@@ -266,11 +281,11 @@ def write_citations(engine, model, contig, species):
     for the simulation engine, the model and the mutation/recombination rate
     information.
     """
-    print("If you use this simulation in published work, please cite:",
-          file=sys.stderr)
-    citations = get_citations(engine, model, contig, species)
-    for citation in citations:
-        citation.print(file=sys.stderr)
+    cite_str = ["If you use this simulation in published work, please cite:"]
+    for citation in get_citations(engine, model, contig, species):
+        cite_str.append("\n")
+        cite_str.append(citation.displaystr())
+    logger.info("".join(cite_str))
 
 
 def summarise_usage():
@@ -284,7 +299,7 @@ def summarise_usage():
         if sys.platform != 'darwin':
             max_mem *= 1024  # Linux and other OSs (e.g. freeBSD) report maxrss in kb
         max_mem_str = humanize.naturalsize(max_mem, binary=True)
-        logger.info("rusage: user={}; sys={:.2f}s; max_rss={}".format(
+        logger.debug("rusage: user={}; sys={:.2f}s; max_rss={}".format(
             user_time, sys_time, max_mem_str))
 
 
@@ -411,7 +426,7 @@ def add_simulate_species_parser(parser, species):
             args.chromosome, genetic_map=args.genetic_map,
             length_multiplier=args.length_multiplier)
         engine = stdpopsim.get_engine(args.engine)
-        logger.info(
+        logger.debug(
             f"Running simulation model {model.id} for {species.id} on "
             f"{contig} with {len(samples)} samples using {engine.id}.")
 
@@ -433,8 +448,6 @@ def add_simulate_species_parser(parser, species):
 
 
 def write_simulation_summary(engine, model, contig, samples, seed=None):
-    # Setup writer
-    printerr = functools.partial(print, file=sys.stderr)
     indent = " " * 4
     # Header
     dry_run_text = "Simulation information:\n"
@@ -466,7 +479,7 @@ def write_simulation_summary(engine, model, contig, samples, seed=None):
     dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"
     dry_run_text += f"{indent}Mean mutation rate: {mut_rate}\n"
     dry_run_text += f"{indent}Genetic map: {gmap}\n"
-    printerr(dry_run_text)
+    logger.info(dry_run_text)
 
 
 def run_download_genetic_maps(args):
@@ -494,7 +507,7 @@ def stdpopsim_cli_parser():
         "-V", "--version", action='version',
         version='%(prog)s {}'.format(stdpopsim.__version__))
     top_parser.add_argument(
-        "-v", "--verbosity", action='count', default=0,
+        "-v", "--verbosity", action='count', default=1,
         help="Increase the verbosity")
     top_parser.add_argument(
         "-c", "--cache-dir", type=str, default=None,

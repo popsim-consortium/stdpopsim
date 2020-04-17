@@ -10,6 +10,7 @@ import sys
 import io
 import argparse  # NOQA
 import os
+import logging
 from unittest import mock
 
 import tskit
@@ -338,35 +339,77 @@ class TestRedirection(unittest.TestCase):
         self.verify(cmd)
 
 
-class TestSetupLogging(unittest.TestCase):
+class TestLogging(unittest.TestCase):
     """
-    Tests that setup logging has the desired effect.
+    Tests that logging has the desired effect.
     """
     basic_cmd = ["HomSap", "10"]
+
+    def test_quiet(self):
+        parser = cli.stdpopsim_cli_parser()
+        args = parser.parse_args(self.basic_cmd + ["-q"])
+        with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
+            cli.setup_logging(args)
+        _, kwargs = mocked_config.call_args
+        self.assertEqual(kwargs["level"], "WARN")
 
     def test_default(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(self.basic_cmd)
         with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
             cli.setup_logging(args)
-            mocked_config.assert_called_once_with(
-                format=cli.LOG_FORMAT, level="WARN")
+        _, kwargs = mocked_config.call_args
+        self.assertEqual(kwargs["level"], "INFO")
 
     def test_verbose(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["-v"] + self.basic_cmd)
         with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
             cli.setup_logging(args)
-            mocked_config.assert_called_once_with(
-                format=cli.LOG_FORMAT, level="INFO")
+        _, kwargs = mocked_config.call_args
+        self.assertEqual(kwargs["level"], "DEBUG")
 
-    def test_very_verbose(self):
-        parser = cli.stdpopsim_cli_parser()
-        args = parser.parse_args(["-vv"] + self.basic_cmd)
-        with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
-            cli.setup_logging(args)
-            mocked_config.assert_called_once_with(
-                format=cli.LOG_FORMAT, level="DEBUG")
+    def test_logging_formatter(self):
+        # unittest has its grubby mits all over logging, making it difficult
+        # to test log output without using unittest.TestCase.assertLogs().
+        # But assertLogs uses a hard-coded log format. So here we directly
+        # construct logging.LogRecord()s for testing stdpopsim.cli.CLIFormatter.
+        debug_str = "baz"
+        debug_dict = dict(
+                name="test_logger", pathname=__file__,
+                levelno=logging.DEBUG, levelname=logging.getLevelName(logging.DEBUG),
+                func=sys._getframe().f_code.co_name, lineno=sys._getframe().f_lineno,
+                exc_info=None, sinfo=None, msg="%s", args=(debug_str,))
+        info_str = "foo"
+        info_dict = dict(
+                name="test_logger", pathname=__file__,
+                levelno=logging.INFO, levelname=logging.getLevelName(logging.INFO),
+                func=sys._getframe().f_code.co_name, lineno=sys._getframe().f_lineno,
+                exc_info=None, sinfo=None, msg="%s", args=(info_str,))
+        warn_str = "bar"
+        warn_dict = dict(
+                name="test_logger", pathname=__file__,
+                levelno=logging.WARN, levelname=logging.getLevelName(logging.WARN),
+                func=sys._getframe().f_code.co_name, lineno=sys._getframe().f_lineno,
+                exc_info=None, sinfo=None, msg="%s",
+                args=(f"{__file__}:564: UserWarning: {warn_str}\n  "
+                      f"warnings.warn(\"{warn_str}\")\n",))
+        warn_dict2 = dict(
+                name="test_logger", pathname=__file__,
+                levelno=logging.WARN, levelname=logging.getLevelName(logging.WARN),
+                func=sys._getframe().f_code.co_name, lineno=sys._getframe().f_lineno,
+                exc_info=None, sinfo=None, msg="%s",
+                args=(warn_str,))
+
+        fmt = cli.CLIFormatter()
+        formatted_debug_str = fmt.format(logging.makeLogRecord(debug_dict))
+        formatted_info_str = fmt.format(logging.makeLogRecord(info_dict))
+        formatted_warn_str = fmt.format(logging.makeLogRecord(warn_dict))
+        formatted_warn_str2 = fmt.format(logging.makeLogRecord(warn_dict2))
+        self.assertEqual(formatted_debug_str, "DEBUG: " + debug_str)
+        self.assertEqual(formatted_info_str, info_str)
+        self.assertEqual(formatted_warn_str, "WARNING: " + warn_str)
+        self.assertEqual(formatted_warn_str2, "WARNING: " + warn_str)
 
 
 class TestErrors(unittest.TestCase):
@@ -506,11 +549,13 @@ class TestWriteCitations(unittest.TestCase):
         species = stdpopsim.get_species("HomSap")
         model = species.get_demographic_model("OutOfAfrica_3G09")
         engine = stdpopsim.get_default_engine()
-        stdout, stderr = capture_output(
-                cli.write_citations, engine, model, contig, species)
+        with self.assertLogs() as logs:
+            stdout, stderr = capture_output(
+                    cli.write_citations, engine, model, contig, species)
         self.assertEqual(len(stdout), 0)
         genetic_map = None
-        self.check_citations(engine, species, genetic_map, model, stderr)
+        output = "\n".join(logs.output)
+        self.check_citations(engine, species, genetic_map, model, output)
 
     def test_genetic_map_citations(self):
         species = stdpopsim.get_species("HomSap")
@@ -518,12 +563,14 @@ class TestWriteCitations(unittest.TestCase):
         contig = species.get_contig("chr22", genetic_map=genetic_map.id)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
-        stdout, stderr = capture_output(
-                cli.write_citations, engine, model, contig, species)
+        with self.assertLogs() as logs:
+            stdout, stderr = capture_output(
+                    cli.write_citations, engine, model, contig, species)
         self.assertEqual(len(stdout), 0)
-        self.check_citations(engine, species, genetic_map, model, stderr)
+        output = "\n".join(logs.output)
+        self.check_citations(engine, species, genetic_map, model, output)
 
-    def check_citations(self, engine, species, genetic_map, model, stderr):
+    def check_citations(self, engine, species, genetic_map, model, output):
         if genetic_map is None:
             genetic_map = stdpopsim.GeneticMap(species.id, citations=[])
         for citations, assert_msg in zip(
@@ -532,9 +579,9 @@ class TestWriteCitations(unittest.TestCase):
                     f"model citation not written for {model.id}",
                     f"genetic map citation not written for {genetic_map.id}")):
             for citation in citations:
-                self.assertTrue(citation.author in stderr, msg=assert_msg)
-                self.assertTrue(str(citation.year) in stderr, msg=assert_msg)
-                self.assertTrue(citation.doi in stderr, msg=assert_msg)
+                self.assertTrue(citation.author in output, msg=assert_msg)
+                self.assertTrue(str(citation.year) in output, msg=assert_msg)
+                self.assertTrue(citation.doi in output, msg=assert_msg)
 
 
 class TestCacheDir(unittest.TestCase):
