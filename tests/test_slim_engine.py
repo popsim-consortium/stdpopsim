@@ -224,6 +224,28 @@ class TestCLI(unittest.TestCase):
             os.environ["SLIM"] = saved_slim_env
 
 
+@unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
+class TestWarnings(unittest.TestCase):
+    """
+    Checks that warning messages are printed when appropriate.
+    """
+    def test_odd_sample_warning(self):
+        cmd = "-e slim --slim-script HomSap -d OutOfAfrica_2T12 4 6 -q".split()
+        with mock.patch("warnings.warn") as mock_warning:
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        self.assertEqual(mock_warning.call_count, 0)
+
+        cmd = "-e slim --slim-script HomSap -d OutOfAfrica_2T12 4 5 -q".split()
+        with mock.patch("warnings.warn") as mock_warning:
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        self.assertEqual(mock_warning.call_count, 1)
+
+        cmd = "-e slim --slim-script HomSap -d OutOfAfrica_2T12 3 5 -q".split()
+        with mock.patch("warnings.warn") as mock_warning:
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        self.assertEqual(mock_warning.call_count, 2)
+
+
 class TestSlimAvailable(unittest.TestCase):
     """
     Checks whether SLiM is available or not on platforms that support it.

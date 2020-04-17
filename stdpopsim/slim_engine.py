@@ -49,6 +49,7 @@ import collections
 import contextlib
 import random
 import textwrap
+import warnings
 
 import stdpopsim
 import numpy as np
@@ -509,13 +510,21 @@ def slim_makescript(
     printsc()
 
     # Sampling episodes.
-    s_counts = collections.Counter([
-        (s.population, round(s.time * demographic_model.generation_time))
-        for s in samples])
+    sample_counts = collections.Counter([
+        (sample.population, round(sample.time * demographic_model.generation_time))
+        for sample in samples])
     sampling_episodes = []
-    for i, ((pop, time), count) in enumerate(s_counts.items()):
-        # XXX: SLiM can only sample individuals, which we assume are diploid.
+    for (pop, time), count in sample_counts.items():
+        # SLiM can only sample individuals, which we assume are diploid.
         n_inds = (count+1) // 2
+        if count % 2 != 0:
+            pop_id = pop_names[pop]
+            gen = time / demographic_model.generation_time
+            warnings.warn(
+                    f"SLiM simulates diploid individuals, so {n_inds} "
+                    f"individuals will be sampled for the {count} haploids "
+                    f"requested from population {pop_id} at time {gen}. "
+                    "See #464.")
         sampling_episodes.append((pop, n_inds, time))
 
     printsc('    // One row for each sampling episode.')
