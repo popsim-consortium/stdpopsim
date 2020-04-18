@@ -49,6 +49,7 @@ import collections
 import contextlib
 import random
 import textwrap
+import logging
 import warnings
 
 import stdpopsim
@@ -56,11 +57,14 @@ import numpy as np
 import msprime
 import pyslim
 
+logger = logging.getLogger(__name__)
+
 _slim_upper = """
 initialize() {
     if (!exists("dry_run"))
         defineConstant("dry_run", F);
-    defineConstant("verbosity", $verbosity);
+    if (!exists("verbosity"))
+        defineConstant("verbosity", 2);
 
     // Scaling factor to speed up simulation.
     // See SLiM manual:
@@ -72,6 +76,7 @@ initialize() {
     defineConstant("mutation_rate", Q * $mutation_rate);
     defineConstant("chromosome_length", $chromosome_length);
     defineConstant("trees_file", "$trees_file");
+    defineConstant("pop_names", $pop_names);
 
     _recombination_rates = $recombination_rates;
     _recombination_ends = $recombination_ends;
@@ -90,10 +95,53 @@ _slim_lower = """
     initializeRecombinationRate(recombination_rates, recombination_ends);
 }
 
+function (void)err(string$ s) {
+    stop("ERROR: " + s);
+}
+
+function (void)warn(string$ s) {
+    catn("WARNING: " + s);
+}
+
 function (void)dbg(string$ s, [integer$ debug_level = 2]) {
     if (verbosity >= debug_level) {
         catn(sim.generation + ": " + s);
     }
+}
+
+// Check that sizes aren't dangerously low or zero (e.g. due to scaling).
+function (void)check_size(integer$ pop, integer$ size, integer$ g) {
+    if (size == 0) {
+        err("The population size of p"+pop+" ("+pop_names[pop]+") is zero " +
+            "at generation "+g+".");
+    } else if (size < 50) {
+        warn("p"+pop+" ("+pop_names[pop]+") has only "+size+" individuals " +
+             "alive at generation "+g+".");
+    }
+}
+
+// Return the epoch index for generation g.
+function (integer)epoch(integer G, integer $g) {
+    for (i in 0:(num_epochs-1)) {
+        if (g < G[i]) {
+            return i;
+        }
+    }
+    return num_epochs - 1;
+}
+
+// Return the population size of pop at generation g.
+function (integer)pop_size_at(integer G, integer$ pop, integer$ g) {
+    e = epoch(G, g);
+    N0 = N[e,pop];
+    r = Q * growth_rates[e,pop];
+    if (r == 0) {
+        N_g = N0;
+    } else {
+        g_diff = g - G[e-1];
+        N_g = asInteger(round(N0*exp(r*g_diff)));
+    }
+    return N_g;
 }
 
 // Return the number of generations that separate t0 and t1.
@@ -115,9 +163,14 @@ function (void)end(void) {
     // Initial populations.
     for (i in 0:(num_populations-1)) {
         if (N[0,i] > 0) {
+            check_size(i, N[0,i], sim.generation);
             dbg("sim.addSubpop("+i+", "+N[0,i]+");");
             sim.addSubpop(i, N[0,i]);
         }
+    }
+
+    if (length(sim.subpopulations) == 0) {
+        err("No populations with non-zero size in generation 1.");
     }
 
     // Initial migration rates.
@@ -152,9 +205,10 @@ function (void)end(void) {
     if (length(subpopulation_splits) > 0 ) {
         for (i in 0:(ncol(subpopulation_splits)-1)) {
             g = G_start + gdiff(T_start, subpopulation_splits[0,i]);
-            newpop = subpopulation_splits[1,i];
+            newpop = drop(subpopulation_splits[1,i]);
             size = asInteger(subpopulation_splits[2,i] / Q);
             oldpop = subpopulation_splits[3,i];
+            check_size(newpop, size, g);
             sim.registerLateEvent(NULL,
                 "{dbg(self.source); " +
                 "sim.addSubpopSplit("+newpop+","+size+","+oldpop+");}",
@@ -167,7 +221,10 @@ function (void)end(void) {
         for (i in 1:(num_epochs-1)) {
             g = G[i-1];
             for (j in 0:(num_populations-1)) {
-                if (N[i,j] != N[i-1,j]) {
+                // Change population size if this hasn't already been taken
+                // care of by sim.addSubpop() or sim.addSubpopSplit().
+                if (N[i,j] != N[i-1,j] & N[i-1,j] != 0) {
+                    check_size(j, N[i,j], g);
                     sim.registerLateEvent(NULL,
                         "{dbg(self.source); " +
                         "p"+j+".setSubpopulationSize("+N[i,j]+");}",
@@ -189,9 +246,11 @@ function (void)end(void) {
                         next;
                     }
 
+                    N_growth_phase_end = pop_size_at(G, j, growth_phase_end);
+                    check_size(j, N_growth_phase_end, growth_phase_end);
+
                     N0 = N[i,j];
                     r = Q * growth_rates[i,j];
-
                     sim.registerLateEvent(NULL,
                         "{" +
                             "dbg(self.source); " +
@@ -248,9 +307,18 @@ function (void)end(void) {
 
     // Sample individuals.
     for (i in 0:(ncol(sampling_episodes)-1)) {
-        pop = sampling_episodes[0,i];
+        pop = drop(sampling_episodes[0,i]);
         n = sampling_episodes[1,i];
         g = G_start + gdiff(T_start, sampling_episodes[2,i]);
+
+        // Check that there will be at least n individuals for sampling.
+        N_g = pop_size_at(G, pop, g);
+        if (n > N_g) {
+            err("Request to sample "+n+" individuals from p"+pop+
+                " ("+pop_names[pop]+") at generation "+g+", but only "+
+                N_g+" individuals will be alive.");
+        }
+
         sim.registerLateEvent(NULL,
             "{dbg(self.source); " +
             "inds=p"+pop+".sampleIndividuals("+n+"); " +
@@ -283,7 +351,7 @@ def msprime_rm_to_slim_rm(recombination_map):
 def slim_makescript(
         script_file, trees_file,
         demographic_model, contig, samples,
-        scaling_factor, burn_in, verbosity):
+        scaling_factor, burn_in):
 
     pop_names = [pc.metadata["id"] for pc in demographic_model.population_configurations]
 
@@ -390,6 +458,8 @@ def slim_makescript(
                     subsequent_indent=indent) +
             ")")
 
+    pop_names_str = ', '.join(map(lambda x: f'"{x}"', pop_names))
+
     printsc(string.Template(_slim_upper).substitute(
                 scaling_factor=scaling_factor,
                 burn_in=float(burn_in),
@@ -399,7 +469,7 @@ def slim_makescript(
                 mutation_rate=contig.mutation_rate,
                 generation_time=demographic_model.generation_time,
                 trees_file=trees_file,
-                verbosity=verbosity,
+                pop_names=f"c({pop_names_str})"
                 ))
 
     def matrix2str(matrix, row_comments=None, col_comment=None, indent=2,
@@ -545,6 +615,10 @@ def slim_makescript(
     return epochs[0]
 
 
+class SLiMException(Exception):
+    pass
+
+
 class _SLiMEngine(stdpopsim.Engine):
     id = "slim"  #:
     description = "SLiM forward-time Wright-Fisher simulator"  #:
@@ -565,7 +639,7 @@ class _SLiMEngine(stdpopsim.Engine):
 
     def simulate(
             self, demographic_model=None, contig=None, samples=None, seed=None,
-            verbosity=0, slim_path=None, slim_script=False, slim_scaling_factor=1.0,
+            slim_path=None, slim_script=False, slim_scaling_factor=1.0,
             slim_burn_in=10.0, dry_run=False, **kwargs):
         """
         Simulate the demographic model using SLiM.
@@ -602,21 +676,12 @@ class _SLiMEngine(stdpopsim.Engine):
 
         run_slim = not slim_script
 
-        if slim_path is None:
-            slim_path = self.slim_path()
-
         mutation_rate = contig.mutation_rate
         # Ensure no mutations are introduced by SLiM.
         contig = stdpopsim.Contig(
                 recombination_map=contig.recombination_map,
                 mutation_rate=0,
                 genetic_map=contig.genetic_map)
-
-        slim_cmd = [slim_path]
-        if seed is not None:
-            slim_cmd.extend(["-s", f"{seed}"])
-        if dry_run:
-            slim_cmd.extend(["-d", "dry_run=T"])
 
         mktemp = functools.partial(tempfile.NamedTemporaryFile, mode="w")
 
@@ -633,16 +698,16 @@ class _SLiMEngine(stdpopsim.Engine):
             recap_epoch = slim_makescript(
                     script_file, ts_file.name,
                     demographic_model, contig, samples,
-                    slim_scaling_factor, slim_burn_in, verbosity)
+                    slim_scaling_factor, slim_burn_in)
 
             script_file.flush()
 
             if not run_slim:
                 return None
 
-            slim_cmd.append(script_file.name)
-            stdout = subprocess.DEVNULL if verbosity < 2 else None
-            subprocess.check_call(slim_cmd, stdout=stdout)
+            self._run_slim(
+                    script_file.name, slim_path=slim_path, seed=seed,
+                    dry_run=dry_run)
 
             if dry_run:
                 return None
@@ -652,6 +717,48 @@ class _SLiMEngine(stdpopsim.Engine):
         ts = self._recap_and_rescale(
                 ts, seed, recap_epoch, contig, mutation_rate, slim_scaling_factor)
         return ts
+
+    def _run_slim(self, script_file, slim_path=None, seed=None, dry_run=False):
+        """
+        Run SLiM.
+
+        We capture the output using Popen's line-oriented text buffering
+        (bufsize=1, universal_newlines=True) and redirect all messages to
+        Python's logging module.
+        By convention, messages from SLiM prefixed with "ERROR: " or
+        "WARNING: " are treated as ERROR or WARN loglevels respectively.
+        All other output on stdout is given the DEBUG loglevel.
+        ERROR messages, and any output from SLiM on stderr, will raise a
+        SLiMException here.
+        """
+        if slim_path is None:
+            slim_path = self.slim_path()
+        slim_cmd = [slim_path]
+        if seed is not None:
+            slim_cmd.extend(["-s", f"{seed}"])
+        if dry_run:
+            slim_cmd.extend(["-d", "dry_run=T"])
+        slim_cmd.append(script_file)
+
+        with subprocess.Popen(
+                slim_cmd, bufsize=1, universal_newlines=True,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+            for line in proc.stdout:
+                line = line.rstrip()
+                if line.startswith("ERROR: "):
+                    logger.error(line[len("ERROR: "):])
+                elif line.startswith("WARNING: "):
+                    warnings.warn(line[len("WARNING: "):])
+                else:
+                    # filter `dbg` function calls that generate output
+                    line = line.replace("dbg(self.source); ", "")
+                    logger.debug(line)
+            stderr = proc.stderr.read()
+
+        if proc.returncode != 0 or stderr:
+            raise SLiMException(
+                    f"{slim_path} exited with code {proc.returncode}.\n"
+                    f"{stderr}")
 
     def _simplify_remembered(self, ts):
         """
@@ -729,7 +836,7 @@ class _SLiMEngine(stdpopsim.Engine):
             recap_epoch = slim_makescript(
                     script_file, "unused.trees",
                     demographic_model, contig, samples,
-                    slim_scaling_factor, 1, 0)
+                    slim_scaling_factor, 1)
 
         ts = self._recap_and_rescale(
                 ts, seed, recap_epoch, contig, contig.mutation_rate, slim_scaling_factor)
