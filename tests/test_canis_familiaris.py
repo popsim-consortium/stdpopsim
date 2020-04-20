@@ -1,3 +1,4 @@
+import os
 import unittest
 from unittest import mock
 
@@ -25,5 +26,6 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
 class TestThatDogsCanBeSimulated(unittest.TestCase):
     def test_basic_cli_usage(self):
         cmd = "CanFam -c chr38 -l 0.001 --seed 1234 -q 10"
-        with mock.patch("stdpopsim.cli.write_to_stdout", autospec=True):
+        with mock.patch("sys.stdout", autospec=True) as stdout:
+            stdout.buffer = open(os.devnull, "wb")
             stdpopsim.cli.stdpopsim_main(cmd.split())
