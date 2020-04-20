@@ -641,7 +641,7 @@ class _SLiMEngine(stdpopsim.Engine):
                 return None
 
             slim_cmd.append(script_file.name)
-            stdout = subprocess.DEVNULL if verbosity == 0 else None
+            stdout = subprocess.DEVNULL if verbosity < 2 else None
             subprocess.check_call(slim_cmd, stdout=stdout)
 
             if dry_run:
