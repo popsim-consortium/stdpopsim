@@ -171,11 +171,11 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
         output = "/stuff/tmp.trees"
         bib = "tmp.bib"
 
-        with mock.patch.object(argparse.FileType, '__call__') as call:
+        with mock.patch.object(argparse.FileType, '__call__', autospec=True) as call:
             args = parser.parse_args([cmd, "-b", bib, "-o", output, "2"])
             self.assertEqual(args.output, output)
             self.assertEqual(args.samples, [2])
-            call.assert_called_with(bib)
+            call.assert_called_with(mock.ANY, bib)
 
 
 class TestEndToEnd(unittest.TestCase):
@@ -186,7 +186,7 @@ class TestEndToEnd(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
             full_cmd = cmd + f" -q -o {filename} --seed={seed}"
-            with mock.patch("stdpopsim.cli.setup_logging"):
+            with mock.patch("stdpopsim.cli.setup_logging", autospec=True):
                 stdout, stderr = capture_output(cli.stdpopsim_main, full_cmd.split())
             self.assertEqual(len(stderr), 0)
             self.assertEqual(len(stdout), 0)
@@ -277,18 +277,20 @@ class TestWriteOutput(unittest.TestCase):
         ts = msprime.simulate(10, random_seed=2)
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["AraTha", "2"])
-        with mock.patch("stdpopsim.cli.write_to_stdout") as mocked_func:
-            cli.write_output(ts, args)
-            mocked_func.assert_called_once()
+        with mock.patch("shutil.copyfileobj", autospec=True) as mocked_copy:
+            with mock.patch("sys.stdout", autospec=True) as stdout:
+                stdout.buffer = open(os.devnull, "wb")
+                cli.write_output(ts, args)
+                mocked_copy.assert_called_once()
 
     def test_to_file(self):
         ts = msprime.simulate(10, random_seed=2)
         parser = cli.stdpopsim_cli_parser()
         output_file = "mocked.trees"
         args = parser.parse_args(["HomSap", "2", "-o", output_file])
-        with mock.patch("tskit.TreeSequence.dump") as mocked_dump:
+        with mock.patch("tskit.TreeSequence.dump", autospec=True) as mocked_dump:
             cli.write_output(ts, args)
-            mocked_dump.assert_called_once_with(output_file)
+            mocked_dump.assert_called_once_with(mock.ANY, output_file)
 
 
 class TestRedirection(unittest.TestCase):
@@ -345,7 +347,7 @@ class TestSetupLogging(unittest.TestCase):
     def test_default(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(self.basic_cmd)
-        with mock.patch("logging.basicConfig") as mocked_config:
+        with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
             cli.setup_logging(args)
             mocked_config.assert_called_once_with(
                 format=cli.LOG_FORMAT, level="WARN")
@@ -353,7 +355,7 @@ class TestSetupLogging(unittest.TestCase):
     def test_verbose(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["-v"] + self.basic_cmd)
-        with mock.patch("logging.basicConfig") as mocked_config:
+        with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
             cli.setup_logging(args)
             mocked_config.assert_called_once_with(
                 format=cli.LOG_FORMAT, level="INFO")
@@ -361,7 +363,7 @@ class TestSetupLogging(unittest.TestCase):
     def test_very_verbose(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["-vv"] + self.basic_cmd)
-        with mock.patch("logging.basicConfig") as mocked_config:
+        with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
             cli.setup_logging(args)
             mocked_config.assert_called_once_with(
                 format=cli.LOG_FORMAT, level="DEBUG")
@@ -371,7 +373,7 @@ class TestErrors(unittest.TestCase):
 
     # Need to mock out setup_logging here or we spew logging to the console
     # in later tests.
-    @mock.patch("stdpopsim.cli.setup_logging")
+    @mock.patch("stdpopsim.cli.setup_logging", autospec=True)
     def run_stdpopsim(self, command, mock_setup_logging):
         stdout, stderr = capture_output(cli.stdpopsim_main, command)
         self.assertEqual(stderr, "")
@@ -379,7 +381,8 @@ class TestErrors(unittest.TestCase):
         self.assertTrue(mock_setup_logging.called)
 
     def test_exit(self):
-        with mock.patch("sys.exit", side_effect=TestException) as mocked_exit:
+        with mock.patch(
+                "sys.exit", side_effect=TestException, autospec=True) as mocked_exit:
             with self.assertRaises(TestException):
                 cli.exit("XXX")
             mocked_exit.assert_called_once()
@@ -389,9 +392,11 @@ class TestErrors(unittest.TestCase):
 
     # Need to mock out setup_logging here or we spew logging to the console
     # in later tests.
-    @mock.patch("stdpopsim.cli.setup_logging")
+    @mock.patch("stdpopsim.cli.setup_logging", autospec=True)
     def verify_bad_samples(self, cmd, mock_setup_logging):
-        with mock.patch("stdpopsim.cli.exit", side_effect=TestException) as mocked_exit:
+        with mock.patch(
+                "stdpopsim.cli.exit",
+                side_effect=TestException, autospec=True) as mocked_exit:
             with self.assertRaises(TestException):
                 cli.stdpopsim_main(cmd.split())
             mocked_exit.assert_called_once()
@@ -414,7 +419,7 @@ class TestHelp(unittest.TestCase):
     def run_stdpopsim(self, command):
         with mock.patch(
                 "argparse.ArgumentParser.exit",
-                side_effect=TestException) as mocked_exit:
+                side_effect=TestException, autospec=True) as mocked_exit:
             with self.assertRaises(TestException):
                 capture_output(cli.stdpopsim_main, command.split())
             mocked_exit.assert_called_once()
@@ -455,10 +460,11 @@ class TestWriteBibtex(unittest.TestCase):
             full_cmd = (f"HomSap -c chr22 -l0.1 20 "
                         f"-o {filename} -d OutOfAfrica_3G09 --seed={seed} "
                         f"--bibtex={bibfile}")
-            with mock.patch("stdpopsim.cli.setup_logging"):
-                with mock.patch.object(stdpopsim.citations.Citation,
-                                       "fetch_bibtex") as mocked_bib:
-                    with mock.patch("argparse.FileType"):
+            with mock.patch("stdpopsim.cli.setup_logging", autospec=True):
+                with mock.patch.object(
+                        stdpopsim.citations.Citation, "fetch_bibtex",
+                        autospec=True) as mocked_bib:
+                    with mock.patch("argparse.FileType", autospec=True):
                         stdout, stderr = capture_output(cli.stdpopsim_main,
                                                         full_cmd.split())
                         mocked_bib.assert_called()
@@ -486,7 +492,7 @@ class TestWriteBibtex(unittest.TestCase):
             with open('tmp.bib', 'w') as bib:
                 with mock.patch.object(
                         stdpopsim.citations.Citation,
-                        "fetch_bibtex") as mock_bib:
+                        "fetch_bibtex", autospec=True) as mock_bib:
                     cli.write_bibtex(engine, model, contig, species, bib)
                     self.assertEqual(mock_bib.call_count, ncite)
 
@@ -535,17 +541,18 @@ class TestCacheDir(unittest.TestCase):
     """
     Tests for setting the cache directory.
     """
-    @mock.patch("stdpopsim.cli.setup_logging")
-    @mock.patch("stdpopsim.cli.run")
+    @mock.patch("stdpopsim.cli.setup_logging", autospec=True)
+    @mock.patch("stdpopsim.cli.run", autospec=True)
     def run_stdpopsim(self, command, mock_setup_logging, mock_run):
         stdout, stderr = capture_output(cli.stdpopsim_main, command)
         self.assertEqual(stderr, "")
         self.assertEqual(stdout, "")
-        self.assertTrue(mock_setup_logging.called_once)
-        self.assertTrue(mock_run.called_once)
+        mock_setup_logging.assert_called_once()
+        mock_run.assert_called_once()
 
     def check_cache_dir_set(self, cmd, cache_dir):
-        with mock.patch("stdpopsim.set_cache_dir") as mocked_set_cache_dir:
+        with mock.patch(
+                "stdpopsim.set_cache_dir", autospec=True) as mocked_set_cache_dir:
             self.run_stdpopsim(cmd.split())
             mocked_set_cache_dir.assert_called_once_with(cache_dir)
 
@@ -573,7 +580,8 @@ class TestDownloadGeneticMaps(unittest.TestCase):
     def run_download(self, cmd_args, expected_num_downloads):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["download-genetic-maps"] + cmd_args.split())
-        with mock.patch("stdpopsim.GeneticMap.download") as mocked_download:
+        with mock.patch(
+                "stdpopsim.GeneticMap.download", autospec=True) as mocked_download:
             cli.run_download_genetic_maps(args)
             self.assertEqual(mocked_download.call_count, expected_num_downloads)
 
@@ -601,20 +609,20 @@ class TestSearchWrappers(unittest.TestCase):
     Tests that the search wrappers for species etc work correctly.
     """
     def test_bad_species(self):
-        with mock.patch("stdpopsim.cli.exit") as mocked_exit:
+        with mock.patch("stdpopsim.cli.exit", autospec=True) as mocked_exit:
             cli.get_species_wrapper("XXX")
             mocked_exit.assert_called_once_with("Species 'XXX' not in catalog")
 
     def test_bad_model(self):
         species = stdpopsim.get_species("HomSap")
-        with mock.patch("stdpopsim.cli.exit") as mocked_exit:
+        with mock.patch("stdpopsim.cli.exit", autospec=True) as mocked_exit:
             cli.get_model_wrapper(species, "XXX")
             mocked_exit.assert_called_once_with(
                     "DemographicModel 'HomSap/XXX' not in catalog")
 
     def test_bad_genetic_map(self):
         species = stdpopsim.get_species("HomSap")
-        with mock.patch("stdpopsim.cli.exit") as mocked_exit:
+        with mock.patch("stdpopsim.cli.exit", autospec=True) as mocked_exit:
             cli.get_genetic_map_wrapper(species, "XXX")
             mocked_exit.assert_called_once_with(
                 "Genetic map 'HomSap/XXX' not in catalog")
@@ -688,15 +696,15 @@ class TestNonAutosomal(unittest.TestCase):
     # https://github.com/popsim-consortium/stdpopsim/issues/383
     def test_chrX_gives_a_warning(self):
         cmd = "HomSap -D -c chrX -o /dev/null -q 10".split()
-        with mock.patch("warnings.warn") as mock_warning:
+        with mock.patch("warnings.warn", autospec=True) as mock_warning:
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        self.assertTrue(mock_warning.called_once)
+        mock_warning.assert_called_once()
 
     # TODO: This test should be removed when #405 and #406 are fixed.
     # https://github.com/popsim-consortium/stdpopsim/issues/405
     # https://github.com/popsim-consortium/stdpopsim/issues/406
     def test_chrM_gives_a_warning(self):
         cmd = "DroMel -D -c chrM -o /dev/null -q 10".split()
-        with mock.patch("warnings.warn") as mock_warning:
+        with mock.patch("warnings.warn", autospec=True) as mock_warning:
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        self.assertTrue(mock_warning.called_once)
+        mock_warning.assert_called_once()

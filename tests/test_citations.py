@@ -41,8 +41,9 @@ class TestFetchBibtex(unittest.TestCase):
         with mock.patch(
                 'urllib.request.urlopen',
                 return_value=mocked_response(
-                    code=200, text=b'test')):
-            with mock.patch('urllib.request.Request'):
+                    code=200, text=b'test'),
+                autospec=True):
+            with mock.patch('urllib.request.Request', autospec=True):
                 bib = citation.fetch_bibtex()
                 self.assertEqual(bib, 'test')
 
