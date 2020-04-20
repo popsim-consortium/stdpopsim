@@ -159,7 +159,7 @@ class TestGeneticMapDownload(tests.CacheWritingTest):
 
     def test_correct_url(self):
         gm = GeneticMapTestClass()
-        with mock.patch("urllib.request.urlretrieve") as mocked_get:
+        with mock.patch("urllib.request.urlretrieve", autospec=True) as mocked_get:
             # The destination file will be missing.
             with self.assertRaises(FileNotFoundError):
                 gm.download()

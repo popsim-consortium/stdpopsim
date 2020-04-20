@@ -201,10 +201,10 @@ class TestCLI(unittest.TestCase):
 
     def test_dry_run(self):
         # --dry-run should run slim, but not create an output file.
-        with mock.patch("subprocess.check_call") as mocked_subproc:
+        with mock.patch("subprocess.check_call", autospec=True) as mocked_subproc:
             with tempfile.NamedTemporaryFile(mode="w") as f:
                 self.docmd(f"HomSap --dry-run -o {f.name}")
-        self.assertTrue(mocked_subproc.called_once)
+        mocked_subproc.assert_called_once()
         self.assertTrue("slim" in mocked_subproc.call_args[0][0])
         with tempfile.NamedTemporaryFile(mode="w") as f:
             self.docmd(f"HomSap --dry-run -o {f.name}")
@@ -241,17 +241,17 @@ class TestWarnings(unittest.TestCase):
     """
     def test_odd_sample_warning(self):
         cmd = "-e slim --slim-script HomSap -d OutOfAfrica_2T12 4 6 -q".split()
-        with mock.patch("warnings.warn") as mock_warning:
+        with mock.patch("warnings.warn", autospec=True) as mock_warning:
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         self.assertEqual(mock_warning.call_count, 0)
 
         cmd = "-e slim --slim-script HomSap -d OutOfAfrica_2T12 4 5 -q".split()
-        with mock.patch("warnings.warn") as mock_warning:
+        with mock.patch("warnings.warn", autospec=True) as mock_warning:
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         self.assertEqual(mock_warning.call_count, 1)
 
         cmd = "-e slim --slim-script HomSap -d OutOfAfrica_2T12 3 5 -q".split()
-        with mock.patch("warnings.warn") as mock_warning:
+        with mock.patch("warnings.warn", autospec=True) as mock_warning:
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         self.assertEqual(mock_warning.call_count, 2)
 
@@ -262,7 +262,7 @@ class TestSlimAvailable(unittest.TestCase):
     """
     def test_parser_has_options(self):
         parser = stdpopsim.cli.stdpopsim_cli_parser()
-        with mock.patch("sys.exit"):
+        with mock.patch("sys.exit", autospec=True):
             _, stderr = capture_output(parser.parse_args, ["--help"])
             # On windows we should have no "slim" options
             self.assertEqual(IS_WINDOWS, "slim" not in stderr)
