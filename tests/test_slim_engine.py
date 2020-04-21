@@ -28,7 +28,6 @@ class TestAPI(unittest.TestCase):
         contig = species.get_contig("chr1")
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         samples = model.get_samples(10)
-        model.generation_time = species.generation_time
 
         for scaling_factor in (0, -1, -1e-6):
             with self.assertRaises(ValueError):
@@ -51,7 +50,6 @@ class TestAPI(unittest.TestCase):
 
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         samples = model.get_samples(10)
-        model.generation_time = species.generation_time
         out, _ = capture_output(
                 engine.simulate,
                 demographic_model=model, contig=contig, samples=samples,
@@ -80,7 +78,6 @@ class TestAPI(unittest.TestCase):
         contig = species.get_contig("chr1", genetic_map="HapMapII_GRCh37")
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         samples = model.get_samples(10)
-        model.generation_time = species.generation_time
         out, _ = capture_output(
                 engine.simulate,
                 demographic_model=model, contig=contig, samples=samples,
@@ -91,7 +88,6 @@ class TestAPI(unittest.TestCase):
         species = stdpopsim.get_species("AraTha")
         contig = species.get_contig("chr5", length_multiplier=0.001)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
-        model.generation_time = species.generation_time
         samples = model.get_samples(10)
         ts = engine.simulate(
                 demographic_model=model, contig=contig, samples=samples,

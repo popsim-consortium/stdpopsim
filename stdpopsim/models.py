@@ -325,6 +325,7 @@ class PiecewiseConstantSize(DemographicModel):
     author = None
     year = None
     doi = None
+    generation_time = 1
 
     def __init__(self, N0, *args):
         self.population_configurations = [
@@ -380,6 +381,7 @@ class IsolationWithMigration(DemographicModel):
     author = None
     year = None
     doi = None
+    generation_time = 1
 
     def __init__(self, NA, N1, N2, T, M12, M21):
         self.population_configurations = [
