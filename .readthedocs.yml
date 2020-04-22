@@ -16,6 +16,5 @@ conda:
 python:
   # Install the local package using pip so that stdpopsim is in the path.
   install:
-    - requirements: requirements/development.txt
-    - method: pip 
+    - method: pip
       path: .
