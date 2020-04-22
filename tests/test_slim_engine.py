@@ -3,14 +3,16 @@ Tests for SLiM simulation engine.
 """
 import os
 import re
+import io
 import sys
 import unittest
 import tempfile
-import subprocess
+import math
 from unittest import mock
 
 import tskit
 import pyslim
+import msprime
 
 import stdpopsim
 import stdpopsim.cli
@@ -57,7 +59,7 @@ class TestAPI(unittest.TestCase):
         self.assertTrue("sim.registerLateEvent" in out)
 
         model = species.get_demographic_model("AncientEurasia_9K19")
-        samples = model.get_samples(1, 2, 3, 4, 5, 6, 7)
+        samples = model.get_samples(10, 20, 30, 40, 50, 60, 70)
         out, _ = capture_output(
                 engine.simulate,
                 demographic_model=model, contig=contig, samples=samples,
@@ -117,15 +119,12 @@ class TestAPI(unittest.TestCase):
         self.assertIsNotNone(match)
         tmp_trees_file = match.group(1)
 
-        slim_cmd = [engine.slim_path(), "-s", str(seed)]
-
         with tempfile.NamedTemporaryFile(mode="w") as slim_script, \
                 tempfile.NamedTemporaryFile(mode="w") as trees_file:
             out = out.replace(tmp_trees_file, trees_file.name)
             slim_script.write(out)
             slim_script.flush()
-            slim_cmd.append(slim_script.name)
-            subprocess.check_call(slim_cmd, stdout=subprocess.DEVNULL)
+            engine._run_slim(slim_script.name, seed=seed)
             ts2_headless = pyslim.load(trees_file.name)
 
         ts2 = engine.recap_and_rescale(
@@ -197,11 +196,17 @@ class TestCLI(unittest.TestCase):
 
     def test_dry_run(self):
         # --dry-run should run slim, but not create an output file.
-        with mock.patch("subprocess.check_call", autospec=True) as mocked_subproc:
+        with mock.patch("subprocess.Popen", autospec=True) as mocked_popen:
+            # Popen is used as a context manager, so we frob the return value
+            # of the returned context manager, rather than the Popen mock itself.
+            proc = mocked_popen.return_value.__enter__.return_value
+            proc.returncode = 0
+            proc.stdout = io.StringIO()
+            proc.stderr = io.StringIO()
             with tempfile.NamedTemporaryFile(mode="w") as f:
                 self.docmd(f"HomSap --dry-run -o {f.name}")
-        mocked_subproc.assert_called_once()
-        self.assertTrue("slim" in mocked_subproc.call_args[0][0])
+        mocked_popen.assert_called_once()
+        self.assertTrue("slim" in mocked_popen.call_args[0][0])
         with tempfile.NamedTemporaryFile(mode="w") as f:
             self.docmd(f"HomSap --dry-run -o {f.name}")
             self.assertEqual(os.stat(f.name).st_size, 0)
@@ -231,7 +236,7 @@ class TestCLI(unittest.TestCase):
 
 
 @unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
-class TestWarnings(unittest.TestCase):
+class TestWarningsAndErrors(unittest.TestCase):
     """
     Checks that warning messages are printed when appropriate.
     """
@@ -250,6 +255,125 @@ class TestWarnings(unittest.TestCase):
         with mock.patch("warnings.warn", autospec=True) as mock_warning:
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         self.assertEqual(mock_warning.call_count, 2)
+
+    def triplet(self):
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("chr22", length_multiplier=0.001)
+        return engine, species, contig
+
+    def test_bad_population_size_addSubPop(self):
+        engine, species, contig = self.triplet()
+        model = stdpopsim.PiecewiseConstantSize(100)
+        samples = model.get_samples(2)
+
+        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+            engine.simulate(
+                    demographic_model=model, contig=contig, samples=samples,
+                    slim_scaling_factor=10, dry_run=True)
+        mock_warning.assert_called_once()
+
+    def test_no_populations_in_generation_1(self):
+        engine, species, contig = self.triplet()
+        model = stdpopsim.PiecewiseConstantSize(100)
+        samples = model.get_samples(2)
+
+        with self.assertRaises(stdpopsim.SLiMException):
+            engine.simulate(
+                    demographic_model=model, contig=contig, samples=samples,
+                    slim_scaling_factor=200, dry_run=True)
+
+    def test_bad_population_size_addSubpopSplit(self):
+        engine, species, contig = self.triplet()
+        model = stdpopsim.IsolationWithMigration(
+                NA=1000, N1=100, N2=1000, T=1000, M12=0, M21=0)
+        samples = model.get_samples(2)
+
+        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+            engine.simulate(
+                    demographic_model=model, contig=contig, samples=samples,
+                    slim_scaling_factor=10, dry_run=True)
+        mock_warning.assert_called_once()
+
+        with self.assertRaises(stdpopsim.SLiMException):
+            engine.simulate(
+                    demographic_model=model, contig=contig, samples=samples,
+                    slim_scaling_factor=200, dry_run=True)
+
+    def test_bad_population_size_setSubpopulationSize(self):
+        engine, species, contig = self.triplet()
+        model = stdpopsim.PiecewiseConstantSize(100, (1000, 1000))
+        samples = model.get_samples(2)
+
+        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+            engine.simulate(
+                    demographic_model=model, contig=contig, samples=samples,
+                    slim_scaling_factor=10, dry_run=True)
+        mock_warning.assert_called_once()
+
+        with self.assertRaises(stdpopsim.SLiMException):
+            engine.simulate(
+                    demographic_model=model, contig=contig, samples=samples,
+                    slim_scaling_factor=200, dry_run=True)
+
+    def test_sample_size_too_big(self):
+        engine, species, contig = self.triplet()
+        model = stdpopsim.PiecewiseConstantSize(1000)
+        samples = model.get_samples(300)
+
+        with self.assertRaises(stdpopsim.SLiMException):
+            engine.simulate(
+                    demographic_model=model, contig=contig, samples=samples,
+                    slim_scaling_factor=10, dry_run=True)
+
+    def exp_decline(self, N0=100, N1=1000, T=1000):
+        """
+        One population model with exponential decline in population size.
+        Used for testing that growth rates are handled appropriately.
+        """
+        r = math.log(N0 / N1) / T
+        return stdpopsim.DemographicModel(
+                id="exp_decline",
+                description="exp_decline",
+                long_description="exp_decline",
+                populations=[stdpopsim.models._pop0],
+                generation_time=1,
+                population_configurations=[
+                    msprime.PopulationConfiguration(
+                        initial_size=N0, growth_rate=r,
+                        metadata=stdpopsim.models._pop0.asdict())
+                    ],
+                demographic_events=[
+                    msprime.PopulationParametersChange(
+                        time=T, initial_size=N1, growth_rate=0, population_id=0),
+                    ],
+                )
+
+    def test_bad_population_size_exp_decline(self):
+        engine, species, contig = self.triplet()
+        model = self.exp_decline()
+        samples = model.get_samples(2)
+
+        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+            engine.simulate(
+                    demographic_model=model, contig=contig, samples=samples,
+                    slim_scaling_factor=10, dry_run=True)
+        mock_warning.assert_called_once()
+
+        with self.assertRaises(stdpopsim.SLiMException):
+            engine.simulate(
+                    demographic_model=model, contig=contig, samples=samples,
+                    slim_scaling_factor=200, dry_run=False)
+
+    def test_sample_size_too_big_exp_decline(self):
+        engine, species, contig = self.triplet()
+        model = self.exp_decline()
+        samples = model.get_samples(30)
+
+        with self.assertRaises(stdpopsim.SLiMException):
+            engine.simulate(
+                    demographic_model=model, contig=contig, samples=samples,
+                    slim_scaling_factor=10, dry_run=True)
 
 
 class TestSlimAvailable(unittest.TestCase):
