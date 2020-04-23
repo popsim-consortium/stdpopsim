@@ -4,6 +4,13 @@
 Installation
 ============
 
+You can get started right away, without installing ``stdpopsim`` locally, by using the
+`Jupyter Binder <https://mybinder.org/v2/gh/popsim-consortium/stdpopsim/master?filepath=stdpopsim_example.ipynb>`_. |binder|
+
+.. |binder| image:: https://mybinder.org/badge_logo.svg
+ :target: https://mybinder.org/v2/gh/popsim-consortium/stdpopsim/master?filepath=stdpopsim_example.ipynb
+
+
 There are two basic options for installing ``stdpopsim`` and its dependencies: either
 using :ref:`sec_installation_conda` or :ref:`sec_installation_pip`.
 We recommend conda for most users (particularly those using OSX or Windows),
@@ -15,10 +22,10 @@ although pip can be more convenient in certain cases.
 Requirements
 ************
 
-Library requirements for stdpopsim should be installed automatically when using
+Library requirements for ``stdpopsim`` should be installed automatically when using
 either conda or pip.
 
-Stdpopsim requires Python 3.5 or later.
+``stdpopsim`` requires Python 3.5 or later.
 
 
 .. _sec_installation_conda:
