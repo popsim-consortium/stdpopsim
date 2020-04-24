@@ -18,6 +18,7 @@ class CiteReason(object):
     MUT_RATE = "mutation rate"
     REC_RATE = "recombination rate"
     ASSEMBLY = "genome assembly"
+    STDPOPSIM = "stdpopsim"
 
 
 @attr.s
@@ -75,3 +76,11 @@ class Citation(object):
         req.add_header("Accept", "text/bibliography; style=bibtex")
         with urllib.request.urlopen(req) as con:
             return con.read().decode()
+
+
+_stdpopsim_citation = Citation(
+    # biorxiv; update upon publication
+    doi="https://doi.org/10.1101/2019.12.20.885129",
+    year="2019",
+    author="Adrion et al.",
+    reasons={CiteReason.STDPOPSIM})
