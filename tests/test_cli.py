@@ -520,6 +520,7 @@ class TestWriteBibtex(unittest.TestCase):
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
         cites_and_cites = [
+                [stdpopsim.citations._stdpopsim_citation],
                 genetic_map.citations,
                 model.citations,
                 engine.citations,
