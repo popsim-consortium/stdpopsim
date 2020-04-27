@@ -109,11 +109,13 @@ class TestJacobsPapuansOutOfAfrica(
     qc_model = homo_sapiens_qc.DenisovanAncestryInPapuans()
 
 
-# Models that have not been QC'd:
-
 class TestGutenkunstThreePopOutOfAfrica(
-        unittest.TestCase, test_models.CatalogDemographicModelTestMixin):
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
     model = species.get_demographic_model("OutOfAfrica_3G09")
+    qc_model = homo_sapiens_qc.GutenkunstOOA()
+
+
+# Models that have not been QC'd:
 
 
 class TestSchiffelsZigzag(
