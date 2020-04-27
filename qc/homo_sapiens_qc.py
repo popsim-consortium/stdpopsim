@@ -838,3 +838,55 @@ class GutenkunstOOA(models.DemographicModel):
             msprime.PopulationParametersChange(time=T_AF, initial_size=N_A,
                                                population_id=0)
         ]
+
+
+class ZigZag(models.DemographicModel):
+    """
+    Model from Schiffels et al (2014) used to test inference methods on a "zigzag"
+    demography. Single population, repeated growth and decay of pop size.
+    """
+    def __init__(self):
+        # from section 7 of the supplement
+        self.generation_time = 30
+        mu = 1.25e-8
+        L = 10000000
+        theta = 7156
+        Ne = theta / 4 / mu / L
+
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=Ne, growth_rate=0,
+                metadata={"sampling_time": 0})
+        ]
+
+        rate_changes = {
+            0.000582262: 1318.18,
+            0.00232905: -329.546,
+            0.00931619: 82.3865,
+            0.0372648: -20.5966,
+            0.149059: 5.14916,
+            # 0.596236: 0
+        }
+
+        de = []
+        for time, rate in rate_changes.items():
+            de.append(
+                msprime.PopulationParametersChange(
+                    time=time * 4 * Ne,
+                    growth_rate=rate / 4 / Ne,
+                    population_id=0
+                )
+            )
+
+        de.append(
+            msprime.PopulationParametersChange(
+                time=0.596236 * 4 * Ne,
+                growth_rate=0,
+                population_id=0,
+                initial_size=0.1 * Ne
+                )
+            )
+
+        self.demographic_events = de
+
+        self.migration_matrix = [[0]]

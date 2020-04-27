@@ -119,5 +119,6 @@ class TestGutenkunstThreePopOutOfAfrica(
 
 
 class TestSchiffelsZigzag(
-        unittest.TestCase, test_models.CatalogDemographicModelTestMixin):
+        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
     model = species.get_demographic_model("Zigzag_1S14")
+    qc_model = homo_sapiens_qc.ZigZag()
