@@ -14,3 +14,4 @@ attrs
 appdirs
 humanize
 pyslim>=0.401
+slim
