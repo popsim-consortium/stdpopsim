@@ -51,7 +51,7 @@ help+wanted%22>`_
 To get started helping with ``stdpopsim`` development, please read the
 following sections to learn how to contribute.
 
-.. sec_development_installation:
+.. _sec_development_installation:
 
 ************
 Installation
@@ -452,52 +452,14 @@ beware!
 Adding a new demographic model
 ******************************
 
-Before implementing any model, be sure to have forked the `stdpopsim` repository
-and cloned it locally, following the instructions in the `GitHub Workflow`_ section.
-Models are first implemented and tested locally, and then submitted as a pull request
-to the `stdpopsim` repository, at which point it is verified by another developer
-before being fully supported within `stdpopsim`.
+Steps for adding a new demographic model:
 
-Every demographic model has a few necessary features or attributes. First of all,
-demographic models are defined by the population sizes, migration rates, split and
-admixture times, and generation lengths given in the source publication. We often take
-the point estimates for each of the values from the best fit model (for example, the 
-parameters that give the maximum likelihood fit), which are translated into
-`msprime`-formatted demographic inputs.
-
-`Msprime`-defined demographic models are specified through the
-``population_configurations``, ``migration_matrix``, and ``demographic_events``. If this
-is your first time specifying a model using `msprime`, it's worth taking some time to
-read through the `msprime`
-`documentation and tutorials <https://msprime.readthedocs.io/en/stable/tutorial.html>`_.
-
-We also require that the demographic model is fully documented, including a unique
-identifier and descriptions and information to find to its original published source.
-The demographic model should include the following:
-
-* ``id``: A unique, short-hand identifier for this demographic model. This ``id``
-  contains a short description written in camel case, followed by an underscore, and then
-  four characters (the number of sampled populations, the first letter of the name of the
-  first author, and the year the study was published). For example, the Gutenkunst et al.
-  (2009) Out of Africa demographic model has the ``id`` "OutOfAfrica_3G09". See
-  `Naming conventions`_ for more details.
-* ``description``: A brief one-line description of the demographic model.
-* ``long_description``: A longer description (say, a concise paragraph) that describes
-  the model in more detail.
-* ``populations``: A list of ``stdpopsim.Population`` objects, which have their own
-  ``id`` and ``description``. For example, the Thousand Genomes Project Yoruba panel
-  could be defined as ``stdpopsim.Population(id="YRI", description="1000 Genomes YRI (Yorubans)")``.
-* ``citations``: A list of ``stdpopsim.Citation`` objects for the appropriate citation
-  for this model. The citation object requires author, year, and doi information, and
-  a specified reason for citing this model.
-* ``generation_time``: The generation time for the species in years. If you are
-  implementing a generic model, the generation time should default to 1.
-
-The parameters used in the implementation must
-also be listed in a csv file in the ``docs/parameter_tables`` directory. This ensures
-that the documentation for this model displays the parameters. We can check that the
-documentation builds properly after implementation by running ``make`` in the docs
-directory and opening the Catalog page from the ``docs/_build/`` directory.
+1. `Fork the repository and create a branch`_
+2. `Write the model function in the catalog source code`_
+3. `Write parameter table`_
+4. `Test the model locally`_
+5. `Write a unit test`_
+6. `Submit a Pull Request on GitHub`_
 
 If this is your first time implementing a demographic model in `stdpopsim`, it's a good
 idea to take some time browsing the
@@ -524,17 +486,205 @@ species. `Stdpopsim` contains a collection of generic models that are widely use
 developing and testing inference methods. If there is a generic model that does not
 currently exist in our catalog but would be useful to include, we also welcome those
 contributions. Again, you should provide a citation for a generic models, or it
-should be commonly used .
+should be commonly used.
+
+---------------------------------------
+Fork the repository and create a branch
+---------------------------------------
+
+Before implementing any model, be sure to have forked the `stdpopsim` repository
+and cloned it locally, following the instructions in the `GitHub Workflow`_ section.
+Models are first implemented and tested locally, and then submitted as a pull request
+to the `stdpopsim` repository, at which point it is verified by another developer
+before being fully supported within `stdpopsim`.
+
+---------------------------------------------------
+Write the model function in the catalog source code
+---------------------------------------------------
+
+In the ``stdpopsim`` catalog source code (found in ``stdpopsim/catalog/``),
+each species has a module that defines all of the necessary functions to run
+simulations for that species, including the demographic model. In each species module,
+you will see that each type of function divided by comments, such as::
+
+    ###########################################################
+    #
+    # Demographic models
+    #
+    ###########################################################
+
+Go to the ``Demographic models`` section of the source code.
+The demographic model function should follow this format:
+
+.. code-block:: python
+
+    def _model_func_name():
+        id = "FILL ME"
+        description = "FILL ME"
+        long_description = """
+        FILL ME
+        """
+        populations = [
+            stdpopsim.Population(id="FILL ME", description="FILL ME"),
+        ]
+        citations = [
+            stdpopsim.Citation(
+                author="FILL ME",
+                year="FILL ME",
+                doi="FILL ME",
+                reasons={stdpopsim.CiteReason.DEM_MODEL})
+        ]
+
+        generation_time = "FILL ME"
+
+        # parameter value definitions based on published values
+
+        return stdpopsim.DemographicModel(
+            id=id,
+            description=description,
+            long_description=long_description,
+            populations=populations,
+            citations=citations,
+            generation_time=generation_time,
+            population_configurations=[
+            "FILL ME"
+            ],
+            migration_matrix=[
+            "FILL ME"
+            ],
+            demographic_events=[
+            "FILL ME"
+            ],
+            )
+
+
+    _species.add_demographic_model(_model_func_name())
+
+
+The demographic model should include the following:
+
+* ``id``: A unique, short-hand identifier for this demographic model. This ``id``
+  contains a short description written in camel case, followed by an underscore, and then
+  four characters (the number of sampled populations, the first letter of the name of the
+  first author, and the year the study was published). For example, the Gutenkunst et al.
+  (2009) Out of Africa demographic model has the ``id`` "OutOfAfrica_3G09". See
+  `Naming conventions`_ for more details.
+* ``description``: A brief one-line description of the demographic model.
+* ``long_description``: A longer description (say, a concise paragraph) that describes
+  the model in more detail.
+* ``populations``: A list of ``stdpopsim.Population`` objects, which have their own
+  ``id`` and ``description``. For example, the Thousand Genomes Project Yoruba panel
+  could be defined as ``stdpopsim.Population(id="YRI", description="1000 Genomes YRI
+  (Yorubans)")``.
+* ``citations``: A list of ``stdpopsim.Citation`` objects for the appropriate citation
+  for this model. The citation object requires author, year, and doi information, and
+  a specified reason for citing this model.
+* ``generation_time``: The generation time for the species in years. If you are
+  implementing a generic model, the generation time should default to 1.
+
+
+Every demographic model has a few necessary features or attributes. First of all,
+demographic models are defined by the population sizes, migration rates, split and
+admixture times, and generation lengths given in the source publication. We often take
+the point estimates for each of the values from the best fit model (for example, the 
+parameters that give the maximum likelihood fit), which are translated into
+`msprime`-formatted demographic inputs.
+
+`Msprime`-defined demographic models are specified through the
+``population_configurations``, ``migration_matrix``, and ``demographic_events``. If this
+is your first time specifying a model using `msprime`, it's worth taking some time to
+read through the `msprime`
+`documentation and tutorials <https://msprime.readthedocs.io/en/stable/tutorial.html>`_.
+
+
+---------------------
+Write parameter table
+---------------------
+
+The parameters used in the implementation must
+also be listed in a csv file in the ``docs/parameter_tables`` directory. This ensures
+that the documentation for this model displays the parameters.
+
+Take a look at the csv files currently in ``docs/parameter_tables`` for inspiration.
+The csv file should have the format::
+
+    Parameter Type (units), Value, Description
+
+
+We can check that the documentation builds properly after implementation by running
+``make`` in the docs directory and opening the Catalog page from the ``docs/_build/``
+directory. See `Documentation`_ for more details.
+
+
+----------------------
+Test the model locally
+----------------------
+
+Once you have written the demographic model function, you should test the model locally
+with ``stdpopsim``. Follow the development :ref:`sec_development_installation`
+instructions to install the development ``stdpopsim`` version along with the
+requirements.
+
+Now check that your new demographic model function has been imported:
+
+.. code-block:: python
+
+    import stdpopsim
+    species = stdpopsim.get_species("HomSap")
+    for x in species.demographic_models:
+        print(x.id)
+
+    # OutOfAfrica_3G09
+    # OutOfAfrica_2T12
+    # Africa_1T12
+    # AmericanAdmixture_4B11
+    # OutOfAfricaArchaicAdmixture_5R19
+    # Zigzag_1S14
+    # AncientEurasia_9K19
+    # PapuansOutOfAfrica_10J19
+
+
+The example above lists the imported demographic models for humans.
+You should substitute ``"HomSap"`` for which ever species you added your model to.
+Your new model should be printed along with currently available demographic models.
+
+.. note::
+
+    If your demographic model does not print, after defining your model function,
+    did you include the call ``_species.add_demographic_model(_model_func_name())``,
+    where ``_model_func_name()`` is your model function name?
+
+    If you are still having trouble, check the
+    `GitHub issues <https://github.com/popsim-consortium/stdpopsim/issues?q=is%3Aissue+adding+demographic+model+>`_,
+    or `open an issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`_.
+
+Next, check that you can successfully run a simulation with your new model with the
+Python API. See :ref:`sec_python_tute` for more details.
+
+-----------------
+Write a unit test
+-----------------
+
+.. todo::
+
+    Need to update when https://github.com/popsim-consortium/stdpopsim/issues/305
+    is complete
+
+-------------------------------
+Submit a Pull Request on GitHub
+-------------------------------
+
+Once you have implemented the demographic model locally, including basic unit tests and
+documentation, the next step is to open a pull request with this addition.
+See the `GitHub workflow`_ for more details.
 
 ---------------------------------------
 So the model is implemented. What next?
 ---------------------------------------
 
-Once you have implemented the demographic model locally, including basic unit tests and
-documentation, the next step is to open a pull request with this addition. Now at this
-point, most of your work is done!  The model is reviewed and verified following the
-`Demographic model review process`_ by an independent member of the development team,
-and there may be some discussion about formatting and
+Now at this point, most of your work is done!  The model is reviewed and
+verified following the `Demographic model review process`_ by an independent member
+of the development team, and there may be some discussion about formatting and
 to clear up any confusing bits of the demographic parameters before the model is
 fully incorporated into `stdpopsim`.
 
