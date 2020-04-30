@@ -771,3 +771,70 @@ class DenisovanAncestryInPapuans(models.DemographicModel):
                 destination=8),
         ]
         self.demographic_events.sort(key=lambda x: x.time)
+
+
+class GutenkunstOOA(models.DemographicModel):
+    """
+    From Gutenkunst et al (2009). Parameters taken from maximum likelihood values
+    in Table 1 in that paper.
+    """
+    def __init__(self):
+        generation_time = 25
+
+        # Population sizes
+        N_A = 7300
+        N_AF = 12300
+        N_B = 2100
+        N_EU0 = 1000
+        N_AS0 = 510
+
+        # Growth rates per generation
+        r_EU = 0.4e-2
+        r_AS = 0.55e-2
+
+        # Migration rates
+        m_AF_B = 25e-5
+        m_AF_EU = 3e-5
+        m_AF_AS = 1.9e-5
+        m_EU_AS = 9.6e-5
+
+        # Epoch times
+        T_AF = 220e3/generation_time
+        T_B = 140e3/generation_time
+        T_EU_AS = 21.2e3/generation_time
+
+        # Calculate population sizes at modern (T=0) time
+        N_EUF = N_EU0 * math.exp(r_EU * T_EU_AS)
+        N_ASF = N_AS0 * math.exp(r_AS * T_EU_AS)
+
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N_AF, growth_rate=0),
+            msprime.PopulationConfiguration(
+                initial_size=N_EUF, growth_rate=r_EU),
+            msprime.PopulationConfiguration(
+                initial_size=N_ASF, growth_rate=r_AS)
+        ]
+
+        # Setup initial migration matrix
+        self.migration_matrix = [
+            [0, m_AF_EU, m_AF_AS],
+            [m_AF_EU, 0, m_EU_AS],
+            [m_AF_AS, m_EU_AS, 0]
+        ]
+
+        self.demographic_events = [
+            # CEU and CHB merge into B, reset migration rates to Af-B, change pop size
+            msprime.MassMigration(time=T_EU_AS, source=2, dest=1, proportion=1),
+            msprime.MigrationRateChange(time=T_EU_AS, rate=0),
+            msprime.MigrationRateChange(time=T_EU_AS, rate=m_AF_B, matrix_index=(0, 1)),
+            msprime.MigrationRateChange(time=T_EU_AS, rate=m_AF_B, matrix_index=(1, 0)),
+            msprime.PopulationParametersChange(time=T_EU_AS, initial_size=N_B,
+                                               population_id=1, growth_rate=0),
+            # B and AF merge, turn migration off, reset population size
+            msprime.MassMigration(time=T_B, source=1, dest=0, proportion=1),
+            msprime.MigrationRateChange(time=T_B, rate=0),
+            # Ancestral size change, reset population size
+            msprime.PopulationParametersChange(time=T_AF, initial_size=N_A,
+                                               population_id=0)
+        ]
