@@ -765,31 +765,26 @@ def _zigzag():
             reasons={stdpopsim.CiteReason.DEM_MODEL})
     ]
 
-    generation_time = 29
+    generation_time = 30
     N0 = 14312
 
-    g_1 = 0.023025
-    t_1 = 33.333
-    n_1 = N0
+    g_1 = 0.02302578256
+    t_1 = 33.333334976
 
-    g_2 = -0.005756
-    t_2 = 133.33
-    n_2 = N0/10
+    g_2 = -0.0057564631
+    t_2 = 133.3334544
 
-    g_3 = 0.0014391
-    t_3 = 533.33
-    n_3 = N0
+    g_3 = 0.00143911578
+    t_3 = 533.33324512
 
-    g_4 = -0.00035977
-    t_4 = 2133.33
-    n_4 = N0/10
+    g_4 = -0.0003597785
+    t_4 = 2133.3352704
 
-    g_5 = 8.99448e-5
-    t_5 = 8533.33
-    n_5 = N0
+    g_5 = 8.9944801565e-5
+    t_5 = 8533.329632
 
     n_ancient = N0/10
-    t_ancient = 34133.31
+    t_ancient = 34133.318528
 
     population_configurations = [
         msprime.PopulationConfiguration(
@@ -798,17 +793,17 @@ def _zigzag():
 
     demographic_events = [
             msprime.PopulationParametersChange(
-                initial_size=n_1, time=t_1, growth_rate=g_1),
+                time=t_1, growth_rate=g_1, population_id=0),
             msprime.PopulationParametersChange(
-                initial_size=n_2, time=t_2, growth_rate=g_2),
+                time=t_2, growth_rate=g_2, population_id=0),
             msprime.PopulationParametersChange(
-                initial_size=n_3, time=t_3, growth_rate=g_3),
+                time=t_3, growth_rate=g_3, population_id=0),
             msprime.PopulationParametersChange(
-                initial_size=n_4, time=t_4, growth_rate=g_4),
+                time=t_4, growth_rate=g_4, population_id=0),
             msprime.PopulationParametersChange(
-                initial_size=n_5, time=t_5, growth_rate=g_5),
+                time=t_5, growth_rate=g_5, population_id=0),
             msprime.PopulationParametersChange(
-                time=t_ancient, initial_size=n_ancient, growth_rate=0)
+                time=t_ancient, initial_size=n_ancient, growth_rate=0, population_id=0)
     ]
 
     return stdpopsim.DemographicModel(
