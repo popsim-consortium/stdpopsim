@@ -704,10 +704,15 @@ follow these steps for it to be officially supported by stdpopsim:
        standards. The model is considered 'preliminary' and not linked from the
        online documentation and not included in the CLI.
 
-    2. Developer A creates an issue tracking the QC for the model which includes
-       information about the primary sources used to create the model and the
-       population indices used for their msprime implementation. Developer B is
-       then assigned/volunteers to do a blind implementation of the model.
+    2. Developer A creates an `issue
+       <https://github.com/popsim-consortium/stdpopsim/issues/new/choose>`__
+       tracking the QC for the model which includes information about the
+       primary sources used to create the model and the population indices
+       used for their msprime implementation. To create a new Model QC issue,
+       click "New issue" from the "Issues" tab on GitHub, and click "Get
+       started" to use the Model QC issue template. Follow the template to
+       include the necessary information in the issue. Developer B is then
+       assigned/volunteers to do a blind implementation of the model.
 
     3. M creates an issue for the CLI implementation of the model.
 
