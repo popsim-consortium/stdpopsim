@@ -1,9 +1,7 @@
 import unittest
+
 import stdpopsim
-from stdpopsim import pongo_abelii
-from tests import test_models
 from tests import test_species
-from qc import pongo_abelii_qc
 
 
 class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
@@ -49,8 +47,3 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         self.assertEqual(genome.get_chromosome("chr21").length, 48394510)
         self.assertEqual(genome.get_chromosome("chr22").length, 46535552)
         self.assertEqual(genome.get_chromosome("chrX").length, 156195299)
-
-
-class TestPongo(unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    model = pongo_abelii._orangutan()
-    qc_model = pongo_abelii_qc.LockePongo()

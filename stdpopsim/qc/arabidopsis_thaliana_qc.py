@@ -1,6 +1,11 @@
 import msprime
 import numpy as np
+
+import stdpopsim
 import stdpopsim.models as models
+
+
+_species = stdpopsim.get_species("AraTha")
 
 # Some generic populations to use for qc
 population_sample_0 = models.Population("sampling_0",
@@ -67,6 +72,10 @@ class Durvasula2017MSMC(models.DemographicModel):
         self.migration_matrix = [[0]]
 
 
+_species.get_demographic_model(
+        "SouthMiddleAtlas_1D17").register_qc(Durvasula2017MSMC())
+
+
 class HuberTwoEpoch(models.DemographicModel):
     populations = [
         models.Population(id="ATL", description="A. thalina"),
@@ -94,6 +103,9 @@ class HuberTwoEpoch(models.DemographicModel):
             msprime.PopulationParametersChange(
                 time=T_2, initial_size=N_ANC, population_id=0),
         ]
+
+
+_species.get_demographic_model("African2Epoch_1H18").register_qc(HuberTwoEpoch())
 
 
 class HuberThreeEpoch(models.DemographicModel):
@@ -127,3 +139,6 @@ class HuberThreeEpoch(models.DemographicModel):
             msprime.PopulationParametersChange(
                 time=T_2 + T_3, initial_size=N_ANC, population_id=0),
         ]
+
+
+_species.get_demographic_model("African3Epoch_1H18").register_qc(HuberThreeEpoch())

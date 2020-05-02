@@ -25,4 +25,6 @@ from .catalog import e_coli  # NOQA
 from .catalog import drosophila_melanogaster  # NOQA
 from .catalog import canis_familiaris  # NOQA
 
+from . import qc  # NOQA
+
 from . slim_engine import * # NOQA

@@ -1,7 +1,12 @@
 # This script is a QC implementation of the Pongo model
 import msprime
 import numpy as np
+
+import stdpopsim
 import stdpopsim.models as models
+
+
+_species = stdpopsim.get_species("PonAbe")
 
 # Some generic populations to use for qc
 population_sample_0 = models.Population("sampling_0",
@@ -51,3 +56,6 @@ class LockePongo(models.DemographicModel):
             msprime.PopulationParametersChange(
                 time=T, initial_size=Ne, growth_rate=0, population_id=0)
         ]
+
+
+_species.get_demographic_model("TwoSpecies_2L11").register_qc(LockePongo())

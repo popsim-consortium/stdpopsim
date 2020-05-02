@@ -1,9 +1,7 @@
 import unittest
 
 import stdpopsim
-from tests import test_models
 from tests import test_species
-from qc import arabidopsis_thaliana_qc
 
 
 class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
@@ -30,33 +28,3 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         self.assertEqual(genome.get_chromosome("chr3").length, 23459830)
         self.assertEqual(genome.get_chromosome("chr4").length, 18585056)
         self.assertEqual(genome.get_chromosome("chr5").length, 26975502)
-
-
-species = stdpopsim.get_species("AraTha")
-
-
-class TestDurvasula2017MSMC(
-        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    """
-    Basic tests for the Durvasula MSMC model.
-    """
-    model = species.get_demographic_model("SouthMiddleAtlas_1D17")
-    qc_model = arabidopsis_thaliana_qc.Durvasula2017MSMC()
-
-
-class TestHuberTwoEpoch(
-        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    """
-    Basic tests for the Huber et al. two epoch model.
-    """
-    model = species.get_demographic_model("African2Epoch_1H18")
-    qc_model = arabidopsis_thaliana_qc.HuberTwoEpoch()
-
-
-class TestHuberThreeEpoch(
-        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    """
-    Basic tests for the Huber three epoch model.
-    """
-    model = species.get_demographic_model("African3Epoch_1H18")
-    qc_model = arabidopsis_thaliana_qc.HuberThreeEpoch()

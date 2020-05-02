@@ -1,5 +1,10 @@
 import msprime
+
+import stdpopsim
 import stdpopsim.models as models
+
+
+_species = stdpopsim.get_species("DroMel")
 
 # Some generic populations to use for qc
 population_sample_0 = models.Population("sampling_0",
@@ -59,6 +64,10 @@ class LiStephanTwoPopulation(models.DemographicModel):
         ]
 
 
+_species.get_demographic_model(
+        "OutOfAfrica_2L06").register_qc(LiStephanTwoPopulation())
+
+
 class SheehanSongThreeEpic(models.DemographicModel):
     populations = [population_sample_0]
 
@@ -97,3 +106,7 @@ class SheehanSongThreeEpic(models.DemographicModel):
             msprime.PopulationParametersChange(
                 time=T_2, initial_size=N_3, population_id=0),
         ]
+
+
+_species.get_demographic_model(
+        "African3Epoch_1S16").register_qc(SheehanSongThreeEpic())

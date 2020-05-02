@@ -458,8 +458,7 @@ Steps for adding a new demographic model:
 2. `Write the model function in the catalog source code`_
 3. `Write parameter table`_
 4. `Test the model locally`_
-5. `Write a unit test`_
-6. `Submit a Pull Request on GitHub`_
+5. `Submit a Pull Request on GitHub`_
 
 If this is your first time implementing a demographic model in `stdpopsim`, it's a good
 idea to take some time browsing the
@@ -661,20 +660,11 @@ Your new model should be printed along with currently available demographic mode
 Next, check that you can successfully run a simulation with your new model with the
 Python API. See :ref:`sec_python_tute` for more details.
 
------------------
-Write a unit test
------------------
-
-.. todo::
-
-    Need to update when https://github.com/popsim-consortium/stdpopsim/issues/305
-    is complete
-
 -------------------------------
 Submit a Pull Request on GitHub
 -------------------------------
 
-Once you have implemented the demographic model locally, including basic unit tests and
+Once you have implemented the demographic model locally, including
 documentation, the next step is to open a pull request with this addition.
 See the `GitHub workflow`_ for more details.
 
@@ -697,12 +687,11 @@ Demographic model review process
 When Developer A creates a new demographic model on their local fork they must
 follow these steps for it to be officially supported by stdpopsim:
 
-    1. Developer A submits PR to add a new model. This must include basic unit
-       tests and full documentation (i.e., the documentation that will be
+    1. Developer A submits a PR to add a new model to the catalog. This includes
+       full documentation (i.e., the documentation that will be
        rendered on rtd). The code is checked for any obvious problems/style
-       issues etc by maintainer M and merged when it meets these basic
-       standards. The model is considered 'preliminary' and not linked from the
-       online documentation and not included in the CLI.
+       issues etc by a maintainer and merged when it meets these basic
+       standards. The new catalog model is considered 'preliminary'.
 
     2. Developer A creates an `issue
        <https://github.com/popsim-consortium/stdpopsim/issues/new/choose>`__
@@ -714,27 +703,17 @@ follow these steps for it to be officially supported by stdpopsim:
        include the necessary information in the issue. Developer B is then
        assigned/volunteers to do a blind implementation of the model.
 
-    3. M creates an issue for the CLI implementation of the model.
+    3. Developer B creates a blind implementation of the model in the
+       ``stdpopsim/qc/species_name_qc.py`` file, remembering to register the
+       QC model implementation (see other QC models for examples).  Note that
+       if you are adding a new species you will have to add a new import to
+       ``stdpopsim/qc/__init__.py``.
 
-    4. Developer B creates a blind implementation of the model in the
-       ``qc/species_name_qc.py`` file. Note that if you are adding a new species
-       you will have to add a new import to ``qc/__init__.py``.
+    4. Developer B runs the units tests to verify the equivalence of the
+       catalog and QC model implementations.
 
-    5. Developer B adds the automatic checking of this model for
-       equality with the production model to the suite of unit tests in for the
-       demograpic model in ``tests/test_species_name_.py`` following the
-       template below::
-
-        def test_qc_model_equal(self):
-            model = homo_sapiens.BrowningAmerica()
-            self.assertTrue(model.equals(homo_sapiens_qc.BrowningAmerica()))
-
-       Developer B then creates a PR, and all being good, this PR is merged and
+    5. Developer B then creates a PR, and all being good, this PR is merged and
        the QC issue is closed.
-
-    6. Someone then makes a PR updating the CLI, checking that the
-       documentation, citations etc all work properly, and adds the model to
-       the list of documented models.
 
 ------------------------
 Arbitration

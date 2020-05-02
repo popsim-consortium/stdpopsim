@@ -5,9 +5,7 @@ import unittest
 
 import stdpopsim
 
-from tests import test_models
 from tests import test_species
-from qc import homo_sapiens_qc
 
 
 class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
@@ -68,57 +66,3 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
             self.assertAlmostEqual(
                 chrom.recombination_rate,
                 contig.recombination_map.mean_recombination_rate)
-
-
-species = stdpopsim.get_species("HomSap")
-
-
-class TestTennessenTwoPopOutOfAfrica(
-        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    model = species.get_demographic_model("OutOfAfrica_2T12")
-    qc_model = homo_sapiens_qc.TennessenTwoPopOutOfAfrica()
-
-
-class TestTennessenOnePopAfrica(
-        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    model = species.get_demographic_model("Africa_1T12")
-    qc_model = homo_sapiens_qc.TennessenOnePopAfrica()
-
-
-class TestBrowningAmerica(
-        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    model = species.get_demographic_model("AmericanAdmixture_4B11")
-    qc_model = homo_sapiens_qc.BrowningAmerica()
-
-
-class TestRagsdaleArchaic(
-        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    model = species.get_demographic_model("OutOfAfricaArchaicAdmixture_5R19")
-    qc_model = homo_sapiens_qc.RagsdaleArchaic()
-
-
-class TestKammAncientEurasia(
-        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    model = species.get_demographic_model("AncientEurasia_9K19")
-    qc_model = homo_sapiens_qc.KammAncientSamples()
-
-
-class TestJacobsPapuansOutOfAfrica(
-        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    model = species.get_demographic_model("PapuansOutOfAfrica_10J19")
-    qc_model = homo_sapiens_qc.DenisovanAncestryInPapuans()
-
-
-class TestGutenkunstThreePopOutOfAfrica(
-        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    model = species.get_demographic_model("OutOfAfrica_3G09")
-    qc_model = homo_sapiens_qc.GutenkunstOOA()
-
-
-# Models that have not been QC'd:
-
-
-class TestSchiffelsZigzag(
-        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    model = species.get_demographic_model("Zigzag_1S14")
-    qc_model = homo_sapiens_qc.ZigZag()

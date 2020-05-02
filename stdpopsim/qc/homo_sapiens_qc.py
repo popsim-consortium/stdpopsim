@@ -1,8 +1,12 @@
-# This script is a QC implementation of the two population Tennessen Out Of Africa model
-import msprime
-import numpy as np
 import math
+
+import msprime
+
+import stdpopsim
 import stdpopsim.models as models
+
+
+_species = stdpopsim.get_species("HomSap")
 
 # Some generic populations to use for qc
 population_sample_0 = models.Population("sampling_0",
@@ -67,6 +71,9 @@ class TennessenOnePopAfrica(models.DemographicModel):
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0)
         ]
+
+
+_species.get_demographic_model("Africa_1T12").register_qc(TennessenOnePopAfrica())
 
 
 class TennessenTwoPopOutOfAfrica(models.DemographicModel):
@@ -160,6 +167,10 @@ class TennessenTwoPopOutOfAfrica(models.DemographicModel):
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0)
         ]
+
+
+_species.get_demographic_model(
+        "OutOfAfrica_2T12").register_qc(TennessenTwoPopOutOfAfrica())
 
 
 class BrowningAmerica(models.DemographicModel):
@@ -258,6 +269,10 @@ class BrowningAmerica(models.DemographicModel):
             msprime.PopulationParametersChange(
                 time=T_AF0_AF1, initial_size=N_AF0, population_id=0),
         ]
+
+
+_species.get_demographic_model(
+        "AmericanAdmixture_4B11").register_qc(BrowningAmerica())
 
 
 class RagsdaleArchaic(models.DemographicModel):
@@ -391,6 +406,10 @@ class RagsdaleArchaic(models.DemographicModel):
         ]
 
 
+_species.get_demographic_model(
+        "OutOfAfricaArchaicAdmixture_5R19").register_qc(RagsdaleArchaic())
+
+
 class KammAncientSamples(models.DemographicModel):
     """
     Demographic inferred by momi described in Kamm et al. (2019). The model is
@@ -498,7 +517,7 @@ class KammAncientSamples(models.DemographicModel):
         # Compute Neanderthal pop size decline rate
         # I'm assuming that the N_Nean is the size of Neanderthal population
         # at the time of sampling the Altai individual
-        r_Nean = -np.log(N_Nean_Losch/N_Nean) / (t_Mbu_Losch-t_Altai)
+        r_Nean = -math.log(N_Nean_Losch/N_Nean) / (t_Mbu_Losch-t_Altai)
 
         # Using columns in figure in Kamm paper as proxies for pop number
         self.demographic_events = [
@@ -554,6 +573,10 @@ class KammAncientSamples(models.DemographicModel):
                 time=t_Nean_Losch, initial_size=N_Nean_Losch,
                 population_id=3)
         ]
+
+
+_species.get_demographic_model(
+        "AncientEurasia_9K19").register_qc(KammAncientSamples())
 
 
 class DenisovanAncestryInPapuans(models.DemographicModel):
@@ -807,6 +830,10 @@ class DenisovanAncestryInPapuans(models.DemographicModel):
         self.demographic_events.sort(key=lambda x: x.time)
 
 
+_species.get_demographic_model(
+        "PapuansOutOfAfrica_10J19").register_qc(DenisovanAncestryInPapuans())
+
+
 class GutenkunstOOA(models.DemographicModel):
     """
     From Gutenkunst et al (2009). Parameters taken from maximum likelihood values
@@ -876,6 +903,9 @@ class GutenkunstOOA(models.DemographicModel):
         ]
 
 
+_species.get_demographic_model("OutOfAfrica_3G09").register_qc(GutenkunstOOA())
+
+
 class ZigZag(models.DemographicModel):
     """
     Model from Schiffels et al (2014) used to test inference methods on a "zigzag"
@@ -928,3 +958,6 @@ class ZigZag(models.DemographicModel):
         self.demographic_events = de
 
         self.migration_matrix = [[0]]
+
+
+_species.get_demographic_model("Zigzag_1S14").register_qc(ZigZag())
