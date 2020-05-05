@@ -1390,3 +1390,138 @@ def _papuans_10j19():
 
 
 _species.add_demographic_model(_papuans_10j19())
+
+
+def _AJ():
+    id = "AshkSub_7G19"
+    description = "Ashkenazi Jewish with substructure and European admixture"
+    long_description = """
+    This was the best fit model of Ashkenazi Jewish demographic history from
+    Gladstein and Hammer 2019, shown in Figure 1, labeled "Substructure Model".
+    Model choice and parameter estimation were performed with Approximate
+    Bayesian Computation. Parameter values are based on the mode from ABC found
+    in Table S3 of Gladstein and Hammer 2019. In this model, the ancestors of
+    Europeans and Middle Eastern populations diverge. Non-Ashkenazi Jewish
+    populations then diverge from the Middle Eastern population. The Ashkenazi
+    Jews then diverge from the other Jewish populations and experience a
+    substantial reduction in population size and a single pulse of gene flow
+    from Europeans (corresponding to their arrival in Europe). After the gene
+    flow from Europeans to the Ashkenazi Jews, the Ashkenazi Jews split into
+    two groups, the Western and Eastern. Finally, the Western Ashkenazi Jews
+    experience moderate instantaneous population size increase, and the
+    Eastern experience a massive population size increase. In addition to the
+    demographic model Gladstein and Hammer 2019 also incorporated an SNP array
+    ascertainment scheme into the simulation. This demographic model does not
+    include the SNP array ascertainment scheme. It should be noted that
+    Gladstein and Hammer 2019 simulated with a mutation rate of 2.5e-8.
+    """
+    populations = [
+        _yri_population,
+        _chb_population,
+        _ceu_population,
+        stdpopsim.Population(id="ME", description="Middle Eastern"),
+        stdpopsim.Population(id="J", description="non-Ashkenazi Jewish"),
+        stdpopsim.Population(id="WAJ", description="Western Ashkenazi Jewish"),
+        stdpopsim.Population(id="EAJ", description="Eastern Ashkenazi Jewish"),
+    ]
+    citations = [
+        stdpopsim.Citation(
+            author="Gladstein and Hammer",
+            year=2019,
+            doi="https://doi.org/10.1093/molbev/msz047",
+            reasons={stdpopsim.CiteReason.DEM_MODEL})
+    ]
+
+    generation_time = 25
+
+    # parameter value definitions based on mode from ABC
+    # found in Table S3 of Gladstein and Hammer 2019
+
+    # effective population sizes
+    NANC = 7300  # not inferred. Value taken from Gutenkunst et al. 2009
+    NYRI = 10**4.26
+    NCHB = 10**3.61
+    NCEU = 10**4.52
+    NM = 10**5.64
+    NJ = 10**5.55
+    NAg = 10**3.04
+    NWA = 10**3.82
+    NEA = 10**6.29
+
+    # admixture proportion from European to Ashkenazi Jews.
+    m = 0.17
+
+    # Times in generations
+    Tgrowth = 8800  # not inferred. Value taken from Gutenkunst et al. 2009
+    TAF = 2105
+    Teu_as = 850
+    TEM = 481
+    TMJ = 211
+    TA = 29
+    Tm = 28  # not inferred. For simplicity put at one generation before TA
+    TAEW = 14
+    TAg = 13  # not inferred. For simplicity put at one generation before TAEW
+
+    YRI, CHB, CEU, M, J, WA, EA = 0, 1, 2, 3, 4, 5, 6
+
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=generation_time,
+        population_configurations=[
+            msprime.PopulationConfiguration(
+                initial_size=NYRI, metadata=populations[0].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=NCHB, metadata=populations[1].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=NCEU, metadata=populations[2].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=NM, metadata=populations[3].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=NJ, metadata=populations[4].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=NWA, metadata=populations[5].asdict()),
+            msprime.PopulationConfiguration(
+                initial_size=NEA, metadata=populations[6].asdict())
+        ],
+        demographic_events=[
+            # instantaneous growth in EA and WA at the same time
+            msprime.PopulationParametersChange(
+                time=TAg, initial_size=NAg, population_id=WA
+            ),
+            msprime.PopulationParametersChange(
+                time=TAg, initial_size=NAg, population_id=EA
+            ),
+            # EA splits from WA
+            msprime.MassMigration(
+                time=TAEW, source=EA, destination=WA, proportion=1.0),
+            # E geneflow into WA ancestor (forward in time)
+            msprime.MassMigration(
+                time=Tm, source=WA, destination=CEU, proportion=m),
+            # WA ancestor splits from J
+            msprime.MassMigration(
+                time=TA, source=WA, destination=J, proportion=1.0),
+            # J splits from M split
+            msprime.MassMigration(
+                time=TMJ, source=J, destination=M, proportion=1.0),
+            # M splits from CEU
+            msprime.MassMigration(
+                time=TEM, source=M, destination=CEU, proportion=1.0),
+            # CEU splits from CHB
+            msprime.MassMigration(
+                time=Teu_as, source=CEU, destination=CHB, proportion=1.0),
+            # CHB splits from YRI
+            msprime.MassMigration(
+                time=TAF, source=CHB, destination=YRI, proportion=1.0),
+            # Instantaneous growth in YRI
+            msprime.PopulationParametersChange(
+                time=Tgrowth, initial_size=NANC, population_id=YRI
+            )
+        ]
+    )
+
+
+_species.add_demographic_model(_AJ())
