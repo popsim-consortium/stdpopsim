@@ -99,8 +99,8 @@ _gm = stdpopsim.GeneticMap(
         subsequently lifted over to the dm6 assembly.
         """,
     url=(
-        "http://sesame.uoregon.edu/~adkern/dmel_recombination_map/"
-        "comeron2012_maps.tar.gz"),
+        "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
+        "DroMel/comeron2012_maps.tar.gz"),
     file_pattern="genetic_map_comeron2012_dm6_{id}.txt",
     citations=[stdpopsim.Citation(
         author="Comeron et al",

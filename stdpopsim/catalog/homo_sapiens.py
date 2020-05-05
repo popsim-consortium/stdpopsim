@@ -143,9 +143,8 @@ _gm = stdpopsim.GeneticMap(
         the 1000 Genomes download site for details of these adjustments.
         """,
     url=(
-        "https://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/"
-        "20110106_recombination_hotspots/"
-        "HapmapII_GRCh37_RecombinationHotspots.tar.gz"),
+        "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
+        "HomSap/HapmapII_GRCh37_RecombinationHotspots.tar.gz"),
     file_pattern="genetic_map_GRCh37_{id}.txt",
     citations=[
         _hapmap2007.because(stdpopsim.CiteReason.GEN_MAP)],
@@ -165,8 +164,8 @@ _gm = stdpopsim.GeneticMap(
         (sex averaged) map. See
         https://www.decode.com/addendum/ for more details.""",
     url=(
-        "http://sesame.uoregon.edu/~adkern/stdpopsim/decode/"
-        "decode_2010_sex-averaged_map.tar.gz"),
+        "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
+        "HomSap/decode_2010_sex-averaged_map.tar.gz"),
     file_pattern="genetic_map_decode_2010_sex-averaged_{id}.txt",
     citations=[
         stdpopsim.Citation(
