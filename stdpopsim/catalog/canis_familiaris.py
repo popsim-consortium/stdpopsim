@@ -124,8 +124,8 @@ _gm = stdpopsim.GeneticMap(
         recombinations were called using duoHMM, and genetic distances were
         obtained using Haldane's map function.
         """,
-    url="https://github.com/cflerin/dog_recombination/raw/master/"
-        "dog_genetic_maps.tar.gz",
+    url="https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
+        "CanFam/dog_genetic_maps.tar.gz",
     file_pattern="{id}_average_canFam3.1.txt",
     citations=[
             _CampbellEtAl.because(stdpopsim.CiteReason.GEN_MAP)

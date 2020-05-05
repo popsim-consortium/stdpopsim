@@ -88,8 +88,8 @@ _gm = stdpopsim.GeneticMap(
         each cross and then averaged across the 17 populations using loess.
         """,
     url=(
-        "http://www.eeb.ucla.edu/Faculty/Lohmueller/data/"
-        "uploads/salome2012_maps.tar.gz"),
+        "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
+        "AraTha/salome2012_maps.tar.gz"),
     file_pattern="arab_{id}_map_loess.txt",
     citations=[stdpopsim.Citation(
         doi="https://doi.org/10.1038/hdy.2011.95",
