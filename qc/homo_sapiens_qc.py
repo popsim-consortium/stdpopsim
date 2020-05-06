@@ -4,8 +4,18 @@ import numpy as np
 import math
 import stdpopsim.models as models
 
+# Some generic populations to use for qc
+population_sample_0 = models.Population("sampling_0",
+                                        "Population that samples at time 0",
+                                        0)
+population_sample_none = models.Population("sampling_none",
+                                           "Population that does not sample",
+                                           None)
+
 
 class TennessenOnePopAfrica(models.DemographicModel):
+    populations = [population_sample_0]
+
     def __init__(self):
         # This model is the same as the Tennessen two population model except
         # the European population has been removed.
@@ -60,6 +70,8 @@ class TennessenOnePopAfrica(models.DemographicModel):
 
 
 class TennessenTwoPopOutOfAfrica(models.DemographicModel):
+    populations = [population_sample_0] * 2
+
     def __init__(self):
         # Since the Tennessen two population model largely uses parameters from
         # the Gravel et al 2001, we begin by taking the maximum likelihood
@@ -151,6 +163,8 @@ class TennessenTwoPopOutOfAfrica(models.DemographicModel):
 
 
 class BrowningAmerica(models.DemographicModel):
+    populations = [population_sample_0] * 4
+
     def __init__(self):
         # Parameters are taken from the Methods - Simulated data section
         # Population sizes
@@ -247,6 +261,8 @@ class BrowningAmerica(models.DemographicModel):
 
 
 class RagsdaleArchaic(models.DemographicModel):
+    populations = [population_sample_0] * 3 + [population_sample_none] * 2
+
     def __init__(self):
 
         # All parameters were taken from table 1 of Ragsdale et al. (2019)
@@ -380,6 +396,18 @@ class KammAncientSamples(models.DemographicModel):
     Demographic inferred by momi described in Kamm et al. (2019). The model is
     illustrated in Figure 3, with parameters given in Table 2.
     """
+    populations = [
+        population_sample_0,
+        models.Population("", "", 8e3 / 25),
+        population_sample_0,
+        models.Population("", "", 7.5e3 / 25),
+        models.Population("", "", 24e3 / 25),
+        population_sample_0,
+        models.Population("", "", 45e3 / 25),
+        models.Population("", "", 50e3 / 25),
+        population_sample_none
+    ]
+
     def __init__(self):
 
         generation_time = 25
@@ -460,7 +488,7 @@ class KammAncientSamples(models.DemographicModel):
                 metadata={"name": "Altai", "sampling_time": t_Altai}),
             msprime.PopulationConfiguration(  # Basal Eurasian
                 initial_size=N_Basal, growth_rate=0,
-                metadata={"name": "Basal", "sampling_time": -1})
+                metadata={"name": "Basal", "sampling_time": None})
         ]
 
         # no migration rates, only pulse events, so set mig mat to zeros
@@ -533,6 +561,12 @@ class DenisovanAncestryInPapuans(models.DemographicModel):
     Demographic model from Jacobs et al (2019). The model is
     illustrated on Figure S5, parameters are in Table S5
     """
+
+    populations = [population_sample_0] * 4 + [
+        models.Population("", "", 2058),
+        models.Population("", "", 2612),
+    ] + [population_sample_none] * 4
+
     def __init__(self):
         self.generation_time = 29  # Just information
 
@@ -621,16 +655,16 @@ class DenisovanAncestryInPapuans(models.DemographicModel):
                 metadata={"name": "NeanA", "sampling_time": t_NeanA}),
             msprime.PopulationConfiguration(  # 6 Den1
                 initial_size=N_Den1, growth_rate=0,
-                metadata={"name": "Den1", "sampling_time": 0}),
+                metadata={"name": "Den1", "sampling_time": None}),
             msprime.PopulationConfiguration(  # 7 Den2
                 initial_size=N_Den2, growth_rate=0,
-                metadata={"name": "Den2", "sampling_time": 0}),
+                metadata={"name": "Den2", "sampling_time": None}),
             msprime.PopulationConfiguration(  # 8 Nean1
                 initial_size=N_Nean1, growth_rate=0,
-                metadata={"name": "Nean1", "sampling_time": 0}),
+                metadata={"name": "Nean1", "sampling_time": None}),
             msprime.PopulationConfiguration(  # 9 Ghost
                 initial_size=N_Ghost, growth_rate=0,
-                metadata={"name": "Ghost", "sampling_time": 0})
+                metadata={"name": "Ghost", "sampling_time": None})
         ]
 
         self.migration_matrix = [[0]*10 for _ in range(10)]
@@ -778,6 +812,8 @@ class GutenkunstOOA(models.DemographicModel):
     From Gutenkunst et al (2009). Parameters taken from maximum likelihood values
     in Table 1 in that paper.
     """
+    populations = [population_sample_0] * 3
+
     def __init__(self):
         generation_time = 25
 
@@ -845,6 +881,8 @@ class ZigZag(models.DemographicModel):
     Model from Schiffels et al (2014) used to test inference methods on a "zigzag"
     demography. Single population, repeated growth and decay of pop size.
     """
+    populations = [population_sample_0]
+
     def __init__(self):
         # from section 7 of the supplement
         self.generation_time = 30

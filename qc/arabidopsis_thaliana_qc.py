@@ -2,8 +2,14 @@ import msprime
 import numpy as np
 import stdpopsim.models as models
 
+# Some generic populations to use for qc
+population_sample_0 = models.Population("sampling_0",
+                                        "Population that samples at time 0",
+                                        0)
+
 
 class Durvasula2017MSMC(models.DemographicModel):
+    populations = [population_sample_0]
     def __init__(self):
 
         # Both of the following are directly
