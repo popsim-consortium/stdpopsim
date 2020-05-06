@@ -391,6 +391,8 @@ def _ooa_2():
                 time=T_EU0, initial_size=N_B, growth_rate=0, population_id=1),
             msprime.MassMigration(
                 time=T_OOA, source=1, destination=0, proportion=1.0),
+            msprime.MigrationRateChange(
+                time=T_OOA, rate=0),
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0)
         ],
