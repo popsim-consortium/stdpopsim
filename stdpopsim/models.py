@@ -69,6 +69,43 @@ def verify_population_configurations_equal(
         raise UnequalModelsError("Growth rates differ")
 
 
+def sampling_times_equal(
+        populations1, populations2, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
+    """
+    Returns True if the sampling times for the specified lists of Populations
+    objects are equal to the specified tolerances.
+    """
+    try:
+        verify_sampling_times_equal(
+            populations1, populations2, rtol=rtol, atol=atol)
+        return True
+    except UnequalModelsError:
+        return False
+
+
+def verify_sampling_times_equal(
+        populations1, populations2, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
+    """
+    Check the the sampling times for lists of population objects are the same
+    """
+    # Retrieve sampling times
+    sampling_times1 = np.array([p.sampling_time for p in populations1])
+    sampling_times2 = np.array([p.sampling_time for p in populations2])
+    # Check for equal vector length
+    if len(sampling_times1) != len(sampling_times2):
+        raise UnequalModelsError("Different numbers of populations")
+    # Get indicies where None values present and compare
+    s1_none = np.where(sampling_times1 == None) # noqa
+    s2_none = np.where(sampling_times2 == None) # noqa
+    if not np.array_equal(s1_none, s2_none):
+        raise UnequalModelsError("None-valued sampling times differ")
+    # Subset out only non-None values and cast to float so they can be compared
+    s1_subset = sampling_times1[sampling_times1 != np.array(None)].astype(float)
+    s2_subset = sampling_times2[sampling_times2 != np.array(None)].astype(float)
+    if not np.allclose(s1_subset, s2_subset, rtol=rtol, atol=atol):
+        raise UnequalModelsError("Positive real-valued sampling times differ")
+
+
 def demographic_events_equal(
         events1, events2, num_populations, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
     """
@@ -178,18 +215,35 @@ class DemographicModel(object):
     description = attr.ib(type=str)
     long_description = attr.ib(type=str)
     generation_time = attr.ib(type=int)
-    populations = attr.ib(type=list)
 
     # optional attributes
     citations = attr.ib(factory=list)
     demographic_events = attr.ib(factory=list)
     population_configurations = attr.ib(factory=list)
     migration_matrix = attr.ib()
+    populations = attr.ib()
+
+    @populations.default
+    def _populations_default(self):
+        npops = len(self.population_configurations)
+        pops = []
+        for i in range(npops):
+            # Try to get population constructor info from PopConfig metadata
+            kwargs = self.population_configurations[i].metadata
+            # This is here so we don't have to change msprime, may remove later
+            if kwargs is None:
+                kwargs = dict()
+            if "id" not in kwargs:
+                kwargs["id"] = f"pop{i}"
+            if "description" not in kwargs:
+                kwargs["description"] = f"Population {i}"
+            pops.append(Population(**kwargs))
+        return(pops)
 
     @migration_matrix.default
     def _migration_matrix_default(self):
         npops = len(self.population_configurations)
-        return [[0]*npops]*npops
+        return([[0 for j in range(npops)] for i in range(npops)])
 
     @property
     def num_populations(self):
@@ -243,6 +297,9 @@ class DemographicModel(object):
         verify_demographic_events_equal(
             self.demographic_events, other.demographic_events,
             len(self.population_configurations),
+            rtol=rtol, atol=atol)
+        verify_sampling_times_equal(
+            self.populations, other.populations,
             rtol=rtol, atol=atol)
 
     def debug(self, out_file=sys.stdout):

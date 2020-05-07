@@ -144,6 +144,24 @@ class TestPopulationConfigsEqual(unittest.TestCase):
             with self.assertRaises(models.UnequalModelsError):
                 models.verify_population_configurations_equal(pc_list2, pc_list1)
 
+    def test_sampling_times_equal(self):
+        no_sample_pop = stdpopsim.Population("none", "none", sampling_time=None)
+        zero_sample_pop = stdpopsim.Population("zero", "zero")
+        nonzero_sample_pop = stdpopsim.Population("nzero", "nzero", sampling_time=10)
+        plist1 = [no_sample_pop] * 2 + [nonzero_sample_pop] + [zero_sample_pop] * 2
+        plist2 = [no_sample_pop] * 4 + [nonzero_sample_pop]
+        plist3 = [no_sample_pop] * 3 + [nonzero_sample_pop]
+        self.assertFalse(
+            stdpopsim.sampling_times_equal([no_sample_pop], [zero_sample_pop]))
+        self.assertFalse(
+            stdpopsim.sampling_times_equal([nonzero_sample_pop], [zero_sample_pop]))
+        self.assertFalse(
+            stdpopsim.sampling_times_equal(plist1, plist2))
+        self.assertFalse(
+            stdpopsim.sampling_times_equal(plist1, plist3))
+        self.assertTrue(
+            stdpopsim.sampling_times_equal(plist3, plist3))
+
 
 class TestDemographicEventsEqual(unittest.TestCase):
     """
@@ -484,3 +502,32 @@ class TestPopulationSampling(unittest.TestCase):
             ddb1.print_history(f1)
             ddb2.print_history(f2)
             self.assertEqual(f1.getvalue(), f2.getvalue())
+
+
+class TestDemographicModelConstruction(unittest.TestCase):
+    # Test construction of a Population object when provided a PopulationConfiguration
+    # object but no populations
+    def test_population_construction_popconfig(self):
+        pc = [msprime.PopulationConfiguration(initial_size=1, growth_rate=0.03)]
+        dm = stdpopsim.DemographicModel(
+            id="", description="", long_description="",
+            generation_time=1, population_configurations=pc)
+        self.assertEqual(dm.populations[0].id, "pop0")
+
+    # Test construction of a Population object when provided a PopulationConfiguration
+    # object with metadata but no populations
+    def test_population_construction_popconfig_metadata(self):
+        pop0 = stdpopsim.Population(id="A", description="Pop A")
+        pc_meta = [msprime.PopulationConfiguration(
+            initial_size=1, growth_rate=0.03, metadata=pop0.asdict())]
+        dm = stdpopsim.DemographicModel(
+            id="", description="", long_description="",
+            generation_time=1, population_configurations=pc_meta)
+        self.assertEqual(dm.populations[0].asdict(), pop0.asdict())
+
+    # Test construction of a Population object when provided neither a
+    # PopulationConfiguration list or a Population list
+    def test_population_construction_no_popconfig(self):
+        dm = stdpopsim.DemographicModel(
+            id="A", description="A", long_description="A", generation_time=1)
+        self.assertEqual(dm.populations, [])

@@ -1,8 +1,18 @@
 import msprime
 import stdpopsim.models as models
 
+# Some generic populations to use for qc
+population_sample_0 = models.Population("sampling_0",
+                                        "Population that samples at time 0",
+                                        0)
+population_sample_none = models.Population("sampling_none",
+                                           "Population that does not sample",
+                                           None)
+
 
 class LiStephanTwoPopulation(models.DemographicModel):
+    populations = [population_sample_0] * 2
+
     def __init__(self):
         # Parameters for the African population are taken from the section Demographic
         # History of the African Population
@@ -50,6 +60,8 @@ class LiStephanTwoPopulation(models.DemographicModel):
 
 
 class SheehanSongThreeEpic(models.DemographicModel):
+    populations = [population_sample_0]
+
     def __init__(self):
         # Model from paper https://doi.org/10.1371/journal.pcbi.1004845
 
