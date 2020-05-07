@@ -4,6 +4,7 @@ Tests for simulation model infrastructure.
 import unittest
 import itertools
 import io
+import sys
 
 import numpy as np
 import msprime
@@ -59,11 +60,32 @@ class QcdCatalogDemographicModelTestMixin(CatalogDemographicModelTestMixin):
     Extends the tests to also check that the qc model is equal to
     the production model.
     """
-    # To be defined in subclass.
-    qc_model = None
 
     def test_qc_model_equal(self):
-        self.assertTrue(self.model.equals(self.qc_model))
+        self.assertTrue(self.model.equals(self.model.qc_model))
+        # Verify that we didn't just compare a model with itself.
+        self.assertNotEqual(self.model, self.model.qc_model)
+
+
+# Add model specific test classes, derived from one of the above.
+qc_test_classes = []
+for species in stdpopsim.all_species():
+    for model in species.demographic_models:
+        superclasses = [unittest.TestCase]
+        if model.qc_model is not None:
+            superclasses.append(QcdCatalogDemographicModelTestMixin)
+        else:
+            superclasses.append(CatalogDemographicModelTestMixin)
+        classname = f"Test{species.id}{model.id}"
+        cls = type(classname, tuple(superclasses), dict(model=model))
+        qc_test_classes.append(cls)
+# Basic sanity checks to double check that no errors get introduced
+# that lead to these qc tests being skipped silently.
+assert len(qc_test_classes) > 0
+for cls in qc_test_classes:
+    assert issubclass(cls, unittest.TestCase)
+    # Insert the class into the current test module's namespace.
+    setattr(sys.modules[__name__], cls.__name__, cls)
 
 
 class TestPopulationConfigsEqual(unittest.TestCase):
@@ -298,6 +320,27 @@ class TestDemographicEventsEqual(unittest.TestCase):
                 models.verify_demographic_events_equal([b], [a], 1)
             with self.assertRaises(models.UnequalModelsError):
                 models.verify_demographic_events_equal([a], [b], 1)
+
+
+class TestRegisterQCModel(unittest.TestCase):
+
+    def make_model(self, name):
+        return models.DemographicModel(
+                id=name,
+                description=name,
+                long_description=name,
+                generation_time=1,
+                populations=[])
+
+    def test_register_qc(self):
+        model = self.make_model("test")
+        model.register_qc(model)
+
+    def test_already_registered(self):
+        model = self.make_model("test")
+        model.register_qc(model)
+        with self.assertRaises(ValueError):
+            model.register_qc(model)
 
 
 class TestAllModels(unittest.TestCase):

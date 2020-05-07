@@ -4,9 +4,7 @@ Tests for the drosophila_melanogaster data definitions.
 import unittest
 
 import stdpopsim
-from tests import test_models
 from tests import test_species
-from qc import drosophlia_melanogaster_qc
 
 
 class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
@@ -37,18 +35,3 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         self.assertEqual(genome.get_chromosome("chrX").length, 23542271)
         self.assertEqual(genome.get_chromosome("chr4").length, 1348131)
         self.assertEqual(genome.get_chromosome("chrY").length, 3667352)
-
-
-species = stdpopsim.get_species("DroMel")
-
-
-class TestSheehanSongThreeEpoch(
-        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    model = species.get_demographic_model("African3Epoch_1S16")
-    qc_model = drosophlia_melanogaster_qc.SheehanSongThreeEpic()
-
-
-class TestLiStephanTwoPopulation(
-        unittest.TestCase, test_models.QcdCatalogDemographicModelTestMixin):
-    model = species.get_demographic_model("OutOfAfrica_2L06")
-    qc_model = drosophlia_melanogaster_qc.LiStephanTwoPopulation()

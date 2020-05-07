@@ -199,6 +199,10 @@ class DemographicModel(object):
     :vartype generation_time: int
     :ivar populations: TODO
     :vartype populations: list of :class:`.Population`
+    :ivar qc_model: An independent implementation of the model, against which
+        the model's accuracy is validated. This should not be set by the user,
+        and may be None if no QC implementation exists yet.
+    :vartype qc_model: :class:`.DemographicModel` or None
 
     :ivar citations: TODO
     :vartype citations: list of :class:`.Citation`
@@ -222,6 +226,8 @@ class DemographicModel(object):
     population_configurations = attr.ib(factory=list)
     migration_matrix = attr.ib()
     populations = attr.ib()
+
+    qc_model = attr.ib(default=None)
 
     @populations.default
     def _populations_default(self):
@@ -301,6 +307,14 @@ class DemographicModel(object):
         verify_sampling_times_equal(
             self.populations, other.populations,
             rtol=rtol, atol=atol)
+
+    def register_qc(self, qc_model):
+        """
+        Register a QC model implementation for this model.
+        """
+        if self.qc_model is not None:
+            raise ValueError(f"QC model already registered for {self.id}.")
+        self.qc_model = qc_model
 
     def debug(self, out_file=sys.stdout):
         # Use the demography debugger to print out the demographic history
