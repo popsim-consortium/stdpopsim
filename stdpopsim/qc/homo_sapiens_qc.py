@@ -163,6 +163,8 @@ class TennessenTwoPopOutOfAfrica(models.DemographicModel):
             # Coalescence between the OOA and YRI pops
             msprime.MassMigration(
                 time=T_B, source=1, destination=0, proportion=1.0),
+            msprime.MigrationRateChange(
+                time=T_B, rate=0),
             # Change to ancestral population size pre OOA
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0)
@@ -259,7 +261,7 @@ class BrowningAmerica(models.DemographicModel):
                 time=T_CEU_CHB+0.0003, rate=m_AF1_OOA, matrix_index=(0, 1)),
             msprime.MigrationRateChange(
                 time=T_CEU_CHB+0.0003, rate=m_AF1_OOA, matrix_index=(1, 0)),
-            # Zero out migration rate (desn't matter but added for equality to prod.)
+            # Zero out migration rate
             msprime.MigrationRateChange(
                 time=T_AF1_OOA, rate=0.0),
             # OOA and AF1 coalesce (T_OOA)
