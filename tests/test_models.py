@@ -2,6 +2,8 @@
 Tests for simulation model infrastructure.
 """
 import unittest
+from unittest import mock
+import inspect
 import itertools
 import io
 import sys
@@ -222,7 +224,7 @@ class TestDemographicEventsEqual(unittest.TestCase):
             msprime.PopulationParametersChange(time=1, initial_size=1),
             msprime.MigrationRateChange(time=1, rate=1),
             msprime.MassMigration(time=1, source=1),
-            msprime.SimpleBottleneck(time=1)]
+            msprime.SimpleBottleneck(time=1, population=0)]
         for a, b in itertools.combinations(events, 2):
             self.assertFalse(models.demographic_events_equal([a], [b], 1))
             self.assertFalse(models.demographic_events_equal([b], [a], 1))
@@ -320,6 +322,47 @@ class TestDemographicEventsEqual(unittest.TestCase):
                 models.verify_demographic_events_equal([b], [a], 1)
             with self.assertRaises(models.UnequalModelsError):
                 models.verify_demographic_events_equal([a], [b], 1)
+
+
+# Test compatibility shim for get_ll_representation change in msprime. See #518.
+# TODO: remove this when we depend on msprime 1.0.
+def wrap_get_ll(get_ll_func):
+    num_params = len(inspect.signature(
+        msprime.MassMigration.get_ll_representation).parameters)
+    if num_params == 2:
+        # Wrapper for msprime <= 0.7.4 to check for msprime >= 1.0 compat.
+        def new_func(self):
+            return get_ll_func(self, num_populations=1)
+    elif num_params == 1:
+        # Wrapper for msprime >= 1.0 to check for msprime <= 0.7.4 compat.
+        def new_func(self, num_populations=1):
+            return get_ll_func(self)
+    else:
+        raise RuntimeError(
+            "Unexpected signature for msprime.MassMigration.get_ll_representation")
+    return new_func
+
+
+@mock.patch(
+        "msprime.PopulationParametersChange.get_ll_representation",
+        wrap_get_ll(msprime.PopulationParametersChange.get_ll_representation))
+@mock.patch(
+        "msprime.MigrationRateChange.get_ll_representation",
+        wrap_get_ll(msprime.MigrationRateChange.get_ll_representation))
+@mock.patch(
+        "msprime.MassMigration.get_ll_representation",
+        wrap_get_ll(msprime.MassMigration.get_ll_representation))
+@mock.patch(
+        "msprime.SimpleBottleneck.get_ll_representation",
+        wrap_get_ll(msprime.SimpleBottleneck.get_ll_representation))
+@mock.patch(
+        "msprime.InstantaneousBottleneck.get_ll_representation",
+        wrap_get_ll(msprime.InstantaneousBottleneck.get_ll_representation))
+@mock.patch(
+        "msprime.CensusEvent.get_ll_representation",
+        wrap_get_ll(msprime.CensusEvent.get_ll_representation))
+class TestDemographicEventsEqualMsprimeGetLLCompat(TestDemographicEventsEqual):
+    pass
 
 
 class TestRegisterQCModel(unittest.TestCase):

@@ -127,8 +127,16 @@ def verify_demographic_events_equal(
     to the specified tolerances and raises a UnequalModelsError otherwise.
     """
     # Get the low-level dictionary representations of the events.
-    dicts1 = [event.get_ll_representation(num_populations) for event in events1]
-    dicts2 = [event.get_ll_representation(num_populations) for event in events2]
+    # XXX: Msprime introduced a breaking change between 0.7.4 and 1.0, removing
+    #      the num_populations parameter to get_ll_representation(). See #518.
+    #      When we depend on msprime 1.0, this should be changed to instead use
+    #      msprime.DemographicEvent.asdict().
+    from inspect import signature
+    ll_args = ()
+    if len(signature(msprime.MassMigration.get_ll_representation).parameters) == 2:
+        ll_args = (num_populations, )
+    dicts1 = [event.get_ll_representation(*ll_args) for event in events1]
+    dicts2 = [event.get_ll_representation(*ll_args) for event in events2]
     if len(dicts1) != len(dicts2):
         raise UnequalModelsError("Different numbers of demographic events")
     for d1, d2 in zip(dicts1, dicts2):
