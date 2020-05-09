@@ -442,7 +442,7 @@ def slim_makescript(
     recomb_rates, recomb_ends = msprime_rm_to_slim_rm(contig.recombination_map)
     indent = 8*" "
     recomb_rates_str = (
-            f"c(\n" +
+            "c(\n" +
             textwrap.fill(
                     ", ".join(map(str, recomb_rates)),
                     width=80,
@@ -450,7 +450,7 @@ def slim_makescript(
                     subsequent_indent=indent) +
             ")")
     recomb_ends_str = (
-            f"c(\n" +
+            "c(\n" +
             textwrap.fill(
                     ", ".join(map(str, recomb_ends)),
                     width=80,
