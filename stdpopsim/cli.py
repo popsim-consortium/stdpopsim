@@ -102,7 +102,7 @@ def get_models_help(species_id, model_id):
         models = [model.id for model in species.demographic_models]
     else:
         models = [model_id]
-        models_text = f"\nModel description\n\n"
+        models_text = "\nModel description\n\n"
 
     # TODO improve this text formatting.
     indent = " " * 4
@@ -146,7 +146,7 @@ def get_genetic_maps_help(species_id, genetic_map_id):
         maps = [genetic_map.id for genetic_map in species.genetic_maps]
     else:
         maps = [genetic_map_id]
-        maps_text = f"\nGenetic map description\n\n"
+        maps_text = "\nGenetic map description\n\n"
 
     indent = " " * 4
     wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
@@ -475,7 +475,7 @@ def write_simulation_summary(engine, model, contig, samples, seed=None):
     mean_recomb_rate = contig.recombination_map.mean_recombination_rate
     mut_rate = contig.mutation_rate
     contig_len = contig.recombination_map.get_length()
-    dry_run_text += f"Contig Description:\n"
+    dry_run_text += "Contig Description:\n"
     dry_run_text += f"{indent}Contig length: {contig_len}\n"
     dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"
     dry_run_text += f"{indent}Mean mutation rate: {mut_rate}\n"
