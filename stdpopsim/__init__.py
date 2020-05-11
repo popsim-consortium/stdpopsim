@@ -14,17 +14,17 @@ from . species import *  # NOQA
 from . genomes import *  # NOQA
 from . cache import *  # NOQA
 from . citations import *  # NOQA
-from . engines import * # NOQA
+from . engines import *  # NOQA
 
-# We import these here to build the catalog, but the internal classes
+# We import these here to build the catalog, but the internal functions
 # defined are not part of the external API.
-from .catalog import homo_sapiens  # NOQA
-from .catalog import pongo_abelii  # NOQA
-from .catalog import arabidopsis_thaliana  # NOQA
-from .catalog import e_coli  # NOQA
-from .catalog import drosophila_melanogaster  # NOQA
-from .catalog import canis_familiaris  # NOQA
+from .catalog import AraTha  # NOQA
+from .catalog import CanFam  # NOQA
+from .catalog import DroMel  # NOQA
+from .catalog import EscCol  # NOQA
+from .catalog import HomSap  # NOQA
+from .catalog import PonAbe  # NOQA
 
 from . import qc  # NOQA
 
-from . slim_engine import * # NOQA
+from . slim_engine import *  # NOQA
