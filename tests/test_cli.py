@@ -756,3 +756,60 @@ class TestNonAutosomal(unittest.TestCase):
         with mock.patch("warnings.warn", autospec=True) as mock_warning:
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         mock_warning.assert_called_once()
+
+
+class TestNoQCWarning(unittest.TestCase):
+    species = stdpopsim.get_species("EscCol")
+    model = stdpopsim.DemographicModel(
+            id="FakeModel",
+            description="FakeModel",
+            long_description="FakeModel",
+            citations=[
+                stdpopsim.Citation(
+                    author="Farnsworth",
+                    year=3000,
+                    doi="https://doi.org/10.1000/xyz123",
+                    reasons={stdpopsim.CiteReason.DEM_MODEL})],
+            generation_time=10,
+            populations=[
+                stdpopsim.Population("Omicronians", "Popplers, etc.")],
+            population_configurations=[
+                msprime.PopulationConfiguration(initial_size=1000)],
+    )
+
+    def setUp(self):
+        self.species.add_demographic_model(self.model)
+
+    def tearDown(self):
+        self.species.demographic_models.remove(self.model)
+
+    def verify_noQC_warning(self, cmd):
+        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
+        mock_warning.assert_called_once()
+
+    def test_noQC_warning(self):
+        self.verify_noQC_warning("EscCol -d FakeModel -D 10")
+
+    def test_noQC_warning_quiet(self):
+        self.verify_noQC_warning("EscCol -d FakeModel -D 10 -q")
+
+    def verify_noQC_citations_not_written(self, cmd):
+        # Non-QCed models shouldn't be used in publications, so citations
+        # shouldn't be offered to the user.
+        with self.assertLogs() as logs:
+            out, err = capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
+        log_output = "\n".join(logs.output)
+        for citation in self.model.citations:
+            self.assertFalse(citation.author in out)
+            self.assertFalse(citation.doi in out)
+            self.assertFalse(citation.author in err)
+            self.assertFalse(citation.doi in err)
+            self.assertFalse(citation.author in log_output)
+            self.assertFalse(citation.doi in log_output)
+
+    def test_noQC_citations_not_written(self):
+        self.verify_noQC_citations_not_written("EscCol -d FakeModel -D 10")
+
+    def test_noQC_citations_not_written_verbose(self):
+        self.verify_noQC_citations_not_written("-vv EscCol -d FakeModel -D 10")

@@ -5,6 +5,7 @@ at the command line and methods to manage resources used by stdpopsim.
 import argparse
 import json
 import logging
+import warnings
 import platform
 import sys
 import textwrap
@@ -416,8 +417,10 @@ def add_simulate_species_parser(parser, species):
             model.generation_time = species.generation_time
             model.citations.extend(species.population_size_citations)
             model.citations.extend(species.generation_time_citations)
+            qc_complete = True
         else:
             model = get_model_wrapper(species, args.demographic_model)
+            qc_complete = model.qc_model is not None
         if len(args.samples) > model.num_sampling_populations:
             exit(
                 f"Cannot sample from more than {model.num_sampling_populations} "
@@ -436,11 +439,24 @@ def add_simulate_species_parser(parser, species):
         if not args.quiet:
             write_simulation_summary(engine=engine, model=model, contig=contig,
                                      samples=samples, seed=args.seed)
+        if not qc_complete:
+            warnings.warn(
+                    f"{model.id} has not been QCed. Use at your own risk! "
+                    "Demographic models that have not undergone stdpopsim's "
+                    "Quality Control procedure may contain implementation "
+                    "errors, leading to differences between simulations "
+                    "and the model described in the original publication. "
+                    "More information about the QC process can be found in "
+                    "the developer documentation. "
+                    "https://stdpopsim.readthedocs.io/en/latest/development.html"
+                    "#demographic-model-review-process")
         ts = engine.simulate(**kwargs)
         summarise_usage()
         if ts is not None:
             write_output(ts, args)
-        if not args.quiet:
+        # Non-QCed models shouldn't be used in publications, so we skip the
+        # "If you use this simulation in published work..." citation request.
+        if qc_complete and not args.quiet:
             write_citations(engine, model, contig, species)
         if args.bibtex_file is not None:
             write_bibtex(engine, model, contig, species, args.bibtex_file)
