@@ -15,6 +15,7 @@ population_sample_0 = models.Population("sampling_0",
 
 class Durvasula2017MSMC(models.DemographicModel):
     populations = [population_sample_0]
+
     def __init__(self):
 
         # Both of the following are directly
