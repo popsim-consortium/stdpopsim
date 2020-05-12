@@ -22,7 +22,7 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     genome = stdpopsim.get_species("DroMel").genome
 
     def test_basic_attributes(self):
-        self.assertEqual(len(self.genome.chromosomes), 8)
+        self.assertEqual(len(self.genome.chromosomes), 7)
 
     def test_chromosome_lengths(self):
         genome = self.genome

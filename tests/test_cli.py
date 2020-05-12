@@ -748,15 +748,6 @@ class TestNonAutosomal(unittest.TestCase):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         mock_warning.assert_called_once()
 
-    # TODO: This test should be removed when #405 and #406 are fixed.
-    # https://github.com/popsim-consortium/stdpopsim/issues/405
-    # https://github.com/popsim-consortium/stdpopsim/issues/406
-    def test_chrM_gives_a_warning(self):
-        cmd = "DroMel -D -c chrM -o /dev/null -q 10".split()
-        with mock.patch("warnings.warn", autospec=True) as mock_warning:
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        mock_warning.assert_called_once()
-
 
 class TestNoQCWarning(unittest.TestCase):
     species = stdpopsim.get_species("EscCol")

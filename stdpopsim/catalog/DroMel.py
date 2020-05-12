@@ -23,7 +23,6 @@ chr3L   28110227
 chr3R   32079331
 chr4   1348131
 chrY   3667352
-chrM   19524
 """
 
 # citations
