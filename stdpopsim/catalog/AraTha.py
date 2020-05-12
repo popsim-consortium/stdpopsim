@@ -34,19 +34,28 @@ for line in _chromosome_data.splitlines():
     _chromosomes.append(stdpopsim.Chromosome(
         id=name, length=int(length),
         mutation_rate=7e-9,
-        recombination_rate=8.1e-9))
-
-_SwarbreckEtAl = stdpopsim.Citation(
-    doi="https://doi.org/10.1093/nar/gkm965",
-    year="2007",
-    author="Swarbreck et al.",
-    reasons={stdpopsim.CiteReason.ASSEMBLY}
-)
+        recombination_rate=200 / 124000 / 2 / 1e6))
 
 _genome = stdpopsim.Genome(
         chromosomes=_chromosomes,
+        mutation_rate_citations=[
+            stdpopsim.Citation(
+                author="Ossowski et al.",
+                year="2010",
+                doi="https://doi.org/10.1126/science.1180677",
+                reasons={stdpopsim.CiteReason.MUT_RATE})],
+        recombination_rate_citations=[
+            stdpopsim.Citation(
+                author="Huber et al.",
+                year="2014",
+                doi="https://doi.org/10.1093/molbev/msu247",
+                reasons={stdpopsim.CiteReason.REC_RATE})],
         assembly_citations=[
-            _SwarbreckEtAl])
+            stdpopsim.Citation(
+                doi="https://doi.org/10.1093/nar/gkm965",
+                year="2007",
+                author="Swarbreck et al.",
+                reasons={stdpopsim.CiteReason.ASSEMBLY})])
 
 _species = stdpopsim.Species(
     id="AraTha",
