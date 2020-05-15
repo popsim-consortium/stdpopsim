@@ -40,14 +40,15 @@ page to learn about the process for adding new items to the catalog.
 Then, if you feel ready, make an issue on our
 `GitHub page <https://github.com/popgensims/stdpopsim/issues>`_.
 
+.. speciescatalog:: AraTha
+
+.. speciescatalog:: CanFam
+
+.. speciescatalog:: DroMel
+
+.. speciescatalog:: EscCol
+
 .. speciescatalog:: HomSap
 
 .. speciescatalog:: PonAbe
 
-.. speciescatalog:: DroMel
-
-.. speciescatalog:: AraTha
-
-.. speciescatalog:: EscCol
-
-.. speciescatalog:: CanFam
