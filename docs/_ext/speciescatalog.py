@@ -383,7 +383,6 @@ class SpeciesCatalogDirective(SphinxDirective):
         section += self.citation_list(model)
         section += nodes.rubric(text="Demographic Model parameters")
         section += self.model_parameter_table(species, model)
-        section += nodes.transition()
         return [target, section]
 
     def run(self):
@@ -407,14 +406,14 @@ class SpeciesCatalogDirective(SphinxDirective):
             maps_section += self.genetic_map_section(species, gmap)
         section += maps_section
         section += nodes.transition()
-
         models_section = nodes.section(ids=[f"sec_catalog_{species.id}_models"])
         models_section += nodes.title(text="Models")
         models_section += self.models_table(species)
-        for model in species.demographic_models:
+        for i, model in enumerate(species.demographic_models):
             models_section += self.model_section(species, model)
+            if i < len(species.demographic_models) - 1:
+                models_section += nodes.transition()
         section += models_section
-
         return [species_target, section]
 
 
