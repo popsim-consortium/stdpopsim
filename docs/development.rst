@@ -448,6 +448,166 @@ finally force-push to the remote topic branch on your fork::
 Hard resetting and force pushing are not reversible operations, so please
 beware!
 
+********************
+Adding a new species
+********************
+To add a new species to `stdpopsim` several things are required:
+1. The genome definition
+2. Default species parameters
+3. A genetic map with local recombination rates (optional)
+
+Once you have these things the first step is to create a new file in the `catalog`
+directory named for the species (see `Naming conventions`_ for more details). All
+code described below should go in this file unless explicitly specified otherwise.
+
+--------------------------
+Default species parameters
+--------------------------
+
+Four default parameters are required to create a new species:
+1. Generation time estimate
+2. Mutation rate
+3. Recombination rate
+4. Characteristic population size
+
+These parameters should be based on what values might be drawn from a typical population
+as represented in the literature for that species. Consequently one or more citations for
+each value are expected and will be required for constructing the species object detailed
+below.
+
+--------------------------
+Adding a genome definition
+--------------------------
+A genome definition is created with a call to `stdpopsim.Genome()`  which requires a list
+of chromosomes and a citation for the assembly. This list is typically created as follows
+using genome-wide recombination and mutation rates.
+
+.. code-block:: python
+
+    # Create a string of chromosome lengths for easy parsing
+    _chromosome_data = """\
+    chr1 CHROMOSOME1_LENGTH
+    chr2 CHROMOSOME2_LENGTH
+    """
+    # Parse list of chromosomes into a list of Chromosome objects which contain the
+    # chromosome name, length, mutation rate, and recombination rate
+    _chromosomes = []
+
+    for line in _chromosome_data.splitlines():
+        name, length = line.split()[:2]
+        _chromosomes.append(stdpopsim.Chromosome(
+        id=name, length=int(length),
+        mutation_rate=FILL_ME,
+        recombination_rate=FILL_ME))
+
+    # A citation for the chromosome parameters. Additional citations may be needed if
+    # the mutation or recombination rates come from other sources. In that case create
+    # additional citations with the appropriate reasons specified (see API documentation
+    # for stdpopsim.citations)
+
+    _assembly_citation = stdpopsim.Citation(
+        doi="FILL ME",
+        year="FILL ME",
+        author="Author et al.",
+        reasons={stdpopsim.CiteReason.ASSEMBLY})
+
+    # Create a genome object
+
+    _genome = stdpopsim.Genome(
+        chromosomes=_chromosomes,
+        assembly_citations=[_assembly_citation])
+
+Once you have a genome object you can create a new `Species` object which contains
+species identifiers, the genome, and default generation time and population size settings
+along with the relevant citation(s). Below is an example species definition for
+Arabidopsis thaliana and a final line of code that registers the species in the catalog.
+
+.. code-block:: python
+
+    _gen_time_citation = stdpopsim.Citation(
+        doi="https://doi.org/10.1890/0012-9658(2002)083[1006:GTINSO]2.0.CO;2",
+        year="2002",
+        author="Donohue",
+        reasons={stdpopsim.CiteReason.GEN_TIME})
+
+    _pop_size_citation = stdpopsim.Citation(
+            doi="https://doi.org/10.1016/j.cell.2016.05.063",
+            year="2016",
+            author="1001GenomesConsortium",
+            reasons={stdpopsim.CiteReason.POP_SIZE})
+
+    _species = stdpopsim.Species(
+        id="AraTha",
+        name="Arabidopsis thaliana",
+        common_name="A. thaliana",
+        genome=_genome,
+        generation_time=1.0,
+        generation_time_citations=[_gen_time_citation],
+        population_size=10**4,
+        population_size_citations=[_pop_size_citation]
+        )
+
+    stdpopsim.register_species(_species)
+
+Once all of this is done, go to the `catalog/__init__.py` file and add a line like the
+one below using the six-letter species identifier. Make sure to keep the comment to
+prevent linting issues.
+
+.. code-block:: python
+
+    from .catalog import PonAbe  # NOQA
+
+--------------------
+Adding a genetic map
+--------------------
+Some species have sub-chromosomal recombination maps available. They can be added to
+`stdpopsim` by creating a new `GeneticMap` object and providing a formatted file
+detailing recombination rates to a desginated `stdpopsim` maintainer who then uploads
+it to AWS. If there is one for your species that you wish to include, create a space
+delimited file with four columns: Chromosome, Position(bp), Rate(cM/Mb), and Map(cM).
+Each chromosome should be placed in a seperate file and with the chromosome id in the
+file name in such a way that it can be programatically parsed out. IMPORTANT: chromosome
+ids must match those provided in the genome definition exactly! Below is an example start
+to a recombination map file (see `here
+<https://msprime.readthedocs.io/en/stable/api.html#msprime.RecombinationMap.read_hapmap>`_
+for more details)::
+
+    Chromosome Position(bp) Rate(cM/Mb) Map(cM)
+    chr1 32807 5.016134 0
+    chr1 488426 4.579949 0
+
+Once you have the recombination map files formatted, tar and gzip them into a single
+compressed archive. This file will be sent to one of the `stdpopsim` uploaders for
+placement in the AWS cloud once the new genetic map(s) are approved. Finally, you must
+add a `GeneticMap` object to the file named for your species in the `catalog` directory
+(the same one in which the genome is defined) as shown below:
+
+.. code-block:: python
+
+    _genetic_map_citation = stdpopsim.Citation(
+            doi="FILL_ME",
+            author="FILL_ME",
+            year=9999,
+            reasons={stdpopsim.CiteReason.GEN_MAP})
+    """
+    The file_pattern argument is a pattern that matches the recombination map filenames,
+    where '{id}' is replaced with the 'id' field of a given chromosome.
+    """
+    _gm = stdpopsim.GeneticMap(
+        species=_species,
+        id="FILL_ME", # ID for genetic map, see naming conventions
+        description="FILL_ME",
+        long_description="FILL_ME",
+        url=("https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/dir/filename"),
+        file_pattern="name_{id}_more_name.txt",
+        citations=[_genetic_map_citation])
+
+    _species.add_genetic_map(_gm)
+
+Once all this is done, submit a PR containting the code changes and wait for directions
+on whom to send the compressed archive of genetic maps to (currently Andrew Kern is the
+primary uploader but please wait to send files to him until directed).
+
 ******************************
 Adding a new demographic model
 ******************************
@@ -585,7 +745,7 @@ The demographic model should include the following:
 Every demographic model has a few necessary features or attributes. First of all,
 demographic models are defined by the population sizes, migration rates, split and
 admixture times, and generation lengths given in the source publication. We often take
-the point estimates for each of the values from the best fit model (for example, the 
+the point estimates for each of the values from the best fit model (for example, the
 parameters that give the maximum likelihood fit), which are translated into
 `msprime`-formatted demographic inputs.
 
@@ -750,7 +910,7 @@ Naming conventions
 
 To ensure uniformity in naming schemes across objects in ``stdpopsim``
 we have strict conventions for species, genetic maps, and demographic
-models. 
+models.
 
 Species names follow a ``${first_3_letters_genus}${first_3_letters_species}``
 convention with capitilization such that Homo sapiens becomes "HomSap". This
@@ -762,7 +922,7 @@ the GRCh37 assembly becomes HapMapII_GRCh37.
 
 Finally demographic models are named using a combination of a descriptive name,
 information about the simulation, and information about the publication it was
-presented in. Specifically we use 
+presented in. Specifically we use
 ``${SomethingDescriptive}_${number_of_populations}${first_author_initial}${two_digit_date}``
 where the descriptive text is meant to capture something about the model
 (i.e. an admixture model, a population crash, etc.) and the number of populations
