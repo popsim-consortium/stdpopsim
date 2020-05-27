@@ -222,7 +222,7 @@ class TestDemographicEventsEqual(unittest.TestCase):
             msprime.PopulationParametersChange(time=1, initial_size=1),
             msprime.MigrationRateChange(time=1, rate=1),
             msprime.MassMigration(time=1, source=1),
-            msprime.SimpleBottleneck(time=1)]
+            msprime.SimpleBottleneck(time=1, population=0)]
         for a, b in itertools.combinations(events, 2):
             self.assertFalse(models.demographic_events_equal([a], [b], 1))
             self.assertFalse(models.demographic_events_equal([b], [a], 1))
