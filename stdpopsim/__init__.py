@@ -16,6 +16,7 @@ from . cache import *  # NOQA
 from . citations import *  # NOQA
 from . engines import *  # NOQA
 
+# Add imports for all defined species here.
 # We import these here to build the catalog, but the internal functions
 # defined are not part of the external API.
 from .catalog import AraTha  # NOQA
