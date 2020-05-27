@@ -1,4 +1,23 @@
 --------------------
+[0.1.2] - 2020-XX-XX
+--------------------
+
+
+**Bug fixes**:
+
+
+**New features**:
+
+**Breaking changes**:
+
+- Move the --quiet/-q command line option to the top-level. Previously
+  we would write ``stdpopsim HomSap -q 10`` whereas we now write
+  ``stdpopsim -q HomSap``. (:user:`jeromekelleher`, :issue:`515`, :pr:`547`)
+
+- The long form ``--verbosity`` argument has been changed to ``--verbose``
+  (:pr:`547`).
+
+--------------------
 [0.1.1] - 2020-01-02
 --------------------
 
