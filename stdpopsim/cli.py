@@ -45,25 +45,33 @@ def exit(message):
 
 
 class CLIFormatter(logging.Formatter):
+    # Log levels
+    # ERROR: only output errors. This is the level when --quiet is specified.
+    # WARN: Output warnings or any other messages that the user should be aware of
+    # INFO: Write out log messages for things the user might be interested in.
+    # DEBUG: Write out debug messages for the user/developer.
     def format(self, record):
-        if record.levelno == logging.INFO:
-            self._style = logging.PercentStyle("%(message)s")
-        else:
-            self._style = logging.PercentStyle("%(levelname)s: %(message)s")
-        if record.levelno == logging.WARNING:
+        if record.name == "py.warnings":
             # trim the ugly warnings.warn message
             match = re.search(
-                    r"Warning:\s*(.*?)\s*warnings.warn\(", record.args[0], re.DOTALL)
-            if match is not None:
-                record.args = (match.group(1),)
+                r"Warning:\s*(.*?)\s*warnings.warn\(", record.args[0], re.DOTALL)
+            record.args = (match.group(1),)
+            self._style = logging.PercentStyle("WARNING: %(message)s")
+        else:
+            if record.levelno == logging.WARNING:
+                self._style = logging.PercentStyle("%(message)s")
+            else:
+                self._style = logging.PercentStyle("%(levelname)s: %(message)s")
         return super().format(record)
 
 
 def setup_logging(args):
-    log_level = "INFO"
-    if args.quiet:
+    log_level = "ERROR"
+    if args.verbose == 1:
         log_level = "WARN"
-    if args.verbosity > 1:
+    elif args.verbose == 2:
+        log_level = "INFO"
+    elif args.verbose > 2:
         log_level = "DEBUG"
     handler = logging.StreamHandler(sys.stderr)
     handler.setFormatter(CLIFormatter())
@@ -287,7 +295,7 @@ def write_citations(engine, model, contig, species):
     for citation in get_citations(engine, model, contig, species):
         cite_str.append("\n")
         cite_str.append(citation.displaystr())
-    logger.info("".join(cite_str))
+    logger.warning("".join(cite_str))
 
 
 def summarise_usage():
@@ -301,7 +309,7 @@ def summarise_usage():
         if sys.platform != 'darwin':
             max_mem *= 1024  # Linux and other OSs (e.g. freeBSD) report maxrss in kb
         max_mem_str = humanize.naturalsize(max_mem, binary=True)
-        logger.debug("rusage: user={}; sys={:.2f}s; max_rss={}".format(
+        logger.info("rusage: user={}; sys={:.2f}s; max_rss={}".format(
             user_time, sys_time, max_mem_str))
 
 
@@ -348,9 +356,6 @@ def add_simulate_species_parser(parser, species):
                 "given as an argument, show help for this map. Otherwise show "
                 "help for all available genetic maps"))
 
-    species_parser.add_argument(
-        "-q", "--quiet", action='store_true',
-        help="Do not write out citation information")
     species_parser.add_argument(
         "-D", "--dry-run", action='store_true', default=False,
         help="Do not run actual simulation")
@@ -430,15 +435,14 @@ def add_simulate_species_parser(parser, species):
             args.chromosome, genetic_map=args.genetic_map,
             length_multiplier=args.length_multiplier)
         engine = stdpopsim.get_engine(args.engine)
-        logger.debug(
+        logger.info(
             f"Running simulation model {model.id} for {species.id} on "
             f"{contig} with {len(samples)} samples using {engine.id}.")
 
         kwargs = vars(args)
         kwargs.update(demographic_model=model, contig=contig, samples=samples)
-        if not args.quiet:
-            write_simulation_summary(engine=engine, model=model, contig=contig,
-                                     samples=samples, seed=args.seed)
+        write_simulation_summary(engine=engine, model=model, contig=contig,
+                                 samples=samples, seed=args.seed)
         if not qc_complete:
             warnings.warn(
                     f"{model.id} has not been QCed. Use at your own risk! "
@@ -456,7 +460,7 @@ def add_simulate_species_parser(parser, species):
             write_output(ts, args)
         # Non-QCed models shouldn't be used in publications, so we skip the
         # "If you use this simulation in published work..." citation request.
-        if qc_complete and not args.quiet:
+        if qc_complete:
             write_citations(engine, model, contig, species)
         if args.bibtex_file is not None:
             write_bibtex(engine, model, contig, species, args.bibtex_file)
@@ -496,7 +500,7 @@ def write_simulation_summary(engine, model, contig, samples, seed=None):
     dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"
     dry_run_text += f"{indent}Mean mutation rate: {mut_rate}\n"
     dry_run_text += f"{indent}Genetic map: {gmap}\n"
-    logger.info(dry_run_text)
+    logger.warning(dry_run_text)
 
 
 def run_download_genetic_maps(args):
@@ -511,21 +515,30 @@ def run_download_genetic_maps(args):
             genetic_maps = args.genetic_maps
         for genetic_map_id in genetic_maps:
             genetic_map = get_genetic_map_wrapper(species, genetic_map_id)
+            logger.warning(f"Downloading map {species_id}/{genetic_map_id}")
             genetic_map.download()
 
 
 def stdpopsim_cli_parser():
 
-    # TODO the CLI defined by this hierarchical and clumsy, but it's the best
-    # I could figure out. It can definitely be improved!
+    class QuietAction(argparse.Action):
+        def __call__(self, parser, namespace, values, option_string=None):
+            namespace.verbose = 0
+
     top_parser = argparse.ArgumentParser(
         description="Command line interface for stdpopsim.")
     top_parser.add_argument(
         "-V", "--version", action='version',
         version='%(prog)s {}'.format(stdpopsim.__version__))
-    top_parser.add_argument(
-        "-v", "--verbosity", action='count', default=1,
-        help="Increase the verbosity")
+    logging_group = top_parser.add_mutually_exclusive_group()
+    logging_group.add_argument(
+        "-v", "--verbose", action="count", default=1,
+        help="Increase logging verbosity (can use be used multiple times).")
+    logging_group.add_argument(
+            "-q", "--quiet", nargs=0,
+            help="Do not write any non-essential messages",
+            action=QuietAction)
+
     top_parser.add_argument(
         "-c", "--cache-dir", type=str, default=None,
         help=(

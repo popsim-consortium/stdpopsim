@@ -144,8 +144,8 @@ class TestAPI(unittest.TestCase):
 class TestCLI(unittest.TestCase):
 
     def docmd(self, _cmd):
-        cmd = ("-e slim --slim-scaling-factor 20 --slim-burn-in 0 "
-               f"{_cmd} -l 0.001 -c chr1 -s 1234 -q 10").split()
+        cmd = ("-q -e slim --slim-scaling-factor 20 --slim-burn-in 0 "
+               f"{_cmd} -l 0.001 -c chr1 -s 1234 10").split()
         return capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
     def test_script_generation(self):
@@ -180,8 +180,8 @@ class TestCLI(unittest.TestCase):
 
         # verify sample counts for a multipopulation demographic model
         with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = ("-e slim --slim-scaling-factor 20 --slim-burn-in 0 "
-                   f"HomSap -o {f.name} -l 0.001 -c chr1 -s 1234 -q "
+            cmd = ("-q -e slim --slim-scaling-factor 20 --slim-burn-in 0 "
+                   f"HomSap -o {f.name} -l 0.001 -c chr1 -s 1234 "
                    "-d OutOfAfrica_3G09 0 0 8").split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
@@ -194,7 +194,8 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(observed_counts[2], 8)
         self.assertTrue(all(tree.num_roots == 1 for tree in ts.trees()))
 
-    def test_dry_run(self):
+    @mock.patch("stdpopsim.slim_engine._SLiMEngine.get_version", return_value="64")
+    def test_dry_run(self, _mocked_get_version):
         # --dry-run should run slim, but not create an output file.
         with mock.patch("subprocess.Popen", autospec=True) as mocked_popen:
             # Popen is used as a context manager, so we frob the return value
@@ -241,17 +242,17 @@ class TestWarningsAndErrors(unittest.TestCase):
     Checks that warning messages are printed when appropriate.
     """
     def test_odd_sample_warning(self):
-        cmd = "-e slim --slim-script HomSap -d OutOfAfrica_2T12 4 6 -q".split()
+        cmd = "-q -e slim --slim-script HomSap -d OutOfAfrica_2T12 4 6".split()
         with mock.patch("warnings.warn", autospec=True) as mock_warning:
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         self.assertEqual(mock_warning.call_count, 0)
 
-        cmd = "-e slim --slim-script HomSap -d OutOfAfrica_2T12 4 5 -q".split()
+        cmd = "-q -e slim --slim-script HomSap -d OutOfAfrica_2T12 4 5".split()
         with mock.patch("warnings.warn", autospec=True) as mock_warning:
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         self.assertEqual(mock_warning.call_count, 1)
 
-        cmd = "-e slim --slim-script HomSap -d OutOfAfrica_2T12 3 5 -q".split()
+        cmd = "-q -e slim --slim-script HomSap -d OutOfAfrica_2T12 3 5".split()
         with mock.patch("warnings.warn", autospec=True) as mock_warning:
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         self.assertEqual(mock_warning.call_count, 2)

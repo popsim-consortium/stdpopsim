@@ -113,6 +113,24 @@ class TestDownloadGeneticMapsArgumentParser(unittest.TestCase):
         self.assertEqual(args.species, "some_species")
         self.assertEqual(args.genetic_maps, ["map1", "map2"])
 
+    def test_verbosity(self):
+        parser = cli.stdpopsim_cli_parser()
+        cmd = "download-genetic-maps"
+        args = parser.parse_args(cmd.split())
+        self.assertEqual(args.verbose, 1)
+
+        cmd = "-v download-genetic-maps"
+        args = parser.parse_args(cmd.split())
+        self.assertEqual(args.verbose, 2)
+
+        cmd = "-vv download-genetic-maps"
+        args = parser.parse_args(cmd.split())
+        self.assertEqual(args.verbose, 3)
+
+        cmd = "-q download-genetic-maps"
+        args = parser.parse_args(cmd.split())
+        self.assertEqual(args.verbose, 0)
+
 
 class TestHomoSapiensArgumentParser(unittest.TestCase):
     """
@@ -186,7 +204,7 @@ class TestEndToEnd(unittest.TestCase):
     def verify(self, cmd, num_samples, seed=1):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
-            full_cmd = cmd + f" -q -o {filename} --seed={seed}"
+            full_cmd = f" -q {cmd} -o {filename} --seed={seed}"
             with mock.patch("stdpopsim.cli.setup_logging", autospec=True):
                 stdout, stderr = capture_output(cli.stdpopsim_main, full_cmd.split())
             self.assertEqual(len(stderr), 0)
@@ -254,17 +272,17 @@ class TestEndToEndSubprocess(TestEndToEnd):
     def verify(self, cmd, num_samples, seed=1):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
-            full_cmd = f"{sys.executable} -m stdpopsim {cmd} -o {filename} -s {seed} -q"
+            full_cmd = f"{sys.executable} -m stdpopsim -q {cmd} -o {filename} -s {seed}"
             subprocess.run(full_cmd, shell=True, check=True)
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)
         provenance = json.loads(ts.provenance(ts.num_provenances - 1).record)
         tskit.validate_provenance(provenance)
         stored_cmd = provenance["parameters"]["args"]
-        self.assertEqual(stored_cmd[-1], "-q")
-        self.assertEqual(stored_cmd[-2], str(seed))
-        self.assertEqual(stored_cmd[-3], "-s")
-        self.assertEqual(stored_cmd[:-5], cmd.split())
+        self.assertEqual(stored_cmd[0], "-q")
+        self.assertEqual(stored_cmd[-1], str(seed))
+        self.assertEqual(stored_cmd[-2], "-s")
+        self.assertEqual(stored_cmd[1: -4], cmd.split())
         provenance = json.loads(ts.provenance(0).record)
         prov_seed = provenance["parameters"]["random_seed"]
         self.assertEqual(prov_seed, seed)
@@ -331,12 +349,38 @@ class TestRedirection(unittest.TestCase):
             self.verify_files(filename1, filename2)
 
     def test_quiet(self):
-        cmd = "HomSap -q -s 2 10 -c chr22 -l 0.001"
+        cmd = "-q HomSap -s 2 10 -c chr22 -l 0.001"
         self.verify(cmd)
 
     def test_no_quiet(self):
         cmd = "HomSap -s 3 10 -c chr22 -l 0.001"
         self.verify(cmd)
+
+
+class TestArgumentParsing(unittest.TestCase):
+    """
+    Tests that basic argument parsing works as expected.
+    """
+    basic_cmd = ["HomSap", "10"]
+
+    def test_quiet_verbose(self):
+        parser = cli.stdpopsim_cli_parser()
+        args = parser.parse_args(["-q"] + self.basic_cmd)
+        self.assertEqual(args.verbose, 0)
+        args = parser.parse_args(["--quiet"] + self.basic_cmd)
+        self.assertEqual(args.verbose, 0)
+        args = parser.parse_args(self.basic_cmd)
+        self.assertEqual(args.verbose, 1)
+        args = parser.parse_args(["-v"] + self.basic_cmd)
+        self.assertEqual(args.verbose, 2)
+        args = parser.parse_args(["--verbose"] + self.basic_cmd)
+        self.assertEqual(args.verbose, 2)
+        args = parser.parse_args(["-v", "-v"] + self.basic_cmd)
+        self.assertEqual(args.verbose, 3)
+        args = parser.parse_args(["-v", "--verbose"] + self.basic_cmd)
+        self.assertEqual(args.verbose, 3)
+        args = parser.parse_args(["--verbose", "--verbose"] + self.basic_cmd)
+        self.assertEqual(args.verbose, 3)
 
 
 class TestLogging(unittest.TestCase):
@@ -347,11 +391,11 @@ class TestLogging(unittest.TestCase):
 
     def test_quiet(self):
         parser = cli.stdpopsim_cli_parser()
-        args = parser.parse_args(self.basic_cmd + ["-q"])
+        args = parser.parse_args(["-q"] + self.basic_cmd)
         with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
             cli.setup_logging(args)
         _, kwargs = mocked_config.call_args
-        self.assertEqual(kwargs["level"], "WARN")
+        self.assertEqual(kwargs["level"], "ERROR")
 
     def test_default(self):
         parser = cli.stdpopsim_cli_parser()
@@ -359,11 +403,19 @@ class TestLogging(unittest.TestCase):
         with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
             cli.setup_logging(args)
         _, kwargs = mocked_config.call_args
-        self.assertEqual(kwargs["level"], "INFO")
+        self.assertEqual(kwargs["level"], "WARN")
 
     def test_verbose(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["-v"] + self.basic_cmd)
+        with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
+            cli.setup_logging(args)
+        _, kwargs = mocked_config.call_args
+        self.assertEqual(kwargs["level"], "INFO")
+
+    def test_very_verbose(self):
+        parser = cli.stdpopsim_cli_parser()
+        args = parser.parse_args(["-vv"] + self.basic_cmd)
         with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
             cli.setup_logging(args)
         _, kwargs = mocked_config.call_args
@@ -388,7 +440,7 @@ class TestLogging(unittest.TestCase):
                 exc_info=None, sinfo=None, msg="%s", args=(info_str,))
         warn_str = "bar"
         warn_dict = dict(
-                name="test_logger", pathname=__file__,
+                name="py.warnings", pathname=__file__,
                 levelno=logging.WARN, levelname=logging.getLevelName(logging.WARN),
                 func=sys._getframe().f_code.co_name, lineno=sys._getframe().f_lineno,
                 exc_info=None, sinfo=None, msg="%s",
@@ -407,9 +459,9 @@ class TestLogging(unittest.TestCase):
         formatted_warn_str = fmt.format(logging.makeLogRecord(warn_dict))
         formatted_warn_str2 = fmt.format(logging.makeLogRecord(warn_dict2))
         self.assertEqual(formatted_debug_str, "DEBUG: " + debug_str)
-        self.assertEqual(formatted_info_str, info_str)
+        self.assertEqual(formatted_info_str, "INFO: " + info_str)
         self.assertEqual(formatted_warn_str, "WARNING: " + warn_str)
-        self.assertEqual(formatted_warn_str2, "WARNING: " + warn_str)
+        self.assertEqual(formatted_warn_str2, warn_str)
 
 
 class TestErrors(unittest.TestCase):
@@ -445,16 +497,16 @@ class TestErrors(unittest.TestCase):
             mocked_exit.assert_called_once()
 
     def test_default(self):
-        self.verify_bad_samples("HomSap -q 2 3 ")
+        self.verify_bad_samples("HomSap 2 3 ")
 
     def test_tennessen_model(self):
-        self.verify_bad_samples("HomSap  -q -d OutOfAfrica_2T12 2 3 4")
+        self.verify_bad_samples("HomSap -d OutOfAfrica_2T12 2 3 4")
 
     def test_gutenkunst_three_pop_ooa(self):
-        self.verify_bad_samples("HomSap -q -d OutOfAfrica_3G09 2 3 4 5")
+        self.verify_bad_samples("HomSap -d OutOfAfrica_3G09 2 3 4 5")
 
     def test_browning_america(self):
-        self.verify_bad_samples("HomSap -q -d AmericanAdmixture_4B11 2 3 4 5 6")
+        self.verify_bad_samples("HomSap -d AmericanAdmixture_4B11 2 3 4 5 6")
 
 
 class TestHelp(unittest.TestCase):
@@ -682,9 +734,24 @@ class TestDryRun(unittest.TestCase):
     """
     def test_dry_run(self):
         with tempfile.TemporaryDirectory() as tmpdir:
-            filename = pathlib.Path(tmpdir) / "output.trees"
-            cmd = f"{sys.executable} -m stdpopsim HomSap -D -q -l 0.01 -o {filename} 2"
-            subprocess.run(cmd, shell=True, check=True)
+            path = pathlib.Path(tmpdir)
+            with open(path / "stderr", "w+") as stderr:
+                filename = path / "output.trees"
+                cmd = f"{sys.executable} -m stdpopsim HomSap -D -l 0.01 -o {filename} 2"
+                subprocess.run(cmd, stderr=stderr, shell=True, check=True)
+                self.assertGreater(stderr.tell(), 0)
+            self.assertFalse(os.path.isfile(filename))
+
+    def test_dry_run_quiet(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = pathlib.Path(tmpdir)
+            with open(path / "stderr", "w+") as stderr:
+                filename = path / "output.trees"
+                cmd = (
+                    f"{sys.executable} -m stdpopsim -q HomSap -D -l 0.01 "
+                    "-o {filename} 2")
+                subprocess.run(cmd, stderr=stderr, shell=True, check=True)
+                self.assertEqual(stderr.tell(), 0)
             self.assertFalse(os.path.isfile(filename))
 
 
@@ -692,7 +759,7 @@ class TestMsprimeEngine(unittest.TestCase):
     def docmd(self, _cmd):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
-            cmd = f"-e msprime {_cmd} AraTha -l 0.001 --seed 1 -o {filename} -q 10"
+            cmd = f"-q -e msprime {_cmd} AraTha -l 0.001 --seed 1 -o {filename} 10"
             return capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
 
     def test_simulate(self):
@@ -743,7 +810,7 @@ class TestNonAutosomal(unittest.TestCase):
     # TODO: This test should be removed when #383 is fixed.
     # https://github.com/popsim-consortium/stdpopsim/issues/383
     def test_chrX_gives_a_warning(self):
-        cmd = "HomSap -D -c chrX -o /dev/null -q 10".split()
+        cmd = "HomSap -D -c chrX -o /dev/null 10".split()
         with mock.patch("warnings.warn", autospec=True) as mock_warning:
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         mock_warning.assert_called_once()
@@ -783,7 +850,7 @@ class TestNoQCWarning(unittest.TestCase):
         self.verify_noQC_warning("EscCol -d FakeModel -D 10")
 
     def test_noQC_warning_quiet(self):
-        self.verify_noQC_warning("EscCol -d FakeModel -D 10 -q")
+        self.verify_noQC_warning("-q EscCol -d FakeModel -D 10")
 
     def verify_noQC_citations_not_written(self, cmd):
         # Non-QCed models shouldn't be used in publications, so citations
