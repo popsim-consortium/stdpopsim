@@ -15,6 +15,7 @@ from . genomes import *  # NOQA
 from . cache import *  # NOQA
 from . citations import *  # NOQA
 from . engines import *  # NOQA
+from . warning_categories import *  # NOQA
 
 # Add imports for all defined species here.
 # We import these here to build the catalog, but the internal functions

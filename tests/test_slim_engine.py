@@ -241,21 +241,21 @@ class TestWarningsAndErrors(unittest.TestCase):
     """
     Checks that warning messages are printed when appropriate.
     """
-    def test_odd_sample_warning(self):
+    # this is an expected failure, because no warning should be emitted
+    @unittest.expectedFailure
+    def test_odd_sample_warning_for_even_samples(self):
         cmd = "-q -e slim --slim-script HomSap -d OutOfAfrica_2T12 4 6".split()
-        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+        with self.assertWarns(stdpopsim.SLiMOddSampleWarning):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        self.assertEqual(mock_warning.call_count, 0)
 
+    def test_odd_sample_warning(self):
         cmd = "-q -e slim --slim-script HomSap -d OutOfAfrica_2T12 4 5".split()
-        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+        with self.assertWarns(stdpopsim.SLiMOddSampleWarning):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        self.assertEqual(mock_warning.call_count, 1)
 
         cmd = "-q -e slim --slim-script HomSap -d OutOfAfrica_2T12 3 5".split()
-        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+        with self.assertWarns(stdpopsim.SLiMOddSampleWarning):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        self.assertEqual(mock_warning.call_count, 2)
 
     def triplet(self):
         engine = stdpopsim.get_engine("slim")
@@ -268,11 +268,10 @@ class TestWarningsAndErrors(unittest.TestCase):
         model = stdpopsim.PiecewiseConstantSize(100)
         samples = model.get_samples(2)
 
-        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+        with self.assertWarns(stdpopsim.UnspecifiedSLiMWarning):
             engine.simulate(
                     demographic_model=model, contig=contig, samples=samples,
                     slim_scaling_factor=10, dry_run=True)
-        mock_warning.assert_called_once()
 
     def test_no_populations_in_generation_1(self):
         engine, species, contig = self.triplet()
@@ -290,11 +289,10 @@ class TestWarningsAndErrors(unittest.TestCase):
                 NA=1000, N1=100, N2=1000, T=1000, M12=0, M21=0)
         samples = model.get_samples(2)
 
-        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+        with self.assertWarns(stdpopsim.UnspecifiedSLiMWarning):
             engine.simulate(
                     demographic_model=model, contig=contig, samples=samples,
                     slim_scaling_factor=10, dry_run=True)
-        mock_warning.assert_called_once()
 
         with self.assertRaises(stdpopsim.SLiMException):
             engine.simulate(
@@ -306,11 +304,10 @@ class TestWarningsAndErrors(unittest.TestCase):
         model = stdpopsim.PiecewiseConstantSize(100, (1000, 1000))
         samples = model.get_samples(2)
 
-        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+        with self.assertWarns(stdpopsim.UnspecifiedSLiMWarning):
             engine.simulate(
                     demographic_model=model, contig=contig, samples=samples,
                     slim_scaling_factor=10, dry_run=True)
-        mock_warning.assert_called_once()
 
         with self.assertRaises(stdpopsim.SLiMException):
             engine.simulate(
@@ -355,11 +352,10 @@ class TestWarningsAndErrors(unittest.TestCase):
         model = self.exp_decline()
         samples = model.get_samples(2)
 
-        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+        with self.assertWarns(stdpopsim.UnspecifiedSLiMWarning):
             engine.simulate(
                     demographic_model=model, contig=contig, samples=samples,
                     slim_scaling_factor=10, dry_run=True)
-        mock_warning.assert_called_once()
 
         with self.assertRaises(stdpopsim.SLiMException):
             engine.simulate(
@@ -375,6 +371,26 @@ class TestWarningsAndErrors(unittest.TestCase):
             engine.simulate(
                     demographic_model=model, contig=contig, samples=samples,
                     slim_scaling_factor=10, dry_run=True)
+
+    # this is an expected failure, because no warning should be emitted
+    @unittest.expectedFailure
+    def test_warning_when_not_scaling(self):
+        with self.assertWarns(stdpopsim.SLiMScalingFactorWarning):
+            for cmd in [
+                    "HomSap 100 -D",
+                    "-e slim HomSap 100 -D",
+                    "-e slim --slim-scaling-factor 1 HomSap 100 -D",
+                    "-e slim --slim-scaling-factor 1.0 HomSap 100 -D",
+                    ]:
+                capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
+
+    def test_warning_when_scaling(self):
+        for cmd in [
+                "-e slim --slim-scaling-factor 2 HomSap 100 -D",
+                "-e slim --slim-scaling-factor 1000 EscCol 100 -D",
+                ]:
+            with self.assertWarns(stdpopsim.SLiMScalingFactorWarning):
+                capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
 
 
 class TestSlimAvailable(unittest.TestCase):

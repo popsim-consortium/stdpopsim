@@ -8,7 +8,7 @@ import warnings
 import attr
 import msprime
 
-from . import genomes
+import stdpopsim
 
 logger = logging.getLogger(__name__)
 
@@ -137,10 +137,10 @@ class Species(object):
         # TODO: add non-autosomal support
         if (chromosome is not None and
                 chromosome.lower() in ("x", "y", "m", "mt", "chrx", "chry", "chrm")):
-            warnings.warn(
+            warnings.warn(stdpopsim.NonAutosomalWarning(
                     "Non-autosomal simulations are not yet supported. See "
                     "https://github.com/popsim-consortium/stdpopsim/issues/383 and "
-                    "https://github.com/popsim-consortium/stdpopsim/issues/406")
+                    "https://github.com/popsim-consortium/stdpopsim/issues/406"))
         chrom = self.genome.get_chromosome(chromosome)
         if genetic_map is None:
             logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.id}")
@@ -154,7 +154,7 @@ class Species(object):
             gm = self.get_genetic_map(genetic_map)
             recomb_map = gm.get_chromosome_map(chrom.id)
 
-        ret = genomes.Contig(
+        ret = stdpopsim.Contig(
             recombination_map=recomb_map, mutation_rate=chrom.mutation_rate,
             genetic_map=gm)
         return ret

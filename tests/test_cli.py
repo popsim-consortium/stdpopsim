@@ -811,9 +811,8 @@ class TestNonAutosomal(unittest.TestCase):
     # https://github.com/popsim-consortium/stdpopsim/issues/383
     def test_chrX_gives_a_warning(self):
         cmd = "HomSap -D -c chrX -o /dev/null 10".split()
-        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+        with self.assertWarns(stdpopsim.NonAutosomalWarning):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        mock_warning.assert_called_once()
 
 
 class TestNoQCWarning(unittest.TestCase):
@@ -842,9 +841,8 @@ class TestNoQCWarning(unittest.TestCase):
         self.species.demographic_models.remove(self.model)
 
     def verify_noQC_warning(self, cmd):
-        with mock.patch("warnings.warn", autospec=True) as mock_warning:
+        with self.assertWarns(stdpopsim.QCMissingWarning):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
-        mock_warning.assert_called_once()
 
     def test_noQC_warning(self):
         self.verify_noQC_warning("EscCol -d FakeModel -D 10")
