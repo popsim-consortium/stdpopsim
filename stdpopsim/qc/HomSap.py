@@ -908,6 +908,102 @@ class GutenkunstOOA(models.DemographicModel):
 _species.get_demographic_model("OutOfAfrica_3G09").register_qc(GutenkunstOOA())
 
 
+class GladsteinAshkSubstructure(models.DemographicModel):
+    """
+    Parameters largely taken from supplemental table 3 of Gladstein et al (2019).
+    """
+    # Population indices: YRI, CHB, CEU, M, J, WA, EA = 0, 1, 2, 3, 4, 5, 6
+    # M = Middle eastern pop
+    # J = Non-Ashk jewish pop
+    populations = [population_sample_0] * 7
+
+    def __init__(self):
+        generation_time = 25  # parameter estimate section and same as gutenkunst
+
+        # Population sizes from supp tab 3
+        N_ANC = 7300
+        N_YRI = 10**4.26
+        N_CEU = 10**4.52
+        N_CHB = 10**3.61
+        N_WA = 10**3.82
+        N_EA = 10**6.29
+        N_Ag = 10**3.04
+        N_J = 10**5.55
+        N_M = 10**5.64
+
+        # Migration rate from CEU to ASHK ancestral pop
+        m = 0.17
+
+        # Epoch times in generations
+        T_growth = 220e3 / generation_time  # anc. afr. growth time
+        T_AF = 2105  # OOA event
+        T_eu_as = 850  # CEU/CHB split
+        T_EM = 481  # ME/J anc branch off CEU
+        T_MJ = 211  # J/ME split
+        T_A = 29  # J branch to anc. EA/WA pop
+        T_m = T_A - 1  # from github issue 511 (time of gene flow)
+        T_A_EW = 14  # WA/EA split
+        T_Ag = T_A_EW - 1  # from github issue 511 (time of growth in WA/EA)
+
+        self.population_configurations = [
+            msprime.PopulationConfiguration(
+                initial_size=N_YRI, growth_rate=0),
+            msprime.PopulationConfiguration(
+                initial_size=N_CHB, growth_rate=0),
+            msprime.PopulationConfiguration(
+                initial_size=N_CEU, growth_rate=0),
+            msprime.PopulationConfiguration(
+                initial_size=N_M, growth_rate=0),
+            msprime.PopulationConfiguration(
+                initial_size=N_J, growth_rate=0),
+            msprime.PopulationConfiguration(
+                initial_size=N_WA, growth_rate=0),
+            msprime.PopulationConfiguration(
+                initial_size=N_EA, growth_rate=0)
+        ]
+
+        # Setup initial migration matrix
+        self.migration_matrix = [
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0],
+        ]
+
+        # Population indices: YRI, CHB, CEU, M, J, WA, EA = 0, 1, 2, 3, 4, 5, 6
+        self.demographic_events = [
+            # EA & WA pop size change
+            msprime.PopulationParametersChange(time=T_Ag, initial_size=N_Ag,
+                                               population_id=5),
+            msprime.PopulationParametersChange(time=T_Ag, initial_size=N_Ag,
+                                               population_id=6),
+            # EA & WA merge
+            msprime.MassMigration(time=T_A_EW, source=6, dest=5, proportion=1),
+            # Mass migration from europe into EA/WA anc.
+            msprime.MassMigration(time=T_m, source=5, dest=2, proportion=m),
+            # EA/WA anc merge with J
+            msprime.MassMigration(time=T_A, source=5, dest=4, proportion=1),
+            # J/ME merge
+            msprime.MassMigration(time=T_MJ, source=4, dest=3, proportion=1),
+            # J/ME anc merge with CEU
+            msprime.MassMigration(time=T_EM, source=3, dest=2, proportion=1),
+            # CEU/CHB merge
+            msprime.MassMigration(time=T_eu_as, source=2, dest=1, proportion=1),
+            # OOA
+            msprime.MassMigration(time=T_AF, source=1, dest=0, proportion=1),
+            # Ancestral size change, reset population size
+            msprime.PopulationParametersChange(time=T_growth, initial_size=N_ANC,
+                                               population_id=0)
+        ]
+
+
+_species.get_demographic_model(
+    "AshkSub_7G19").register_qc(GladsteinAshkSubstructure())
+
+
 class ZigZag(models.DemographicModel):
     """
     Model from Schiffels et al (2014) used to test inference methods on a "zigzag"
