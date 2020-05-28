@@ -444,7 +444,7 @@ def add_simulate_species_parser(parser, species):
         write_simulation_summary(engine=engine, model=model, contig=contig,
                                  samples=samples, seed=args.seed)
         if not qc_complete:
-            warnings.warn(
+            warnings.warn(stdpopsim.QCMissingWarning(
                     f"{model.id} has not been QCed. Use at your own risk! "
                     "Demographic models that have not undergone stdpopsim's "
                     "Quality Control procedure may contain implementation "
@@ -453,7 +453,7 @@ def add_simulate_species_parser(parser, species):
                     "More information about the QC process can be found in "
                     "the developer documentation. "
                     "https://stdpopsim.readthedocs.io/en/latest/development.html"
-                    "#demographic-model-review-process")
+                    "#demographic-model-review-process"))
         ts = engine.simulate(**kwargs)
         summarise_usage()
         if ts is not None:

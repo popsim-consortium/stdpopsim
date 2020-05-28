@@ -596,11 +596,11 @@ def slim_makescript(
         if count % 2 != 0:
             pop_id = pop_names[pop]
             gen = time / demographic_model.generation_time
-            warnings.warn(
+            warnings.warn(stdpopsim.SLiMOddSampleWarning(
                     f"SLiM simulates diploid individuals, so {n_inds} "
                     f"individuals will be sampled for the {count} haploids "
                     f"requested from population {pop_id} at time {gen}. "
-                    "See #464.")
+                    "See #464."))
         sampling_episodes.append((pop, n_inds, time))
 
     printsc('    // One row for each sampling episode.')
@@ -673,6 +673,14 @@ class _SLiMEngine(stdpopsim.Engine):
             raise ValueError("slim_scaling_factor must be positive")
         if slim_burn_in < 0:
             raise ValueError("slim_burn_in must be non-negative")
+
+        if slim_scaling_factor != 1:
+            warnings.warn(stdpopsim.SLiMScalingFactorWarning(
+                f"You're using a scaling factor ({slim_scaling_factor}). "
+                "This should give similar results for many situations, "
+                "but is not equivalent, especially in the presence of selection. "
+                "When using rescaling, you should be careful---do checks and "
+                "compare results across different values of the scaling factor."))
 
         run_slim = not slim_script
 
@@ -748,7 +756,8 @@ class _SLiMEngine(stdpopsim.Engine):
                 if line.startswith("ERROR: "):
                     logger.error(line[len("ERROR: "):])
                 elif line.startswith("WARNING: "):
-                    warnings.warn(line[len("WARNING: "):])
+                    warnings.warn(stdpopsim.UnspecifiedSLiMWarning(
+                        line[len("WARNING: "):]))
                 else:
                     # filter `dbg` function calls that generate output
                     line = line.replace("dbg(self.source); ", "")
