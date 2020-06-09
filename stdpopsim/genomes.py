@@ -79,7 +79,7 @@ class Genome(object):
         return mean_mutation_rate
 
 
-@attr.s(frozen=True)
+@attr.s
 class Chromosome(object):
     """
     Class representing a single chromosome for a species.
@@ -92,7 +92,7 @@ class Chromosome(object):
     mutation_rate = attr.ib(type=float, kw_only=True)
 
 
-@attr.s(frozen=True)
+@attr.s
 class Contig(object):
     """
     Class representing a contiguous region of genome that is to be

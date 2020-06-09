@@ -36,7 +36,7 @@ def all_engines():
         yield sim_engine
 
 
-@attr.s(frozen=True)
+@attr.s
 class Engine(object):
     """
     Abstract class representing a simulation engine.
