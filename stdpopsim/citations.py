@@ -18,6 +18,7 @@ class CiteReason:
     MUT_RATE = "mutation rate"
     REC_RATE = "recombination rate"
     ASSEMBLY = "genome assembly"
+    ANNOTATION = "genome annotation"
     STDPOPSIM = "stdpopsim"
 
 

@@ -202,6 +202,36 @@ for pop in ["ACB", "ASW", "BEB", "CDX", "CEU", "CHB", "CHS", "CLM", "ESN",
     )
     _species.add_genetic_map(_gm)
 
+###########################################################
+#
+# Annotations
+#
+#
+#
+###########################################################
+
+_an = stdpopsim.Annotation(
+    species=_species,
+    id="Ensembl_GRCh38_gff3",
+    description="Ensembl GFF3 annotations on GRCh38",
+    long_description="""
+        These are the complete GFF3 annotations from
+        Ensembl. Please see
+        """,
+    url=(
+        "ftp://ftp.ensembl.org/pub/release-101/"
+        "gff3/homo_sapiens/Homo_sapiens.GRCh38.101.gff3.gz"),
+    zarr_url=(
+        "https://stdpopsim.s3-us-west-2.amazonaws.com/"
+        "annotations/HomSap.GRCh38.zip"),
+    citations=[
+        stdpopsim.Citation(
+            year=2018,
+            author="Hunt et al",
+            doi="https://doi.org/10.1093/database/bay119",
+            reasons={stdpopsim.CiteReason.ANNOTATION})]
+    )
+_species.add_annotations(_an)
 
 ###########################################################
 #

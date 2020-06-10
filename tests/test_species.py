@@ -72,6 +72,19 @@ class TestSpecies(unittest.TestCase):
         with self.assertRaises(ValueError):
             species.add_demographic_model(model)
 
+    def test_get_unknown_annotation(self):
+        bad = ["GDXXX", "", None]
+        species = stdpopsim.get_species("HomSap")
+        for name in bad:
+            with self.assertRaises(ValueError):
+                species.get_annotations(name)
+
+    def test_add_duplicate_annotation(self):
+        species = stdpopsim.get_species("HomSap")
+        an = species.get_annotations("Ensembl_GRCh38_gff3")
+        with self.assertRaises(ValueError):
+            species.add_annotations(an)
+
 
 class SpeciesTestMixin(object):
     """

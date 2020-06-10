@@ -2,6 +2,7 @@ name: stdpopsim-rtd
 
 channels:
   - conda-forge
+  - bioconda
 
 dependencies:
   - _libgcc_mutex=0.1
