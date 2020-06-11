@@ -80,21 +80,21 @@ _genome = stdpopsim.Genome(
 
 # Create a Species Object
 _gen_time_citation = stdpopsim.Citation(
-    doi="",
-    year="",
-    author="",
+    doi="https://doi.org/10.1093/molbev/mst125",
+    year="2013",
+    author="MacLeod et al.",
     reasons={stdpopsim.CiteReason.GEN_TIME})
 
 _pop_size_citation = stdpopsim.Citation(
-    doi="",
-    year="",
-    author="",
+    doi="https://doi.org/10.1093/molbev/mst125",
+    year="2013",
+    author="MacLeod et al.",
     reasons={stdpopsim.CiteReason.POP_SIZE})
 
 _species = stdpopsim.Species(
     id="BosTau",
     name="Bos Taurus",
-    common_name="B. taurus",
+    common_name="Cattle",
     genome=_genome,
     generation_time=5,
     generation_time_citations=[_gen_time_citation],
