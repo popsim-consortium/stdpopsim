@@ -49,7 +49,6 @@ chr27   45612108
 chr28   45940150
 chr29   51098607
 chrX    139009144
-chrMT   16338
 """
 # Parse list of chromosomes into a list of Chromosome objects which contain the
 # chromosome name, length, mutation rate, and recombination rate
@@ -186,26 +185,3 @@ def _iid():
 
 
 _species.add_demographic_model(_iid())
-species = stdpopsim.get_species("BosTau")
-contig = species.get_contig("chr22") # default is a flat genetic map
-for x in species.demographic_models:
-   print(x.id)
-model = species.get_demographic_model('IonaInferredDemography')
-print(model.num_populations)
-
-samples = model.get_samples(10)
-engine = stdpopsim.get_engine('msprime')
-ts = engine.simulate(model, contig, samples)
-print(ts.num_sites)
-
-with open("foo.vcf", "w") as vcf_file:
-   ts.write_vcf(vcf_file, contig_id='22')
-
-
-"""import json
-ts.num_samples
-
-for k, pop in enumerate(ts.populations()):
-   popdata = json.loads(pop.metadata)
-   print(f"The tree sequence has {len(ts.samples(k))} samples from "
-         f"population {k}, which is {popdata['id']}.")"""
