@@ -111,7 +111,7 @@ stdpopsim.register_species(_species)
 #
 ###########################################################
 
-def _iid():
+def _inferred_1_M_13():
     id = "IonaInferredDemography"
     description = "Iona MacLeod's Inferred Demographic Model for Bos Taurus"
     long_description = """
@@ -184,4 +184,4 @@ def _iid():
     )
 
 
-_species.add_demographic_model(_iid())
+_species.add_demographic_model(_inferred_1_M_13())
