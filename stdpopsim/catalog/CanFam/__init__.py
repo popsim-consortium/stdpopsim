@@ -1,49 +1,51 @@
 import stdpopsim
+from . import genome_data
 
-# Lengths are based on CanFam3.1, and recombination rates are the means
-# calculated from the Campbell2016 map. ChrX isn't included in that genetic
-# map, so the weighted genome-wide average is provided here instead.
-_chromosome_data = """\
-chr1	122678785	7.636001498077e-09
-chr2	85426708	8.798516284201015e-09
-chr3	91889043	8.000868549297668e-09
-chr4	88276631	8.052302321538563e-09
-chr5	88915250	9.344333839828404e-09
-chr6	77573801	8.192191165856811e-09
-chr7	80974532	7.293465322857858e-09
-chr8	74330416	8.291312822214086e-09
-chr9	61074082	9.287722798450121e-09
-chr10	69331447	9.107151930130527e-09
-chr11	74389097	7.639449804041734e-09
-chr12	72498081	7.761061128067527e-09
-chr13	63241923	8.413015225299971e-09
-chr14	60966679	9.028123091776737e-09
-chr15	64190966	7.856754982030383e-09
-chr16	59632846	8.614063697877811e-09
-chr17	64289059	9.718834385033715e-09
-chr18	55844845	1.029925446520415e-08
-chr19	53741614	1.0425051705950442e-08
-chr20	58134056	9.990971109010329e-09
-chr21	50858623	1.0339033506095636e-08
-chr22	61439934	8.61504863805126e-09
-chr23	52294480	9.1266350068389e-09
-chr24	47698779	1.1146043069685935e-08
-chr25	51628933	1.1543746646856006e-08
-chr26	38964690	1.2084571786110922e-08
-chr27	45876710	1.1260328390864541e-08
-chr28	41182112	1.2463587044656355e-08
-chr29	41845238	1.1013629677730708e-08
-chr30	40214260	1.1687642441683382e-08
-chr31	39895921	1.1397713284329192e-08
-chr32	38810281	1.1555927931648279e-08
-chr33	31377067	1.3339402745926785e-08
-chr34	42124431	1.0483812411227089e-08
-chr35	26524999	1.4299102611645524e-08
-chr36	30810995	1.187517782077471e-08
-chr37	30902991	1.3834580623461596e-08
-chr38	23914537	1.4363726512881696e-08
-chrX	123869142	9.506483722244087e-09
-"""
+# Recombination rates are the means calculated from the Campbell2016 map. ChrX
+# isn't included in that genetic map, so the weighted genome-wide average is
+# provided here instead.
+_recombination_rate_data = {
+    "1": 7.636001498077e-09,
+    "2": 8.798516284201015e-09,
+    "3": 8.000868549297668e-09,
+    "4": 8.052302321538563e-09,
+    "5": 9.344333839828404e-09,
+    "6": 8.192191165856811e-09,
+    "7": 7.293465322857858e-09,
+    "8": 8.291312822214086e-09,
+    "9": 9.287722798450121e-09,
+    "10": 9.107151930130527e-09,
+    "11": 7.639449804041734e-09,
+    "12": 7.761061128067527e-09,
+    "13": 8.413015225299971e-09,
+    "14": 9.028123091776737e-09,
+    "15": 7.856754982030383e-09,
+    "16": 8.614063697877811e-09,
+    "17": 9.718834385033715e-09,
+    "18": 1.029925446520415e-08,
+    "19": 1.0425051705950442e-08,
+    "20": 9.990971109010329e-09,
+    "21": 1.0339033506095636e-08,
+    "22": 8.61504863805126e-09,
+    "23": 9.1266350068389e-09,
+    "24": 1.1146043069685935e-08,
+    "25": 1.1543746646856006e-08,
+    "26": 1.2084571786110922e-08,
+    "27": 1.1260328390864541e-08,
+    "28": 1.2463587044656355e-08,
+    "29": 1.1013629677730708e-08,
+    "30": 1.1687642441683382e-08,
+    "31": 1.1397713284329192e-08,
+    "32": 1.1555927931648279e-08,
+    "33": 1.3339402745926785e-08,
+    "34": 1.0483812411227089e-08,
+    "35": 1.4299102611645524e-08,
+    "36": 1.187517782077471e-08,
+    "37": 1.3834580623461596e-08,
+    "38": 1.4363726512881696e-08,
+    "X": 9.506483722244087e-09,
+    "MT": 0,
+}
 
 _LindbladTohEtAl = stdpopsim.Citation(
         # Genome sequence, comparative analysis and haplotype structure of the
@@ -73,15 +75,17 @@ _CampbellEtAl = stdpopsim.Citation(
         doi="https://doi.org/10.1534/g3.116.034678")
 
 _chromosomes = []
-for line in _chromosome_data.splitlines():
-    name, length, mean_rr = line.split()
+for name, data in genome_data.data["chromosomes"].items():
     _chromosomes.append(stdpopsim.Chromosome(
-        id=name, length=int(length),
+        id=name, length=data["length"],
+        synonyms=data["synonyms"],
         mutation_rate=4e-9,  # based on non-CpG sites only
-        recombination_rate=float(mean_rr)))
+        recombination_rate=_recombination_rate_data[name]))
 
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
+    assembly_name=genome_data.data["assembly_name"],
+    assembly_accession=genome_data.data["assembly_accession"],
     mutation_rate_citations=[
         _SkoglundEtAl.because(stdpopsim.CiteReason.MUT_RATE),
         _FranzEtAl.because(stdpopsim.CiteReason.MUT_RATE),
@@ -126,7 +130,7 @@ _gm = stdpopsim.GeneticMap(
         """,
     url="https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
         "CanFam/dog_genetic_maps.tar.gz",
-    file_pattern="{id}_average_canFam3.1.txt",
+    file_pattern="chr{id}_average_canFam3.1.txt",
     citations=[
             _CampbellEtAl.because(stdpopsim.CiteReason.GEN_MAP)
         ],

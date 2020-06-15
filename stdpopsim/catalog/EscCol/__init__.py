@@ -2,6 +2,7 @@
 Genome and demographic model definitions for Escherichia coli.
 """
 import stdpopsim
+from . import genome_data
 
 ###########################################################
 #
@@ -35,14 +36,16 @@ _blattner_et_al = stdpopsim.Citation(
     doi="10.1126/science.277.5331.1453")
 
 _chromosomes = []
-_chromosomes.append(stdpopsim.Chromosome(
-        id=None,
-        length=4641652,
+for name, data in genome_data.data["chromosomes"].items():
+    _chromosomes.append(stdpopsim.Chromosome(
+        id=name, length=data["length"],
+        synonyms=data["synonyms"],
         # Lapierre et al. (2016) refer to:
         #  Genomic adaptive mutation rate: 1e-5, Perfeito et al. (2007), and
         #  Genomic deleterious mutation rate: 2e−4, Kibota and Lynch (1996).
         mutation_rate=1e-5+2e-4,
         recombination_rate=0.0))
+
 # mean_conversion_rate=8.9e-11 # not implemented yet!
 # mean_conversion_length=542 # not implemented yet!
 
@@ -51,6 +54,8 @@ _chromosomes.append(stdpopsim.Chromosome(
 
 _genome = stdpopsim.Genome(
         chromosomes=_chromosomes,
+        assembly_name=genome_data.data["assembly_name"],
+        assembly_accession=genome_data.data["assembly_accession"],
         mutation_rate_citations=[
             _perfeito_et_al.because(stdpopsim.CiteReason.MUT_RATE),
             _kibota_and_lynch.because(stdpopsim.CiteReason.MUT_RATE),

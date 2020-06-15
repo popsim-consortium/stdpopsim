@@ -1,29 +1,18 @@
 """
 Genome, genetic map and demographic model definitions for humans.
 """
+import collections
 
 import msprime
 
 import stdpopsim
+from . import genome_data
 
 ###########################################################
 #
 # Genome definition
 #
 ###########################################################
-
-# List of chromosomes. Data for length information based on DM6,
-# https://www.ncbi.nlm.nih.gov/genome/?term=drosophila+melanogaster.
-# FIXME: add mean mutation and recombination rate data to this table.
-_chromosome_data = """\
-chrX   23542271
-chr2L   23513712
-chr2R   25286936
-chr3L   28110227
-chr3R   32079331
-chr4   1348131
-chrY   3667352
-"""
 
 # citations
 _LiAndStephan = stdpopsim.Citation(
@@ -43,21 +32,27 @@ _DosSantosEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.ASSEMBLY}
 )
 
+_genome_wide_estimate = 8.4e-9  # WRONG, underestimate used in S&S!
+
+_recombination_rate_data = collections.defaultdict(
+        lambda: _genome_wide_estimate)
+# Set some exceptions for non-recombining chrs.
+_recombination_rate_data["Y"] = 0
+_recombination_rate_data["mitochondrion_genome"] = 0
+
 _chromosomes = []
-for line in _chromosome_data.splitlines():
-    name, length = line.split()[:2]
+for name, data in genome_data.data["chromosomes"].items():
     _chromosomes.append(stdpopsim.Chromosome(
-        id=name, length=int(length),
+        id=name, length=data["length"],
+        synonyms=data["synonyms"],
         mutation_rate=5.49e-9,  # citation: _SchriderEtAl
-        recombination_rate=8.4e-9))  # WRONG, underestimate used in S&S!
+        recombination_rate=_recombination_rate_data[name]))
 
-
-# TODO need to port this documentation somewhere.
-# class:`stdpopsim.Genome` definition for D. melanogaster. Chromosome length data is
-# based on `dm6 <https://www.ncbi.nlm.nih.gov/assembly/GCF_000001215.4/>`_.
 
 _genome = stdpopsim.Genome(
         chromosomes=_chromosomes,
+        assembly_name=genome_data.data["assembly_name"],
+        assembly_accession=genome_data.data["assembly_accession"],
         mutation_rate_citations=[
             _SchriderEtAl.because(stdpopsim.CiteReason.MUT_RATE)],
         assembly_citations=[
@@ -100,7 +95,7 @@ _gm = stdpopsim.GeneticMap(
     url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
         "DroMel/comeron2012_maps.tar.gz"),
-    file_pattern="genetic_map_comeron2012_dm6_{id}.txt",
+    file_pattern="genetic_map_comeron2012_dm6_chr{id}.txt",
     citations=[stdpopsim.Citation(
         author="Comeron et al",
         doi="https://doi.org/10.1371/journal.pgen.1002905",

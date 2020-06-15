@@ -114,6 +114,14 @@ class Species(object):
     demographic_models = attr.ib(factory=list, kw_only=True)
     genetic_maps = attr.ib(factory=list, kw_only=True)
 
+    @property
+    def ensembl_id(self):
+        """
+        Returns the ID of this species for the Ensembl REST API.
+        This is the species name, underscore delimited and in lowercase.
+        """
+        return self.name.lower().replace(" ", "_")
+
     def get_contig(self, chromosome, genetic_map=None, length_multiplier=1):
         """
         Returns a :class:`.Contig` instance describing a section of genome that

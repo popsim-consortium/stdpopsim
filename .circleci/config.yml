@@ -37,12 +37,12 @@ jobs:
             flake8 --max-line-length 89 stdpopsim setup.py tests docs/_ext
 
       - run:
-          name: Run Python tests 
+          name: Run Python tests
           command: |
-            nosetests -vs --with-coverage --cover-package stdpopsim \
+            nosetests -vs --with-coverage --cover-package stdpopsim maintenance \
               --cover-branches --cover-erase --cover-xml \
               --cover-inclusive tests
-            python3 -m codecov 
+            python3 -m codecov
             rm .coverage
 
       - run:
@@ -53,12 +53,12 @@ jobs:
             python setup.py check
             python -m twine check dist/*.tar.gz
             python -m venv venv
-            source venv/bin/activate 
+            source venv/bin/activate
             pip install --upgrade setuptools pip wheel
             python setup.py build_ext
             python setup.py egg_info
             python setup.py bdist_wheel
-            pip install dist/*.tar.gz 
+            pip install dist/*.tar.gz
             python3 -m stdpopsim -V
             # Run a small simulation to make sure it all works.
             stdpopsim HomSap -c chr22 -l 0.001 2 > /dev/null

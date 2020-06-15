@@ -88,7 +88,7 @@ class TestAPI(unittest.TestCase):
     def test_simulate(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("AraTha")
-        contig = species.get_contig("chr5", length_multiplier=0.001)
+        contig = species.get_contig("5", length_multiplier=0.001)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         samples = model.get_samples(10)
         ts = engine.simulate(

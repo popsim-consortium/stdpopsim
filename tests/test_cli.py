@@ -244,11 +244,11 @@ class TestEndToEnd(unittest.TestCase):
         self.verify(cmd, num_samples=2)
 
     def test_dromel_constant(self):
-        cmd = "DroMel -c chr2L -l0.001 4"
+        cmd = "DroMel -c 2L -l0.001 4"
         self.verify(cmd, num_samples=4)
 
     def test_li_stephan_two_population(self):
-        cmd = "DroMel -c chr2L -l0.001 -d OutOfAfrica_2L06 3"
+        cmd = "DroMel -c 2L -l0.001 -d OutOfAfrica_2L06 3"
         self.verify(cmd, num_samples=3)
 
     def test_aratha_constant(self):
