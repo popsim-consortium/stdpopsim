@@ -57,7 +57,7 @@ class Engine(object):
 
     def simulate(
             self, demographic_model=None, contig=None, samples=None, seed=None,
-            dry_run=False, **kwargs):
+            dry_run=False):
         """
         Simulates the model for the specified contig and samples.
 
@@ -110,7 +110,7 @@ class _MsprimeEngine(Engine):
 
     def simulate(
             self, demographic_model=None, contig=None, samples=None, seed=None,
-            msprime_model=None, msprime_change_model=None, dry_run=False, **kwargs):
+            msprime_model=None, msprime_change_model=None, dry_run=False):
         """
         Simulate the demographic model using msprime.
         See :meth:`.Engine.simulate()` for definitions of parameters defined

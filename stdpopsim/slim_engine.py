@@ -640,7 +640,7 @@ class _SLiMEngine(stdpopsim.Engine):
     def simulate(
             self, demographic_model=None, contig=None, samples=None, seed=None,
             slim_path=None, slim_script=False, slim_scaling_factor=1.0,
-            slim_burn_in=10.0, dry_run=False, **kwargs):
+            slim_burn_in=10.0, dry_run=False):
         """
         Simulate the demographic model using SLiM.
         See :meth:`.Engine.simulate()` for definitions of the

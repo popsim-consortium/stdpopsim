@@ -14,6 +14,7 @@ import pathlib
 import shutil
 import os
 import re
+import inspect
 
 import msprime
 import tskit
@@ -439,8 +440,6 @@ def add_simulate_species_parser(parser, species):
             f"Running simulation model {model.id} for {species.id} on "
             f"{contig} with {len(samples)} samples using {engine.id}.")
 
-        kwargs = vars(args)
-        kwargs.update(demographic_model=model, contig=contig, samples=samples)
         write_simulation_summary(engine=engine, model=model, contig=contig,
                                  samples=samples, seed=args.seed)
         if not qc_complete:
@@ -454,7 +453,13 @@ def add_simulate_species_parser(parser, species):
                     "the developer documentation. "
                     "https://stdpopsim.readthedocs.io/en/latest/development.html"
                     "#demographic-model-review-process"))
+
+        # extract simulate() parameters from CLI args
+        accepted_params = inspect.signature(engine.simulate).parameters.keys()
+        kwargs = {k: v for k, v in vars(args).items() if k in accepted_params}
+        kwargs.update(demographic_model=model, contig=contig, samples=samples)
         ts = engine.simulate(**kwargs)
+
         summarise_usage()
         if ts is not None:
             write_output(ts, args)
