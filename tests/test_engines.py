@@ -49,3 +49,20 @@ class TestEngineAPI(unittest.TestCase):
         e = stdpopsim.Engine()
         self.assertRaises(NotImplementedError, e.simulate)
         self.assertRaises(NotImplementedError, e.get_version)
+
+
+class TestBehaviour(unittest.TestCase):
+    def test_simulate_nonexistent_param(self):
+        species = stdpopsim.get_species("HomSap")
+        model = species.get_demographic_model("AshkSub_7G19")
+        good_kwargs = dict(
+            demographic_model=model,
+            contig=species.get_contig("chr1"),
+            samples=model.get_samples(10, 10, 10),
+            dry_run=True,
+        )
+        bad_kwargs = good_kwargs.copy().update(nonexistent_param=None)
+        for engine in stdpopsim.all_engines():
+            engine.simulate(**good_kwargs)
+            with self.assertRaises(TypeError):
+                engine.simulate(**bad_kwargs)
