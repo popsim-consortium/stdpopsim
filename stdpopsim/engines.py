@@ -101,9 +101,8 @@ class _MsprimeEngine(Engine):
     supported_models = ["hudson", "dtwf", "smc", "smc_prime"]
     model_citations = {"dtwf": [
              stdpopsim.Citation(
-                 # biorxiv; update upon publication
-                 doi="https://doi.org/10.1101/674440",
-                 year="2019",
+                 doi="https://doi.org/10.1371/journal.pgen.1008619",
+                 year="2020",
                  author="Nelson et al.",
                  reasons={stdpopsim.CiteReason.ENGINE}),
              ]}
