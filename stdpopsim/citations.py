@@ -79,8 +79,7 @@ class Citation(object):
 
 
 _stdpopsim_citation = Citation(
-    # biorxiv; update upon publication
-    doi="https://doi.org/10.1101/2019.12.20.885129",
-    year="2019",
+    doi="https://doi.org/10.7554/eLife.54967",
+    year="2020",
     author="Adrion et al.",
     reasons={CiteReason.STDPOPSIM})
