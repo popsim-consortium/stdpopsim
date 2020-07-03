@@ -67,9 +67,9 @@ for line in _chromosome_data.splitlines():
 # for stdpopsim.citations)
 
 _assembly_citation = stdpopsim.Citation(
-    doi="FILL ME",
-    year="FILL ME",
-    author="Author et al.",
+    doi="https://doi.org/10.1093/gigascience/giaa021",
+    year="2020",
+    author="Rosen et al.",
     reasons={stdpopsim.CiteReason.ASSEMBLY})
 
 # Create a genome object
