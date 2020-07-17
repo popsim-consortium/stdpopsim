@@ -332,7 +332,6 @@ def add_simulate_species_parser(parser, species):
         help=f"Run simulations for {species.name}.")
     species_parser.set_defaults(species=species.id)
     species_parser.set_defaults(genetic_map=None)
-    species_parser.set_defaults(chromosome=None)
     species_parser.add_argument(
         "--help-models", action=HelpModels, nargs="?",
         help=(
@@ -372,10 +371,18 @@ def add_simulate_species_parser(parser, species):
                 "Available maps: "
                 f"{', '.join(choices)}. "))
 
-    if len(species.genome.chromosomes) > 1:
-        choices = [chrom.id for chrom in species.genome.chromosomes]
+    if len(species.genome.chromosomes) == 1:
+        species_parser.set_defaults(chromosome=species.genome.chromosomes[0].id)
+    else:
+        # To avoid listing too much stuff out in the help, we only list
+        # the actual IDs. We make all synonyms available as choices though.
+        choices = []
+        all_choices = []
+        for chrom in species.genome.chromosomes:
+            choices.append(chrom.id)
+            all_choices.extend([chrom.id] + chrom.synonyms)
         species_parser.add_argument(
-            "-c", "--chromosome", choices=choices, metavar="", default=choices[0],
+            "-c", "--chromosome", choices=all_choices, metavar="", default=choices[0],
             help=(
                 f"Simulate a specific chromosome. "
                 f"Options: {', '.join(choices)}. "

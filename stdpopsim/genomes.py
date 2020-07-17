@@ -32,6 +32,8 @@ class Genome(object):
     mutation_rate_citations = attr.ib(factory=list, kw_only=True)
     recombination_rate_citations = attr.ib(factory=list, kw_only=True)
     assembly_citations = attr.ib(factory=list, kw_only=True)
+    assembly_name = attr.ib(default=None, kw_only=True)
+    assembly_accession = attr.ib(default=None, kw_only=True)
     length = attr.ib(default=0, init=False)
 
     def __attrs_post_init__(self):
@@ -50,7 +52,7 @@ class Genome(object):
         Returns the chromosome with the specified id.
         """
         for chrom in self.chromosomes:
-            if chrom.id == id:
+            if chrom.id == id or id in chrom.synonyms:
                 return chrom
         raise ValueError("Chromosome not found")
 
@@ -90,6 +92,7 @@ class Chromosome(object):
     length = attr.ib(kw_only=True)
     recombination_rate = attr.ib(type=float, kw_only=True)
     mutation_rate = attr.ib(type=float, kw_only=True)
+    synonyms = attr.ib(factory=list, kw_only=True)
 
 
 @attr.s

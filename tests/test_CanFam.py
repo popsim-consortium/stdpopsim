@@ -19,13 +19,13 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     genome = stdpopsim.get_species("CanFam").genome
 
     def test_basic_attributes(self):
-        nchrom = 39  # 38 + X
+        nchrom = 40  # 38 + X + MT
         self.assertEqual(len(self.genome.chromosomes), nchrom)
 
 
 class TestThatDogsCanBeSimulated(unittest.TestCase):
     def test_basic_cli_usage(self):
-        cmd = "-q CanFam -c chr38 -l 0.001 --seed 1234 10"
+        cmd = "-q CanFam -c 38 -l 0.001 --seed 1234 10"
         with mock.patch("sys.stdout", autospec=True) as stdout:
             stdout.buffer = open(os.devnull, "wb")
             stdpopsim.cli.stdpopsim_main(cmd.split())

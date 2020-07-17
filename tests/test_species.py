@@ -20,6 +20,13 @@ class TestSpecies(unittest.TestCase):
             self.assertIsInstance(s, str)
             self.assertGreater(len(s), 0)
 
+    def test_ensembl_id(self):
+        # Test the Ensembl species ID for some known species.
+        species = stdpopsim.get_species("HomSap")
+        self.assertEqual(species.ensembl_id, "homo_sapiens")
+        species = stdpopsim.get_species("DroMel")
+        self.assertEqual(species.ensembl_id, "drosophila_melanogaster")
+
     def test_get_known_species(self):
         good = ["HomSap", "EscCol"]
         for species_id in good:

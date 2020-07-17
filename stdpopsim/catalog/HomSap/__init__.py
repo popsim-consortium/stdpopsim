@@ -7,6 +7,7 @@ import logging
 import msprime
 
 import stdpopsim
+from . import genome_data
 
 logger = logging.getLogger(__name__)
 
@@ -16,43 +17,36 @@ logger = logging.getLogger(__name__)
 #
 ###########################################################
 
-# List of chromosomes.
-
-# FIXME: add mean mutation rate data to this table.
-# Name  Length  mean_recombination_rate mean_mutation_rate
-
-# length information can be found here
-# <http://hgdownload.soe.ucsc.edu/goldenPath/hg19/database/chromInfo.txt.gz>
 
 # mean_recombination_rate was computed across all windows of the GRCh37 genetic map
 # <ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/20110106_recombination_hotspots>
-_chromosome_data = """\
-chr1 	 249250621 	 1.1485597641285933e-08
-chr2 	 243199373 	 1.1054289277533446e-08
-chr3 	 198022430 	 1.1279585624662551e-08
-chr4 	 191154276 	 1.1231162636001008e-08
-chr5 	 180915260 	 1.1280936570022824e-08
-chr6 	 171115067 	 1.1222852661225285e-08
-chr7 	 159138663 	 1.1764614397655721e-08
-chr8 	 146364022 	 1.1478465778920576e-08
-chr9 	 141213431 	 1.1780701596308656e-08
-chr10 	 135534747 	 1.3365134257075317e-08
-chr11 	 135006516 	 1.1719334320833283e-08
-chr12 	 133851895 	 1.305017186986983e-08
-chr13 	 115169878 	 1.0914860554958317e-08
-chr14 	 107349540 	 1.119730771394731e-08
-chr15 	 102531392 	 1.3835785893339787e-08
-chr16 	 90354753 	 1.4834607113882717e-08
-chr17 	 81195210 	 1.582489036239487e-08
-chr18 	 78077248 	 1.5075956950023575e-08
-chr19 	 59128983 	 1.8220141872466202e-08
-chr20 	 63025520 	 1.7178269031631664e-08
-chr21 	 48129895 	 1.3045214034879191e-08
-chr22 	 51304566 	 1.4445022767788226e-08
-chrX 	 155270560 	 1.164662223273842e-08
-chrY 	 59373566 	 0.0
-"""
-
+_recombination_rate_data = {
+    "1": 1.1485597641285933e-08,
+    "2": 1.1054289277533446e-08,
+    "3": 1.1279585624662551e-08,
+    "4": 1.1231162636001008e-08,
+    "5": 1.1280936570022824e-08,
+    "6": 1.1222852661225285e-08,
+    "7": 1.1764614397655721e-08,
+    "8": 1.1478465778920576e-08,
+    "9": 1.1780701596308656e-08,
+    "10": 1.3365134257075317e-08,
+    "11": 1.1719334320833283e-08,
+    "12": 1.305017186986983e-08,
+    "13": 1.0914860554958317e-08,
+    "14": 1.119730771394731e-08,
+    "15": 1.3835785893339787e-08,
+    "16": 1.4834607113882717e-08,
+    "17": 1.582489036239487e-08,
+    "18": 1.5075956950023575e-08,
+    "19": 1.8220141872466202e-08,
+    "20": 1.7178269031631664e-08,
+    "21": 1.3045214034879191e-08,
+    "22": 1.4445022767788226e-08,
+    "X": 1.164662223273842e-08,
+    "Y": 0.0,
+    "MT": 0.0,
+}
 
 _genome2001 = stdpopsim.Citation(
     doi="http://dx.doi.org/10.1038/35057062",
@@ -89,12 +83,14 @@ _takahata1993 = stdpopsim.Citation(
 )
 
 _chromosomes = []
-for line in _chromosome_data.splitlines():
-    name, length, mean_rr = line.split()[:3]
+for name, data in genome_data.data["chromosomes"].items():
     _chromosomes.append(stdpopsim.Chromosome(
-        id=name, length=int(length),
+        id=name,
+        length=data["length"],
+        synonyms=data["synonyms"],
         mutation_rate=1.29e-8,
-        recombination_rate=float(mean_rr)))
+        recombination_rate=_recombination_rate_data[name]
+    ))
 
 _genome = stdpopsim.Genome(
         chromosomes=_chromosomes,
@@ -102,6 +98,8 @@ _genome = stdpopsim.Genome(
             _tian2019.because(stdpopsim.CiteReason.MUT_RATE)],
         recombination_rate_citations=[
             _hapmap2007.because(stdpopsim.CiteReason.REC_RATE)],
+        assembly_name=genome_data.data["assembly_name"],
+        assembly_accession=genome_data.data["assembly_accession"],
         assembly_citations=[
             _genome2001])
 
@@ -145,7 +143,7 @@ _gm = stdpopsim.GeneticMap(
     url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
         "HomSap/HapmapII_GRCh37_RecombinationHotspots.tar.gz"),
-    file_pattern="genetic_map_GRCh37_{id}.txt",
+    file_pattern="genetic_map_GRCh37_chr{id}.txt",
     citations=[
         _hapmap2007.because(stdpopsim.CiteReason.GEN_MAP)],
     )
@@ -166,7 +164,7 @@ _gm = stdpopsim.GeneticMap(
     url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
         "HomSap/decode_2010_sex-averaged_map.tar.gz"),
-    file_pattern="genetic_map_decode_2010_sex-averaged_{id}.txt",
+    file_pattern="genetic_map_decode_2010_sex-averaged_chr{id}.txt",
     citations=[
         stdpopsim.Citation(
             year=2010,

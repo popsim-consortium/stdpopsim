@@ -5,6 +5,7 @@ import msprime
 import numpy as np
 
 import stdpopsim
+from . import genome_data
 
 ###########################################################
 #
@@ -12,32 +13,31 @@ import stdpopsim
 #
 ###########################################################
 
-# Data for length information based on:
-# https://www.arabidopsis.org/portals/genAnnotation/
-#   gene_structural_annotation/agicomplete.jsp
-# Lengths from TAIR 10 although its unclear what reference the genetic map used
-#   -- follow up on this with Salome 2012 authors
+_mean_recombination_rate = 200 / 124000 / 2 / 1e6
 
-_chromosome_data = """\
-chr1 30427671
-chr2 19698289
-chr3 23459830
-chr4 18585056
-chr5 26975502
-"""
+_recombination_rate_data = {
+    str(j): _mean_recombination_rate for j in range(1, 6)
+}
+_recombination_rate_data["Mt"] = 0
+_recombination_rate_data["Pt"] = 0  # JK Is this correct??
+
+
 # mutation rate from Ossowski 2010 Science
 # recombination value from Huber et al 2014 MBE
 # rho=200/Mb, assume Ne=124,000, rho=2*Ne*r
 _chromosomes = []
-for line in _chromosome_data.splitlines():
-    name, length = line.split()[:2]
+for name, data in genome_data.data["chromosomes"].items():
     _chromosomes.append(stdpopsim.Chromosome(
-        id=name, length=int(length),
+        id=name,
+        length=data["length"],
+        synonyms=data["synonyms"],
         mutation_rate=7e-9,
-        recombination_rate=200 / 124000 / 2 / 1e6))
+        recombination_rate=_recombination_rate_data[name]))
 
 _genome = stdpopsim.Genome(
         chromosomes=_chromosomes,
+        assembly_name=genome_data.data["assembly_name"],
+        assembly_accession=genome_data.data["assembly_accession"],
         mutation_rate_citations=[
             stdpopsim.Citation(
                 author="Ossowski et al.",
@@ -99,7 +99,7 @@ _gm = stdpopsim.GeneticMap(
     url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
         "AraTha/salome2012_maps.tar.gz"),
-    file_pattern="arab_{id}_map_loess.txt",
+    file_pattern="arab_chr{id}_map_loess.txt",
     citations=[stdpopsim.Citation(
         doi="https://doi.org/10.1038/hdy.2011.95",
         author="Salomé et al.",

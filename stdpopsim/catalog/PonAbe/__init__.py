@@ -6,6 +6,7 @@ import math
 import msprime
 
 import stdpopsim
+from . import genome_data
 
 import logging
 
@@ -17,40 +18,36 @@ logger = logging.getLogger(__name__)
 #
 ###########################################################
 
-# List of chromosomes.
-
-# length information can be found here
-# <https://www.ncbi.nlm.nih.gov/genome/325>
-# Orangutan July 201 (WUGSC 2.0.2/ponAbe2) Browser Sequences
 # Average recombination rates per chromosome taken from the Pongo abelii
 # recombination map inferred in Nater et al (doi:10.1016/j.cub.2017.09.047)
 # For chromosome X, we use the rate assumed in Locke et al.
-_chromosome_data = """\
-chr1     229942017   5.19e-9
-chr2a    113028656   5.43e-9
-chr2b    135000294   5.38e-9
-chr3     202140232   5.36e-9
-chr4     198332218   5.43e-9
-chr5     183952662   5.20e-9
-chr6     174210431   5.22e-9
-chr7     157549271   5.73e-9
-chr8     153482349   5.67e-9
-chr9     135191526   5.34e-9
-chr10    133410057   5.91e-9
-chr11    132107971   5.29e-9
-chr12    136387465   5.44e-9
-chr13    117095149   4.91e-9
-chr14    108868599   4.70e-9
-chr15    99152023    4.82e-9
-chr16    77800216    6.12e-9
-chr17    73212453    7.26e-9
-chr18    94050890    4.57e-9
-chr19    60714840    7.56e-9
-chr20    62736349    5.83e-9
-chr21    48394510    4.98e-9
-chr22    46535552    6.03e-9
-chrX     156195299   9.50e-9
-"""
+_recombination_rate_data = {
+    "1": 5.19e-9,
+    "2a": 5.43e-9,
+    "2b": 5.38e-9,
+    "3": 5.36e-9,
+    "4": 5.43e-9,
+    "5": 5.20e-9,
+    "6": 5.22e-9,
+    "7": 5.73e-9,
+    "8": 5.67e-9,
+    "9": 5.34e-9,
+    "10": 5.91e-9,
+    "11": 5.29e-9,
+    "12": 5.44e-9,
+    "13": 4.91e-9,
+    "14": 4.70e-9,
+    "15": 4.82e-9,
+    "16": 6.12e-9,
+    "17": 7.26e-9,
+    "18": 4.57e-9,
+    "19": 7.56e-9,
+    "20": 5.83e-9,
+    "21": 4.98e-9,
+    "22": 6.03e-9,
+    "X": 9.50e-9,
+    "MT": 0,
+}
 
 _locke2011 = stdpopsim.Citation(
     author="Locke et al.",
@@ -65,15 +62,18 @@ _nater2017 = stdpopsim.Citation(
 )
 
 _chromosomes = []
-for line in _chromosome_data.splitlines():
-    name, length, mean_rr = line.split()[:3]
+for name, data in genome_data.data["chromosomes"].items():
     _chromosomes.append(stdpopsim.Chromosome(
-        id=name, length=int(length),
+        id=name, length=data["length"],
+        synonyms=data["synonyms"],
         mutation_rate=1.5e-8,
-        recombination_rate=float(mean_rr)))
+        recombination_rate=_recombination_rate_data[name]
+    ))
 
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
+    assembly_name=genome_data.data["assembly_name"],
+    assembly_accession=genome_data.data["assembly_accession"],
     mutation_rate_citations=[
         _nater2017.because(stdpopsim.CiteReason.MUT_RATE)])
 
@@ -118,7 +118,7 @@ _gm_pa = stdpopsim.GeneticMap(
         """,
     url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/PonAbe/NaterPA_PonAbe2.tar.gz"),  # NOQA
-    file_pattern="Nater_et_al_PA_{id}_PonAbe2.txt",
+    file_pattern="Nater_et_al_PA_chr{id}_PonAbe2.txt",
     citations=[
         stdpopsim.Citation(
             doi="https://doi.org/10.1016/j.cub.2017.09.047",
@@ -140,7 +140,7 @@ _gm_pp = stdpopsim.GeneticMap(
         """,
     url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/PonPyg/NaterPP_PonAbe2.tar.gz"),  # NOQA
-    file_pattern="Nater_et_al_PP_{id}_PonAbe2.txt",
+    file_pattern="Nater_et_al_PP_chr{id}_PonAbe2.txt",
     citations=[
         stdpopsim.Citation(
             doi="https://doi.org/10.1016/j.cub.2017.09.047",

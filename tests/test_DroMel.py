@@ -22,16 +22,15 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     genome = stdpopsim.get_species("DroMel").genome
 
     def test_basic_attributes(self):
-        self.assertEqual(len(self.genome.chromosomes), 7)
+        self.assertEqual(len(self.genome.chromosomes), 8)
 
-    def test_chromosome_lengths(self):
-        genome = self.genome
-        # Numbers from DM6 release
-        # `dm6 <https://www.ncbi.nlm.nih.gov/assembly/GCF_000001215.4/>`_.
-        self.assertEqual(genome.get_chromosome("chr2L").length, 23513712)
-        self.assertEqual(genome.get_chromosome("chr2R").length, 25286936)
-        self.assertEqual(genome.get_chromosome("chr3L").length, 28110227)
-        self.assertEqual(genome.get_chromosome("chr3R").length, 32079331)
-        self.assertEqual(genome.get_chromosome("chrX").length, 23542271)
-        self.assertEqual(genome.get_chromosome("chr4").length, 1348131)
-        self.assertEqual(genome.get_chromosome("chrY").length, 3667352)
+    def test_non_recombining_chrs(self):
+        chrom = self.genome.get_chromosome("Y")
+        self.assertEqual(chrom.recombination_rate, 0)
+        chrom = self.genome.get_chromosome("mitochondrion_genome")
+        self.assertEqual(chrom.recombination_rate, 0)
+
+    def test_recombining_chrs(self):
+        for name in ["2L", "2R", "3L", "3R", "4", "X"]:
+            chrom = self.genome.get_chromosome(name)
+            self.assertGreater(chrom.recombination_rate, 0)
