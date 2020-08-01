@@ -174,6 +174,7 @@ _gm = stdpopsim.GeneticMap(
     )
 _species.add_genetic_map(_gm)
 
+# 26 populations in 1000 Genomes
 for pop in ["ACB", "ASW", "BEB", "CDX", "CEU", "CHB", "CHS", "CLM", "ESN",
             "FIN", "GBR", "GIH", "GWD", "IBS", "ITU", "JPT", "KHV", "LWK",
             "MSL", "MXL", "PEL", "PJL", "PUR", "STU", "TSI", "YRI"]:
