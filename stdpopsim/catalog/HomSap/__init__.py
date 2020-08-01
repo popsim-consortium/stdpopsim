@@ -61,6 +61,13 @@ _hapmap2007 = stdpopsim.Citation(
     author="The International HapMap Consortium",
 )
 
+_takahata1993 = stdpopsim.Citation(
+    doi="https://doi.org/10.1093/oxfordjournals.molbev.a039995",
+    year="1993",
+    author="Takahata",
+    reasons={stdpopsim.CiteReason.POP_SIZE}
+)
+
 _tian2019 = stdpopsim.Citation(
     doi="https://doi.org/10.1016/j.ajhg.2019.09.012",
     year="2019",
@@ -73,13 +80,6 @@ _tremblay2000 = stdpopsim.Citation(
     year="2000",
     author="Tremblay and Vezina",
     reasons={stdpopsim.CiteReason.GEN_TIME}
-)
-
-_takahata1993 = stdpopsim.Citation(
-    doi="https://doi.org/10.1093/oxfordjournals.molbev.a039995",
-    year="1993",
-    author="Takahata",
-    reasons={stdpopsim.CiteReason.POP_SIZE}
 )
 
 _chromosomes = []
@@ -173,6 +173,37 @@ _gm = stdpopsim.GeneticMap(
             reasons={stdpopsim.CiteReason.GEN_MAP})]
     )
 _species.add_genetic_map(_gm)
+
+# 26 populations in 1000 Genomes
+for pop in ["ACB", "ASW", "BEB", "CDX", "CEU", "CHB", "CHS", "CLM", "ESN",
+            "FIN", "GBR", "GIH", "GWD", "IBS", "ITU", "JPT", "KHV", "LWK",
+            "MSL", "MXL", "PEL", "PJL", "PUR", "STU", "TSI", "YRI"]:
+    _gm = stdpopsim.GeneticMap(
+        species=_species,
+        id="Pyrho{}_GRCh37".format(pop),
+        description="Pyrho population-specific map for {}".format(pop),
+        long_description="""
+        This genetic map was inferred using individuals from the {}
+        population from Phase 3 of the 1000 Genomes Project. Rates
+        were estimated using pyrho (https://github.com/popgenmethods/pyrho)
+        while using population-specific population size history estimates
+        obtained from smc++ (https://github.com/popgenmethods/smcpp).
+        Genetic maps are only available for the 22 autosomes.
+        See https://doi.org/10.1126/sciadv.aaw9206 for more
+        details.""".format(pop),
+        url=(
+            "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
+            "HomSap/Pyrho{}_GRCh37.tar.gz".format(pop)),
+        file_pattern=(
+            "Pyrho{}_GRCh37_chr{{id}}.txt".format(pop)),
+        citations=[
+            stdpopsim.Citation(
+                year=2019,
+                author="Spence and Song",
+                doi="https://doi.org/10.1126/sciadv.aaw9206",
+                reasons={stdpopsim.CiteReason.GEN_MAP})]
+    )
+    _species.add_genetic_map(_gm)
 
 
 ###########################################################
