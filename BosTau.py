@@ -92,9 +92,12 @@ _MaEtAl = stdpopsim.Citation(
 
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
+    # Mutation rate is a sex-averaged estimate per base pair per generation
      mutation_rate_citations=[
         _CoppietersEtAl.because(stdpopsim.CiteReason.MUT_RATE),
         ],
+    # Recombination rate has been derived from dairy cattle crossovers per meiosis, by taking the average between females and males and then dividing by the 
+    # whole genome length (equal to the sum of chromosome lengths used above)
     recombination_rate_citations=[
         _MaEtAl.because(stdpopsim.CiteReason.REC_RATE)
         ],
