@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 # Create a string of chromosome lengths for easy parsing
+# Length data was extracted from Ensembl genome browser Eg. for Chr1 ....https://www.ensembl.org/Bos_taurus/Location/Chromosome?r=1:421347-158534110
 _chromosome_data = """\
 chr1    158534110
 chr2    136231102
@@ -58,25 +59,49 @@ for line in _chromosome_data.splitlines():
     name, length = line.split()[:2]
     _chromosomes.append(stdpopsim.Chromosome(
         id=name, length=int(length),
-        mutation_rate=1e-8,
-        recombination_rate=1e-8))
+        mutation_rate=1.21e-8,
+        recombination_rate=9.26e-9))
 
 # A citation for the chromosome parameters. Additional citations may be needed if
 # the mutation or recombination rates come from other sources. In that case create
 # additional citations with the appropriate reasons specified (see API documentation
 # for stdpopsim.citations)
 
-_assembly_citation = stdpopsim.Citation(
+
+
+_RosenEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1093/gigascience/giaa021",
     year="2020",
     author="Rosen et al.",
     reasons={stdpopsim.CiteReason.ASSEMBLY})
 
+_CoppietersEtAl = stdpopsim.Citation(
+        # Rate of de novo mutation in dairy cattle and potential impact of reproductive technologies. Proceedings of the World Congress on Genetics Applied to Livestock Production, 11. 983
+        author="Coppieters et al.",
+        year=2018,
+        doi="")
+
+_MaEtAl = stdpopsim.Citation(
+        # Cattle Sex-Specific Recombination and Genetic Control from a Large Pedigree Analysis
+        author="Ma et al.",
+        year=2015,
+        doi="https://doi.org/10.1371/journal.pgen.1005387")
+
+
 # Create a genome object
 
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
-    assembly_citations=[_assembly_citation])
+     mutation_rate_citations=[
+        _CoppietersEtAl.because(stdpopsim.CiteReason.MUT_RATE),
+        ],
+    recombination_rate_citations=[
+        _MaEtAl.because(stdpopsim.CiteReason.REC_RATE)
+        ],
+    assembly_citations=[
+        _RosenEtAl.because(stdpopsim.CiteReason.ASSEMBLY)
+        ],
+  )
 
 # Create a Species Object
 _gen_time_citation = stdpopsim.Citation(
@@ -98,7 +123,7 @@ _species = stdpopsim.Species(
     genome=_genome,
     generation_time=5,
     generation_time_citations=[_gen_time_citation],
-    population_size=62000,
+    population_size=90,
     population_size_citations=[_pop_size_citation]
 )
 
@@ -144,9 +169,8 @@ def _inferred_1_M_13():
                 initial_size=90, growth_rate=0.0166,
                 metadata=populations[0].asdict())
         ],
-        #migration_matrix=[
-         #   "FILL ME"
-        #],
+        
+        
         demographic_events=[
             msprime.PopulationParametersChange(
                 # Here 'time' should be in generation notation, so if it is given in years, it should be replaced by T_0, T_1, ... , T_n; as shown above)
