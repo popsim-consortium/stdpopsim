@@ -59,8 +59,9 @@ for line in _chromosome_data.splitlines():
     name, length = line.split()[:2]
     _chromosomes.append(stdpopsim.Chromosome(
         id=name, length=int(length),
-        mutation_rate=1.21e-8,
-        recombination_rate=9.26e-9))
+        mutation_rate=1.2e-8,
+        recombination_rate=9.26e-9)) # 25.5 crossovers per meiosis in males and 23.2 crossovers per meiosis in females gives an average of 24.35 crossovers per meiosis
+                                     # The sum of chromosome lenghts is 2628394923 bp. The global recombination rate is 24.35/ 2628394923 = 9.26e-9 per base pair per generation
 
 # A citation for the chromosome parameters. Additional citations may be needed if
 # the mutation or recombination rates come from other sources. In that case create
@@ -76,10 +77,10 @@ _RosenEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.ASSEMBLY})
 
 _CoppietersEtAl = stdpopsim.Citation(
-        # Rate of de novo mutation in dairy cattle and potential impact of reproductive technologies. Proceedings of the World Congress on Genetics Applied to Livestock Production, 11. 983
-        author="Coppieters et al.",
-        year=2018,
-        doi="")
+        # Frequency of mosaicism points towards mutation-prone early cleavage cell  divisions in cattle.
+        author="Harland et al.",
+        year=2020,
+        url="https://www.biorxiv.org/content/10.1101/079863v2.full.pdf") # BioRxiv preprint
 
 _MaEtAl = stdpopsim.Citation(
         # Cattle Sex-Specific Recombination and Genetic Control from a Large Pedigree Analysis
