@@ -143,7 +143,7 @@ def _inferred_1_M_13():
     id = "IonaInferredDemography"
     description = "Iona MacLeod's Inferred Demographic Model for Bos Taurus"
     long_description = """
-    The Runs of Homozygosity-based infer of Demography from MacLeod et al. 2013.
+    The Runs of Homozygosity-based infer of Demography from MacLeod et al. 2013. Only the Holstein breed has been taken into account for this inference.
     """
     populations = [
         stdpopsim.Population(id="FILL ME", description="FILL ME"),
@@ -176,34 +176,34 @@ def _inferred_1_M_13():
         
         demographic_events=[
             msprime.PopulationParametersChange(
-                # Here 'time' should be in generation notation, so if it is given in years, it should be replaced by T_0, T_1, ... , T_n; as shown above)
+                # Here 'time' should be in generation notation ie. how many generations ago were that Ne (effective population size) and growth rate.
                 # Growth rate is "per generation exponential growth rate": -alpha= [ln(initial_pop_size/next_stage_pop_size)/generation_span_in_years]
                 # For example: ln(90/120)/3= -0.095894024
-                time=1, initial_size=90, growth_rate=-0.095894024, population_id=0),
+                time=1, initial_size=90, growth_rate=-0.095894024, population_id=0), #Ne 90 to 120
             msprime.PopulationParametersChange(
-                time=4, growth_rate=-0.24465639, population_id=0),
+                time=4, growth_rate=-0.24465639, population_id=0),  #Ne 120 to 250
             msprime.PopulationParametersChange(
-                time=7, growth_rate=-0.0560787, population_id=0),
+                time=7, growth_rate=-0.0560787, population_id=0),   #Ne 250 to 350 
             msprime.PopulationParametersChange(
-                time=13, growth_rate=-0.1749704, population_id=0),
+                time=13, growth_rate=-0.1749704, population_id=0),  #Ne 350 to 1000
             msprime.PopulationParametersChange(
-                time=19, growth_rate=-0.0675775, population_id=0),
+                time=19, growth_rate=-0.0675775, population_id=0),  #Ne 1000 to 1500
             msprime.PopulationParametersChange(
-                time=25, growth_rate=-0.0022129, population_id=0),
+                time=25, growth_rate=-0.0022129, population_id=0),  #Ne 1500 to 2000
             msprime.PopulationParametersChange(
-                time=155, growth_rate=-0.0007438, population_id=0),
+                time=155, growth_rate=-0.0007438, population_id=0), #Ne 2000 to 2500
             msprime.PopulationParametersChange(
-                time=455, growth_rate=-0.0016824, population_id=0),
+                time=455, growth_rate=-0.0016824, population_id=0), #Ne 2500 to 3500
             msprime.PopulationParametersChange(
-                time=655, growth_rate=-0.0006301, population_id=0),
+                time=655, growth_rate=-0.0006301, population_id=0), #Ne 3500 to 7000
             msprime.PopulationParametersChange(
-                time=1755, growth_rate=-0.0005945, population_id=0),
+                time=1755, growth_rate=-0.0005945, population_id=0),    #Ne 7000 to 10000
             msprime.PopulationParametersChange(
-                time=2355, growth_rate=-0.0005306, population_id=0),
+                time=2355, growth_rate=-0.0005306, population_id=0),    #Ne 10000 to 17000
             msprime.PopulationParametersChange(
-                time=3355, growth_rate=-0.0000434, population_id=0),
+                time=3355, growth_rate=-0.0000434, population_id=0),    #Ne 17000 to 62000
             msprime.PopulationParametersChange(
-                time=33155, growth_rate=-0.0000, population_id=0),
+                time=33155, growth_rate=-0.0000, population_id=0),      #Ne 62000 (model has "coalesced")
             msprime.PopulationParametersChange(
                 time=933155, growth_rate=-0.0, population_id=0),
 
