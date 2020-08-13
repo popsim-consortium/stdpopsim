@@ -76,7 +76,7 @@ _RosenEtAl = stdpopsim.Citation(
     author="Rosen et al.",
     reasons={stdpopsim.CiteReason.ASSEMBLY})
 
-_CoppietersEtAl = stdpopsim.Citation(
+_HarlandEtAl = stdpopsim.Citation(
         # Frequency of mosaicism points towards mutation-prone early cleavage cell  divisions in cattle.
         author="Harland et al.",
         year=2020,
