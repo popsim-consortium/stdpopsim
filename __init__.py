@@ -7,6 +7,7 @@ import logging
 import msprime
 
 import stdpopsim
+from . import genome_data
 
 logger = logging.getLogger(__name__)
 
@@ -16,53 +17,19 @@ logger = logging.getLogger(__name__)
 #
 ###########################################################
 
-
-# Create a string of chromosome lengths for easy parsing
-# Length data was extracted from Ensembl genome browser Eg. for Chr1 ....https://www.ensembl.org/Bos_taurus/Location/Chromosome?r=1:421347-158534110
-_chromosome_data = """\
-chr1    158534110
-chr2    136231102
-chr3    121005158
-chr4    120000601
-chr5    120089316
-chr6    117806340
-chr7    110682743
-chr8    113319770
-chr9    105454467
-chr10   103308737
-chr11   106982474
-chr12   87216183
-chr13   83472345
-chr14   82403003
-chr15   85007780
-chr16   81013979
-chr17   73167244
-chr18   65820629
-chr19   63449741
-chr20   71974595
-chr21   69862954
-chr22   60773035
-chr23   52498615
-chr24   62317253
-chr25   42350435
-chr26   51992305
-chr27   45612108
-chr28   45940150
-chr29   51098607
-chrX    139009144
-"""
 # Parse list of chromosomes into a list of Chromosome objects which contain the
 # chromosome name, length, mutation rate, and recombination rate
-_chromosomes = []
 
-for line in _chromosome_data.splitlines():
-    name, length = line.split()[:2]
+_chromosomes = []
+for name, data in genome_data.data["chromosomes"].items():
     _chromosomes.append(stdpopsim.Chromosome(
-        id=name, length=int(length),
+        id=name, length=data["length"],
+        synonyms=data["synonyms"],
         mutation_rate=1.2e-8,
         recombination_rate=9.26e-9)) # 25.5 crossovers per meiosis in males and 23.2 crossovers per meiosis in females gives an average of 24.35 crossovers per meiosis
                                      # The sum of chromosome lenghts is 2628394923 bp. The global recombination rate is 24.35/ 2628394923 = 9.26e-9 per base pair per generation
 
+        
 # A citation for the chromosome parameters. Additional citations may be needed if
 # the mutation or recombination rates come from other sources. In that case create
 # additional citations with the appropriate reasons specified (see API documentation
