@@ -180,7 +180,7 @@ for pop in ["ACB", "ASW", "BEB", "CDX", "CEU", "CHB", "CHS", "CLM", "ESN",
             "MSL", "MXL", "PEL", "PJL", "PUR", "STU", "TSI", "YRI"]:
     _gm = stdpopsim.GeneticMap(
         species=_species,
-        id="Pyrho{}_GRCh37".format(pop),
+        id="Pyrho{}_GRCh38".format(pop),
         description="Pyrho population-specific map for {}".format(pop),
         long_description="""
         This genetic map was inferred using individuals from the {}
@@ -193,9 +193,9 @@ for pop in ["ACB", "ASW", "BEB", "CDX", "CEU", "CHB", "CHS", "CLM", "ESN",
         details.""".format(pop),
         url=(
             "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
-            "HomSap/Pyrho{}_GRCh37.tar.gz".format(pop)),
+            "HomSap/Pyrho{}_GRCh38.tar.gz".format(pop)),
         file_pattern=(
-            "Pyrho{}_GRCh37_chr{{id}}.txt".format(pop)),
+            "Pyrho{}_GRCh38_chr{{id}}.txt".format(pop)),
         citations=[
             stdpopsim.Citation(
                 year=2019,
