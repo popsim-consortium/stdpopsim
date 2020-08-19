@@ -577,10 +577,11 @@ for more details)::
     chr1 488426 4.579949 0
 
 Once you have the recombination map files formatted, tar and gzip them into a single
-compressed archive. This file will be sent to one of the `stdpopsim` uploaders for
-placement in the AWS cloud once the new genetic map(s) are approved. Finally, you must
-add a `GeneticMap` object to the file named for your species in the `catalog` directory
-(the same one in which the genome is defined) as shown below:
+compressed archive. The gzipped tarball must be FLAT (there are no directories in the
+tarball). This file will be sent to one of the `stdpopsim` uploaders for placement in the
+AWS cloud once the new genetic map(s) are approved. Finally, you must add a `GeneticMap`
+object to the file named for your species in the `catalog` directory (the same one in
+which the genome is defined) as shown below:
 
 .. code-block:: python
 
