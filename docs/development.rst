@@ -475,30 +475,36 @@ as represented in the literature for that species. Consequently one or more cita
 each value are expected and will be required for constructing the species object detailed
 below.
 
---------------------------
-Adding a genome definition
---------------------------
+-----------------------------------
+Adding/Updating a genome definition
+-----------------------------------
+
 A genome definition is created with a call to `stdpopsim.Genome()`  which requires a list
-of chromosomes and a citation for the assembly. This list is typically created as follows
-using genome-wide recombination and mutation rates.
+of chromosomes and a citation for the assembly. `stdpopsim` has an automated procedure
+for obtaining this list from ensembl and saving it for automated parsing. First however
+the initial species directory must be created in the `stdpopsim/catalog` directory (e.g.
+`stdpopsim/catalog/AraTha`). Once that is done, run the `update_ensembl_data.py` script
+present in the top level directory providing the ensembl species id(s) as "_" delimited
+name(s) for positional arguments as shown below. If no positional arguments are specified
+then all specified registered in `stdpopsim` will be updated.
+
+.. code-block:: shell
+
+    python update_ensembl_data.py arabidopsis_thaliana
+
+This will write/overwrite the `ensembl_info.py` file in the appropriate catalog
+subdirectory. Then add the following to the head of `catalog/{species_id}/__init__.py`.
 
 .. code-block:: python
 
-    # Create a string of chromosome lengths for easy parsing
-    _chromosome_data = """\
-    chr1 CHROMOSOME1_LENGTH
-    chr2 CHROMOSOME2_LENGTH
-    """
-    # Parse list of chromosomes into a list of Chromosome objects which contain the
-    # chromosome name, length, mutation rate, and recombination rate
-    _chromosomes = []
+    from . import genome_data
 
-    for line in _chromosome_data.splitlines():
-        name, length = line.split()[:2]
-        _chromosomes.append(stdpopsim.Chromosome(
-        id=name, length=int(length),
-        mutation_rate=FILL_ME,
-        recombination_rate=FILL_ME))
+To create the chromosome object that make up a genome add the following code to
+`catalog/{species_id}/__init__.py` and supply default mutation and recombination rates
+along with citations for the assembly (and additional ones for the mutatation, and
+recombination rates if necessary). This is then used to create a `genome` object.
+
+.. code-block:: python
 
     # A citation for the chromosome parameters. Additional citations may be needed if
     # the mutation or recombination rates come from other sources. In that case create
@@ -510,6 +516,19 @@ using genome-wide recombination and mutation rates.
         year="FILL ME",
         author="Author et al.",
         reasons={stdpopsim.CiteReason.ASSEMBLY})
+
+    # Parse list of chromosomes into a list of Chromosome objects which contain the
+    # chromosome name, length, mutation rate, and recombination rate
+    _chromosomes = []
+
+    for name, data in genome_data.data["chromosomes"].items():
+        _chromosomes.append(stdpopsim.Chromosome(
+            id=name,
+            length=data["length"],
+            synonyms=data["synonyms"],
+            mutation_rate=FILL_ME,
+            recombination_rate=FILL_ME
+        ))
 
     # Create a genome object
 

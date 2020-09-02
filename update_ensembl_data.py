@@ -11,7 +11,8 @@ import contextlib
 
 import stdpopsim
 import maintenance
-
+import argparse
+import os
 
 class DataWriter:
     """
@@ -29,28 +30,59 @@ class DataWriter:
             yield f
         # TODO we can remove this once we've moved to using pre-commit and
         # Black, as these will be autoformatted.
+        # use pip install black if this command fails
         subprocess.check_call(["black", "-q", path])
 
-    def write_genome_data(self, species):
-        print("Writing genome data for", species.id, species.ensembl_id)
-        path = f"stdpopsim/catalog/{species.id}/genome_data.py"
-        data = self.ensembl_client.get_genome_data(species.ensembl_id)
+    def write_genome_data(self, ensembl_id):
+        tmp = ensembl_id.split("_")
+        id = "".join([x[0:3].capitalize() for x in tmp])
+        dir = path = f"stdpopsim/catalog/{id}"
+        if len(id) != 6:
+            raise ValueError(f"Cannot extract six character id from {ensembl_id}")
+        if not os.path.exists(dir):
+            raise ValueError(f"Directory {id} corresponding to {ensembl_id} does" +
+            "not exist")
+        print("Writing genome data for", id, ensembl_id)
+        path = f"{dir}/genome_data.py"
+        data = self.ensembl_client.get_genome_data(ensembl_id)
         with self.write(path) as f:
             print("data = ", data, file=f)
 
     def write_ensembl_release(self):
         release = self.ensembl_client.get_release()
         print(f"Using Ensembl release {release}")
-        path = "stdpopsim/catalog/ensembl_info.py"
+        path = os.path.join("stdpopsim","catalog", "ensembl_info.py")
         with self.write(path) as f:
             print("release = ", release, file=f)
 
 
 def main():
+    # Parser that controls which species should be updated
+    parser = argparse.ArgumentParser(description='Query ensembl API for chromosome lengths')
+    parser.add_argument('species', type=str, nargs='*',
+                        help="""Ensembl ids for species to update with underscores in place of
+                        spaces (e.g. homo_sapiens)""")
+    parser.add_argument('--list-species', dest='list_species', action='store_true',
+                        help='list all species defined in stdpopsim')
+    args = parser.parse_args()
+
+    # Lists species and exits if user requested list of species
+    if args.list_species:
+        for species in stdpopsim.all_species():
+            print(species.ensembl_id)
+        return None
+
+    # Create a list of species ensembl ids based on user input
+    if len(args.species) == 0:
+        embl_ids = [s.ensembl_id for s in stdpopsim.all_species()]
+    else:
+        embl_ids = [s.lower() for s in args.species]
+
+    # Iterate over list of species ensembl ids and write genome data
     writer = DataWriter()
     writer.write_ensembl_release()
-    for species in stdpopsim.all_species():
-        writer.write_genome_data(species)
+    for eid in embl_ids:
+        writer.write_genome_data(eid)
 
 
 if __name__ == "__main__":
