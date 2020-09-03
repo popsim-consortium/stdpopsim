@@ -94,7 +94,7 @@ class EnsemblRestClient:
         }
         chromosomes = {}
         for region in output["top_level_region"]:
-            if region["coord_system"] == "chromosome":
+            if region["coord_system"] in ("chromosome", "primary_assembly"):
                 synonyms = []
                 for record in region.get("synonyms", []):
                     # We're only interested in UCSC synonyms
