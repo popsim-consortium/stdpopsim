@@ -50,6 +50,8 @@ help+wanted%22>`_
 
 To get started helping with ``stdpopsim`` development, please read the
 following sections to learn how to contribute.
+And, importantly, please have a look at our
+`code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/master/CODE_OF_CONDUCT.md>`_.
 
 .. _sec_development_installation:
 
