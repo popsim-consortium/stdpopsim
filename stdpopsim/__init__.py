@@ -30,3 +30,6 @@ from .catalog import PonAbe  # NOQA
 from . import qc  # NOQA
 
 from . slim_engine import *  # NOQA
+
+# Extensions.
+from . import ext  # NOQA
