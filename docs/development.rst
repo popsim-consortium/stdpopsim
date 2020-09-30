@@ -578,6 +578,19 @@ prevent linting issues.
 
     from .catalog import PonAbe  # NOQA
 
+----------------------
+Species review process
+----------------------
+Once you are satisfied that the species can be simulated via the CLI, submit a pull
+request with your changes. The species definition will go through a review process.
+This process includes not only a code review, but also includes a QC process to double
+check parameters and citations are appropriate.  To initiate the QC process, open a
+new `issue <https://github.com/popsim-consortium/stdpopsim/issues/new/choose>`__
+using the 'Species QC issue template'. One or more volunteers will check items off
+the checklist, until all items have been completed satisfactorily. The QC issue,
+or the pull request, may be used for review discussion. The new species will be
+merged once the checklist is completed.
+
 --------------------
 Adding a genetic map
 --------------------

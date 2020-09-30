@@ -14,10 +14,6 @@ While this list is intended to be comprehensive, it may not be exhaustive.
 Where relevant, the QC reviewer should identify that parameter values match
 those given in the linked citation(s).
 
-- [ ] Documented (e.g. comment, docstring) reference assembly/version that is being targeted.
-- [ ] Number of chromosomes.
-  - Non-autosomal chromosomes included? Should they be?
-- [ ] Chromosome lengths.
 - [ ] Recombination rate.
   - This might be genome-wide, or per-chromosome. Both are fine.
   - Check there's a comment describing where it came from, and/or how calculated.
