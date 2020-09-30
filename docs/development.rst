@@ -686,7 +686,7 @@ Write the model function in the catalog source code
 In the ``stdpopsim`` catalog source code (found in ``stdpopsim/catalog/``),
 each species has a module that defines all of the necessary functions to run
 simulations for that species, including the demographic model. In each species module,
-you will see that each type of function divided by comments, such as::
+you will see that each type of function is divided by comments, such as::
 
     ###########################################################
     #
