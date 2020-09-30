@@ -342,6 +342,12 @@ class TestRegisterQCModel(unittest.TestCase):
         with self.assertRaises(ValueError):
             model.register_qc(model)
 
+    def test_bad_qc_models(self):
+        model = self.make_model("test")
+        for not_a_model in [None, 15, "Zigzag_1S14"]:
+            with self.assertRaises(ValueError):
+                model.register_qc(not_a_model)
+
 
 class TestAllModels(unittest.TestCase):
     """
