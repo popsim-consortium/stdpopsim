@@ -66,6 +66,8 @@ for name, data in genome_data.data["chromosomes"].items():
     _chromosomes.append(stdpopsim.Chromosome(
         id=name, length=data["length"],
         synonyms=data["synonyms"],
+        # Nater et al. 2017 used mu=1.5e-8 per generation, based on the
+        # assumption that it's similar to humans and chimps.
         mutation_rate=1.5e-8,
         recombination_rate=_recombination_rate_data[name]
     ))
@@ -82,9 +84,11 @@ _species = stdpopsim.Species(
     name="Pongo abelii",
     common_name="Sumatran orangutan",
     genome=_genome,
+    # generation time used by Locke et al. without further citation
     generation_time=20,
     generation_time_citations=[
         _locke2011.because(stdpopsim.CiteReason.GEN_TIME)],
+    # Locke et al. inferred ancestral Ne
     population_size=1.79e4,
     population_size_citations=[
         _locke2011.because(stdpopsim.CiteReason.POP_SIZE)])
@@ -120,11 +124,7 @@ _gm_pa = stdpopsim.GeneticMap(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/PonAbe/NaterPA_PonAbe2.tar.gz"),  # NOQA
     file_pattern="Nater_et_al_PA_chr{id}_PonAbe2.txt",
     citations=[
-        stdpopsim.Citation(
-            doi="https://doi.org/10.1016/j.cub.2017.09.047",
-            year=2017,
-            author="Nater et al.",
-            reasons={stdpopsim.CiteReason.GEN_MAP}),
+        _nater2017.because(stdpopsim.CiteReason.GEN_MAP)
     ]
 )
 _species.add_genetic_map(_gm_pa)
@@ -142,11 +142,8 @@ _gm_pp = stdpopsim.GeneticMap(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/PonPyg/NaterPP_PonAbe2.tar.gz"),  # NOQA
     file_pattern="Nater_et_al_PP_chr{id}_PonAbe2.txt",
     citations=[
-        stdpopsim.Citation(
-            doi="https://doi.org/10.1016/j.cub.2017.09.047",
-            year=2017,
-            author="Nater et al.",
-            reasons={stdpopsim.CiteReason.GEN_MAP})]
+        _nater2017.because(stdpopsim.CiteReason.GEN_MAP)
+    ]
 )
 _species.add_genetic_map(_gm_pp)
 
