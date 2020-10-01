@@ -18,8 +18,7 @@ logger = logging.getLogger(__name__)
 ###########################################################
 
 
-# mean_recombination_rate was computed across all windows of the GRCh37 genetic map
-# <ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/20110106_recombination_hotspots>
+# mean_recombination_rate was computed across all windows of the HapMapII_GRCh37 map
 _recombination_rate_data = {
     "1": 1.1485597641285933e-08,
     "2": 1.1054289277533446e-08,
@@ -51,7 +50,7 @@ _recombination_rate_data = {
 _genome2001 = stdpopsim.Citation(
     doi="http://dx.doi.org/10.1038/35057062",
     year="2001",
-    author="The Genome Sequencing Consortium",
+    author="International Human Genome Sequencing Consortium",
     reasons={stdpopsim.CiteReason.ASSEMBLY}
 )
 
@@ -78,7 +77,7 @@ _tian2019 = stdpopsim.Citation(
 _tremblay2000 = stdpopsim.Citation(
     doi="https://doi.org/10.1086/302770",
     year="2000",
-    author="Tremblay and Vezina",
+    author="Tremblay and Vézina",
     reasons={stdpopsim.CiteReason.GEN_TIME}
 )
 
@@ -139,6 +138,7 @@ _gm = stdpopsim.GeneticMap(
         (and adjusted in regions where the genome assembly had rearranged)
         for use in the 1000 Genomes project. Please see the README file on
         the 1000 Genomes download site for details of these adjustments.
+        ftp://ftp-trace.ncbi.nih.gov/1000genomes/ftp/technical/working/20110106_recombination_hotspots
         """,
     url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
