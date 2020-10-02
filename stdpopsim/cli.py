@@ -189,8 +189,8 @@ def get_species_help(species_id):
 
     species_text += f"Generation time: {species.generation_time}\n"
     species_text += f"Population size: {species.population_size}\n"
-    species_text += f"Mutation rate: {species.genome.mean_mutation_rate}\n"
-    species_text += f"Recombination rate: {species.genome.mean_recombination_rate}\n"
+    species_text += f"Mutation rate: {species.genome.mean_mutation_rate:.4g}\n"
+    species_text += f"Recombination rate: {species.genome.mean_recombination_rate:.4g}\n"
     return species_text
 
 
