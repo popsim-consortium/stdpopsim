@@ -2,14 +2,11 @@
 Catalog definitions for Homo Sapiens
 """
 import math
-import logging
 
 import msprime
 
 import stdpopsim
 from . import genome_data
-
-logger = logging.getLogger(__name__)
 
 ###########################################################
 #

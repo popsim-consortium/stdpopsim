@@ -21,6 +21,7 @@ from . warning_categories import *  # NOQA
 # We import these here to build the catalog, but the internal functions
 # defined are not part of the external API.
 from .catalog import AraTha  # NOQA
+from .catalog import BosTau  # NOQA
 from .catalog import CanFam  # NOQA
 from .catalog import DroMel  # NOQA
 from .catalog import EscCol  # NOQA

@@ -8,10 +8,6 @@ import msprime
 import stdpopsim
 from . import genome_data
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 ###########################################################
 #
 # Genome definition
