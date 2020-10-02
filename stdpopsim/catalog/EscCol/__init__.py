@@ -10,25 +10,22 @@ from . import genome_data
 #
 ###########################################################
 
-_lapierre_et_al = stdpopsim.Citation(
-    author="Lapierre et al.",
-    year="2016",
-    doi="https://doi.org/10.1093/molbev/msw048")
+_hartl_et_al = stdpopsim.Citation(
+    author="Hartl, Moriyama, and Sawyer",
+    year="1994",
+    # doesn't have a doi
+    doi="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1206133/",
+)
 
 _sezonov_et_al = stdpopsim.Citation(
     author="Sezonov et al.",
     year="2007",
     doi="https://doi.org/10.1128/JB.01368-07")
 
-_perfeito_et_al = stdpopsim.Citation(
-    author="Perfeito et al.",
-    year="2007",
-    doi="https://doi.org/10.1126/science.1142284")
-
-_kibota_and_lynch = stdpopsim.Citation(
-    author="Kibota and Lynch",
-    year="1996",
-    doi="https://doi.org/10.1038/381694a0")
+_wielgoss_et_al = stdpopsim.Citation(
+    author="Wielgoss et al.",
+    year="2011",
+    doi="https://doi.org/10.1534/g3.111.000406")
 
 _blattner_et_al = stdpopsim.Citation(
     author="Blattner et al.",
@@ -40,39 +37,43 @@ for name, data in genome_data.data["chromosomes"].items():
     _chromosomes.append(stdpopsim.Chromosome(
         id=name, length=data["length"],
         synonyms=data["synonyms"],
-        # Lapierre et al. (2016) refer to:
-        #  Genomic adaptive mutation rate: 1e-5, Perfeito et al. (2007), and
-        #  Genomic deleterious mutation rate: 2e−4, Kibota and Lynch (1996).
-        mutation_rate=1e-5+2e-4,
+        # Wielgoss et al. (2011) calculated for strain REL606,
+        # from synonymous substitutions over 40,000 generations.
+        mutation_rate=8.9e-11,
         recombination_rate=0.0))
 
 # mean_conversion_rate=8.9e-11 # not implemented yet!
 # mean_conversion_length=542 # not implemented yet!
-
-#: :class:`stdpopsim.Genome` definition for E. Coli.
-# Chromosome length data is based on strain K-12.
 
 _genome = stdpopsim.Genome(
         chromosomes=_chromosomes,
         assembly_name=genome_data.data["assembly_name"],
         assembly_accession=genome_data.data["assembly_accession"],
         mutation_rate_citations=[
-            _perfeito_et_al.because(stdpopsim.CiteReason.MUT_RATE),
-            _kibota_and_lynch.because(stdpopsim.CiteReason.MUT_RATE),
+            _wielgoss_et_al.because(stdpopsim.CiteReason.MUT_RATE),
             ],
         assembly_citations=[
             _blattner_et_al.because(stdpopsim.CiteReason.ASSEMBLY)])
+
 
 _species = stdpopsim.Species(
     id="EscCol",
     name="Escherichia coli",
     common_name="E. coli",
+    # We use the K-12 strain, because the parameters we're using more
+    # closely match this strain than the ensembl default (HUSEC2011).
+    ensembl_id="escherichia_coli_str_k_12_substr_mg1655",
     genome=_genome,
+    # E. coli K-12 strain MG1655 "doubling time during steady-state growth in
+    # Luria-Bertani broth was 20 min".
     generation_time=0.00003805175,  # 1.0 / (525600 min/year / 20 min/gen)
     generation_time_citations=[
         _sezonov_et_al.because(stdpopsim.CiteReason.GEN_TIME)],
+    # Hartl et al. calculated Ne for "natural isolates of E. coli",
+    # assuming mu=5e-10 (from Drake 1991).
     population_size=1.8e8,
     population_size_citations=[
-        _lapierre_et_al.because(stdpopsim.CiteReason.POP_SIZE)])
+        _hartl_et_al.because(stdpopsim.CiteReason.POP_SIZE)])
+
 
 stdpopsim.register_species(_species)

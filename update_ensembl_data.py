@@ -34,7 +34,7 @@ class DataWriter:
         subprocess.check_call(["black", "-q", path])
 
     def write_genome_data(self, ensembl_id):
-        tmp = ensembl_id.split("_")
+        tmp = ensembl_id.split("_")[:2]
         id = "".join([x[0:3].capitalize() for x in tmp])
         dir = path = f"stdpopsim/catalog/{id}"
         if len(id) != 6:

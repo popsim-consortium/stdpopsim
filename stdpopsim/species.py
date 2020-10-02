@@ -56,7 +56,7 @@ def all_demographic_models():
             yield model
 
 
-@attr.s(frozen=True)
+@attr.s()
 class Species(object):
     """
     Class representing a species in the catalog.
@@ -92,7 +92,7 @@ class Species(object):
     :ivar population_size: The current best estimate for the population
         size of this species. Note that individual demographic
         models in the catalog may or may not use this estimate: each
-        model uses the populations sizes defined in the original
+        model uses the population sizes defined in the original
         publication(s).
     :vartype population_size: float
     :ivar population_size_citations: A list of :class:`.Citation` objects
@@ -100,7 +100,13 @@ class Species(object):
     :vartype population_size_citations: list
     :ivar demographic_models: This list of :class:`DemographicModel`
         instances in the catalog for this species.
-    :vartype demographic_models: list()
+    :vartype demographic_models: list
+    :ivar ensembl_id: The ensembl id for the species' genome assembly,
+        which will be used by maintenance scripts to query ensembl's database.
+        This parameter will be automatically populated from the species name,
+        and should not be set directly unless a non-default assembly is used
+        for the species definition (e.g. see E. coli).
+    :vartype ensembl_id: str
     """
 
     id = attr.ib(type=str, kw_only=True)
@@ -112,10 +118,14 @@ class Species(object):
     population_size = attr.ib(default=1, kw_only=True)
     population_size_citations = attr.ib(factory=list, kw_only=True)
     demographic_models = attr.ib(factory=list, kw_only=True)
+    ensembl_id = attr.ib(type=str, kw_only=True)
+    # A list of genetic maps. This is undocumented as the parameter is not
+    # intended to be used when the Species is initialsed.
+    # Use add_genetic_map() instead.
     genetic_maps = attr.ib(factory=list, kw_only=True)
 
-    @property
-    def ensembl_id(self):
+    @ensembl_id.default
+    def _default_ensembl_id(self):
         """
         Returns the ID of this species for the Ensembl REST API.
         This is the species name, underscore delimited and in lowercase.
