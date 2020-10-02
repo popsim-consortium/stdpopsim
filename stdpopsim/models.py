@@ -147,7 +147,7 @@ def verify_demographic_events_equal(
                         key, value1, value2))
 
 
-class Population(object):
+class Population:
     """
     Class recording metadata representing a population in a simulation.
 
@@ -179,15 +179,19 @@ class Population(object):
 
 
 @attr.s(kw_only=True)
-class DemographicModel(object):
+class DemographicModel:
     """
     Class representing a demographic model.
 
-    This class is indended to be used by model implementors. To instead
-    obtain a pre-specified model, see :class:`Species.get_demographic_model`.
+    Instances of this class are constructed by model implementors, following the
+    :ref:`developer documentation <sec_development_demographic_model>`. To instead
+    obtain a pre-specified model as listed in the :ref:`sec_catalog`,
+    see :class:`Species.get_demographic_model`.
 
     :ivar ~.id: The unique identifier for this model. DemographicModel IDs should be
-        short and memorable, perhaps as an abbreviation of the model's name.
+        short and memorable, and conform to the stdpopsim
+        :ref:`naming conventions <sec_development_naming_conventions>`
+        for demographic models.
     :vartype ~.id: str
     :ivar ~.description: A short description of this model as it would be used in
         written text, e.g., "Three population Out-of-Africa". This should
@@ -197,20 +201,30 @@ class DemographicModel(object):
     :vartype long_description: str
     :ivar generation_time: Mean inter-generation interval, in years.
     :vartype generation_time: int
-    :ivar populations: TODO
-    :vartype populations: list of :class:`.Population`
+    :ivar populations: A list of :class:`Population`, to provide each population
+        with a unique ID and description.
+    :vartype populations: list of :class:`Population`
     :ivar qc_model: An independent implementation of the model, against which
         the model's accuracy is validated. This should not be set by the user,
         and may be None if no QC implementation exists yet.
     :vartype qc_model: :class:`.DemographicModel` or None
 
-    :ivar citations: TODO
-    :vartype citations: list of :class:`.Citation`
-    :ivar demographic_events: TODO
+    :ivar citations: A list of :class:`Citation`, that describe the primary
+        reference(s) for the model.
+    :vartype citations: list of :class:`Citation`
+    :ivar demographic_events: A list of
+        :class:`msprime.DemographicEvent` subclasses, that define changes to
+        the populations through time, such as population size changes or mass
+        migrations. See the
+        :ref:`msprime API documentation <msprime:sec_api_demographic_events>`
+        for more information.
     :vartype demographic_events: list of :class:`msprime.DemographicEvent`
-    :ivar population_configurations: TODO
     :vartype population_configurations: list of :class:`msprime.PopulationConfiguration`
-    :ivar migration_matrix: TODO
+    :ivar population_configurations: A list of
+        :class:`msprime.PopulationConfiguration`, one for each population, to
+        set the population metadata, initial size and growth rate parameters.
+    :ivar migration_matrix: The initial migration matrix. See the
+        ``migration_matrix`` parameter to :func:`msprime.simulate`.
     :vartype migration_matrix: list of list of int
     """
 
@@ -379,9 +393,8 @@ class PiecewiseConstantSize(DemographicModel):
     tree sequence. This is a piecewise constant size model, which allows for
     instantaneous population size change over multiple epochs in a single population.
 
-    :ivar N0: The initial effective population size
-    :vartype N0: float
-    :ivar args: Each subsequent argument is a tuple (t, N) which gives the
+    :param float N0: The initial effective population size
+    :param args: Each subsequent argument is a tuple (t, N) which gives the
         time at which the size change takes place and the population size.
 
     The usage is best illustrated by an example:
@@ -422,19 +435,12 @@ class IsolationWithMigration(DemographicModel):
     the split populations. Sampling is disallowed in population index 0,
     as this is the ancestral population.
 
-    :ivar NA: The initial ancestral effective population size
-    :vartype NA: float
-    :ivar N1: The effective population size of population 1
-    :vartype N1: float
-    :ivar N2: The effective population size of population 2
-    :vartype N2: float
-    :ivar T: Time of split between populations 1 and 2 (in generations)
-    :vartype T: float
-    :ivar M12: Migration rate from population 1 to 2
-    :vartype M12: float
-    :ivar M21: Migration rate from population 2 to 1
-    :vartype M21: float
-
+    :param float NA: The initial ancestral effective population size
+    :param float N1: The effective population size of population 1
+    :param float N2: The effective population size of population 2
+    :param float T: Time of split between populations 1 and 2 (in generations)
+    :param float M12: Migration rate from population 1 to 2
+    :param float M21: Migration rate from population 2 to 1
 
     Example usage:
 

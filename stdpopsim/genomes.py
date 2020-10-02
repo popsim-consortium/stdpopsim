@@ -1,16 +1,11 @@
 """
 Infrastructure for defining information about species' genomes.
 """
-import logging
-
 import attr
 
 
-logger = logging.getLogger(__name__)
-
-
 @attr.s
-class Genome(object):
+class Genome:
     """
     Class representing the genome for a species.
 
@@ -49,7 +44,14 @@ class Genome(object):
 
     def get_chromosome(self, id):
         """
-        Returns the chromosome with the specified id.
+        Returns the chromosome with the specified ``id``.
+
+        :param str id: The string ID of the chromosome.
+            A complete list of chromosome IDs for each species can be found in the
+            "Genome" subsection for the species in the :ref:`sec_catalog`.
+        :rtype: :class:`Chromosome`
+        :return: A :class:`Chromosome` that defines properties of the chromosome
+            such as length, mutation rate, and recombination rate.
         """
         for chrom in self.chromosomes:
             if chrom.id == id or id in chrom.synonyms:
@@ -82,11 +84,19 @@ class Genome(object):
 
 
 @attr.s
-class Chromosome(object):
+class Chromosome:
     """
     Class representing a single chromosome for a species.
 
-    .. todo:: Define the facilities that this object provides.
+    :ivar str ~.id: The string identifier for the chromosome.
+    :ivar int length: The length of the chromosome.
+    :ivar float mutation_rate: The mutation rate used when simulating this
+        chromosome.
+    :ivar float recombination_rate: The recombination rate used when simulating
+        this chromosome (if not using a genetic map).
+    :ivar synonyms: List of synonyms that may be used when requesting this
+        chromosome by ID, e.g. from the command line interface.
+    :vartype synonyms: list of str
     """
     id = attr.ib(type=str, kw_only=True)
     length = attr.ib(kw_only=True)
@@ -96,7 +106,7 @@ class Chromosome(object):
 
 
 @attr.s
-class Contig(object):
+class Contig:
     """
     Class representing a contiguous region of genome that is to be
     simulated. This contains the information about mutation rates

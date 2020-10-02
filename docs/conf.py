@@ -22,7 +22,7 @@ sys.path.append(os.path.abspath("./_ext"))
 # -- Project information -----------------------------------------------------
 
 project = 'stdpopsim'
-copyright = '2019, PopSim Consortium'
+copyright = '2019-2020, PopSim Consortium'
 author = 'PopSim Consortium'
 
 # The short X.Y version

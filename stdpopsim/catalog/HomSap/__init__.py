@@ -1093,7 +1093,7 @@ def _papuans_10j19():
         _ceu_population,
         _chb_population,
         stdpopsim.Population(
-            "Papuan", "Papuans from Indonesian and New Guinea"),
+            "Papuan", "Papuans from Indonesia and New Guinea"),
 
         # archaics
         stdpopsim.Population(
@@ -1196,7 +1196,7 @@ def _papuans_10j19():
     T_DenA_Den1_split = 9750
     T_DenA_Den2_split = 12500
     T_Den_Nea_split = 15090
-    T_Afr_Arcaic_split = 20225
+    T_Afr_Archaic_split = 20225
 
     # bottlenecks
     Tb_Eurasia = 1659
@@ -1302,11 +1302,11 @@ def _papuans_10j19():
             population_id=pop["DenA"]),
 
         msprime.MassMigration(
-            time=T_Afr_Arcaic_split,
+            time=T_Afr_Archaic_split,
             source=pop["DenA"],
             destination=pop["YRI"]),
         msprime.PopulationParametersChange(
-            time=T_Afr_Arcaic_split,
+            time=T_Afr_Archaic_split,
             initial_size=N_Afr_Archaic,
             population_id=pop["YRI"]),
 

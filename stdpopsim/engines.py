@@ -12,6 +12,9 @@ _registered_engines = {}
 def register_engine(engine):
     """
     Registers the specified simulation engine.
+
+    :param engine: The simulation engine object to register.
+    :type engine: :class:`.Engine`
     """
     if engine.id in _registered_engines:
         raise ValueError(f"Simulation engine '{engine.id}' already registered.")
@@ -21,7 +24,12 @@ def register_engine(engine):
 
 def get_engine(id):
     """
-    Returns the simulation engine with the specified id.
+    Returns the simulation engine with the specified ``id``.
+
+    :param str id: The string identifier for the requested engine.
+        The currently supported engines are "msprime" and "slim".
+    :return: A simulation engine object with a ``simulate()`` method.
+    :rtype: :class:`.Engine`
     """
     if id not in _registered_engines:
         raise ValueError(f"Simulation engine '{id}' not registered")
@@ -37,7 +45,7 @@ def all_engines():
 
 
 @attr.s
-class Engine(object):
+class Engine:
     """
     Abstract class representing a simulation engine.
 
@@ -169,5 +177,7 @@ register_engine(_MsprimeEngine())
 def get_default_engine():
     """
     Returns the default simulation engine (msprime).
+
+    :rtype: :class:`.Engine`
     """
     return get_engine("msprime")

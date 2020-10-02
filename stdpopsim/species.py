@@ -17,7 +17,10 @@ registered_species = {}
 
 def register_species(species):
     """
-    Registers the specified species.
+    Registers the specified ``species``.
+
+    :param species: The species to be registered.
+    :type: :class:`Species`
     """
     if species.id in registered_species:
         raise ValueError(f"{species.id} already registered.")
@@ -26,6 +29,15 @@ def register_species(species):
 
 
 def get_species(id):
+    """
+    Returns a :class:`Species` object for the specified ``id``.
+
+    :param str id: The string identifier for the requested species. E.g. "HomSap".
+         A complete list of species, and their IDs, can be found in the
+         :ref:`sec_catalog`.
+    :return: An object containing the species definition.
+    :rtype: :class:`Species`
+    """
     if id not in registered_species:
         # TODO we should probably have a custom exception here and standardise
         # on using these for all the catalog search functions.
@@ -57,7 +69,7 @@ def all_demographic_models():
 
 
 @attr.s()
-class Species(object):
+class Species:
     """
     Class representing a species in the catalog.
 
@@ -139,6 +151,8 @@ class Species(object):
         and chromosome.
 
         :param str chromosome: The ID of the chromosome to simulate.
+             A complete list of chromosome IDs for each species can be found in the
+             "Genome" subsection for the species in the :ref:`sec_catalog`.
         :param str genetic_map: If specified, obtain recombination rate information
             from the genetic map with the specified ID. If None, simulate
             using a default uniform recombination rate on a region with the length of
@@ -150,7 +164,7 @@ class Species(object):
             This option cannot currently be used in conjunction with the
             ``genetic_map`` argument.
         :rtype: :class:`.Contig`
-        :return: A :class:`.Contig` describing a simulation of the section of genome.
+        :return: A :class:`.Contig` describing the section of the genome.
         """
         # TODO: add non-autosomal support
         if (chromosome is not None and
@@ -179,9 +193,14 @@ class Species(object):
 
     def get_demographic_model(self, id):
         """
-        Returns a model with the specified id.
+        Returns a demographic model with the specified ``id``.
 
-        - TODO explain where we find models from the catalog.
+        :param str id: The string identifier for the demographic model.
+             A complete list of IDs for each species can be found in the
+             "Demographic Models" subsection for the species in the
+             :ref:`sec_catalog`.
+        :rtype: :class:`DemographicModel`
+        :return: A :class:`DemographicModel` that defines the requested model.
         """
         for model in self.demographic_models:
             if model.id == id:
@@ -203,6 +222,16 @@ class Species(object):
         self.genetic_maps.append(genetic_map)
 
     def get_genetic_map(self, id):
+        """
+        Returns a genetic map (AKA. recombination map) with the specified ``id``.
+
+        :param str id: The string identifier for the genetic map.
+             A complete list of IDs for each species can be found in the
+             "Genetic Maps" subsection for the species in the :ref:`sec_catalog`.
+        :rtype: :class:`GeneticMap`
+        :return: A :class:`GeneticMap` that defines the frequency of
+            recombinations across the genome.
+        """
         for gm in self.genetic_maps:
             if gm.id == id:
                 return gm

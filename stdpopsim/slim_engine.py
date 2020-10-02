@@ -1152,7 +1152,7 @@ class _SLiMEngine(stdpopsim.Engine):
             The :func:`recap_and_rescale` function is provided in the hope that
             it will be useful. But as we can't anticipate what changes you'll
             make to the SLiM code before using it, the stdpopsim source code
-            should be consulted to determine if it's behaviour is appropriate
+            should be consulted to determine if the behaviour is appropriate
             for your case.
         """
         # Only "weighted" mutations are introduced by SLiM.

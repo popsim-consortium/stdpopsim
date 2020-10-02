@@ -9,7 +9,7 @@ import urllib.request
 import attr
 
 
-class CiteReason(object):
+class CiteReason:
     ENGINE = "simulation engine"
     DEM_MODEL = "demographic model"
     GEN_MAP = "genetic map"
@@ -22,7 +22,7 @@ class CiteReason(object):
 
 
 @attr.s
-class Citation(object):
+class Citation:
     """
     A reference to the literature that should be acknowledged by users of
     stdpopsim.

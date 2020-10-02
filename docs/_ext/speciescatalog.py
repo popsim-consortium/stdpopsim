@@ -407,7 +407,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         section += maps_section
         section += nodes.transition()
         models_section = nodes.section(ids=[f"sec_catalog_{species.id}_models"])
-        models_section += nodes.title(text="Models")
+        models_section += nodes.title(text="Demographic Models")
         models_section += self.models_table(species)
         for i, model in enumerate(species.demographic_models):
             models_section += self.model_section(species, model)
