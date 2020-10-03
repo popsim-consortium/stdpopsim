@@ -13,31 +13,37 @@ Species definitions
 The :ref:`Catalog <sec_catalog>` contains a large number of species and simulation
 model definitions, which are built using a number of classes defined here.
 These are usually not intended to be instantiated directly, but should be
-accessed through the main entrypoint, :func:`.get_species`.
+accessed through the main entry point, :func:`.get_species`.
 
 .. autofunction:: stdpopsim.get_species
 
-.. autoclass:: stdpopsim.Species
+.. autoclass:: stdpopsim.Species()
     :members:
 
-.. autoclass:: stdpopsim.Genome
+.. autoclass:: stdpopsim.Genome()
     :members:
 
-.. autoclass:: stdpopsim.Chromosome
+.. autoclass:: stdpopsim.Chromosome()
     :members:
 
-.. autoclass:: stdpopsim.Contig
+.. autoclass:: stdpopsim.Contig()
     :members:
 
-.. autoclass:: stdpopsim.GeneticMap
+.. autoclass:: stdpopsim.GeneticMap()
     :members:
 
-.. autoclass:: stdpopsim.DemographicModel
+.. autoclass:: stdpopsim.Citation()
     :members:
 
-.. autoclass:: stdpopsim.Citation
+******************
+Demographic Models
+******************
+
+.. autoclass:: stdpopsim.DemographicModel()
     :members:
 
+.. autoclass:: stdpopsim.Population()
+    :members:
 
 .. _sec_api_generic_models:
 
@@ -66,7 +72,7 @@ Support for additional simulation engines can be implemented by subclassing
 the abstract :class:`.Engine` class, and registering an instance of the
 subclass with :func:`.register_engine`.
 These are usually not intended to be instantiated directly, but should be
-accessed through the main entrypoint, :func:`.get_engine`.
+accessed through the main entry point, :func:`.get_engine`.
 
 .. autofunction:: stdpopsim.get_engine
 
@@ -74,13 +80,13 @@ accessed through the main entrypoint, :func:`.get_engine`.
 
 .. autofunction:: stdpopsim.register_engine
 
-.. autoclass:: stdpopsim.Engine
+.. autoclass:: stdpopsim.Engine()
     :members:
 
-.. autoclass:: stdpopsim.engines._MsprimeEngine
+.. autoclass:: stdpopsim.engines._MsprimeEngine()
     :show-inheritance:
     :members: id, description, simulate
 
-.. autoclass:: stdpopsim.slim_engine._SLiMEngine
+.. autoclass:: stdpopsim.slim_engine._SLiMEngine()
     :show-inheritance:
     :members: id, description, simulate, recap_and_rescale

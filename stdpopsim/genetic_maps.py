@@ -32,7 +32,7 @@ def cd(path):
 
 
 # TODO change this to use attrs
-class GeneticMap(object):
+class GeneticMap:
     """
     Class representing a genetic map for a species. Provides functionality for
     downloading and cacheing recombination maps from a remote URL.
@@ -138,7 +138,13 @@ class GeneticMap(object):
 
     def get_chromosome_map(self, id):
         """
-        Returns the genetic map for the chromosome with the specified id.
+        Returns the genetic map for the chromosome with the specified ``id``.
+
+        :param str id: The chromosome identifier.
+             A complete list of chromosome IDs for each species can be found in the
+             "Genome" subsection for the species in the :ref:`sec_catalog`.
+        :rtype: :class:`msprime.RecombinationMap`
+        :return: A :class:`msprime.RecombinationMap` object.
         """
         chrom = self.species.genome.get_chromosome(id)
         if not self.is_cached():
