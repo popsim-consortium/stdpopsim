@@ -105,14 +105,13 @@ stdpopsim.register_species(_species)
 ###########################################################
 
 
-def _HolsteinFriesan_1M13():
+def _HolsteinFriesian_1M13():
     id = "HolsteinFriesian_1M13"
     description = "Piecewise size changes in Holstein-Friesian cattle."
     long_description = """
     The piecewise-constant population size model of Holstein-Friesian cattle
     from MacLeod et al. 2013. Population sizes were estimated from inferred
-    runs of homozygosity, with parameter values taken from Figure 4A by visual
-    inspection of the plots.
+    runs of homozygosity, with parameter values taken from Figure 4A and Table S1.
     """
     populations = [
         stdpopsim.Population(id="Holstein-Friesian", description="Holstein-Friesian"),
@@ -127,64 +126,50 @@ def _HolsteinFriesan_1M13():
         citations=citations,
         generation_time=_species.generation_time,
         population_configurations=[
-            msprime.PopulationConfiguration(
-                initial_size=90, growth_rate=0.0166, metadata=populations[0].asdict()
-            )
+            #      3 generations at    90,     1-     3
+            msprime.PopulationConfiguration(initial_size=90,
+                                            metadata=populations[0].asdict())
         ],
         # Here 'time' should be in generation notation ie. how many
         # generations ago were that Ne (effective population size)
-        # and growth rate.
-        # Growth rate is "per generation exponential growth rate":
-        # -alpha= [ln(initial_pop_size/next_stage_pop_size)/generation_span_in_years]
-        # For example: ln(90/120)/3= -0.095894024
         demographic_events=[
-            msprime.PopulationParametersChange(
-                time=1,
-                initial_size=90,
-                growth_rate=-0.095894024,
-                population_id=0,
-            ),  # Ne 90 to 120
-            msprime.PopulationParametersChange(
-                time=4, growth_rate=-0.24465639, population_id=0
-            ),  # Ne 120 to 250
-            msprime.PopulationParametersChange(
-                time=7, growth_rate=-0.0560787, population_id=0
-            ),  # Ne 250 to 350
-            msprime.PopulationParametersChange(
-                time=13, growth_rate=-0.1749704, population_id=0
-            ),  # Ne 350 to 1000
-            msprime.PopulationParametersChange(
-                time=19, growth_rate=-0.0675775, population_id=0
-            ),  # Ne 1000 to 1500
-            msprime.PopulationParametersChange(
-                time=25, growth_rate=-0.0022129, population_id=0
-            ),  # Ne 1500 to 2000
-            msprime.PopulationParametersChange(
-                time=155, growth_rate=-0.0007438, population_id=0
-            ),  # Ne 2000 to 2500
-            msprime.PopulationParametersChange(
-                time=455, growth_rate=-0.0016824, population_id=0
-            ),  # Ne 2500 to 3500
-            msprime.PopulationParametersChange(
-                time=655, growth_rate=-0.0006301, population_id=0
-            ),  # Ne 3500 to 7000
-            msprime.PopulationParametersChange(
-                time=1755, growth_rate=-0.0005945, population_id=0
-            ),  # Ne 7000 to 10000
-            msprime.PopulationParametersChange(
-                time=2355, growth_rate=-0.0005306, population_id=0
-            ),  # Ne 10000 to 17000
-            msprime.PopulationParametersChange(
-                time=3355, growth_rate=-0.0000434, population_id=0
-            ),  # Ne 17000 to 62000
-            msprime.PopulationParametersChange(
-                time=33155, growth_rate=-0.0000, population_id=0
-            ),  # Ne 62000 (model has "coalesced")
-            msprime.PopulationParametersChange(
-                time=933155, growth_rate=-0.0, population_id=0
-            ),
+            #      3 generations at   120,     4-     6
+            msprime.PopulationParametersChange(time=    4, initial_size=  120,
+                                               population_id=0),
+            #      6 generations at   250,     7-    12
+            msprime.PopulationParametersChange(time=    7, initial_size=  250,
+                                               population_id=0),
+            #      6 generations at   350,    13-    18
+            msprime.PopulationParametersChange(time=   13, initial_size=  350,
+                                               population_id=0),
+            #      6 generations at  1000,    19-    24
+            msprime.PopulationParametersChange(time=   19, initial_size= 1000,
+                                               population_id=0),
+            #    130 generations at  1500,    25-   154
+            msprime.PopulationParametersChange(time=   25, initial_size= 1500,
+                                               population_id=0),
+            #    200 generations at  2000,   155-   454
+            msprime.PopulationParametersChange(time=  155, initial_size= 2000,
+                                               population_id=0),
+            #    200 generations at  2500,   455-   654
+            msprime.PopulationParametersChange(time=  455, initial_size= 2500,
+                                               population_id=0),
+            #   1100 generations at  3500,   655-  1754
+            msprime.PopulationParametersChange(time=  655, initial_size= 3500,
+                                               population_id=0),
+            #    600 generations at  7000,  1755-  2354
+            msprime.PopulationParametersChange(time= 1755, initial_size= 7000,
+                                               population_id=0),
+            #   1000 generations at 10000,  2355-  3354
+            msprime.PopulationParametersChange(time= 2355, initial_size=10000,
+                                               population_id=0),
+            #  29800 generations at 17000,  3355- 33154
+            msprime.PopulationParametersChange(time= 3355, initial_size=17000,
+                                               population_id=0),
+            # 900000 generations at 62000, 33155-933154
+            msprime.PopulationParametersChange(time=33155, initial_size=62000,
+                                               population_id=0),
         ],
     )
 
-
-_species.add_demographic_model(_HolsteinFriesan_1M13())
+_species.add_demographic_model(_HolsteinFriesian_1M13())
