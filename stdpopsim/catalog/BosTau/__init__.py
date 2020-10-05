@@ -134,37 +134,37 @@ def _HolsteinFriesian_1M13():
         # generations ago were that Ne (effective population size)
         demographic_events=[
             #      3 generations at   120,     4-     6
-            msprime.PopulationParametersChange(time=    4, initial_size=  120,
+            msprime.PopulationParametersChange(time=4, initial_size=120,
                                                population_id=0),
             #      6 generations at   250,     7-    12
-            msprime.PopulationParametersChange(time=    7, initial_size=  250,
+            msprime.PopulationParametersChange(time=7, initial_size=250,
                                                population_id=0),
             #      6 generations at   350,    13-    18
-            msprime.PopulationParametersChange(time=   13, initial_size=  350,
+            msprime.PopulationParametersChange(time=13, initial_size=350,
                                                population_id=0),
             #      6 generations at  1000,    19-    24
-            msprime.PopulationParametersChange(time=   19, initial_size= 1000,
+            msprime.PopulationParametersChange(time=19, initial_size=1000,
                                                population_id=0),
             #    130 generations at  1500,    25-   154
-            msprime.PopulationParametersChange(time=   25, initial_size= 1500,
+            msprime.PopulationParametersChange(time=25, initial_size=1500,
                                                population_id=0),
             #    200 generations at  2000,   155-   454
-            msprime.PopulationParametersChange(time=  155, initial_size= 2000,
+            msprime.PopulationParametersChange(time=155, initial_size=2000,
                                                population_id=0),
             #    200 generations at  2500,   455-   654
-            msprime.PopulationParametersChange(time=  455, initial_size= 2500,
+            msprime.PopulationParametersChange(time=455, initial_size=2500,
                                                population_id=0),
             #   1100 generations at  3500,   655-  1754
-            msprime.PopulationParametersChange(time=  655, initial_size= 3500,
+            msprime.PopulationParametersChange(time=655, initial_size=3500,
                                                population_id=0),
             #    600 generations at  7000,  1755-  2354
-            msprime.PopulationParametersChange(time= 1755, initial_size= 7000,
+            msprime.PopulationParametersChange(time=1755, initial_size=7000,
                                                population_id=0),
             #   1000 generations at 10000,  2355-  3354
-            msprime.PopulationParametersChange(time= 2355, initial_size=10000,
+            msprime.PopulationParametersChange(time=2355, initial_size=10000,
                                                population_id=0),
             #  29800 generations at 17000,  3355- 33154
-            msprime.PopulationParametersChange(time= 3355, initial_size=17000,
+            msprime.PopulationParametersChange(time=3355, initial_size=17000,
                                                population_id=0),
             # 900000 generations at 62000, 33155-933154
             msprime.PopulationParametersChange(time=33155, initial_size=62000,
@@ -173,3 +173,5 @@ def _HolsteinFriesian_1M13():
     )
 
 _species.add_demographic_model(_HolsteinFriesian_1M13())
+
+
