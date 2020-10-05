@@ -172,6 +172,5 @@ def _HolsteinFriesian_1M13():
         ],
     )
 
+
 _species.add_demographic_model(_HolsteinFriesian_1M13())
-
-
