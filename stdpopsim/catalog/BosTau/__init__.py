@@ -128,7 +128,7 @@ def _HolsteinFriesian_1M13():
         population_configurations=[
             #      3 generations at    90,     1-     3
             msprime.PopulationConfiguration(initial_size=90,
-                                            metadata=populations[0].asdict())
+                metadata=populations[0].asdict())
         ],
         # Here 'time' should be in generation notation ie. how many
         # generations ago were that Ne (effective population size)
