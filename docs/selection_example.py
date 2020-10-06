@@ -195,9 +195,9 @@ if __name__ == "__main__":
         seed = 1234
 
     # Setup logging at verbosity level 2.
-    args = collections.namedtuple("_", ["quiet", "verbosity"])(False, 2)
+    args = collections.namedtuple("_", ["quiet", "verbose"])(False, 2)
     stdpopsim.cli.setup_logging(args)
 
     ts, T_mut, T_sel, s = adaptive_introgression(seed)
 
-    ts = HomSap_OutOfAfrica_3G09_with_DFE(seed)
+    ts = OutOfAfrica_3G09_with_DFE(seed)
