@@ -35,11 +35,27 @@ First steps
 Getting involved
 ----------------
 
+``stdpopsim`` **is a community effort, and we welcome YOU to join us!**
+
 Are there other features, models or organisms that you'd like to see in ``stdpopsim``?
 This software is maintained by the PopSim Consortium,
-a global community of scientists and developers who are working together to improve
+an open, global community of scientists and developers who are working together to improve
 standards for benchmarking and testing in population genetics.
-Read the :ref:`Development <sec_development>` page to find out how you can join us.
+You can get into contact with the ``stdpopsim`` community by subscribing to our `email list
+serve <https://lists.uoregon.edu/mailman/listinfo/popgen_benchmark>`_
+and by creating and commenting on
+Github `issues <http://github.com/popgensims/stdpopsim/issues>`_.
+There is a lot of chatter through
+Github, and we’ve been building code
+there cooperatively. If you are interested in joining us please read our
+`code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/master/CODE_OF_CONDUCT.md>`_.
+A particular goal of this project is to build a diverse and supportive community, 
+and so we especially encourage individuals from underrepresented groups in popgen to join. 
+Being a member of the Consortium can provide a valuable avenue for career development, through
+building networks, contributing to papers and code, as well as through learning programing standards
+and best practices.
+
+For further details read the :ref:`Development <sec_development>` page to find out how you can join us.
 
 Citations
 ---------
