@@ -49,6 +49,16 @@ class MutationType(object):
             raise ValueError(
                     f"{self.distribution_type} is not a supported distribution type")
 
+        # The index of the param in the distribution_args list that should be
+        # multiplied by Q when using --slim-scaling-factor Q.
+        self.Q_scaled_index = {
+            "e": 0,  # mean
+            "f": 0,  # fixed value
+            "g": 0,  # mean
+            "n": 1,  # standard deviation
+            "w": 0,  # scale
+        }[self.distribution_type]
+
 
 def slim_mutation_frac(mutation_types):
     """

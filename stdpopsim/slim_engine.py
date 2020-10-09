@@ -762,7 +762,9 @@ def slim_makescript(
     # FIXME: Change this to use zero-based indices---one-based indices are
     #        inconsistent with everything else, e.g. population IDs.
     for i, m in enumerate(mutation_types, 1):
-        distrib_args = ", ".join(map(str, m.distribution_args))
+        distrib_args = [str(arg) for arg in m.distribution_args]
+        distrib_args[m.Q_scaled_index] = "Q * " + distrib_args[m.Q_scaled_index]
+        distrib_args = ", ".join(distrib_args)
         printsc(f'    initializeMutationType("m{i}", {m.dominance_coeff}, ' +
                 f'"{m.distribution_type}", {distrib_args});')
         if not m.convert_to_substitution:
