@@ -61,39 +61,46 @@ Citations
 ---------
 
 If you use ``stdpopsim`` in your work, please cite our
-`manuscript <https://doi.org/10.1101/2019.12.20.885129>`_:
+`manuscript <https://doi.org/10.7554/eLife.54967>`_:
 
-Jeffrey R. Adrion, Christopher B. Cole, Noah Dukler, Jared G. Galloway,
-Ariella L. Gladstein, Graham Gower, Christopher C. Kyriazis, Aaron P. Ragsdale,
-Georgia Tsambos, Franz Baumdicker, Jedidiah Carlson, Reed A. Cartwright,
-Arun Durvasula, Bernard Y. Kim, Patrick McKenzie, Philipp W. Messer,
-Ekaterina Noskova, Diego Ortega-Del Vecchyo, Fernando Racimo, Travis J. Struck,
-Simon Gravel, Ryan N. Gutenkunst, Kirk E. Lohmeuller, Peter L. Ralph,
-Daniel R. Schrider, Adam Siepel, Jerome Kelleher, Andrew D. Kern (2019),
+Jeffrey R Adrion, Christopher B Cole, Noah Dukler, Jared G Galloway,
+Ariella L Gladstein, Graham Gower, Christopher C Kyriazis, Aaron P Ragsdale,
+Georgia Tsambos, Franz Baumdicker, Jedidiah Carlson, Reed A Cartwright,
+Arun Durvasula, Ilan Gronau, Bernard Y Kim, Patrick McKenzie,
+Philipp W Messer, Ekaterina Noskova, Diego Ortega-Del Vecchyo, Fernando Racimo,
+Travis J Struck, Simon Gravel, Ryan N Gutenkunst, Kirk E Lohmeuller,
+Peter L Ralph, Daniel R Schrider, Adam Siepel, Jerome Kelleher, Andrew D Kern (2020),
 *A community-maintained standard library of population genetic models*,
-bioRxiv 2019.12.20.885129; doi: https://doi.org/10.1101/2019.12.20.885129
+eLife 2020;9:e54967; doi: https://doi.org/10.7554/eLife.54967
 
 
 Bibtex record::
 
-    @article {Adrion2019.12.20.885129,
-        author = {Adrion, Jeffrey R. and Cole, Christopher B. and Dukler, Noah
-            and Galloway, Jared G. and Gladstein, Ariella L. and Gower, Graham and
-            Kyriazis, Christopher C. and Ragsdale, Aaron P. and Tsambos, Georgia and
-            Baumdicker, Franz and Carlson, Jedidiah and Cartwright, Reed A. and
-            Durvasula, Arun and Kim, Bernard Y. and McKenzie, Patrick and Messer, Philipp W.
-            and Noskova, Ekaterina and Vecchyo, Diego Ortega-Del and Racimo, Fernando
-            and Struck, Travis J. and Gravel, Simon and Gutenkunst, Ryan N. and
-            Lohmeuller, Kirk E. and Ralph, Peter L. and Schrider, Daniel R. and Siepel, Adam
-            and Kelleher, Jerome and Kern, Andrew D.},
+    @article {10.7554/eLife.54967,
+        article_type = {journal},
         title = {A community-maintained standard library of population genetic models},
-        elocation-id = {2019.12.20.885129},
-        year = {2019},
-        doi = {10.1101/2019.12.20.885129},
-        publisher = {Cold Spring Harbor Laboratory},
-        URL = {https://www.biorxiv.org/content/early/2019/12/21/2019.12.20.885129},
-        eprint = {https://www.biorxiv.org/content/early/2019/12/21/2019.12.20.885129.full.pdf},
-        journal = {bioRxiv}
+        author = {Adrion, Jeffrey R and Cole, Christopher B and Dukler, Noah and Galloway, Jared
+            G and Gladstein, Ariella L and Gower, Graham and Kyriazis, Christopher C and Ragsdale,
+            Aaron P and Tsambos, Georgia and Baumdicker, Franz and Carlson, Jedidiah and Cartwright,
+            Reed A and Durvasula, Arun and Gronau, Ilan and Kim, Bernard Y and McKenzie, Patrick and
+            Messer, Philipp W and Noskova, Ekaterina and Ortega-Del Vecchyo, Diego and Racimo,
+            Fernando and Struck, Travis J and Gravel, Simon and Gutenkunst, Ryan N and Lohmueller,
+            Kirk E and Ralph, Peter L and Schrider, Daniel R and Siepel, Adam and Kelleher, Jerome
+            and Kern, Andrew D},
+        editor = {Coop, Graham and Wittkopp, Patricia J and Novembre, John and Sethuraman, Arun
+            and Mathieson, Sara},
+        volume = 9,
+        year = 2020,
+        month = {jun},
+        pub_date = {2020-06-23},
+        pages = {e54967},
+        citation = {eLife 2020;9:e54967},
+        doi = {10.7554/eLife.54967},
+        url = {https://doi.org/10.7554/eLife.54967},
+        keywords = {simulation, reproducibility, open source},
+        journal = {eLife},
+        issn = {2050-084X},
+        publisher = {eLife Sciences Publications, Ltd},
     }
 
 
