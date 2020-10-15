@@ -5,3 +5,5 @@ tskit
 humanize
 attrs
 appdirs
+pandas
+zarr

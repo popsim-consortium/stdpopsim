@@ -68,6 +68,12 @@ def all_demographic_models():
             yield model
 
 
+def all_annotations():
+    for species in all_species():
+        for an in species.annotations:
+            yield an
+
+
 @attr.s()
 class Species:
     """
@@ -135,6 +141,7 @@ class Species:
     # intended to be used when the Species is initialsed.
     # Use add_genetic_map() instead.
     genetic_maps = attr.ib(factory=list, kw_only=True)
+    annotations = attr.ib(factory=list, kw_only=True)
 
     @ensembl_id.default
     def _default_ensembl_id(self):
@@ -236,3 +243,27 @@ class Species:
             if gm.id == id:
                 return gm
         raise ValueError(f"Genetic map '{self.id}/{id}' not in catalog")
+
+    def add_annotations(self, annotations):
+        if annotations.id in [an.id for an in self.annotations]:
+            raise ValueError(
+                    f"Annotations '{self.id}/{annotations.id}' "
+                    "already in catalog.")
+        annotations.species = self
+        self.annotations.append(annotations)
+
+    def get_annotations(self, id):
+        """
+        Returns a set of annotations with the specified ``id``.
+
+        :param str id: The string identifier for the set of annotations
+            A complete list of IDs for each species can be found in the
+            "Annotations" subsection for the species in the :ref:`sec_catalog`.
+        :rtype: :class:`Annotation`
+        :return: A :class:`Annotation` that holds genome annotation
+            information from Ensembl
+        """
+        for an in self.annotations:
+            if an.id == id:
+                return an
+        raise ValueError(f"Annotations '{self.id}/{id}' not in catalog")

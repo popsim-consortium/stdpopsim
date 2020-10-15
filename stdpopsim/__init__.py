@@ -12,6 +12,7 @@ from . genetic_maps import *  # NOQA
 from . models import *  # NOQA
 from . species import *  # NOQA
 from . genomes import *  # NOQA
+from . annotations import *  # NOQA
 from . cache import *  # NOQA
 from . citations import *  # NOQA
 from . engines import *  # NOQA

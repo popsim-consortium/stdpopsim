@@ -35,6 +35,9 @@ accessed through the main entry point, :func:`.get_species`.
 .. autoclass:: stdpopsim.Citation()
     :members:
 
+.. autoclass:: stdpopsim.Annotation()
+    :members:
+
 ******************
 Demographic Models
 ******************

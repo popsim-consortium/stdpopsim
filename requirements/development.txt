@@ -14,3 +14,8 @@ attrs
 appdirs
 humanize
 pyslim>=0.401
+pandas
+numpy
+cython
+scikit-allel[full]
+zarr>=2.4

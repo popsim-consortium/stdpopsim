@@ -9,6 +9,7 @@
 name: stdpopsim-environment
 channels:
         - conda-forge
+        - bioconda
 dependencies:
         - numpy
         - pandas

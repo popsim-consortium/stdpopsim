@@ -11,6 +11,7 @@ install:
   - cmd: conda config --add channels conda-forge
   - cmd: conda create --yes -n testenv python=%PYTHON_VERSION%
   - cmd: activate testenv
+  - cmd: conda config --add channels bioconda
   - cmd: conda install --yes --file=requirements\conda-minimal.txt
   - cmd: conda info -a
   - cmd: python --version
