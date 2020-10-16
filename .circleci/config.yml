@@ -65,6 +65,7 @@ jobs:
       - run: sudo chown -R circleci:circleci /usr/local/man/
       - checkout
       - run: sudo chown -R circleci:circleci .
+      - *install_libgsl # Needed for msprime
       - restore_cache:
           key: stdpopsim-v1-{{ .Branch }}-{{ checksum "requirements/development.txt" }}
       - run:
