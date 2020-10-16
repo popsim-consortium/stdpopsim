@@ -13,7 +13,7 @@ aliases:
       name: Set ownership of Python directories
       command: |
         sudo chown -R circleci:circleci /usr/local/bin
-         sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+        sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
   - &install_libgsl
     run: sudo apt-get install libgsl-dev
 
@@ -63,14 +63,17 @@ jobs:
     steps:
       - *set_py_circleci_own
       - run: sudo chown -R circleci:circleci /usr/local/man/
+      - run: sudo chown -R circleci:circleci /usr/local/share
       - checkout
       - run: sudo chown -R circleci:circleci .
+      - *install_libgsl # Needed for msprime
       - restore_cache:
           key: stdpopsim-v1-{{ .Branch }}-{{ checksum "requirements/development.txt" }}
       - run:
           name: Install Python dependencies
           command: |
             pip install --upgrade setuptools pip wheel twine
+            pip install numpy==1.19.2
             pip install -r requirements/development.txt
       - save_cache:
           key: stdpopsim-v1-{{ .Branch }}-{{ checksum "requirements/development.txt" }}

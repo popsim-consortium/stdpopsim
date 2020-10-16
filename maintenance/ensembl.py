@@ -71,7 +71,7 @@ class EnsemblRestClient:
         """
         Returns the current ensembl release number.
         """
-        output = self.get(endpoint=f"/info/data")
+        output = self.get(endpoint="/info/data")
         releases = output["releases"]
         # Docs say: may return more than one release
         # (unfrequent non-standard Ensembl configuration).

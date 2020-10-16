@@ -1,4 +1,4 @@
 """
 Code used for internal maintenance tasks.
 """
-from . ensembl import *
+from . ensembl import *  # noqa
