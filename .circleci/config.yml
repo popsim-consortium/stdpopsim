@@ -1,70 +1,190 @@
-version: 2
+version: 2.1
+
+orbs:
+  codecov: codecov/codecov@1.1.1
+
+aliases:
+  - &container_config
+      docker:
+        - image: circleci/python:3.6-stretch
+      working_directory: &working_directory /home/circleci/stdpopsim
+  - &set_py_circleci_own
+    run: 
+      name: Set ownership of Python directories
+      command: |
+        sudo chown -R circleci:circleci /usr/local/bin
+         sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+  - &install_libgsl
+    run: sudo apt-get install libgsl-dev
+
 jobs:
-  build:
-    docker:
-      - image: circleci/python:3.6-stretch
-    working_directory: /home/circleci/stdpopsim
+  build-slim-lib:
+    <<: *container_config
+    environment:
+        TAG_FILE: /tmp/SLiM_tag
     steps:
-      - checkout
-      - run: sudo chown -R circleci:circleci *
-      - restore_cache:
-          key: stdpopsim-{{ .Branch }}
+      - run: sudo chown -R circleci:circleci .
+      - run: sudo chown -R circleci:circleci /usr/local/bin
       - run:
-          name: Install dependencies and set path
+          name: Check last SLiM tag
           command: |
-            sudo apt-get install libgsl-dev # Needed for msprime
-            pip install --user -r requirements/development.txt
-            pip install twine --user
-            echo 'export PATH=/home/circleci/.local/bin:$PATH' >> $BASH_ENV
+            git clone --bare https://github.com/MesserLab/SLiM /tmp/SLiM_top/SLiM
+            cd /tmp/SLiM_top/SLiM
+            git describe --tags $(git rev-list --tags --max-count=1) > ${TAG_FILE}
+      - restore_cache:
+          key: SLiM-v2-{{ checksum "/tmp/SLiM_tag" }}
       - run:
           name: Build and install SLiM
           command: |
-            sudo apt-get install cmake
-            wget http://benhaller.com/slim/SLiM.zip
-            unzip SLiM.zip
-            mkdir SLiM/build
-            cd SLiM/build && cmake .. && make
-            cp slim /home/circleci/.local/bin/
+            if [ ! -f "/usr/local/bin/slim" ]; then
+                sudo apt-get install cmake
+                cd /tmp/SLiM_top
+                mv SLiM .git
+                git config --local --bool core.bare false
+                git reset --hard
+                git checkout $(cat /tmp/SLiM_tag) -b latest
+                mkdir build
+                cd build && cmake .. && make
+                mv slim /usr/local/bin
+            else
+                echo "Cache found!"
+            fi
       - save_cache:
-          key: stdpopsim-{{ .Branch }}
+          key: SLiM-v2-{{ checksum "/tmp/SLiM_tag" }}
           paths:
-            - "/home/circleci/.local"
+            - "/usr/local/bin"
+      - persist_to_workspace:
+          root: /usr/local
+          paths:
+            - bin/slim
 
+  build-deps:
+    <<: *container_config
+    steps:
+      - *set_py_circleci_own
+      - run: sudo chown -R circleci:circleci /usr/local/man/
+      - checkout
+      - run: sudo chown -R circleci:circleci .
+      - restore_cache:
+          key: stdpopsim-v1-{{ .Branch }}-{{ checksum "requirements/development.txt" }}
       - run:
-          name: Lint Python
+          name: Install Python dependencies
           command: |
-            flake8 --version
-            flake8 --max-line-length 89 stdpopsim setup.py tests docs/_ext
+            pip install --upgrade setuptools pip wheel twine
+            pip install -r requirements/development.txt
+      - save_cache:
+          key: stdpopsim-v1-{{ .Branch }}-{{ checksum "requirements/development.txt" }}
+          paths:
+            - "/usr/local/bin"
+            - "/usr/local/lib/python3.6/site-packages"
+      - persist_to_workspace:
+          root: /usr/local
+          paths:
+            - bin/*
+            - lib/python3.6/site-packages/*
 
-      - run:
-          name: Run Python tests
-          command: |
-            nosetests -vs --with-coverage --cover-package stdpopsim maintenance \
-              --cover-branches --cover-erase --cover-xml \
-              --cover-inclusive tests
-            python3 -m codecov
-            rm .coverage
-
+  build-pkg:
+    <<: *container_config
+    steps:
+      - *set_py_circleci_own
+      - attach_workspace:
+          at: /usr/local
+      - checkout
+      - run: sudo chown -R circleci:circleci .
+      - *install_libgsl # Needed for msprime
       - run:
           name: Build Python package
           command: |
-            rm -fR build
             python setup.py sdist
             python setup.py check
             python -m twine check dist/*.tar.gz
-            python -m venv venv
-            source venv/bin/activate
-            pip install --upgrade setuptools pip wheel
             python setup.py build_ext
             python setup.py egg_info
             python setup.py bdist_wheel
             pip install dist/*.tar.gz
             python3 -m stdpopsim -V
-            # Run a small simulation to make sure it all works.
+      - run:
+          name: Run a small simulation
+          command: |
             stdpopsim HomSap -c chr22 -l 0.001 2 > /dev/null
+      - persist_to_workspace:
+          root: /usr/local
+          paths:
+            - bin/stdpopsim
 
+  test:
+    <<: *container_config
+    environment:
+      XML_RESULTS_DIR: xml
+      XML_RESULTS: xml/results.xml
+    parallelism: 3
+    steps:
+      - *set_py_circleci_own
+      - *install_libgsl
+      - attach_workspace:
+          at: /usr/local
+      - checkout
+      - run:
+          name: Run Python tests
+          command: |
+            mkdir -p ${XML_RESULTS_DIR}
+            nosetests -vs --with-coverage --cover-package stdpopsim maintenance \
+              --cover-branches --cover-erase --cover-xml --with-xunit --xunit-file=${XML_RESULTS} \
+              --cover-inclusive $(circleci tests glob "tests/*.py" | circleci tests split --split-by=timings --timings-type=classname)
+      - codecov/upload:
+          file: coverage.xml
+      - store_test_results:
+          path: xml
+
+  lint:
+    <<: *container_config
+    steps:
+      - checkout
+      - run:
+          name: Lint Python
+          command: |
+            pip install flake8
+            flake8 --version
+      - run:
+          name: Lint Python
+          command: |
+            flake8 --max-line-length 89 stdpopsim setup.py tests docs/_ext maintenance
+
+  docs:
+    <<: *container_config
+    steps:
+      - *set_py_circleci_own
+      - attach_workspace:
+          at: /usr/local
+      - checkout
+      - run: sudo chown -R circleci:circleci .
+      - *install_libgsl
+      - run:
+          name: Rebuild Python package
+          command: |
+            python setup.py sdist bdist_wheel
+            pip install dist/*.tar.gz
       - run:
           name: Build docs
           command: |
-            source venv/bin/activate
-            cd docs && make && make singlehtml
+            cd docs
+            make
+            make singlehtml
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - lint
+      - build-slim-lib
+      - build-deps
+      - build-pkg:
+          requires:
+            - build-slim-lib
+            - build-deps
+      - test:
+          requires:
+            - build-pkg
+      - docs:
+          requires:
+            - build-pkg
