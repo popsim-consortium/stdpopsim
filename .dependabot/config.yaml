@@ -1,0 +1,9 @@
+version: 1
+update_configs:
+  - package_manager: "python"
+    directory: "/requirements/"
+    update_schedule: "live"
+    default_reviewers:
+      - "grahamgower"
+    default_labels:
+      - "dependancy-upgrade"
