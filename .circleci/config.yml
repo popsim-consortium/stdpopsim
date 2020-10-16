@@ -72,6 +72,7 @@ jobs:
           name: Install Python dependencies
           command: |
             pip install --upgrade setuptools pip wheel twine
+            pip install numpy==1.19.2
             pip install -r requirements/development.txt
       - save_cache:
           key: stdpopsim-v1-{{ .Branch }}-{{ checksum "requirements/development.txt" }}
