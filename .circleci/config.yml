@@ -63,7 +63,7 @@ jobs:
     steps:
       - *set_py_circleci_own
       - run: sudo chown -R circleci:circleci /usr/local/man/
-      - run: sudo chown -R circleci:circleci /usr/local/share/doc
+      - run: sudo chown -R circleci:circleci /usr/local/share
       - checkout
       - run: sudo chown -R circleci:circleci .
       - *install_libgsl # Needed for msprime
