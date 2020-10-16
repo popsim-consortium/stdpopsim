@@ -178,16 +178,4 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - lint
-      - build-slim-lib
       - build-deps
-      - build-pkg:
-          requires:
-            - build-slim-lib
-            - build-deps
-      - test:
-          requires:
-            - build-pkg
-      - docs:
-          requires:
-            - build-pkg
