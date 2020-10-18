@@ -119,6 +119,21 @@ class Contig:
         <https://msprime.readthedocs.io/en/stable/api.html#msprime.RecombinationMap>`_
         for more details.
     :vartype recombination_map: msprime.simulations.RecombinationMap
+
+    .. note::
+
+        To run stdpopsim simulations with alternative, user-specified mutation
+        or recombination rates, a new contig can be created based on an existing
+        one. For instance, the following will create a ``new_contig`` that,
+        when simulated, will have double the mutation rate of the ``old_contig``:
+
+        .. code-block:: python
+
+            new_contig = stdpopsim.Contig(
+                mutation_rate=old_contig.mutation_rate * 2,
+                recombination_map=old_contig.recombination_map,
+                genetic_map=old_contig.genetic_map,
+            )
     """
     recombination_map = attr.ib(default=None, kw_only=True)
     mutation_rate = attr.ib(default=None, type=float, kw_only=True)
