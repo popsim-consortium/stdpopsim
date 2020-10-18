@@ -71,8 +71,8 @@ class Engine:
 
         :param demographic_model: The demographic model to simulate.
         :type demographic_model: :class:`.DemographicModel`
-        :param contig: The contig, defining the length and recombination
-            rate(s).
+        :param contig: The contig, defining the length, mutation rate,
+            and recombination rate(s).
         :type contig: :class:`msprime.simulations.Contig`
         :param samples: The samples to be obtained from the simulation.
         :type samples: list of :class:`msprime.simulations.Sample`
