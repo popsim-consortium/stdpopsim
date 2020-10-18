@@ -68,15 +68,15 @@ jobs:
       - run: sudo chown -R circleci:circleci .
       - *install_libgsl # Needed for msprime
       - restore_cache:
-          key: stdpopsim-v1-{{ .Branch }}-{{ checksum "requirements/development.txt" }}
+          key: stdpopsim-v1-{{ .Branch }}-{{ checksum "requirements/CI/requirements.txt" }}
       - run:
           name: Install Python dependencies
           command: |
             pip install --upgrade setuptools pip wheel twine
             pip install numpy==1.19.2
-            pip install -r requirements/development.txt
+            pip install -r requirements/CI/requirements.txt
       - save_cache:
-          key: stdpopsim-v1-{{ .Branch }}-{{ checksum "requirements/development.txt" }}
+          key: stdpopsim-v1-{{ .Branch }}-{{ checksum "requirements/CI/requirements.txt" }}
           paths:
             - "/usr/local/bin"
             - "/usr/local/lib/python3.6/site-packages"

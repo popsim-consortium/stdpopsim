@@ -1,7 +1,7 @@
 version: 1
 update_configs:
   - package_manager: "python"
-    directory: "/requirements/"
+    directory: "/requirements/CI"
     update_schedule: "live"
     default_reviewers:
       - "grahamgower"
