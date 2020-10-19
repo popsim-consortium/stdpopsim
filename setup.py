@@ -33,7 +33,7 @@ setup(
     },
     # NOTE: make sure this is the 'attrs' package, not 'attr'!
     install_requires=["msprime>=0.7.1", "attrs>=19.1.0", "appdirs", "humanize",
-                      "pyslim>=0.401", "pandas", "scikit-allel", "zarr",
+                      "pyslim>=0.401", "pandas", "zarr",
                       "numpy"],
     url='https://github.com/popsim-consortium/stdpopsim',
     project_urls={
