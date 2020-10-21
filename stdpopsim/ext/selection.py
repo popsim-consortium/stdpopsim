@@ -1,5 +1,6 @@
 import attr
 
+TEST="this is a test"
 
 @attr.s(kw_only=True)
 class MutationType(object):
