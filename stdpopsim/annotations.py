@@ -12,6 +12,8 @@ from . import cache
 import zarr
 import tempfile
 
+TEMP="this is a test"
+
 logger = logging.getLogger(__name__)
 
 
