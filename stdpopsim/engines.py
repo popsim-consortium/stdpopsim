@@ -73,7 +73,7 @@ class Engine:
         :type demographic_model: :class:`.DemographicModel`
         :param contig: The contig, defining the length, mutation rate,
             and recombination rate(s).
-        :type contig: :class:`msprime.simulations.Contig`
+        :type contig: :class:`.Contig`
         :param samples: The samples to be obtained from the simulation.
         :type samples: list of :class:`msprime.simulations.Sample`
         :param seed: The seed for the random number generator.
