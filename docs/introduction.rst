@@ -8,7 +8,9 @@ Introduction
     you would like to help, please open an issue or pull request at
     `GitHub <https://github.com/popgensims/stdpopsim>`_.
 
-TESTESTESTEST
+TESTESTESTEST 1
+
+TESTESTESTEST 2
 
 This is the documentation for ``stdpopsim``, the standard library for population
 genetic simulation models.
