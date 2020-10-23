@@ -138,6 +138,7 @@ class HelpModels(argparse.Action):
     """
     Action used to produce model help text.
     """
+
     def __call__(self, parser, namespace, values, option_string=None):
         help_text = get_models_help(namespace.species, values)
         print(help_text, file=sys.stderr)
@@ -173,6 +174,7 @@ class HelpGeneticMaps(argparse.Action):
     """
     Action used to produce genetic map help text.
     """
+
     def __call__(self, parser, namespace, values, option_string=None):
         help_text = get_genetic_maps_help(namespace.species, values)
         print(help_text, file=sys.stderr)
@@ -451,15 +453,15 @@ def add_simulate_species_parser(parser, species):
                                  samples=samples, seed=args.seed)
         if not qc_complete:
             warnings.warn(stdpopsim.QCMissingWarning(
-                    f"{model.id} has not been QCed. Use at your own risk! "
-                    "Demographic models that have not undergone stdpopsim's "
-                    "Quality Control procedure may contain implementation "
-                    "errors, leading to differences between simulations "
-                    "and the model described in the original publication. "
-                    "More information about the QC process can be found in "
-                    "the developer documentation. "
-                    "https://stdpopsim.readthedocs.io/en/latest/development.html"
-                    "#demographic-model-review-process"))
+                f"{model.id} has not been QCed. Use at your own risk! "
+                "Demographic models that have not undergone stdpopsim's "
+                "Quality Control procedure may contain implementation "
+                "errors, leading to differences between simulations "
+                "and the model described in the original publication. "
+                "More information about the QC process can be found in "
+                "the developer documentation. "
+                "https://stdpopsim.readthedocs.io/en/latest/development.html"
+                "#demographic-model-review-process"))
 
         # extract simulate() parameters from CLI args
         accepted_params = inspect.signature(engine.simulate).parameters.keys()
@@ -547,9 +549,9 @@ def stdpopsim_cli_parser():
         "-v", "--verbose", action="count", default=1,
         help="Increase logging verbosity (can use be used multiple times).")
     logging_group.add_argument(
-            "-q", "--quiet", nargs=0,
-            help="Do not write any non-essential messages",
-            action=QuietAction)
+        "-q", "--quiet", nargs=0,
+        help="Do not write any non-essential messages",
+        action=QuietAction)
 
     top_parser.add_argument(
         "-c", "--cache-dir", type=str, default=None,
@@ -569,11 +571,11 @@ def stdpopsim_cli_parser():
     supported_models = stdpopsim.get_engine("msprime").supported_models
     msprime_parser = top_parser.add_argument_group("msprime specific parameters")
     msprime_parser.add_argument(
-            "--msprime-model",
-            default=supported_models[0],
-            choices=supported_models,
-            help="Specify the simulation model used by msprime. "
-                 "See msprime API documentation for details.")
+        "--msprime-model",
+        default=supported_models[0],
+        choices=supported_models,
+        help="Specify the simulation model used by msprime. "
+        "See msprime API documentation for details.")
 
     def time_or_model(arg, _arg_is_time=[True, ], parser=top_parser):
         if _arg_is_time[0]:
@@ -587,11 +589,11 @@ def stdpopsim_cli_parser():
         _arg_is_time[0] = not _arg_is_time[0]
         return arg
     msprime_parser.add_argument(
-            "--msprime-change-model",
-            metavar=("T", "MODEL"), type=time_or_model,
-            default=[], action="append", nargs=2,
-            help="Change to the specified simulation MODEL at generation T. "
-                 "This option may provided multiple times.")
+        "--msprime-change-model",
+        metavar=("T", "MODEL"), type=time_or_model,
+        default=[], action="append", nargs=2,
+        help="Change to the specified simulation MODEL at generation T. "
+        "This option may provided multiple times.")
 
     # SLiM is not available for windows.
     if not IS_WINDOWS:
@@ -602,21 +604,21 @@ def stdpopsim_cli_parser():
             return path
         slim_parser = top_parser.add_argument_group("SLiM specific parameters")
         slim_parser.add_argument(
-                "--slim-path", metavar="PATH", type=slim_exec, default=None,
-                help="Full path to `slim' executable.")
+            "--slim-path", metavar="PATH", type=slim_exec, default=None,
+            help="Full path to `slim' executable.")
         slim_parser.add_argument(
-                "--slim-script", action="store_true", default=False,
-                help="Write script to stdout and exit without running SLiM.")
+            "--slim-script", action="store_true", default=False,
+            help="Write script to stdout and exit without running SLiM.")
         slim_parser.add_argument(
-                "--slim-scaling-factor", metavar="Q", default=1, type=float,
-                help="Rescale model parameters by Q to speed up simulation. "
-                     "See SLiM manual: `5.5 Rescaling population sizes to "
-                     "improve simulation performance`. "
-                     "[default=%(default)s].")
+            "--slim-scaling-factor", metavar="Q", default=1, type=float,
+            help="Rescale model parameters by Q to speed up simulation. "
+            "See SLiM manual: `5.5 Rescaling population sizes to "
+            "improve simulation performance`. "
+            "[default=%(default)s].")
         slim_parser.add_argument(
-                "--slim-burn-in", metavar="X", default=10, type=float,
-                help="Length of the burn-in phase, in units of N generations "
-                     "[default=%(default)s].")
+            "--slim-burn-in", metavar="X", default=10, type=float,
+            help="Length of the burn-in phase, in units of N generations "
+            "[default=%(default)s].")
 
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True

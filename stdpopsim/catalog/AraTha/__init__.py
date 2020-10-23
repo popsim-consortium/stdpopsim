@@ -35,27 +35,27 @@ for name, data in genome_data.data["chromosomes"].items():
         recombination_rate=_recombination_rate_data[name]))
 
 _genome = stdpopsim.Genome(
-        chromosomes=_chromosomes,
-        assembly_name=genome_data.data["assembly_name"],
-        assembly_accession=genome_data.data["assembly_accession"],
-        mutation_rate_citations=[
-            stdpopsim.Citation(
-                author="Ossowski et al.",
-                year="2010",
-                doi="https://doi.org/10.1126/science.1180677",
-                reasons={stdpopsim.CiteReason.MUT_RATE})],
-        recombination_rate_citations=[
-            stdpopsim.Citation(
-                author="Huber et al.",
-                year="2014",
-                doi="https://doi.org/10.1093/molbev/msu247",
-                reasons={stdpopsim.CiteReason.REC_RATE})],
-        assembly_citations=[
-            stdpopsim.Citation(
-                doi="https://doi.org/10.1093/nar/gkm965",
-                year="2007",
-                author="Swarbreck et al.",
-                reasons={stdpopsim.CiteReason.ASSEMBLY})])
+    chromosomes=_chromosomes,
+    assembly_name=genome_data.data["assembly_name"],
+    assembly_accession=genome_data.data["assembly_accession"],
+    mutation_rate_citations=[
+        stdpopsim.Citation(
+            author="Ossowski et al.",
+            year="2010",
+            doi="https://doi.org/10.1126/science.1180677",
+            reasons={stdpopsim.CiteReason.MUT_RATE})],
+    recombination_rate_citations=[
+        stdpopsim.Citation(
+            author="Huber et al.",
+            year="2014",
+            doi="https://doi.org/10.1093/molbev/msu247",
+            reasons={stdpopsim.CiteReason.REC_RATE})],
+    assembly_citations=[
+        stdpopsim.Citation(
+            doi="https://doi.org/10.1093/nar/gkm965",
+            year="2007",
+            author="Swarbreck et al.",
+            reasons={stdpopsim.CiteReason.ASSEMBLY})])
 
 _species = stdpopsim.Species(
     id="AraTha",
@@ -74,7 +74,7 @@ _species = stdpopsim.Species(
         year="2016",
         author="1001GenomesConsortium",
         reasons={stdpopsim.CiteReason.POP_SIZE})]
-    )
+)
 
 stdpopsim.register_species(_species)
 
@@ -105,7 +105,7 @@ _gm = stdpopsim.GeneticMap(
         author="Salomé et al.",
         year=2012,
         reasons={stdpopsim.CiteReason.GEN_MAP})]
-    )
+)
 _species.add_genetic_map(_gm)
 
 
@@ -174,8 +174,8 @@ def _sma_1pop():
         population_configurations=[
             msprime.PopulationConfiguration(
                 initial_size=sizes[0], metadata=populations[0].asdict())
-            ]
-        )
+        ]
+    )
 
 
 _species.add_demographic_model(_sma_1pop())
@@ -211,12 +211,12 @@ def _afr_2epoch():
         population_configurations=[
             msprime.PopulationConfiguration(
                 initial_size=N_0, metadata=populations[0].asdict())
-            ],
+        ],
         demographic_events=[
             msprime.PopulationParametersChange(
                 time=t_1, initial_size=N_A, population_id=0)
-            ]
-        )
+        ]
+    )
 
 
 _species.add_demographic_model(_afr_2epoch())
@@ -262,7 +262,7 @@ def _afr_3epoch():
                 time=t_3, initial_size=N_2, population_id=0),
             msprime.PopulationParametersChange(
                 time=t_2 + t_3, initial_size=N_A, population_id=0)]
-        )
+    )
 
 
 _species.add_demographic_model(_afr_3epoch())

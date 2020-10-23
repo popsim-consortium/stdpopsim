@@ -57,8 +57,8 @@ class Citation:
         if not isinstance(reasons, set):
             reasons = {reasons}
         return self.__class__(
-                author=self.author, year=self.year, doi=self.doi,
-                reasons=self.reasons | reasons)
+            author=self.author, year=self.year, doi=self.doi,
+            reasons=self.reasons | reasons)
 
     @staticmethod
     def merge(citations):

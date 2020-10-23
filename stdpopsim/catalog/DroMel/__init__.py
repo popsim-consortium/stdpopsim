@@ -35,7 +35,7 @@ _DosSantosEtAl = stdpopsim.Citation(
 _genome_wide_estimate = 8.4e-9  # WRONG, underestimate used in S&S!
 
 _recombination_rate_data = collections.defaultdict(
-        lambda: _genome_wide_estimate)
+    lambda: _genome_wide_estimate)
 # Set some exceptions for non-recombining chrs.
 _recombination_rate_data["Y"] = 0
 _recombination_rate_data["mitochondrion_genome"] = 0
@@ -50,13 +50,13 @@ for name, data in genome_data.data["chromosomes"].items():
 
 
 _genome = stdpopsim.Genome(
-        chromosomes=_chromosomes,
-        assembly_name=genome_data.data["assembly_name"],
-        assembly_accession=genome_data.data["assembly_accession"],
-        mutation_rate_citations=[
-            _SchriderEtAl.because(stdpopsim.CiteReason.MUT_RATE)],
-        assembly_citations=[
-            _DosSantosEtAl])
+    chromosomes=_chromosomes,
+    assembly_name=genome_data.data["assembly_name"],
+    assembly_accession=genome_data.data["assembly_accession"],
+    mutation_rate_citations=[
+        _SchriderEtAl.because(stdpopsim.CiteReason.MUT_RATE)],
+    assembly_citations=[
+        _DosSantosEtAl])
 
 _species = stdpopsim.Species(
     id="DroMel",
@@ -101,7 +101,7 @@ _gm = stdpopsim.GeneticMap(
         doi="https://doi.org/10.1371/journal.pgen.1002905",
         year=2012,
         reasons={stdpopsim.CiteReason.GEN_MAP})]
-    )
+)
 
 _species.add_genetic_map(_gm)
 
@@ -115,9 +115,9 @@ _species.add_genetic_map(_gm)
 
 # population definitions that are reused.
 _afr_population = stdpopsim.Population(
-   id="AFR", description="African D. melanogaster population")
+    id="AFR", description="African D. melanogaster population")
 _eur_population = stdpopsim.Population(
-   id="EUR", description="European D. melanogaster population")
+    id="EUR", description="European D. melanogaster population")
 
 
 def _afr_3epoch():
@@ -175,7 +175,7 @@ def _afr_3epoch():
             msprime.PopulationParametersChange(
                 time=t_2, initial_size=N_A, population_id=0)
         ],
-        )
+    )
 
 
 _species.add_demographic_model(_afr_3epoch())
@@ -230,7 +230,7 @@ def _ooa_2():
             msprime.PopulationParametersChange(
                 time=t_A0, initial_size=N_A1, population_id=0)
         ],
-        )
+    )
 
 
 _species.add_demographic_model(_ooa_2())

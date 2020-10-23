@@ -23,7 +23,7 @@ class MutationType(object):
             raise ValueError("weight must be >= 0.")
         if self.dominance_coeff < 0:
             raise ValueError(
-                    f"Invalid dominance coefficient {self.dominance_coeff}.")
+                f"Invalid dominance coefficient {self.dominance_coeff}.")
 
         # TODO: Add more distribution types like "e", "n", and "w".
         #       We probably shouldn't support "s" because it takes an
@@ -34,8 +34,8 @@ class MutationType(object):
             # Fixed-value selection coefficent.
             if len(self.distribution_args) != 1:
                 raise ValueError(
-                        "Fixed-value mutation types (distribution_type='f')"
-                        "take a single selection-coefficient parameter.")
+                    "Fixed-value mutation types (distribution_type='f')"
+                    "take a single selection-coefficient parameter.")
         elif self.distribution_type == "g":
             # Gamma-distributed selection coefficient with (mean, shape)
             # parameterisation. A negative value for the mean is permitted,
@@ -43,11 +43,11 @@ class MutationType(object):
             # See Eidos documentation for rgamma().
             if len(self.distribution_args) != 2 or self.distribution_args[1] <= 0:
                 raise ValueError(
-                        "Gamma-distributed mutation types (distribution_type='g') "
-                        "use a (mean, shape) parameterisation, requiring shape > 0.")
+                    "Gamma-distributed mutation types (distribution_type='g') "
+                    "use a (mean, shape) parameterisation, requiring shape > 0.")
         else:
             raise ValueError(
-                    f"{self.distribution_type} is not a supported distribution type")
+                f"{self.distribution_type} is not a supported distribution type")
 
         # The index of the param in the distribution_args list that should be
         # multiplied by Q when using --slim-scaling-factor Q.
@@ -107,10 +107,10 @@ def validate_time_range(start_time, end_time):
     if float(start_time) < float(end_time):
         raise ValueError(f"start_time={start_time} < end_time={end_time})")
     if (float(start_time) == float(end_time) and
-       isinstance(start_time, GenerationAfter) and
-       not isinstance(end_time, GenerationAfter)):
+        isinstance(start_time, GenerationAfter) and
+            not isinstance(end_time, GenerationAfter)):
         raise ValueError(
-                f"start_time=GenerationAfter({start_time}) < end_time={end_time}")
+            f"start_time=GenerationAfter({start_time}) < end_time={end_time}")
 
 
 class ExtendedEvent(object):
@@ -205,15 +205,15 @@ class ConditionOnAlleleFrequency(ExtendedEvent):
         if not (0 <= self.allele_frequency <= 1):
             raise ValueError("Must have 0 <= allele_frequency <= 1.")
         if ((self.op == "<" and self.allele_frequency == 0) or
-           (self.op == ">" and self.allele_frequency == 1)):
+                (self.op == ">" and self.allele_frequency == 1)):
             raise ValueError(
-                    f"allele_frequency {self.op} {self.allele_frequency}: "
-                    "condition is always false.")
+                f"allele_frequency {self.op} {self.allele_frequency}: "
+                "condition is always false.")
         if ((self.op == ">=" and self.allele_frequency == 0) or
-           (self.op == "<=" and self.allele_frequency == 1)):
+                (self.op == "<=" and self.allele_frequency == 1)):
             raise ValueError(
-                    f"allele_frequency {self.op} {self.allele_frequency}: "
-                    "condition is always true.")
+                f"allele_frequency {self.op} {self.allele_frequency}: "
+                "condition is always true.")
         validate_time_range(self.start_time, self.end_time)
 
     @classmethod

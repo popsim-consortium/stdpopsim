@@ -95,8 +95,8 @@ def verify_sampling_times_equal(
     if len(sampling_times1) != len(sampling_times2):
         raise UnequalModelsError("Different numbers of populations")
     # Get indicies where None values present and compare
-    s1_none = np.where(sampling_times1 == None) # noqa
-    s2_none = np.where(sampling_times2 == None) # noqa
+    s1_none = np.where(sampling_times1 == None)  # noqa
+    s2_none = np.where(sampling_times2 == None)  # noqa
     if not np.array_equal(s1_none, s2_none):
         raise UnequalModelsError("None-valued sampling times differ")
     # Subset out only non-None values and cast to float so they can be compared
@@ -161,6 +161,7 @@ class Population:
         population (default = 0).
     :vartype sampling_time: int
     """
+
     def __init__(self, id, description, sampling_time=0):
         self.id = id
         self.description = description
@@ -279,11 +280,11 @@ class DemographicModel:
         Return a model with the mandatory attributes filled out.
         """
         kwargs.update(
-                id=kwargs.get("id", ""),
-                description=kwargs.get("description", ""),
-                long_description=kwargs.get("long_description", ""),
-                populations=kwargs.get("populations", []),
-                generation_time=kwargs.get("generation_time", -1))
+            id=kwargs.get("id", ""),
+            description=kwargs.get("description", ""),
+            long_description=kwargs.get("long_description", ""),
+            populations=kwargs.get("populations", []),
+            generation_time=kwargs.get("generation_time", -1))
         return DemographicModel(**kwargs)
 
     def equals(self, other, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
@@ -328,7 +329,7 @@ class DemographicModel:
         """
         if not isinstance(qc_model, self.__class__):
             raise ValueError(
-                    f"Cannot register non-DemographicModel '{qc_model}' as QC model")
+                f"Cannot register non-DemographicModel '{qc_model}' as QC model")
         if self.qc_model is not None:
             raise ValueError(f"QC model already registered for {self.id}.")
         self.qc_model = qc_model
@@ -356,8 +357,8 @@ class DemographicModel:
         for pop_index, n in enumerate(args):
             if self.populations[pop_index].allow_samples:
                 sample = msprime.Sample(
-                                        pop_index,
-                                        time=self.populations[pop_index].sampling_time)
+                    pop_index,
+                    time=self.populations[pop_index].sampling_time)
                 samples.extend([sample] * n)
             elif n > 0:
                 raise ValueError("Samples requested from non-sampling population"

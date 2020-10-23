@@ -557,9 +557,9 @@ def slim_makescript(
     # The demography debugger constructs event epochs, which we use
     # to define the forwards-time events.
     dd = msprime.DemographyDebugger(
-            population_configurations=demographic_model.population_configurations,
-            migration_matrix=demographic_model.migration_matrix,
-            demographic_events=demographic_events)
+        population_configurations=demographic_model.population_configurations,
+        migration_matrix=demographic_model.migration_matrix,
+        demographic_events=demographic_events)
 
     epochs = sorted(dd.epochs, key=lambda e: e.start_time, reverse=True)
     T = [round(e.start_time*demographic_model.generation_time) for e in epochs]
@@ -583,7 +583,7 @@ def slim_makescript(
                     # Calculate remainder of population after previous
                     # MassMigration events in this epoch.
                     rem = 1 - np.sum([ap[3] for ap in admixture_pulses
-                                     if ap[0] == i and ap[1] == de.source])
+                                      if ap[0] == i and ap[1] == de.source])
                     admixture_pulses.append((
                         i,
                         de.source,  # forwards-time dest
@@ -630,11 +630,11 @@ def slim_makescript(
             cls_name = ee.__class__.__name__
             if mutation_types is None:
                 raise ValueError(
-                        f"Invalid {cls_name} event. No mutation types defined.")
+                    f"Invalid {cls_name} event. No mutation types defined.")
             if not (0 < ee.mutation_type_id <= len(mutation_types)):
                 # FIXME: use zero-based indexes
                 raise ValueError(
-                        f"Invalid {cls_name} event with mutation type id {mt_id}.")
+                    f"Invalid {cls_name} event with mutation type id {mt_id}.")
         if hasattr(ee, "start_time") and hasattr(ee, "end_time"):
             # Now that GenerationAfter times have been accounted for, we can
             # properly catch invalid start/end times.
@@ -667,12 +667,12 @@ def slim_makescript(
     drawn_mut_type_ids = {mt_id for _, mt_id, _, _, _ in drawn_mutations}
     for ee in extended_events:
         if (isinstance(ee, stdpopsim.ext.ChangeMutationFitness) or
-           isinstance(ee, stdpopsim.ext.ConditionOnAlleleFrequency)):
+                isinstance(ee, stdpopsim.ext.ConditionOnAlleleFrequency)):
             if ee.mutation_type_id not in drawn_mut_type_ids:
                 cls_name = ee.__class__.__name__
                 raise ValueError(
-                        f"Invalid {cls_name} event. No drawn mutation for "
-                        "mutation type id {ee.mutation_type_id}")
+                    f"Invalid {cls_name} event. No drawn mutation for "
+                    "mutation type id {ee.mutation_type_id}")
 
     printsc = functools.partial(print, file=script_file)
 
@@ -690,35 +690,35 @@ def slim_makescript(
     recomb_rates, recomb_ends = msprime_rm_to_slim_rm(contig.recombination_map)
     indent = 8*" "
     recomb_rates_str = (
-            "c(\n" +
-            textwrap.fill(
-                    ", ".join(map(str, recomb_rates)),
-                    width=80,
-                    initial_indent=indent,
-                    subsequent_indent=indent) +
-            ")")
+        "c(\n" +
+        textwrap.fill(
+            ", ".join(map(str, recomb_rates)),
+            width=80,
+            initial_indent=indent,
+            subsequent_indent=indent) +
+        ")")
     recomb_ends_str = (
-            "c(\n" +
-            textwrap.fill(
-                    ", ".join(map(str, recomb_ends)),
-                    width=80,
-                    initial_indent=indent,
-                    subsequent_indent=indent) +
-            ")")
+        "c(\n" +
+        textwrap.fill(
+            ", ".join(map(str, recomb_ends)),
+            width=80,
+            initial_indent=indent,
+            subsequent_indent=indent) +
+        ")")
 
     pop_names_str = ', '.join(map(lambda x: f'"{x}"', pop_names))
 
     printsc(string.Template(_slim_upper).substitute(
-                scaling_factor=scaling_factor,
-                burn_in=float(burn_in),
-                chromosome_length=int(contig.recombination_map.get_length()),
-                recombination_rates=recomb_rates_str,
-                recombination_ends=recomb_ends_str,
-                mutation_rate=contig.mutation_rate,
-                generation_time=demographic_model.generation_time,
-                trees_file=trees_file,
-                pop_names=f"c({pop_names_str})"
-                ))
+        scaling_factor=scaling_factor,
+        burn_in=float(burn_in),
+        chromosome_length=int(contig.recombination_map.get_length()),
+        recombination_rates=recomb_rates_str,
+        recombination_ends=recomb_ends_str,
+        mutation_rate=contig.mutation_rate,
+        generation_time=demographic_model.generation_time,
+        trees_file=trees_file,
+        pop_names=f"c({pop_names_str})"
+    ))
 
     def matrix2str(matrix, row_comments=None, col_comment=None, indent=2,
                    fmt="", dim=(None, None)):
@@ -875,7 +875,7 @@ def slim_makescript(
 
     # Allele frequency conditioning
     op_types = ", ".join(
-            f"\"{op}\"" for op in stdpopsim.ext.ConditionOnAlleleFrequency.op_types)
+        f"\"{op}\"" for op in stdpopsim.ext.ConditionOnAlleleFrequency.op_types)
     printsc(f'    defineConstant("op_types", c({op_types}));')
     printsc('    // Allele frequency conditioning, one row for each.')
     printsc('    defineConstant("condition_on_allele_frequency", ' +
@@ -898,10 +898,10 @@ def slim_makescript(
             pop_id = pop_names[pop]
             gen = time / demographic_model.generation_time
             warnings.warn(stdpopsim.SLiMOddSampleWarning(
-                    f"SLiM simulates diploid individuals, so {n_inds} "
-                    f"individuals will be sampled for the {count} haploids "
-                    f"requested from population {pop_id} at time {gen}. "
-                    "See #464."))
+                f"SLiM simulates diploid individuals, so {n_inds} "
+                f"individuals will be sampled for the {count} haploids "
+                f"requested from population {pop_id} at time {gen}. "
+                "See #464."))
         sampling_episodes.append((pop, n_inds, time))
 
     printsc('    // One row for each sampling episode.')
@@ -924,12 +924,12 @@ class _SLiMEngine(stdpopsim.Engine):
     id = "slim"  #:
     description = "SLiM forward-time Wright-Fisher simulator"  #:
     citations = [
-            stdpopsim.Citation(
-                doi="https://doi.org/10.1111/1755-0998.12968",
-                year=2019,
-                author="Haller et al.",
-                reasons={stdpopsim.CiteReason.ENGINE}),
-            ]
+        stdpopsim.Citation(
+            doi="https://doi.org/10.1111/1755-0998.12968",
+            year=2019,
+            author="Haller et al.",
+            reasons={stdpopsim.CiteReason.ENGINE}),
+    ]
 
     def slim_path(self):
         return os.environ.get("SLIM", "slim")
@@ -990,9 +990,9 @@ class _SLiMEngine(stdpopsim.Engine):
         mutation_rate = contig.mutation_rate
         slim_frac = stdpopsim.ext.slim_mutation_frac(mutation_types)
         contig = stdpopsim.Contig(
-                recombination_map=contig.recombination_map,
-                mutation_rate=slim_frac * mutation_rate,
-                genetic_map=contig.genetic_map)
+            recombination_map=contig.recombination_map,
+            mutation_rate=slim_frac * mutation_rate,
+            genetic_map=contig.genetic_map)
 
         mktemp = functools.partial(tempfile.NamedTemporaryFile, mode="w")
 
@@ -1007,10 +1007,10 @@ class _SLiMEngine(stdpopsim.Engine):
         with script_file_f() as script_file, mktemp(suffix=".ts") as ts_file:
 
             recap_epoch = slim_makescript(
-                    script_file, ts_file.name,
-                    demographic_model, contig, samples,
-                    mutation_types, extended_events,
-                    slim_scaling_factor, slim_burn_in)
+                script_file, ts_file.name,
+                demographic_model, contig, samples,
+                mutation_types, extended_events,
+                slim_scaling_factor, slim_burn_in)
 
             script_file.flush()
 
@@ -1018,8 +1018,8 @@ class _SLiMEngine(stdpopsim.Engine):
                 return None
 
             self._run_slim(
-                    script_file.name, slim_path=slim_path, seed=seed,
-                    dry_run=dry_run)
+                script_file.name, slim_path=slim_path, seed=seed,
+                dry_run=dry_run)
 
             if dry_run:
                 return None
@@ -1027,8 +1027,8 @@ class _SLiMEngine(stdpopsim.Engine):
             ts = pyslim.load(ts_file.name)
 
         ts = self._recap_and_rescale(
-                ts, seed, recap_epoch, contig, mutation_rate, slim_frac,
-                slim_scaling_factor)
+            ts, seed, recap_epoch, contig, mutation_rate, slim_frac,
+            slim_scaling_factor)
         return ts
 
     def _run_slim(self, script_file, slim_path=None, seed=None, dry_run=False):
@@ -1071,8 +1071,8 @@ class _SLiMEngine(stdpopsim.Engine):
 
         if proc.returncode != 0 or stderr:
             raise SLiMException(
-                    f"{slim_path} exited with code {proc.returncode}.\n"
-                    f"{stderr}")
+                f"{slim_path} exited with code {proc.returncode}.\n"
+                f"{stderr}")
 
     def _simplify_remembered(self, ts):
         """
@@ -1080,8 +1080,8 @@ class _SLiMEngine(stdpopsim.Engine):
         sampled in SLiM with sim.treeSeqRememberIndividuals().
         """
         nodes = itertools.chain.from_iterable(
-                    i.nodes for i in ts.individuals()
-                    if i.flags & pyslim.INDIVIDUAL_REMEMBERED)
+            i.nodes for i in ts.individuals()
+            if i.flags & pyslim.INDIVIDUAL_REMEMBERED)
         return ts.simplify(samples=list(nodes), filter_populations=False)
 
     def _recap_and_rescale(
@@ -1103,15 +1103,15 @@ class _SLiMEngine(stdpopsim.Engine):
         s1, s2 = rng.randrange(1, 2**32), rng.randrange(1, 2**32)
 
         population_configurations = [
-                msprime.PopulationConfiguration(
-                    initial_size=pop.start_size,
-                    growth_rate=pop.growth_rate)
-                for pop in recap_epoch.populations]
+            msprime.PopulationConfiguration(
+                initial_size=pop.start_size,
+                growth_rate=pop.growth_rate)
+            for pop in recap_epoch.populations]
         ts = ts.recapitate(
-                recombination_rate=contig.recombination_map.mean_recombination_rate,
-                population_configurations=population_configurations,
-                migration_matrix=recap_epoch.migration_matrix,
-                random_seed=s1)
+            recombination_rate=contig.recombination_map.mean_recombination_rate,
+            population_configurations=population_configurations,
+            migration_matrix=recap_epoch.migration_matrix,
+            random_seed=s1)
 
         ts = self._simplify_remembered(ts)
 
@@ -1161,20 +1161,20 @@ class _SLiMEngine(stdpopsim.Engine):
         mutation_rate = contig.mutation_rate
         slim_frac = stdpopsim.ext.slim_mutation_frac(mutation_types)
         contig = stdpopsim.Contig(
-                recombination_map=contig.recombination_map,
-                mutation_rate=slim_frac * mutation_rate,
-                genetic_map=contig.genetic_map)
+            recombination_map=contig.recombination_map,
+            mutation_rate=slim_frac * mutation_rate,
+            genetic_map=contig.genetic_map)
 
         with open(os.devnull, "w") as script_file:
             recap_epoch = slim_makescript(
-                    script_file, "unused.trees",
-                    demographic_model, contig, samples,
-                    mutation_types, extended_events,
-                    slim_scaling_factor, 1)
+                script_file, "unused.trees",
+                demographic_model, contig, samples,
+                mutation_types, extended_events,
+                slim_scaling_factor, 1)
 
         ts = self._recap_and_rescale(
-                ts, seed, recap_epoch, contig, mutation_rate, slim_frac,
-                slim_scaling_factor)
+            ts, seed, recap_epoch, contig, mutation_rate, slim_frac,
+            slim_scaling_factor)
         return ts
 
 

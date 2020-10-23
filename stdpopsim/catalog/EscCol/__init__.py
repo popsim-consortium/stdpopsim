@@ -46,14 +46,14 @@ for name, data in genome_data.data["chromosomes"].items():
 # mean_conversion_length=542 # not implemented yet!
 
 _genome = stdpopsim.Genome(
-        chromosomes=_chromosomes,
-        assembly_name=genome_data.data["assembly_name"],
-        assembly_accession=genome_data.data["assembly_accession"],
-        mutation_rate_citations=[
-            _wielgoss_et_al.because(stdpopsim.CiteReason.MUT_RATE),
-            ],
-        assembly_citations=[
-            _blattner_et_al.because(stdpopsim.CiteReason.ASSEMBLY)])
+    chromosomes=_chromosomes,
+    assembly_name=genome_data.data["assembly_name"],
+    assembly_accession=genome_data.data["assembly_accession"],
+    mutation_rate_citations=[
+        _wielgoss_et_al.because(stdpopsim.CiteReason.MUT_RATE),
+    ],
+    assembly_citations=[
+        _blattner_et_al.because(stdpopsim.CiteReason.ASSEMBLY)])
 
 
 _species = stdpopsim.Species(

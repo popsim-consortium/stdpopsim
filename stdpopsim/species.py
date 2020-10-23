@@ -170,9 +170,9 @@ class Species:
         if (chromosome is not None and
                 chromosome.lower() in ("x", "y", "m", "mt", "chrx", "chry", "chrm")):
             warnings.warn(stdpopsim.NonAutosomalWarning(
-                    "Non-autosomal simulations are not yet supported. See "
-                    "https://github.com/popsim-consortium/stdpopsim/issues/383 and "
-                    "https://github.com/popsim-consortium/stdpopsim/issues/406"))
+                "Non-autosomal simulations are not yet supported. See "
+                "https://github.com/popsim-consortium/stdpopsim/issues/383 and "
+                "https://github.com/popsim-consortium/stdpopsim/issues/406"))
         chrom = self.genome.get_chromosome(chromosome)
         if genetic_map is None:
             logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.id}")
@@ -210,14 +210,14 @@ class Species:
     def add_demographic_model(self, model):
         if model.id in [m.id for m in self.demographic_models]:
             raise ValueError(
-                    f"DemographicModel '{self.id}/{model.id}' already in catalog.")
+                f"DemographicModel '{self.id}/{model.id}' already in catalog.")
         self.demographic_models.append(model)
 
     def add_genetic_map(self, genetic_map):
         if genetic_map.id in [gm.id for gm in self.genetic_maps]:
             raise ValueError(
-                    f"Genetic map '{self.id}/{genetic_map.id}' "
-                    "already in catalog.")
+                f"Genetic map '{self.id}/{genetic_map.id}' "
+                "already in catalog.")
         genetic_map.species = self
         self.genetic_maps.append(genetic_map)
 

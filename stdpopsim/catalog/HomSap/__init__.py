@@ -89,15 +89,15 @@ for name, data in genome_data.data["chromosomes"].items():
     ))
 
 _genome = stdpopsim.Genome(
-        chromosomes=_chromosomes,
-        mutation_rate_citations=[
-            _tian2019.because(stdpopsim.CiteReason.MUT_RATE)],
-        recombination_rate_citations=[
-            _hapmap2007.because(stdpopsim.CiteReason.REC_RATE)],
-        assembly_name=genome_data.data["assembly_name"],
-        assembly_accession=genome_data.data["assembly_accession"],
-        assembly_citations=[
-            _genome2001])
+    chromosomes=_chromosomes,
+    mutation_rate_citations=[
+        _tian2019.because(stdpopsim.CiteReason.MUT_RATE)],
+    recombination_rate_citations=[
+        _hapmap2007.because(stdpopsim.CiteReason.REC_RATE)],
+    assembly_name=genome_data.data["assembly_name"],
+    assembly_accession=genome_data.data["assembly_accession"],
+    assembly_citations=[
+        _genome2001])
 
 _species = stdpopsim.Species(
     id="HomSap",
@@ -110,7 +110,7 @@ _species = stdpopsim.Species(
     population_size=10**4,
     population_size_citations=[
         _takahata1993.because(stdpopsim.CiteReason.POP_SIZE)]
-    )
+)
 
 stdpopsim.register_species(_species)
 
@@ -143,7 +143,7 @@ _gm = stdpopsim.GeneticMap(
     file_pattern="genetic_map_GRCh37_chr{id}.txt",
     citations=[
         _hapmap2007.because(stdpopsim.CiteReason.GEN_MAP)],
-    )
+)
 _species.add_genetic_map(_gm)
 
 _gm = stdpopsim.GeneticMap(
@@ -168,7 +168,7 @@ _gm = stdpopsim.GeneticMap(
             author="Kong et al",
             doi="https://doi.org/10.1038/nature09525",
             reasons={stdpopsim.CiteReason.GEN_MAP})]
-    )
+)
 _species.add_genetic_map(_gm)
 
 # 26 populations in 1000 Genomes
@@ -301,7 +301,7 @@ def _ooa_3():
                 metadata=populations[2].asdict()),
         ],
         migration_matrix=[
-            [      0, m_AF_EU, m_AF_AS],  # noqa
+            [0, m_AF_EU, m_AF_AS],  # noqa
             [m_AF_EU,       0, m_EU_AS],  # noqa
             [m_AF_AS, m_EU_AS,       0],  # noqa
         ],
@@ -422,7 +422,7 @@ def _ooa_2():
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0)
         ],
-        )
+    )
 
 
 _species.add_demographic_model(_ooa_2())
@@ -474,7 +474,7 @@ def _african():
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0)
         ],
-        )
+    )
 
 
 _species.add_demographic_model(_african())
@@ -598,7 +598,7 @@ def _america():
         population_configurations=population_configurations,
         migration_matrix=migration_matrix,
         demographic_events=demographic_events,
-        )
+    )
 
 
 _species.add_demographic_model(_america())
@@ -692,11 +692,11 @@ def _ooa_archaic():
             metadata=populations[4].asdict())
     ]
     migration_matrix = [                   # noqa
-        [      0, m_YRI_CEU, m_YRI_CHB, 0, 0],  # noqa
+        [0, m_YRI_CEU, m_YRI_CHB, 0, 0],  # noqa
         [m_YRI_CEU,       0, m_CEU_CHB, 0, 0],  # noqa
         [m_YRI_CHB, m_CEU_CHB,       0, 0, 0],  # noqa
-        [      0,         0,         0, 0, 0],  # noqa
-        [      0,         0,         0, 0, 0]   # noqa
+        [0,         0,         0, 0, 0],  # noqa
+        [0,         0,         0, 0, 0]   # noqa
     ]                                           # noqa
     demographic_events = [
         # first event is migration turned on between modern and archaic humans
@@ -767,7 +767,7 @@ def _ooa_archaic():
         population_configurations=population_configurations,
         migration_matrix=migration_matrix,
         demographic_events=demographic_events,
-        )
+    )
 
 
 _species.add_demographic_model(_ooa_archaic())
@@ -819,18 +819,18 @@ def _zigzag():
     ]
 
     demographic_events = [
-            msprime.PopulationParametersChange(
-                time=t_1, growth_rate=g_1, population_id=0),
-            msprime.PopulationParametersChange(
-                time=t_2, growth_rate=g_2, population_id=0),
-            msprime.PopulationParametersChange(
-                time=t_3, growth_rate=g_3, population_id=0),
-            msprime.PopulationParametersChange(
-                time=t_4, growth_rate=g_4, population_id=0),
-            msprime.PopulationParametersChange(
-                time=t_5, growth_rate=g_5, population_id=0),
-            msprime.PopulationParametersChange(
-                time=t_ancient, initial_size=n_ancient, growth_rate=0, population_id=0)
+        msprime.PopulationParametersChange(
+            time=t_1, growth_rate=g_1, population_id=0),
+        msprime.PopulationParametersChange(
+            time=t_2, growth_rate=g_2, population_id=0),
+        msprime.PopulationParametersChange(
+            time=t_3, growth_rate=g_3, population_id=0),
+        msprime.PopulationParametersChange(
+            time=t_4, growth_rate=g_4, population_id=0),
+        msprime.PopulationParametersChange(
+            time=t_5, growth_rate=g_5, population_id=0),
+        msprime.PopulationParametersChange(
+            time=t_ancient, initial_size=n_ancient, growth_rate=0, population_id=0)
     ]
 
     return stdpopsim.DemographicModel(
@@ -842,7 +842,7 @@ def _zigzag():
         generation_time=generation_time,
         population_configurations=population_configurations,
         demographic_events=demographic_events,
-        )
+    )
 
 
 _species.add_demographic_model(_zigzag())
@@ -1065,7 +1065,7 @@ def _kamm_ancient_eurasia():
         generation_time=generation_time,
         population_configurations=population_configurations,
         demographic_events=demographic_events,
-        )
+    )
 
 
 _species.add_demographic_model(_kamm_ancient_eurasia())
@@ -1109,7 +1109,7 @@ def _papuans_10j19():
 
         stdpopsim.Population(
             "Ghost", "Out-of-Africa lineage", sampling_time=None),
-        ]
+    ]
     pop = {p.id: i for i, p in enumerate(populations)}
 
     citations = [
@@ -1400,20 +1400,20 @@ def _papuans_10j19():
             proportion=m_Nea1_AS,
             source=pop["CHB"],
             destination=pop["Nea1"]),
-        ]
+    ]
 
     demographic_events.sort(key=lambda x: x.time)
 
     return stdpopsim.DemographicModel(
-            id=id,
-            description=description,
-            long_description=long_description,
-            populations=populations,
-            citations=citations,
-            generation_time=generation_time,
-            population_configurations=population_configurations,
-            migration_matrix=migration_matrix,
-            demographic_events=demographic_events)
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=generation_time,
+        population_configurations=population_configurations,
+        migration_matrix=migration_matrix,
+        demographic_events=demographic_events)
 
 
 _species.add_demographic_model(_papuans_10j19())

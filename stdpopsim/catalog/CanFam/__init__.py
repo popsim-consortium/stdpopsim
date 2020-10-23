@@ -48,31 +48,31 @@ _recombination_rate_data = {
 }
 
 _LindbladTohEtAl = stdpopsim.Citation(
-        # Genome sequence, comparative analysis and haplotype structure of the
-        # domestic dog.
-        author="Lindblad-Toh et al.",
-        year=2005,
-        doi="https://doi.org/10.1038/nature04338")
+    # Genome sequence, comparative analysis and haplotype structure of the
+    # domestic dog.
+    author="Lindblad-Toh et al.",
+    year=2005,
+    doi="https://doi.org/10.1038/nature04338")
 
 _SkoglundEtAl = stdpopsim.Citation(
-        # Ancient wolf genome reveals an early divergence of domestic dog
-        # ancestors and admixture into high-latitude breeds.
-        author="Skoglund et al.",
-        year=2015,
-        doi="https://doi.org/10.1016/j.cub.2015.04.019")
+    # Ancient wolf genome reveals an early divergence of domestic dog
+    # ancestors and admixture into high-latitude breeds.
+    author="Skoglund et al.",
+    year=2015,
+    doi="https://doi.org/10.1016/j.cub.2015.04.019")
 
 _FranzEtAl = stdpopsim.Citation(
-        # Genomic and archaeological evidence suggest a dual origin of
-        # domestic dogs.
-        author="Franz et al.",
-        year=2016,
-        doi="https://doi.org/10.1126/science.aaf3161")
+    # Genomic and archaeological evidence suggest a dual origin of
+    # domestic dogs.
+    author="Franz et al.",
+    year=2016,
+    doi="https://doi.org/10.1126/science.aaf3161")
 
 _CampbellEtAl = stdpopsim.Citation(
-        # A Pedigree-Based Map of Recombination in the Domestic Dog Genome.
-        author="Campbell et al.",
-        year=2016,
-        doi="https://doi.org/10.1534/g3.116.034678")
+    # A Pedigree-Based Map of Recombination in the Domestic Dog Genome.
+    author="Campbell et al.",
+    year=2016,
+    doi="https://doi.org/10.1534/g3.116.034678")
 
 _chromosomes = []
 for name, data in genome_data.data["chromosomes"].items():
@@ -89,14 +89,14 @@ _genome = stdpopsim.Genome(
     mutation_rate_citations=[
         _SkoglundEtAl.because(stdpopsim.CiteReason.MUT_RATE),
         _FranzEtAl.because(stdpopsim.CiteReason.MUT_RATE),
-        ],
+    ],
     recombination_rate_citations=[
         _CampbellEtAl.because(stdpopsim.CiteReason.REC_RATE)
-        ],
+    ],
     assembly_citations=[
         _LindbladTohEtAl.because(stdpopsim.CiteReason.ASSEMBLY)
-        ],
-    )
+    ],
+)
 
 _species = stdpopsim.Species(
     id="CanFam",
@@ -108,12 +108,12 @@ _species = stdpopsim.Species(
         # Everyone uses 3 years because everyone else uses it.
         # It's likely higher, at least in wolves:
         # https://pubs.er.usgs.gov/publication/70187564
-        ],
+    ],
     population_size=13000,  # ancestral dog size
     population_size_citations=[
         _LindbladTohEtAl.because(stdpopsim.CiteReason.POP_SIZE)
-        ],
-    )
+    ],
+)
 
 stdpopsim.register_species(_species)
 
@@ -132,7 +132,7 @@ _gm = stdpopsim.GeneticMap(
         "CanFam/dog_genetic_maps.tar.gz",
     file_pattern="chr{id}_average_canFam3.1.txt",
     citations=[
-            _CampbellEtAl.because(stdpopsim.CiteReason.GEN_MAP)
-        ],
-    )
+        _CampbellEtAl.because(stdpopsim.CiteReason.GEN_MAP)
+    ],
+)
 _species.add_genetic_map(_gm)

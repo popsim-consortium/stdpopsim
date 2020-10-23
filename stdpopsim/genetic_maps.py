@@ -163,5 +163,5 @@ class GeneticMap:
                 "recombination rate {}".format(
                     id, self.id, chrom.recombination_rate))
             ret = msprime.RecombinationMap.uniform_map(
-                    chrom.length, chrom.recombination_rate)
+                chrom.length, chrom.recombination_rate)
         return ret
