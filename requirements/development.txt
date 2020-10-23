@@ -9,13 +9,11 @@ sphinx-issues
 sphinx_rtd_theme
 sphinxcontrib-programoutput
 msprime
-kastore
 attrs
 appdirs
 humanize
 pyslim>=0.401
 pandas
 numpy
-cython
-scikit-allel[full]
+scikit-allel
 zarr>=2.4
