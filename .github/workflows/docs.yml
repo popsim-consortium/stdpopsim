@@ -28,6 +28,9 @@ jobs:
           python -m pip install wheel
           python -m pip install numpy==1.19.2  # for scikit-allel
           python -m pip install -r requirements/CI/requirements.txt
+          # Install the local package so that stdpopsim is in the path,
+          # which is needed for generating docs `comand-output`.
+          python -m pip install .
 
       - name: Build Docs
         run: make -C docs
