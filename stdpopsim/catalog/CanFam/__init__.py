@@ -107,8 +107,8 @@ _species = stdpopsim.Species(
     generation_time=3,
     generation_time_citations=[
         # Everyone uses 3 years because everyone else uses it.
-        # It's likely higher, at least in wolves: https://
-        # digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1304&context=usgsnpwrc
+        # It's likely higher, at least in wolves:
+        # https://academic.oup.com/mbe/article/35/6/1366/4990884
         # Reasoning behind a generation time of 3 years:
         # Consider two use cases for CanFam simulations:
         # (1) for domestic dog simulations, and (2) for wolf+dog simulations
