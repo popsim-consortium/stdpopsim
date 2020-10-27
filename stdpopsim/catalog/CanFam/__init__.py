@@ -1,8 +1,9 @@
 import stdpopsim
 from . import genome_data
 
-# Recombination rates are the means calculated from the Campbell2016 map. ChrX
-# isn't included in that genetic map, so the weighted genome-wide average is
+# Recombination rates are the means calculated from the Campbell2016 map.
+# Recombination maps can be found at https://github.com/cflerin/dog_recombination
+# ChrX isn't included in that genetic map, so the weighted genome-wide average is
 # provided here instead.
 _recombination_rate_data = {
     "1": 7.636001498077e-09,
@@ -107,7 +108,15 @@ _species = stdpopsim.Species(
     generation_time_citations=[
         # Everyone uses 3 years because everyone else uses it.
         # It's likely higher, at least in wolves:
-        # https://pubs.er.usgs.gov/publication/70187564
+        # https://academic.oup.com/mbe/article/35/6/1366/4990884
+        # Reasoning behind a generation time of 3 years:
+        # Consider two use cases for CanFam simulations:
+        # (1) for domestic dog simulations, and (2) for wolf+dog simulations
+        # (or ancestral dogs).
+        # In case (1), maybe 3 year generations are more appropriate because of human
+        # intervention in breeding. In case (2), you might want to match what other
+        # studies have done (thus using 3 year generations), or you might want to
+        # consider what is known about modern wolves.
         ],
     population_size=13000,  # ancestral dog size
     population_size_citations=[
