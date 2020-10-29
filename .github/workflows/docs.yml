@@ -9,6 +9,12 @@ on:
 
 jobs:
   build-deploy-docs:
+    # Only run this job on the popsim-consortium repository.
+    # The job would fail on forks anyhow, because the secret used below
+    #      POPSIMBOT_STDPOPSIM_DOCS_TOKEN
+    # won't be valid. But to avoid confusion, we explicitly restrict the scope.
+    # See https://github.com/popsim-consortium/stdpopsim/issues/662
+    if: github.repository == 'popsim-consortium/stdpopsim'
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
