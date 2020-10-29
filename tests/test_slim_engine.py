@@ -269,11 +269,11 @@ class TestWarningsAndErrors(unittest.TestCase):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
     def test_odd_sample_warning(self):
-        cmd = "-q -e slim --slim-script HomSap -d OutOfAfrica_2T12 4 5".split()
+        cmd = "-q -e slim --slim-script HomSap -d OutOfAfrica_2T12 -L 100 4 5".split()
         with self.assertWarns(stdpopsim.SLiMOddSampleWarning):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
-        cmd = "-q -e slim --slim-script HomSap -d OutOfAfrica_2T12 3 5".split()
+        cmd = "-q -e slim --slim-script HomSap -d OutOfAfrica_2T12 -L 100 3 5".split()
         with self.assertWarns(stdpopsim.SLiMOddSampleWarning):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
@@ -406,8 +406,8 @@ class TestWarningsAndErrors(unittest.TestCase):
 
     def test_warning_when_scaling(self):
         for cmd in [
-                "-e slim --slim-scaling-factor 2 HomSap 100 -D",
-                "-e slim --slim-scaling-factor 1000 EscCol 100 -D",
+                "-e slim --slim-scaling-factor 2 HomSap 100 -D -L 1",
+                "-e slim --slim-scaling-factor 1000 EscCol 100 -D -L 1",
                 ]:
             with self.assertWarns(stdpopsim.SLiMScalingFactorWarning):
                 capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
