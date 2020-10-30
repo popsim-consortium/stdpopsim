@@ -48,6 +48,7 @@ def get_species(id):
 # Convenience methods for getting all the species/genetic maps/models
 # we have defined in the catalog.
 
+
 def all_species():
     """
     Returns an iterator over all species in the catalog.
@@ -151,7 +152,9 @@ class Species:
         """
         return self.name.lower().replace(" ", "_")
 
-    def get_contig(self, chromosome, genetic_map=None, length_multiplier=1):
+    def get_contig(
+        self, chromosome, genetic_map=None, length_multiplier=1, sequence_length=None
+    ):
         """
         Returns a :class:`.Contig` instance describing a section of genome that
         is to be simulated based on empirical information for a given species
@@ -170,32 +173,72 @@ class Species:
             same chromosome-specific mutation and recombination rates.
             This option cannot currently be used in conjunction with the
             ``genetic_map`` argument.
+        :param float sequence_length: Used with a "generic" contig, specifies the
+            length of genome sequence for this contig. For a generic contig, mutation
+            and recombination rates are equal to the genome-wide average across all
+            autosomal chromosomes.
         :rtype: :class:`.Contig`
         :return: A :class:`.Contig` describing the section of the genome.
         """
         # TODO: add non-autosomal support
-        if (chromosome is not None and
-                chromosome.lower() in ("x", "y", "m", "mt", "chrx", "chry", "chrm")):
-            warnings.warn(stdpopsim.NonAutosomalWarning(
+        if chromosome is not None and chromosome.lower() in (
+            "x",
+            "y",
+            "m",
+            "mt",
+            "chrx",
+            "chry",
+            "chrm",
+        ):
+            warnings.warn(
+                stdpopsim.NonAutosomalWarning(
                     "Non-autosomal simulations are not yet supported. See "
                     "https://github.com/popsim-consortium/stdpopsim/issues/383 and "
-                    "https://github.com/popsim-consortium/stdpopsim/issues/406"))
-        chrom = self.genome.get_chromosome(chromosome)
-        if genetic_map is None:
-            logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.id}")
-            gm = None
-            recomb_map = msprime.RecombinationMap.uniform_map(
-                chrom.length * length_multiplier, chrom.recombination_rate)
-        else:
+                    "https://github.com/popsim-consortium/stdpopsim/issues/406"
+                )
+            )
+        if chromosome == "generic":
+            if genetic_map is not None:
+                raise ValueError("Cannot use genetic map with generic contic")
             if length_multiplier != 1:
-                raise ValueError("Cannot use length multiplier with empirical maps")
-            logger.debug(f"Getting map for {chrom.id} from {genetic_map}")
-            gm = self.get_genetic_map(genetic_map)
-            recomb_map = gm.get_chromosome_map(chrom.id)
+                raise ValueError("Cannot use length multiplier for generic contig")
+            if sequence_length is None:
+                raise ValueError("Must specify sequence_length of generic contig")
+            non_autosomal_lower = ["x", "y", "m", "mt", "chrx", "chry", "chrm"]
+            L_tot = 0
+            r_tot = 0
+            u_tot = 0
+            for chrom_data in self.genome.chromosomes:
+                if chrom_data.id.lower() not in non_autosomal_lower:
+                    L_tot += chrom_data.length
+                    r_tot += chrom_data.length * chrom_data.recombination_rate
+                    u_tot += chrom_data.length * chrom_data.mutation_rate
+            u = u_tot / L_tot
+            r = r_tot / L_tot
+            recomb_map = msprime.RecombinationMap.uniform_map(sequence_length, r)
+            ret = stdpopsim.Contig(recombination_map=recomb_map, mutation_rate=u)
+        else:
+            if sequence_length is not None:
+                raise ValueError("Can only use sequence_length with generic contig")
+            chrom = self.genome.get_chromosome(chromosome)
+            if genetic_map is None:
+                logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.id}")
+                gm = None
+                recomb_map = msprime.RecombinationMap.uniform_map(
+                    chrom.length * length_multiplier, chrom.recombination_rate
+                )
+            else:
+                if length_multiplier != 1:
+                    raise ValueError("Cannot use length multiplier with empirical maps")
+                logger.debug(f"Getting map for {chrom.id} from {genetic_map}")
+                gm = self.get_genetic_map(genetic_map)
+                recomb_map = gm.get_chromosome_map(chrom.id)
 
-        ret = stdpopsim.Contig(
-            recombination_map=recomb_map, mutation_rate=chrom.mutation_rate,
-            genetic_map=gm)
+            ret = stdpopsim.Contig(
+                recombination_map=recomb_map,
+                mutation_rate=chrom.mutation_rate,
+                genetic_map=gm,
+            )
         return ret
 
     def get_demographic_model(self, id):
@@ -217,14 +260,15 @@ class Species:
     def add_demographic_model(self, model):
         if model.id in [m.id for m in self.demographic_models]:
             raise ValueError(
-                    f"DemographicModel '{self.id}/{model.id}' already in catalog.")
+                f"DemographicModel '{self.id}/{model.id}' already in catalog."
+            )
         self.demographic_models.append(model)
 
     def add_genetic_map(self, genetic_map):
         if genetic_map.id in [gm.id for gm in self.genetic_maps]:
             raise ValueError(
-                    f"Genetic map '{self.id}/{genetic_map.id}' "
-                    "already in catalog.")
+                f"Genetic map '{self.id}/{genetic_map.id}' " "already in catalog."
+            )
         genetic_map.species = self
         self.genetic_maps.append(genetic_map)
 
@@ -247,8 +291,8 @@ class Species:
     def add_annotations(self, annotations):
         if annotations.id in [an.id for an in self.annotations]:
             raise ValueError(
-                    f"Annotations '{self.id}/{annotations.id}' "
-                    "already in catalog.")
+                f"Annotations '{self.id}/{annotations.id}' " "already in catalog."
+            )
         annotations.species = self
         self.annotations.append(annotations)
 
