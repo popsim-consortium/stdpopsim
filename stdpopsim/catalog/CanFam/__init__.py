@@ -139,6 +139,7 @@ _gm = stdpopsim.GeneticMap(
         """,
     url="https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
         "CanFam/dog_genetic_maps.tar.gz",
+    sha256="585afb424615e2fb0825d807db0b10fe1c797a6dbb804ecbb3fef5e8387d194f",
     file_pattern="chr{id}_average_canFam3.1.txt",
     citations=[
             _CampbellEtAl.because(stdpopsim.CiteReason.GEN_MAP)

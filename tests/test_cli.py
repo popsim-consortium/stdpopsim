@@ -625,7 +625,10 @@ class TestWriteCitations(unittest.TestCase):
 
     def check_citations(self, engine, species, genetic_map, model, output):
         if genetic_map is None:
-            genetic_map = stdpopsim.GeneticMap(species.id, citations=[])
+            genetic_map = stdpopsim.GeneticMap(
+                species, id="test", url="http://example.com/test.tgz",
+                sha256="1234", citations=[]
+            )
         for citations, assert_msg in zip(
                 (engine.citations, model.citations, genetic_map.citations),
                 (f"engine citation not written for {engine.id}",

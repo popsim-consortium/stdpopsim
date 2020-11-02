@@ -921,10 +921,19 @@ which the genome is defined) as shown below:
         description="FILL_ME",
         long_description="FILL_ME",
         url=("https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/dir/filename"),
+        sha256="FILL_ME",
         file_pattern="name_{id}_more_name.txt",
         citations=[_genetic_map_citation])
 
     _species.add_genetic_map(_gm)
+
+The SHA256 checksum of the the genetic map tarball can be obtained using the
+``sha256sum`` command from GNU coreutils. If this is not available on your
+system, the following can instead be used:
+
+.. code-block:: sh
+
+   python -c 'from stdpopsim.utils import sha256; print(sha256("genetic_map.tgz"))'
 
 Once all this is done, submit a PR containing the code changes and wait for directions
 on whom to send the compressed archive of genetic maps to (currently Andrew Kern is the

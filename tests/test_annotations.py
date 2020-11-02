@@ -7,12 +7,12 @@ import gzip
 import tempfile
 import os.path
 import shutil
-import urllib.request
 import pathlib
 
 import pandas
+
 import stdpopsim
-from stdpopsim import annotations
+from stdpopsim import utils
 import tests
 
 
@@ -29,23 +29,33 @@ saved_urls = {}
 def setUpModule():
     destination = pathlib.Path("_test_cache/zipfiles/")
     for an in stdpopsim.all_annotations():
-        key = an.file_name
+        key = an._cache.cache_path
         local_file = destination / key
         if not local_file.exists():
             cache_dir = local_file.parent
             cache_dir.mkdir(exist_ok=True, parents=True)
             print("Downloading", an.zarr_url)
-            urllib.request.urlretrieve(an.zarr_url, local_file)
+            utils.download(an.zarr_url, local_file)
+        # This assertion could fail if we update a file on AWS,
+        # or a developer creates a new annotation with the wrong checksum
+        # (in the latter case, this should at least be caught during CI tests).
+        assert utils.sha256(local_file) == an.zarr_sha256, (
+                f"SHA256 for {local_file} doesn't match the SHA256 for "
+                f"{an.id}. If you didn't add this SHA256 yourself, "
+                f"try deleting {local_file} and restarting the tests."
+            )
         saved_urls[key] = an.zarr_url
         an.zarr_url = local_file.resolve().as_uri()
+        an._cache.url = an.zarr_url
 
 
 def tearDownModule():
     for an in stdpopsim.all_annotations():
-        an.zarr_url = saved_urls[an.file_name]
+        an.zarr_url = saved_urls[an._cache.cache_path]
+        an._cache.url = an.zarr_url
 
 
-class AnnotationTestClass(annotations.Annotation):
+class AnnotationTestClass(stdpopsim.Annotation):
     """
     A Annotation that we can instantiate to get an annotation for testing.
     """
@@ -60,22 +70,15 @@ class AnnotationTestClass(annotations.Annotation):
             id="test_annotation",
             url="http://example.com/annotation.gff.gz",
             zarr_url="http://example.com/annotation.zip",
-            file_name="annotation.gff.gz")
+            zarr_sha256="1234",  # this shouldn't be checked anywhere
+            description="test annotation",
+        )
 
 
-# number of chromosomes etc.
-def get_annotation_file(custom_file_f=None, filter=None):
+# TODO: use this function for testing, or remove it.
+def get_annotation_file():
     """
     Returns a GFF file as a bytes object.
-
-    :param func custom_file_f: A function that accepts a single parameter
-        (a folder name), which may be used to create additional files under
-        the given folder. All files in the folder will be included in the
-        returned tarball.
-    :param func filter: A function which is passed as the ``filter`` argument
-        to ``TarFile.add()``. This function can be used to change the info
-        field for each file in the returned tarball. See tarfile documentation
-        for more details.
     """
     b = "21\t.\tbiological_region\t6111184\t6111187\t0.999\t+\t.\tlogic_name=eponine\n"
     b += b
@@ -86,10 +89,6 @@ def get_annotation_file(custom_file_f=None, filter=None):
             print("##gff-version 3", file=f)
             print("##sequence-region   21 1 46709983", file=f)
             print(b, file=f)
-
-        if custom_file_f is not None:
-            # Do arbitrary things under map_dir.
-            custom_file_f(map_dir)
 
         # For the zipfile to be in the right format, we must be in the right directory.
         with open(os.path.join(map_dir, "test.gff"), 'rb') as f_in:
@@ -107,21 +106,13 @@ class TestAnnotation(tests.CacheWritingTest):
     """
 
     def test_cache_dirs(self):
-        gm = AnnotationTestClass()
-        cache_dir = stdpopsim.get_cache_dir() / "annotations"
-        self.assertEqual(gm.annot_cache_dir, cache_dir)
-        self.assertEqual(gm.species_cache_dir, gm.annot_cache_dir / gm.species.id)
+        an = AnnotationTestClass()
+        cache_dir = stdpopsim.get_cache_dir() / "annotations" / an.species.id
+        self.assertEqual(an.cache_path.parent, cache_dir)
 
     def test_str(self):
-        gm = AnnotationTestClass()
-        self.assertGreater(len(str(gm)), 0)
-
-    def test_is_cached(self):
-        gm = AnnotationTestClass()
-        os.makedirs(gm.species_cache_dir, exist_ok=True)
-        self.assertTrue(gm.is_cached())
-        shutil.rmtree(gm.annot_cache_dir)
-        self.assertFalse(gm.is_cached())
+        an = AnnotationTestClass()
+        self.assertGreater(len(str(an)), 0)
 
 
 class TestAnnotationDownload(tests.CacheWritingTest):
@@ -130,36 +121,28 @@ class TestAnnotationDownload(tests.CacheWritingTest):
     """
 
     def test_correct_url(self):
-        gm = AnnotationTestClass()
-        with mock.patch("urllib.request.urlretrieve", autospec=True) as mocked_get:
-            gm.download()
-        mocked_get.assert_called_once_with(gm.zarr_url, filename=unittest.mock.ANY)
+        an = AnnotationTestClass()
+        with mock.patch("stdpopsim.utils.download", autospec=True) as mocked_get:
+            # The destination file will be missing.
+            with self.assertRaises(FileNotFoundError):
+                an.download()
+        mocked_get.assert_called_once_with(an.zarr_url, filename=unittest.mock.ANY)
 
     def test_incorrect_url(self):
-        gm = AnnotationTestClass()
-        gm.zarr_url = 'http://asdfwersdf.com/foozip'
-        with self.assertRaises(urllib.error.URLError):
-            gm.download()
+        an = AnnotationTestClass()
+        an.zarr_url = 'http://asdfwersdf.com/foozip'
+        with self.assertRaises(OSError):
+            an.download()
 
     def test_download_over_cache(self):
-        for gm in stdpopsim.all_annotations():
-            gm.download()
-            self.assertTrue(gm.is_cached())
-            gm.download()
-            self.assertTrue(gm.is_cached())
-
-    def test_multiple_threads_downloading(self):
-        gm = next(stdpopsim.all_annotations())
-        gm.download()
-        saved = gm.is_cached
-        try:
-            # Trick the download code into thinking there's several happening
-            # concurrently
-            gm.is_cached = lambda: False
-            with self.assertWarns(Warning):
-                gm.download()
-        finally:
-            gm.is_cached = saved
+        # TODO: The HomSap annotations are huge. Once we include a smaller
+        # annotation set, we should instead use that, so tests are faster.
+        species = stdpopsim.get_species("HomSap")
+        an = species.get_annotations("Ensembl_GRCh38_gff3")
+        an.download()
+        self.assertTrue(an.is_cached())
+        an.download()
+        self.assertTrue(an.is_cached())
 
 
 class TestGetChromosomeAnnotations(tests.CacheReadingTest):
@@ -167,16 +150,16 @@ class TestGetChromosomeAnnotations(tests.CacheReadingTest):
     Tests if we get chromosome level annotations
     using the Ensembl_GRCh38 human GFF.
     """
+    # TODO: The HomSap annotations are huge. Once we include a smaller
+    # annotation set, we should instead use that, so tests are faster.
     species = stdpopsim.get_species("HomSap")
     an = species.get_annotations("Ensembl_GRCh38_gff3")
 
     def test_known_chromosome(self):
-        print(self.cache_dir)
         cm = self.an.get_chromosome_annotations("21")
         self.assertIsInstance(cm, pandas.DataFrame)
 
     def test_known_chromosome_prefix(self):
-        print(self.cache_dir)
         cm = self.an.get_chromosome_annotations("chr21")
         self.assertIsInstance(cm, pandas.DataFrame)
 
@@ -185,23 +168,15 @@ class TestGetChromosomeAnnotations(tests.CacheReadingTest):
             with self.assertRaises(ValueError):
                 self.an.get_chromosome_annotations(bad_chrom)
 
-    def test_unknown_annot_file(self):
-        real_fn = self.an.file_name
-        self.an.file_name = "foo"
-        bad_chrom = "chrF"
-        with self.assertRaises(ValueError):
-            self.an.get_chromosome_annotations(bad_chrom)
-        self.an.file_name = real_fn
-
     def test_get_genes(self):
-        g = self.an.get_genes_from_chromosome("chr21")
+        g = self.an.get_genes_from_chromosome("21")
         self.assertIsInstance(g, pandas.DataFrame)
 
     def test_get_genes_full(self):
-        g = self.an.get_genes_from_chromosome("chr21", full_table=True)
+        g = self.an.get_genes_from_chromosome("21", full_table=True)
         self.assertIsInstance(g, pandas.DataFrame)
 
     def test_bad_annot_type(self):
         bad_annot = "foo"
         with self.assertRaises(ValueError):
-            self.an.get_annotation_type_from_chromomosome(bad_annot, '21')
+            self.an.get_annotation_type_from_chromomosome(bad_annot, "21")

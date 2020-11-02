@@ -2,15 +2,12 @@
 Infrastructure for defining information about genome annotation.
 """
 import logging
+
 import attr
 import pandas
-import pathlib
-import warnings
-import os
-import urllib.request
-from . import cache
 import zarr
-import tempfile
+
+import stdpopsim
 
 logger = logging.getLogger(__name__)
 
@@ -34,116 +31,80 @@ def zarr_to_dataframe(path):
     return df
 
 
-@attr.s
-class Annotation(object):
+@attr.s(kw_only=True)
+class Annotation:
     """
-    Class represnting a Annotation file
-    assume GFF3/GTF or similar
+    Class representing a GFF3 annotation file.
 
-    :ivar url: The URL where the packed and compressed GTF can be found
-    :vartype url: str
-    :ivar species_id: species id
-    :vartype id: str
-    :ivar species: a `stdpopsim.species` instance
-    :ivar annotation_description: description of annotation file
-    :vartype annotation_description: str
+    :ivar str ~.id: String that uniquely identifies the annotation.
+    :ivar species: The species to which this annotation applies.
+    :vartype species: :class:`.Species`
+    :ivar str url: The URL where the packed and compressed GFF3 can be found.
+    :ivar str zarr_url: The URL of the zarr cache of the GFF3.
+    :ivar str zarr_sha256: The SHA256 checksum of the zarr cache.
+    :ivar str ~.description: One line description of the annotation.
+    :ivar citations: List of citations for the annotation.
+    :vartype citations: list of :class:`.Citation`
     """
-    url = attr.ib(default=None)
-    zarr_url = attr.ib(default=None)
-    species = attr.ib(default=None)
-    id = attr.ib(default=None)
-    file_name = attr.ib(default=None)
-    description = attr.ib(default=None)
+    id = attr.ib()
+    species = attr.ib()
+    url = attr.ib()
+    zarr_url = attr.ib()
+    zarr_sha256 = attr.ib()
+    description = attr.ib()
     citations = attr.ib(factory=list)
-    long_description = attr.ib(default=None)
 
     def __attrs_post_init__(self):
-        self.file_name = os.path.basename(self.zarr_url)
+        self._cache = stdpopsim.CachedData(
+            namespace=f"annotations/{self.species.id}",
+            url=self.zarr_url,
+            sha256=self.zarr_sha256,
+            extract=False,
+        )
 
     @property
-    def annot_cache_dir(self):
-        return pathlib.Path(cache.get_cache_dir()) / "annotations"
-
-    @property
-    def species_cache_dir(self):
-        return self.annot_cache_dir / self.species.id
+    def cache_path(self):
+        return self._cache.cache_path
 
     def __str__(self):
         s = "GTF Annotation:\n"
         s += "\tspecies   = {}\n".format(self.species.name)
         s += "\tid        = {}\n".format(self.id)
         s += "\turl       = {}\n".format(self.url)
-        s += "\tzarr url       = {}\n".format(self.zarr_url)
+        s += "\tzarr url  = {}\n".format(self.zarr_url)
         s += "\tcached    = {}\n".format(self.is_cached())
-        s += "\tcache_dir = {}\n".format(self.species_cache_dir)
+        s += "\tcache_path = {}\n".format(self.cache_path)
         return s
 
     def is_cached(self):
         """
         Returns True if this annotation is cached locally.
         """
-        return os.path.exists(self.species_cache_dir)
+        return self._cache.is_valid()
 
     def download(self):
         """
-        Downloads the zarr from the source URL and stores it in the
-        cache directory. If the annotation directory already exists it is first
-        removed.
+        Downloads the zarr URL and stores it in the cache directory.
         """
-        self.file_name = os.path.basename(self.zarr_url)
-        if self.is_cached():
-            logger.info(f"Clearing cache {self.species_cache_dir}")
-            with tempfile.TemporaryDirectory() as tempdir:
-                dest = pathlib.Path(tempdir) / "will_be_deleted"
-                os.rename(self.annot_cache_dir, dest)
-        logger.debug(f"Checking species cache directory {self.species_cache_dir}")
-        os.makedirs(self.species_cache_dir, exist_ok=True)
-        download_file = f'{self.species_cache_dir}/{self.file_name}'
-        logger.info(f"Downloading Zarr file '{self.id}' from {self.zarr_url}")
-        logger.info(f"download_file: {download_file}")
-        logger.info(f"species_cache_dir: {self.species_cache_dir}")
-        if os.path.exists(download_file):
-            warnings.warn("multiple downloads?")
-        try:
-            urllib.request.urlretrieve(self.zarr_url, filename=download_file)
-        except urllib.error.URLError:
-            print(f"could not connect to {self.zarr_url}")
-            raise
-        logger.debug("Download Zarr complete")
-        logger.info(f"Storing Zarr in {self.species_cache_dir}")
+        self._cache.download()
 
     def get_chromosome_annotations(self, id):
         """
-        Returns the pandas dataframe for
-        the chromosome with the specified id.
+        Returns the pandas dataframe for the chromosome with the specified id.
         """
+        chrom = self.species.genome.get_chromosome(id)
         if not self.is_cached():
             self.download()
-        annot_file = os.path.join(self.species_cache_dir, self.file_name)
-        if id is None:
-            raise ValueError("bad chrom id")
-        chr_prefix = "chr"  # building this in for future generalization
-        if id.startswith(chr_prefix):
-            id = id[len(chr_prefix):]
-        if os.path.exists(annot_file):
-            bed = zarr_to_dataframe(annot_file)
-            assert type(bed) == pandas.DataFrame
-            ret = bed[bed.seqid == id]
-            if len(ret) == 0:
-                raise ValueError
-        else:
-            ret = None
-            raise ValueError(
-                "Warning: annotation file not found for chromosome: '{}'"
-                " on annotation: '{}', no annotations will be used".format(
-                    id, self.id))
+        bed = zarr_to_dataframe(str(self.cache_path))
+        assert type(bed) == pandas.DataFrame
+        ret = bed[bed.seqid == chrom.id]
+        if len(ret) == 0:
+            raise ValueError(f"No annotations found for {id}")
         return ret
 
     def get_annotation_type_from_chromomosome(self, a_type, chrom_id, full_table=False):
         """
-        Returns all elements of
-        type a_type from chromosome
-        specified
+        Returns all elements of type a_type from chromosome specified
         """
         annots = self.get_chromosome_annotations(chrom_id)
         subset = annots[annots.type == a_type]
@@ -157,8 +118,7 @@ class Annotation(object):
 
     def get_genes_from_chromosome(self, chrom_id, full_table=False):
         """
-        Returns all elements of
-        type gene from annotation
+        Returns all elements of type gene from annotation
         """
         return self.get_annotation_type_from_chromomosome('gene', chrom_id,
                                                           full_table)
