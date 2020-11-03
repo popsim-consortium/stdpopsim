@@ -99,6 +99,7 @@ _gm = stdpopsim.GeneticMap(
     url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
         "AraTha/salome2012_maps.tar.gz"),
+    sha256="49745e1cab87d59e33eacfdf66303839632d3b07883dd55a99fe1dc27b336ac6",
     file_pattern="arab_chr{id}_map_loess.txt",
     citations=[stdpopsim.Citation(
         doi="https://doi.org/10.1038/hdy.2011.95",

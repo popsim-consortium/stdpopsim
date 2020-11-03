@@ -118,6 +118,7 @@ _gm_pa = stdpopsim.GeneticMap(
         """,
     url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/PonAbe/NaterPA_PonAbe2.tar.gz"),  # NOQA
+    sha256="33b0162a6d945dd341bd1086d213ad1bc16949c9210d3b49d92692fd7f831ace",
     file_pattern="Nater_et_al_PA_chr{id}_PonAbe2.txt",
     citations=[
         _nater2017.because(stdpopsim.CiteReason.GEN_MAP)
@@ -136,6 +137,7 @@ _gm_pp = stdpopsim.GeneticMap(
         """,
     url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/PonPyg/NaterPP_PonAbe2.tar.gz"),  # NOQA
+    sha256="f4858b7efe15abe28b9367e7e9dc16614dc614df9326f9eedbcd943ca075bed7",
     file_pattern="Nater_et_al_PP_chr{id}_PonAbe2.txt",
     citations=[
         _nater2017.because(stdpopsim.CiteReason.GEN_MAP)

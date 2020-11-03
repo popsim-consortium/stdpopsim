@@ -2,6 +2,12 @@
 Miscellaneous utilities.
 """
 import re
+import os
+import hashlib
+import urllib.request
+import shutil
+import tarfile
+import contextlib
 
 
 def is_valid_demographic_model_id(model_id):
@@ -53,3 +59,60 @@ def is_valid_species_common_name(common_name):
     # FIXME any sensible restrictions we can make on common names? See #330.
     regex = re.compile(r"[A-Z].*")
     return regex.fullmatch(common_name) is not None
+
+
+def download(url, filename):
+    """
+    Download url to the specified local file.
+    """
+    # TODO: what is a sensible timeout here?
+    with urllib.request.urlopen(url, timeout=30) as f_in:
+        with open(filename, "wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
+
+def sha256(filename):
+    """
+    Return the SHA256 hex digest for the specified file.
+    """
+    m = hashlib.sha256()
+    BUFLEN = 4096 * m.block_size  # 256 Kib
+    with open(filename, "rb") as f:
+        while True:
+            buf = f.read(BUFLEN)
+            if len(buf) == 0:
+                break
+            m.update(buf)
+    return m.hexdigest()
+
+
+@contextlib.contextmanager
+def cd(path):
+    """
+    Convenience function to change the current working directory in a context manager.
+    """
+    old_dir = os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(old_dir)
+
+
+def untar(filename, path):
+    """
+    Extract the optionally-gzipped tar file to the specifed path.
+    """
+    with tarfile.open(filename, "r") as tf:
+        for info in tf.getmembers():
+            # Due to security concerns, we only extract tarballs containing a
+            # very restrictive set of file types. See the warning here:
+            # https://docs.python.org/3/library/tarfile.html#tarfile.TarFile.extractall
+            if not info.isfile():
+                raise ValueError(
+                    f"Tarball format error: member {info.name} not a file")
+            if info.name.startswith("/") or info.name.startswith(".."):
+                raise ValueError(
+                    f"Refusing to extract {info.name} outside of {path}")
+        with cd(path):
+            tf.extractall()

@@ -95,6 +95,7 @@ _gm = stdpopsim.GeneticMap(
     url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
         "DroMel/comeron2012_maps.tar.gz"),
+    sha256="08185a0e3b0ad26eefe69fc6bdb8f3f599a760e11e87dd343335b33d1563f62a",
     file_pattern="genetic_map_comeron2012_dm6_chr{id}.txt",
     citations=[stdpopsim.Citation(
         author="Comeron et al",
