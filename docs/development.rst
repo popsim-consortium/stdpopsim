@@ -125,6 +125,10 @@ GitHub workflow
        of the ``stdpopsim`` repository on GitHub, and
        `clone <https://help.github.com/articles/cloning-a-repository/>`_
        a local copy.
+    2. Install the pre-commit hooks with::
+
+        $ pre-commit install
+    
     2. Make sure that your local repository has been configured with an
        `upstream remote <https://help.github.com/articles/configuring-a-remote-for-a-fork/>`_.
     3. Create a "topic branch" to work on. One reliable way to do it
@@ -142,6 +146,25 @@ GitHub workflow
        out of date with the main repository, we might ask you to
        `rebase <https://help.github.com/articles/about-git-rebase/>`_. Please
        see the next section on how to rebase.
+
+-----------------
+Pre-commit checks
+-----------------
+
+On each commit a `pre-commit hook <https://pre-commit.com/>`_  will run
+that checks for violations of code style and other common problems.
+Where possible, these hooks will try to fix any problems that they find (including reformatting
+your code to conform to the required style). In this case, the commit
+will *not complete* and report that "files were modified by this hook".
+To include the changes that the hooks made, ``git add`` any
+files that were modified and run ``git commit`` (or, use ``git commit -a``
+to commit all changed files.)
+
+If you would like to run the checks without committing, use ``pre-commit run``
+(but, note that this will *only* check changes that have been *staged*;
+do ``pre-commit run --all`` to check unstaged changes as well).
+To bypass the checks (to save or get feedback on work-in-progress) use
+``git commit --no-verify``
 
 --------
 Rebasing

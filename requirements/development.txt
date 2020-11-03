@@ -1,3 +1,5 @@
+black
+blacken-docs
 codecov
 coverage
 flake8
@@ -12,6 +14,7 @@ msprime
 attrs
 appdirs
 humanize
+pre-commit
 pyslim>=0.401
 pandas
 numpy
