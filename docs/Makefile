@@ -2,13 +2,13 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    = -W 
+SPHINXOPTS    = -W
 SPHINXBUILD   = sphinx-build
 SOURCEDIR     = .
 BUILDDIR      = _build
 
 # JK: added this target so that "make" will build the HTML
-html: 
+html:
 	@$(SPHINXBUILD) -M html "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
 
 # Put it first so that "make" without argument is like "make help".

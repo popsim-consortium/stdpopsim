@@ -19,12 +19,8 @@ def adaptive_introgression(seed):
     model = species.get_demographic_model("PapuansOutOfAfrica_10J19")
     contig = species.get_contig("chr1", length_multiplier=0.001)
     samples = model.get_samples(
-            100,  # YRI
-            0,    # CEU
-            0,    # CHB
-            100,  # Papuan
-            2,    # DenA
-            2)    # NeaA
+        100, 0, 0, 100, 2, 2  # YRI, CEU, CHB, Papuan, DenA, NeaA
+    )
 
     # One mutation type, which we'll use for the positively selected mutation.
     # Neutral mutations will be added by the SLiM engine as usual, after the
@@ -73,10 +69,13 @@ def adaptive_introgression(seed):
     extended_events = [
         # Draw mutation in DenA.
         stdpopsim.ext.DrawMutation(
-                time=T_mut, mutation_type_id=mut_id, population_id=pop["DenA"],
-                coordinate=coordinate,
-                # Save state before the mutation is introduced.
-                save=True),
+            time=T_mut,
+            mutation_type_id=mut_id,
+            population_id=pop["DenA"],
+            coordinate=coordinate,
+            # Save state before the mutation is introduced.
+            save=True,
+        ),
         # Because the drawn mutation is neutral at the time of introduction,
         # it's likely to be lost due to drift. To avoid this, we condition on
         # the mutation having AF > 0 in DenA. If this condition is false at any
@@ -85,58 +84,78 @@ def adaptive_introgression(seed):
         # Conditioning should start one generation after T_mut (not at T_mut!),
         # to avoid checking for the mutation before SLiM can introduce it.
         stdpopsim.ext.ConditionOnAlleleFrequency(
-                # Note: if T_mut ~= T_Den_split, then we end up with:
-                #       GenerationAfter(T_mut) < T_Den_split,
-                #       which will give an error due to "start_time < end_time".
-                start_time=stdpopsim.ext.GenerationAfter(T_mut),
-                end_time=T_Den_split,
-                mutation_type_id=mut_id, population_id=pop["DenA"],
-                op=">", allele_frequency=0),
+            # Note: if T_mut ~= T_Den_split, then we end up with:
+            #       GenerationAfter(T_mut) < T_Den_split,
+            #       which will give an error due to "start_time < end_time".
+            start_time=stdpopsim.ext.GenerationAfter(T_mut),
+            end_time=T_Den_split,
+            mutation_type_id=mut_id,
+            population_id=pop["DenA"],
+            op=">",
+            allele_frequency=0,
+        ),
         # Denisovans split into DenA and Den1 at time T_Den_split,
         # so now we condition on having AF > 0 in Den1.
         stdpopsim.ext.ConditionOnAlleleFrequency(
-                start_time=stdpopsim.ext.GenerationAfter(T_Den_split),
-                end_time=T_mig,
-                mutation_type_id=mut_id, population_id=pop["Den1"],
-                op=">", allele_frequency=0,
-                # Update save point at start_time (if the condition is met).
-                save=True),
+            start_time=stdpopsim.ext.GenerationAfter(T_Den_split),
+            end_time=T_mig,
+            mutation_type_id=mut_id,
+            population_id=pop["Den1"],
+            op=">",
+            allele_frequency=0,
+            # Update save point at start_time (if the condition is met).
+            save=True,
+        ),
         # The Den1 lineage has migrants entering the Papaun lineage at T_mig,
         # so condition on AF > 0 in Papuans.
         stdpopsim.ext.ConditionOnAlleleFrequency(
-                start_time=stdpopsim.ext.GenerationAfter(T_mig), end_time=0,
-                mutation_type_id=mut_id, population_id=pop["Papuan"],
-                op=">", allele_frequency=0,
-                # Update save point at start_time (if the condition is met).
-                # If the Den1 migrants didn't carry the mutation, we will
-                # instead restore to the previous save point.
-                save=True),
+            start_time=stdpopsim.ext.GenerationAfter(T_mig),
+            end_time=0,
+            mutation_type_id=mut_id,
+            population_id=pop["Papuan"],
+            op=">",
+            allele_frequency=0,
+            # Update save point at start_time (if the condition is met).
+            # If the Den1 migrants didn't carry the mutation, we will
+            # instead restore to the previous save point.
+            save=True,
+        ),
         # The mutation is positively selected in Papuans at T_sel.
         # Note that this will have no effect, unless/until a mutation with the
         # specified mutation_type_id is found in the population.
         stdpopsim.ext.ChangeMutationFitness(
-                start_time=T_sel, end_time=0,
-                mutation_type_id=mut_id, population_id=pop["Papuan"],
-                selection_coeff=s, dominance_coeff=0.5),
+            start_time=T_sel,
+            end_time=0,
+            mutation_type_id=mut_id,
+            population_id=pop["Papuan"],
+            selection_coeff=s,
+            dominance_coeff=0.5,
+        ),
         # Condition on AF > 0.05 in Papuans at the end of the simulation.
         stdpopsim.ext.ConditionOnAlleleFrequency(
-                start_time=0, end_time=0,
-                mutation_type_id=mut_id, population_id=pop["Papuan"],
-                op=">", allele_frequency=0.05),
-        ]
+            start_time=0,
+            end_time=0,
+            mutation_type_id=mut_id,
+            population_id=pop["Papuan"],
+            op=">",
+            allele_frequency=0.05,
+        ),
+    ]
 
     # Simulate.
     engine = stdpopsim.get_engine("slim")
     ts = engine.simulate(
-            model, contig, samples,
-            seed=rng.randrange(1, 2**32),
-            mutation_types=mutation_types,
-            extended_events=extended_events,
-            slim_scaling_factor=10,
-            slim_burn_in=0.1,
-            # Set slim_script=True to print the script instead of running it.
-            # slim_script=True,
-            )
+        model,
+        contig,
+        samples,
+        seed=rng.randrange(1, 2 ** 32),
+        mutation_types=mutation_types,
+        extended_events=extended_events,
+        slim_scaling_factor=10,
+        slim_burn_in=0.1,
+        # Set slim_script=True to print the script instead of running it.
+        # slim_script=True,
+    )
 
     return ts, T_mut, T_sel, s
 
@@ -149,10 +168,13 @@ def KimDFE():
     neutral = stdpopsim.ext.MutationType(weight=1.0)
     gamma_shape = 0.186  # shape
     gamma_mean = -0.01314833  # expected value
-    h = 0.5/(1-7071.07*gamma_mean)  # dominance coefficient
+    h = 0.5 / (1 - 7071.07 * gamma_mean)  # dominance coefficient
     negative = stdpopsim.ext.MutationType(
-            weight=2.31, dominance_coeff=h, distribution_type="g",
-            distribution_args=[gamma_mean, gamma_shape])
+        weight=2.31,
+        dominance_coeff=h,
+        distribution_type="g",
+        distribution_args=[gamma_mean, gamma_shape],
+    )
     return [neutral, negative]
 
 
@@ -163,24 +185,23 @@ def OutOfAfrica_3G09_with_DFE(seed):
     species = stdpopsim.get_species("HomSap")
     model = species.get_demographic_model("OutOfAfrica_3G09")
     contig = species.get_contig("chr1", length_multiplier=0.001)
-    samples = model.get_samples(
-            100,  # YRI
-            100,  # CEU
-            100)  # CHB
+    samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
 
     mutation_types = KimDFE()
 
     # Simulate.
     engine = stdpopsim.get_engine("slim")
     ts = engine.simulate(
-            model, contig, samples,
-            seed=seed,
-            mutation_types=mutation_types,
-            slim_scaling_factor=10,
-            slim_burn_in=10,
-            # Set slim_script=True to print the script instead of running it.
-            # slim_script=True,
-            )
+        model,
+        contig,
+        samples,
+        seed=seed,
+        mutation_types=mutation_types,
+        slim_scaling_factor=10,
+        slim_burn_in=10,
+        # Set slim_script=True to print the script instead of running it.
+        # slim_script=True,
+    )
     return ts
 
 

@@ -24,8 +24,16 @@ class GeneticMap:
     """
 
     def __init__(
-            self, species, id=None, url=None, sha256=None, file_pattern=None,
-            description=None, long_description=None, citations=None):
+        self,
+        species,
+        id=None,
+        url=None,
+        sha256=None,
+        file_pattern=None,
+        description=None,
+        long_description=None,
+        citations=None,
+    ):
         self.id = id
         self.species = species
         self.description = description
@@ -92,8 +100,9 @@ class GeneticMap:
             warnings.warn(
                 "Warning: recombination map not found for chromosome: '{}'"
                 " on map: '{}', substituting a flat map with chromosome "
-                "recombination rate {}".format(
-                    id, self.id, chrom.recombination_rate))
+                "recombination rate {}".format(id, self.id, chrom.recombination_rate)
+            )
             ret = msprime.RecombinationMap.uniform_map(
-                    chrom.length, chrom.recombination_rate)
+                chrom.length, chrom.recombination_rate
+            )
         return ret

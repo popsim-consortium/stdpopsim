@@ -9,7 +9,7 @@ aliases:
         - image: circleci/python:3.6-stretch
       working_directory: &working_directory /home/circleci/stdpopsim
   - &set_py_circleci_own
-    run: 
+    run:
       name: Set ownership of Python directories
       command: |
         sudo chown -R circleci:circleci /usr/local/bin
@@ -139,20 +139,6 @@ jobs:
       - store_test_results:
           path: xml
 
-  lint:
-    <<: *container_config
-    steps:
-      - checkout
-      - run:
-          name: Lint Python
-          command: |
-            pip install flake8
-            flake8 --version
-      - run:
-          name: Lint Python
-          command: |
-            flake8 --max-line-length 89 stdpopsim setup.py tests docs/_ext maintenance
-
   docs:
     <<: *container_config
     steps:
@@ -178,7 +164,6 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - lint
       - build-slim-lib
       - build-deps
       - build-pkg:

@@ -1,8 +1,8 @@
 ---
 name: Bug report
 about: A problem with stdpopsim
-title: 
-labels: 
+title:
+labels:
 assignees: ''
 
 ---
@@ -18,4 +18,3 @@ that reproduces the problem.*
 
 **Suggested fixes:**
 *If you have an idea of what's causing the problem or how to fix it, we'd like to hear it!*
-

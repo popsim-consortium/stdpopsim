@@ -41,7 +41,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         target node and calling note_explicit_target are essential to allow
         us to cross reference these targets from the rest of the documentation.
         """
-        target = nodes.target('', '', ids=[tid], names=[tid])
+        target = nodes.target("", "", ids=[tid], names=[tid])
         self.state.document.note_explicit_target(target)
         return target
 
@@ -59,8 +59,9 @@ class SpeciesCatalogDirective(SphinxDirective):
                 for i, citation in enumerate(citations):
                     text = f"{citation.author}, {citation.year}"
                     para += nodes.reference(
-                        internal=False, refuri=citation.doi, text=text)
-                    if i != len(citations)-1:
+                        internal=False, refuri=citation.doi, text=text
+                    )
+                    if i != len(citations) - 1:
                         para += nodes.Text("; ")
                 para += nodes.Text(")")
 
@@ -76,10 +77,16 @@ class SpeciesCatalogDirective(SphinxDirective):
             ("ID", species.id, None),
             ("Name", species.name, None),
             ("Common name", species.common_name, None),
-            ("Generation time", species.generation_time,
-                species.generation_time_citations),
-            ("Population size", species.population_size,
-                species.population_size_citations),
+            (
+                "Generation time",
+                species.generation_time,
+                species.generation_time_citations,
+            ),
+            (
+                "Population size",
+                species.population_size,
+                species.population_size_citations,
+            ),
         ]
         return self.make_field_list(data)
 
@@ -98,7 +105,8 @@ class SpeciesCatalogDirective(SphinxDirective):
 
             para = nodes.paragraph(text=f"{citation.author}, {citation.year}. ")
             para += nodes.reference(
-                internal=False, refuri=citation.doi, text=citation.doi)
+                internal=False, refuri=citation.doi, text=citation.doi
+            )
             list_item += para
             bullet_list += list_item
         return bullet_list
@@ -421,7 +429,7 @@ def setup(app):
     app.add_directive("speciescatalog", SpeciesCatalogDirective)
 
     return {
-        'version': '0.1',
-        'parallel_read_safe': True,
-        'parallel_write_safe': True,
+        "version": "0.1",
+        "parallel_read_safe": True,
+        "parallel_write_safe": True,
     }

@@ -49,39 +49,47 @@ _recombination_rate_data = {
 }
 
 _LindbladTohEtAl = stdpopsim.Citation(
-        # Genome sequence, comparative analysis and haplotype structure of the
-        # domestic dog.
-        author="Lindblad-Toh et al.",
-        year=2005,
-        doi="https://doi.org/10.1038/nature04338")
+    # Genome sequence, comparative analysis and haplotype structure of the
+    # domestic dog.
+    author="Lindblad-Toh et al.",
+    year=2005,
+    doi="https://doi.org/10.1038/nature04338",
+)
 
 _SkoglundEtAl = stdpopsim.Citation(
-        # Ancient wolf genome reveals an early divergence of domestic dog
-        # ancestors and admixture into high-latitude breeds.
-        author="Skoglund et al.",
-        year=2015,
-        doi="https://doi.org/10.1016/j.cub.2015.04.019")
+    # Ancient wolf genome reveals an early divergence of domestic dog
+    # ancestors and admixture into high-latitude breeds.
+    author="Skoglund et al.",
+    year=2015,
+    doi="https://doi.org/10.1016/j.cub.2015.04.019",
+)
 
 _FranzEtAl = stdpopsim.Citation(
-        # Genomic and archaeological evidence suggest a dual origin of
-        # domestic dogs.
-        author="Franz et al.",
-        year=2016,
-        doi="https://doi.org/10.1126/science.aaf3161")
+    # Genomic and archaeological evidence suggest a dual origin of
+    # domestic dogs.
+    author="Franz et al.",
+    year=2016,
+    doi="https://doi.org/10.1126/science.aaf3161",
+)
 
 _CampbellEtAl = stdpopsim.Citation(
-        # A Pedigree-Based Map of Recombination in the Domestic Dog Genome.
-        author="Campbell et al.",
-        year=2016,
-        doi="https://doi.org/10.1534/g3.116.034678")
+    # A Pedigree-Based Map of Recombination in the Domestic Dog Genome.
+    author="Campbell et al.",
+    year=2016,
+    doi="https://doi.org/10.1534/g3.116.034678",
+)
 
 _chromosomes = []
 for name, data in genome_data.data["chromosomes"].items():
-    _chromosomes.append(stdpopsim.Chromosome(
-        id=name, length=data["length"],
-        synonyms=data["synonyms"],
-        mutation_rate=4e-9,  # based on non-CpG sites only
-        recombination_rate=_recombination_rate_data[name]))
+    _chromosomes.append(
+        stdpopsim.Chromosome(
+            id=name,
+            length=data["length"],
+            synonyms=data["synonyms"],
+            mutation_rate=4e-9,  # based on non-CpG sites only
+            recombination_rate=_recombination_rate_data[name],
+        )
+    )
 
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
@@ -90,14 +98,10 @@ _genome = stdpopsim.Genome(
     mutation_rate_citations=[
         _SkoglundEtAl.because(stdpopsim.CiteReason.MUT_RATE),
         _FranzEtAl.because(stdpopsim.CiteReason.MUT_RATE),
-        ],
-    recombination_rate_citations=[
-        _CampbellEtAl.because(stdpopsim.CiteReason.REC_RATE)
-        ],
-    assembly_citations=[
-        _LindbladTohEtAl.because(stdpopsim.CiteReason.ASSEMBLY)
-        ],
-    )
+    ],
+    recombination_rate_citations=[_CampbellEtAl.because(stdpopsim.CiteReason.REC_RATE)],
+    assembly_citations=[_LindbladTohEtAl.because(stdpopsim.CiteReason.ASSEMBLY)],
+)
 
 _species = stdpopsim.Species(
     id="CanFam",
@@ -117,12 +121,10 @@ _species = stdpopsim.Species(
         # intervention in breeding. In case (2), you might want to match what other
         # studies have done (thus using 3 year generations), or you might want to
         # consider what is known about modern wolves.
-        ],
+    ],
     population_size=13000,  # ancestral dog size
-    population_size_citations=[
-        _LindbladTohEtAl.because(stdpopsim.CiteReason.POP_SIZE)
-        ],
-    )
+    population_size_citations=[_LindbladTohEtAl.because(stdpopsim.CiteReason.POP_SIZE)],
+)
 
 stdpopsim.register_species(_species)
 
@@ -138,11 +140,9 @@ _gm = stdpopsim.GeneticMap(
         obtained using Haldane's map function.
         """,
     url="https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
-        "CanFam/dog_genetic_maps.tar.gz",
+    "CanFam/dog_genetic_maps.tar.gz",
     sha256="585afb424615e2fb0825d807db0b10fe1c797a6dbb804ecbb3fef5e8387d194f",
     file_pattern="chr{id}_average_canFam3.1.txt",
-    citations=[
-            _CampbellEtAl.because(stdpopsim.CiteReason.GEN_MAP)
-        ],
-    )
+    citations=[_CampbellEtAl.because(stdpopsim.CiteReason.GEN_MAP)],
+)
 _species.add_genetic_map(_gm)

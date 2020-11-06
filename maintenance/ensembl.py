@@ -102,7 +102,7 @@ class EnsemblRestClient:
                         synonyms.append(record["name"])
                 chromosomes[region["name"]] = {
                     "length": region["length"],
-                    "synonyms": synonyms
+                    "synonyms": synonyms,
                 }
         # Make sure the chromosomes are sorted by name
         data["chromosomes"] = {

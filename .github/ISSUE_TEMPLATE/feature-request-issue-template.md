@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: A suggestion for something to add to stdpopsim.
-title: 
+title:
 labels: enhancement
 assignees: ''
 

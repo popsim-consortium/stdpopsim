@@ -8,6 +8,7 @@ class MutationType(object):
 
     See SLiM documentation for initializeMutationType().
     """
+
     dominance_coeff = attr.ib(default=0.5, type=float)
     distribution_type = attr.ib(default="f", type=str)
     distribution_args = attr.ib(factory=lambda: [0], type=list)
@@ -22,8 +23,7 @@ class MutationType(object):
         if self.weight < 0:
             raise ValueError("weight must be >= 0.")
         if self.dominance_coeff < 0:
-            raise ValueError(
-                    f"Invalid dominance coefficient {self.dominance_coeff}.")
+            raise ValueError(f"Invalid dominance coefficient {self.dominance_coeff}.")
 
         # TODO: Add more distribution types like "e", "n", and "w".
         #       We probably shouldn't support "s" because it takes an
@@ -34,8 +34,9 @@ class MutationType(object):
             # Fixed-value selection coefficent.
             if len(self.distribution_args) != 1:
                 raise ValueError(
-                        "Fixed-value mutation types (distribution_type='f')"
-                        "take a single selection-coefficient parameter.")
+                    "Fixed-value mutation types (distribution_type='f')"
+                    "take a single selection-coefficient parameter."
+                )
         elif self.distribution_type == "g":
             # Gamma-distributed selection coefficient with (mean, shape)
             # parameterisation. A negative value for the mean is permitted,
@@ -43,11 +44,13 @@ class MutationType(object):
             # See Eidos documentation for rgamma().
             if len(self.distribution_args) != 2 or self.distribution_args[1] <= 0:
                 raise ValueError(
-                        "Gamma-distributed mutation types (distribution_type='g') "
-                        "use a (mean, shape) parameterisation, requiring shape > 0.")
+                    "Gamma-distributed mutation types (distribution_type='g') "
+                    "use a (mean, shape) parameterisation, requiring shape > 0."
+                )
         else:
             raise ValueError(
-                    f"{self.distribution_type} is not a supported distribution type")
+                f"{self.distribution_type} is not a supported distribution type"
+            )
 
         # The index of the param in the distribution_args list that should be
         # multiplied by Q when using --slim-scaling-factor Q.
@@ -85,6 +88,7 @@ class GenerationAfter(object):
          in a forwards-time convention, but times are specified with units of
          generations before the present!
     """
+
     time = attr.ib(type=float)
 
     def __attrs_post_init__(self):
@@ -106,11 +110,14 @@ def validate_time_range(start_time, end_time):
     validate_time(end_time)
     if float(start_time) < float(end_time):
         raise ValueError(f"start_time={start_time} < end_time={end_time})")
-    if (float(start_time) == float(end_time) and
-       isinstance(start_time, GenerationAfter) and
-       not isinstance(end_time, GenerationAfter)):
+    if (
+        float(start_time) == float(end_time)
+        and isinstance(start_time, GenerationAfter)
+        and not isinstance(end_time, GenerationAfter)
+    ):
         raise ValueError(
-                f"start_time=GenerationAfter({start_time}) < end_time={end_time}")
+            f"start_time=GenerationAfter({start_time}) < end_time={end_time}"
+        )
 
 
 class ExtendedEvent(object):
@@ -119,6 +126,7 @@ class ExtendedEvent(object):
     for SLiM things that msprime doesn't support. Times are all in units of
     generations before the present, just like for msprime.DemographicEvent.
     """
+
     pass
 
 
@@ -141,6 +149,7 @@ class DrawMutation(ExtendedEvent):
 
     See SLiM documentation for addNewDrawnMutation().
     """
+
     time = attr.ib(type=float)
     mutation_type_id = attr.ib(type=int)
     population_id = attr.ib(type=int)
@@ -163,6 +172,7 @@ class ChangeMutationFitness(ExtendedEvent):
 
     See SLiM documentation for registerFitnessCallback().
     """
+
     start_time = attr.ib(type=float)
     end_time = attr.ib(type=float)
     mutation_type_id = attr.ib(type=int)
@@ -189,6 +199,7 @@ class ConditionOnAlleleFrequency(ExtendedEvent):
     sampling on a simulation (when the condition is not met) without throwing
     away the entire simulation.
     """
+
     start_time = attr.ib(type=float)
     end_time = attr.ib(type=float)
     mutation_type_id = attr.ib(type=int)
@@ -204,16 +215,20 @@ class ConditionOnAlleleFrequency(ExtendedEvent):
             raise ValueError(f"Invalid conditioning op `{self.op}`.")
         if not (0 <= self.allele_frequency <= 1):
             raise ValueError("Must have 0 <= allele_frequency <= 1.")
-        if ((self.op == "<" and self.allele_frequency == 0) or
-           (self.op == ">" and self.allele_frequency == 1)):
+        if (self.op == "<" and self.allele_frequency == 0) or (
+            self.op == ">" and self.allele_frequency == 1
+        ):
             raise ValueError(
-                    f"allele_frequency {self.op} {self.allele_frequency}: "
-                    "condition is always false.")
-        if ((self.op == ">=" and self.allele_frequency == 0) or
-           (self.op == "<=" and self.allele_frequency == 1)):
+                f"allele_frequency {self.op} {self.allele_frequency}: "
+                "condition is always false."
+            )
+        if (self.op == ">=" and self.allele_frequency == 0) or (
+            self.op == "<=" and self.allele_frequency == 1
+        ):
             raise ValueError(
-                    f"allele_frequency {self.op} {self.allele_frequency}: "
-                    "condition is always true.")
+                f"allele_frequency {self.op} {self.allele_frequency}: "
+                "condition is always true."
+            )
         validate_time_range(self.start_time, self.end_time)
 
     @classmethod

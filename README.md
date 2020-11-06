@@ -8,7 +8,7 @@ Please see the [documentation](https://stdpopsim.readthedocs.io/en/latest/) for 
 
 Click [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/popsim-consortium/stdpopsim/master?filepath=stdpopsim_example.ipynb) to start an interactive Jupyter Notebook and start playing with `stdpopsim` now!
 
-If you use ``stdpopsim`` in your work, please cite our 
+If you use ``stdpopsim`` in your work, please cite our
 [paper](https://elifesciences.org/articles/54967).
 See [here](https://stdpopsim.readthedocs.io/en/latest/introduction.html#citations) for
 full citation details.

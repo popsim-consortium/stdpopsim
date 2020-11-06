@@ -19,47 +19,54 @@ class TestValidDemographicModelId(unittest.TestCase):
         self.assertFalse(utils.is_valid_demographic_model_id(""))
 
     def test_contains_spaces(self):
-        bad_ids = [
-            "CamelCase 4X19", " CamelCase4X19", "CamelCase4X19"]
+        bad_ids = ["CamelCase 4X19", " CamelCase4X19", "CamelCase4X19"]
         for bad_id in bad_ids:
             self.assertFalse(utils.is_valid_demographic_model_id(bad_id))
 
     def test_too_many_sections(self):
         bad_ids = [
-            "_CamelCase_4X19", "CamelCase_4X19_", "CamelCase__4X19",
-            "CamelCase_4X19_1234_5678"]
+            "_CamelCase_4X19",
+            "CamelCase_4X19_",
+            "CamelCase__4X19",
+            "CamelCase_4X19_1234_5678",
+        ]
         for bad_id in bad_ids:
             self.assertFalse(utils.is_valid_demographic_model_id(bad_id))
 
     def test_bad_name(self):
-        bad_ids = [
-            "camelCase_4X19", "1CamelCase_4X19", "Camel-Case_4X19"]
+        bad_ids = ["camelCase_4X19", "1CamelCase_4X19", "Camel-Case_4X19"]
         for bad_id in bad_ids:
             self.assertFalse(utils.is_valid_demographic_model_id(bad_id))
 
     def test_bad_populations(self):
-        bad_ids = [
-            "CamelCase_0X19", "CamelCase_0.1X19", "CamelCase_OneX19"]
+        bad_ids = ["CamelCase_0X19", "CamelCase_0.1X19", "CamelCase_OneX19"]
         for bad_id in bad_ids:
             self.assertFalse(utils.is_valid_demographic_model_id(bad_id))
 
     def test_bad_author(self):
-        bad_ids = [
-            "CamelCase_1019", "CamelCase_1-19", "CamelCase_1;19"]
+        bad_ids = ["CamelCase_1019", "CamelCase_1-19", "CamelCase_1;19"]
         for bad_id in bad_ids:
             self.assertFalse(utils.is_valid_demographic_model_id(bad_id))
 
     def test_bad_year(self):
         bad_ids = [
-            "CamelCase_10X1", "CamelCase_1X", "CamelCase_1X2001",
-            "CamelCase_1Xfive"]
+            "CamelCase_10X1",
+            "CamelCase_1X",
+            "CamelCase_1X2001",
+            "CamelCase_1Xfive",
+        ]
         for bad_id in bad_ids:
             self.assertFalse(utils.is_valid_demographic_model_id(bad_id))
 
     def test_good_ids(self):
         good_ids = [
-            "CamelCase_10X10", "CamelCase_1Y00", "CamelCase_100A05",
-            "Camel_1X10", "C_1Y00", "C01234_1Y00"]
+            "CamelCase_10X10",
+            "CamelCase_1Y00",
+            "CamelCase_100A05",
+            "Camel_1X10",
+            "C_1Y00",
+            "C01234_1Y00",
+        ]
         for good_id in good_ids:
             self.assertTrue(utils.is_valid_demographic_model_id(good_id))
 
@@ -73,27 +80,27 @@ class TestValidGeneticMapId(unittest.TestCase):
         self.assertFalse(utils.is_valid_genetic_map_id(""))
 
     def test_contains_spaces(self):
-        bad_ids = [
-            "CamelCase ABCD", " CamelCase_ABCD", "CamelCase_ABCD "]
+        bad_ids = ["CamelCase ABCD", " CamelCase_ABCD", "CamelCase_ABCD "]
         for bad_id in bad_ids:
             self.assertFalse(utils.is_valid_genetic_map_id(bad_id))
 
     def test_bad_name(self):
-        bad_ids = [
-            "camelCase_ABCD", "1CamelCase_ABCD", "Camel-Case_ABCD"]
+        bad_ids = ["camelCase_ABCD", "1CamelCase_ABCD", "Camel-Case_ABCD"]
         for bad_id in bad_ids:
             self.assertFalse(utils.is_valid_genetic_map_id(bad_id))
 
     def test_bad_assembly(self):
         bad_ids = [
-            "CamelCase_AB CD", "CamelCase_", "CamelCase_AB-CD", "CamelCase_AB.CD"]
+            "CamelCase_AB CD",
+            "CamelCase_",
+            "CamelCase_AB-CD",
+            "CamelCase_AB.CD",
+        ]
         for bad_id in bad_ids:
             self.assertFalse(utils.is_valid_genetic_map_id(bad_id))
 
     def test_good_ids(self):
-        good_ids = [
-            "CamelCase_ABCD", "CamelCase_a", "CamelCase_1000",
-            "C_ABCD", "C_X"]
+        good_ids = ["CamelCase_ABCD", "CamelCase_a", "CamelCase_1000", "C_ABCD", "C_X"]
         for good_id in good_ids:
             self.assertTrue(utils.is_valid_genetic_map_id(good_id))
 
@@ -112,8 +119,7 @@ class TestValidSpeciesId(unittest.TestCase):
             self.assertFalse(utils.is_valid_species_id(bad_id))
 
     def test_bad_ids(self):
-        bad_ids = [
-            "camCas", "camcas", "CAMCAS", "C1mCas", "Camcas", "CamelCase"]
+        bad_ids = ["camCas", "camcas", "CAMCAS", "C1mCas", "Camcas", "CamelCase"]
         for bad_id in bad_ids:
             self.assertFalse(utils.is_valid_species_id(bad_id))
 
@@ -138,8 +144,14 @@ class TestValidSpeciesName(unittest.TestCase):
 
     def test_bad_names(self):
         bad_names = [
-            "PAN PAN", "Pan Pan", "Panpan", "PanPan" "pan pan", "Pan p0n"
-            "Pan, pan"]
+            "PAN PAN",
+            "Pan Pan",
+            "Panpan",
+            "PanPan",
+            "pan pan",
+            "Pan p0n",
+            "Pan, pan",
+        ]
         for bad_name in bad_names:
             self.assertFalse(utils.is_valid_species_name(bad_name))
 
@@ -220,7 +232,7 @@ class TestSha256(unittest.TestCase):
             self.assertEqual(
                 sha256sum,
                 # Calculated with `sha256sum` from GNU coreutils.
-                "269dce1a5bb90188b2d9cf542a7c30e410c7d8251e34a97bfea56062df51ae23"
+                "269dce1a5bb90188b2d9cf542a7c30e410c7d8251e34a97bfea56062df51ae23",
             )
 
     def test_sha256_big(self):
@@ -228,13 +240,13 @@ class TestSha256(unittest.TestCase):
             filename = pathlib.Path(tmpdir) / "test.foo"
             # write binary file, to avoid windows/mac/unix line ending differences
             with open(filename, "wb") as f:
-                for i in range(1024*1024):
+                for i in range(1024 * 1024):
                     f.write(str(i).encode())
             sha256sum = utils.sha256(filename)
             self.assertEqual(
                 sha256sum,
                 # Calculated with `sha256sum` from GNU coreutils.
-                "995e0fde646f7dc98423af9a862be96014574bfa76be1186b484f796c4e58533"
+                "995e0fde646f7dc98423af9a862be96014574bfa76be1186b484f796c4e58533",
             )
 
 
@@ -260,7 +272,6 @@ def rm_f(filename):
 
 
 class TestUntar(unittest.TestCase):
-
     def test_untar(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir = pathlib.Path(tmpdir)
@@ -318,9 +329,11 @@ class TestUntar(unittest.TestCase):
                     print("blah", file=f)
                 with utils.cd(tmpdir):
                     with tarfile.open(tar, mode="w:gz") as tf:
+
                         def filt(info):
                             info.name = name  # path the file will be extracted to
                             return info
+
                         tf.add("test-thing", filter=filt)
                 with self.assertRaises(ValueError):
                     utils.untar(tar, dest)
@@ -349,9 +362,11 @@ class TestUntar(unittest.TestCase):
                     print("blah", file=f)
                 with utils.cd(tmpdir):
                     with tarfile.open(tar, mode="w:gz") as tf:
+
                         def filt(info):
                             info.type = type_  # lie about the type
                             return info
+
                         tf.add("irregular", filter=filt)
                 with self.assertRaises(ValueError):
                     utils.untar(tar, dest)

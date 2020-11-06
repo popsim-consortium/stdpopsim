@@ -103,7 +103,7 @@ using the ``--help-models`` flag (here, truncated for space):
 This gives all of the possible demographic models we could simulate. We choose
 the two population out-of-Africa :ref:`model <sec_catalog_homsap_models_outofafrica_2t12>`
 from `Tennesen et al. (2012) <https://doi.org/10.1126/science.1219240>`_ .
-By looking at the model help we find that the name for this model is 
+By looking at the model help we find that the name for this model is
 ``OutOfAfrica_2T12`` and that we can specify it using
 the ``--demographic-model`` or ``-d`` option. We choose to draw two samples from the
 "African American" population and three samples from the "European American" population.
@@ -159,7 +159,7 @@ The output from a ``stdpopsim`` simulation is a *tree sequence*,
 a compact and efficient format for storing both genealogies and genome sequence.
 Some examples of analyzing tree sequences are given
 :ref:`below <sec_tute_analyses>`.
-If desired, these can be converted to VCF on the command line if the 
+If desired, these can be converted to VCF on the command line if the
 `tskit <https://tskit.readthedocs.io/>`__ package is installed,
 with the ``tskit vcf`` command:
 
@@ -359,8 +359,9 @@ and genetic map (a flat map, the default):
 .. code-block:: python
 
    import stdpopsim
+
    species = stdpopsim.get_species("HomSap")
-   contig = species.get_contig("chr22") # default is a flat genetic map
+   contig = species.get_contig("chr22")  # default is a flat genetic map
 
 Choose a demographic model
 --------------------------
@@ -376,7 +377,7 @@ for humans:
 .. code-block:: python
 
    for x in species.demographic_models:
-      print(x.id)
+       print(x.id)
 
    # OutOfAfrica_3G09
    # OutOfAfrica_2T12
@@ -388,13 +389,13 @@ for humans:
    # PapuansOutOfAfrica_10J19
 
 These models are described in detail in the :ref:`Catalog <sec_catalog>`.
-We'll look at the first model, "OutOfAfrica_3G09", from 
+We'll look at the first model, "OutOfAfrica_3G09", from
 `Gutenkunst et al (2009) <https://doi.org/10.1371/journal.pgen.1000695>`__.
 First we need to know how many populations it has, and what they are:
 
 .. code-block:: python
 
-   model = species.get_demographic_model('OutOfAfrica_3G09')
+   model = species.get_demographic_model("OutOfAfrica_3G09")
    print(model.num_populations)
    # 3
    print(model.num_sampling_populations)
@@ -419,7 +420,7 @@ using ``msprime`` as the simulation engine:
 .. code-block:: python
 
    samples = model.get_samples(10, 0, 10)
-   engine = stdpopsim.get_engine('msprime')
+   engine = stdpopsim.get_engine("msprime")
    ts = engine.simulate(model, contig, samples)
    print(ts.num_sites)
    # 88063
@@ -438,12 +439,15 @@ so we use the json module to easily parse it:
 .. code-block:: python
 
    import json
+
    ts.num_samples
    # 20
    for k, pop in enumerate(ts.populations()):
-      popdata = json.loads(pop.metadata)
-      print(f"The tree sequence has {len(ts.samples(k))} samples from "
-            f"population {k}, which is {popdata['id']}.")
+       popdata = json.loads(pop.metadata)
+       print(
+           f"The tree sequence has {len(ts.samples(k))} samples from "
+           f"population {k}, which is {popdata['id']}."
+       )
 
    # The tree sequence has 10 samples from population 0, which is YRI.
    # The tree sequence has 0 samples from population 1, which is CEU.
@@ -474,6 +478,7 @@ Again, we'll use `Homo sapiens`, which has the id "HomSap".
 .. code-block:: python
 
     import stdpopsim
+
     species = stdpopsim.get_species("HomSap")
 
 Choose a contig and recombination map
@@ -522,7 +527,7 @@ But, you can go crazy with the sample size!
 .. code-block:: python
 
     samples = model.get_samples(10)
-    engine = stdpopsim.get_engine('msprime')
+    engine = stdpopsim.get_engine("msprime")
 
 Finally, we simulate the model with the contig length and number of samples we defined above.
 The simulation results are recorded in a tree sequence object
@@ -569,7 +574,7 @@ See the tskit documentation (:meth:`tskit.TreeSequence.write_vcf`) for more info
 .. code-block:: python
 
     with open("foo.vcf", "w") as vcf_file:
-       ts.write_vcf(vcf_file, contig_id='2')
+        ts.write_vcf(vcf_file, contig_id="2")
 
 Taking a look at the vcf file, we see something like this:
 
@@ -628,6 +633,7 @@ it doesn't affect this very much either).
 .. code-block:: python
 
    import stdpopsim
+
    species = stdpopsim.get_species("HomSap")
    contig = species.get_contig("chr22", length_multiplier=0.1)
    # default is a flat genetic map
@@ -677,6 +683,7 @@ we used above has three distinct epochs:
 .. code-block:: python
 
    import stdpopsim
+
    species = stdpopsim.get_species("HomSap")
    model = species.get_demographic_model("Africa_1T12")
    model.get_demography_debugger().print_history()
@@ -684,27 +691,27 @@ we used above has three distinct epochs:
    # =============================
    # Epoch: 0 -- 204.6 generations
    # =============================
-   #      start     end      growth_rate |     0    
-   #    -------- --------       -------- | -------- 
-   # 0 |4.32e+05 1.45e+04         0.0166 |     0    
+   #      start     end      growth_rate |     0
+   #    -------- --------       -------- | --------
+   # 0 |4.32e+05 1.45e+04         0.0166 |     0
 
    # Events @ generation 204.6
-   #    - Population parameter change for 0: initial_size -> 14474 growth_rate -> 0 
+   #    - Population parameter change for 0: initial_size -> 14474 growth_rate -> 0
    # ==================================
    # Epoch: 204.6 -- 5920.0 generations
    # ==================================
-   #      start     end      growth_rate |     0    
-   #    -------- --------       -------- | -------- 
-   # 0 |1.45e+04 1.45e+04              0 |     0    
+   #      start     end      growth_rate |     0
+   #    -------- --------       -------- | --------
+   # 0 |1.45e+04 1.45e+04              0 |     0
 
    # Events @ generation 5920.0
-   #    - Population parameter change for 0: initial_size -> 7310 
+   #    - Population parameter change for 0: initial_size -> 7310
    # ================================
    # Epoch: 5920.0 -- inf generations
    # ================================
-   #      start     end      growth_rate |     0    
-   #    -------- --------       -------- | -------- 
-   # 0 |7.31e+03 7.31e+03              0 |     0    
+   #      start     end      growth_rate |     0
+   #    -------- --------       -------- | --------
+   # 0 |7.31e+03 7.31e+03              0 |     0
 
 Since the longest-ago epoch begins at 5,920 generations ago
 with a population size of 7,310, if we set ``slim_burn_in=0.1``,
@@ -737,11 +744,18 @@ here we capture it in a file):
 .. code-block:: python
 
    from contextlib import redirect_stdout
-   with open('script.slim', 'w') as f:
+
+   with open("script.slim", "w") as f:
        with redirect_stdout(f):
-           ts = engine.simulate(model, contig, samples, slim_script=True,
-                                verbosity=2, slim_scaling_factor=10)
-   
+           ts = engine.simulate(
+               model,
+               contig,
+               samples,
+               slim_script=True,
+               verbosity=2,
+               slim_scaling_factor=10,
+           )
+
 The resulting script is *big* - 18,122 lines -
 because it has the actual HapMapII_GRCh37 genetic map for chromosome 22
 included, as text.
@@ -777,9 +791,9 @@ Back in python, we could do this by
 .. code-block:: python
 
    import stdpopsim, pyslim
+
    ts = pyslim.load("foo.trees")
-   ts = engine.recap_and_rescale(ts, model, contig, samples,
-                                 slim_scaling_factor=10)
+   ts = engine.recap_and_rescale(ts, model, contig, samples, slim_scaling_factor=10)
    ts.dump("foo_recap.trees")
 
 The final line saves the tree sequence, now ready for analysis,
@@ -794,7 +808,7 @@ Next is "recapitation",
 for which the rationale and method is described in detail in the
 `pyslim documentation <https://pyslim.readthedocs.io/en/latest/tutorial.html#recapitation>`__.
 The third (and least crucial) step is to *simplify* the tree sequence.
-If as above we ask for 200 samples from a population whose final size is 
+If as above we ask for 200 samples from a population whose final size is
 1,450 individuals (after rescaling),
 then in fact the tree sequence returned by SLiM contains the entire genomes
 and genealogies of all 1,450 individuals,
@@ -877,6 +891,7 @@ the ``tskit`` package to load and analyse this simulated tree sequence file.
 .. code-block:: python
 
     import tskit
+
     ts = tskit.load("afr-america-chr1.trees")
 
 Recall that `genetic divergence` (often denoted :math:`d_{xy}`)
@@ -922,8 +937,8 @@ We can quickly get all the pairs of indexes as follows:
 
     inds = []
     for i in range(0, ts.num_populations):
-       for j in range(i, ts.num_populations):
-          inds.append((i, j))
+        for j in range(i, ts.num_populations):
+            inds.append((i, j))
 
     print(inds)
     # [(0, 0), (0, 1), (0, 2), (0, 3), (1, 1), (1, 2), (1, 3), (2, 2), (2, 3), (3, 3)]
@@ -958,6 +973,7 @@ It relies on the ``numpy``, ``seaborn`` and ``matplotlib`` packages.
     import numpy as np
     import seaborn
     import matplotlib.pyplot as plt
+
     div_matrix = np.zeros((ts.num_populations, ts.num_populations))
     for pair in range(0, len(inds)):
         pop0, pop1 = inds[pair]
@@ -968,12 +984,12 @@ It relies on the ``numpy``, ``seaborn`` and ``matplotlib`` packages.
     plt.title("Genetic divergence")
     plt.xlabel("Populations", fontweight="bold")
     plt.ylabel("Populations", fontweight="bold")
-    ax.set_xticks([0,1,2,3], minor=True)
-    ax.set_xticklabels(['AFR', 'EUR', 'ASI', 'ADM'], minor=False)
-    ax.tick_params(which='minor', length=0)
-    ax.set_yticks([0,1,2,3], minor=True)
-    ax.set_yticklabels(['AFR', 'EUR', 'ASI', 'ADM'], minor=False)
-    ax.tick_params(which='minor', length=0)
+    ax.set_xticks([0, 1, 2, 3], minor=True)
+    ax.set_xticklabels(["AFR", "EUR", "ASI", "ADM"], minor=False)
+    ax.tick_params(which="minor", length=0)
+    ax.set_yticks([0, 1, 2, 3], minor=True)
+    ax.set_yticklabels(["AFR", "EUR", "ASI", "ADM"], minor=False)
+    ax.tick_params(which="minor", length=0)
 
 .. image:: _static/tute-divergence.png
     :width: 400px
@@ -1014,6 +1030,7 @@ species has the ID ``AraTha``:
 .. code-block:: python
 
     import stdpopsim
+
     species = stdpopsim.get_species("AraTha")
 
 After skimming the :ref:`Catalog <sec_catalog>` to see our options, we'll specify our
@@ -1033,7 +1050,9 @@ and that rates of migration since the split between the populations are both zer
 
 .. code-block:: python
 
-    model = stdpopsim.IsolationWithMigration(NA=5000, N1=4000, N2=1000, T=1000, M12=0, M21=0)
+    model = stdpopsim.IsolationWithMigration(
+        NA=5000, N1=4000, N2=1000, T=1000, M12=0, M21=0
+    )
 
 We'll simulate 10 chromosomes from each of the populations using the ``msprime`` engine.
 
@@ -1083,8 +1102,9 @@ We can therefore calculate the *polarised* AFS using tskit's
 
 .. code-block:: python
 
-    sfs0 = ts.allele_frequency_spectrum(sample_sets=[pop_samples[0]],
-                                        polarised=True, span_normalise=False)
+    sfs0 = ts.allele_frequency_spectrum(
+        sample_sets=[pop_samples[0]], polarised=True, span_normalise=False
+    )
     print(sfs0)
     # [1603. 2523. 1259.  918.  598.  471.  434.  367.  343.  265.  136.]
 
@@ -1104,8 +1124,9 @@ Here is the AFS for the other population:
 
 .. code-block:: python
 
-    sfs1 = ts.allele_frequency_spectrum(sample_sets=[pop_samples[1]],
-                                        polarised=True, span_normalise=False)
+    sfs1 = ts.allele_frequency_spectrum(
+        sample_sets=[pop_samples[1]], polarised=True, span_normalise=False
+    )
     print(sfs1)
     # [3755.  972.  744.  558.  476.  502.  409.  320.  306.  271.  604.]
 
@@ -1137,15 +1158,16 @@ We will scale each AFS by the number of mutated sites in the corresponding sampl
 
     import matplotlib.pyplot as plt
     import numpy as np
+
     bar_width = 0.4
-    r1 = np.arange(0,11) - 0.2
+    r1 = np.arange(0, 11) - 0.2
     r2 = [x + bar_width for x in r1]
     ax = plt.subplot()
-    plt.bar(x = r1, height = sfs0/ts.num_sites, width=bar_width, label='pop0')
-    plt.bar(x = r2, height = sfs1/ts.num_sites, width=bar_width, label='pop1')
+    plt.bar(x=r1, height=sfs0 / ts.num_sites, width=bar_width, label="pop0")
+    plt.bar(x=r2, height=sfs1 / ts.num_sites, width=bar_width, label="pop1")
     plt.xlabel("Allele count", fontweight="bold")
     plt.ylabel("Proportion of mutated sites in sample", fontweight="bold")
-    ax.set_xticks(np.arange(0,11))
+    ax.set_xticks(np.arange(0, 11))
     ax.legend()
     plt.plot()
 

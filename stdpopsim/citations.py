@@ -35,6 +35,7 @@ class Citation:
     :ivar year: Year of publication as a 4 digit integer, e.g. 2008.
     :vartype year: int
     """
+
     doi = attr.ib(type=str, kw_only=True)
     author = attr.ib(type=str, kw_only=True)
     year = attr.ib(type=int, kw_only=True)
@@ -58,8 +59,11 @@ class Citation:
         if not isinstance(reasons, set):
             reasons = {reasons}
         return self.__class__(
-                author=self.author, year=self.year, doi=self.doi,
-                reasons=self.reasons | reasons)
+            author=self.author,
+            year=self.year,
+            doi=self.doi,
+            reasons=self.reasons | reasons,
+        )
 
     @staticmethod
     def merge(citations):
@@ -83,4 +87,5 @@ _stdpopsim_citation = Citation(
     doi="https://doi.org/10.7554/eLife.54967",
     year="2020",
     author="Adrion et al.",
-    reasons={CiteReason.STDPOPSIM})
+    reasons={CiteReason.STDPOPSIM},
+)

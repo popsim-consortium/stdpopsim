@@ -19,14 +19,16 @@ def zarr_to_dataframe(path):
     """
     z = zarr.open(path)
     df = pandas.DataFrame(
-        {'seqid': z['seqid'],
-         'source': z['source'],
-         'type': z['type'],
-         'start': z['start'],
-         'end': z['end'],
-         'score': z['score'],
-         'strand': z['strand'],
-         'phase': z['phase']}
+        {
+            "seqid": z["seqid"],
+            "source": z["source"],
+            "type": z["type"],
+            "start": z["start"],
+            "end": z["end"],
+            "score": z["score"],
+            "strand": z["strand"],
+            "phase": z["phase"],
+        }
     )
     return df
 
@@ -46,6 +48,7 @@ class Annotation:
     :ivar citations: List of citations for the annotation.
     :vartype citations: list of :class:`.Citation`
     """
+
     id = attr.ib()
     species = attr.ib()
     url = attr.ib()
@@ -109,16 +112,16 @@ class Annotation:
         annots = self.get_chromosome_annotations(chrom_id)
         subset = annots[annots.type == a_type]
         if subset.empty:
-            raise ValueError(f"annotation type '{a_type}' not found on chrom"
-                             f" {chrom_id}")
+            raise ValueError(
+                f"annotation type '{a_type}' not found on chrom {chrom_id}"
+            )
         if full_table:
             return subset
         else:
-            return subset[['start', 'end']]
+            return subset[["start", "end"]]
 
     def get_genes_from_chromosome(self, chrom_id, full_table=False):
         """
         Returns all elements of type gene from annotation
         """
-        return self.get_annotation_type_from_chromomosome('gene', chrom_id,
-                                                          full_table)
+        return self.get_annotation_type_from_chromomosome("gene", chrom_id, full_table)

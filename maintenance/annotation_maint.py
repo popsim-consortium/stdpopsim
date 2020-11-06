@@ -24,12 +24,12 @@ for spc in stp.all_species():
             warnings.warn("can't connnect to url")
         logger.info(f"creating zarr arrays {spc.id}")
         # create zarr store and zarr root
-        spc_path = os.path.join(annot_path, spc.id+"."+genome_version+".zip")
+        spc_path = os.path.join(annot_path, spc.id + "." + genome_version + ".zip")
         store = zarr.ZipStore(spc_path)
         root = zarr.group(store=store, overwrite=True)
         x = allel.gff3_to_dataframe(tmp_path)
         for col_name in x.columns:
-            if x[col_name].dtype == 'O':
+            if x[col_name].dtype == "O":
                 tmp = root.array(col_name, np.array(x[col_name], dtype=str))
             else:
                 tmp = root.array(col_name, np.array(x[col_name]))

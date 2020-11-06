@@ -16,47 +16,49 @@ from . import genome_data
 
 # citations
 _LiAndStephan = stdpopsim.Citation(
-    author="Li et al.",
-    year=2006,
-    doi="https://doi.org/10.1371/journal.pgen.0020166")
+    author="Li et al.", year=2006, doi="https://doi.org/10.1371/journal.pgen.0020166"
+)
 
 _SchriderEtAl = stdpopsim.Citation(
     author="Schrider et al.",
     year=2013,
-    doi="https://doi.org/10.1534/genetics.113.151670")
+    doi="https://doi.org/10.1534/genetics.113.151670",
+)
 
 _DosSantosEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1093/nar/gku1099",
     year="2015",
     author="dos Santos et al.",
-    reasons={stdpopsim.CiteReason.ASSEMBLY}
+    reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
 
 _genome_wide_estimate = 8.4e-9  # WRONG, underestimate used in S&S!
 
-_recombination_rate_data = collections.defaultdict(
-        lambda: _genome_wide_estimate)
+_recombination_rate_data = collections.defaultdict(lambda: _genome_wide_estimate)
 # Set some exceptions for non-recombining chrs.
 _recombination_rate_data["Y"] = 0
 _recombination_rate_data["mitochondrion_genome"] = 0
 
 _chromosomes = []
 for name, data in genome_data.data["chromosomes"].items():
-    _chromosomes.append(stdpopsim.Chromosome(
-        id=name, length=data["length"],
-        synonyms=data["synonyms"],
-        mutation_rate=5.49e-9,  # citation: _SchriderEtAl
-        recombination_rate=_recombination_rate_data[name]))
+    _chromosomes.append(
+        stdpopsim.Chromosome(
+            id=name,
+            length=data["length"],
+            synonyms=data["synonyms"],
+            mutation_rate=5.49e-9,  # citation: _SchriderEtAl
+            recombination_rate=_recombination_rate_data[name],
+        )
+    )
 
 
 _genome = stdpopsim.Genome(
-        chromosomes=_chromosomes,
-        assembly_name=genome_data.data["assembly_name"],
-        assembly_accession=genome_data.data["assembly_accession"],
-        mutation_rate_citations=[
-            _SchriderEtAl.because(stdpopsim.CiteReason.MUT_RATE)],
-        assembly_citations=[
-            _DosSantosEtAl])
+    chromosomes=_chromosomes,
+    assembly_name=genome_data.data["assembly_name"],
+    assembly_accession=genome_data.data["assembly_accession"],
+    mutation_rate_citations=[_SchriderEtAl.because(stdpopsim.CiteReason.MUT_RATE)],
+    assembly_citations=[_DosSantosEtAl],
+)
 
 _species = stdpopsim.Species(
     id="DroMel",
@@ -64,11 +66,10 @@ _species = stdpopsim.Species(
     common_name="D. melanogaster",
     genome=_genome,
     generation_time=0.1,
-    generation_time_citations=[
-        _LiAndStephan.because(stdpopsim.CiteReason.GEN_TIME)],
+    generation_time_citations=[_LiAndStephan.because(stdpopsim.CiteReason.GEN_TIME)],
     population_size=1720600,
-    population_size_citations=[
-        _LiAndStephan.because(stdpopsim.CiteReason.POP_SIZE)])
+    population_size_citations=[_LiAndStephan.because(stdpopsim.CiteReason.POP_SIZE)],
+)
 
 stdpopsim.register_species(_species)
 
@@ -94,15 +95,19 @@ _gm = stdpopsim.GeneticMap(
         """,
     url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
-        "DroMel/comeron2012_maps.tar.gz"),
+        "DroMel/comeron2012_maps.tar.gz"
+    ),
     sha256="08185a0e3b0ad26eefe69fc6bdb8f3f599a760e11e87dd343335b33d1563f62a",
     file_pattern="genetic_map_comeron2012_dm6_chr{id}.txt",
-    citations=[stdpopsim.Citation(
-        author="Comeron et al",
-        doi="https://doi.org/10.1371/journal.pgen.1002905",
-        year=2012,
-        reasons={stdpopsim.CiteReason.GEN_MAP})]
-    )
+    citations=[
+        stdpopsim.Citation(
+            author="Comeron et al",
+            doi="https://doi.org/10.1371/journal.pgen.1002905",
+            year=2012,
+            reasons={stdpopsim.CiteReason.GEN_MAP},
+        )
+    ],
+)
 
 _species.add_genetic_map(_gm)
 
@@ -116,9 +121,11 @@ _species.add_genetic_map(_gm)
 
 # population definitions that are reused.
 _afr_population = stdpopsim.Population(
-   id="AFR", description="African D. melanogaster population")
+    id="AFR", description="African D. melanogaster population"
+)
 _eur_population = stdpopsim.Population(
-   id="EUR", description="European D. melanogaster population")
+    id="EUR", description="European D. melanogaster population"
+)
 
 
 def _afr_3epoch():
@@ -134,11 +141,13 @@ def _afr_3epoch():
         publication. We have faithfully represented the published model here.
     """
     populations = [_afr_population]
-    citations = [stdpopsim.Citation(
-        author="Sheehan and Song",
-        year=2016,
-        doi="https://doi.org/10.1371/journal.pcbi.1004845",
-        reasons={stdpopsim.CiteReason.DEM_MODEL})
+    citations = [
+        stdpopsim.Citation(
+            author="Sheehan and Song",
+            year=2016,
+            doi="https://doi.org/10.1371/journal.pcbi.1004845",
+            reasons={stdpopsim.CiteReason.DEM_MODEL},
+        )
     ]
     generation_time = _species.generation_time
     citations.extend(_species.generation_time_citations)
@@ -166,17 +175,20 @@ def _afr_3epoch():
         generation_time=generation_time,
         population_configurations=[
             msprime.PopulationConfiguration(
-                initial_size=N_R, metadata=populations[0].asdict())],
-
+                initial_size=N_R, metadata=populations[0].asdict()
+            )
+        ],
         demographic_events=[
             # Size change at bottleneck (back in time; BIT)
             msprime.PopulationParametersChange(
-                time=t_1, initial_size=N_B, population_id=0),
+                time=t_1, initial_size=N_B, population_id=0
+            ),
             # Size change at recovery (BIT)
             msprime.PopulationParametersChange(
-                time=t_2, initial_size=N_A, population_id=0)
+                time=t_2, initial_size=N_A, population_id=0
+            ),
         ],
-        )
+    )
 
 
 _species.add_demographic_model(_afr_3epoch())
@@ -216,22 +228,25 @@ def _ooa_2():
         generation_time=generation_time,
         population_configurations=[
             msprime.PopulationConfiguration(
-                initial_size=N_A0, metadata=populations[0].asdict()),
+                initial_size=N_A0, metadata=populations[0].asdict()
+            ),
             msprime.PopulationConfiguration(
-                initial_size=N_E0, metadata=populations[1].asdict())
+                initial_size=N_E0, metadata=populations[1].asdict()
+            ),
         ],
         demographic_events=[
             # Size change at Euro bottleneck
             msprime.PopulationParametersChange(
-                time=t_E1, initial_size=N_E1, population_id=1),
+                time=t_E1, initial_size=N_E1, population_id=1
+            ),
             # Split
-            msprime.MassMigration(
-                time=t_AE, source=1, destination=0, proportion=1.0),
+            msprime.MassMigration(time=t_AE, source=1, destination=0, proportion=1.0),
             # African bottleneck
             msprime.PopulationParametersChange(
-                time=t_A0, initial_size=N_A1, population_id=0)
+                time=t_A0, initial_size=N_A1, population_id=0
+            ),
         ],
-        )
+    )
 
 
 _species.add_demographic_model(_ooa_2())

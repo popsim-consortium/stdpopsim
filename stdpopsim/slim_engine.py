@@ -625,8 +625,8 @@ def slim_makescript(
                 # Zero out the population size for generations before this
                 # epoch, to avoid simulating invididuals that contribute no
                 # genealogy.
-                N[de.source, 0: (i + 1)] = 0
-                growth_rates[de.source, 0: (i + 1)] = 0
+                N[de.source, 0 : (i + 1)] = 0
+                growth_rates[de.source, 0 : (i + 1)] = 0
 
                 # Ensure there are no migrations to or from de.source before
                 # this epoch.
@@ -1163,10 +1163,10 @@ class _SLiMEngine(stdpopsim.Engine):
             for line in proc.stdout:
                 line = line.rstrip()
                 if line.startswith("ERROR: "):
-                    logger.error(line[len("ERROR: "):])
+                    logger.error(line[len("ERROR: ") :])
                 elif line.startswith("WARNING: "):
                     warnings.warn(
-                        stdpopsim.UnspecifiedSLiMWarning(line[len("WARNING: "):])
+                        stdpopsim.UnspecifiedSLiMWarning(line[len("WARNING: ") :])
                     )
                 else:
                     # filter `dbg` function calls that generate output
@@ -1176,7 +1176,7 @@ class _SLiMEngine(stdpopsim.Engine):
 
         if proc.returncode != 0 or stderr:
             raise SLiMException(
-                f"{slim_path} exited with code {proc.returncode}.\n" f"{stderr}"
+                f"{slim_path} exited with code {proc.returncode}.\n{stderr}"
             )
 
     def _simplify_remembered(self, ts):

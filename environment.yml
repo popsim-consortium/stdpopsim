@@ -1,4 +1,4 @@
-# This file contains the Conda environment configuration for running stdpopsim 
+# This file contains the Conda environment configuration for running stdpopsim
 # in a Dockerized image on Binder, accessible through https://mybinder.org/.
 # Binder enables any Jupyter notebooks in the repository to be run interactively and
 # reproducibly in a stable cloud-based environment.

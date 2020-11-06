@@ -49,8 +49,8 @@ There is a lot of chatter through
 Github, and we’ve been building code
 there cooperatively. If you are interested in joining us please read our
 `code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/master/CODE_OF_CONDUCT.md>`_.
-A particular goal of this project is to build a diverse and supportive community, 
-and so we especially encourage individuals from underrepresented groups in popgen to join. 
+A particular goal of this project is to build a diverse and supportive community,
+and so we especially encourage individuals from underrepresented groups in popgen to join.
 Being a member of the Consortium can provide a valuable avenue for career development, through
 building networks, contributing to papers and code, as well as through learning programing standards
 and best practices.

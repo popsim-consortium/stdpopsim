@@ -14,6 +14,7 @@ class CacheReadingTest(unittest.TestCase):
     local directory that can be easily removed and modified without fear of
     interfering with production code.
     """
+
     cache_dir = "test_cache"
     saved_cache_dir = None
     saved_urls = {}
@@ -31,6 +32,7 @@ class CacheWritingTest(unittest.TestCase):
     This should be used as the superclass of all tests that alter the
     downloaded data cache in any non-standard way.
     """
+
     saved_cache_dir = None
     tmp_cache_dir = None
 

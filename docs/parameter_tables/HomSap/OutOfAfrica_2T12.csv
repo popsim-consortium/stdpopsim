@@ -8,7 +8,7 @@ Population size,"432,125",AFR pop. size after 1st expansion
 Growth rate (per gen.),0.00307,EU pop. growth rate 1st expansion
 Growth rate (per gen.),0.0195,EU pop. growth rate 2st expansion
 Growth rate (per gen.),0.0166,AFR pop. growth rate 1st expansion
-Migration rate (x10^-5 per gen.),15,AFR-OOA migration rate 
+Migration rate (x10^-5 per gen.),15,AFR-OOA migration rate
 Migration rate (x10^-5 per gen.),2.5,AFR-EU migration rate (both expansions)
 Epoch Time (gen.),"5,920",Expansion time of ancestral pop.
 Epoch Time (gen.),"2,040",Time of OOA event

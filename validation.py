@@ -13,18 +13,20 @@ import time
 import numpy as np
 import tskit
 import msprime
+
 # Work around an issue on systems with large numbers of cores.
 # https://github.com/cggh/scikit-allel/issues/285
-os.environ["NUMEXPR_MAX_THREADS"] = f"{os.cpu_count()}"  # NOQA
-import allel
+os.environ["NUMEXPR_MAX_THREADS"] = f"{os.cpu_count()}"
+import allel  # noqa: E402
 
-import matplotlib
-matplotlib.use('Agg')  # NOQA # don't try to use $DISPLAY
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
+import matplotlib  # noqa: E402
 
-import stdpopsim
-import stdpopsim.cli
+matplotlib.use("Agg")  # don't try to use $DISPLAY
+import matplotlib.pyplot as plt  # noqa: E402
+from matplotlib.backends.backend_pdf import PdfPages  # noqa: E402
+
+import stdpopsim  # noqa: E402
+import stdpopsim.cli  # noqa: E402
 
 
 def warning(msg):
@@ -39,9 +41,11 @@ def irradiate(contig, x=20):
     Increase mutation rate by a factor of `x`.
     """
     return stdpopsim.Contig(
-            recombination_map=contig.recombination_map,
-            mutation_rate=x*contig.mutation_rate,
-            genetic_map=contig.genetic_map)
+        recombination_map=contig.recombination_map,
+        mutation_rate=x * contig.mutation_rate,
+        genetic_map=contig.genetic_map,
+    )
+
 
 #
 # Simulation functions.
@@ -115,8 +119,8 @@ def onepop_bottleneck_slim2(out_dir, seed):
     Burn-in is disabled.
     """
     return _onepop_PC(
-            "slim", out_dir, seed, 5000, (800, 100), (1000, 1000),
-            slim_burn_in=0)
+        "slim", out_dir, seed, 5000, (800, 100), (1000, 1000), slim_burn_in=0
+    )
 
 
 def onepop_bottleneck_slim3(out_dir, seed):
@@ -125,14 +129,15 @@ def onepop_bottleneck_slim3(out_dir, seed):
     Time and Ne are rescaled by a factor of 10.
     """
     return _onepop_PC(
-            "slim", out_dir, seed, 5000, (800, 100), (1000, 1000),
-            slim_scaling_factor=10)
+        "slim", out_dir, seed, 5000, (800, 100), (1000, 1000), slim_scaling_factor=10
+    )
 
 
 class _PiecewiseSize(stdpopsim.DemographicModel):
     """
     A copy of stdpopsim.PiecewiseConstantSize that permits growth rates.
     """
+
     id = "Piecewise"
     description = "Piecewise size population model over multiple epochs."
     citations = []
@@ -144,20 +149,26 @@ class _PiecewiseSize(stdpopsim.DemographicModel):
     def __init__(self, N0, growth_rate, *args):
         self.population_configurations = [
             msprime.PopulationConfiguration(
-                initial_size=N0, growth_rate=growth_rate,
-                metadata=self.populations[0].asdict())
+                initial_size=N0,
+                growth_rate=growth_rate,
+                metadata=self.populations[0].asdict(),
+            )
         ]
         self.migration_matrix = [[0]]
         self.demographic_events = []
         for t, initial_size, growth_rate in args:
-            self.demographic_events.append(msprime.PopulationParametersChange(
-                time=t, initial_size=initial_size, growth_rate=growth_rate,
-                population_id=0))
+            self.demographic_events.append(
+                msprime.PopulationParametersChange(
+                    time=t,
+                    initial_size=initial_size,
+                    growth_rate=growth_rate,
+                    population_id=0,
+                )
+            )
 
 
-def _onepop_expgrowth(
-        engine_id, out_dir, seed, N0=5000, N1=500, T=1000, **sim_kwargs):
-    growth_rate = - np.log(N1 / N0) / T
+def _onepop_expgrowth(engine_id, out_dir, seed, N0=5000, N1=500, T=1000, **sim_kwargs):
+    growth_rate = -np.log(N1 / N0) / T
     species = stdpopsim.get_species("DroMel")
     contig = species.get_contig("chr2R", length_multiplier=0.01)  # ~250 kb
     contig = irradiate(contig)
@@ -204,14 +215,23 @@ def onepop_expgrowth_slim3(out_dir, seed):
 
 
 def _twopop_IM(
-        engine_id, out_dir, seed,
-        NA=1000, N1=500, N2=5000, T=1000, M12=0, M21=0, pulse=None, samples=None,
-        **sim_kwargs):
+    engine_id,
+    out_dir,
+    seed,
+    NA=1000,
+    N1=500,
+    N2=5000,
+    T=1000,
+    M12=0,
+    M21=0,
+    pulse=None,
+    samples=None,
+    **sim_kwargs,
+):
     species = stdpopsim.get_species("AraTha")
     contig = species.get_contig("chr5", length_multiplier=0.01)  # ~270 kb
     contig = irradiate(contig)
-    model = stdpopsim.IsolationWithMigration(
-            NA=NA, N1=N1, N2=N2, T=T, M12=M12, M21=M21)
+    model = stdpopsim.IsolationWithMigration(NA=NA, N1=N1, N2=N2, T=T, M12=M12, M21=M21)
     if pulse is not None:
         model.demographic_events.append(pulse)
         model.demographic_events.sort(key=lambda x: x.time)
@@ -248,8 +268,7 @@ def twopop_no_migration_slim2(out_dir, seed):
     Two populations with different sizes and no migrations.
     Burn-in is disabled. Time and Ne are rescaled by a factor of 10.
     """
-    return _twopop_IM(
-            "slim", out_dir, seed, slim_burn_in=0, slim_scaling_factor=10)
+    return _twopop_IM("slim", out_dir, seed, slim_burn_in=0, slim_scaling_factor=10)
 
 
 def twopop_asymmetric_migration_msprime1(out_dir, seed):
@@ -272,12 +291,11 @@ def twopop_asymmetric_migration_slim2(out_dir, seed):
     Burn-in is disabled. Time and Ne are rescaled by a factor of 10.
     """
     return _twopop_IM(
-            "slim", out_dir, seed, M12=0, M21=0.001,
-            slim_burn_in=0, slim_scaling_factor=10)
+        "slim", out_dir, seed, M12=0, M21=0.001, slim_burn_in=0, slim_scaling_factor=10
+    )
 
 
-_pulse_m21 = msprime.MassMigration(
-        time=20, proportion=0.1, source=1, destination=0)
+_pulse_m21 = msprime.MassMigration(time=20, proportion=0.1, source=1, destination=0)
 
 
 def twopop_pulse_migration_msprime1(out_dir, seed):
@@ -300,8 +318,8 @@ def twopop_pulse_migration_slim2(out_dir, seed):
     Burn-in is disabled. Time and Ne are rescaled by a factor of 10.
     """
     return _twopop_IM(
-            "slim", out_dir, seed, pulse=_pulse_m21,
-            slim_burn_in=0, slim_scaling_factor=10)
+        "slim", out_dir, seed, pulse=_pulse_m21, slim_burn_in=0, slim_scaling_factor=10
+    )
 
 
 _ancient_samples = 50 * [msprime.Sample(0, time=0), msprime.Sample(1, time=500)]
@@ -327,8 +345,13 @@ def twopop_ancient_samples_slim2(out_dir, seed):
     Burn-in is disabled. Time and Ne are rescaled by a factor of 10.
     """
     return _twopop_IM(
-            "slim", out_dir, seed, samples=_ancient_samples,
-            slim_burn_in=0, slim_scaling_factor=10)
+        "slim",
+        out_dir,
+        seed,
+        samples=_ancient_samples,
+        slim_burn_in=0,
+        slim_scaling_factor=10,
+    )
 
 
 def do_cmd(cmd, out_dir, seed):
@@ -404,21 +427,23 @@ def tmrca(ts):
     """
     tmrcas = [tree.time(tree.root) for tree in ts.trees()]
     min_, median, max_ = np.quantile(tmrcas, (0, 0.5, 1))
-    return {"min(tmrca)": min_,
-            "median(tmrca)": median,
-            "max(tmrca)": max_,
-            }
+    return {
+        "min(tmrca)": min_,
+        "median(tmrca)": median,
+        "max(tmrca)": max_,
+    }
 
 
 def ts_properties(ts):
     """
     TreeSequence properties.
     """
-    return {"num_trees": ts.num_trees,
-            "num_edges": ts.num_edges,
-            "num_nodes": ts.num_nodes,
-            "num_sites": ts.num_sites,
-            }
+    return {
+        "num_trees": ts.num_trees,
+        "num_edges": ts.num_edges,
+        "num_nodes": ts.num_nodes,
+        "num_sites": ts.num_sites,
+    }
 
 
 def pooled_pop_stats(ts):
@@ -428,12 +453,13 @@ def pooled_pop_stats(ts):
     n = ts.num_samples // 2
     samples = list(itertools.chain(*(ts.samples(i) for i in range(ts.num_populations))))
     sample_sets = [samples[:n], samples[n:]]
-    return {"diversity": ts.diversity(),
-            "Tajimas_D": ts.Tajimas_D(),
-            "$f_2$": ts.f2(sample_sets),
-            "$Y_2$": ts.Y2(sample_sets),
-            "segregating_sites": ts.segregating_sites(),
-            }
+    return {
+        "diversity": ts.diversity(),
+        "Tajimas_D": ts.Tajimas_D(),
+        "$f_2$": ts.f2(sample_sets),
+        "$Y_2$": ts.Y2(sample_sets),
+        "segregating_sites": ts.segregating_sites(),
+    }
 
 
 def pairwise_pop_stats(ts):
@@ -455,7 +481,8 @@ def pairwise_pop_stats(ts):
 
 
 def linkage_disequilibrium(
-        ts, span=40000, bins=20, min_obs_per_bin=8, max_sequence_length=1e6):
+    ts, span=40000, bins=20, min_obs_per_bin=8, max_sequence_length=1e6
+):
     """
     R^2 as a function of site-separation distance, for `bins` bins up to a
     site-separation distance of `span` bp.
@@ -469,8 +496,8 @@ def linkage_disequilibrium(
     nans = np.full(bins, np.nan)
     if num_sites >= min_obs_per_bin:
         gts = np.expand_dims(ts.genotype_matrix(), axis=-1)
-        gn = allel.GenotypeArray(gts, dtype='i1').to_n_alt()
-        ld = allel.rogers_huff_r(gn)**2
+        gn = allel.GenotypeArray(gts, dtype="i1").to_n_alt()
+        ld = allel.rogers_huff_r(gn) ** 2
         assert len(ld) == num_sites * (num_sites - 1) // 2
 
         # Bin the pairwise site R^2 in `ld` by site separation distance.
@@ -478,7 +505,7 @@ def linkage_disequilibrium(
         n = np.zeros(bins)
         i = 0
         for j in range(num_sites):
-            for k in range(j+1, num_sites):
+            for k in range(j + 1, num_sites):
                 distance = position[k] - position[j]
                 if distance >= span:
                     break
@@ -494,9 +521,11 @@ def linkage_disequilibrium(
         # LD plots may be blank.
         r2 = nans
 
-    return {f"$\Delta$bp$\in[{span*k/bins/1000:.0f}\,$k$,"  # NOQA
-            f"{span*(k+1)/bins/1000:.0f}\,$k$)$": r2[k]     # NOQA
-            for k in range(bins)}
+    return {
+        f"$\Delta$bp$\in[{span*k/bins/1000:.0f}\,$k$,"  # NOQA
+        f"{span*(k+1)/bins/1000:.0f}\,$k$)$": r2[k]  # NOQA
+        for k in range(bins)
+    }
 
 
 def allele_frequency_spectrum(ts, bins=20):
@@ -509,9 +538,10 @@ def allele_frequency_spectrum(ts, bins=20):
     for j in range(1, len(full_afs)):
         index = int((j - 1) * bins / (len(full_afs) - 1))
         afs[index] += full_afs[j]
-    afs = np.log(1+afs)
-    return {f"AF$\in$[{k/bins:.2f},{(k+1)/bins:.2f})": afs[k]  # NOQA
-            for k in range(bins)}
+    afs = np.log(1 + afs)
+    return {
+        f"AF$\in$[{k/bins:.2f},{(k+1)/bins:.2f})": afs[k] for k in range(bins)  # NOQA
+    }
 
 
 def node_arity(ts):
@@ -531,9 +561,10 @@ def node_arity(ts):
                 if num_children > 2:
                     non_binary += 1
 
-    return {"max(node_arity)": max_arity,
-            "count(node_arity>2)": non_binary,
-            }
+    return {
+        "max(node_arity)": max_arity,
+        "count(node_arity>2)": non_binary,
+    }
 
 
 _simulation_functions = [
@@ -549,7 +580,6 @@ _simulation_functions = [
     onepop_expgrowth_slim1,
     onepop_expgrowth_slim2,
     onepop_expgrowth_slim3,
-
     twopop_no_migration_msprime1,
     twopop_no_migration_slim1,
     twopop_no_migration_slim2,
@@ -562,7 +592,6 @@ _simulation_functions = [
     twopop_ancient_samples_msprime1,
     twopop_ancient_samples_slim1,
     twopop_ancient_samples_slim2,
-
     Africa_1T12_msprime1,
     Africa_1T12_slim1,
     OutOfAfrica_3G09_msprime1,
@@ -580,9 +609,8 @@ _stats_functions = [
     pairwise_pop_stats,
     linkage_disequilibrium,
     allele_frequency_spectrum,
-
     # Node arity stats are disabled as they're only relevant in special cases.
-    #node_arity,
+    # node_arity,
 ]
 
 _default_comparisons = [
@@ -595,7 +623,6 @@ _default_comparisons = [
     (onepop_expgrowth_msprime1, onepop_expgrowth_slim1),
     (onepop_expgrowth_msprime1, onepop_expgrowth_slim2),
     (onepop_expgrowth_msprime1, onepop_expgrowth_slim3),
-
     (twopop_no_migration_msprime1, twopop_no_migration_slim1),
     (twopop_no_migration_msprime1, twopop_no_migration_slim2),
     (twopop_asymmetric_migration_msprime1, twopop_asymmetric_migration_slim1),
@@ -604,7 +631,6 @@ _default_comparisons = [
     (twopop_pulse_migration_msprime1, twopop_pulse_migration_slim2),
     (twopop_ancient_samples_msprime1, twopop_ancient_samples_slim1),
     (twopop_ancient_samples_msprime1, twopop_ancient_samples_slim2),
-
     (Africa_1T12_msprime1, Africa_1T12_slim1),
     (OutOfAfrica_3G09_msprime1, OutOfAfrica_3G09_slim1),
     (AmericanAdmixture_4B11_msprime1, AmericanAdmixture_4B11_slim1),
@@ -613,15 +639,14 @@ _default_comparisons = [
 
 stats_functions = {f.__name__: f for f in _stats_functions}
 simulation_functions = {f.__name__: f for f in _simulation_functions}
-default_comparisons = [(t[0].__name__, t[1].__name__)
-                       for t in _default_comparisons]
+default_comparisons = [(t[0].__name__, t[1].__name__) for t in _default_comparisons]
 
 
 def do_simulations(rng, path, num_replicates, executor, key):
     out_dir = path / "trees" / key
     out_dir.mkdir(parents=True, exist_ok=True)
     func = functools.partial(simulation_functions[key], out_dir)
-    seeds = (rng.randrange(1, 2**32) for _ in range(num_replicates))
+    seeds = (rng.randrange(1, 2 ** 32) for _ in range(num_replicates))
     res = list(executor.map(func, seeds))
     files, times = zip(*res)
     # dump timing info to a file
@@ -665,7 +690,7 @@ def custom_violinplot(ax, data, labels):
     Violin plot with a colour scheme shown in the matplotlib gallery.
     https://matplotlib.org/3.1.3/gallery/statistics/customized_violin.html
     """
-    inds = list(range(1, len(labels)+1))
+    inds = list(range(1, len(labels) + 1))
     quartile1, medians, quartile3 = np.percentile(data, [25, 50, 75], axis=1)
     parts = ax.violinplot(data, vert=False)
     collections = [parts[x] for x in parts.keys() if x != "bodies"] + parts["bodies"]
@@ -673,8 +698,8 @@ def custom_violinplot(ax, data, labels):
         pc.set_facecolor("#D43F3A")
         pc.set_edgecolor("black")
         pc.set_alpha(1)
-    ax.scatter(medians, inds, marker='o', fc="white", ec="black", s=30, zorder=3)
-    ax.hlines(inds, quartile1, quartile3, color='k', linestyle='-', lw=5)
+    ax.scatter(medians, inds, marker="o", fc="white", ec="black", s=30, zorder=3)
+    ax.hlines(inds, quartile1, quartile3, color="k", linestyle="-", lw=5)
     ax.set_yticks(inds)
     ax.set_yticklabels(labels)
 
@@ -686,8 +711,8 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
     cmap = plt.get_cmap("tab10")
     markers = "oXdPvp*"
     scale = 1.25
-    fig_w, fig_h = plt.figaspect(9.0/16.0)
-    figsize = (scale*fig_w, scale*fig_h)
+    fig_w, fig_h = plt.figaspect(9.0 / 16.0)
+    figsize = (scale * fig_w, scale * fig_h)
 
     times1, times2 = times[sim_key1], times[sim_key2]
     stats1, stats2 = stats[sim_key1], stats[sim_key2]
@@ -706,7 +731,7 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
         if f2 is not None and f2.__doc__:
             label2 += "\n" + f2.__doc__
         custom_violinplot(ax, [times1, times2], [label1, label2])
-        ax.set_title(f"Run time.")
+        ax.set_title("Run time.")
         ax.set_xlabel("time (seconds)")
         ax.set_xlim(left=min(ax.get_xlim()[0], 0))
         fig.tight_layout()
@@ -728,10 +753,12 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
             shared_min = 1e9
             shared_max = -1e9
         fig, axs = plt.subplots(
-                nrows=nrows, ncols=ncols, figsize=figsize,
-                sharex="all" if share is True else "none",
-                sharey="all" if share is True else "none",
-                )
+            nrows=nrows,
+            ncols=ncols,
+            figsize=figsize,
+            sharex="all" if share is True else "none",
+            sharey="all" if share is True else "none",
+        )
         axs = np.array(axs).reshape(-1)
         assert len(axs) >= len(inner_keys)
         imarker = itertools.cycle(markers)
@@ -750,7 +777,7 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
             # Tails of the distribution are distinguished using open markers,
             # as opposed to solid/closed markers for the body. `hi` has +1 to
             # get equal numbers of points in each tail.
-            lo, median, hi = 5, 50, 95+1
+            lo, median, hi = 5, 50, 95 + 1
             colour = next(icolour)
             marker = next(imarker)
             ax.scatter(xq[:lo], yq[:lo], ec=colour, fc="none", marker=marker)
@@ -766,8 +793,9 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
                 shared_min = min(min_, shared_min)
                 shared_max = max(max_, shared_max)
             else:
-                ax.plot([min_, max_], [min_, max_],
-                        c="lightgray", ls="--", lw=1, zorder=-10)
+                ax.plot(
+                    [min_, max_], [min_, max_], c="lightgray", ls="--", lw=1, zorder=-10
+                )
 
             save_fig = True
 
@@ -783,8 +811,14 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
                 ax.set_yticks([])
                 ax.set_yticklabels([])
             if share and i < len(inner_keys):
-                ax.plot([shared_min, shared_max], [shared_min, shared_max],
-                        c="lightgray", ls="--", lw=1, zorder=-10)
+                ax.plot(
+                    [shared_min, shared_max],
+                    [shared_min, shared_max],
+                    c="lightgray",
+                    ls="--",
+                    lw=1,
+                    zorder=-10,
+                )
             if i >= len(inner_keys):
                 # hide axes that weren't drawn on
                 ax.set_axis_off()
@@ -803,7 +837,7 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
         ax.set_xlabel(sim_key1, labelpad=30)
         ax.set_ylabel(sim_key2, labelpad=50)
         fig.tight_layout()
-        pdf.savefig(figure=fig, bbox_inches='tight')
+        pdf.savefig(figure=fig, bbox_inches="tight")
         plt.close(fig)
 
     pdf.close()
@@ -811,34 +845,61 @@ def do_plots(path, sim_key1, sim_key2, times, stats):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-            description="Do validation simulations and make QQ plots.")
+        description="Do validation simulations and make QQ plots."
+    )
     parser.add_argument(
-            "-o", "--output-folder", metavar="DIR",
-            type=pathlib.Path, default=pathlib.Path("validation"),
-            help="Folder to store validation plots and tree sequences "
-                 "[%(default)s].")
+        "-o",
+        "--output-folder",
+        metavar="DIR",
+        type=pathlib.Path,
+        default=pathlib.Path("validation"),
+        help="Folder to store validation plots and tree sequences [%(default)s].",
+    )
 
     mutex_group = parser.add_mutually_exclusive_group()
     mutex_group.add_argument(
-            "-n", "--no-plots", action="store_true", default=False,
-            help="Don't make plots, just do the simulations [%(default)s].")
+        "-n",
+        "--no-plots",
+        action="store_true",
+        default=False,
+        help="Don't make plots, just do the simulations [%(default)s].",
+    )
     mutex_group.add_argument(
-            "-p", "--plot-only", action="store_true", default=False,
-            help="Don't simulate, just make QQ plots from preexisting files "
-                 "[%(default)s].")
+        "-p",
+        "--plot-only",
+        action="store_true",
+        default=False,
+        help="Don't simulate, just make QQ plots from preexisting files "
+        "[%(default)s].",
+    )
 
     parser.add_argument(
-            "-j", "--num-procs", metavar="NPROCS", type=int, default=1,
-            help="Number of simulations to run simultaneously [%(default)s].")
+        "-j",
+        "--num-procs",
+        metavar="NPROCS",
+        type=int,
+        default=1,
+        help="Number of simulations to run simultaneously [%(default)s].",
+    )
     parser.add_argument(
-            "-r", "--num-replicates", metavar="NREPS", type=int, default=100,
-            help="Number of replicates for each simulation key [%(default)s].")
+        "-r",
+        "--num-replicates",
+        metavar="NREPS",
+        type=int,
+        default=100,
+        help="Number of replicates for each simulation key [%(default)s].",
+    )
     parser.add_argument(
-            "-s", "--seed", metavar="SEED", type=int, default=1234,
-            help="Seed for the random number generator [%(default)s].")
+        "-s",
+        "--seed",
+        metavar="SEED",
+        type=int,
+        default=1234,
+        help="Seed for the random number generator [%(default)s].",
+    )
     parser.add_argument(
-            "keys", nargs="*",
-            help="One or more scenarios to simulate and/or compare.")
+        "keys", nargs="*", help="One or more scenarios to simulate and/or compare."
+    )
 
     args = parser.parse_args()
 
@@ -885,11 +946,10 @@ if __name__ == "__main__":
 
                 if not args.plot_only:
                     files[key], times[key] = do_simulations(
-                            rng, args.output_folder, args.num_replicates,
-                            executor, key)
+                        rng, args.output_folder, args.num_replicates, executor, key
+                    )
                 else:
-                    files[key], times[key] = find_simulations(
-                            args.output_folder, key)
+                    files[key], times[key] = find_simulations(args.output_folder, key)
 
                 print(".", end="", flush=True)
 
