@@ -3,6 +3,7 @@ Tests for the genetic species interface.
 """
 import unittest
 import math
+import numpy as np
 
 import msprime
 
@@ -14,6 +15,7 @@ class TestSpecies(unittest.TestCase):
     """
     Tests for basic methods for the species.
     """
+
     def test_str(self):
         for species in stdpopsim.all_species():
             s = str(species)
@@ -90,6 +92,7 @@ class SpeciesTestMixin(object):
     """
     Mixin class for testing individual species properties.
     """
+
     species = None  # To be defined in subclasses.
 
     def test_str(self):
@@ -114,6 +117,7 @@ class GenomeTestMixin(object):
     """
     Mixin class for testing individual genome properties.
     """
+
     genome = None  # To be defined in subclasses.
 
     def test_str(self):
@@ -154,6 +158,7 @@ class TestAllGenomes(unittest.TestCase):
     """
     Tests for basic properties aon all genomes.
     """
+
     def test_str(self):
         for species in stdpopsim.all_species():
             s = str(species.genome)
@@ -165,6 +170,7 @@ class TestGetContig(unittest.TestCase):
     """
     Tests for the get contig method.
     """
+
     species = stdpopsim.get_species("HomSap")
 
     def test_length_multiplier(self):
@@ -173,14 +179,70 @@ class TestGetContig(unittest.TestCase):
             contig2 = self.species.get_contig("chr22", length_multiplier=x)
             self.assertEqual(
                 contig1.recombination_map.get_positions()[-1] * x,
-                contig2.recombination_map.get_positions()[-1])
+                contig2.recombination_map.get_positions()[-1],
+            )
 
     def test_length_multiplier_on_empirical_map(self):
         with self.assertRaises(ValueError):
             self.species.get_contig(
-                "chr1", genetic_map="HapMapII_GRCh37", length_multiplier=2)
+                "chr1", genetic_map="HapMapII_GRCh37", length_multiplier=2
+            )
 
     def test_genetic_map(self):
         # TODO we should use a different map here so we're not hitting the cache.
         contig = self.species.get_contig("chr22", genetic_map="HapMapII_GRCh37")
         self.assertIsInstance(contig.recombination_map, msprime.RecombinationMap)
+
+    def test_contig_options(self):
+        with self.assertRaises(ValueError):
+            # cannot use genetic map with generic contig
+            self.species.get_contig(genetic_map="ABC")
+        with self.assertRaises(ValueError):
+            # cannot use length multiplier with generic contig
+            self.species.get_contig(length_multiplier=0.1)
+        with self.assertRaises(ValueError):
+            # must specify length with generic contig or give chromosome name
+            self.species.get_contig()
+        with self.assertRaises(ValueError):
+            # cannot specify length with named chromosome
+            self.species.get_contig("chr1", length=1e6)
+        with self.assertRaises(ValueError):
+            # cannot specify mask for generic contig
+            self.species.get_contig(length=1e4, inclusion_mask=[(0, 100)])
+        with self.assertRaises(ValueError):
+            # connot specify mask for generic contig
+            self.species.get_contig(length=1e4, exclusion_mask=[(0, 100)])
+        with self.assertRaises(ValueError):
+            # cannot use length multiplier with mask
+            self.species.get_contig(
+                "chr22", inclusion_mask=[(0, 100)], length_multiplier=0.1
+            )
+        with self.assertRaises(ValueError):
+            # cannot use length multiplier with mask
+            self.species.get_contig(
+                "chr22", exclusion_mask=[(0, 100)], length_multiplier=0.1
+            )
+
+    def test_generic_contig(self):
+        L = 1e6
+        contig = self.species.get_contig(length=L)
+        self.assertTrue(contig.recombination_map.get_length() == L)
+
+        chrom_ids = np.arange(1, 23).astype("str")
+        Ls = [c.length for c in self.species.genome.chromosomes if c.id in chrom_ids]
+        rs = [
+            c.recombination_rate
+            for c in self.species.genome.chromosomes
+            if c.id in chrom_ids
+        ]
+        us = [
+            c.mutation_rate
+            for c in self.species.genome.chromosomes
+            if c.id in chrom_ids
+        ]
+
+        self.assertTrue(contig.mutation_rate == np.average(us, weights=Ls))
+        self.assertTrue(
+            contig.recombination_map.mean_recombination_rate
+            == np.average(rs, weights=Ls)
+        )

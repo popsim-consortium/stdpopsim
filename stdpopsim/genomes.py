@@ -23,6 +23,7 @@ class Genome:
     :ivar length: The total length of the genome.
     :vartype length: int
     """
+
     chromosomes = attr.ib(factory=list)
     mutation_rate_citations = attr.ib(factory=list, kw_only=True)
     recombination_rate_citations = attr.ib(factory=list, kw_only=True)
@@ -98,6 +99,7 @@ class Chromosome:
         chromosome by ID, e.g. from the command line interface.
     :vartype synonyms: list of str
     """
+
     id = attr.ib(type=str, kw_only=True)
     length = attr.ib(kw_only=True)
     recombination_rate = attr.ib(type=float, kw_only=True)
@@ -119,9 +121,16 @@ class Contig:
         <https://msprime.readthedocs.io/en/stable/api.html#msprime.RecombinationMap>`_
         for more details.
     :vartype recombination_map: msprime.simulations.RecombinationMap
+    :ivar mask_intervals: Intervals to keep in simulated tree sequence, as a list
+        of (left_position, right_position), such that intervals are non-overlapping
+        and in ascending order. Should have shape Nx2, where N is the number of
+        intervals.
+    :vartype mask_intervals: array-like (?)
+    :ivar exclude: If True, ``mask_intervals`` specify regions to exclude. If False,
+        ``mask_intervals`` specify regions in keep.
+    :vartype exclude: bool
 
     .. note::
-
         To run stdpopsim simulations with alternative, user-specified mutation
         or recombination rates, a new contig can be created based on an existing
         one. For instance, the following will create a ``new_contig`` that,
@@ -135,17 +144,22 @@ class Contig:
                 genetic_map=old_contig.genetic_map,
             )
     """
+
     recombination_map = attr.ib(default=None, kw_only=True)
     mutation_rate = attr.ib(default=None, type=float, kw_only=True)
     genetic_map = attr.ib(default=None, kw_only=True)
+    inclusion_mask = attr.ib(default=None, kw_only=True)
+    exclusion_mask = attr.ib(default=None, kw_only=True)
 
     def __str__(self):
         gmap = "None" if self.genetic_map is None else self.genetic_map.id
         s = (
             "Contig(length={:.2G}, recombination_rate={:.2G}, "
-            "mutation_rate={:.2G}, genetic_map={})").format(
-                self.recombination_map.get_length(),
-                self.recombination_map.mean_recombination_rate,
-                self.mutation_rate,
-                gmap)
+            "mutation_rate={:.2G}, genetic_map={})"
+        ).format(
+            self.recombination_map.get_length(),
+            self.recombination_map.mean_recombination_rate,
+            self.mutation_rate,
+            gmap,
+        )
         return s

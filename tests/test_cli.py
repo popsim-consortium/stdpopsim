@@ -216,7 +216,7 @@ class TestEndToEnd(unittest.TestCase):
         self.assertEqual(prov_seed, seed)
 
     def test_homsap_seed(self):
-        cmd = "HomSap -c chr22 -l0.1 20"
+        cmd = "HomSap -c chr22 -l0.1 -s 1234 20"
         self.verify(cmd, num_samples=20, seed=1234)
 
     def test_homsap_constant(self):
@@ -252,15 +252,15 @@ class TestEndToEnd(unittest.TestCase):
         self.verify(cmd, num_samples=3)
 
     def test_aratha_constant(self):
-        cmd = "AraTha -l 0.001 8"
+        cmd = "AraTha -L 100 8"
         self.verify(cmd, num_samples=8)
 
     def test_durvusula_2017_msmc(self):
-        cmd = "AraTha -l 0.001 -d SouthMiddleAtlas_1D17 7"
+        cmd = "AraTha -L 100 -d SouthMiddleAtlas_1D17 7"
         self.verify(cmd, num_samples=7)
 
     def test_lapierre_constant(self):
-        cmd = "EscCol -l 1e-7 2"
+        cmd = "EscCol -L 100 2"
         self.verify(cmd, num_samples=2)
 
 
@@ -740,7 +740,7 @@ class TestDryRun(unittest.TestCase):
             path = pathlib.Path(tmpdir)
             with open(path / "stderr", "w+") as stderr:
                 filename = path / "output.trees"
-                cmd = f"{sys.executable} -m stdpopsim HomSap -D -l 0.01 -o {filename} 2"
+                cmd = f"{sys.executable} -m stdpopsim HomSap -D -L 1000 -o {filename} 2"
                 subprocess.run(cmd, stderr=stderr, shell=True, check=True)
                 self.assertGreater(stderr.tell(), 0)
             self.assertFalse(os.path.isfile(filename))
@@ -751,7 +751,7 @@ class TestDryRun(unittest.TestCase):
             with open(path / "stderr", "w+") as stderr:
                 filename = path / "output.trees"
                 cmd = (
-                    f"{sys.executable} -m stdpopsim -q HomSap -D -l 0.01 "
+                    f"{sys.executable} -m stdpopsim -q HomSap -D -L 1000 "
                     "-o {filename} 2")
                 subprocess.run(cmd, stderr=stderr, shell=True, check=True)
                 self.assertEqual(stderr.tell(), 0)
@@ -762,7 +762,7 @@ class TestMsprimeEngine(unittest.TestCase):
     def docmd(self, _cmd):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
-            cmd = f"-q -e msprime {_cmd} AraTha -l 0.001 --seed 1 -o {filename} 10"
+            cmd = f"-q -e msprime {_cmd} AraTha -L 100 --seed 1 -o {filename} 10"
             return capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
 
     def test_simulate(self):
@@ -848,10 +848,10 @@ class TestNoQCWarning(unittest.TestCase):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
 
     def test_noQC_warning(self):
-        self.verify_noQC_warning("EscCol -d FakeModel -D 10")
+        self.verify_noQC_warning("EscCol -d FakeModel -D 10 -L 10")
 
     def test_noQC_warning_quiet(self):
-        self.verify_noQC_warning("-q EscCol -d FakeModel -D 10")
+        self.verify_noQC_warning("-q EscCol -d FakeModel -D 10 -L 10")
 
     def verify_noQC_citations_not_written(self, cmd):
         # Non-QCed models shouldn't be used in publications, so citations
@@ -868,7 +868,7 @@ class TestNoQCWarning(unittest.TestCase):
             self.assertFalse(citation.doi in log_output)
 
     def test_noQC_citations_not_written(self):
-        self.verify_noQC_citations_not_written("EscCol -d FakeModel -D 10")
+        self.verify_noQC_citations_not_written("EscCol -d FakeModel -D 10 -L 10")
 
     def test_noQC_citations_not_written_verbose(self):
-        self.verify_noQC_citations_not_written("-vv EscCol -d FakeModel -D 10")
+        self.verify_noQC_citations_not_written("-vv EscCol -d FakeModel -D 10 -L 10")

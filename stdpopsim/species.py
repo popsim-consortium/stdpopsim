@@ -9,6 +9,7 @@ import attr
 import msprime
 
 import stdpopsim
+import stdpopsim.utils
 
 logger = logging.getLogger(__name__)
 
@@ -33,8 +34,8 @@ def get_species(id):
     Returns a :class:`Species` object for the specified ``id``.
 
     :param str id: The string identifier for the requested species. E.g. "HomSap".
-         A complete list of species, and their IDs, can be found in the
-         :ref:`sec_catalog`.
+        A complete list of species, and their IDs, can be found in the
+        :ref:`sec_catalog`.
     :return: An object containing the species definition.
     :rtype: :class:`Species`
     """
@@ -47,6 +48,7 @@ def get_species(id):
 
 # Convenience methods for getting all the species/genetic maps/models
 # we have defined in the catalog.
+
 
 def all_species():
     """
@@ -151,15 +153,25 @@ class Species:
         """
         return self.name.lower().replace(" ", "_")
 
-    def get_contig(self, chromosome, genetic_map=None, length_multiplier=1):
+    def get_contig(
+        self,
+        chromosome=None,
+        genetic_map=None,
+        length_multiplier=1,
+        length=None,
+        inclusion_mask=None,
+        exclusion_mask=None,
+    ):
         """
         Returns a :class:`.Contig` instance describing a section of genome that
         is to be simulated based on empirical information for a given species
         and chromosome.
 
         :param str chromosome: The ID of the chromosome to simulate.
-             A complete list of chromosome IDs for each species can be found in the
-             "Genome" subsection for the species in the :ref:`sec_catalog`.
+            A complete list of chromosome IDs for each species can be found in the
+            "Genome" subsection for the species in the :ref:`sec_catalog`.
+            If the chromosome is not given, we specify a "generic" contig with given
+            ``length``.
         :param str genetic_map: If specified, obtain recombination rate information
             from the genetic map with the specified ID. If None, simulate
             using a default uniform recombination rate on a region with the length of
@@ -170,32 +182,100 @@ class Species:
             same chromosome-specific mutation and recombination rates.
             This option cannot currently be used in conjunction with the
             ``genetic_map`` argument.
+        :param inclusion_mask: If specified, simulated genomes are subset to only
+            inlude regions given by the mask. The mask can be specified by the
+            path and file name of a bed file or as a list or array of intervals
+            given by the left and right end points of the intervals.
+        :param exclusion_mask: If specified, simulated genomes are subset to exclude
+            regions given by the mask. The mask can be specified by the
+            path and file name of a bed file or as a list or array of intervals
+            given by the left and right end points of the intervals.
+        :param float length: Used with a "generic" contig, specifies the
+            length of genome sequence for this contig. For a generic contig, mutation
+            and recombination rates are equal to the genome-wide average across all
+            autosomal chromosomes.
         :rtype: :class:`.Contig`
         :return: A :class:`.Contig` describing the section of the genome.
         """
         # TODO: add non-autosomal support
-        if (chromosome is not None and
-                chromosome.lower() in ("x", "y", "m", "mt", "chrx", "chry", "chrm")):
-            warnings.warn(stdpopsim.NonAutosomalWarning(
+        non_autosomal_lower = ["x", "y", "m", "mt", "chrx", "chry", "chrm"]
+        if chromosome is not None and chromosome.lower() in non_autosomal_lower:
+            warnings.warn(
+                stdpopsim.NonAutosomalWarning(
                     "Non-autosomal simulations are not yet supported. See "
                     "https://github.com/popsim-consortium/stdpopsim/issues/383 and "
-                    "https://github.com/popsim-consortium/stdpopsim/issues/406"))
-        chrom = self.genome.get_chromosome(chromosome)
-        if genetic_map is None:
-            logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.id}")
-            gm = None
-            recomb_map = msprime.RecombinationMap.uniform_map(
-                chrom.length * length_multiplier, chrom.recombination_rate)
-        else:
+                    "https://github.com/popsim-consortium/stdpopsim/issues/406"
+                )
+            )
+        if chromosome is None:
+            if genetic_map is not None:
+                raise ValueError("Cannot use genetic map with generic contic")
             if length_multiplier != 1:
-                raise ValueError("Cannot use length multiplier with empirical maps")
-            logger.debug(f"Getting map for {chrom.id} from {genetic_map}")
-            gm = self.get_genetic_map(genetic_map)
-            recomb_map = gm.get_chromosome_map(chrom.id)
+                raise ValueError("Cannot use length multiplier for generic contig")
+            if inclusion_mask is not None or exclusion_mask is not None:
+                raise ValueError("Cannot use mask with generic contig")
+            if length is None:
+                raise ValueError("Must specify sequence length of generic contig")
+            L_tot = 0
+            r_tot = 0
+            u_tot = 0
+            for chrom_data in self.genome.chromosomes:
+                if chrom_data.id.lower() not in non_autosomal_lower:
+                    L_tot += chrom_data.length
+                    r_tot += chrom_data.length * chrom_data.recombination_rate
+                    u_tot += chrom_data.length * chrom_data.mutation_rate
+            u = u_tot / L_tot
+            r = r_tot / L_tot
+            recomb_map = msprime.RecombinationMap.uniform_map(length, r)
+            ret = stdpopsim.Contig(recombination_map=recomb_map, mutation_rate=u)
+        else:
+            if length is not None:
+                raise ValueError("Cannot specify sequence length for named contig")
+            if inclusion_mask is not None and exclusion_mask is not None:
+                raise ValueError("Cannot specify both inclusion and exclusion masks")
+            chrom = self.genome.get_chromosome(chromosome)
+            if genetic_map is None:
+                logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.id}")
+                gm = None
+                recomb_map = msprime.RecombinationMap.uniform_map(
+                    chrom.length * length_multiplier, chrom.recombination_rate
+                )
+            else:
+                if length_multiplier != 1:
+                    raise ValueError("Cannot use length multiplier with empirical maps")
+                logger.debug(f"Getting map for {chrom.id} from {genetic_map}")
+                gm = self.get_genetic_map(genetic_map)
+                recomb_map = gm.get_chromosome_map(chrom.id)
 
-        ret = stdpopsim.Contig(
-            recombination_map=recomb_map, mutation_rate=chrom.mutation_rate,
-            genetic_map=gm)
+            inclusion_intervals = None
+            exclusion_intervals = None
+            if inclusion_mask is not None:
+                if length_multiplier != 1:
+                    raise ValueError("Cannot use length multiplier with mask")
+                if isinstance(inclusion_mask, str):
+                    inclusion_intervals = stdpopsim.utils.read_bed(
+                        inclusion_mask, chromosome
+                    )
+                else:
+                    inclusion_intervals = inclusion_mask
+            if exclusion_mask is not None:
+                if length_multiplier != 1:
+                    raise ValueError("Cannot use length multiplier with mask")
+                if isinstance(exclusion_mask, str):
+                    exclusion_intervals = stdpopsim.utils.read_bed(
+                        exclusion_mask, chromosome
+                    )
+                else:
+                    exclusion_intervals = exclusion_mask
+
+            ret = stdpopsim.Contig(
+                recombination_map=recomb_map,
+                mutation_rate=chrom.mutation_rate,
+                genetic_map=gm,
+                inclusion_mask=inclusion_intervals,
+                exclusion_mask=exclusion_intervals,
+            )
+
         return ret
 
     def get_demographic_model(self, id):
@@ -203,9 +283,9 @@ class Species:
         Returns a demographic model with the specified ``id``.
 
         :param str id: The string identifier for the demographic model.
-             A complete list of IDs for each species can be found in the
-             "Demographic Models" subsection for the species in the
-             :ref:`sec_catalog`.
+            A complete list of IDs for each species can be found in the
+            "Demographic Models" subsection for the species in the
+            :ref:`sec_catalog`.
         :rtype: :class:`DemographicModel`
         :return: A :class:`DemographicModel` that defines the requested model.
         """
@@ -217,14 +297,15 @@ class Species:
     def add_demographic_model(self, model):
         if model.id in [m.id for m in self.demographic_models]:
             raise ValueError(
-                    f"DemographicModel '{self.id}/{model.id}' already in catalog.")
+                f"DemographicModel '{self.id}/{model.id}' already in catalog."
+            )
         self.demographic_models.append(model)
 
     def add_genetic_map(self, genetic_map):
         if genetic_map.id in [gm.id for gm in self.genetic_maps]:
             raise ValueError(
-                    f"Genetic map '{self.id}/{genetic_map.id}' "
-                    "already in catalog.")
+                f"Genetic map '{self.id}/{genetic_map.id}' already in catalog."
+            )
         genetic_map.species = self
         self.genetic_maps.append(genetic_map)
 
@@ -233,8 +314,8 @@ class Species:
         Returns a genetic map (AKA. recombination map) with the specified ``id``.
 
         :param str id: The string identifier for the genetic map.
-             A complete list of IDs for each species can be found in the
-             "Genetic Maps" subsection for the species in the :ref:`sec_catalog`.
+            A complete list of IDs for each species can be found in the
+            "Genetic Maps" subsection for the species in the :ref:`sec_catalog`.
         :rtype: :class:`GeneticMap`
         :return: A :class:`GeneticMap` that defines the frequency of
             recombinations across the genome.
@@ -247,8 +328,8 @@ class Species:
     def add_annotations(self, annotations):
         if annotations.id in [an.id for an in self.annotations]:
             raise ValueError(
-                    f"Annotations '{self.id}/{annotations.id}' "
-                    "already in catalog.")
+                f"Annotations '{self.id}/{annotations.id}' already in catalog."
+            )
         annotations.species = self
         self.annotations.append(annotations)
 

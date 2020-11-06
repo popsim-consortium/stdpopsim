@@ -64,8 +64,13 @@ class Engine:
     """
 
     def simulate(
-            self, demographic_model=None, contig=None, samples=None, seed=None,
-            dry_run=False):
+        self,
+        demographic_model=None,
+        contig=None,
+        samples=None,
+        seed=None,
+        dry_run=False,
+    ):
         """
         Simulates the model for the specified contig and samples.
 
@@ -99,25 +104,36 @@ class _MsprimeEngine(Engine):
     id = "msprime"  #:
     description = "Msprime coalescent simulator"  #:
     citations = [
-            stdpopsim.Citation(
-                doi="https://doi.org/10.1371/journal.pcbi.1004842",
-                year="2016",
-                author="Kelleher et al.",
-                reasons={stdpopsim.CiteReason.ENGINE}),
-            ]
+        stdpopsim.Citation(
+            doi="https://doi.org/10.1371/journal.pcbi.1004842",
+            year="2016",
+            author="Kelleher et al.",
+            reasons={stdpopsim.CiteReason.ENGINE},
+        )
+    ]
     # We default to the first model in the list.
     supported_models = ["hudson", "dtwf", "smc", "smc_prime"]
-    model_citations = {"dtwf": [
-             stdpopsim.Citation(
-                 doi="https://doi.org/10.1371/journal.pgen.1008619",
-                 year="2020",
-                 author="Nelson et al.",
-                 reasons={stdpopsim.CiteReason.ENGINE}),
-             ]}
+    model_citations = {
+        "dtwf": [
+            stdpopsim.Citation(
+                doi="https://doi.org/10.1371/journal.pgen.1008619",
+                year="2020",
+                author="Nelson et al.",
+                reasons={stdpopsim.CiteReason.ENGINE},
+            )
+        ]
+    }
 
     def simulate(
-            self, demographic_model=None, contig=None, samples=None, seed=None,
-            msprime_model=None, msprime_change_model=None, dry_run=False):
+        self,
+        demographic_model=None,
+        contig=None,
+        samples=None,
+        seed=None,
+        msprime_model=None,
+        msprime_change_model=None,
+        dry_run=False,
+    ):
         """
         Simulate the demographic model using msprime.
         See :meth:`.Engine.simulate()` for definitions of parameters defined
@@ -154,15 +170,22 @@ class _MsprimeEngine(Engine):
             demographic_events.sort(key=lambda x: x.time)
 
         ts = msprime.simulate(
-                samples=samples,
-                recombination_map=contig.recombination_map,
-                mutation_rate=contig.mutation_rate,
-                population_configurations=demographic_model.population_configurations,
-                migration_matrix=demographic_model.migration_matrix,
-                demographic_events=demographic_events,
-                random_seed=seed,
-                model=msprime_model,
-                end_time=0 if dry_run else None)
+            samples=samples,
+            recombination_map=contig.recombination_map,
+            mutation_rate=contig.mutation_rate,
+            population_configurations=demographic_model.population_configurations,
+            migration_matrix=demographic_model.migration_matrix,
+            demographic_events=demographic_events,
+            random_seed=seed,
+            model=msprime_model,
+            end_time=0 if dry_run else None,
+        )
+
+        if contig.inclusion_mask is not None:
+            ts = stdpopsim.utils.mask_tree_sequence(ts, contig.inclusion_mask, False)
+        if contig.exclusion_mask is not None:
+            ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
+
         if dry_run:
             ts = None
         return ts

@@ -8,6 +8,7 @@ import urllib.request
 import shutil
 import tarfile
 import contextlib
+import numpy as np
 
 
 def is_valid_demographic_model_id(model_id):
@@ -116,3 +117,36 @@ def untar(filename, path):
                     f"Refusing to extract {info.name} outside of {path}")
         with cd(path):
             tf.extractall()
+
+
+def read_bed(mask_fpath, chrom):
+    """
+    Returns intervals to keep based on a bed file specified by the mask_fpath.
+    The mask must be in bed format (columns specify chrom, left, right) and
+    additional columns are ignored. Intervals must be non-overlapping.
+
+    Note that the chromosome name must match exactly (i.e. "22" is not equivalent
+    to "chr22").
+    """
+    lines = np.loadtxt(
+        mask_fpath,
+        dtype={"names": ("chrom", "left", "right"), "formats": (object, int, int)},
+        delimiter="\t",
+        usecols=(0, 1, 2),
+    )
+    in_chrom = lines["chrom"] == f"{chrom}"
+    lines = lines.compress(in_chrom)
+    intervals = np.array([lines["left"], lines["right"]]).T
+    return intervals
+
+
+def mask_tree_sequence(ts, mask_intervals, exclude):
+    """
+    Return a masked tree sequence, based on the mask intervals and whether
+    they are kept or excluded.
+    """
+    if exclude is False:
+        ts = ts.keep_intervals(mask_intervals)
+    else:
+        ts = ts.delete_intervals(mask_intervals)
+    return ts

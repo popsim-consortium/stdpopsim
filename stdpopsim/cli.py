@@ -371,22 +371,33 @@ def add_simulate_species_parser(parser, species):
                 "Available maps: "
                 f"{', '.join(choices)}. "))
 
-    if len(species.genome.chromosomes) == 1:
-        species_parser.set_defaults(chromosome=species.genome.chromosomes[0].id)
-    else:
-        # To avoid listing too much stuff out in the help, we only list
-        # the actual IDs. We make all synonyms available as choices though.
-        choices = []
-        all_choices = []
-        for chrom in species.genome.chromosomes:
-            choices.append(chrom.id)
-            all_choices.extend([chrom.id] + chrom.synonyms)
-        species_parser.add_argument(
-            "-c", "--chromosome", choices=all_choices, metavar="", default=choices[0],
-            help=(
-                f"Simulate a specific chromosome. "
-                f"Options: {', '.join(choices)}. "
-                f"Default={choices[0]}."))
+    # To avoid listing too much stuff out in the help, we only list
+    # the actual IDs. We make all synonyms available as choices though.
+    choices = []
+    all_choices = []
+    for chrom in species.genome.chromosomes:
+        choices.append(chrom.id)
+        all_choices.extend([chrom.id] + chrom.synonyms)
+    species_parser.add_argument(
+        "-c", "--chromosome", choices=all_choices, metavar="", default=None,
+        help=(
+            f"Simulate a specific chromosome. If no chromosome is given, "
+            f"simulate a generic contig of given length, specified using --length. "
+            f"Options: {', '.join(choices)}. "
+            f"Default=None."))
+
+    species_parser.add_argument(
+        "-L", "--length", default=None, type=float,
+        help="Simulate a default contig of given length."
+    )
+    species_parser.add_argument(
+        "-i", "--inclusion-mask", default=None, type=str,
+        help="Path to inclusion mask specified in bed format."
+    )
+    species_parser.add_argument(
+        "-e", "--exclusion-mask", default=None, type=str,
+        help="Path to exclusion mask specified in bed format."
+    )
     species_parser.add_argument(
         "-l", "--length-multiplier", default=1, type=float,
         help="Simulate a sequence of length l times the named chromosome's length, "
@@ -440,8 +451,13 @@ def add_simulate_species_parser(parser, species):
                 "populations")
         samples = model.get_samples(*args.samples)
         contig = species.get_contig(
-            args.chromosome, genetic_map=args.genetic_map,
-            length_multiplier=args.length_multiplier)
+            args.chromosome,
+            genetic_map=args.genetic_map,
+            length_multiplier=args.length_multiplier,
+            length=args.length,
+            inclusion_mask=args.inclusion_mask,
+            exclusion_mask=args.exclusion_mask,
+        )
         engine = stdpopsim.get_engine(args.engine)
         logger.info(
             f"Running simulation model {model.id} for {species.id} on "
