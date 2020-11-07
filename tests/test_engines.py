@@ -10,6 +10,7 @@ class TestEngineAPI(unittest.TestCase):
     """
     Tests for the API exposed for simulation engines.
     """
+
     def _test_engine(self, engine):
         self.assertIsInstance(engine, stdpopsim.Engine)
         self.assertIsNotNone(engine.simulate)
@@ -29,6 +30,7 @@ class TestEngineAPI(unittest.TestCase):
             id = "test-engine"
             name = "test"
             citations = []
+
         engine1 = MyEngine()
         stdpopsim.register_engine(engine1)
         engine2 = stdpopsim.get_engine(engine1.id)

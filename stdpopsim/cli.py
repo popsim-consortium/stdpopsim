@@ -28,6 +28,7 @@ import stdpopsim
 _resource_module_available = False
 try:
     import resource
+
     _resource_module_available = True
 except ImportError:
     pass
@@ -55,7 +56,8 @@ class CLIFormatter(logging.Formatter):
         if record.name == "py.warnings":
             # trim the ugly warnings.warn message
             match = re.search(
-                r"Warning:\s*(.*?)\s*warnings.warn\(", record.args[0], re.DOTALL)
+                r"Warning:\s*(.*?)\s*warnings.warn\(", record.args[0], re.DOTALL
+            )
             record.args = (match.group(1),)
             self._style = logging.PercentStyle("WARNING: %(message)s")
         else:
@@ -138,6 +140,7 @@ class HelpModels(argparse.Action):
     """
     Action used to produce model help text.
     """
+
     def __call__(self, parser, namespace, values, option_string=None):
         help_text = get_models_help(namespace.species, values)
         print(help_text, file=sys.stderr)
@@ -173,6 +176,7 @@ class HelpGeneticMaps(argparse.Action):
     """
     Action used to produce genetic map help text.
     """
+
     def __call__(self, parser, namespace, values, option_string=None):
         help_text = get_genetic_maps_help(namespace.species, values)
         print(help_text, file=sys.stderr)
@@ -190,7 +194,9 @@ def get_species_help(species_id):
     species_text += f"Generation time: {species.generation_time}\n"
     species_text += f"Population size: {species.population_size}\n"
     species_text += f"Mutation rate: {species.genome.mean_mutation_rate:.4g}\n"
-    species_text += f"Recombination rate: {species.genome.mean_recombination_rate:.4g}\n"
+    species_text += (
+        f"Recombination rate: {species.genome.mean_recombination_rate:.4g}\n"
+    )
     return species_text
 
 
@@ -214,7 +220,7 @@ def get_environment():
         "libraries": {
             "msprime": {"version": msprime.__version__},
             "tskit": {"version": tskit.__version__},
-        }
+        },
     }
     return env
 
@@ -226,15 +232,9 @@ def get_provenance_dict():
     """
     document = {
         "schema_version": "1.0.0",
-        "software": {
-            "name": "stdpopsim",
-            "version": stdpopsim.__version__
-        },
-        "parameters": {
-            "command": sys.argv[0],
-            "args": sys.argv[1:]
-        },
-        "environment": get_environment()
+        "software": {"name": "stdpopsim", "version": stdpopsim.__version__},
+        "parameters": {"command": sys.argv[0], "args": sys.argv[1:]},
+        "environment": get_environment(),
     }
     return document
 
@@ -307,11 +307,14 @@ def summarise_usage():
         user_time = humanize.naturaldelta(rusage.ru_utime)
         sys_time = rusage.ru_stime
         max_mem = rusage.ru_maxrss
-        if sys.platform != 'darwin':
+        if sys.platform != "darwin":
             max_mem *= 1024  # Linux and other OSs (e.g. freeBSD) report maxrss in kb
         max_mem_str = humanize.naturalsize(max_mem, binary=True)
-        logger.info("rusage: user={}; sys={:.2f}s; max_rss={}".format(
-            user_time, sys_time, max_mem_str))
+        logger.info(
+            "rusage: user={}; sys={:.2f}s; max_rss={}".format(
+                user_time, sys_time, max_mem_str
+            )
+        )
 
 
 def add_simulate_species_parser(parser, species):
@@ -329,47 +332,67 @@ def add_simulate_species_parser(parser, species):
         f"{species.id}",
         description=description_text,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        help=f"Run simulations for {species.name}.")
+        help=f"Run simulations for {species.name}.",
+    )
     species_parser.set_defaults(species=species.id)
     species_parser.set_defaults(genetic_map=None)
     species_parser.add_argument(
-        "--help-models", action=HelpModels, nargs="?",
+        "--help-models",
+        action=HelpModels,
+        nargs="?",
         help=(
             "Print descriptions of simulation models and exit. If a model ID "
             "is provided as an argument show help for this model; otherwise "
-            "show help for all available models"))
+            "show help for all available models"
+        ),
+    )
     species_parser.add_argument(
-        "-b", "--bibtex-file",
-        type=argparse.FileType('w'),
+        "-b",
+        "--bibtex-file",
+        type=argparse.FileType("w"),
         help="Write citations to a given bib file. This will overwrite the file.",
         default=None,
-        action='store')
+        action="store",
+    )
 
     # Set metavar="" to prevent help text from writing out the explicit list
     # of options, which can be too long and ugly.
     choices = [gm.id for gm in species.genetic_maps]
     if len(species.genetic_maps) > 0:
         species_parser.add_argument(
-            "--help-genetic-maps", action=HelpGeneticMaps, nargs="?",
+            "--help-genetic-maps",
+            action=HelpGeneticMaps,
+            nargs="?",
             help=(
                 "Print list of genetic maps and exit. If a genetic map ID is "
                 "given as an argument, show help for this map. Otherwise show "
-                "help for all available genetic maps"))
+                "help for all available genetic maps"
+            ),
+        )
 
     species_parser.add_argument(
-        "-D", "--dry-run", action='store_true', default=False,
-        help="Do not run actual simulation")
+        "-D",
+        "--dry-run",
+        action="store_true",
+        default=False,
+        help="Do not run actual simulation",
+    )
 
     if len(species.genetic_maps) > 0:
         species_parser.add_argument(
-            "-g", "--genetic-map",
-            choices=choices, metavar="", default=None,
+            "-g",
+            "--genetic-map",
+            choices=choices,
+            metavar="",
+            default=None,
             help=(
                 "Specify a particular genetic map. By default, a chromosome-specific "
                 "uniform recombination rate is used. These default rates are listed in "
                 "the catalog: <https://stdpopsim.readthedocs.io/en/latest/catalog.html> "
                 "Available maps: "
-                f"{', '.join(choices)}. "))
+                f"{', '.join(choices)}. "
+            ),
+        )
 
     # To avoid listing too much stuff out in the help, we only list
     # the actual IDs. We make all synonyms available as choices though.
@@ -379,53 +402,87 @@ def add_simulate_species_parser(parser, species):
         choices.append(chrom.id)
         all_choices.extend([chrom.id] + chrom.synonyms)
     species_parser.add_argument(
-        "-c", "--chromosome", choices=all_choices, metavar="", default=None,
+        "-c",
+        "--chromosome",
+        choices=all_choices,
+        metavar="",
+        default=None,
         help=(
             f"Simulate a specific chromosome. If no chromosome is given, "
             f"simulate a generic contig of given length, specified using --length. "
             f"Options: {', '.join(choices)}. "
-            f"Default=None."))
+            f"Default=None."
+        ),
+    )
 
     species_parser.add_argument(
-        "-L", "--length", default=None, type=float,
-        help="Simulate a default contig of given length."
+        "-L",
+        "--length",
+        default=None,
+        type=float,
+        help="Simulate a default contig of given length.",
     )
     species_parser.add_argument(
-        "-i", "--inclusion-mask", default=None, type=str,
-        help="Path to inclusion mask specified in bed format."
+        "-i",
+        "--inclusion-mask",
+        default=None,
+        type=str,
+        help="Path to inclusion mask specified in bed format.",
     )
     species_parser.add_argument(
-        "-e", "--exclusion-mask", default=None, type=str,
-        help="Path to exclusion mask specified in bed format."
+        "-e",
+        "--exclusion-mask",
+        default=None,
+        type=str,
+        help="Path to exclusion mask specified in bed format.",
     )
     species_parser.add_argument(
-        "-l", "--length-multiplier", default=1, type=float,
+        "-l",
+        "--length-multiplier",
+        default=1,
+        type=float,
         help="Simulate a sequence of length l times the named chromosome's length, "
-             "using the named chromosome's mutation and recombination rates.")
+        "using the named chromosome's mutation and recombination rates.",
+    )
     species_parser.add_argument(
-        "-s", "--seed", default=None, type=int,
+        "-s",
+        "--seed",
+        default=None,
+        type=int,
         help=(
             "The random seed to use for simulations. If not specified a "
             "high-quality random seed will be generated automatically. "
-            "For msprime, seeds must be > 0 and < 2^32."))
+            "For msprime, seeds must be > 0 and < 2^32."
+        ),
+    )
 
     model_help = (
         "Specify a simulation model. If no model is specified, a single population"
         "constant size model is used. Available models:"
         f"{', '.join(model.id for model in species.demographic_models)}"
-        ". Please see --help-models for details of these models.")
+        ". Please see --help-models for details of these models."
+    )
     species_parser.add_argument(
-        "-d", "--demographic-model", default=None, metavar="",
+        "-d",
+        "--demographic-model",
+        default=None,
+        metavar="",
         choices=[model.id for model in species.demographic_models],
-        help=model_help)
+        help=model_help,
+    )
     species_parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         help=(
             "Where to write the output tree sequence file. Defaults to "
-            "stdout if not specified"))
+            "stdout if not specified"
+        ),
+    )
 
     species_parser.add_argument(
-        "samples", type=int, nargs="+",
+        "samples",
+        type=int,
+        nargs="+",
         help=(
             "The number of samples to draw from each population. At least "
             "two samples must be specified. The number of arguments that "
@@ -433,7 +490,9 @@ def add_simulate_species_parser(parser, species):
             "specified: for a model that has n populations, we can specify "
             "the number of samples to draw from each of these populations."
             "We do not need to provide sample numbers of each of the "
-            "populations; those that are omitted are set to zero."))
+            "populations; those that are omitted are set to zero."
+        ),
+    )
 
     def run_simulation(args):
         if args.demographic_model is None:
@@ -448,7 +507,8 @@ def add_simulate_species_parser(parser, species):
         if len(args.samples) > model.num_sampling_populations:
             exit(
                 f"Cannot sample from more than {model.num_sampling_populations} "
-                "populations")
+                "populations"
+            )
         samples = model.get_samples(*args.samples)
         contig = species.get_contig(
             args.chromosome,
@@ -461,12 +521,15 @@ def add_simulate_species_parser(parser, species):
         engine = stdpopsim.get_engine(args.engine)
         logger.info(
             f"Running simulation model {model.id} for {species.id} on "
-            f"{contig} with {len(samples)} samples using {engine.id}.")
+            f"{contig} with {len(samples)} samples using {engine.id}."
+        )
 
-        write_simulation_summary(engine=engine, model=model, contig=contig,
-                                 samples=samples, seed=args.seed)
+        write_simulation_summary(
+            engine=engine, model=model, contig=contig, samples=samples, seed=args.seed
+        )
         if not qc_complete:
-            warnings.warn(stdpopsim.QCMissingWarning(
+            warnings.warn(
+                stdpopsim.QCMissingWarning(
                     f"{model.id} has not been QCed. Use at your own risk! "
                     "Demographic models that have not undergone stdpopsim's "
                     "Quality Control procedure may contain implementation "
@@ -475,7 +538,9 @@ def add_simulate_species_parser(parser, species):
                     "More information about the QC process can be found in "
                     "the developer documentation. "
                     "https://stdpopsim.readthedocs.io/en/latest/development.html"
-                    "#demographic-model-review-process"))
+                    "#demographic-model-review-process"
+                )
+            )
 
         # extract simulate() parameters from CLI args
         accepted_params = inspect.signature(engine.simulate).parameters.keys()
@@ -548,50 +613,74 @@ def run_download_genetic_maps(args):
 
 
 def stdpopsim_cli_parser():
-
     class QuietAction(argparse.Action):
         def __call__(self, parser, namespace, values, option_string=None):
             namespace.verbose = 0
 
     top_parser = argparse.ArgumentParser(
-        description="Command line interface for stdpopsim.")
+        description="Command line interface for stdpopsim."
+    )
     top_parser.add_argument(
-        "-V", "--version", action='version',
-        version='%(prog)s {}'.format(stdpopsim.__version__))
+        "-V",
+        "--version",
+        action="version",
+        version="%(prog)s {}".format(stdpopsim.__version__),
+    )
     logging_group = top_parser.add_mutually_exclusive_group()
     logging_group.add_argument(
-        "-v", "--verbose", action="count", default=1,
-        help="Increase logging verbosity (can use be used multiple times).")
+        "-v",
+        "--verbose",
+        action="count",
+        default=1,
+        help="Increase logging verbosity (can use be used multiple times).",
+    )
     logging_group.add_argument(
-            "-q", "--quiet", nargs=0,
-            help="Do not write any non-essential messages",
-            action=QuietAction)
+        "-q",
+        "--quiet",
+        nargs=0,
+        help="Do not write any non-essential messages",
+        action=QuietAction,
+    )
 
     top_parser.add_argument(
-        "-c", "--cache-dir", type=str, default=None,
+        "-c",
+        "--cache-dir",
+        type=str,
+        default=None,
         help=(
             "Set the cache directory to the specified value. "
             "Note that this can also be set using the environment variable "
             "STDPOPSIM_CACHE. If both the environment variable and this "
             "option are set, the option takes precedence. "
-            f"Default: {stdpopsim.get_cache_dir()}"))
+            f"Default: {stdpopsim.get_cache_dir()}"
+        ),
+    )
 
     top_parser.add_argument(
-        "-e", "--engine",
+        "-e",
+        "--engine",
         default=stdpopsim.get_default_engine().id,
         choices=[e.id for e in stdpopsim.all_engines()],
-        help="Specify a simulation engine.")
+        help="Specify a simulation engine.",
+    )
 
     supported_models = stdpopsim.get_engine("msprime").supported_models
     msprime_parser = top_parser.add_argument_group("msprime specific parameters")
     msprime_parser.add_argument(
-            "--msprime-model",
-            default=supported_models[0],
-            choices=supported_models,
-            help="Specify the simulation model used by msprime. "
-                 "See msprime API documentation for details.")
+        "--msprime-model",
+        default=supported_models[0],
+        choices=supported_models,
+        help="Specify the simulation model used by msprime. "
+        "See msprime API documentation for details.",
+    )
 
-    def time_or_model(arg, _arg_is_time=[True, ], parser=top_parser):
+    def time_or_model(
+        arg,
+        _arg_is_time=[
+            True,
+        ],
+        parser=top_parser,
+    ):
         if _arg_is_time[0]:
             try:
                 arg = float(arg)
@@ -602,37 +691,59 @@ def stdpopsim_cli_parser():
                 parser.error(f"`{arg}' is not a supported model")
         _arg_is_time[0] = not _arg_is_time[0]
         return arg
+
     msprime_parser.add_argument(
-            "--msprime-change-model",
-            metavar=("T", "MODEL"), type=time_or_model,
-            default=[], action="append", nargs=2,
-            help="Change to the specified simulation MODEL at generation T. "
-                 "This option may provided multiple times.")
+        "--msprime-change-model",
+        metavar=("T", "MODEL"),
+        type=time_or_model,
+        default=[],
+        action="append",
+        nargs=2,
+        help="Change to the specified simulation MODEL at generation T. "
+        "This option may provided multiple times.",
+    )
 
     # SLiM is not available for windows.
     if not IS_WINDOWS:
+
         def slim_exec(path):
             # Hack to set the SLIM environment variable at parse time,
             # before get_version() can be called.
             os.environ["SLIM"] = path
             return path
+
         slim_parser = top_parser.add_argument_group("SLiM specific parameters")
         slim_parser.add_argument(
-                "--slim-path", metavar="PATH", type=slim_exec, default=None,
-                help="Full path to `slim' executable.")
+            "--slim-path",
+            metavar="PATH",
+            type=slim_exec,
+            default=None,
+            help="Full path to `slim' executable.",
+        )
         slim_parser.add_argument(
-                "--slim-script", action="store_true", default=False,
-                help="Write script to stdout and exit without running SLiM.")
+            "--slim-script",
+            action="store_true",
+            default=False,
+            help="Write script to stdout and exit without running SLiM.",
+        )
         slim_parser.add_argument(
-                "--slim-scaling-factor", metavar="Q", default=1, type=float,
-                help="Rescale model parameters by Q to speed up simulation. "
-                     "See SLiM manual: `5.5 Rescaling population sizes to "
-                     "improve simulation performance`. "
-                     "[default=%(default)s].")
+            "--slim-scaling-factor",
+            metavar="Q",
+            default=1,
+            type=float,
+            help="Rescale model parameters by Q to speed up simulation. "
+            "See SLiM manual: `5.5 Rescaling population sizes to "
+            "improve simulation performance`. "
+            "[default=%(default)s].",
+        )
         slim_parser.add_argument(
-                "--slim-burn-in", metavar="X", default=10, type=float,
-                help="Length of the burn-in phase, in units of N generations "
-                     "[default=%(default)s].")
+            "--slim-burn-in",
+            metavar="X",
+            default=10,
+            type=float,
+            help="Length of the burn-in phase, in units of N generations "
+            "[default=%(default)s].",
+        )
 
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True
@@ -647,17 +758,26 @@ def stdpopsim_cli_parser():
             "Download genetic maps and store them in the cache directory. "
             "Maps are downloaded regardless of whether they are already "
             "in the cache or not. Please use the --cache-dir option to "
-            "download maps to a specific directory. "))
+            "download maps to a specific directory. "
+        ),
+    )
     download_maps_parser.add_argument(
-        "species", nargs="?",
+        "species",
+        nargs="?",
         help=(
             "Download genetic maps for this species. If not specified "
-            "download all known genetic maps."))
+            "download all known genetic maps."
+        ),
+    )
     download_maps_parser.add_argument(
-        "genetic_maps", type=str, nargs="*",
+        "genetic_maps",
+        type=str,
+        nargs="*",
         help=(
             "If specified, download these genetic maps. If no maps "
-            "are provided, download all maps for this species."))
+            "are provided, download all maps for this species."
+        ),
+    )
 
     download_maps_parser.set_defaults(runner=run_download_genetic_maps)
 

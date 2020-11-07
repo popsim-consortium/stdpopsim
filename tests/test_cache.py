@@ -17,8 +17,8 @@ class TestSetCacheDir(tests.CacheWritingTest):
     """
     Tests the set_cache_dir function.
     """
-    paths = [
-        "/somefile", "/some/other/file/", "relative/path", "relative/path/"]
+
+    paths = ["/somefile", "/some/other/file/", "relative/path", "relative/path/"]
 
     def test_paths(self):
         for test in self.paths:

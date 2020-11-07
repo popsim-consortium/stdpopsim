@@ -117,5 +117,3 @@ of two ways:
    environment variable contains the directory where conda or pip installed the
    executable. Please see the specific documentation on these methods above for
    details on how to do this.
-
-

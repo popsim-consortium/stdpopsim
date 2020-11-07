@@ -4,4 +4,4 @@
 # extensions to stdpopsim.  It will probably disappear in the future.  The
 # interfaces defined here are incomplete, engine specific, and are subject
 # to change.
-from . selection import *  # NOQA
+from .selection import *  # NOQA

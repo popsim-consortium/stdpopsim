@@ -46,34 +46,33 @@ _recombination_rate_data = {
 }
 
 _locke2011 = stdpopsim.Citation(
-    author="Locke et al.",
-    year=2011,
-    doi="http://doi.org/10.1038/nature09687"
+    author="Locke et al.", year=2011, doi="http://doi.org/10.1038/nature09687"
 )
 
 _nater2017 = stdpopsim.Citation(
-    author="Nater et al.",
-    year=2017,
-    doi="https://doi.org/10.1016/j.cub.2017.09.047"
+    author="Nater et al.", year=2017, doi="https://doi.org/10.1016/j.cub.2017.09.047"
 )
 
 _chromosomes = []
 for name, data in genome_data.data["chromosomes"].items():
-    _chromosomes.append(stdpopsim.Chromosome(
-        id=name, length=data["length"],
-        synonyms=data["synonyms"],
-        # Nater et al. 2017 used mu=1.5e-8 per generation, based on the
-        # assumption that it's similar to humans and chimps.
-        mutation_rate=1.5e-8,
-        recombination_rate=_recombination_rate_data[name]
-    ))
+    _chromosomes.append(
+        stdpopsim.Chromosome(
+            id=name,
+            length=data["length"],
+            synonyms=data["synonyms"],
+            # Nater et al. 2017 used mu=1.5e-8 per generation, based on the
+            # assumption that it's similar to humans and chimps.
+            mutation_rate=1.5e-8,
+            recombination_rate=_recombination_rate_data[name],
+        )
+    )
 
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
     assembly_name=genome_data.data["assembly_name"],
     assembly_accession=genome_data.data["assembly_accession"],
-    mutation_rate_citations=[
-        _nater2017.because(stdpopsim.CiteReason.MUT_RATE)])
+    mutation_rate_citations=[_nater2017.because(stdpopsim.CiteReason.MUT_RATE)],
+)
 
 _species = stdpopsim.Species(
     id="PonAbe",
@@ -82,12 +81,11 @@ _species = stdpopsim.Species(
     genome=_genome,
     # generation time used by Locke et al. without further citation
     generation_time=20,
-    generation_time_citations=[
-        _locke2011.because(stdpopsim.CiteReason.GEN_TIME)],
+    generation_time_citations=[_locke2011.because(stdpopsim.CiteReason.GEN_TIME)],
     # Locke et al. inferred ancestral Ne
     population_size=1.79e4,
-    population_size_citations=[
-        _locke2011.because(stdpopsim.CiteReason.POP_SIZE)])
+    population_size_citations=[_locke2011.because(stdpopsim.CiteReason.POP_SIZE)],
+)
 
 stdpopsim.register_species(_species)
 
@@ -117,12 +115,12 @@ _gm_pa = stdpopsim.GeneticMap(
         See https://doi.org/10.1016/j.cub.2017.09.047 for more details.
         """,
     url=(
-        "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/PonAbe/NaterPA_PonAbe2.tar.gz"),  # NOQA
+        "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/PonAbe/"
+        "NaterPA_PonAbe2.tar.gz"
+    ),
     sha256="33b0162a6d945dd341bd1086d213ad1bc16949c9210d3b49d92692fd7f831ace",
     file_pattern="Nater_et_al_PA_chr{id}_PonAbe2.txt",
-    citations=[
-        _nater2017.because(stdpopsim.CiteReason.GEN_MAP)
-    ]
+    citations=[_nater2017.because(stdpopsim.CiteReason.GEN_MAP)],
 )
 _species.add_genetic_map(_gm_pa)
 
@@ -136,12 +134,12 @@ _gm_pp = stdpopsim.GeneticMap(
         See https://doi.org/10.1016/j.cub.2017.09.047 for more details.
         """,
     url=(
-        "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/PonPyg/NaterPP_PonAbe2.tar.gz"),  # NOQA
+        "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/PonPyg/"
+        "NaterPP_PonAbe2.tar.gz"
+    ),
     sha256="f4858b7efe15abe28b9367e7e9dc16614dc614df9326f9eedbcd943ca075bed7",
     file_pattern="Nater_et_al_PP_chr{id}_PonAbe2.txt",
-    citations=[
-        _nater2017.because(stdpopsim.CiteReason.GEN_MAP)
-    ]
+    citations=[_nater2017.because(stdpopsim.CiteReason.GEN_MAP)],
 )
 _species.add_genetic_map(_gm_pp)
 
@@ -168,10 +166,8 @@ def _orangutan():
     citations = [_locke2011.because(stdpopsim.CiteReason.DEM_MODEL)]
 
     populations = [
-        stdpopsim.Population(
-            "Bornean", "Pongo pygmaeus (Bornean) population"),
-        stdpopsim.Population(
-            "Sumatran", "Pongo abelii (Sumatran) population")
+        stdpopsim.Population("Bornean", "Pongo pygmaeus (Bornean) population"),
+        stdpopsim.Population("Sumatran", "Pongo abelii (Sumatran) population"),
     ]
 
     # Parameters from paper:
@@ -188,16 +184,16 @@ def _orangutan():
     s = 0.592
 
     # sizes at split
-    Na_B = 17934*s
-    Na_S = 17934*(1-s)
+    Na_B = 17934 * s
+    Na_S = 17934 * (1 - s)
 
     # present sizes
     N_B = 8805
     N_S = 37661
 
     # get growth rates
-    r_B = -1*math.log(Na_B/N_B)/T_split
-    r_S = -1*math.log(Na_S/N_S)/T_split
+    r_B = -1 * math.log(Na_B / N_B) / T_split
+    r_S = -1 * math.log(Na_S / N_S) / T_split
 
     # migration rates
     m_S_B = 0.395 / 2 / Na
@@ -215,24 +211,28 @@ def _orangutan():
         populations=populations,
         generation_time=generation_time,
         population_configurations=[
-            msprime.PopulationConfiguration(initial_size=N_B, growth_rate=r_B,
-                                            metadata=populations[0].asdict()),  # NOQA
-            msprime.PopulationConfiguration(initial_size=N_S, growth_rate=r_S,
-                                            metadata=populations[1].asdict())  # NOQA
+            msprime.PopulationConfiguration(
+                initial_size=N_B, growth_rate=r_B, metadata=populations[0].asdict()
+            ),  # NOQA
+            msprime.PopulationConfiguration(
+                initial_size=N_S, growth_rate=r_S, metadata=populations[1].asdict()
+            ),  # NOQA
         ],
         migration_matrix=[
             [0, m_B_S],  # NOQA
-            [m_S_B,       0],  # NOQA
+            [m_S_B, 0],  # NOQA
         ],
         demographic_events=[
             # Merge populations and turn off migration, change to size Na
             msprime.MassMigration(
-                time=T_split, source=1, destination=0, proportion=1.0),
+                time=T_split, source=1, destination=0, proportion=1.0
+            ),
             msprime.MigrationRateChange(time=T_split, rate=0),
             msprime.PopulationParametersChange(
-                time=T_split, initial_size=Na, growth_rate=0, population_id=0),
+                time=T_split, initial_size=Na, growth_rate=0, population_id=0
+            ),
         ],
-        )
+    )
 
 
 _species.add_demographic_model(_orangutan())

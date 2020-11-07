@@ -128,7 +128,7 @@ GitHub workflow
     2. Install the pre-commit hooks with::
 
         $ pre-commit install
-    
+
     2. Make sure that your local repository has been configured with an
        `upstream remote <https://help.github.com/articles/configuring-a-remote-for-a-fork/>`_.
     3. Create a "topic branch" to work on. One reliable way to do it
@@ -558,7 +558,8 @@ The demographic model function should follow this format:
                 author="FILL ME",
                 year="FILL ME",
                 doi="FILL ME",
-                reasons={stdpopsim.CiteReason.DEM_MODEL})
+                reasons={stdpopsim.CiteReason.DEM_MODEL},
+            )
         ]
 
         generation_time = "FILL ME"
@@ -572,16 +573,10 @@ The demographic model function should follow this format:
             populations=populations,
             citations=citations,
             generation_time=generation_time,
-            population_configurations=[
-            "FILL ME"
-            ],
-            migration_matrix=[
-            "FILL ME"
-            ],
-            demographic_events=[
-            "FILL ME"
-            ],
-            )
+            population_configurations=["FILL ME"],
+            migration_matrix=["FILL ME"],
+            demographic_events=["FILL ME"],
+        )
 
 
     _species.add_demographic_model(_model_func_name())
@@ -656,6 +651,7 @@ Now check that your new demographic model function has been imported:
 .. code-block:: python
 
     import stdpopsim
+
     species = stdpopsim.get_species("HomSap")
     for x in species.demographic_models:
         print(x.id)
@@ -827,26 +823,29 @@ recombination rates if necessary). This is then used to create a `genome` object
         doi="FILL ME",
         year="FILL ME",
         author="Author et al.",
-        reasons={stdpopsim.CiteReason.ASSEMBLY})
+        reasons={stdpopsim.CiteReason.ASSEMBLY},
+    )
 
     # Parse list of chromosomes into a list of Chromosome objects which contain the
     # chromosome name, length, mutation rate, and recombination rate
     _chromosomes = []
 
     for name, data in genome_data.data["chromosomes"].items():
-        _chromosomes.append(stdpopsim.Chromosome(
-            id=name,
-            length=data["length"],
-            synonyms=data["synonyms"],
-            mutation_rate=FILL_ME,
-            recombination_rate=FILL_ME
-        ))
+        _chromosomes.append(
+            stdpopsim.Chromosome(
+                id=name,
+                length=data["length"],
+                synonyms=data["synonyms"],
+                mutation_rate=FILL_ME,
+                recombination_rate=FILL_ME,
+            )
+        )
 
     # Create a genome object
 
     _genome = stdpopsim.Genome(
-        chromosomes=_chromosomes,
-        assembly_citations=[_assembly_citation])
+        chromosomes=_chromosomes, assembly_citations=[_assembly_citation]
+    )
 
 Once you have a genome object you can create a new `Species` object which contains
 species identifiers, the genome, and default generation time and population size settings
@@ -859,13 +858,15 @@ Arabidopsis thaliana and a final line of code that registers the species in the 
         doi="https://doi.org/10.1890/0012-9658(2002)083[1006:GTINSO]2.0.CO;2",
         year="2002",
         author="Donohue",
-        reasons={stdpopsim.CiteReason.GEN_TIME})
+        reasons={stdpopsim.CiteReason.GEN_TIME},
+    )
 
     _pop_size_citation = stdpopsim.Citation(
-            doi="https://doi.org/10.1016/j.cell.2016.05.063",
-            year="2016",
-            author="1001GenomesConsortium",
-            reasons={stdpopsim.CiteReason.POP_SIZE})
+        doi="https://doi.org/10.1016/j.cell.2016.05.063",
+        year="2016",
+        author="1001GenomesConsortium",
+        reasons={stdpopsim.CiteReason.POP_SIZE},
+    )
 
     _species = stdpopsim.Species(
         id="AraTha",
@@ -874,9 +875,9 @@ Arabidopsis thaliana and a final line of code that registers the species in the 
         genome=_genome,
         generation_time=1.0,
         generation_time_citations=[_gen_time_citation],
-        population_size=10**4,
-        population_size_citations=[_pop_size_citation]
-        )
+        population_size=10 ** 4,
+        population_size_citations=[_pop_size_citation],
+    )
 
     stdpopsim.register_species(_species)
 
@@ -930,23 +931,22 @@ which the genome is defined) as shown below:
 .. code-block:: python
 
     _genetic_map_citation = stdpopsim.Citation(
-            doi="FILL_ME",
-            author="FILL_ME",
-            year=9999,
-            reasons={stdpopsim.CiteReason.GEN_MAP})
+        doi="FILL_ME", author="FILL_ME", year=9999, reasons={stdpopsim.CiteReason.GEN_MAP}
+    )
     """
     The file_pattern argument is a pattern that matches the recombination map filenames,
     where '{id}' is replaced with the 'id' field of a given chromosome.
     """
     _gm = stdpopsim.GeneticMap(
         species=_species,
-        id="FILL_ME", # ID for genetic map, see naming conventions
+        id="FILL_ME",  # ID for genetic map, see naming conventions
         description="FILL_ME",
         long_description="FILL_ME",
         url=("https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/dir/filename"),
         sha256="FILL_ME",
         file_pattern="name_{id}_more_name.txt",
-        citations=[_genetic_map_citation])
+        citations=[_genetic_map_citation],
+    )
 
     _species.add_genetic_map(_gm)
 
@@ -1056,4 +1056,3 @@ HTML output in the ``_build/html/`` directory.
 .. note::
 
     You will need ``stdpopsim`` to be installed for the build to work.
-

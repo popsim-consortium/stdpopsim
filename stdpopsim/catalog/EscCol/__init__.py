@@ -18,42 +18,43 @@ _hartl_et_al = stdpopsim.Citation(
 )
 
 _sezonov_et_al = stdpopsim.Citation(
-    author="Sezonov et al.",
-    year="2007",
-    doi="https://doi.org/10.1128/JB.01368-07")
+    author="Sezonov et al.", year="2007", doi="https://doi.org/10.1128/JB.01368-07"
+)
 
 _wielgoss_et_al = stdpopsim.Citation(
-    author="Wielgoss et al.",
-    year="2011",
-    doi="https://doi.org/10.1534/g3.111.000406")
+    author="Wielgoss et al.", year="2011", doi="https://doi.org/10.1534/g3.111.000406"
+)
 
 _blattner_et_al = stdpopsim.Citation(
-    author="Blattner et al.",
-    year="1997",
-    doi="10.1126/science.277.5331.1453")
+    author="Blattner et al.", year="1997", doi="10.1126/science.277.5331.1453"
+)
 
 _chromosomes = []
 for name, data in genome_data.data["chromosomes"].items():
-    _chromosomes.append(stdpopsim.Chromosome(
-        id=name, length=data["length"],
-        synonyms=data["synonyms"],
-        # Wielgoss et al. (2011) calculated for strain REL606,
-        # from synonymous substitutions over 40,000 generations.
-        mutation_rate=8.9e-11,
-        recombination_rate=0.0))
+    _chromosomes.append(
+        stdpopsim.Chromosome(
+            id=name,
+            length=data["length"],
+            synonyms=data["synonyms"],
+            # Wielgoss et al. (2011) calculated for strain REL606,
+            # from synonymous substitutions over 40,000 generations.
+            mutation_rate=8.9e-11,
+            recombination_rate=0.0,
+        )
+    )
 
 # mean_conversion_rate=8.9e-11 # not implemented yet!
 # mean_conversion_length=542 # not implemented yet!
 
 _genome = stdpopsim.Genome(
-        chromosomes=_chromosomes,
-        assembly_name=genome_data.data["assembly_name"],
-        assembly_accession=genome_data.data["assembly_accession"],
-        mutation_rate_citations=[
-            _wielgoss_et_al.because(stdpopsim.CiteReason.MUT_RATE),
-            ],
-        assembly_citations=[
-            _blattner_et_al.because(stdpopsim.CiteReason.ASSEMBLY)])
+    chromosomes=_chromosomes,
+    assembly_name=genome_data.data["assembly_name"],
+    assembly_accession=genome_data.data["assembly_accession"],
+    mutation_rate_citations=[
+        _wielgoss_et_al.because(stdpopsim.CiteReason.MUT_RATE),
+    ],
+    assembly_citations=[_blattner_et_al.because(stdpopsim.CiteReason.ASSEMBLY)],
+)
 
 
 _species = stdpopsim.Species(
@@ -67,13 +68,12 @@ _species = stdpopsim.Species(
     # E. coli K-12 strain MG1655 "doubling time during steady-state growth in
     # Luria-Bertani broth was 20 min".
     generation_time=0.00003805175,  # 1.0 / (525600 min/year / 20 min/gen)
-    generation_time_citations=[
-        _sezonov_et_al.because(stdpopsim.CiteReason.GEN_TIME)],
+    generation_time_citations=[_sezonov_et_al.because(stdpopsim.CiteReason.GEN_TIME)],
     # Hartl et al. calculated Ne for "natural isolates of E. coli",
     # assuming mu=5e-10 (from Drake 1991).
     population_size=1.8e8,
-    population_size_citations=[
-        _hartl_et_al.because(stdpopsim.CiteReason.POP_SIZE)])
+    population_size_citations=[_hartl_et_al.because(stdpopsim.CiteReason.POP_SIZE)],
+)
 
 
 stdpopsim.register_species(_species)

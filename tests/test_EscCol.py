@@ -23,6 +23,7 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     """
     Tests for the e_coli genome.
     """
+
     genome = stdpopsim.get_species("EscCol").genome
 
     def test_basic_attributes(self):

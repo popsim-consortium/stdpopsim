@@ -17,7 +17,7 @@ import msprime
 
 import stdpopsim
 import stdpopsim.cli
-from . test_cli import capture_output
+from .test_cli import capture_output
 
 IS_WINDOWS = sys.platform.startswith("win")
 
@@ -49,7 +49,6 @@ def slim_simulate_no_recap(seed=1234, **kwargs):
 
 @unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
 class TestAPI(unittest.TestCase):
-
     def test_bad_params(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
@@ -60,16 +59,22 @@ class TestAPI(unittest.TestCase):
         for scaling_factor in (0, -1, -1e-6):
             with self.assertRaises(ValueError):
                 engine.simulate(
-                    demographic_model=model, contig=contig, samples=samples,
+                    demographic_model=model,
+                    contig=contig,
+                    samples=samples,
                     slim_scaling_factor=scaling_factor,
-                    dry_run=True)
+                    dry_run=True,
+                )
 
         for burn_in in (-1, -1e-6):
             with self.assertRaises(ValueError):
                 engine.simulate(
-                    demographic_model=model, contig=contig, samples=samples,
+                    demographic_model=model,
+                    contig=contig,
+                    samples=samples,
                     slim_burn_in=burn_in,
-                    dry_run=True)
+                    dry_run=True,
+                )
 
     def test_script_generation(self):
         engine = stdpopsim.get_engine("slim")
@@ -79,25 +84,34 @@ class TestAPI(unittest.TestCase):
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         samples = model.get_samples(10)
         out, _ = capture_output(
-                engine.simulate,
-                demographic_model=model, contig=contig, samples=samples,
-                slim_script=True)
+            engine.simulate,
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            slim_script=True,
+        )
         self.assertTrue("sim.registerLateEvent" in out)
 
         model = species.get_demographic_model("AncientEurasia_9K19")
         samples = model.get_samples(10, 20, 30, 40, 50, 60, 70)
         out, _ = capture_output(
-                engine.simulate,
-                demographic_model=model, contig=contig, samples=samples,
-                slim_script=True)
+            engine.simulate,
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            slim_script=True,
+        )
         self.assertTrue("sim.registerLateEvent" in out)
 
         model = species.get_demographic_model("AmericanAdmixture_4B11")
         samples = model.get_samples(10, 10, 10)
         out, _ = capture_output(
-                engine.simulate,
-                demographic_model=model, contig=contig, samples=samples,
-                slim_script=True)
+            engine.simulate,
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            slim_script=True,
+        )
         self.assertTrue("sim.registerLateEvent" in out)
 
     def test_recombination_map(self):
@@ -107,9 +121,12 @@ class TestAPI(unittest.TestCase):
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         samples = model.get_samples(10)
         out, _ = capture_output(
-                engine.simulate,
-                demographic_model=model, contig=contig, samples=samples,
-                dry_run=True)
+            engine.simulate,
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            dry_run=True,
+        )
 
     def test_simulate(self):
         engine = stdpopsim.get_engine("slim")
@@ -118,8 +135,12 @@ class TestAPI(unittest.TestCase):
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         samples = model.get_samples(10)
         ts = engine.simulate(
-                demographic_model=model, contig=contig, samples=samples,
-                slim_scaling_factor=10, slim_burn_in=0)
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            slim_scaling_factor=10,
+            slim_burn_in=0,
+        )
         self.assertEqual(ts.num_samples, 10)
         self.assertTrue(all(tree.num_roots == 1 for tree in ts.trees()))
 
@@ -138,19 +159,35 @@ class TestAPI(unittest.TestCase):
                 mutation_types = None
                 extended_events = []
             ts1 = engine.simulate(
-                    demographic_model=model, contig=contig, samples=samples,
-                    mutation_types=mutation_types, extended_events=extended_events,
-                    slim_scaling_factor=10, slim_burn_in=0, seed=seed)
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                mutation_types=mutation_types,
+                extended_events=extended_events,
+                slim_scaling_factor=10,
+                slim_burn_in=0,
+                seed=seed,
+            )
             ts2_headless = slim_simulate_no_recap(
-                    demographic_model=model, contig=contig, samples=samples,
-                    mutation_types=mutation_types, extended_events=extended_events,
-                    slim_scaling_factor=10, slim_burn_in=0,
-                    seed=seed)
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                mutation_types=mutation_types,
+                extended_events=extended_events,
+                slim_scaling_factor=10,
+                slim_burn_in=0,
+                seed=seed,
+            )
             ts2 = engine.recap_and_rescale(
-                    ts2_headless,
-                    demographic_model=model, contig=contig, samples=samples,
-                    mutation_types=mutation_types, extended_events=extended_events,
-                    slim_scaling_factor=10, seed=seed)
+                ts2_headless,
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                mutation_types=mutation_types,
+                extended_events=extended_events,
+                slim_scaling_factor=10,
+                seed=seed,
+            )
 
             tables1 = ts1.dump_tables()
             tables2 = ts2.dump_tables()
@@ -162,10 +199,11 @@ class TestAPI(unittest.TestCase):
 
 @unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
 class TestCLI(unittest.TestCase):
-
     def docmd(self, _cmd):
-        cmd = ("-q -e slim --slim-scaling-factor 20 --slim-burn-in 0 "
-               f"{_cmd} -l 0.001 -c chr1 -s 1234 10").split()
+        cmd = (
+            "-q -e slim --slim-scaling-factor 20 --slim-burn-in 0 "
+            f"{_cmd} -l 0.001 -c chr1 -s 1234 10"
+        ).split()
         return capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
     def test_script_generation(self):
@@ -200,9 +238,11 @@ class TestCLI(unittest.TestCase):
 
         # verify sample counts for a multipopulation demographic model
         with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = ("-q -e slim --slim-scaling-factor 20 --slim-burn-in 0 "
-                   f"HomSap -o {f.name} -l 0.001 -c chr1 -s 1234 "
-                   "-d OutOfAfrica_3G09 0 0 8").split()
+            cmd = (
+                "-q -e slim --slim-scaling-factor 20 --slim-burn-in 0 "
+                f"HomSap -o {f.name} -l 0.001 -c chr1 -s 1234 "
+                "-d OutOfAfrica_3G09 0 0 8"
+            ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
         self.assertEqual(ts.num_populations, 3)
@@ -261,6 +301,7 @@ class TestWarningsAndErrors(unittest.TestCase):
     """
     Checks that warning messages are printed when appropriate.
     """
+
     # this is an expected failure, because no warning should be emitted
     @unittest.expectedFailure
     def test_odd_sample_warning_for_even_samples(self):
@@ -290,8 +331,12 @@ class TestWarningsAndErrors(unittest.TestCase):
 
         with self.assertWarns(stdpopsim.UnspecifiedSLiMWarning):
             engine.simulate(
-                    demographic_model=model, contig=contig, samples=samples,
-                    slim_scaling_factor=10, dry_run=True)
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                slim_scaling_factor=10,
+                dry_run=True,
+            )
 
     def test_no_populations_in_generation_1(self):
         engine, species, contig = self.triplet()
@@ -300,24 +345,37 @@ class TestWarningsAndErrors(unittest.TestCase):
 
         with self.assertRaises(stdpopsim.SLiMException):
             engine.simulate(
-                    demographic_model=model, contig=contig, samples=samples,
-                    slim_scaling_factor=200, dry_run=True)
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                slim_scaling_factor=200,
+                dry_run=True,
+            )
 
     def test_bad_population_size_addSubpopSplit(self):
         engine, species, contig = self.triplet()
         model = stdpopsim.IsolationWithMigration(
-                NA=1000, N1=100, N2=1000, T=1000, M12=0, M21=0)
+            NA=1000, N1=100, N2=1000, T=1000, M12=0, M21=0
+        )
         samples = model.get_samples(2)
 
         with self.assertWarns(stdpopsim.UnspecifiedSLiMWarning):
             engine.simulate(
-                    demographic_model=model, contig=contig, samples=samples,
-                    slim_scaling_factor=10, dry_run=True)
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                slim_scaling_factor=10,
+                dry_run=True,
+            )
 
         with self.assertRaises(stdpopsim.SLiMException):
             engine.simulate(
-                    demographic_model=model, contig=contig, samples=samples,
-                    slim_scaling_factor=200, dry_run=True)
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                slim_scaling_factor=200,
+                dry_run=True,
+            )
 
     def test_bad_population_size_setSubpopulationSize(self):
         engine, species, contig = self.triplet()
@@ -326,13 +384,21 @@ class TestWarningsAndErrors(unittest.TestCase):
 
         with self.assertWarns(stdpopsim.UnspecifiedSLiMWarning):
             engine.simulate(
-                    demographic_model=model, contig=contig, samples=samples,
-                    slim_scaling_factor=10, dry_run=True)
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                slim_scaling_factor=10,
+                dry_run=True,
+            )
 
         with self.assertRaises(stdpopsim.SLiMException):
             engine.simulate(
-                    demographic_model=model, contig=contig, samples=samples,
-                    slim_scaling_factor=200, dry_run=True)
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                slim_scaling_factor=200,
+                dry_run=True,
+            )
 
     def test_sample_size_too_big(self):
         engine, species, contig = self.triplet()
@@ -341,8 +407,12 @@ class TestWarningsAndErrors(unittest.TestCase):
 
         with self.assertRaises(stdpopsim.SLiMException):
             engine.simulate(
-                    demographic_model=model, contig=contig, samples=samples,
-                    slim_scaling_factor=10, dry_run=True)
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                slim_scaling_factor=10,
+                dry_run=True,
+            )
 
     def exp_decline(self, N0=100, N1=1000, T=1000):
         """
@@ -351,21 +421,24 @@ class TestWarningsAndErrors(unittest.TestCase):
         """
         r = math.log(N0 / N1) / T
         return stdpopsim.DemographicModel(
-                id="exp_decline",
-                description="exp_decline",
-                long_description="exp_decline",
-                populations=[stdpopsim.models._pop0],
-                generation_time=1,
-                population_configurations=[
-                    msprime.PopulationConfiguration(
-                        initial_size=N0, growth_rate=r,
-                        metadata=stdpopsim.models._pop0.asdict())
-                    ],
-                demographic_events=[
-                    msprime.PopulationParametersChange(
-                        time=T, initial_size=N1, growth_rate=0, population_id=0),
-                    ],
+            id="exp_decline",
+            description="exp_decline",
+            long_description="exp_decline",
+            populations=[stdpopsim.models._pop0],
+            generation_time=1,
+            population_configurations=[
+                msprime.PopulationConfiguration(
+                    initial_size=N0,
+                    growth_rate=r,
+                    metadata=stdpopsim.models._pop0.asdict(),
                 )
+            ],
+            demographic_events=[
+                msprime.PopulationParametersChange(
+                    time=T, initial_size=N1, growth_rate=0, population_id=0
+                ),
+            ],
+        )
 
     def test_bad_population_size_exp_decline(self):
         engine, species, contig = self.triplet()
@@ -374,13 +447,21 @@ class TestWarningsAndErrors(unittest.TestCase):
 
         with self.assertWarns(stdpopsim.UnspecifiedSLiMWarning):
             engine.simulate(
-                    demographic_model=model, contig=contig, samples=samples,
-                    slim_scaling_factor=10, dry_run=True)
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                slim_scaling_factor=10,
+                dry_run=True,
+            )
 
         with self.assertRaises(stdpopsim.SLiMException):
             engine.simulate(
-                    demographic_model=model, contig=contig, samples=samples,
-                    slim_scaling_factor=200, dry_run=False)
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                slim_scaling_factor=200,
+                dry_run=False,
+            )
 
     def test_sample_size_too_big_exp_decline(self):
         engine, species, contig = self.triplet()
@@ -389,26 +470,30 @@ class TestWarningsAndErrors(unittest.TestCase):
 
         with self.assertRaises(stdpopsim.SLiMException):
             engine.simulate(
-                    demographic_model=model, contig=contig, samples=samples,
-                    slim_scaling_factor=10, dry_run=True)
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                slim_scaling_factor=10,
+                dry_run=True,
+            )
 
     # this is an expected failure, because no warning should be emitted
     @unittest.expectedFailure
     def test_warning_when_not_scaling(self):
         with self.assertWarns(stdpopsim.SLiMScalingFactorWarning):
             for cmd in [
-                    "HomSap 100 -D",
-                    "-e slim HomSap 100 -D",
-                    "-e slim --slim-scaling-factor 1 HomSap 100 -D",
-                    "-e slim --slim-scaling-factor 1.0 HomSap 100 -D",
-                    ]:
+                "HomSap 100 -D",
+                "-e slim HomSap 100 -D",
+                "-e slim --slim-scaling-factor 1 HomSap 100 -D",
+                "-e slim --slim-scaling-factor 1.0 HomSap 100 -D",
+            ]:
                 capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
 
     def test_warning_when_scaling(self):
         for cmd in [
-                "-e slim --slim-scaling-factor 2 HomSap 100 -D -L 1",
-                "-e slim --slim-scaling-factor 1000 EscCol 100 -D -L 1",
-                ]:
+            "-e slim --slim-scaling-factor 2 HomSap 100 -D -L 1",
+            "-e slim --slim-scaling-factor 1000 EscCol 100 -D -L 1",
+        ]:
             with self.assertWarns(stdpopsim.SLiMScalingFactorWarning):
                 capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
 
@@ -417,6 +502,7 @@ class TestSlimAvailable(unittest.TestCase):
     """
     Checks whether SLiM is available or not on platforms that support it.
     """
+
     def test_parser_has_options(self):
         parser = stdpopsim.cli.stdpopsim_cli_parser()
         with mock.patch("sys.exit", autospec=True):
@@ -433,6 +519,7 @@ class PiecewiseConstantSizeMixin(object):
     """
     Mixin that sets up a simple demographic model used by multiple unit tests.
     """
+
     species = stdpopsim.get_species("HomSap")
     contig = species.get_contig("chr22", length_multiplier=0.001)  # ~50 kb
 
@@ -452,8 +539,11 @@ class PiecewiseConstantSizeMixin(object):
         """
         # surely there's a simpler way!
         assert ts.num_mutations == 1
-        alive = list(itertools.chain.from_iterable(
-                    ts.individual(i).nodes for i in ts.individuals_alive_at(0)))
+        alive = list(
+            itertools.chain.from_iterable(
+                ts.individual(i).nodes for i in ts.individuals_alive_at(0)
+            )
+        )
         mut = next(ts.mutations())
         tree = ts.at(ts.site(mut.site).position)
         have_mut = [u for u in alive if tree.is_descendant(u, mut.node)]
@@ -466,81 +556,121 @@ class TestMutationTypes(unittest.TestCase, PiecewiseConstantSizeMixin):
     def test_single_mutation_type_in_script(self):
         engine = stdpopsim.get_engine("slim")
         out, _ = capture_output(
-                engine.simulate,
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, slim_script=True)
+            engine.simulate,
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            slim_script=True,
+        )
         self.assertEqual(out.count("initializeMutationType"), 1)
 
         mutation_types = [stdpopsim.ext.MutationType(weight=1)]
         out, _ = capture_output(
-                engine.simulate,
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, mutation_types=mutation_types,
-                slim_script=True)
+            engine.simulate,
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            mutation_types=mutation_types,
+            slim_script=True,
+        )
         self.assertEqual(out.count("initializeMutationType"), 1)
 
     def test_multiple_mutation_types_in_script(self):
         engine = stdpopsim.get_engine("slim")
-        mutation_types = [stdpopsim.ext.MutationType(weight=1),
-                          stdpopsim.ext.MutationType(weight=2)]
+        mutation_types = [
+            stdpopsim.ext.MutationType(weight=1),
+            stdpopsim.ext.MutationType(weight=2),
+        ]
         out, _ = capture_output(
-                engine.simulate,
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, mutation_types=mutation_types,
-                slim_script=True)
+            engine.simulate,
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            mutation_types=mutation_types,
+            slim_script=True,
+        )
         self.assertEqual(out.count("initializeMutationType"), 2)
 
         mutation_types = [stdpopsim.ext.MutationType(weight=i) for i in range(10)]
         positive = stdpopsim.ext.MutationType(convert_to_substitution=False)
         mutation_types.append(positive)
         out, _ = capture_output(
-                engine.simulate,
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, mutation_types=mutation_types,
-                slim_script=True)
+            engine.simulate,
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            mutation_types=mutation_types,
+            slim_script=True,
+        )
         self.assertEqual(out.count("initializeMutationType"), 11)
 
     def test_unweighted_mutations_are_not_simulated_by_slim(self):
-        mutation_types = [stdpopsim.ext.MutationType(convert_to_substitution=True),
-                          stdpopsim.ext.MutationType(convert_to_substitution=False)]
+        mutation_types = [
+            stdpopsim.ext.MutationType(convert_to_substitution=True),
+            stdpopsim.ext.MutationType(convert_to_substitution=False),
+        ]
         ts = slim_simulate_no_recap(
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, mutation_types=mutation_types,
-                slim_scaling_factor=10, slim_burn_in=0.1)
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            mutation_types=mutation_types,
+            slim_scaling_factor=10,
+            slim_burn_in=0.1,
+        )
         self.assertEqual(ts.num_sites, 0)
 
-        mutation_types = [stdpopsim.ext.MutationType(),
-                          stdpopsim.ext.MutationType(
-                              weight=0, distribution_type="g",
-                              distribution_args=[-0.01, 0.2])]
+        mutation_types = [
+            stdpopsim.ext.MutationType(),
+            stdpopsim.ext.MutationType(
+                weight=0, distribution_type="g", distribution_args=[-0.01, 0.2]
+            ),
+        ]
         ts = slim_simulate_no_recap(
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, mutation_types=mutation_types,
-                slim_scaling_factor=10, slim_burn_in=0.1)
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            mutation_types=mutation_types,
+            slim_scaling_factor=10,
+            slim_burn_in=0.1,
+        )
         self.assertEqual(ts.num_sites, 0)
 
     def test_weighted_mutations_are_simulated_by_slim(self):
-        mutation_types = [stdpopsim.ext.MutationType(
-            weight=1, convert_to_substitution=True)]
+        mutation_types = [
+            stdpopsim.ext.MutationType(weight=1, convert_to_substitution=True)
+        ]
         ts = slim_simulate_no_recap(
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, mutation_types=mutation_types,
-                slim_scaling_factor=10, slim_burn_in=0.1)
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            mutation_types=mutation_types,
+            slim_scaling_factor=10,
+            slim_burn_in=0.1,
+        )
         self.assertTrue(ts.num_sites > 0)
 
-        mutation_types = [stdpopsim.ext.MutationType(
-            weight=1, convert_to_substitution=False)]
+        mutation_types = [
+            stdpopsim.ext.MutationType(weight=1, convert_to_substitution=False)
+        ]
         ts = slim_simulate_no_recap(
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, mutation_types=mutation_types,
-                slim_scaling_factor=10, slim_burn_in=0.1)
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            mutation_types=mutation_types,
+            slim_scaling_factor=10,
+            slim_burn_in=0.1,
+        )
         self.assertTrue(ts.num_sites > 0)
 
         mutation_types = [stdpopsim.ext.MutationType(weight=i) for i in range(10)]
         ts = slim_simulate_no_recap(
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, mutation_types=mutation_types,
-                slim_scaling_factor=10, slim_burn_in=0.1)
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            mutation_types=mutation_types,
+            slim_scaling_factor=10,
+            slim_burn_in=0.1,
+        )
         self.assertTrue(ts.num_sites > 0)
 
     def test_dominance_coeff(self):
@@ -569,34 +699,40 @@ class TestMutationTypes(unittest.TestCase, PiecewiseConstantSizeMixin):
     def test_distribution_type_f(self):
         for distribution_args in ([-0.1], [0], [0.1], [50]):
             stdpopsim.ext.MutationType(
-                    distribution_type="f", distribution_args=distribution_args)
+                distribution_type="f", distribution_args=distribution_args
+            )
 
     def test_bad_distribution_args_f(self):
         for distribution_args in ([0.1, 0.2], []):
             with self.assertRaises(ValueError):
                 stdpopsim.ext.MutationType(
-                        distribution_type="f", distribution_args=distribution_args)
+                    distribution_type="f", distribution_args=distribution_args
+                )
 
     def test_distribution_type_g(self):
         for distribution_args in ([-0.1, 0.1], [0.1, 0.1], [50, 50]):
             stdpopsim.ext.MutationType(
-                    distribution_type="g", distribution_args=distribution_args)
+                distribution_type="g", distribution_args=distribution_args
+            )
 
     def test_bad_distribution_args_g(self):
         for distribution_args in ([], [0.1, 0], [0.1, -0.1], [0.1, 0.4, 0.5]):
             with self.assertRaises(ValueError):
                 stdpopsim.ext.MutationType(
-                        distribution_type="g", distribution_args=distribution_args)
+                    distribution_type="g", distribution_args=distribution_args
+                )
 
     def test_slim_mutation_frac(self):
-        for weights in ([0.1], [50], [0, 5], [0]*100+[0.1]):
-            mut_types = [stdpopsim.ext.MutationType(weight=weight)
-                         for weight in weights]
+        for weights in ([0.1], [50], [0, 5], [0] * 100 + [0.1]):
+            mut_types = [
+                stdpopsim.ext.MutationType(weight=weight) for weight in weights
+            ]
             self.assertEqual(1, stdpopsim.ext.slim_mutation_frac(mut_types))
 
-        for weights in ([], [0], [0]*100):
-            mut_types = [stdpopsim.ext.MutationType(weight=weight)
-                         for weight in weights]
+        for weights in ([], [0], [0] * 100):
+            mut_types = [
+                stdpopsim.ext.MutationType(weight=weight) for weight in weights
+            ]
             self.assertEqual(0, stdpopsim.ext.slim_mutation_frac(mut_types))
 
         self.assertEqual(0, stdpopsim.ext.slim_mutation_frac(None))
@@ -604,197 +740,311 @@ class TestMutationTypes(unittest.TestCase, PiecewiseConstantSizeMixin):
 
 @unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
 class TestDrawMutation(unittest.TestCase, PiecewiseConstantSizeMixin):
-
     def test_draw_mutation_save(self):
         extended_events = [
-                stdpopsim.ext.DrawMutation(
-                    time=self.T_mut, mutation_type_id=self.mut_id,
-                    population_id=0, coordinate=100, save=True),
-                ]
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                coordinate=100,
+                save=True,
+            ),
+        ]
         engine = stdpopsim.get_engine("slim")
         engine.simulate(
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, mutation_types=self.mutation_types,
-                extended_events=extended_events, dry_run=True)
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            mutation_types=self.mutation_types,
+            extended_events=extended_events,
+            dry_run=True,
+        )
 
     def test_draw_mutation_no_save(self):
         extended_events = [
-                stdpopsim.ext.DrawMutation(
-                    time=self.T_mut, mutation_type_id=self.mut_id,
-                    population_id=0, coordinate=100),
-                ]
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                coordinate=100,
+            ),
+        ]
         engine = stdpopsim.get_engine("slim")
         engine.simulate(
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, mutation_types=self.mutation_types,
-                extended_events=extended_events, dry_run=True)
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            mutation_types=self.mutation_types,
+            extended_events=extended_events,
+            dry_run=True,
+        )
 
     def test_invalid_mutation_type_id(self):
         engine = stdpopsim.get_engine("slim")
         for mut_type_id in [-1, 10]:
             extended_events = [
-                    stdpopsim.ext.DrawMutation(
-                        time=self.T_mut, mutation_type_id=mut_type_id,
-                        population_id=0, coordinate=100),
-                    ]
+                stdpopsim.ext.DrawMutation(
+                    time=self.T_mut,
+                    mutation_type_id=mut_type_id,
+                    population_id=0,
+                    coordinate=100,
+                ),
+            ]
             with self.assertRaises(ValueError):
                 engine.simulate(
-                        demographic_model=self.model, contig=self.contig,
-                        samples=self.samples, mutation_types=self.mutation_types,
-                        extended_events=extended_events, dry_run=True)
+                    demographic_model=self.model,
+                    contig=self.contig,
+                    samples=self.samples,
+                    mutation_types=self.mutation_types,
+                    extended_events=extended_events,
+                    dry_run=True,
+                )
 
     def test_no_mutation_types_defined(self):
         extended_events = [
-                stdpopsim.ext.DrawMutation(
-                    time=self.T_mut, mutation_type_id=self.mut_id,
-                    population_id=0, coordinate=100),
-                ]
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                coordinate=100,
+            ),
+        ]
         engine = stdpopsim.get_engine("slim")
         with self.assertRaises(ValueError):
             engine.simulate(
-                    demographic_model=self.model, contig=self.contig,
-                    samples=self.samples,
-                    extended_events=extended_events, dry_run=True)
+                demographic_model=self.model,
+                contig=self.contig,
+                samples=self.samples,
+                extended_events=extended_events,
+                dry_run=True,
+            )
 
     def test_bad_time(self):
         for time in (-1,):
             with self.assertRaises(ValueError):
                 stdpopsim.ext.DrawMutation(
-                        time=time, mutation_type_id=0, population_id=0,
-                        coordinate=0)
+                    time=time, mutation_type_id=0, population_id=0, coordinate=0
+                )
         for time in (0, -1):
             with self.assertRaises(ValueError):
                 stdpopsim.ext.DrawMutation(
-                        time=stdpopsim.ext.GenerationAfter(time),
-                        mutation_type_id=0, population_id=0, coordinate=0)
+                    time=stdpopsim.ext.GenerationAfter(time),
+                    mutation_type_id=0,
+                    population_id=0,
+                    coordinate=0,
+                )
 
 
 @unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
 class TestAlleleFrequencyConditioning(unittest.TestCase, PiecewiseConstantSizeMixin):
-
     def test_save_point_creation(self):
         extended_events = [
-                stdpopsim.ext.DrawMutation(
-                    time=self.T_mut, mutation_type_id=self.mut_id,
-                    population_id=0, coordinate=100, save=True),
-                stdpopsim.ext.ConditionOnAlleleFrequency(
-                    start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
-                    end_time=0,
-                    mutation_type_id=self.mut_id, population_id=0,
-                    op=">", allele_frequency=0, save=True),
-                stdpopsim.ext.ConditionOnAlleleFrequency(
-                    start_time=self.T_mut // 2, end_time=self.T_mut // 2,
-                    mutation_type_id=self.mut_id, population_id=0,
-                    op=">", allele_frequency=0, save=True),
-                ]
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                coordinate=100,
+                save=True,
+            ),
+            stdpopsim.ext.ConditionOnAlleleFrequency(
+                start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
+                end_time=0,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                op=">",
+                allele_frequency=0,
+                save=True,
+            ),
+            stdpopsim.ext.ConditionOnAlleleFrequency(
+                start_time=self.T_mut // 2,
+                end_time=self.T_mut // 2,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                op=">",
+                allele_frequency=0,
+                save=True,
+            ),
+        ]
         engine = stdpopsim.get_engine("slim")
         engine.simulate(
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, mutation_types=self.mutation_types,
-                extended_events=extended_events, dry_run=True)
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            mutation_types=self.mutation_types,
+            extended_events=extended_events,
+            dry_run=True,
+        )
 
     def test_drawn_mutation_not_lost(self):
         extended_events = [
-                stdpopsim.ext.DrawMutation(
-                    time=self.T_mut, mutation_type_id=self.mut_id,
-                    population_id=0, coordinate=100, save=True),
-                stdpopsim.ext.ConditionOnAlleleFrequency(
-                    start_time=0, end_time=0,
-                    mutation_type_id=self.mut_id, population_id=0,
-                    op=">", allele_frequency=0),
-                ]
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                coordinate=100,
+                save=True,
+            ),
+            stdpopsim.ext.ConditionOnAlleleFrequency(
+                start_time=0,
+                end_time=0,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                op=">",
+                allele_frequency=0,
+            ),
+        ]
         ts = slim_simulate_no_recap(
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, mutation_types=self.mutation_types,
-                extended_events=extended_events, slim_scaling_factor=10,
-                slim_burn_in=0.1)
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            mutation_types=self.mutation_types,
+            extended_events=extended_events,
+            slim_scaling_factor=10,
+            slim_burn_in=0.1,
+        )
         self.assertEqual(ts.num_mutations, 1)
 
     def test_drawn_mutation_is_lost(self):
         extended_events = [
-                stdpopsim.ext.DrawMutation(
-                    time=self.T_mut, mutation_type_id=self.mut_id,
-                    population_id=0, coordinate=100, save=True),
-                stdpopsim.ext.ConditionOnAlleleFrequency(
-                    start_time=0, end_time=0,
-                    mutation_type_id=self.mut_id, population_id=0,
-                    op="<=", allele_frequency=0),
-                ]
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                coordinate=100,
+                save=True,
+            ),
+            stdpopsim.ext.ConditionOnAlleleFrequency(
+                start_time=0,
+                end_time=0,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                op="<=",
+                allele_frequency=0,
+            ),
+        ]
         ts = slim_simulate_no_recap(
-                demographic_model=self.model, contig=self.contig,
-                samples=self.samples, mutation_types=self.mutation_types,
-                extended_events=extended_events, slim_scaling_factor=10,
-                slim_burn_in=0.1)
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            mutation_types=self.mutation_types,
+            extended_events=extended_events,
+            slim_scaling_factor=10,
+            slim_burn_in=0.1,
+        )
         self.assertEqual(ts.num_mutations, 0)
 
     def test_drawn_mutation_meets_AF_threshold(self):
         for af_threshold, seed in zip((0.01, 0.1, 0.2), (1, 2, 3)):
             extended_events = [
-                    stdpopsim.ext.DrawMutation(
-                        time=self.T_mut, mutation_type_id=self.mut_id,
-                        population_id=0, coordinate=100, save=True),
-                    # Condition on desired AF at end of simulation.
-                    stdpopsim.ext.ConditionOnAlleleFrequency(
-                        start_time=0, end_time=0,
-                        mutation_type_id=self.mut_id, population_id=0,
-                        op=">=", allele_frequency=af_threshold),
-                    ]
+                stdpopsim.ext.DrawMutation(
+                    time=self.T_mut,
+                    mutation_type_id=self.mut_id,
+                    population_id=0,
+                    coordinate=100,
+                    save=True,
+                ),
+                # Condition on desired AF at end of simulation.
+                stdpopsim.ext.ConditionOnAlleleFrequency(
+                    start_time=0,
+                    end_time=0,
+                    mutation_type_id=self.mut_id,
+                    population_id=0,
+                    op=">=",
+                    allele_frequency=af_threshold,
+                ),
+            ]
             ts = slim_simulate_no_recap(
-                    demographic_model=self.model, contig=self.contig,
-                    samples=self.samples, mutation_types=self.mutation_types,
-                    extended_events=extended_events, slim_scaling_factor=10,
-                    slim_burn_in=0.1, seed=seed)
+                demographic_model=self.model,
+                contig=self.contig,
+                samples=self.samples,
+                mutation_types=self.mutation_types,
+                extended_events=extended_events,
+                slim_scaling_factor=10,
+                slim_burn_in=0.1,
+                seed=seed,
+            )
             self.assertEqual(ts.num_mutations, 1)
             self.assertTrue(self.allele_frequency(ts) >= af_threshold)
 
     def test_bad_AF_conditioning_parameters(self):
         for op, af in [
-                # bad ops
-                ("=", .5), ("==", 0.5), ("!=", 0.5), ({}, 0.5), ("", 0.5),
-                # bad allele frequencies
-                ("<", -1), ("<=", 2.0),
-                # condition is always false
-                ("<", 0), (">", 1),
-                # condition is always true
-                (">=", 0), ("<=", 1),
-                ]:
+            # bad ops
+            ("=", 0.5),
+            ("==", 0.5),
+            ("!=", 0.5),
+            ({}, 0.5),
+            ("", 0.5),
+            # bad allele frequencies
+            ("<", -1),
+            ("<=", 2.0),
+            # condition is always false
+            ("<", 0),
+            (">", 1),
+            # condition is always true
+            (">=", 0),
+            ("<=", 1),
+        ]:
             with self.assertRaises(ValueError):
                 stdpopsim.ext.ConditionOnAlleleFrequency(
-                    start_time=0, end_time=0, mutation_type_id=self.mut_id,
-                    population_id=0, op=op, allele_frequency=af)
+                    start_time=0,
+                    end_time=0,
+                    mutation_type_id=self.mut_id,
+                    population_id=0,
+                    op=op,
+                    allele_frequency=af,
+                )
 
     def test_bad_times(self):
-        for start_time, end_time in [
-                (-1, 0), (0, -1), (1, 100)]:
+        for start_time, end_time in [(-1, 0), (0, -1), (1, 100)]:
             with self.assertRaises(ValueError):
                 stdpopsim.ext.ConditionOnAlleleFrequency(
-                    start_time=start_time, end_time=end_time,
-                    mutation_type_id=0, population_id=0,
-                    op=">", allele_frequency=0)
+                    start_time=start_time,
+                    end_time=end_time,
+                    mutation_type_id=0,
+                    population_id=0,
+                    op=">",
+                    allele_frequency=0,
+                )
 
     def test_bad_GenerationAfter_times(self):
         engine = stdpopsim.get_engine("slim")
         for start_time, end_time in [
-                # Errors caught when the event is created.
-                (-1, 0), (0, -1), (1, 100), (100, 100), (0, 0),
-                # Errors caught when the GenerationAfter has been calculated.
-                (1e-9, 0), (100+1e-9, 100),
-                ]:
+            # Errors caught when the event is created.
+            (-1, 0),
+            (0, -1),
+            (1, 100),
+            (100, 100),
+            (0, 0),
+            # Errors caught when the GenerationAfter has been calculated.
+            (1e-9, 0),
+            (100 + 1e-9, 100),
+        ]:
             with self.assertRaises(ValueError):
                 extended_events = [
-                        stdpopsim.ext.DrawMutation(
-                            time=self.T_mut, mutation_type_id=self.mut_id,
-                            population_id=0, coordinate=100, save=True),
-                        stdpopsim.ext.ConditionOnAlleleFrequency(
-                            start_time=stdpopsim.ext.GenerationAfter(start_time),
-                            end_time=end_time,
-                            mutation_type_id=self.mut_id, population_id=0,
-                            op=">", allele_frequency=0)
-                        ]
+                    stdpopsim.ext.DrawMutation(
+                        time=self.T_mut,
+                        mutation_type_id=self.mut_id,
+                        population_id=0,
+                        coordinate=100,
+                        save=True,
+                    ),
+                    stdpopsim.ext.ConditionOnAlleleFrequency(
+                        start_time=stdpopsim.ext.GenerationAfter(start_time),
+                        end_time=end_time,
+                        mutation_type_id=self.mut_id,
+                        population_id=0,
+                        op=">",
+                        allele_frequency=0,
+                    ),
+                ]
                 engine.simulate(
-                        demographic_model=self.model, contig=self.contig,
-                        samples=self.samples, mutation_types=self.mutation_types,
-                        extended_events=extended_events, dry_run=True)
+                    demographic_model=self.model,
+                    contig=self.contig,
+                    samples=self.samples,
+                    mutation_types=self.mutation_types,
+                    extended_events=extended_events,
+                    dry_run=True,
+                )
 
     def test_op_id(self):
         op_types = stdpopsim.ext.ConditionOnAlleleFrequency.op_types
@@ -807,38 +1057,56 @@ class TestAlleleFrequencyConditioning(unittest.TestCase, PiecewiseConstantSizeMi
 
     def test_conditioning_without_save(self):
         extended_events = [
-                stdpopsim.ext.DrawMutation(
-                    time=self.T_mut, mutation_type_id=self.mut_id,
-                    population_id=0, coordinate=100),
-                stdpopsim.ext.ConditionOnAlleleFrequency(
-                    start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
-                    end_time=0,
-                    mutation_type_id=self.mut_id, population_id=0,
-                    op=">=", allele_frequency=1),
-                ]
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                coordinate=100,
+            ),
+            stdpopsim.ext.ConditionOnAlleleFrequency(
+                start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
+                end_time=0,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                op=">=",
+                allele_frequency=1,
+            ),
+        ]
         engine = stdpopsim.get_engine("slim")
         with self.assertRaises(stdpopsim.SLiMException):
             # TODO: get this to fail using dry_run=True
             engine.simulate(
-                    demographic_model=self.model, contig=self.contig,
-                    samples=self.samples, mutation_types=self.mutation_types,
-                    extended_events=extended_events, slim_scaling_factor=10,
-                    slim_burn_in=0.1)
+                demographic_model=self.model,
+                contig=self.contig,
+                samples=self.samples,
+                mutation_types=self.mutation_types,
+                extended_events=extended_events,
+                slim_scaling_factor=10,
+                slim_burn_in=0.1,
+            )
 
     def test_no_drawn_mutation(self):
         extended_events = [
-                stdpopsim.ext.ConditionOnAlleleFrequency(
-                    start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
-                    end_time=0,
-                    mutation_type_id=self.mut_id, population_id=0,
-                    op=">", allele_frequency=0, save=True),
-                ]
+            stdpopsim.ext.ConditionOnAlleleFrequency(
+                start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
+                end_time=0,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                op=">",
+                allele_frequency=0,
+                save=True,
+            ),
+        ]
         engine = stdpopsim.get_engine("slim")
         with self.assertRaises(ValueError):
             engine.simulate(
-                    demographic_model=self.model, contig=self.contig,
-                    samples=self.samples, mutation_types=self.mutation_types,
-                    extended_events=extended_events, dry_run=True)
+                demographic_model=self.model,
+                contig=self.contig,
+                samples=self.samples,
+                mutation_types=self.mutation_types,
+                extended_events=extended_events,
+                dry_run=True,
+            )
 
 
 @unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
@@ -853,93 +1121,144 @@ class TestChangeMutationFitness(unittest.TestCase, PiecewiseConstantSizeMixin):
     def test_positive_mutation_meets_AF_threshold(self):
         for af_threshold, seed in zip((0.5, 1), (1, 2)):
             extended_events = [
-                    stdpopsim.ext.DrawMutation(
-                        time=self.T_mut, mutation_type_id=self.mut_id,
-                        population_id=0, coordinate=100, save=True),
-                    stdpopsim.ext.ChangeMutationFitness(
-                        start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
-                        end_time=0,
-                        mutation_type_id=self.mut_id, population_id=0,
-                        selection_coeff=0.1, dominance_coeff=0.5),
-                    # Condition on AF > 0, to restore() immediately if the
-                    # allele is lost.
-                    stdpopsim.ext.ConditionOnAlleleFrequency(
-                        start_time=0, end_time=0,
-                        mutation_type_id=self.mut_id, population_id=0,
-                        op=">", allele_frequency=0),
-                    # Condition on desired AF at end of simulation.
-                    stdpopsim.ext.ConditionOnAlleleFrequency(
-                        start_time=0, end_time=0,
-                        mutation_type_id=self.mut_id, population_id=0,
-                        op=">=", allele_frequency=af_threshold),
-                    ]
+                stdpopsim.ext.DrawMutation(
+                    time=self.T_mut,
+                    mutation_type_id=self.mut_id,
+                    population_id=0,
+                    coordinate=100,
+                    save=True,
+                ),
+                stdpopsim.ext.ChangeMutationFitness(
+                    start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
+                    end_time=0,
+                    mutation_type_id=self.mut_id,
+                    population_id=0,
+                    selection_coeff=0.1,
+                    dominance_coeff=0.5,
+                ),
+                # Condition on AF > 0, to restore() immediately if the
+                # allele is lost.
+                stdpopsim.ext.ConditionOnAlleleFrequency(
+                    start_time=0,
+                    end_time=0,
+                    mutation_type_id=self.mut_id,
+                    population_id=0,
+                    op=">",
+                    allele_frequency=0,
+                ),
+                # Condition on desired AF at end of simulation.
+                stdpopsim.ext.ConditionOnAlleleFrequency(
+                    start_time=0,
+                    end_time=0,
+                    mutation_type_id=self.mut_id,
+                    population_id=0,
+                    op=">=",
+                    allele_frequency=af_threshold,
+                ),
+            ]
             ts = slim_simulate_no_recap(
-                    demographic_model=self.model, contig=self.contig,
-                    samples=self.samples, mutation_types=self.mutation_types,
-                    extended_events=extended_events, slim_scaling_factor=10,
-                    slim_burn_in=0.1, seed=seed)
+                demographic_model=self.model,
+                contig=self.contig,
+                samples=self.samples,
+                mutation_types=self.mutation_types,
+                extended_events=extended_events,
+                slim_scaling_factor=10,
+                slim_burn_in=0.1,
+                seed=seed,
+            )
             self.assertEqual(ts.num_mutations, 1)
             self.assertTrue(self.allele_frequency(ts) >= af_threshold)
 
     def test_no_drawn_mutation(self):
         extended_events = [
-                stdpopsim.ext.ChangeMutationFitness(
-                    start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
-                    end_time=0,
-                    mutation_type_id=self.mut_id, population_id=0,
-                    selection_coeff=0.1, dominance_coeff=0.5),
-                ]
+            stdpopsim.ext.ChangeMutationFitness(
+                start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
+                end_time=0,
+                mutation_type_id=self.mut_id,
+                population_id=0,
+                selection_coeff=0.1,
+                dominance_coeff=0.5,
+            ),
+        ]
         engine = stdpopsim.get_engine("slim")
         with self.assertRaises(ValueError):
             engine.simulate(
-                    demographic_model=self.model, contig=self.contig,
-                    samples=self.samples, mutation_types=self.mutation_types,
-                    extended_events=extended_events, dry_run=True)
+                demographic_model=self.model,
+                contig=self.contig,
+                samples=self.samples,
+                mutation_types=self.mutation_types,
+                extended_events=extended_events,
+                dry_run=True,
+            )
 
     def test_bad_times(self):
-        for start_time, end_time in [
-                (-1, 0), (0, -1), (1, 100)]:
+        for start_time, end_time in [(-1, 0), (0, -1), (1, 100)]:
             with self.assertRaises(ValueError):
                 stdpopsim.ext.ChangeMutationFitness(
-                    start_time=start_time, end_time=end_time,
-                    mutation_type_id=0, population_id=0,
-                    selection_coeff=0.1, dominance_coeff=0.5)
+                    start_time=start_time,
+                    end_time=end_time,
+                    mutation_type_id=0,
+                    population_id=0,
+                    selection_coeff=0.1,
+                    dominance_coeff=0.5,
+                )
 
     def test_bad_GenerationAfter_times(self):
         engine = stdpopsim.get_engine("slim")
         for start_time, end_time in [
-                # Errors caught when the event is created.
-                (-1, 0), (0, -1), (1, 100), (100, 100), (0, 0),
-                # Errors caught when the GenerationAfter has been calculated.
-                (1e-9, 0), (100+1e-9, 100)]:
+            # Errors caught when the event is created.
+            (-1, 0),
+            (0, -1),
+            (1, 100),
+            (100, 100),
+            (0, 0),
+            # Errors caught when the GenerationAfter has been calculated.
+            (1e-9, 0),
+            (100 + 1e-9, 100),
+        ]:
             with self.assertRaises(ValueError):
                 extended_events = [
-                        stdpopsim.ext.DrawMutation(
-                            time=self.T_mut, mutation_type_id=self.mut_id,
-                            population_id=0, coordinate=100, save=True),
-                        stdpopsim.ext.ChangeMutationFitness(
-                            start_time=stdpopsim.ext.GenerationAfter(start_time),
-                            end_time=end_time,
-                            mutation_type_id=self.mut_id, population_id=0,
-                            selection_coeff=0.1, dominance_coeff=0.5),
-                        ]
+                    stdpopsim.ext.DrawMutation(
+                        time=self.T_mut,
+                        mutation_type_id=self.mut_id,
+                        population_id=0,
+                        coordinate=100,
+                        save=True,
+                    ),
+                    stdpopsim.ext.ChangeMutationFitness(
+                        start_time=stdpopsim.ext.GenerationAfter(start_time),
+                        end_time=end_time,
+                        mutation_type_id=self.mut_id,
+                        population_id=0,
+                        selection_coeff=0.1,
+                        dominance_coeff=0.5,
+                    ),
+                ]
                 engine.simulate(
-                        demographic_model=self.model, contig=self.contig,
-                        samples=self.samples, mutation_types=self.mutation_types,
-                        extended_events=extended_events, dry_run=True)
+                    demographic_model=self.model,
+                    contig=self.contig,
+                    samples=self.samples,
+                    mutation_types=self.mutation_types,
+                    extended_events=extended_events,
+                    dry_run=True,
+                )
 
 
 @unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
 class TestExtendedEvents(unittest.TestCase, PiecewiseConstantSizeMixin):
-
     def test_bad_extended_events(self):
         engine = stdpopsim.get_engine("slim")
         for bad_ee in [
-                msprime.PopulationParametersChange(time=0, initial_size=100),
-                None, {}, "",
-                ]:
+            msprime.PopulationParametersChange(time=0, initial_size=100),
+            None,
+            {},
+            "",
+        ]:
             with self.assertRaises(ValueError):
                 engine.simulate(
-                        demographic_model=self.model, contig=self.contig,
-                        samples=self.samples, extended_events=[bad_ee],
-                        dry_run=True)
+                    demographic_model=self.model,
+                    contig=self.contig,
+                    samples=self.samples,
+                    extended_events=[bad_ee],
+                    dry_run=True,
+                )

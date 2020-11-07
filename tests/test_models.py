@@ -20,6 +20,7 @@ class DemographicModelTestMixin(object):
     unittest.TestCase and this mixin, and define the self.model (as the
     model instance).
     """
+
     # To be defined in subclasses.
     model = None
 
@@ -92,6 +93,7 @@ class TestPopulationConfigsEqual(unittest.TestCase):
     """
     Tests the equality comparison of different msprime population configurations.
     """
+
     def test_empty(self):
         self.assertTrue(models.population_configurations_equal([], []))
 
@@ -135,9 +137,11 @@ class TestPopulationConfigsEqual(unittest.TestCase):
 
         for sizes1, sizes2 in test_sizes:
             pc_list1 = [
-                msprime.PopulationConfiguration(initial_size=size) for size in sizes1]
+                msprime.PopulationConfiguration(initial_size=size) for size in sizes1
+            ]
             pc_list2 = [
-                msprime.PopulationConfiguration(initial_size=size) for size in sizes2]
+                msprime.PopulationConfiguration(initial_size=size) for size in sizes2
+            ]
             self.assertFalse(models.population_configurations_equal(pc_list1, pc_list2))
             self.assertFalse(models.population_configurations_equal(pc_list2, pc_list1))
             self.assertTrue(models.population_configurations_equal(pc_list1, pc_list1))
@@ -154,11 +158,13 @@ class TestPopulationConfigsEqual(unittest.TestCase):
         ]
         for rates1, rates2 in test_rates:
             pc_list1 = [
-                msprime.PopulationConfiguration(
-                    initial_size=1, growth_rate=rate) for rate in rates1]
+                msprime.PopulationConfiguration(initial_size=1, growth_rate=rate)
+                for rate in rates1
+            ]
             pc_list2 = [
-                msprime.PopulationConfiguration(
-                    initial_size=1, growth_rate=rate) for rate in rates2]
+                msprime.PopulationConfiguration(initial_size=1, growth_rate=rate)
+                for rate in rates2
+            ]
             self.assertFalse(models.population_configurations_equal(pc_list1, pc_list2))
             self.assertFalse(models.population_configurations_equal(pc_list2, pc_list1))
             self.assertTrue(models.population_configurations_equal(pc_list1, pc_list1))
@@ -174,21 +180,21 @@ class TestPopulationConfigsEqual(unittest.TestCase):
         plist2 = [no_sample_pop] * 4 + [nonzero_sample_pop]
         plist3 = [no_sample_pop] * 3 + [nonzero_sample_pop]
         self.assertFalse(
-            stdpopsim.sampling_times_equal([no_sample_pop], [zero_sample_pop]))
+            stdpopsim.sampling_times_equal([no_sample_pop], [zero_sample_pop])
+        )
         self.assertFalse(
-            stdpopsim.sampling_times_equal([nonzero_sample_pop], [zero_sample_pop]))
-        self.assertFalse(
-            stdpopsim.sampling_times_equal(plist1, plist2))
-        self.assertFalse(
-            stdpopsim.sampling_times_equal(plist1, plist3))
-        self.assertTrue(
-            stdpopsim.sampling_times_equal(plist3, plist3))
+            stdpopsim.sampling_times_equal([nonzero_sample_pop], [zero_sample_pop])
+        )
+        self.assertFalse(stdpopsim.sampling_times_equal(plist1, plist2))
+        self.assertFalse(stdpopsim.sampling_times_equal(plist1, plist3))
+        self.assertTrue(stdpopsim.sampling_times_equal(plist3, plist3))
 
 
 class TestDemographicEventsEqual(unittest.TestCase):
     """
     Tests the equality comparison of different msprime demographic events.
     """
+
     def test_empty(self):
         self.assertTrue(models.demographic_events_equal([], [], 1))
 
@@ -204,11 +210,12 @@ class TestDemographicEventsEqual(unittest.TestCase):
     def test_different_times(self):
         n = 10
         e1 = [
-            msprime.PopulationParametersChange(time=j, initial_size=1)
-            for j in range(n)]
+            msprime.PopulationParametersChange(time=j, initial_size=1) for j in range(n)
+        ]
         e2 = [
             msprime.PopulationParametersChange(time=j + 1, initial_size=1)
-            for j in range(n)]
+            for j in range(n)
+        ]
         for j in range(1, n):
             self.assertFalse(models.demographic_events_equal(e1[:j], e2[:j], 1))
             self.assertFalse(models.demographic_events_equal(e2[:j], e1[:j], 1))
@@ -222,7 +229,8 @@ class TestDemographicEventsEqual(unittest.TestCase):
             msprime.PopulationParametersChange(time=1, initial_size=1),
             msprime.MigrationRateChange(time=1, rate=1),
             msprime.MassMigration(time=1, source=1),
-            msprime.SimpleBottleneck(time=1, population=0)]
+            msprime.SimpleBottleneck(time=1, population=0),
+        ]
         for a, b in itertools.combinations(events, 2):
             self.assertFalse(models.demographic_events_equal([a], [b], 1))
             self.assertFalse(models.demographic_events_equal([b], [a], 1))
@@ -234,11 +242,13 @@ class TestDemographicEventsEqual(unittest.TestCase):
                 models.verify_demographic_events_equal([a], [b], 1)
 
     def test_population_parameters_change(self):
-
         def f(time=1, initial_size=1, growth_rate=None, population=None):
             return msprime.PopulationParametersChange(
-                time=time, initial_size=initial_size, growth_rate=growth_rate,
-                population=population)
+                time=time,
+                initial_size=initial_size,
+                growth_rate=growth_rate,
+                population=population,
+            )
 
         test_events = [
             (f(time=1), f(time=2)),
@@ -257,10 +267,10 @@ class TestDemographicEventsEqual(unittest.TestCase):
                 models.verify_demographic_events_equal([a], [b], 1)
 
     def test_migration_rate_change(self):
-
         def f(time=1, rate=1, matrix_index=None):
             return msprime.MigrationRateChange(
-                time=time, rate=rate, matrix_index=matrix_index)
+                time=time, rate=rate, matrix_index=matrix_index
+            )
 
         test_events = [
             (f(time=1), f(time=2)),
@@ -279,10 +289,10 @@ class TestDemographicEventsEqual(unittest.TestCase):
                 models.verify_demographic_events_equal([a], [b], 1)
 
     def test_mass_migration(self):
-
         def f(time=1, source=1, dest=1, proportion=1):
             return msprime.MassMigration(
-                time=time, source=source, dest=dest, proportion=proportion)
+                time=time, source=source, dest=dest, proportion=proportion
+            )
 
         test_events = [
             (f(time=1), f(time=2)),
@@ -301,10 +311,10 @@ class TestDemographicEventsEqual(unittest.TestCase):
                 models.verify_demographic_events_equal([a], [b], 1)
 
     def test_simple_bottleneck(self):
-
         def f(time=1, population=1, proportion=1):
             return msprime.SimpleBottleneck(
-                time=time, population=population, proportion=proportion)
+                time=time, population=population, proportion=proportion
+            )
 
         test_events = [
             (f(time=1), f(time=2)),
@@ -323,14 +333,14 @@ class TestDemographicEventsEqual(unittest.TestCase):
 
 
 class TestRegisterQCModel(unittest.TestCase):
-
     def make_model(self, name):
         return models.DemographicModel(
-                id=name,
-                description=name,
-                long_description=name,
-                generation_time=1,
-                populations=[])
+            id=name,
+            description=name,
+            long_description=name,
+            generation_time=1,
+            populations=[],
+        )
 
     def test_register_qc(self):
         model = self.make_model("test")
@@ -353,6 +363,7 @@ class TestAllModels(unittest.TestCase):
     """
     Tests for registered simulation models.
     """
+
     def test_non_empty(self):
         self.assertGreater(len(list(stdpopsim.all_demographic_models())), 0)
 
@@ -378,6 +389,7 @@ class TestModelsEqual(unittest.TestCase):
     """
     Tests DemographicModel object equality comparison.
     """
+
     def test_known_models(self):
         # All models should be equal to themselves.
         other_model = models.DemographicModel.empty()
@@ -429,6 +441,7 @@ class TestPiecewiseConstantSize(unittest.TestCase):
     """
     Specific tests for the piecewise constant model.
     """
+
     def test_single_epoch(self):
         model = models.PiecewiseConstantSize(100)
         self.assertEqual(model.population_configurations[0].initial_size, 100)
@@ -462,6 +475,7 @@ class TestIsolationWithMigration(unittest.TestCase):
     """
     Tests for the generic IM model.
     """
+
     def test_pop_configs(self):
         model = models.IsolationWithMigration(100, 200, 300, 50, 0, 0)
         self.assertEqual(len(model.population_configurations), 3)
@@ -487,10 +501,8 @@ class TestIsolationWithMigration(unittest.TestCase):
 class TestPopulationSampling(unittest.TestCase):
     # Create populations to test on
     _pop1 = stdpopsim.Population("pop0", "Test pop. 0")
-    _pop2 = stdpopsim.Population("pop1", "Test pop. 1",
-                                 sampling_time=10)
-    _pop3 = stdpopsim.Population("pop2", "Test pop. 2",
-                                 sampling_time=None)
+    _pop2 = stdpopsim.Population("pop1", "Test pop. 1", sampling_time=10)
+    _pop3 = stdpopsim.Population("pop2", "Test pop. 2", sampling_time=None)
 
     # Create an empty model to hold populations
     base_mod = models.DemographicModel.empty(populations=[_pop1, _pop2, _pop3])
@@ -527,7 +539,8 @@ class TestPopulationSampling(unittest.TestCase):
         for model in stdpopsim.all_demographic_models():
             pop_ids = [pop.id for pop in model.populations]
             config_ids = [
-                config.metadata["id"] for config in model.population_configurations]
+                config.metadata["id"] for config in model.population_configurations
+            ]
             for p, c in zip(pop_ids, config_ids):
                 self.assertEqual(p, c)
 
@@ -545,7 +558,8 @@ class TestPopulationSampling(unittest.TestCase):
             ddb2 = msprime.DemographyDebugger(
                 population_configurations=model.population_configurations,
                 migration_matrix=model.migration_matrix,
-                demographic_events=model.demographic_events)
+                demographic_events=model.demographic_events,
+            )
             f1 = io.StringIO()
             f2 = io.StringIO()
             ddb1.print_history(f1)
@@ -559,24 +573,36 @@ class TestDemographicModelConstruction(unittest.TestCase):
     def test_population_construction_popconfig(self):
         pc = [msprime.PopulationConfiguration(initial_size=1, growth_rate=0.03)]
         dm = stdpopsim.DemographicModel(
-            id="", description="", long_description="",
-            generation_time=1, population_configurations=pc)
+            id="",
+            description="",
+            long_description="",
+            generation_time=1,
+            population_configurations=pc,
+        )
         self.assertEqual(dm.populations[0].id, "pop0")
 
     # Test construction of a Population object when provided a PopulationConfiguration
     # object with metadata but no populations
     def test_population_construction_popconfig_metadata(self):
         pop0 = stdpopsim.Population(id="A", description="Pop A")
-        pc_meta = [msprime.PopulationConfiguration(
-            initial_size=1, growth_rate=0.03, metadata=pop0.asdict())]
+        pc_meta = [
+            msprime.PopulationConfiguration(
+                initial_size=1, growth_rate=0.03, metadata=pop0.asdict()
+            )
+        ]
         dm = stdpopsim.DemographicModel(
-            id="", description="", long_description="",
-            generation_time=1, population_configurations=pc_meta)
+            id="",
+            description="",
+            long_description="",
+            generation_time=1,
+            population_configurations=pc_meta,
+        )
         self.assertEqual(dm.populations[0].asdict(), pop0.asdict())
 
     # Test construction of a Population object when provided neither a
     # PopulationConfiguration list or a Population list
     def test_population_construction_no_popconfig(self):
         dm = stdpopsim.DemographicModel(
-            id="A", description="A", long_description="A", generation_time=1)
+            id="A", description="A", long_description="A", generation_time=1
+        )
         self.assertEqual(dm.populations, [])

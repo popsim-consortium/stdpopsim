@@ -21,7 +21,8 @@ class UnequalModelsError(Exception):
 
 
 def population_configurations_equal(
-        pop_configs1, pop_configs2, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
+    pop_configs1, pop_configs2, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL
+):
     """
     Returns True if the specified lists of msprime PopulationConfiguration
     objects are equal to the specified tolerances.
@@ -31,14 +32,16 @@ def population_configurations_equal(
     """
     try:
         verify_population_configurations_equal(
-            pop_configs1, pop_configs2, rtol=rtol, atol=atol)
+            pop_configs1, pop_configs2, rtol=rtol, atol=atol
+        )
         return True
     except UnequalModelsError:
         return False
 
 
 def verify_population_configurations_equal(
-        pop_configs1, pop_configs2, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
+    pop_configs1, pop_configs2, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL
+):
     """
     Checks if the specified lists of msprime PopulationConfiguration
     objects are equal to the specified tolerances and raises an UnequalModelsError
@@ -53,10 +56,10 @@ def verify_population_configurations_equal(
         if pc1.sample_size is not None or pc2.sample_size is not None:
             raise ValueError(
                 "Models defined in stdpopsim must not use the 'sample_size' "
-                "PopulationConfiguration option")
+                "PopulationConfiguration option"
+            )
         if pc1.initial_size is None or pc2.initial_size is None:
-            raise ValueError(
-                "Models defined in stdpopsim must set the initial_size")
+            raise ValueError("Models defined in stdpopsim must set the initial_size")
     if len(pop_configs1) != len(pop_configs2):
         raise UnequalModelsError("Different numbers of populations")
     initial_size1 = np.array([pc.initial_size for pc in pop_configs1])
@@ -70,21 +73,22 @@ def verify_population_configurations_equal(
 
 
 def sampling_times_equal(
-        populations1, populations2, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
+    populations1, populations2, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL
+):
     """
     Returns True if the sampling times for the specified lists of Populations
     objects are equal to the specified tolerances.
     """
     try:
-        verify_sampling_times_equal(
-            populations1, populations2, rtol=rtol, atol=atol)
+        verify_sampling_times_equal(populations1, populations2, rtol=rtol, atol=atol)
         return True
     except UnequalModelsError:
         return False
 
 
 def verify_sampling_times_equal(
-        populations1, populations2, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
+    populations1, populations2, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL
+):
     """
     Check the the sampling times for lists of population objects are the same
     """
@@ -95,8 +99,8 @@ def verify_sampling_times_equal(
     if len(sampling_times1) != len(sampling_times2):
         raise UnequalModelsError("Different numbers of populations")
     # Get indicies where None values present and compare
-    s1_none = np.where(sampling_times1 == None) # noqa
-    s2_none = np.where(sampling_times2 == None) # noqa
+    s1_none = np.where(sampling_times1 == None)  # noqa
+    s2_none = np.where(sampling_times2 == None)  # noqa
     if not np.array_equal(s1_none, s2_none):
         raise UnequalModelsError("None-valued sampling times differ")
     # Subset out only non-None values and cast to float so they can be compared
@@ -107,21 +111,24 @@ def verify_sampling_times_equal(
 
 
 def demographic_events_equal(
-        events1, events2, num_populations, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
+    events1, events2, num_populations, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL
+):
     """
     Returns True if the specified list of msprime DemographicEvent objects are equal
     to the specified tolerances.
     """
     try:
         verify_demographic_events_equal(
-            events1, events2, num_populations, rtol=rtol, atol=atol)
+            events1, events2, num_populations, rtol=rtol, atol=atol
+        )
         return True
     except UnequalModelsError:
         return False
 
 
 def verify_demographic_events_equal(
-        events1, events2, num_populations, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
+    events1, events2, num_populations, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL
+):
     """
     Checks if the specified list of msprime DemographicEvent objects are equal
     to the specified tolerances and raises a UnequalModelsError otherwise.
@@ -139,12 +146,14 @@ def verify_demographic_events_equal(
             value2 = d2[key]
             if isinstance(value1, float):
                 if not np.isclose(value1, value2, rtol=rtol, atol=atol):
-                    raise UnequalModelsError("Event {} mismatch: {} != {}".format(
-                        key, value1, value2))
+                    raise UnequalModelsError(
+                        "Event {} mismatch: {} != {}".format(key, value1, value2)
+                    )
             else:
                 if value1 != value2:
-                    raise UnequalModelsError("Event {} mismatch: {} != {}".format(
-                        key, value1, value2))
+                    raise UnequalModelsError(
+                        "Event {} mismatch: {} != {}".format(key, value1, value2)
+                    )
 
 
 class Population:
@@ -161,6 +170,7 @@ class Population:
         population (default = 0).
     :vartype sampling_time: int
     """
+
     def __init__(self, id, description, sampling_time=0):
         self.id = id
         self.description = description
@@ -174,8 +184,11 @@ class Population:
         """
         Returns a dictionary representing the metadata about this population.
         """
-        return {"id": self.id, "description": self.description,
-                "sampling_time": self.sampling_time}
+        return {
+            "id": self.id,
+            "description": self.description,
+            "sampling_time": self.sampling_time,
+        }
 
 
 @attr.s(kw_only=True)
@@ -258,12 +271,12 @@ class DemographicModel:
             if "description" not in kwargs:
                 kwargs["description"] = f"Population {i}"
             pops.append(Population(**kwargs))
-        return(pops)
+        return pops
 
     @migration_matrix.default
     def _migration_matrix_default(self):
         npops = len(self.population_configurations)
-        return([[0 for j in range(npops)] for i in range(npops)])
+        return [[0 for j in range(npops)] for i in range(npops)]
 
     @property
     def num_populations(self):
@@ -279,11 +292,12 @@ class DemographicModel:
         Return a model with the mandatory attributes filled out.
         """
         kwargs.update(
-                id=kwargs.get("id", ""),
-                description=kwargs.get("description", ""),
-                long_description=kwargs.get("long_description", ""),
-                populations=kwargs.get("populations", []),
-                generation_time=kwargs.get("generation_time", -1))
+            id=kwargs.get("id", ""),
+            description=kwargs.get("description", ""),
+            long_description=kwargs.get("long_description", ""),
+            populations=kwargs.get("populations", []),
+            generation_time=kwargs.get("generation_time", -1),
+        )
         return DemographicModel(**kwargs)
 
     def equals(self, other, rtol=DEFAULT_RTOL, atol=DEFAULT_ATOL):
@@ -312,15 +326,21 @@ class DemographicModel:
         if not np.allclose(mm1, mm2, rtol=rtol, atol=atol):
             raise UnequalModelsError("Migration matrices differ")
         verify_population_configurations_equal(
-            self.population_configurations, other.population_configurations,
-            rtol=rtol, atol=atol)
+            self.population_configurations,
+            other.population_configurations,
+            rtol=rtol,
+            atol=atol,
+        )
         verify_demographic_events_equal(
-            self.demographic_events, other.demographic_events,
+            self.demographic_events,
+            other.demographic_events,
             len(self.population_configurations),
-            rtol=rtol, atol=atol)
+            rtol=rtol,
+            atol=atol,
+        )
         verify_sampling_times_equal(
-            self.populations, other.populations,
-            rtol=rtol, atol=atol)
+            self.populations, other.populations, rtol=rtol, atol=atol
+        )
 
     def register_qc(self, qc_model):
         """
@@ -328,7 +348,8 @@ class DemographicModel:
         """
         if not isinstance(qc_model, self.__class__):
             raise ValueError(
-                    f"Cannot register non-DemographicModel '{qc_model}' as QC model")
+                f"Cannot register non-DemographicModel '{qc_model}' as QC model"
+            )
         if self.qc_model is not None:
             raise ValueError(f"QC model already registered for {self.id}.")
         self.qc_model = qc_model
@@ -356,12 +377,13 @@ class DemographicModel:
         for pop_index, n in enumerate(args):
             if self.populations[pop_index].allow_samples:
                 sample = msprime.Sample(
-                                        pop_index,
-                                        time=self.populations[pop_index].sampling_time)
+                    pop_index, time=self.populations[pop_index].sampling_time
+                )
                 samples.extend([sample] * n)
             elif n > 0:
-                raise ValueError("Samples requested from non-sampling population"
-                                 f" {pop_index}")
+                raise ValueError(
+                    "Samples requested from non-sampling population {pop_index}"
+                )
         return samples
 
     def get_demography_debugger(self):
@@ -376,15 +398,17 @@ class DemographicModel:
         ddb = msprime.DemographyDebugger(
             population_configurations=self.population_configurations,
             migration_matrix=self.migration_matrix,
-            demographic_events=self.demographic_events)
+            demographic_events=self.demographic_events,
+        )
         return ddb
 
 
 # Reusable generic populations
 _pop0 = Population(id="pop0", description="Generic population")
 _pop1 = Population(id="pop1", description="Generic population")
-_popAnc = Population(id="popAnc", description="Generic ancestral population",
-                     sampling_time=None)
+_popAnc = Population(
+    id="popAnc", description="Generic ancestral population", sampling_time=None
+)
 
 
 class PiecewiseConstantSize(DemographicModel):
@@ -401,8 +425,8 @@ class PiecewiseConstantSize(DemographicModel):
 
     .. code-block:: python
 
-        model1 = stdpopsim.PiecewiseConstantSize(N0, (t1, N1)) # One change
-        model2 = stdpopsim.PiecewiseConstantSize(N0, (t1, N1), (t2, N2)) # Two changes
+        model1 = stdpopsim.PiecewiseConstantSize(N0, (t1, N1))  # One change
+        model2 = stdpopsim.PiecewiseConstantSize(N0, (t1, N1), (t2, N2))  # Two changes
     """
 
     id = "PiecewiseConstant"
@@ -417,13 +441,17 @@ class PiecewiseConstantSize(DemographicModel):
     def __init__(self, N0, *args):
         self.population_configurations = [
             msprime.PopulationConfiguration(
-                initial_size=N0, metadata=self.populations[0].asdict())
+                initial_size=N0, metadata=self.populations[0].asdict()
+            )
         ]
         self.migration_matrix = [[0]]
         self.demographic_events = []
         for t, N in args:
-            self.demographic_events.append(msprime.PopulationParametersChange(
-                time=t, initial_size=N, growth_rate=0, population_id=0))
+            self.demographic_events.append(
+                msprime.PopulationParametersChange(
+                    time=t, initial_size=N, growth_rate=0, population_id=0
+                )
+            )
 
 
 class IsolationWithMigration(DemographicModel):
@@ -449,6 +477,7 @@ class IsolationWithMigration(DemographicModel):
         model1 = stdpopsim.IsolationWithMigration(NA, N1, N2, T, M12, M21)
 
     """
+
     id = "IsolationWithMigration"
     description = """
         A generic isolation with migration model where a single ancestral
@@ -466,16 +495,17 @@ class IsolationWithMigration(DemographicModel):
     def __init__(self, NA, N1, N2, T, M12, M21):
         self.population_configurations = [
             msprime.PopulationConfiguration(
-                initial_size=N1, metadata=self.populations[0].asdict()),
+                initial_size=N1, metadata=self.populations[0].asdict()
+            ),
             msprime.PopulationConfiguration(
-                initial_size=N2, metadata=self.populations[1].asdict()),
+                initial_size=N2, metadata=self.populations[1].asdict()
+            ),
             msprime.PopulationConfiguration(
-                initial_size=NA, metadata=self.populations[2].asdict())
+                initial_size=NA, metadata=self.populations[2].asdict()
+            ),
         ]
         self.migration_matrix = [[0, M12, 0], [M21, 0, 0], [0, 0, 0]]
         self.demographic_events = [
-            msprime.MassMigration(
-                time=T, source=0, destination=2, proportion=1),
-            msprime.MassMigration(
-                time=T, source=1, destination=2, proportion=1)
+            msprime.MassMigration(time=T, source=0, destination=2, proportion=1),
+            msprime.MassMigration(time=T, source=1, destination=2, proportion=1),
         ]

@@ -19,6 +19,7 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
     """
     Tests for the drosophila_melanogaster genome.
     """
+
     genome = stdpopsim.get_species("DroMel").genome
 
     def test_basic_attributes(self):

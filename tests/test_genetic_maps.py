@@ -39,10 +39,10 @@ def setUpModule():
         # or a developer creates a new genetic map with the wrong checksum
         # (in the latter case, this should at least be caught during CI tests).
         assert utils.sha256(local_file) == genetic_map.sha256, (
-                f"SHA256 for {local_file} doesn't match the SHA256 for "
-                f"{genetic_map.id}. If you didn't add this SHA256 yourself, "
-                f"try deleting {local_file} and restarting the tests."
-            )
+            f"SHA256 for {local_file} doesn't match the SHA256 for "
+            f"{genetic_map.id}. If you didn't add this SHA256 yourself, "
+            f"try deleting {local_file} and restarting the tests."
+        )
         saved_urls[key] = genetic_map.url
         genetic_map.url = local_file.resolve().as_uri()
         genetic_map._cache.url = genetic_map.url
@@ -62,14 +62,18 @@ class GeneticMapTestClass(stdpopsim.GeneticMap):
     def __init__(self):
         genome = stdpopsim.Genome(chromosomes=[])
         _species = stdpopsim.Species(
-            id="TesSpe", name="Test species", common_name="Testy McTestface",
-            genome=genome)
+            id="TesSpe",
+            name="Test species",
+            common_name="Testy McTestface",
+            genome=genome,
+        )
         super().__init__(
             species=_species,
             id="test_map",
             url="http://example.com/genetic_map.tar.gz",
             sha256="1234",  # url doesn't exist, so this will never be checked
-            file_pattern="prefix_{name}.txt")
+            file_pattern="prefix_{name}.txt",
+        )
 
 
 # TODO add some parameters here to check different compression options,
@@ -90,7 +94,7 @@ def get_genetic_map_tarball():
         # For the tarfile to be in the right format, we must be in the right directory.
         with utils.cd(map_dir):
             # Now tar up this map_directory
-            with tempfile.TemporaryFile('wb+') as tmp_file:
+            with tempfile.TemporaryFile("wb+") as tmp_file:
                 with tarfile.open(fileobj=tmp_file, mode="w:gz") as tar_file:
                     for filename in os.listdir("."):
                         tar_file.add(filename)
@@ -104,12 +108,13 @@ class TestGeneticMapTarball(unittest.TestCase):
     """
     Tests that we correctly encode a genetic map in the tarball test function.
     """
+
     def get_maps(self, tarball):
         maps = {}
-        with tempfile.TemporaryFile('wb+') as f:
+        with tempfile.TemporaryFile("wb+") as f:
             f.write(tarball)
             f.seek(0)
-            with tarfile.open(fileobj=f, mode='r') as tar_file:
+            with tarfile.open(fileobj=f, mode="r") as tar_file:
                 with tempfile.TemporaryDirectory() as extract_dir:
                     with utils.cd(extract_dir):
                         tar_file.extractall()
@@ -178,6 +183,7 @@ class TestAllGeneticMaps(tests.CacheReadingTest):
     """
     Tests if the all_genetic_maps() function works correctly.
     """
+
     def test_non_empty(self):
         self.assertGreater(len(list(stdpopsim.all_genetic_maps())), 0)
 
@@ -195,6 +201,7 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
     """
     Tests if we get chromosome maps using the HapMapII_GRCh37 human map.
     """
+
     species = stdpopsim.get_species("HomSap")
     genetic_map = species.get_genetic_map("HapMapII_GRCh37")
 

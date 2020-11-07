@@ -73,6 +73,7 @@ class CachedData:
     :ivar bool extract: True if the downloaded file is a tarball that should be
         extracted into the cached namespace, False otherwise.
     """
+
     namespace = attr.ib(type=str)
     url = attr.ib(type=str)
     sha256 = attr.ib(type=str)
@@ -167,7 +168,8 @@ class CachedData:
             except (OSError, FileExistsError):
                 warnings.warn(
                     "Error occured renaming map directory. Are multiple processes"
-                    "downloading this map at the same time?")
+                    "downloading this map at the same time?"
+                )
                 return
 
             # Write out the checksum.

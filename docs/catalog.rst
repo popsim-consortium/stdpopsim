@@ -31,7 +31,7 @@ and saves the output to a file called ``test.trees``:
 
     $ stdpopsim HomSap -c chr22 -o test.trees -g HapMapII_GRCh37 -d OutOfAfrica_3G09 2 2 2
 
-(To learn more about using ``stdpopsim`` via the command-line, read our 
+(To learn more about using ``stdpopsim`` via the command-line, read our
 :ref:`tutorial <sec_cli_tute>` about it.)
 
 Are there other well-known organisms, genetic maps or models that

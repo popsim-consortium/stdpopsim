@@ -40,10 +40,10 @@ def setUpModule():
         # or a developer creates a new annotation with the wrong checksum
         # (in the latter case, this should at least be caught during CI tests).
         assert utils.sha256(local_file) == an.zarr_sha256, (
-                f"SHA256 for {local_file} doesn't match the SHA256 for "
-                f"{an.id}. If you didn't add this SHA256 yourself, "
-                f"try deleting {local_file} and restarting the tests."
-            )
+            f"SHA256 for {local_file} doesn't match the SHA256 for "
+            f"{an.id}. If you didn't add this SHA256 yourself, "
+            f"try deleting {local_file} and restarting the tests."
+        )
         saved_urls[key] = an.zarr_url
         an.zarr_url = local_file.resolve().as_uri()
         an._cache.url = an.zarr_url
@@ -63,8 +63,11 @@ class AnnotationTestClass(stdpopsim.Annotation):
     def __init__(self):
         genome = stdpopsim.Genome(chromosomes=[])
         _species = stdpopsim.Species(
-            id="TesSpe", name="Test species", common_name="Testy McTestface",
-            genome=genome)
+            id="TesSpe",
+            name="Test species",
+            common_name="Testy McTestface",
+            genome=genome,
+        )
         super().__init__(
             species=_species,
             id="test_annotation",
@@ -91,12 +94,12 @@ def get_annotation_file():
             print(b, file=f)
 
         # For the zipfile to be in the right format, we must be in the right directory.
-        with open(os.path.join(map_dir, "test.gff"), 'rb') as f_in:
+        with open(os.path.join(map_dir, "test.gff"), "rb") as f_in:
             # Now zip this
             with gzip.open("test.gff.gz", mode="wb") as gz_file:
                 shutil.copyfileobj(f_in, gz_file)
         # Read back the tarball
-        an = gzip.open("test.gff.gz", mode='rb')
+        an = gzip.open("test.gff.gz", mode="rb")
     return an
 
 
@@ -130,7 +133,7 @@ class TestAnnotationDownload(tests.CacheWritingTest):
 
     def test_incorrect_url(self):
         an = AnnotationTestClass()
-        an.zarr_url = 'http://asdfwersdf.com/foozip'
+        an.zarr_url = "http://asdfwersdf.com/foozip"
         with self.assertRaises(OSError):
             an.download()
 
@@ -150,6 +153,7 @@ class TestGetChromosomeAnnotations(tests.CacheReadingTest):
     Tests if we get chromosome level annotations
     using the Ensembl_GRCh38 human GFF.
     """
+
     # TODO: The HomSap annotations are huge. Once we include a smaller
     # annotation set, we should instead use that, so tests are faster.
     species = stdpopsim.get_species("HomSap")
