@@ -1,0 +1,89 @@
+name: tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  tests:
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        # Use a login shell, so that ~/.bash_profile is executed and
+        # the conda environment gets initialised.
+        shell: bash -l {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-18.04, windows-2019, macos-10.15]
+        python: [3.6, 3.9]
+    env:
+      SLIM_TAG: 3.4
+      CONDA_ENV_NAME: stdpopsim
+
+    steps:
+      - name: cancel previous runs
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ github.token }}
+
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: find conda
+        id: find-conda
+        run: |
+          echo "::set-output name=CONDA::$CONDA"
+
+      - name: fix conda permissions
+        if: runner.os == 'macOS'
+        run: |
+          # Fix incorrect conda permissions on mac that prevent cache restore.
+          sudo chown -R $USER:staff $CONDA
+
+      - name: cache conda
+        id: cache
+        uses: actions/cache@v2
+        env:
+          # Increase this to reset the cache if the key hasn't changed.
+          CACHE_NUM: 0
+        with:
+          path: |
+            ${{ steps.find-conda.outputs.CONDA }}/envs/${{ env.CONDA_ENV_NAME }}
+            ~/.bash_profile
+          key: ${{ runner.os }}-${{ matrix.python }}-conda-${{ hashFiles('requirements/CI/*') }}-${{ env.SLIM_TAG }}-${{ env.CACHE_NUM }}
+
+      - name: install conda
+        uses: conda-incubator/setup-miniconda@v2
+        if: steps.cache.outputs.cache-hit != 'true'
+        with:
+          activate-environment: ${{ env.CONDA_ENV_NAME }}
+          python-version: ${{ matrix.python }}
+          channels: conda-forge
+          channel-priority: strict
+          auto-update-conda: true
+          use-only-tar-bz2: true
+
+      - name: move profile
+        if: steps.cache.outputs.cache-hit != 'true' && runner.os != 'Windows'
+        run: |
+          # The setup-miniconda action leaves different shell init files for
+          # different OSes. Bash gives priority to ~/.bash_profile, so here we
+          # ensure that's used for all platforms.
+          mv ~/.profile ~/.bash_profile
+
+      - name: install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          conda install --yes --file=requirements/CI/conda.txt
+          if [ "$RUNNER_OS" != "Windows" ]; then
+            conda install --yes slim==${{ env.SLIM_TAG }}
+          fi
+          pip install -r requirements/CI/requirements.txt
+
+      - name: run test suite
+        run: |
+          nosetests -v --with-coverage --cover-package stdpopsim tests
+          coverage report -m

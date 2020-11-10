@@ -220,8 +220,9 @@ class TestCLI(unittest.TestCase):
 
     def test_simulate(self):
         saved_slim_env = os.environ.get("SLIM")
+        slim_path = os.environ.get("SLIM", "slim")
         with tempfile.NamedTemporaryFile(mode="w") as f:
-            self.docmd(f"--slim-path slim HomSap -o {f.name}")
+            self.docmd(f"--slim-path {slim_path} HomSap -o {f.name}")
             ts = tskit.load(f.name)
         self.assertEqual(ts.num_samples, 10)
         self.assertTrue(all(tree.num_roots == 1 for tree in ts.trees()))
@@ -267,7 +268,8 @@ class TestCLI(unittest.TestCase):
             with tempfile.NamedTemporaryFile(mode="w") as f:
                 self.docmd(f"HomSap --dry-run -o {f.name}")
         mocked_popen.assert_called_once()
-        self.assertTrue("slim" in mocked_popen.call_args[0][0])
+        slim_path = os.environ.get("SLIM", "slim")
+        self.assertTrue(slim_path in mocked_popen.call_args[0][0])
         with tempfile.NamedTemporaryFile(mode="w") as f:
             self.docmd(f"HomSap --dry-run -o {f.name}")
             self.assertEqual(os.stat(f.name).st_size, 0)
