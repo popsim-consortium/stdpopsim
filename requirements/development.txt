@@ -10,7 +10,7 @@ sphinx-argparse
 sphinx-issues
 sphinx_rtd_theme
 sphinxcontrib-programoutput
-msprime
+git+https://github.com/tskit-dev/msprime.git@585d18d51294389ed0ec518b61b11f73cef44c20#egg=msprime
 attrs
 appdirs
 humanize

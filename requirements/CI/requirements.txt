@@ -8,7 +8,7 @@ sphinx-argparse==0.2.5
 sphinx-issues==1.2.0
 sphinx_rtd_theme==0.5.0
 sphinxcontrib-programoutput==0.16
-msprime==0.7.4
+git+https://github.com/tskit-dev/msprime.git@585d18d51294389ed0ec518b61b11f73cef44c20#egg=msprime
 attrs==20.3.0
 appdirs==1.4.4
 humanize==3.1.0

@@ -2,9 +2,9 @@ name: pre-commit
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, msprime-1.0 ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, msprime-1.0 ]
 
 jobs:
   pre-commit:
