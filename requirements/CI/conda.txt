@@ -1,2 +1,2 @@
-msprime==0.7.4
+gsl
 numcodecs==0.7.2
