@@ -131,7 +131,7 @@ jobs:
           name: Run Python tests
           command: |
             mkdir -p ${XML_RESULTS_DIR}
-            nosetests -vs --with-coverage --cover-package stdpopsim maintenance \
+            nosetests -vs --with-coverage --cover-package stdpopsim \
               --cover-branches --cover-erase --cover-xml --with-xunit --xunit-file=${XML_RESULTS} \
               --cover-inclusive $(circleci tests glob "tests/*.py" | circleci tests split --split-by=timings --timings-type=classname)
       - codecov/upload:
