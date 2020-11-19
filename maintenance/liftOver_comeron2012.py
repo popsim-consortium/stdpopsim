@@ -79,7 +79,7 @@ def main():
     intermediatesDir_val = os.path.join(cwd, "liftOver_validation_intermediates")
     validationDir = os.path.join(cwd, "liftOver_validation")
     preliftDir = os.path.join(tmpDir, "prelift")
-    postliftDir = os.path.join(tmpDir, "comeron2012_maps")
+    postliftDir = os.path.join(tmpDir, "comeron2012v2_maps")
     postliftDir_val = os.path.join(
         tmpDir, newAssemb + "_liftedOverTo_{assemb}".format(assemb=orig_label)
     )
@@ -108,7 +108,7 @@ def main():
     validationChain = os.path.join(tmpDir, "dm6ToDm3.over.chain.gz")
     urllib.request.urlretrieve(chainUrl, filename=chainFile)
     urllib.request.urlretrieve(validationUrl, filename=validationChain)
-    mapUrl = "ftp://ftp.flybase.org/flybase/associated_files/" "Comeron.2012.10.15.xlsx"
+    mapUrl = "ftp://ftp.flybase.org/flybase/associated_files/Comeron.2012.10.15.xlsx"
     mapFile = os.path.join(tmpDir, "Comeron.2012.10.15.xlsx")
     urllib.request.urlretrieve(mapUrl, filename=mapFile)
 
@@ -135,7 +135,7 @@ def main():
         outFiles.append(
             os.path.join(
                 postliftDir,
-                "genetic_map_comeron2012_{assemb}_chr{id}.txt".format(
+                "genetic_map_comeron2012v2_{assemb}_chr{id}.txt".format(
                     assemb=newAssemb, id=chrom
                 ),
             )
@@ -188,7 +188,7 @@ def main():
 
     # Tar new files and remove temporary directory
     print("Creating new tarball...")
-    outTarFile = os.path.join(cwd, "comeron2012_maps.tar.gz")
+    outTarFile = os.path.join(cwd, "comeron2012v2_maps.tar.gz")
     with tarfile.open(outTarFile, "w:gz") as tb:
         tb.add(postliftDir, arcname=os.path.basename(postliftDir))
     shutil.rmtree(tmpDir)
