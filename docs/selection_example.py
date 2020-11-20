@@ -1,6 +1,6 @@
 import random
 import logging
-
+import numpy as np
 import stdpopsim
 
 logger = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ def adaptive_introgression(seed):
     # SLiM phase of the simulation has completed.
     positive = stdpopsim.ext.MutationType(convert_to_substitution=False)
     mutation_types = [positive]
-    mut_id = len(mutation_types)
+    mut_id = len(mutation_types) - 1
 
     # We need some demographic model parameters to set bounds on the timing
     # of random variables and extended_events (below).
@@ -149,7 +149,6 @@ def adaptive_introgression(seed):
         contig,
         samples,
         seed=rng.randrange(1, 2 ** 32),
-        mutation_types=mutation_types,
         extended_events=extended_events,
         slim_scaling_factor=10,
         slim_burn_in=0.1,
@@ -165,17 +164,17 @@ def KimDFE():
     Return neutral and negative MutationType()s representing a human DFE.
     Kim et al. (2018), p.23, http://doi.org/10.1371/journal.pgen.1007741
     """
-    neutral = stdpopsim.ext.MutationType(weight=1.0)
+    neutral = stdpopsim.ext.MutationType()
     gamma_shape = 0.186  # shape
     gamma_mean = -0.01314833  # expected value
     h = 0.5 / (1 - 7071.07 * gamma_mean)  # dominance coefficient
     negative = stdpopsim.ext.MutationType(
-        weight=2.31,
         dominance_coeff=h,
         distribution_type="g",
         distribution_args=[gamma_mean, gamma_shape],
     )
-    return [neutral, negative]
+    # note neutral mutations have 0 proportion because they are not simulated by SLiM
+    return {"mutation_types": [neutral, negative], "proportions": [0.0, 0.7]}
 
 
 def OutOfAfrica_3G09_with_DFE(seed):
@@ -187,7 +186,10 @@ def OutOfAfrica_3G09_with_DFE(seed):
     contig = species.get_contig("chr1", length_multiplier=0.001)
     samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
 
-    mutation_types = KimDFE()
+    # neutral and deleterious mutations occur across the whole contig
+    contig.add_genomic_element_type(
+        intervals=np.array([[0, int(contig.length)]]), **KimDFE()
+    )
 
     # Simulate.
     engine = stdpopsim.get_engine("slim")
@@ -196,7 +198,37 @@ def OutOfAfrica_3G09_with_DFE(seed):
         contig,
         samples,
         seed=seed,
-        mutation_types=mutation_types,
+        slim_scaling_factor=10,
+        slim_burn_in=10,
+        # Set slim_script=True to print the script instead of running it.
+        # slim_script=True,
+    )
+    return ts
+
+
+def gene_with_noncoding_OutOfAfrica_3G09(seed):
+    """
+    Simulating a 1kb gene flanked by 1kb neutral regions. Within genes,
+    30% of the total influx of mutations are neutral and 70% are deleterious,
+    with the DFE from Kim et al. The HomSap/OutOfAfrica_3G09 model was simulated.
+    """
+    species = stdpopsim.get_species("HomSap")
+    model = species.get_demographic_model("OutOfAfrica_3G09")
+    contig = species.get_contig(length=3000)
+    samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
+
+    # within the gene, KimDFE is used, outside genomic elements
+    # neutral muts are added with msprime
+    gene_interval = np.array([[1000, 2000]])
+    contig.add_genomic_element_type(intervals=gene_interval, **KimDFE())
+
+    # Simulate.
+    engine = stdpopsim.get_engine("slim")
+    ts = engine.simulate(
+        model,
+        contig,
+        samples,
+        seed=seed,
         slim_scaling_factor=10,
         slim_burn_in=10,
         # Set slim_script=True to print the script instead of running it.
@@ -222,3 +254,5 @@ if __name__ == "__main__":
     ts, T_mut, T_sel, s = adaptive_introgression(seed)
 
     ts = OutOfAfrica_3G09_with_DFE(seed)
+
+    ts = gene_with_noncoding_OutOfAfrica_3G09(seed)
