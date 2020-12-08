@@ -1208,8 +1208,10 @@ class _SLiMEngine(stdpopsim.Engine):
         tables = ts.dump_tables()
         for table in (tables.nodes, tables.migrations):
             table.time *= slim_scaling_factor
+        ts_metadata = tables.metadata
+        ts_metadata["SLiM"]["generation"] *= slim_scaling_factor
+        tables.metadata = ts_metadata
         ts = pyslim.SlimTreeSequence.load_tables(tables)
-        ts.slim_generation *= slim_scaling_factor
 
         rng = random.Random(seed)
         s1, s2 = rng.randrange(1, 2 ** 32), rng.randrange(1, 2 ** 32)
