@@ -13,7 +13,7 @@ attrs==20.3.0
 appdirs==1.4.4
 humanize==3.1.0
 pyslim==0.501
-pandas==1.1.4
+pandas==1.1.5
 numpy==1.19.4
 scikit-allel==1.3.2
 zarr==2.6.1
