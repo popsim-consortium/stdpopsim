@@ -18,9 +18,6 @@ class GeneticMap:
 
     :ivar url: The URL where the packed and compressed genetic map can be obtained.
     :vartype url: str
-    :ivar file_pattern: The pattern used to map name individual chromosome to
-        files, suitable for use with Python's :meth:`str.format` method.
-    :vartype file_pattern: str
     """
 
     def __init__(
@@ -40,7 +37,7 @@ class GeneticMap:
         self.long_description = long_description
         self.url = url
         self.sha256 = sha256
-        self.file_pattern = file_pattern
+        self._file_pattern = file_pattern
         self.description = description
         self.citations = citations
 
@@ -53,7 +50,25 @@ class GeneticMap:
 
     @property
     def map_cache_dir(self):
+        """
+        The path to the directory in which the files for this map are stored.
+        Names for individual chromosome files within this directory can be obtained
+        using :attr:`file_pattern`.
+
+        :type: pathlib.Path
+        """
         return self._cache.cache_path
+
+    @property
+    def file_pattern(self):
+        """
+        The pattern used to map individual chromosome id strings to files. To obtain
+        the file names, you can use Python's :meth:`str.format` method, for example
+        ``my_map.file_pattern.format(id=my_chromosome_id_string)``.
+
+        :type: str
+        """
+        return self._file_pattern
 
     def __str__(self):
         s = "GeneticMap:\n"
