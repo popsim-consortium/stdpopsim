@@ -310,16 +310,16 @@ class Species:
         self.genetic_maps.append(genetic_map)
 
     def get_genetic_map(self, id):
-        """
-        Returns a genetic map (AKA. recombination map) with the specified ``id``.
-
-        :param str id: The string identifier for the genetic map.
-            A complete list of IDs for each species can be found in the
-            "Genetic Maps" subsection for the species in the :ref:`sec_catalog`.
-        :rtype: :class:`GeneticMap`
-        :return: A :class:`GeneticMap` that defines the frequency of
-            recombinations across the genome.
-        """
+        # NOTE: Undocumenting this method as the GeneticMap API isn't part of the
+        # supported public interface.
+        #
+        # Returns a genetic map (AKA. recombination map) with the specified ``id``.
+        # :param str id: The string identifier for the genetic map.
+        #     A complete list of IDs for each species can be found in the
+        #     "Genetic Maps" subsection for the species in the :ref:`sec_catalog`.
+        # :rtype: :class:`GeneticMap`
+        # :return: A :class:`GeneticMap` that defines the frequency of
+        #     recombinations across the genome.
         for gm in self.genetic_maps:
             if gm.id == id:
                 return gm
