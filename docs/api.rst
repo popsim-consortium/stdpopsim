@@ -29,9 +29,6 @@ accessed through the main entry point, :func:`.get_species`.
 .. autoclass:: stdpopsim.Contig()
     :members:
 
-.. autoclass:: stdpopsim.GeneticMap()
-    :members:
-
 .. autoclass:: stdpopsim.Citation()
     :members:
 
