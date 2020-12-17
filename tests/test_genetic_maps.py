@@ -202,22 +202,35 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
     Tests if we get chromosome maps using the HapMapII_GRCh37 human map.
     """
 
-    species = stdpopsim.get_species("HomSap")
-    genetic_map = species.get_genetic_map("HapMapII_GRCh37")
-
     def test_warning_from_no_mapped_chromosome(self):
-        chrom = self.species.genome.get_chromosome("chrY")
+        species = stdpopsim.get_species("HomSap")
+        genetic_map = species.get_genetic_map("HapMapII_GRCh37")
+        chrom = species.genome.get_chromosome("chrY")
         with self.assertWarns(Warning):
-            cm = self.genetic_map.get_chromosome_map(chrom.id)
-            self.assertIsInstance(cm, msprime.RecombinationMap)
-            self.assertEqual(chrom.length, cm.get_sequence_length())
+            cm = genetic_map.get_chromosome_map(chrom.id)
+        self.assertIsInstance(cm, msprime.RecombinationMap)
+        self.assertEqual(chrom.length, cm.get_sequence_length())
 
     def test_known_chromosome(self):
-        chrom = self.species.genome.get_chromosome("chr22")
-        cm = self.genetic_map.get_chromosome_map(chrom.id)
+        species = stdpopsim.get_species("CanFam")
+        genetic_map = species.get_genetic_map("Campbell2016_CanFam3_1")
+        chrom = species.genome.get_chromosome("1")
+        cm = genetic_map.get_chromosome_map(chrom.id)
         self.assertIsInstance(cm, msprime.RecombinationMap)
+        self.assertEqual(chrom.length, cm.get_sequence_length())
+
+    def test_warning_for_long_recomb_map(self):
+        species = stdpopsim.get_species("HomSap")
+        genetic_map = species.get_genetic_map("HapMapII_GRCh37")
+        chrom = species.genome.get_chromosome("chr1")
+        with self.assertWarns(Warning):
+            cm = genetic_map.get_chromosome_map(chrom.id)
+        self.assertIsInstance(cm, msprime.RecombinationMap)
+        self.assertLess(chrom.length, cm.get_sequence_length())
 
     def test_unknown_chromosome(self):
+        species = stdpopsim.get_species("HomSap")
+        genetic_map = species.get_genetic_map("HapMapII_GRCh37")
         for bad_chrom in ["", "ABD", None]:
             with self.assertRaises(ValueError):
-                self.genetic_map.get_chromosome_map(bad_chrom)
+                genetic_map.get_chromosome_map(bad_chrom)
