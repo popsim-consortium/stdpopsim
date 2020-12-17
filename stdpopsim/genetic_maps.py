@@ -100,14 +100,25 @@ class GeneticMap:
         # needs to be redownloaded.
         map_file = self.map_cache_dir / self.file_pattern.format(id=chrom.id)
         if map_file.exists():
-            ret = msprime.RecombinationMap.read_hapmap(str(map_file))
+            recomb_map = msprime.RecombinationMap.read_hapmap(str(map_file))
         else:
             warnings.warn(
-                "Warning: recombination map not found for chromosome: '{}'"
+                "Recombination map not found for chromosome: '{}'"
                 " on map: '{}', substituting a flat map with chromosome "
                 "recombination rate {}".format(id, self.id, chrom.recombination_rate)
             )
-            ret = msprime.RecombinationMap.uniform_map(
+            recomb_map = msprime.RecombinationMap.uniform_map(
                 chrom.length, chrom.recombination_rate
             )
-        return ret
+        map_length = recomb_map.get_sequence_length()
+        if map_length < chrom.length:
+            # Extend map to the end of the chromosome.
+            positions = recomb_map.get_positions() + [chrom.length]
+            rates = recomb_map.get_rates() + [0]
+            recomb_map = msprime.RecombinationMap(positions, rates)
+        elif map_length > chrom.length:
+            warnings.warn(
+                f"Recombination map has length {map_length}, which is longer than"
+                f" chomosome length {chrom.length}. The former will be used."
+            )
+        return recomb_map
