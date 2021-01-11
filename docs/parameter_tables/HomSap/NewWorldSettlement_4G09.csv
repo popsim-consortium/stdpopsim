@@ -1,0 +1,20 @@
+Population size,"7,300",Ancestral pop. size
+Population size,"12,300",YRI pop. size
+Population size,"2,100",OOA pop. size
+Population size,"1,500",CEU pop. size after CEU/CHB split
+Population size,590,CHB pop. size after CEU/CHB split
+Population size,800,MXL pop. size after CHB/MXL divergence
+Growth rate (per gen.),0.23,CEU pop. growth rate (per gen.)
+Growth rate (per gen.),0.37,CHB pop. growth rate (per gen.)
+Growth rate (per gen.),0.5,MXL pop. growth rate (per gen.)
+Migration rate (x10^-5),25,YRI-OOA migration rate (per gen.)
+Migration rate (x10^-5),3,YRI-CEU migration rate (per gen.)
+Migration rate (x10^-5),1.9,YRI-CHB migration rate (per gen.)
+Migration rate (x10^-5),13.5,CEU-CHB migration rate (per gen.)
+Admixture percentage,48,Amount of CEU admixture in MXL pop.
+Epoch Time (gen.),"8,800",Expansion time of ancestral pop.
+Epoch Time (gen.),"5,600",Time of OOA event
+Epoch Time (gen.),1056,Time of CEU-CHB split
+Epoch Time (gen.),864,Time of CHB-MXL split
+Epoch Time (gen.),0,Time of CEU to MXL admixture
+Generation time (yrs.),25,Generation time

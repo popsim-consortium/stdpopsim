@@ -1650,3 +1650,129 @@ def _AJ():
 
 
 _species.add_demographic_model(_AJ())
+
+
+def _nws_4():
+    id = "NewWorldSettlement_4G09"
+    description = "Three population out-of-Africa and the settlment of the New World"
+    long_description = """
+        The three population Out-of-Africa model followed by a fourth population
+        settling into the New World from Gutenkunst et al (2009).
+        The fourth population splits from the East Asian lineage with no
+        recurrent migration and experiences admixture with the European lineage
+        at time 0.
+        All model parameters are the maximum likelihood values of the various
+        parameters given in Table 2 of Gutenkunst et al except for all
+        Africa-related parameters which are given in Table 1 of
+        Gutenkunst et al.
+        A schematic of this model is outlined in Figure 3B of Gutenkunst et al.
+    """
+    populations = [
+        stdpopsim.Population(
+            id="YRI", description="Environmental Genomes YRI (West Africans)"),
+        stdpopsim.Population(
+            id="CEU", description="Environmental Genomes CEU (Europeans)"),
+        stdpopsim.Population(
+            id="CHB", description="Environmental Genomes CHB (East Asians)"),
+        stdpopsim.Population(
+            id="MXL", description="Environmental Genomes MXL (Mexican-Americans)"),
+    ]
+
+    citations = [stdpopsim.Citation(
+        author="Gutenkunst et al.",
+        year=2009,
+        doi="https://doi.org/10.1371/journal.pgen.1000695",
+        reasons={stdpopsim.CiteReason.DEM_MODEL})
+    ]
+
+    generation_time = 25
+
+    # First we set out the maximum likelihood values of the various parameters
+    # all Africa-related parameters are given in Table 1 and all other
+    # parameters are given in Table 2.
+    N_A = 7300
+    N_B = 2100
+    N_AF = 12300
+    N_EU0 = 1500
+    N_AS0 = 590
+    N_MX0 = 800
+    # Times are provided in years, so we convert into generations.
+    T_AF = 220e3 / generation_time
+    T_B = 140e3 / generation_time
+    T_EU_AS = 26.4e3 / generation_time
+    T_MX = 21.6e3 / generation_time
+    T_ADMIX = 0
+    # We need to work out the starting (diploid) population sizes based on
+    # the growth rates provided for these three populations.
+    r_EU = 0.0023
+    r_AS = 0.0037
+    r_MX = 0.005
+    N_EU = N_EU0 / math.exp(-r_EU * T_EU_AS)
+    N_AS = N_AS0 / math.exp(-r_AS * T_EU_AS)
+    N_MX = N_MX0 / math.exp(-r_MX * T_MX)
+    # Migration rates during the various epochs.
+    m_AF_B = 25e-5
+    m_AF_EU = 3e-5
+    m_AF_AS = 1.9e-5
+    m_EU_AS = 13.5e-5
+    # European admixture proportion in Mexican-Americans.
+    f_MX = 0.48
+    # Population IDs correspond to their indexes in the population
+    # configuration array. Therefore, we have 0=YRI, 1=CEU, 2=CHB, 3=MXL
+    # initially.
+    population_configurations = [
+        msprime.PopulationConfiguration(
+            initial_size=N_AF, metadata=populations[0].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_EU, growth_rate=r_EU, metadata=populations[1].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_AS, growth_rate=r_AS, metadata=populations[2].asdict()),
+        msprime.PopulationConfiguration(
+            initial_size=N_MX, growth_rate=r_MX, metadata=populations[3].asdict())
+        ]
+    migration_matrix = [
+        [0, m_AF_EU, m_AF_AS, 0],
+        [m_AF_EU,       0, m_EU_AS, 0],
+        [m_AF_AS, m_EU_AS,       0, 0],
+        [0,       0,       0, 0]
+        ]
+    demographic_events = [
+        # CEU and MXL admix with proportion f_MX at T_ADMIX
+        msprime.MassMigration(
+            time=T_ADMIX, source=3, destination=1, proportion=f_MX),
+        # MXL merges into CHB at T_MX
+        msprime.MassMigration(
+            time=T_MX, source=3, destination=2, proportion=1.0),
+        # CEU and CHB merge into B with rate changes at T_EU_AS
+        msprime.MassMigration(
+            time=T_EU_AS, source=2, destination=1, proportion=1.0),
+        msprime.MigrationRateChange(time=T_EU_AS, rate=0),
+        msprime.MigrationRateChange(
+            time=T_EU_AS, rate=m_AF_B, matrix_index=(0, 1)),
+        msprime.MigrationRateChange(
+            time=T_EU_AS, rate=m_AF_B, matrix_index=(1, 0)),
+        msprime.PopulationParametersChange(
+            time=T_EU_AS, initial_size=N_B, growth_rate=0, population_id=1),
+        # Population B merges into YRI at T_B
+        msprime.MassMigration(
+            time=T_B, source=1, destination=0, proportion=1.0),
+        msprime.MigrationRateChange(time=T_B, rate=0),
+        # Size changes to N_A at T_AF
+        msprime.PopulationParametersChange(
+            time=T_AF, initial_size=N_A, population_id=0)
+        ]
+
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=generation_time,
+        population_configurations=population_configurations,
+        migration_matrix=migration_matrix,
+        demographic_events=demographic_events,
+        )
+
+
+_species.add_demographic_model(_nws_4())
