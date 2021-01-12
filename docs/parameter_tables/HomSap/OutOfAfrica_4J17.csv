@@ -1,0 +1,22 @@
+Population size (individuals),11293,A (ancestral) population size
+Population size (individuals),23721,YRI population size
+Population size (individuals),2831,B (OOA) population size
+Population size (individuals),2512,CEU (European) initial pop. size after EU/AS divergence
+Population size (individuals),1019,CHB (Asian) initial pop. size after EU/AS divergence
+Population size (individuals),4384,JPT (Japanese ) pop. size after split from CHB
+Growth rate (percent per generation),0,A growth rate
+Growth rate (percent per generation),0,YRI growth rate
+Growth rate (percent per generation),0,B growth rate
+Growth rate (percent per generation),0.16,CEU growth rate
+Growth rate (percent per generation),0.26,CHB growth rate
+Growth rate (percent per generation),1.29,JPT growth rate
+Migration rate (fraction per generation),16.8e-5,YRI-B migration rate
+Migration rate (fraction per generation),1.14e-5,YRI-CEU migration rate
+Migration rate (fraction per generation),0.56e-5,YRI-CHB migration rate
+Migration rate (fraction per generation),4.75e-5,CEU-CHB migration rate
+Migration rate (fraction per generation),3.3e-5,CHB-JPT migration rate
+Epoch Time (generations),357,Expansion time of ancestral population
+Epoch Time (generations),119,Time of OOA event
+Epoch Time (generations),46,Time of CEU-CHB split
+Epoch Time (generations),9,Time of CHB-JPT split
+Generation time (years),29,Years per generation
