@@ -1013,9 +1013,10 @@ class _SLiMEngine(stdpopsim.Engine):
 
     def simulate(
         self,
-        demographic_model=None,
-        contig=None,
-        samples=None,
+        demographic_model,
+        contig,
+        samples,
+        *,
         seed=None,
         mutation_types=None,
         extended_events=None,
