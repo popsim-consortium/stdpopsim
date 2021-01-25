@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-18.04, windows-2019, macos-10.15]
-        python: [3.6, 3.9]
+        python: [3.7, 3.9]
     env:
       SLIM_TAG: 3.4
       CONDA_ENV_NAME: stdpopsim

@@ -6,14 +6,14 @@ orbs:
 aliases:
   - &container_config
       docker:
-        - image: circleci/python:3.6-stretch
+        - image: circleci/python:3.7-buster
       working_directory: &working_directory /home/circleci/stdpopsim
   - &set_py_circleci_own
     run:
       name: Set ownership of Python directories
       command: |
         sudo chown -R circleci:circleci /usr/local/bin
-        sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
+        sudo chown -R circleci:circleci /usr/local/lib/python3.7/site-packages
   - &install_libgsl
     run: sudo apt-get install libgsl-dev
 
@@ -68,7 +68,7 @@ jobs:
       - run: sudo chown -R circleci:circleci .
       - *install_libgsl # Needed for msprime
       - restore_cache:
-          key: stdpopsim-v1-{{ .Branch }}-{{ checksum "requirements/CI/requirements.txt" }}
+          key: stdpopsim-v3-{{ .Branch }}-{{ checksum "requirements/CI/requirements.txt" }}
       - run:
           name: Install Python dependencies
           command: |
@@ -76,15 +76,15 @@ jobs:
             pip install numpy==1.19.2
             pip install -r requirements/CI/requirements.txt
       - save_cache:
-          key: stdpopsim-v1-{{ .Branch }}-{{ checksum "requirements/CI/requirements.txt" }}
+          key: stdpopsim-v3-{{ .Branch }}-{{ checksum "requirements/CI/requirements.txt" }}
           paths:
             - "/usr/local/bin"
-            - "/usr/local/lib/python3.6/site-packages"
+            - "/usr/local/lib/python3.7/site-packages"
       - persist_to_workspace:
           root: /usr/local
           paths:
             - bin/*
-            - lib/python3.6/site-packages/*
+            - lib/python3.7/site-packages/*
 
   build-pkg:
     <<: *container_config
