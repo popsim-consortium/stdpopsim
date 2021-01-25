@@ -1,9 +1,0 @@
-nose
-msprime
-kastore
-tskit
-humanize
-attrs
-appdirs
-pandas
-zarr

@@ -10,7 +10,7 @@ sphinx-argparse
 sphinx-issues
 sphinx_rtd_theme
 sphinxcontrib-programoutput
-msprime
+msprime>=1.0.0a4
 attrs
 appdirs
 humanize
