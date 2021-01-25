@@ -65,14 +65,16 @@ class Engine:
 
     def simulate(
         self,
-        demographic_model=None,
-        contig=None,
-        samples=None,
+        demographic_model,
+        contig,
+        samples,
+        *,
         seed=None,
         dry_run=False,
     ):
         """
-        Simulates the model for the specified contig and samples.
+        Simulates the model for the specified contig and samples. ``demographic_model``,
+        ``contig``, and ``samples`` must be specified.
 
         :param demographic_model: The demographic model to simulate.
         :type demographic_model: :class:`.DemographicModel`
@@ -126,13 +128,15 @@ class _MsprimeEngine(Engine):
 
     def simulate(
         self,
-        demographic_model=None,
-        contig=None,
-        samples=None,
+        demographic_model,
+        contig,
+        samples,
+        *,
         seed=None,
         msprime_model=None,
         msprime_change_model=None,
         dry_run=False,
+        **kwargs,
     ):
         """
         Simulate the demographic model using msprime.
@@ -149,6 +153,7 @@ class _MsprimeEngine(Engine):
         :param dry_run: If True, ``end_time=0`` is passed to :meth:`msprime.simulate()`
             to initialise the simulation and then immediately return.
         :type dry_run: bool
+        :param \\**kwargs: Further arguments passed to :meth:`msprime.simulate()`
         """
         if msprime_model is None:
             msprime_model = self.supported_models[0]
@@ -169,6 +174,13 @@ class _MsprimeEngine(Engine):
                     self.citations.extend(self.model_citations[model])
             demographic_events.sort(key=lambda x: x.time)
 
+        if "random_seed" in kwargs.keys():
+            if seed is None:
+                seed = kwargs["random_seed"]
+                del kwargs["random_seed"]
+            else:
+                raise ValueError("Cannot set both seed and random_seed")
+
         ts = msprime.simulate(
             samples=samples,
             recombination_map=contig.recombination_map,
@@ -179,6 +191,7 @@ class _MsprimeEngine(Engine):
             random_seed=seed,
             model=msprime_model,
             end_time=0 if dry_run else None,
+            **kwargs,
         )
 
         if contig.inclusion_mask is not None:
