@@ -18,4 +18,4 @@ dependencies:
         - matplotlib
         # load the stdpopsim Github repository as a library using pip
         - pip:
-            - "--editable=git+https://github.com/popgensims/stdpopsim.git#egg=stdpopsim-master"
+            - "--editable=git+https://github.com/popgensims/stdpopsim.git#egg=stdpopsim-main"

@@ -1,4 +1,4 @@
-.. stdpopsim documentation master file, created by
+.. stdpopsim documentation index file, created by
    sphinx-quickstart on Sun Feb  3 17:26:38 2019.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
