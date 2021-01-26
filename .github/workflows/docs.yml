@@ -3,7 +3,7 @@ name: Build and deploy docs
 on:
   pull_request:
   push:
-    branches: [master]
+    branches: [main]
     tags:
       - '*'
 

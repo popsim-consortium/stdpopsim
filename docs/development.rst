@@ -51,7 +51,7 @@ help+wanted%22>`_
 To get started helping with ``stdpopsim`` development, please read the
 following sections to learn how to contribute.
 And, importantly, please have a look at our
-`code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/master/CODE_OF_CONDUCT.md>`_.
+`code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/main/CODE_OF_CONDUCT.md>`_.
 
 .. _sec_development_installation:
 
@@ -135,7 +135,7 @@ GitHub workflow
        is to follow this recipe::
 
         $ git fetch upstream
-        $ git checkout upstream/master
+        $ git checkout upstream/main
         $ git checkout -b topic_branch_name
 
     4. As you work on your topic branch you can add commits to it. Once you're
@@ -172,14 +172,14 @@ Rebasing
 
 Rebasing is used for two basic tasks we might ask for during review:
 
-1. Your topic branch has gotten out of date with the tip of ``upstream/master``
+1. Your topic branch has gotten out of date with the tip of ``upstream/main``
    and needs to be updated.
 2. Your topic branch has lots of messy commits, which need to be cleaned up
    by "squashing".
 
 `Rebasing <https://help.github.com/articles/about-git-rebase/>`_ in git
 basically means changing where your branch forked off the main code
-in ``upstream/master``. A good way of visualising what's happening is to
+in ``upstream/main``. A good way of visualising what's happening is to
 look at the `Network <https://github.com/popgensims/stdpopsim/network>`_ view on
 GitHub. This shows you all the forks and branches that GitHub knows about
 and how they relate to the main repository. Rebasing lets you change where
@@ -240,7 +240,7 @@ so that we remove some noise from the git history. For example, this PR
     * ad4c807 Please work, CI!
     * 0fe6dc4 Please work, CI!
     * 520e6ac Add documentation for rebasing.
-    *   20fb835 (upstream/master) Merge pull request #22 from mcveanlab/port-tennyson
+    *   20fb835 (upstream/main) Merge pull request #22 from mcveanlab/port-tennyson
     |\
     | * b3d45ea (origin/port-tennyson, port-tennyson) Quickly port Tennesen et al model.
     |/
@@ -255,11 +255,11 @@ using rebase:
 .. code-block:: none
 
     $ git fetch upstream
-    $ git rebase -i upstream/master
+    $ git rebase -i upstream/main
 
 We first make sure that we're rebasing against the most recent version of the
 upstream repo. Then, we ask git to perform an interactive rebase against
-the ``upstream/master`` branch. This starts up your editor, showing something
+the ``upstream/main`` branch. This starts up your editor, showing something
 like this::
 
     pick 520e6ac Add documentation for rebasing.
@@ -432,14 +432,14 @@ Success! We can check the history again to see if everything looks OK:
     $  git log --decorate --oneline --graph
 
     * d033ffa (HEAD -> topic_branch_name, origin/topic_branch_name) Add documentation for rebasing.
-    *   20fb835 (upstream/master) Merge pull request #22 from mcveanlab/port-tennyson
+    *   20fb835 (upstream/main) Merge pull request #22 from mcveanlab/port-tennyson
     |\
     | * b3d45ea (origin/port-tennyson, port-tennyson) Quickly port Tennesen et al model.
     |/
     *   79d26b4 Merge pull request #20 from andrewkern/fly_model
     |
 
-This looks just right: we have one commit, pointing to the head of ``upstream/master``
+This looks just right: we have one commit, pointing to the head of ``upstream/main``
 and have successfully squashed and rebased.
 
 ------------------------
@@ -450,14 +450,14 @@ Sometimes rebasing goes wrong, and you end up in a frustrating loop of making an
 undoing the same changes over and over again. In this case, it can be simplest to
 make a diff of your current changes, and apply these in a single commit. First
 we take the diff between the current state of the files in our branch and
-``upstream/master`` and save it as a patch::
+``upstream/main`` and save it as a patch::
 
-    $ git diff upstream/master > changes.patch
+    $ git diff upstream/main > changes.patch
 
 After that, we can check out a fresh branch and check if everything works
 as it's supposed to::
 
-    $ git checkout -b test_branch upstream/master
+    $ git checkout -b test_branch upstream/main
     $ patch -p1 < changes.patch
     $ git commit -a
     # check things work
@@ -751,7 +751,7 @@ When developers A and B disagree on the model implementation, the process is to:
 
     3. If changes have to be made to the production model Developer A submits a
        PR with the hotfix for the production model. Developer B then rebases
-       the branch containing their PR against master to check for model
+       the branch containing their PR against the main branch to check for model
        equality. Repeat steps 1-3 until this is achieved. If changes have to be
        made to the QC model they are committed to the branch where the QC PR
        originates from.

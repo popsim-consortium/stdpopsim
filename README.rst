@@ -11,7 +11,7 @@ Stdpopsim is highly portable, and provides a number of
 To start an interactive Jupyter Notebook and start playing with ``stdpopsim`` now click
 
 .. image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/popsim-consortium/stdpopsim/master?filepath=stdpopsim_example.ipynb
+ :target: https://mybinder.org/v2/gh/popsim-consortium/stdpopsim/main?filepath=stdpopsim_example.ipynb
 
 
 If you use ``stdpopsim`` in your work, please cite our
