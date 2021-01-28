@@ -244,10 +244,6 @@ class TestEndToEnd(unittest.TestCase):
         cmd = "HomSap -c chr1 -l0.01 -d OutOfAfricaArchaicAdmixture_5R19 10"
         self.verify(cmd, num_samples=10)
 
-    def test_schiffels_zigzag(self):
-        cmd = "HomSap -c chr1 -l0.01 -d Zigzag_1S14 2"
-        self.verify(cmd, num_samples=2)
-
     def test_dromel_constant(self):
         cmd = "DroMel -c 2L -l0.001 4"
         self.verify(cmd, num_samples=4)

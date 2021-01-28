@@ -1103,11 +1103,12 @@ def ZigZag():
     mu = 1.25e-8
     L = 10000000
     theta = 7156
-    Ne = theta / 4 / mu / L
+    Ne = theta / 4 / mu / L  # ancestral size for rescaling times/rates
+    N0 = 5 * Ne  # multiply pop sizes to match 'ms -eN 0 5'
 
     population_configurations = [
         msprime.PopulationConfiguration(
-            initial_size=Ne, growth_rate=0, metadata={"sampling_time": 0}
+            initial_size=N0, growth_rate=0, metadata={"sampling_time": 0}
         )
     ]
 
@@ -1133,7 +1134,7 @@ def ZigZag():
             time=0.596236 * 4 * Ne,
             growth_rate=0,
             population_id=0,
-            initial_size=0.1 * Ne,
+            initial_size=0.1 * N0,
         )
     )
 
