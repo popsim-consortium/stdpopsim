@@ -606,3 +606,14 @@ class TestDemographicModelConstruction(unittest.TestCase):
             id="A", description="A", long_description="A", generation_time=1
         )
         self.assertEqual(dm.populations, [])
+
+
+class TestZigZagWarning(unittest.TestCase):
+    def test_zigzag_produces_warning(self):
+        species = stdpopsim.get_species("HomSap")
+        model = species.get_demographic_model("Zigzag_1S14")
+        contig = species.get_contig("chr22")
+        samples = model.get_samples(10)
+        for engine in stdpopsim.all_engines():
+            with self.assertWarnsRegex(UserWarning, "Zigzag_1S14"):
+                engine.simulate(model, contig, samples, dry_run=True)

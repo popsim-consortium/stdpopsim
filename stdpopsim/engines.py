@@ -1,4 +1,5 @@
 import logging
+import warnings
 
 import attr
 import msprime
@@ -101,6 +102,15 @@ class Engine:
         """
         raise NotImplementedError()
 
+    def _warn_zigzag(self, demographic_model):
+        if demographic_model.id == "Zigzag_1S14":
+            warnings.warn(
+                "In stdpopsim <= 0.1.2, the Zigzag_1S14 model produced population "
+                "sizes 5x lower than those in Schiffels & Durbin (2014). "
+                "The population sizes have now been corrected. For details see: "
+                "https://github.com/popsim-consortium/stdpopsim/issues/745"
+            )
+
 
 class _MsprimeEngine(Engine):
     id = "msprime"  #:
@@ -180,6 +190,9 @@ class _MsprimeEngine(Engine):
                 del kwargs["random_seed"]
             else:
                 raise ValueError("Cannot set both seed and random_seed")
+
+        # TODO: remove this after a release or two. See #745.
+        self._warn_zigzag(demographic_model)
 
         ts = msprime.simulate(
             samples=samples,

@@ -1070,6 +1070,9 @@ class _SLiMEngine(stdpopsim.Engine):
                 )
             )
 
+        # TODO: remove this after a release or two. See #745.
+        self._warn_zigzag(demographic_model)
+
         run_slim = not slim_script
 
         # Ensure only "weighted" mutations are introduced by SLiM.
