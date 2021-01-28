@@ -119,6 +119,6 @@ class GeneticMap:
         elif map_length > chrom.length:
             warnings.warn(
                 f"Recombination map has length {map_length}, which is longer than"
-                f" chomosome length {chrom.length}. The former will be used."
+                f" chromosome length {chrom.length}. The former will be used."
             )
         return recomb_map
