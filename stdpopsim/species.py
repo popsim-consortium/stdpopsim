@@ -2,6 +2,7 @@
 Infrastructure for defining basic information about species and
 organising the species catalog.
 """
+import difflib
 import logging
 import warnings
 
@@ -292,7 +293,21 @@ class Species:
         for model in self.demographic_models:
             if model.id == id:
                 return model
-        raise ValueError(f"DemographicModel '{self.id}/{id}' not in catalog")
+        suggestions = difflib.get_close_matches(  # Can't harm to use a liberal cutoff
+            str(id), [m.id for m in self.demographic_models], cutoff=0.3
+        )
+        suggestions_str = ""
+        if len(suggestions) > 0:
+            suggestions_str += " Did you mean "
+            if len(suggestions) == 1:
+                suggestions_str += f"'{suggestions[0]}'"
+            else:
+                suggestions_str += ", ".join(f"'{s}'" for s in suggestions[:-1])
+                suggestions_str += f" or '{suggestions[-1]}'"
+            suggestions_str += "?"
+        raise ValueError(
+            f"DemographicModel '{self.id}/{id}' not in catalog." + suggestions_str
+        )
 
     def add_demographic_model(self, model):
         if model.id in [m.id for m in self.demographic_models]:
