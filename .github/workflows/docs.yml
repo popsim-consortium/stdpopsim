@@ -18,11 +18,6 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
-        # As we are using pull-request-target which uses the workflow from the base
-        # of the PR, we need to be specific
-        with:
-            ref: ${{github.event.pull_request.head.ref}}
-            repository: ${{github.event.pull_request.head.repo.full_name}}
 
       - uses: actions/setup-python@v2
         with:
@@ -35,28 +30,22 @@ jobs:
           python -m pip install numpy==1.19.2  # for scikit-allel
           python -m pip install -r requirements/CI/requirements.txt
           # Install the local package so that stdpopsim is in the path,
-          # which is needed for generating docs `comand-output`.
+          # which is needed for generating docs `command-output`.
           python -m pip install .
 
       - name: Build Docs
         run: make -C docs
 
       - name: Checkout docs site
+        if: github.event.push
         uses: actions/checkout@v2
         with:
           repository: popsim-consortium/stdpopsim-docs
           token: ${{ secrets.POPSIMBOT_STDPOPSIM_DOCS_TOKEN }}
           path: stdpopsim-docs
 
-      - name: Copy our docs to the PR specific location
-        if: github.event.pull_request
-        run: |
-          cd stdpopsim-docs
-          rm -rf ${{github.event.pull_request.number}}
-          cp -r ../docs/_build/html ${{github.event.pull_request.number}}
-
       - name: Copy our docs to the tag specific location
-        if: (!github.event.pull_request)
+        if: github.event.push
         run: |
           cd stdpopsim-docs
           export DEST=`echo ${GITHUB_REF} | sed -e "s/refs\/heads\///g" |  sed -e "s/refs\/tags\///g"`
@@ -64,19 +53,11 @@ jobs:
           cp -r ../docs/_build/html $DEST
 
       - name: Commit and push the docs
+        if: github.event.push
         run: |
           cd stdpopsim-docs
           git config user.name PopSim-bot
           git config user.email graham.gower+popsim-bot@gmail.com
           git add .
-          git diff-index --quiet HEAD || git commit -m "Automated doc build for ${{github.event.pull_request.number}} ${GITHUB_REF}"
+          git diff-index --quiet HEAD || git commit -m "Automated doc build for ${GITHUB_REF}"
           git push
-
-      - name: Comment on PR
-        if: github.event.pull_request
-        uses: mshick/add-pr-comment@v1
-        with:
-          message: |
-            📖 Docs for this PR can be previewed [here](https://popsim-consortium.github.io/stdpopsim-docs/${{github.event.pull_request.number}}/)
-          allow-repeats: false
-          repo-token: ${{ secrets.POPSIMBOT_STDPOPSIM_DOCS_TOKEN }}
