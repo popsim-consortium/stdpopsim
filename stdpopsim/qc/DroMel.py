@@ -5,18 +5,13 @@ import stdpopsim
 
 _species = stdpopsim.get_species("DroMel")
 
-# Some generic populations to use for qc
-population_sample_0 = stdpopsim.Population(
-    "sampling_0", "Population that samples at time 0", 0
-)
-population_sample_none = stdpopsim.Population(
-    "sampling_none", "Population that does not sample", None
-)
-
 
 def LiStephanTwoPopulation():
     id = "QC-OutOfAfrica_2L06"
-    populations = [population_sample_0] * 2
+    populations = [
+        stdpopsim.Population("AFR", ""),
+        stdpopsim.Population("EUR", ""),
+    ]
 
     # Parameters for the African population are taken from the section Demographic
     # History of the African Population
@@ -59,6 +54,12 @@ def LiStephanTwoPopulation():
                 time=T_A0, initial_size=N_A1, population_id=0
             ),
         ],
+        population_id_map=[
+            {"AFR": 0, "EUR": 1},
+            {"AFR": 0, "EUR": 1},
+            {"AFR": 0, "EUR": 1},
+            {"AFR": 0, "EUR": 1},
+        ],
     )
 
 
@@ -67,7 +68,7 @@ _species.get_demographic_model("OutOfAfrica_2L06").register_qc(LiStephanTwoPopul
 
 def SheehanSongThreeEpic():
     id = "QC-African3Epoch_1S16"
-    populations = [population_sample_0]
+    populations = [stdpopsim.Population("AFR", "")]
 
     # Model from paper https://doi.org/10.1371/journal.pcbi.1004845
 
@@ -107,6 +108,7 @@ def SheehanSongThreeEpic():
                 time=T_2, initial_size=N_3, population_id=0
             ),
         ],
+        population_id_map=[{"AFR": 0}] * 3,
     )
 
 

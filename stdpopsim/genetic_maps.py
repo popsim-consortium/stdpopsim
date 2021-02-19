@@ -4,6 +4,7 @@ Infrastructure for managing genetic maps.
 import warnings
 
 import msprime
+import numpy as np
 
 import stdpopsim
 
@@ -88,8 +89,8 @@ class GeneticMap:
         :param str id: The chromosome identifier.
              A complete list of chromosome IDs for each species can be found in the
              "Genome" subsection for the species in the :ref:`sec_catalog`.
-        :rtype: :class:`msprime.RecombinationMap`
-        :return: A :class:`msprime.RecombinationMap` object.
+        :rtype: :class:`msprime.RateMap`
+        :return: A :class:`msprime.RateMap` object.
         """
         chrom = self.species.genome.get_chromosome(id)
         if not self.is_cached():
@@ -100,22 +101,20 @@ class GeneticMap:
         # needs to be redownloaded.
         map_file = self.map_cache_dir / self.file_pattern.format(id=chrom.id)
         if map_file.exists():
-            recomb_map = msprime.RecombinationMap.read_hapmap(str(map_file))
+            recomb_map = msprime.RateMap.read_hapmap(map_file)
         else:
             warnings.warn(
                 "Recombination map not found for chromosome: '{}'"
                 " on map: '{}', substituting a flat map with chromosome "
                 "recombination rate {}".format(id, self.id, chrom.recombination_rate)
             )
-            recomb_map = msprime.RecombinationMap.uniform_map(
-                chrom.length, chrom.recombination_rate
-            )
-        map_length = recomb_map.get_sequence_length()
+            recomb_map = msprime.RateMap.uniform(chrom.length, chrom.recombination_rate)
+        map_length = recomb_map.sequence_length
         if map_length < chrom.length:
             # Extend map to the end of the chromosome.
-            positions = recomb_map.get_positions() + [chrom.length]
-            rates = recomb_map.get_rates() + [0]
-            recomb_map = msprime.RecombinationMap(positions, rates)
+            positions = np.append(recomb_map.position, chrom.length)
+            rates = np.append(recomb_map.rate, 0)
+            recomb_map = msprime.RateMap(positions, rates)
         elif map_length > chrom.length:
             warnings.warn(
                 f"Recombination map has length {map_length}, which is longer than"

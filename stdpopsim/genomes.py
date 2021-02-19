@@ -117,10 +117,8 @@ class Contig:
     :ivar mutation_rate: The rate of mutation per base per generation.
     :vartype mutation_rate: float
     :ivar recombination_map: The recombination map for the region. See the
-        `msprime documentation
-        <https://msprime.readthedocs.io/en/stable/api.html#msprime.RecombinationMap>`_
-        for more details.
-    :vartype recombination_map: msprime.simulations.RecombinationMap
+        :class:`msprime.RateMap` for details.
+    :vartype recombination_map: msprime.RateMap
     :ivar mask_intervals: Intervals to keep in simulated tree sequence, as a list
         of (left_position, right_position), such that intervals are non-overlapping
         and in ascending order. Should have shape Nx2, where N is the number of
@@ -157,8 +155,8 @@ class Contig:
             "Contig(length={:.2G}, recombination_rate={:.2G}, "
             "mutation_rate={:.2G}, genetic_map={})"
         ).format(
-            self.recombination_map.get_length(),
-            self.recombination_map.mean_recombination_rate,
+            self.recombination_map.sequence_length,
+            self.recombination_map.mean_rate,
             self.mutation_rate,
             gmap,
         )

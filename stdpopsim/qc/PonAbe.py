@@ -6,15 +6,13 @@ import stdpopsim
 
 _species = stdpopsim.get_species("PonAbe")
 
-# Some generic populations to use for qc
-population_sample_0 = stdpopsim.Population(
-    "sampling_0", "Population that samples at time 0", 0
-)
-
 
 def LockePongo():
     id = "QC-TwoSpecies_2L11"
-    populations = [population_sample_0] * 2
+    populations = [
+        stdpopsim.Population("Bornean", ""),
+        stdpopsim.Population("Sumatran", ""),
+    ]
 
     # This is a split-migration style model, with exponential growth or
     # decay allowed in each population after the split. They assumed a
@@ -54,6 +52,10 @@ def LockePongo():
             msprime.PopulationParametersChange(
                 time=T, initial_size=Ne, growth_rate=0, population_id=0
             ),
+        ],
+        population_id_map=[
+            {"Bornean": 0, "Sumatran": 1},
+            {"Bornean": 0, "Sumatran": 1},
         ],
     )
 

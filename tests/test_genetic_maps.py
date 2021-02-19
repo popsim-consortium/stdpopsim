@@ -119,7 +119,7 @@ class TestGeneticMapTarball(unittest.TestCase):
                     with utils.cd(extract_dir):
                         tar_file.extractall()
                         for fn in os.listdir(extract_dir):
-                            maps[fn] = msprime.RecombinationMap.read_hapmap(fn)
+                            maps[fn] = msprime.RateMap.read_hapmap(fn)
         return maps
 
     def test_no_args(self):
@@ -208,16 +208,16 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
         chrom = species.genome.get_chromosome("chrY")
         with self.assertWarns(Warning):
             cm = genetic_map.get_chromosome_map(chrom.id)
-        self.assertIsInstance(cm, msprime.RecombinationMap)
-        self.assertEqual(chrom.length, cm.get_sequence_length())
+        self.assertIsInstance(cm, msprime.RateMap)
+        self.assertEqual(chrom.length, cm.sequence_length)
 
     def test_known_chromosome(self):
         species = stdpopsim.get_species("CanFam")
         genetic_map = species.get_genetic_map("Campbell2016_CanFam3_1")
         chrom = species.genome.get_chromosome("1")
         cm = genetic_map.get_chromosome_map(chrom.id)
-        self.assertIsInstance(cm, msprime.RecombinationMap)
-        self.assertEqual(chrom.length, cm.get_sequence_length())
+        self.assertIsInstance(cm, msprime.RateMap)
+        self.assertEqual(chrom.length, cm.sequence_length)
 
     def test_warning_for_long_recomb_map(self):
         species = stdpopsim.get_species("HomSap")
@@ -225,8 +225,8 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
         chrom = species.genome.get_chromosome("chr1")
         with self.assertWarns(Warning):
             cm = genetic_map.get_chromosome_map(chrom.id)
-        self.assertIsInstance(cm, msprime.RecombinationMap)
-        self.assertLess(chrom.length, cm.get_sequence_length())
+        self.assertIsInstance(cm, msprime.RateMap)
+        self.assertLess(chrom.length, cm.sequence_length)
 
     def test_unknown_chromosome(self):
         species = stdpopsim.get_species("HomSap")

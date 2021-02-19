@@ -4,6 +4,7 @@ import warnings
 import attr
 import msprime
 import stdpopsim
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -173,16 +174,14 @@ class _MsprimeEngine(Engine):
             if msprime_model in self.model_citations:
                 self.citations.extend(self.model_citations[msprime_model])
 
-        demographic_events = demographic_model.demographic_events.copy()
         if msprime_change_model is not None:
+            msprime_model = [msprime_model]
             for t, model in msprime_change_model:
                 if model not in self.supported_models:
                     raise ValueError(f"Unrecognised model '{model}'")
-                model_change = msprime.SimulationModelChange(t, model)
-                demographic_events.append(model_change)
+                msprime_model.append((t, model))
                 if model in self.model_citations:
                     self.citations.extend(self.model_citations[model])
-            demographic_events.sort(key=lambda x: x.time)
 
         if "random_seed" in kwargs.keys():
             if seed is None:
@@ -194,17 +193,24 @@ class _MsprimeEngine(Engine):
         # TODO: remove this after a release or two. See #745.
         self._warn_zigzag(demographic_model)
 
-        ts = msprime.simulate(
+        rng = np.random.default_rng(seed)
+        seeds = rng.integers(1, 2 ** 31 - 1, size=2)
+
+        ts = msprime.sim_ancestry(
             samples=samples,
-            recombination_map=contig.recombination_map,
-            mutation_rate=contig.mutation_rate,
-            population_configurations=demographic_model.population_configurations,
-            migration_matrix=demographic_model.migration_matrix,
-            demographic_events=demographic_events,
-            random_seed=seed,
+            recombination_rate=contig.recombination_map,
+            demography=demographic_model.model,
+            ploidy=2,
+            random_seed=seeds[0],
             model=msprime_model,
             end_time=0 if dry_run else None,
             **kwargs,
+        )
+        ts = msprime.sim_mutations(
+            ts,
+            end_time=0 if dry_run else None,
+            random_seed=seeds[1],
+            rate=contig.mutation_rate,
         )
 
         if contig.inclusion_mask is not None:
