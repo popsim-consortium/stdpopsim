@@ -656,30 +656,24 @@ def _america():
             time=Tadmix, source=3, destination=0, proportion=1.0 / 6.0
         ),
         msprime.MassMigration(
-            time=Tadmix + 0.0001, source=3, destination=1, proportion=2.0 / 5.0
+            time=Tadmix, source=3, destination=1, proportion=2.0 / 5.0
         ),
-        msprime.MassMigration(
-            time=Tadmix + 0.0002, source=3, destination=2, proportion=1.0
-        ),
+        msprime.MassMigration(time=Tadmix, source=3, destination=2, proportion=1.0),
     ]
     # Asia and Europe split
     eu_event = [
         msprime.MigrationRateChange(time=Teu, rate=0.0),
-        msprime.MassMigration(
-            time=Teu + 0.0001, source=2, destination=1, proportion=1.0
-        ),
+        msprime.MassMigration(time=Teu, source=2, destination=1, proportion=1.0),
         msprime.PopulationParametersChange(
-            time=Teu + 0.0002, initial_size=Nb, growth_rate=0.0, population_id=1
+            time=Teu, initial_size=Nb, growth_rate=0.0, population_id=1
         ),
-        msprime.MigrationRateChange(time=Teu + 0.0003, rate=mafb, matrix_index=(0, 1)),
-        msprime.MigrationRateChange(time=Teu + 0.0003, rate=mafb, matrix_index=(1, 0)),
+        msprime.MigrationRateChange(time=Teu, rate=mafb, matrix_index=(0, 1)),
+        msprime.MigrationRateChange(time=Teu, rate=mafb, matrix_index=(1, 0)),
     ]
     # Out of Africa event
     ooa_event = [
         msprime.MigrationRateChange(time=Tooa, rate=0.0),
-        msprime.MassMigration(
-            time=Tooa + 0.0001, source=1, destination=0, proportion=1.0
-        ),
+        msprime.MassMigration(time=Tooa, source=1, destination=0, proportion=1.0),
     ]
     # initial population size
     init_event = [

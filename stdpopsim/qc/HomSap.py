@@ -257,35 +257,35 @@ def BrowningAmerica():
                 time=T_ADMIX0, source=3, destination=0, proportion=mm_AF1
             ),
             msprime.MassMigration(
-                time=T_ADMIX0 + 0.0001, source=3, destination=1, proportion=mm_CEU0
+                time=T_ADMIX0, source=3, destination=1, proportion=mm_CEU0
             ),
             msprime.MassMigration(
-                time=T_ADMIX0 + 0.0002, source=3, destination=2, proportion=mm_CHB0
+                time=T_ADMIX0, source=3, destination=2, proportion=mm_CHB0
             ),
             # Zero out migration rate (desn't matter but added for equality to prod.)
             msprime.MigrationRateChange(time=T_CEU_CHB, rate=0.0),
             # CEU and CHB coalesce and set population to OOA size (T_CEU_CHB)
             msprime.MassMigration(
-                time=T_CEU_CHB + 0.0001, source=2, destination=1, proportion=1.0
+                time=T_CEU_CHB, source=2, destination=1, proportion=1.0
             ),
             msprime.PopulationParametersChange(
-                time=T_CEU_CHB + 0.0002,
+                time=T_CEU_CHB,
                 initial_size=N_OOA,
                 growth_rate=0.0,
                 population_id=1,
             ),
             # Set OOA <--> AF migration rate (T_CEU_CHB)
             msprime.MigrationRateChange(
-                time=T_CEU_CHB + 0.0003, rate=m_AF1_OOA, matrix_index=(0, 1)
+                time=T_CEU_CHB, rate=m_AF1_OOA, matrix_index=(0, 1)
             ),
             msprime.MigrationRateChange(
-                time=T_CEU_CHB + 0.0003, rate=m_AF1_OOA, matrix_index=(1, 0)
+                time=T_CEU_CHB, rate=m_AF1_OOA, matrix_index=(1, 0)
             ),
             # Zero out migration rate
             msprime.MigrationRateChange(time=T_AF1_OOA, rate=0.0),
             # OOA and AF1 coalesce (T_OOA)
             msprime.MassMigration(
-                time=T_AF1_OOA + 0.0001, source=1, destination=0, proportion=1.0
+                time=T_AF1_OOA, source=1, destination=0, proportion=1.0
             ),
             # AF1 -> AF0 population size change (T_AF0_AF1)
             msprime.PopulationParametersChange(
