@@ -1007,9 +1007,22 @@ class _SLiMEngine(stdpopsim.Engine):
     def slim_path(self):
         return os.environ.get("SLIM", "slim")
 
-    def get_version(self):
-        s = subprocess.check_output([self.slim_path(), "-v"])
+    def get_version(self, slim_path=None):
+        if slim_path is None:
+            slim_path = self.slim_path()
+        s = subprocess.check_output([slim_path, "-v"])
         return s.split()[2].decode("ascii").rstrip(",")
+
+    def _assert_min_version(self, min_required_version, slim_path):
+        def version_split(version):
+            return [int(v) for v in version.split(".")]
+
+        current_version = self.get_version(slim_path)
+        if version_split(current_version) < version_split(min_required_version):
+            raise RuntimeError(
+                f"Minimum supported SLiM version is {min_required_version}, "
+                f"but only found version {current_version}"
+            )
 
     def simulate(
         self,
@@ -1150,6 +1163,10 @@ class _SLiMEngine(stdpopsim.Engine):
         """
         if slim_path is None:
             slim_path = self.slim_path()
+
+        # SLiM v3.5 needed with msprime 1.0
+        self._assert_min_version("3.5", slim_path)
+
         slim_cmd = [slim_path]
         if seed is not None:
             slim_cmd.extend(["-s", f"{seed}"])
