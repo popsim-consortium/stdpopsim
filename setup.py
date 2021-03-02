@@ -34,11 +34,11 @@ setup(
     python_requires=">=3.7",
     # NOTE: make sure this is the 'attrs' package, not 'attr'!
     install_requires=[
-        "msprime>=0.7.1",
+        "msprime>=1.0.0a5",
         "attrs>=19.1.0",
         "appdirs",
         "humanize",
-        "pyslim>=0.401",
+        "pyslim>=0.600",
         "pandas",
         "zarr",
         "numpy",
