@@ -1,2 +1,2 @@
-msprime==0.7.4
+msprime==1.0.0a6
 numcodecs==0.7.3
