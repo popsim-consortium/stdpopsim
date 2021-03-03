@@ -10,12 +10,12 @@ sphinx-argparse
 sphinx-issues
 sphinx_rtd_theme
 sphinxcontrib-programoutput
-msprime
+msprime>=1.0.0a6
 attrs
 appdirs
 humanize
 pre-commit
-pyslim>=0.500
+pyslim>=0.600
 pandas
 numpy
 scikit-allel
