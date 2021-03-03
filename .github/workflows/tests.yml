@@ -77,8 +77,9 @@ jobs:
       - name: install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          # Workaround weird issues on windows.
-          conda install --yes -c conda-forge msprime==1.0.0a6
+          # Install pre-release from non standard label until msprime
+          # 1.0 is tagged.
+          conda install -c conda-forge/label/mprime_rc -c conda-forge msprime
           conda install --yes --file=requirements/CI/conda.txt
           if [ "$RUNNER_OS" != "Windows" ]; then
             conda install --yes slim==${{ env.SLIM_TAG }}
