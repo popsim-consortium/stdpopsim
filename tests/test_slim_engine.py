@@ -196,6 +196,21 @@ class TestAPI(unittest.TestCase):
             self.assertEqual(tables1.edges, tables2.edges)
             self.assertEqual(tables1.mutations, tables2.mutations)
 
+    def test_assert_min_version(self):
+        engine = stdpopsim.get_engine("slim")
+        with mock.patch(
+            "stdpopsim.slim_engine._SLiMEngine.get_version", return_value="3.4"
+        ):
+            with self.assertRaises(RuntimeError):
+                engine._assert_min_version("3.5", engine.slim_path())
+            with self.assertRaises(RuntimeError):
+                engine._assert_min_version("4.0", None)
+        with mock.patch(
+            "stdpopsim.slim_engine._SLiMEngine.get_version", return_value="4.0"
+        ):
+            engine._assert_min_version("3.5", engine.slim_path())
+            engine._assert_min_version("3.6", None)
+
 
 @unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
 class TestCLI(unittest.TestCase):
@@ -255,7 +270,7 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(observed_counts[2], 8)
         self.assertTrue(all(tree.num_roots == 1 for tree in ts.trees()))
 
-    @mock.patch("stdpopsim.slim_engine._SLiMEngine.get_version", return_value="64")
+    @mock.patch("stdpopsim.slim_engine._SLiMEngine.get_version", return_value="64.64")
     def test_dry_run(self, _mocked_get_version):
         # --dry-run should run slim, but not create an output file.
         with mock.patch("subprocess.Popen", autospec=True) as mocked_popen:
