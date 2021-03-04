@@ -31,8 +31,8 @@ jobs:
             git clone --bare https://github.com/MesserLab/SLiM /tmp/SLiM_top/SLiM
             cd /tmp/SLiM_top/SLiM
             git describe --tags $(git rev-list --tags --max-count=1) > ${TAG_FILE}
-            # FIXME Pinning to SLiM 3.5 for now; looks like there's an issue with 3.6
-            echo v3.5 > ${TAG_FILE}
+            # Pinning to SLiM 3.6; comment out the next line to use latest tag.
+            echo v3.6 > ${TAG_FILE}
             echo Using SLiM version $(cat /tmp/SLiM_tag)
 
       - restore_cache:
