@@ -3,7 +3,9 @@ blacken-docs
 codecov
 coverage
 flake8
-nose
+pytest
+pytest-cov
+pytest-xdist
 setuptools_scm
 sphinx
 sphinx-argparse

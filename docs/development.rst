@@ -1100,11 +1100,14 @@ It is not practical to test the statistical properties of simulation models
 as part of unit tests.
 
 The unit test suite is in the ``tests`` directory. Tests are run using the
-`nose <https://nose.readthedocs.io/en/latest/>`_ module. Use::
+`pytest <https://docs.pytest.org/en/stable/>`_ module. Use::
 
-    $ python3 -m nose tests/
+    $ python3 -m pytest
 
-from the project root to run the full test suite.
+from the project root to run the full test suite. Pytest is very powerful and
+has lots of options; please see the `tskit documentation
+<https://tskit.dev/tskit/docs/stable/development.html#tests>`_ for help on
+how to run pytest and some common options.
 
 It's useful to run the ``flake8`` CI tests *locally* before pushing a commit.
 To set this up use either ``pip`` or ``conda`` to install ``flake8``
