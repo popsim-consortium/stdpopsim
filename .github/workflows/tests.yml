@@ -77,10 +77,10 @@ jobs:
       - name: install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
+          conda install --yes --file=requirements/CI/conda.txt
           # Install pre-release from non standard label until msprime
           # 1.0 is tagged.
-          conda install -c conda-forge/label/mprime_rc -c conda-forge msprime
-          conda install --yes --file=requirements/CI/conda.txt
+          conda install -c conda-forge/label/msprime_rc msprime
           if [ "$RUNNER_OS" != "Windows" ]; then
             conda install --yes slim==${{ env.SLIM_TAG }}
           fi
@@ -88,5 +88,5 @@ jobs:
 
       - name: run test suite
         run: |
-          nosetests -v --with-coverage --cover-package stdpopsim tests
+          pytest -n0 --cov=stdpopsim --cov-branch tests
           coverage report -m

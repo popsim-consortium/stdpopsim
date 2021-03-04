@@ -31,6 +31,10 @@ jobs:
             git clone --bare https://github.com/MesserLab/SLiM /tmp/SLiM_top/SLiM
             cd /tmp/SLiM_top/SLiM
             git describe --tags $(git rev-list --tags --max-count=1) > ${TAG_FILE}
+            # FIXME Pinning to SLiM 3.5 for now; looks like there's an issue with 3.6
+            echo v3.5 > ${TAG_FILE}
+            echo Using SLiM version $(cat /tmp/SLiM_tag)
+
       - restore_cache:
           key: SLiM-v2-{{ checksum "/tmp/SLiM_tag" }}
       - run:
@@ -117,9 +121,6 @@ jobs:
 
   test:
     <<: *container_config
-    environment:
-      XML_RESULTS_DIR: xml
-      XML_RESULTS: xml/results.xml
     parallelism: 3
     steps:
       - *set_py_circleci_own
@@ -130,10 +131,8 @@ jobs:
       - run:
           name: Run Python tests
           command: |
-            mkdir -p ${XML_RESULTS_DIR}
-            nosetests -vs --with-coverage --cover-package stdpopsim \
-              --cover-branches --cover-erase --cover-xml --with-xunit --xunit-file=${XML_RESULTS} \
-              --cover-inclusive $(circleci tests glob "tests/*.py" | circleci tests split --split-by=timings --timings-type=classname)
+            pytest --cov=stdpopsim -cov-report=term-missing --cov-report=xml \
+              --cov-branch tests
       - codecov/upload:
           file: coverage.xml
       - store_test_results:
