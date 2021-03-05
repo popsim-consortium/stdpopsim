@@ -437,17 +437,18 @@ class TestWarningsAndErrors(unittest.TestCase):
         Used for testing that growth rates are handled appropriately.
         """
         r = math.log(N0 / N1) / T
+        pop0 = stdpopsim.models.Population(id="pop0", description="")
         return stdpopsim.DemographicModel(
             id="exp_decline",
             description="exp_decline",
             long_description="exp_decline",
-            populations=[stdpopsim.models._pop0],
+            populations=[pop0],
             generation_time=1,
             population_configurations=[
                 msprime.PopulationConfiguration(
                     initial_size=N0,
                     growth_rate=r,
-                    metadata=stdpopsim.models._pop0.asdict(),
+                    metadata=pop0.asdict(),
                 )
             ],
             demographic_events=[

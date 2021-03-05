@@ -226,7 +226,7 @@ class Species:
                     u_tot += chrom_data.length * chrom_data.mutation_rate
             u = u_tot / L_tot
             r = r_tot / L_tot
-            recomb_map = msprime.RecombinationMap.uniform_map(length, r)
+            recomb_map = msprime.RateMap.uniform(length, r)
             ret = stdpopsim.Contig(recombination_map=recomb_map, mutation_rate=u)
         else:
             if length is not None:
@@ -237,8 +237,8 @@ class Species:
             if genetic_map is None:
                 logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.id}")
                 gm = None
-                recomb_map = msprime.RecombinationMap.uniform_map(
-                    chrom.length * length_multiplier, chrom.recombination_rate
+                recomb_map = msprime.RateMap.uniform(
+                    round(chrom.length * length_multiplier), chrom.recombination_rate
                 )
             else:
                 if length_multiplier != 1:

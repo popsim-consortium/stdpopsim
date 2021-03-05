@@ -115,7 +115,7 @@ def _HolsteinFriesan_1M13():
     inspection of the plots.
     """
     populations = [
-        stdpopsim.Population(id="Holstein-Friesian", description="Holstein-Friesian"),
+        stdpopsim.Population(id="Holstein_Friesian", description="Holstein Friesian"),
     ]
     citations = [_MacLeodEtAl.because(stdpopsim.CiteReason.DEM_MODEL)]
 

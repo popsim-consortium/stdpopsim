@@ -32,12 +32,13 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
         genetic_map = "HapMapII_GRCh37"
         species = stdpopsim.get_species("HomSap")
         for chrom in self.genome.chromosomes:
-            if chrom.id == "chrY":
+            if chrom.id == "Y":
                 with self.assertWarns(Warning):
                     contig = species.get_contig(chrom.id, genetic_map=genetic_map)
+                print("HERE")
             else:
                 contig = species.get_contig(chrom.id, genetic_map=genetic_map)
             self.assertAlmostEqual(
                 chrom.recombination_rate,
-                contig.recombination_map.mean_recombination_rate,
+                contig.recombination_map.mean_rate,
             )

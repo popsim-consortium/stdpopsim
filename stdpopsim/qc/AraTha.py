@@ -6,15 +6,10 @@ import stdpopsim
 
 _species = stdpopsim.get_species("AraTha")
 
-# Some generic populations to use for qc
-population_sample_0 = stdpopsim.Population(
-    "sampling_0", "Population that samples at time 0", 0
-)
-
 
 def Durvasula2017MSMC():
     id = "QC-SouthMiddleAtlas_1D17"
-    populations = [population_sample_0]
+    populations = [stdpopsim.Population("SouthMiddleAtlas", "")]
 
     # Both of the following are directly
     # converted from MSMC output scaled by A.Thaliana
@@ -126,6 +121,7 @@ def Durvasula2017MSMC():
         populations=populations,
         population_configurations=population_configurations,
         demographic_events=demographic_events,
+        population_id_map=[{"SouthMiddleAtlas": 0}] * 33,
     )
 
 
@@ -135,7 +131,7 @@ _species.get_demographic_model("SouthMiddleAtlas_1D17").register_qc(Durvasula201
 def HuberTwoEpoch():
     id = "QC-African2Epoch_1H18"
     populations = [
-        stdpopsim.Population(id="ATL", description="A. thalina"),
+        stdpopsim.Population(id="SouthMiddleAtlas", description="A. thalina"),
     ]
 
     # Time of second epoch
@@ -160,6 +156,7 @@ def HuberTwoEpoch():
                 time=T_2, initial_size=N_ANC, population_id=0
             ),
         ],
+        population_id_map=[{"SouthMiddleAtlas": 0}] * 2,
     )
 
 
@@ -169,7 +166,7 @@ _species.get_demographic_model("African2Epoch_1H18").register_qc(HuberTwoEpoch()
 def HuberThreeEpoch():
     id = "QC-African3Epoch_1H18"
     populations = [
-        stdpopsim.Population(id="ATL", description="A. thalina"),
+        stdpopsim.Population(id="SouthMiddleAtlas", description="A. thalina"),
     ]
 
     # Time of second epoch
@@ -199,6 +196,7 @@ def HuberThreeEpoch():
                 time=T_2 + T_3, initial_size=N_ANC, population_id=0
             ),
         ],
+        population_id_map=[{"SouthMiddleAtlas": 0}] * 3,
     )
 
 

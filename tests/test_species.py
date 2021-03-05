@@ -178,8 +178,8 @@ class TestGetContig(unittest.TestCase):
         for x in [0.125, 1.0, 2.0]:
             contig2 = self.species.get_contig("chr22", length_multiplier=x)
             self.assertEqual(
-                contig1.recombination_map.get_positions()[-1] * x,
-                contig2.recombination_map.get_positions()[-1],
+                round(contig1.recombination_map.position[-1] * x),
+                contig2.recombination_map.position[-1],
             )
 
     def test_length_multiplier_on_empirical_map(self):
@@ -191,7 +191,7 @@ class TestGetContig(unittest.TestCase):
     def test_genetic_map(self):
         # TODO we should use a different map here so we're not hitting the cache.
         contig = self.species.get_contig("chr22", genetic_map="HapMapII_GRCh37")
-        self.assertIsInstance(contig.recombination_map, msprime.RecombinationMap)
+        self.assertIsInstance(contig.recombination_map, msprime.RateMap)
 
     def test_contig_options(self):
         with self.assertRaises(ValueError):
@@ -226,7 +226,7 @@ class TestGetContig(unittest.TestCase):
     def test_generic_contig(self):
         L = 1e6
         contig = self.species.get_contig(length=L)
-        self.assertTrue(contig.recombination_map.get_length() == L)
+        self.assertTrue(contig.recombination_map.sequence_length == L)
 
         chrom_ids = np.arange(1, 23).astype("str")
         Ls = [c.length for c in self.species.genome.chromosomes if c.id in chrom_ids]
@@ -243,6 +243,5 @@ class TestGetContig(unittest.TestCase):
 
         self.assertTrue(contig.mutation_rate == np.average(us, weights=Ls))
         self.assertTrue(
-            contig.recombination_map.mean_recombination_rate
-            == np.average(rs, weights=Ls)
+            contig.recombination_map.mean_rate == np.average(rs, weights=Ls)
         )

@@ -123,8 +123,8 @@ class TestSimulate(unittest.TestCase):
         L = 1000
         contig = species.get_contig(length=L)
         contig.mutation_rate = 1e-3
-        contig.recombination_map = msprime.RecombinationMap.uniform_map(L, 0)
-        samples = [msprime.Sample(0, 0), msprime.Sample(0, 0)]
+        contig.recombination_map = msprime.RateMap.uniform(L, 0)
+        samples = [msprime.SampleSet(2, population=0, ploidy=1)]
         model = stdpopsim.PiecewiseConstantSize(100)
         for engine_name in engines:
             engine = stdpopsim.get_engine(engine_name)

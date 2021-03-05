@@ -216,9 +216,6 @@ class TestEndToEnd(unittest.TestCase):
             self.assertEqual(len(stdout), 0)
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)
-        provenance = json.loads(ts.provenance(0).record)
-        prov_seed = provenance["parameters"]["random_seed"]
-        self.assertEqual(prov_seed, seed)
 
     def test_homsap_seed(self):
         cmd = "HomSap -c chr22 -l0.1 -s 1234 20"
@@ -285,9 +282,6 @@ class TestEndToEndSubprocess(TestEndToEnd):
         self.assertEqual(stored_cmd[-1], str(seed))
         self.assertEqual(stored_cmd[-2], "-s")
         self.assertEqual(stored_cmd[1:-4], cmd.split())
-        provenance = json.loads(ts.provenance(0).record)
-        prov_seed = provenance["parameters"]["random_seed"]
-        self.assertEqual(prov_seed, seed)
 
 
 class TestWriteOutput(unittest.TestCase):

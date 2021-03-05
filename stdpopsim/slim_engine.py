@@ -46,7 +46,6 @@ import tempfile
 import subprocess
 import functools
 import itertools
-import collections
 import contextlib
 import random
 import textwrap
@@ -515,9 +514,9 @@ def msprime_rm_to_slim_rm(recombination_map):
     """
     Convert recombination map from start position coords to end position coords.
     """
-    rates = recombination_map.get_rates()
-    ends = [int(pos) - 1 for pos in recombination_map.get_positions()]
-    return rates[:-1], ends[1:]
+    rates = recombination_map.rate
+    ends = [int(pos) - 1 for pos in recombination_map.position]
+    return rates, ends[1:]
 
 
 def slim_makescript(
@@ -532,12 +531,10 @@ def slim_makescript(
     burn_in,
 ):
 
-    pop_names = [
-        pc.metadata["id"] for pc in demographic_model.population_configurations
-    ]
+    pop_names = [pop.name for pop in demographic_model.model.populations]
     # Use copies of these so that the time frobbing below doesn't have
     # side-effects in the caller's model.
-    demographic_events = copy.deepcopy(demographic_model.demographic_events)
+    demographic_events = copy.deepcopy(demographic_model.model.events)
     if extended_events is None:
         extended_events = []
     else:
@@ -565,11 +562,12 @@ def slim_makescript(
 
     # The demography debugger constructs event epochs, which we use
     # to define the forwards-time events.
-    dd = msprime.DemographyDebugger(
-        population_configurations=demographic_model.population_configurations,
-        migration_matrix=demographic_model.migration_matrix,
-        demographic_events=demographic_events,
-    )
+    dd = demographic_model.model.debug()
+    # msprime.DemographyDebugger(
+    #     population_configurations=demographic_model.population_configurations,
+    #     migration_matrix=demographic_model.migration_matrix,
+    #     demographic_events=demographic_events,
+    # )
 
     epochs = sorted(dd.epochs, key=lambda e: e.start_time, reverse=True)
     T = [round(e.start_time * demographic_model.generation_time) for e in epochs]
@@ -586,54 +584,56 @@ def slim_makescript(
     subpopulation_splits = []
     for i, epoch in enumerate(epochs):
         for de in epoch.demographic_events:
-            if isinstance(de, msprime.MassMigration):
-
-                if de.proportion < 1:
-                    # Calculate remainder of population after previous
-                    # MassMigration events in this epoch.
-                    rem = 1 - np.sum(
-                        [
-                            ap[3]
-                            for ap in admixture_pulses
-                            if ap[0] == i and ap[1] == de.source
-                        ]
-                    )
-                    admixture_pulses.append(
-                        (
-                            i,
-                            de.source,  # forwards-time dest
-                            de.dest,  # forwards-time source
-                            rem * de.proportion,
+            if isinstance(de, msprime.LineageMovementEvent):
+                # This is using internal msprime APIs here, but it's not worth
+                # updating before we change over to Demes.
+                for lm in de._as_lineage_movements():
+                    if lm.proportion < 1:
+                        # Calculate remainder of population after previous
+                        # MassMigration events in this epoch.
+                        rem = 1 - np.sum(
+                            [
+                                ap[3]
+                                for ap in admixture_pulses
+                                if ap[0] == i and ap[1] == lm.source
+                            ]
                         )
+                        admixture_pulses.append(
+                            (
+                                i,
+                                lm.source,  # forwards-time dest
+                                lm.dest,  # forwards-time source
+                                rem * lm.proportion,
+                            )
+                        )
+                        continue
+
+                    # Backwards: lm.source is being merged into lm.dest.
+                    # Forwards: lm.source is being created, taking individuals
+                    #           from lm.dest.
+                    #
+                    # If the proportion==1, we can use SLiM function:
+                    #       sim.addSubpopSplit(newpop, size, oldpop),
+                    # which we trigger by adding a row to subpopulation_splits.
+                    # This SLiM function creates newpop (=lm.source), under the
+                    # assumption that it doesn't already exist.
+
+                    subpopulation_splits.append(
+                        (f"_T[{i}]", lm.source, f"_N[{i+1},{lm.source}]", lm.dest)
                     )
-                    continue
 
-                # Backwards: de.source is being merged into de.dest.
-                # Forwards: de.source is being created, taking individuals
-                #           from de.dest.
-                #
-                # If the proportion==1, we can use SLiM function:
-                #       sim.addSubpopSplit(newpop, size, oldpop),
-                # which we trigger by adding a row to subpopulation_splits.
-                # This SLiM function creates newpop (=de.source), under the
-                # assumption that it doesn't already exist.
+                    # Zero out the population size for generations before this
+                    # epoch, to avoid simulating invididuals that contribute no
+                    # genealogy.
+                    N[lm.source, 0 : (i + 1)] = 0
+                    growth_rates[lm.source, 0 : (i + 1)] = 0
 
-                subpopulation_splits.append(
-                    (f"_T[{i}]", de.source, f"_N[{i+1},{de.source}]", de.dest)
-                )
-
-                # Zero out the population size for generations before this
-                # epoch, to avoid simulating invididuals that contribute no
-                # genealogy.
-                N[de.source, 0 : (i + 1)] = 0
-                growth_rates[de.source, 0 : (i + 1)] = 0
-
-                # Ensure there are no migrations to or from de.source before
-                # this epoch.
-                for j in range(i + 1):
-                    for k in range(dd.num_populations):
-                        migration_matrices[j][k][de.source] = 0
-                        migration_matrices[j][de.source][k] = 0
+                    # Ensure there are no migrations to or from lm.source before
+                    # this epoch.
+                    for j in range(i + 1):
+                        for k in range(dd.num_populations):
+                            migration_matrices[j][k][lm.source] = 0
+                            migration_matrices[j][lm.source][k] = 0
 
     drawn_mutations = []
     fitness_callbacks = []
@@ -755,7 +755,7 @@ def slim_makescript(
         string.Template(_slim_upper).substitute(
             scaling_factor=scaling_factor,
             burn_in=float(burn_in),
-            chromosome_length=int(contig.recombination_map.get_length()),
+            chromosome_length=int(contig.recombination_map.sequence_length),
             recombination_rates=recomb_rates_str,
             recombination_ends=recomb_ends_str,
             mutation_rate=contig.mutation_rate,
@@ -953,28 +953,29 @@ def slim_makescript(
     printsc()
 
     # Sampling episodes.
-    sample_counts = collections.Counter(
-        [
-            (sample.population, round(sample.time * demographic_model.generation_time))
-            for sample in samples
-        ]
-    )
     sampling_episodes = []
-    for (pop, time), count in sample_counts.items():
+    for sample_set in samples:
+        pop = demographic_model.model[sample_set.population]
+        # We're currently sampling genomes, and set the ploidy to 1 to make
+        # sure it all fits together. This is probably confusing though and
+        # maybe we should change it.
+        assert sample_set.ploidy == 1
         # SLiM can only sample individuals, which we assume are diploid.
+        count = sample_set.num_samples
+        time = 0 if sample_set.time is None else sample_set.time
+        time = round(time * demographic_model.generation_time)
         n_inds = (count + 1) // 2
         if count % 2 != 0:
-            pop_id = pop_names[pop]
             gen = time / demographic_model.generation_time
             warnings.warn(
                 stdpopsim.SLiMOddSampleWarning(
                     f"SLiM simulates diploid individuals, so {n_inds} "
                     f"individuals will be sampled for the {count} haploids "
-                    f"requested from population {pop_id} at time {gen}. "
+                    f"requested from population {pop.name} at time {gen}. "
                     "See #464."
                 )
             )
-        sampling_episodes.append((pop, n_inds, time))
+        sampling_episodes.append((pop.id, n_inds, time))
 
     printsc("    // One row for each sampling episode.")
     printsc(
@@ -1247,7 +1248,7 @@ class _SLiMEngine(stdpopsim.Engine):
             for pop in recap_epoch.populations
         ]
         ts = ts.recapitate(
-            recombination_rate=contig.recombination_map.mean_recombination_rate,
+            recombination_rate=contig.recombination_map.mean_rate,
             population_configurations=population_configurations,
             migration_matrix=recap_epoch.migration_matrix,
             random_seed=s1,
