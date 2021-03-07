@@ -11,6 +11,7 @@ import stdpopsim
 import maintenance
 import argparse
 import os
+import black
 
 
 class DataWriter:
@@ -41,8 +42,12 @@ class DataWriter:
         print("Writing genome data for", id, ensembl_id)
         path = f"{dir}/genome_data.py"
         data = self.ensembl_client.get_genome_data(ensembl_id)
+        code = f"data = {data}"
+
+        # Format the code with Black so we don't get noisy diffs
+        out = black.format_file_contents(code, fast=False, mode=black.FileMode())
         with self.write(path) as f:
-            print("data = ", data, file=f)
+            f.write(out)
 
     def write_ensembl_release(self):
         release = self.ensembl_client.get_release()
