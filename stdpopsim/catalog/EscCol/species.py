@@ -60,7 +60,7 @@ _species = stdpopsim.Species(
     common_name="E. coli",
     # We use the K-12 strain, because the parameters we're using more
     # closely match this strain than the ensembl default (HUSEC2011).
-    ensembl_id="Escherichia_coli_str_k_12_substr_mg1655_gca_000005845",
+    ensembl_id="escherichia_coli_str_k_12_substr_mg1655_gca_000005845",
     genome=_genome,
     # E. coli K-12 strain MG1655 "doubling time during steady-state growth in
     # Luria-Bertani broth was 20 min".

@@ -2,13 +2,6 @@ import stdpopsim
 
 from . import genome_data
 
-###########################################################
-#
-# Genome definition
-#
-###########################################################
-
-
 # mean_recombination_rate was computed across all windows of the HapMapII_GRCh37 map
 _recombination_rate_data = {
     "1": 1.1485597641285933e-08,
