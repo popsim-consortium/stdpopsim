@@ -16,12 +16,13 @@ from unittest import mock
 import tskit
 import msprime
 import kastore
+import pytest
 
 import stdpopsim
 import stdpopsim.cli as cli
 
 
-class TestException(Exception):
+class ExceptionForTesting(Exception):
     """
     Custom exception we can throw for testing.
     """
@@ -513,9 +514,9 @@ class TestErrors(unittest.TestCase):
 
     def test_exit(self):
         with mock.patch(
-            "sys.exit", side_effect=TestException, autospec=True
+            "sys.exit", side_effect=ExceptionForTesting, autospec=True
         ) as mocked_exit:
-            with self.assertRaises(TestException):
+            with self.assertRaises(ExceptionForTesting):
                 cli.exit("XXX")
             mocked_exit.assert_called_once()
             args = mocked_exit.call_args[0]
@@ -527,9 +528,9 @@ class TestErrors(unittest.TestCase):
     @mock.patch("stdpopsim.cli.setup_logging", autospec=True)
     def verify_bad_samples(self, cmd, mock_setup_logging):
         with mock.patch(
-            "stdpopsim.cli.exit", side_effect=TestException, autospec=True
+            "stdpopsim.cli.exit", side_effect=ExceptionForTesting, autospec=True
         ) as mocked_exit:
-            with self.assertRaises(TestException):
+            with self.assertRaises(ExceptionForTesting):
                 cli.stdpopsim_main(cmd.split())
             mocked_exit.assert_called_once()
 
@@ -549,9 +550,11 @@ class TestErrors(unittest.TestCase):
 class TestHelp(unittest.TestCase):
     def run_stdpopsim(self, command):
         with mock.patch(
-            "argparse.ArgumentParser.exit", side_effect=TestException, autospec=True
+            "argparse.ArgumentParser.exit",
+            side_effect=ExceptionForTesting,
+            autospec=True,
         ) as mocked_exit:
-            with self.assertRaises(TestException):
+            with self.assertRaises(ExceptionForTesting):
                 capture_output(cli.stdpopsim_main, command.split())
             mocked_exit.assert_called_once()
 
@@ -931,3 +934,14 @@ class TestNoQCWarning(unittest.TestCase):
 
     def test_noQC_citations_not_written_verbose(self):
         self.verify_noQC_citations_not_written("-vv EscCol -d FakeModel -D 10 -L 10")
+
+
+@pytest.mark.parametrize(
+    "species_id", [species.id for species in stdpopsim.all_species()]
+)
+def test_species_simulation(species_id):
+    cmd = f"-q {species_id} -L 1 --seed 1234 10"
+    # Just check to see if the simulation runs
+    with mock.patch("sys.stdout", autospec=True) as stdout:
+        stdout.buffer = open(os.devnull, "wb")
+        stdpopsim.cli.stdpopsim_main(cmd.split())

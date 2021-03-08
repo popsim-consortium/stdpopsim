@@ -1,5 +1,5 @@
 """
-Tests for the genetic species interface.
+Tests for the generic species interface.
 """
 import unittest
 import math
@@ -88,42 +88,42 @@ class TestSpecies(unittest.TestCase):
             species.add_annotations(an)
 
 
-class SpeciesTestMixin(object):
+class SpeciesTestBase:
     """
-    Mixin class for testing individual species properties.
+    Base class for testing individual species properties.
     """
 
     species = None  # To be defined in subclasses.
 
     def test_str(self):
         s = str(self.species)
-        self.assertGreater(len(s), 0)
-        self.assertIsInstance(s, str)
+        assert len(s) > 0
+        assert isinstance(s, str)
 
     def test_id(self):
-        self.assertIsInstance(self.species.id, str)
-        self.assertTrue(utils.is_valid_species_id(self.species.id))
+        assert isinstance(self.species.id, str)
+        assert utils.is_valid_species_id(self.species.id)
 
     def test_name(self):
-        self.assertIsInstance(self.species.name, str)
-        self.assertTrue(utils.is_valid_species_name(self.species.name))
+        assert isinstance(self.species.name, str)
+        assert utils.is_valid_species_name(self.species.name)
 
     def test_common_name(self):
-        self.assertIsInstance(self.species.name, str)
-        self.assertTrue(utils.is_valid_species_common_name(self.species.common_name))
+        assert isinstance(self.species.common_name, str)
+        assert utils.is_valid_species_common_name(self.species.name)
 
 
-class GenomeTestMixin(object):
+class GenomeTestBase:
     """
-    Mixin class for testing individual genome properties.
+    Base class for testing individual genome properties.
     """
 
     genome = None  # To be defined in subclasses.
 
     def test_str(self):
         s = str(self.genome)
-        self.assertGreater(len(s), 0)
-        self.assertIsInstance(s, str)
+        assert len(s) > 0
+        assert isinstance(s, str)
 
     def test_mean_recombination_rate(self):
         # test that the mean recombination rate lies between the max and min values
@@ -137,8 +137,8 @@ class GenomeTestMixin(object):
             highest_rr = max(highest_rr, rr)
         mean_genome_rr = self.genome.mean_recombination_rate
         if not math.isclose(mean_genome_rr, lowest_rr):
-            self.assertGreaterEqual(mean_genome_rr, lowest_rr)
-            self.assertGreaterEqual(highest_rr, mean_genome_rr)
+            assert mean_genome_rr >= lowest_rr
+            assert highest_rr >= mean_genome_rr
 
     def test_mean_mutation_rate(self):
         # test that the mean mutation rate lies between the max and min values
@@ -150,8 +150,8 @@ class GenomeTestMixin(object):
             highest_mr = max(highest_mr, mr)
         mean_genome_mr = self.genome.mean_mutation_rate
         if not math.isclose(mean_genome_mr, lowest_mr):
-            self.assertGreaterEqual(mean_genome_mr, lowest_mr)
-            self.assertGreaterEqual(highest_mr, mean_genome_mr)
+            assert mean_genome_mr >= lowest_mr
+            assert highest_mr >= mean_genome_mr
 
 
 class TestAllGenomes(unittest.TestCase):
