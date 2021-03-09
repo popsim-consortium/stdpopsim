@@ -1,7 +1,7 @@
 """
 Catalog definitions for Homo Sapiens
 """
-from . import species  # noqa 501
-from . import genetic_maps  # noqa 501
-from . import demographic_models  # noqa 501
-from . import annotations  # noqa 501
+from . import species  # noqa: F401
+from . import genetic_maps  # noqa: F401
+from . import demographic_models  # noqa: F401
+from . import annotations  # noqa: F401
