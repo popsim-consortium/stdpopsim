@@ -1,29 +1,25 @@
 import stdpopsim
 from . import genome_data
 
-###########################################################
-#
-# Genome definition
-#
-###########################################################
-
 _hartl_et_al = stdpopsim.Citation(
     author="Hartl, Moriyama, and Sawyer",
-    year="1994",
+    year=1994,
     # doesn't have a doi
     doi="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1206133/",
 )
 
 _sezonov_et_al = stdpopsim.Citation(
-    author="Sezonov et al.", year="2007", doi="https://doi.org/10.1128/JB.01368-07"
+    author="Sezonov et al.", year=2007, doi="https://doi.org/10.1128/JB.01368-07"
 )
 
 _wielgoss_et_al = stdpopsim.Citation(
-    author="Wielgoss et al.", year="2011", doi="https://doi.org/10.1534/g3.111.000406"
+    author="Wielgoss et al.", year=2011, doi="https://doi.org/10.1534/g3.111.000406"
 )
 
 _blattner_et_al = stdpopsim.Citation(
-    author="Blattner et al.", year="1997", doi="10.1126/science.277.5331.1453"
+    author="Blattner et al.",
+    year=1997,
+    doi="https://doi.org/10.1126/science.277.5331.1453",
 )
 
 _chromosomes = []
@@ -47,10 +43,10 @@ _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
     assembly_name=genome_data.data["assembly_name"],
     assembly_accession=genome_data.data["assembly_accession"],
-    mutation_rate_citations=[
+    citations=[
         _wielgoss_et_al.because(stdpopsim.CiteReason.MUT_RATE),
+        _blattner_et_al.because(stdpopsim.CiteReason.ASSEMBLY),
     ],
-    assembly_citations=[_blattner_et_al.because(stdpopsim.CiteReason.ASSEMBLY)],
 )
 
 
@@ -65,11 +61,13 @@ _species = stdpopsim.Species(
     # E. coli K-12 strain MG1655 "doubling time during steady-state growth in
     # Luria-Bertani broth was 20 min".
     generation_time=0.00003805175,  # 1.0 / (525600 min/year / 20 min/gen)
-    generation_time_citations=[_sezonov_et_al.because(stdpopsim.CiteReason.GEN_TIME)],
     # Hartl et al. calculated Ne for "natural isolates of E. coli",
     # assuming mu=5e-10 (from Drake 1991).
     population_size=1.8e8,
-    population_size_citations=[_hartl_et_al.because(stdpopsim.CiteReason.POP_SIZE)],
+    citations=[
+        _sezonov_et_al.because(stdpopsim.CiteReason.GEN_TIME),
+        _hartl_et_al.because(stdpopsim.CiteReason.POP_SIZE),
+    ],
 )
 
 

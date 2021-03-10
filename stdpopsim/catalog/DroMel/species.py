@@ -3,14 +3,12 @@ import collections
 import stdpopsim
 from . import genome_data
 
-###########################################################
-#
-# Genome definition
-#
-###########################################################
 
 _LiAndStephan = stdpopsim.Citation(
-    author="Li et al.", year=2006, doi="https://doi.org/10.1371/journal.pgen.0020166"
+    author="Li et al.",
+    year=2006,
+    doi="https://doi.org/10.1371/journal.pgen.0020166",
+    reasons={stdpopsim.CiteReason.GEN_TIME, stdpopsim.CiteReason.POP_SIZE},
 )
 
 _SchriderEtAl = stdpopsim.Citation(
@@ -21,7 +19,7 @@ _SchriderEtAl = stdpopsim.Citation(
 
 _DosSantosEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1093/nar/gku1099",
-    year="2015",
+    year=2015,
     author="dos Santos et al.",
     reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
@@ -50,19 +48,18 @@ _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
     assembly_name=genome_data.data["assembly_name"],
     assembly_accession=genome_data.data["assembly_accession"],
-    mutation_rate_citations=[_SchriderEtAl.because(stdpopsim.CiteReason.MUT_RATE)],
-    assembly_citations=[_DosSantosEtAl],
+    citations=[_SchriderEtAl.because(stdpopsim.CiteReason.MUT_RATE), _DosSantosEtAl],
 )
 
 _species = stdpopsim.Species(
     id="DroMel",
+    ensembl_id="drosophila_melanogaster",
     name="Drosophila melanogaster",
     common_name="D. melanogaster",
     genome=_genome,
     generation_time=0.1,
-    generation_time_citations=[_LiAndStephan.because(stdpopsim.CiteReason.GEN_TIME)],
     population_size=1720600,
-    population_size_citations=[_LiAndStephan.because(stdpopsim.CiteReason.POP_SIZE)],
+    citations=[_LiAndStephan],
 )
 
 stdpopsim.register_species(_species)

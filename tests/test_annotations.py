@@ -64,6 +64,7 @@ class AnnotationTestClass(stdpopsim.Annotation):
         genome = stdpopsim.Genome(chromosomes=[])
         _species = stdpopsim.Species(
             id="TesSpe",
+            ensembl_id="test_species",
             name="Test species",
             common_name="Testy McTestface",
             genome=genome,

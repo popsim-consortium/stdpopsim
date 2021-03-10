@@ -7,12 +7,16 @@ import contextlib
 import shutil
 import string
 import pathlib
+import logging
 
 import click
 import black
+import daiquiri
 
 import stdpopsim
 from . import ensembl
+
+logger = logging.getLogger("maint")
 
 species_template = string.Template(
     """
@@ -20,36 +24,73 @@ import stdpopsim
 
 from . import genome_data
 
-_chromosomes = []
-for name, data in genome_data.data["chromosomes"].items():
-    _chromosomes.append(
-        stdpopsim.Chromosome(
-            id=name,
-            length=data["length"],
-            synonyms=data["synonyms"],
-            mutation_rate=0,  # FILL ME IN
-            recombination_rate=0,  # FILL ME IN
-        )
-    )
+# [The following are notes for implementers and should be deleted
+#  once the recombination rates have been inserted]
+# This is the per-chromosome recombination rate, typically the mean
+# rate along the chromosome.
+# Values in this dictionary are set to -1 by default, so you have
+# to update each one. These should be derived from the most reliable
+# data and how they were obtained should be documented here.
+# The appropriate citation must be added to the list of
+# recombination_rate_citations in the Genome object.
 
-_genome = stdpopsim.Genome(
-    chromosomes=_chromosomes,
-    mutation_rate_citations=[], # ADD CITATIONS
-    recombination_rate_citations=[],  # ADD CITATIONS
-    assembly_name=genome_data.data["assembly_name"],
-    assembly_accession=genome_data.data["assembly_accession"],
-    assembly_citations=[],
+_recombination_rate = $chromosome_rate_dict
+
+# [The following are notes for implementers and should be deleted
+#  once the mutation rates have been inserted]
+# This is the per-chromosome mutation rate, typically the mean
+# rate along the chromosome. If per chromosome rates are not available,
+# the same value should be used for each chromosome. In this case,
+# please use a variable to store this value, rather than repeating
+# the same numerical constant, e.g.
+# _mutation_rate = {
+#    1: _overall_rate,
+#    2: _overall_rate,
+#    ...
+# Values in this dictionary are set to -1 by default, so you have
+# to update each one. These should be derived from the most reliable
+# data and how they were obtained should be documented here.
+# The appropriate citation must be added to the list of
+# mutation_rate_citations in the Genome object.
+
+_mutation_rate = $chromosome_rate_dict
+
+_genome = stdpopsim.Genome.from_data(
+    genome_data.data,
+    recombination_rate=_recombination_rate,
+    mutation_rate=_mutation_rate,
+    # [ Implementers: please insert citations for the papers you are basing
+    # the estimates for recombination and mutation rates. The assembly
+    # citation is optional and can be deleted if not needed.]
+    citations=[
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.ASSEMBLY}),
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.REC_RATE}),
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.MUT_RATE})
+    ]
 )
 
 _species = stdpopsim.Species(
     id="$sps_id",
-    name="FIXME",
-    common_name="FIXME",
+    ensembl_id="$ensembl_id",
+    name="$scientific_name",
+    common_name="$common_name",
     genome=_genome,
-    generation_time=0,  # FIXME
-    generation_time_citations=[],
-    population_size=0,  # FIXME
-    population_size_citations=[],
+    # [Implementers: you must provide an estimate of the generation_time.
+    # Please also add a citation for this.]
+    generation_time=0,
+    # [Implementers: you must provide an estimate of the population size.
+    # TODO: give a definition of what this should be.
+    # Please also add a citation for this below..]
+    population_size=0,
+    citations=[
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.POP_SIZE}),
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.GEN_TIME})
+    ],
 )
 
 stdpopsim.register_species(_species)
@@ -58,20 +99,54 @@ stdpopsim.register_species(_species)
 
 species_test_template = string.Template(
     """
+import pytest
+
 import stdpopsim
 from tests import test_species
 
 
-class TestSpecies(test_species.SpeciesTestBase):
+class TestSpeciesData(test_species.SpeciesTestBase):
 
     species = stdpopsim.get_species("$sps_id")
 
-    # TODO specific tests for species data.
+    def test_ensembl_id(self):
+        assert self.species.ensembl_id == "$ensembl_id"
 
-class TestGenome(test_species.GenomeTestBase):
+    def test_name(self):
+        assert self.species.name == "$scientific_name"
+
+    def test_common_name(self):
+        assert self.species.common_name == "$common_name"
+
+    # QC Tests. These tests are performed by another contributor
+    # independently referring to the citations provided in the
+    # species definition, filling in the appropriate values
+    # and deleting the pytest "skip" annotations.
+    @pytest.mark.skip("Population size QC not done yet")
+    def test_qc_population_size(self):
+        assert self.species.population_size == -1
+
+    @pytest.mark.skip("Generation time QC not done yet")
+    def test_qc_generation_time(self):
+        assert self.species.generation_time == -1
+
+class TestGenomeData(test_species.GenomeTestBase):
 
     genome = stdpopsim.get_species("$sps_id").genome
 
+    @pytest.mark.skip("Recombination rate QC not done yet")
+    @pytest.mark.parametrize(
+        ["name", "rate"],
+        $chromosome_rate_dict.items())
+    def test_recombination_rate(self, name, rate):
+        assert pytest.approx(rate, self.genome.get_chromosome(name).recombination_rate)
+
+    @pytest.mark.skip("Mutation rate QC not done yet")
+    @pytest.mark.parametrize(
+        ["name", "rate"],
+        $chromosome_rate_dict.items())
+    def test_mutation_rate(self, name, rate):
+        assert pytest.approx(rate, self.genome.get_chromosome(name).mutation_rate)
 """
 )
 
@@ -92,7 +167,7 @@ def catalog_path(sps_id):
     return pathlib.Path(f"stdpopsim/catalog/{sps_id}")
 
 
-def write_catalog_stub(path, sps_id, ensembl_id):
+def write_catalog_stub(*, path, sps_id, ensembl_id, species_data, genome_data):
     """
     Writes stub files to the catalog for a new species.
     """
@@ -102,15 +177,32 @@ def write_catalog_stub(path, sps_id, ensembl_id):
         print('"""', file=f)
         print("from . import species  # noqa: F401", file=f)
 
-    species_code = species_template.substitute(sps_id=sps_id)
+    scientific_name = species_data["scientific_name"]
+    common_name = species_data["display_name"]
+    logger.info(f"{sps_id}: name={scientific_name}, common_name={common_name}")
+    chr_names = genome_data["chromosomes"].keys()
+    chromosome_rate_template = {name: -1 for name in chr_names}
+    species_code = species_template.substitute(
+        ensembl_id=ensembl_id,
+        sps_id=sps_id,
+        scientific_name=scientific_name,
+        common_name=common_name,
+        chromosome_rate_dict=chromosome_rate_template,
+    )
     path = path / "species.py"
-    click.echo(f"Writing species definition stub to {path}")
+    logger.info(f"Writing species definition stub to {path}")
     with open(path, "w") as f:
         f.write(black_format(species_code))
 
-    test_code = species_test_template.substitute(sps_id=sps_id)
+    test_code = species_test_template.substitute(
+        ensembl_id=ensembl_id,
+        sps_id=sps_id,
+        scientific_name=scientific_name,
+        common_name=common_name,
+        chromosome_rate_dict=chromosome_rate_template,
+    )
     test_path = pathlib.Path("tests") / f"test_{sps_id}.py"
-    click.echo(f"Writing species test stub to {test_path}")
+    logger.info(f"Writing species test stub to {test_path}")
     with open(test_path, "w") as f:
         f.write(black_format(test_code))
 
@@ -132,13 +224,20 @@ class DataWriter:
 
     def add_species(self, ensembl_id, force=False):
         sps_id = ensembl_stdpopsim_id(ensembl_id)
-        click.echo(f"Adding new species {sps_id} for Ensembl ID {ensembl_id}")
+        logger.info(f"Adding new species {sps_id} for Ensembl ID {ensembl_id}")
         root = catalog_path(sps_id)
         if force:
             shutil.rmtree(root, ignore_errors=True)
         root.mkdir()
-        self.write_genome_data(ensembl_id)
-        write_catalog_stub(root, sps_id, ensembl_id)
+        genome_data = self.write_genome_data(ensembl_id)
+        species_data = self.ensembl_client.get_species_data(ensembl_id)
+        write_catalog_stub(
+            path=root,
+            sps_id=sps_id,
+            ensembl_id=ensembl_id,
+            species_data=species_data,
+            genome_data=genome_data,
+        )
 
     def write_genome_data(self, ensembl_id):
         sps_id = ensembl_stdpopsim_id(ensembl_id)
@@ -147,7 +246,7 @@ class DataWriter:
             raise ValueError(
                 f"Directory {id} corresponding to {ensembl_id} does" + "not exist"
             )
-        click.echo(f"Writing genome data for {sps_id} {ensembl_id}")
+        logger.info(f"Writing genome data for {sps_id} {ensembl_id}")
         path = path / "genome_data.py"
         data = self.ensembl_client.get_genome_data(ensembl_id)
         code = f"data = {data}"
@@ -155,10 +254,11 @@ class DataWriter:
         # Format the code with Black so we don't get noisy diffs
         with self.write(path) as f:
             f.write(black_format(code))
+        return data
 
     def write_ensembl_release(self):
         release = self.ensembl_client.get_release()
-        click.echo(f"Using Ensembl release {release}")
+        logger.info(f"Using Ensembl release {release}")
         path = pathlib.Path("stdpopsim/catalog/ensembl_info.py")
         code = f"release = {release}"
         with self.write(path) as f:
@@ -171,8 +271,16 @@ class DataWriter:
 
 
 @click.group()
-def cli():
-    pass
+@click.option("--debug", is_flag=True)
+def cli(debug):
+    log_level = logging.INFO
+    if debug:
+        log_level = logging.DEBUG
+    daiquiri.setup(level=log_level)
+
+    # Black's logging is very noisy
+    black_logger = logging.getLogger("blib2to3")
+    black_logger.setLevel(logging.CRITICAL)
 
 
 @cli.command()
@@ -215,7 +323,7 @@ def add_species(ensembl_id, force):
     Add a new species to the catalog using its ensembl ID.
     """
     writer = DataWriter()
-    writer.add_species(ensembl_id, force=force)
+    writer.add_species(ensembl_id.lower(), force=force)
     writer.write_ensembl_release()
 
 

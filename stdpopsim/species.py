@@ -106,26 +106,21 @@ class Species:
         model uses the generation time that was used in the original
         publication(s).
     :vartype generation_time: float
-    :ivar generation_time_citations: A list of :class:`.Citation` objects
-        providing justification for the genertion time estimate.
-    :vartype generation_time_citations: list
     :ivar population_size: The current best estimate for the population
         size of this species. Note that individual demographic
         models in the catalog may or may not use this estimate: each
         model uses the population sizes defined in the original
         publication(s).
     :vartype population_size: float
-    :ivar population_size_citations: A list of :class:`.Citation` objects
-        providing justification for the population size estimate.
-    :vartype population_size_citations: list
+    :ivar citations: A list of :class:`.Citation` objects
+        providing the source for the generation time and
+        population size estimates.
+    :vartype citations: list
     :ivar demographic_models: This list of :class:`DemographicModel`
         instances in the catalog for this species.
     :vartype demographic_models: list
-    :ivar ensembl_id: The ensembl id for the species' genome assembly,
-        which will be used by maintenance scripts to query ensembl's database.
-        This parameter will be automatically populated from the species name,
-        and should not be set directly unless a non-default assembly is used
-        for the species definition (e.g. see E. coli).
+    :ivar ensembl_id: The ensembl id for the species which is used by
+        maintenance scripts to query ensembl's database.
     :vartype ensembl_id: str
     """
 
@@ -133,25 +128,17 @@ class Species:
     name = attr.ib(type=str, kw_only=True)
     common_name = attr.ib(type=str, kw_only=True)
     genome = attr.ib(type=int, kw_only=True)
-    generation_time = attr.ib(default=1, kw_only=True)
-    generation_time_citations = attr.ib(factory=list, kw_only=True)
-    population_size = attr.ib(default=1, kw_only=True)
-    population_size_citations = attr.ib(factory=list, kw_only=True)
+    generation_time = attr.ib(default=0, kw_only=True)
+    population_size = attr.ib(default=0, kw_only=True)
     demographic_models = attr.ib(factory=list, kw_only=True)
     ensembl_id = attr.ib(type=str, kw_only=True)
+    citations = attr.ib(factory=list, kw_only=True)
+
     # A list of genetic maps. This is undocumented as the parameter is not
     # intended to be used when the Species is initialsed.
     # Use add_genetic_map() instead.
     genetic_maps = attr.ib(factory=list, kw_only=True)
     annotations = attr.ib(factory=list, kw_only=True)
-
-    @ensembl_id.default
-    def _default_ensembl_id(self):
-        """
-        Returns the ID of this species for the Ensembl REST API.
-        This is the species name, underscore delimited and in lowercase.
-        """
-        return self.name.lower().replace(" ", "_")
 
     def get_contig(
         self,

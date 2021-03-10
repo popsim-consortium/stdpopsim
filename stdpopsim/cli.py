@@ -268,9 +268,8 @@ def get_citations(engine, model, contig, species):
     """
     citations = [stdpopsim.citations._stdpopsim_citation]
     citations.extend(engine.citations)
-    citations.extend(species.genome.assembly_citations)
-    citations.extend(species.genome.mutation_rate_citations)
-    citations.extend(species.genome.recombination_rate_citations)
+    citations.extend(species.citations)
+    citations.extend(species.genome.citations)
     if contig.genetic_map is not None:
         citations.extend(contig.genetic_map.citations)
     citations.extend(model.citations)
@@ -498,8 +497,10 @@ def add_simulate_species_parser(parser, species):
         if args.demographic_model is None:
             model = stdpopsim.PiecewiseConstantSize(species.population_size)
             model.generation_time = species.generation_time
-            model.citations.extend(species.population_size_citations)
-            model.citations.extend(species.generation_time_citations)
+            for citation in species.citations:
+                reasons = {stdpopsim.CiteReason.POP_SIZE, stdpopsim.CiteReason.GEN_TIME}
+                if len(citation.reasons & reasons) > 0:
+                    model.citations.append(citation)
             qc_complete = True
         else:
             model = get_model_wrapper(species, args.demographic_model)

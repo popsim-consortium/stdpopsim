@@ -63,6 +63,7 @@ class GeneticMapTestClass(stdpopsim.GeneticMap):
         genome = stdpopsim.Genome(chromosomes=[])
         _species = stdpopsim.Species(
             id="TesSpe",
+            ensembl_id="test_species",
             name="Test species",
             common_name="Testy McTestface",
             genome=genome,

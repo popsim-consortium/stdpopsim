@@ -9,6 +9,9 @@ import urllib.parse
 import urllib.request
 
 
+logger = logging.getLogger("ensembl")
+
+
 class EnsemblRestClient:
     """
     A client for the Ensembl REST API. Based on the example code
@@ -46,7 +49,7 @@ class EnsemblRestClient:
         if self.num_requests >= self.max_requests_per_second:
             delta = time.time() - self.last_request_time
             if delta < 1:
-                logging.debug("Rate limiting REST API")
+                logger.info("Rate limiting REST API")
                 time.sleep(1 - delta)
             self.num_requests = 0
         else:
@@ -61,9 +64,10 @@ class EnsemblRestClient:
         """
         self._sleep_if_needed()
         request = self._make_request(endpoint, headers, params)
-        logging.debug("making request to %s", request.full_url)
+        logger.info("making request to %s", request.full_url)
         response = urllib.request.urlopen(request)
         content = response.read()
+        logger.debug("Response: %s", content)
         data = json.loads(content)
         return data
 
@@ -77,6 +81,13 @@ class EnsemblRestClient:
         # (unfrequent non-standard Ensembl configuration).
         assert len(releases) == 1
         return releases[0]
+
+    def get_species_data(self, ensembl_id):
+        """
+        Returns species information for the specified ensembl_id.
+        """
+        output = self.get(endpoint=f"/info/genomes/{ensembl_id}")
+        return output
 
     def get_genome_data(self, ensembl_id):
         """
