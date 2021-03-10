@@ -11,6 +11,7 @@ import io
 import argparse  # NOQA
 import os
 import logging
+import warnings
 from unittest import mock
 
 import tskit
@@ -219,15 +220,15 @@ class TestEndToEnd(unittest.TestCase):
         self.assertEqual(ts.num_samples, num_samples)
 
     def test_homsap_seed(self):
-        cmd = "HomSap -c chr22 -l0.1 -s 1234 20"
+        cmd = "HomSap -c chr20 -l0.1 -s 1234 20"
         self.verify(cmd, num_samples=20, seed=1234)
 
     def test_homsap_constant(self):
-        cmd = "HomSap -c chr22 -l0.1 20"
+        cmd = "HomSap -c chr20 -l0.1 20"
         self.verify(cmd, num_samples=20)
 
     def test_tennessen_two_pop_ooa(self):
-        cmd = "HomSap -c chr22 -l0.1 -d OutOfAfrica_2T12 2 3"
+        cmd = "HomSap -c chr20 -l0.1 -d OutOfAfrica_2T12 2 3"
         self.verify(cmd, num_samples=5)
 
     def test_gutenkunst_three_pop_ooa(self):
@@ -356,11 +357,11 @@ class TestRedirection(unittest.TestCase):
             self.verify_files(filename1, filename2)
 
     def test_quiet(self):
-        cmd = "-q HomSap -s 2 10 -c chr22 -l 0.001"
+        cmd = "-q HomSap -s 2 10 -c chr20 -l 0.001"
         self.verify(cmd)
 
     def test_no_quiet(self):
-        cmd = "HomSap -s 3 10 -c chr22 -l 0.001"
+        cmd = "HomSap -s 3 10 -c chr20 -l 0.001"
         self.verify(cmd)
 
 
@@ -593,7 +594,7 @@ class TestWriteBibtex(unittest.TestCase):
             filename = pathlib.Path(tmpdir) / "output.trees"
             bibfile = pathlib.Path(tmpdir) / "bib.bib"
             full_cmd = (
-                f"HomSap -c chr22 -l0.1 20 "
+                f"HomSap -c chr20 -l0.1 20 "
                 f"-o {filename} -d OutOfAfrica_3G09 --seed={seed} "
                 f"--bibtex={bibfile}"
             )
@@ -910,7 +911,7 @@ class TestNoQCWarning(unittest.TestCase):
         self.species.demographic_models.remove(self.model)
 
     def verify_noQC_warning(self, cmd):
-        with self.assertWarns(stdpopsim.QCMissingWarning):
+        with pytest.warns(stdpopsim.QCMissingWarning):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
 
     def test_noQC_warning(self):
@@ -923,7 +924,9 @@ class TestNoQCWarning(unittest.TestCase):
         # Non-QCed models shouldn't be used in publications, so citations
         # shouldn't be offered to the user.
         with self.assertLogs() as logs:
-            out, err = capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                out, err = capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
         log_output = "\n".join(logs.output)
         for citation in self.model.citations:
             self.assertFalse(citation.author in out)
