@@ -95,12 +95,12 @@ _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
     assembly_name=genome_data.data["assembly_name"],
     assembly_accession=genome_data.data["assembly_accession"],
-    mutation_rate_citations=[
+    citations=[
         _SkoglundEtAl.because(stdpopsim.CiteReason.MUT_RATE),
         _FranzEtAl.because(stdpopsim.CiteReason.MUT_RATE),
+        _CampbellEtAl.because(stdpopsim.CiteReason.REC_RATE),
+        _LindbladTohEtAl.because(stdpopsim.CiteReason.ASSEMBLY),
     ],
-    recombination_rate_citations=[_CampbellEtAl.because(stdpopsim.CiteReason.REC_RATE)],
-    assembly_citations=[_LindbladTohEtAl.because(stdpopsim.CiteReason.ASSEMBLY)],
 )
 
 _species = stdpopsim.Species(
@@ -109,9 +109,10 @@ _species = stdpopsim.Species(
     name="Canis familiaris",
     common_name="Dog",
     genome=_genome,
+    population_size=13000,  # ancestral dog size
     generation_time=3,
-    generation_time_citations=[
-        # Everyone uses 3 years because everyone else uses it.
+    citations=[
+        # Everyone uses 3 years for generation time because everyone else uses it.
         # It's likely higher, at least in wolves:
         # https://academic.oup.com/mbe/article/35/6/1366/4990884
         # Reasoning behind a generation time of 3 years:
@@ -122,9 +123,8 @@ _species = stdpopsim.Species(
         # intervention in breeding. In case (2), you might want to match what other
         # studies have done (thus using 3 year generations), or you might want to
         # consider what is known about modern wolves.
+        _LindbladTohEtAl.because(stdpopsim.CiteReason.POP_SIZE)
     ],
-    population_size=13000,  # ancestral dog size
-    population_size_citations=[_LindbladTohEtAl.because(stdpopsim.CiteReason.POP_SIZE)],
 )
 
 stdpopsim.register_species(_species)

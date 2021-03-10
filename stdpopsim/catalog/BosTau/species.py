@@ -33,6 +33,7 @@ _MacLeodEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1093/molbev/mst125",
     year="2013",
     author="MacLeod et al.",
+    reasons={stdpopsim.CiteReason.GEN_TIME, stdpopsim.CiteReason.POP_SIZE},
 )
 
 # Recombination rate has been derived from dairy cattle crossovers
@@ -66,11 +67,11 @@ for name, data in genome_data.data["chromosomes"].items():
 
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
-    mutation_rate_citations=[
+    citations=[
         _HarlandEtAl.because(stdpopsim.CiteReason.MUT_RATE),
+        _MaEtAl.because(stdpopsim.CiteReason.REC_RATE),
+        _RosenEtAl.because(stdpopsim.CiteReason.ASSEMBLY),
     ],
-    recombination_rate_citations=[_MaEtAl.because(stdpopsim.CiteReason.REC_RATE)],
-    assembly_citations=[_RosenEtAl.because(stdpopsim.CiteReason.ASSEMBLY)],
 )
 
 _species = stdpopsim.Species(
@@ -80,9 +81,8 @@ _species = stdpopsim.Species(
     common_name="Cattle",
     genome=_genome,
     generation_time=5,
-    generation_time_citations=[_MacLeodEtAl.because(stdpopsim.CiteReason.GEN_TIME)],
     population_size=62000,
-    population_size_citations=[_MacLeodEtAl.because(stdpopsim.CiteReason.POP_SIZE)],
+    citations=[_MacLeodEtAl],
 )
 
 stdpopsim.register_species(_species)

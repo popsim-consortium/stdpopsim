@@ -611,19 +611,23 @@ class TestWriteBibtex(unittest.TestCase):
         # Test that genetic map citations are converted.
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapMapII_GRCh37")
-        contig = species.get_contig("chr22", genetic_map=genetic_map.id)
+        contig = species.get_contig("chr20", genetic_map=genetic_map.id)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
-        cites_and_cites = [
-            [stdpopsim.citations._stdpopsim_citation],
-            genetic_map.citations,
-            model.citations,
-            engine.citations,
-            species.genome.mutation_rate_citations,
-            species.genome.recombination_rate_citations,
-            species.genome.assembly_citations,
-        ]
-        ncite = len(set([ref.doi for cites in cites_and_cites for ref in cites]))
+        local_cites = stdpopsim.Citation.merge(
+            [stdpopsim.citations._stdpopsim_citation]
+            + genetic_map.citations
+            + model.citations
+            + engine.citations
+            + species.genome.citations
+            + species.citations
+        )
+        dois = set([ref.doi for ref in local_cites])
+        ncite = len(dois)
+        assert ncite == len(local_cites)
+        cli_cites = cli.get_citations(engine, model, contig, species)
+        assert len(cli_cites) == len(local_cites)
+
         # Patch out writing to a file, then
         # ensure that the method is called
         # the correct number of times.
@@ -658,7 +662,7 @@ class TestWriteCitations(unittest.TestCase):
     def test_genetic_map_citations(self):
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapMapII_GRCh37")
-        contig = species.get_contig("chr22", genetic_map=genetic_map.id)
+        contig = species.get_contig("chr20", genetic_map=genetic_map.id)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
         with self.assertLogs() as logs:

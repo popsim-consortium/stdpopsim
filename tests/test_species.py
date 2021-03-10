@@ -121,11 +121,7 @@ class SpeciesTestBase:
             assert isinstance(model, stdpopsim.DemographicModel)
 
     def test_citation_properties(self):
-        all_citations = (
-            self.species.generation_time_citations
-            + self.species.population_size_citations
-        )
-        for citation in all_citations:
+        for citation in self.species.citations:
             # Test some basic stuff about the citations.
             assert isinstance(citation, stdpopsim.Citation)
             citation.assert_valid()
@@ -191,12 +187,7 @@ class GenomeTestBase:
             assert chrom.recombination_rate >= 0
 
     def test_citation_properties(self):
-        all_citations = (
-            self.genome.mutation_rate_citations
-            + self.genome.recombination_rate_citations
-            + self.genome.assembly_citations
-        )
-        for citation in all_citations:
+        for citation in self.genome.citations:
             # Test some basic stuff about the citations.
             assert isinstance(citation, stdpopsim.Citation)
             citation.assert_valid()

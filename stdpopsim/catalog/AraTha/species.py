@@ -28,29 +28,25 @@ _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
     assembly_name=genome_data.data["assembly_name"],
     assembly_accession=genome_data.data["assembly_accession"],
-    mutation_rate_citations=[
+    citations=[
         stdpopsim.Citation(
             author="Ossowski et al.",
             year=2010,
             doi="https://doi.org/10.1126/science.1180677",
             reasons={stdpopsim.CiteReason.MUT_RATE},
-        )
-    ],
-    recombination_rate_citations=[
+        ),
         stdpopsim.Citation(
             author="Huber et al.",
             year=2014,
             doi="https://doi.org/10.1093/molbev/msu247",
             reasons={stdpopsim.CiteReason.REC_RATE},
-        )
-    ],
-    assembly_citations=[
+        ),
         stdpopsim.Citation(
             doi="https://doi.org/10.1093/nar/gkm965",
             year=2007,
             author="Swarbreck et al.",
             reasons={stdpopsim.CiteReason.ASSEMBLY},
-        )
+        ),
     ],
 )
 
@@ -61,22 +57,20 @@ _species = stdpopsim.Species(
     common_name="A. thaliana",
     genome=_genome,
     generation_time=1.0,
-    generation_time_citations=[
+    population_size=10 ** 4,
+    citations=[
         stdpopsim.Citation(
             doi="https://doi.org/10.1890/0012-9658(2002)083[1006:GTINSO]2.0.CO;2",
             year=2002,
             author="Donohue",
             reasons={stdpopsim.CiteReason.GEN_TIME},
-        )
-    ],
-    population_size=10 ** 4,
-    population_size_citations=[
+        ),
         stdpopsim.Citation(
             doi="https://doi.org/10.1016/j.cell.2016.05.063",
             year=2016,
             author="1001GenomesConsortium",
             reasons={stdpopsim.CiteReason.POP_SIZE},
-        )
+        ),
     ],
 )
 

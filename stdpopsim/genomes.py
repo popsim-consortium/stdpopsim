@@ -11,32 +11,23 @@ class Genome:
 
     :ivar chromosomes: A list of :class:`.Chromosome` objects.
     :vartype chromosomes: list
-    :ivar mutation_rate_citations: A list of :class:`.Citation` objects
-        providing justification for the mutation rate estimate.
-    :vartype mutation_rate_citations: list
-    :ivar recombination_rate_citations: A list of :class:`.Citation` objects
-        providing justification for the recombination rate estimate.
-    :vartype recombination_rate_citations: list
-    :ivar assembly_citations: A list of :class:`.Citation` objects
-        providing reference to the source of the genome assembly.
-    :vartype assembly_citations: list
+    :ivar citations: A list of :class:`.Citation` objects
+        providing the source for the genome assembly,
+        mutation rate and recombination rate estimates.
+    :vartype citations: list
     :ivar length: The total length of the genome.
     :vartype length: int
     """
 
+    # TODO document the assembly_name and accession
+
     chromosomes = attr.ib(factory=list)
     assembly_name = attr.ib(default=None, kw_only=True)
     assembly_accession = attr.ib(default=None, kw_only=True)
-    length = attr.ib(default=0, init=False)
-
-    # TODO these should all be combined into a single "citations" attr,
-    # since we already have a "reason" attribute in Citation.
-    mutation_rate_citations = attr.ib(factory=list, kw_only=True)
-    recombination_rate_citations = attr.ib(factory=list, kw_only=True)
-    assembly_citations = attr.ib(factory=list, kw_only=True)
+    citations = attr.ib(factory=list, kw_only=True)
 
     @staticmethod
-    def from_data(genome_data, *, recombination_rate, mutation_rate):
+    def from_data(genome_data, *, recombination_rate, mutation_rate, citations):
         """
         Construct a Genome object from the specified dictionary of
         genome information from Ensembl, recombination_rate and
@@ -62,11 +53,12 @@ class Genome:
             chromosomes=chromosomes,
             assembly_name=genome_data["assembly_name"],
             assembly_accession=genome_data["assembly_accession"],
+            citations=citations,
         )
 
-    def __attrs_post_init__(self):
-        for chromosome in self.chromosomes:
-            self.length += chromosome.length
+    @property
+    def length(self):
+        return sum(chrom.length for chrom in self.chromosomes)
 
     def __str__(self):
         s = "Chromosomes:\n"
@@ -96,9 +88,10 @@ class Genome:
         """
         The length-weighted mean recombination rate across all chromosomes.
         """
+        length = self.length
         mean_recombination_rate = 0
         for chrom in self.chromosomes:
-            normalized_weight = chrom.length / self.length
+            normalized_weight = chrom.length / length
             cont = chrom.recombination_rate * normalized_weight
             mean_recombination_rate += cont
         return mean_recombination_rate
@@ -108,9 +101,10 @@ class Genome:
         """
         The length-weighted mean mutation rate across all chromosomes.
         """
+        length = self.length
         mean_mutation_rate = 0
         for chrom in self.chromosomes:
-            normalized_weight = chrom.length / self.length
+            normalized_weight = chrom.length / length
             cont = chrom.mutation_rate * normalized_weight
             mean_mutation_rate += cont
         return mean_mutation_rate

@@ -79,11 +79,13 @@ for name, data in genome_data.data["chromosomes"].items():
 
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
-    mutation_rate_citations=[_tian2019.because(stdpopsim.CiteReason.MUT_RATE)],
-    recombination_rate_citations=[_hapmap2007.because(stdpopsim.CiteReason.REC_RATE)],
     assembly_name=genome_data.data["assembly_name"],
     assembly_accession=genome_data.data["assembly_accession"],
-    assembly_citations=[_genome2001],
+    citations=[
+        _genome2001,
+        _tian2019.because(stdpopsim.CiteReason.MUT_RATE),
+        _hapmap2007.because(stdpopsim.CiteReason.REC_RATE),
+    ],
 )
 
 _species = stdpopsim.Species(
@@ -93,9 +95,11 @@ _species = stdpopsim.Species(
     common_name="Human",
     genome=_genome,
     generation_time=30,
-    generation_time_citations=[_tremblay2000.because(stdpopsim.CiteReason.GEN_TIME)],
     population_size=10 ** 4,
-    population_size_citations=[_takahata1993.because(stdpopsim.CiteReason.POP_SIZE)],
+    citations=[
+        _tremblay2000.because(stdpopsim.CiteReason.GEN_TIME),
+        _takahata1993.because(stdpopsim.CiteReason.POP_SIZE),
+    ],
 )
 
 stdpopsim.register_species(_species)

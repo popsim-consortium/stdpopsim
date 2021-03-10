@@ -106,18 +106,16 @@ class Species:
         model uses the generation time that was used in the original
         publication(s).
     :vartype generation_time: float
-    :ivar generation_time_citations: A list of :class:`.Citation` objects
-        providing justification for the genertion time estimate.
-    :vartype generation_time_citations: list
     :ivar population_size: The current best estimate for the population
         size of this species. Note that individual demographic
         models in the catalog may or may not use this estimate: each
         model uses the population sizes defined in the original
         publication(s).
     :vartype population_size: float
-    :ivar population_size_citations: A list of :class:`.Citation` objects
-        providing justification for the population size estimate.
-    :vartype population_size_citations: list
+    :ivar citations: A list of :class:`.Citation` objects
+        providing the source for the generation time and
+        population size estimates.
+    :vartype citations: list
     :ivar demographic_models: This list of :class:`DemographicModel`
         instances in the catalog for this species.
     :vartype demographic_models: list
@@ -134,11 +132,7 @@ class Species:
     population_size = attr.ib(default=0, kw_only=True)
     demographic_models = attr.ib(factory=list, kw_only=True)
     ensembl_id = attr.ib(type=str, kw_only=True)
-
-    # TODO these should be combined into a single "citations" list.
-    # We have a citation.reasons argument which should be sufficient.
-    generation_time_citations = attr.ib(factory=list, kw_only=True)
-    population_size_citations = attr.ib(factory=list, kw_only=True)
+    citations = attr.ib(factory=list, kw_only=True)
 
     # A list of genetic maps. This is undocumented as the parameter is not
     # intended to be used when the Species is initialsed.

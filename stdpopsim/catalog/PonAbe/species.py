@@ -34,11 +34,17 @@ _recombination_rate_data = {
 }
 
 _locke2011 = stdpopsim.Citation(
-    author="Locke et al.", year=2011, doi="http://doi.org/10.1038/nature09687"
+    author="Locke et al.",
+    year=2011,
+    doi="http://doi.org/10.1038/nature09687",
+    reasons={stdpopsim.CiteReason.GEN_TIME, stdpopsim.CiteReason.POP_SIZE},
 )
 
 _nater2017 = stdpopsim.Citation(
-    author="Nater et al.", year=2017, doi="https://doi.org/10.1016/j.cub.2017.09.047"
+    author="Nater et al.",
+    year=2017,
+    doi="https://doi.org/10.1016/j.cub.2017.09.047",
+    reasons={stdpopsim.CiteReason.MUT_RATE, stdpopsim.CiteReason.REC_RATE},
 )
 
 _chromosomes = []
@@ -59,7 +65,7 @@ _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
     assembly_name=genome_data.data["assembly_name"],
     assembly_accession=genome_data.data["assembly_accession"],
-    mutation_rate_citations=[_nater2017.because(stdpopsim.CiteReason.MUT_RATE)],
+    citations=[_nater2017],
 )
 
 _species = stdpopsim.Species(
@@ -70,10 +76,9 @@ _species = stdpopsim.Species(
     genome=_genome,
     # generation time used by Locke et al. without further citation
     generation_time=20,
-    generation_time_citations=[_locke2011.because(stdpopsim.CiteReason.GEN_TIME)],
     # Locke et al. inferred ancestral Ne
     population_size=1.79e4,
-    population_size_citations=[_locke2011.because(stdpopsim.CiteReason.POP_SIZE)],
+    citations=[_locke2011],
 )
 
 stdpopsim.register_species(_species)

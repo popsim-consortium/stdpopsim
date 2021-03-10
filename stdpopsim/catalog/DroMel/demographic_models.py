@@ -40,7 +40,6 @@ def _afr_3epoch():
         )
     ]
     generation_time = _species.generation_time
-    citations.extend(_species.generation_time_citations)
 
     # Parameter values from "Simulating Data" section
     # these are assumptions, not estimates
@@ -95,7 +94,6 @@ def _ooa_2():
     populations = [_afr_population, _eur_population]
     citations = [_LiAndStephan.because(stdpopsim.CiteReason.DEM_MODEL)]
     generation_time = _species.generation_time
-    citations.extend(_species.generation_time_citations)
 
     # African Parameter values from "Demographic History of the African
     # Population" section
