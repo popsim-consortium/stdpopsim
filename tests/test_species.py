@@ -104,13 +104,37 @@ class SpeciesTestBase:
         assert isinstance(self.species.id, str)
         assert utils.is_valid_species_id(self.species.id)
 
-    def test_name(self):
+    def test_name_basics(self):
         assert isinstance(self.species.name, str)
         assert utils.is_valid_species_name(self.species.name)
 
-    def test_common_name(self):
+    def test_common_name_basics(self):
         assert isinstance(self.species.common_name, str)
         assert utils.is_valid_species_common_name(self.species.name)
+
+    def test_genome_type(self):
+        assert isinstance(self.species.genome, stdpopsim.Genome)
+
+    def test_demographic_model_types(self):
+        assert isinstance(self.species.demographic_models, list)
+        for model in self.species.demographic_models:
+            assert isinstance(model, stdpopsim.DemographicModel)
+
+    def test_citation_properties(self):
+        all_citations = (
+            self.species.generation_time_citations
+            + self.species.population_size_citations
+        )
+        for citation in all_citations:
+            # Test some basic stuff about the citations.
+            assert isinstance(citation, stdpopsim.Citation)
+            citation.assert_valid()
+
+    def test_generation_time_defined(self):
+        assert self.species.generation_time > 0
+
+    def test_population_size_defined(self):
+        assert self.species.population_size > 0
 
 
 class GenomeTestBase:
@@ -152,6 +176,30 @@ class GenomeTestBase:
         if not math.isclose(mean_genome_mr, lowest_mr):
             assert mean_genome_mr >= lowest_mr
             assert highest_mr >= mean_genome_mr
+
+    def test_chromosomes(self):
+        assert len(self.genome.chromosomes) > 0
+        for chrom in self.genome.chromosomes:
+            assert isinstance(chrom, stdpopsim.Chromosome)
+
+    def test_mutation_rates_set(self):
+        for chrom in self.genome.chromosomes:
+            assert chrom.mutation_rate >= 0
+
+    def test_recombination_rates_set(self):
+        for chrom in self.genome.chromosomes:
+            assert chrom.recombination_rate >= 0
+
+    def test_citation_properties(self):
+        all_citations = (
+            self.genome.mutation_rate_citations
+            + self.genome.recombination_rate_citations
+            + self.genome.assembly_citations
+        )
+        for citation in all_citations:
+            # Test some basic stuff about the citations.
+            assert isinstance(citation, stdpopsim.Citation)
+            citation.assert_valid()
 
 
 class TestAllGenomes(unittest.TestCase):

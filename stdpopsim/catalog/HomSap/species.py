@@ -33,7 +33,7 @@ _recombination_rate_data = {
 
 _genome2001 = stdpopsim.Citation(
     doi="http://dx.doi.org/10.1038/35057062",
-    year="2001",
+    year=2001,
     author="International Human Genome Sequencing Consortium",
     reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
@@ -46,21 +46,21 @@ _hapmap2007 = stdpopsim.Citation(
 
 _takahata1993 = stdpopsim.Citation(
     doi="https://doi.org/10.1093/oxfordjournals.molbev.a039995",
-    year="1993",
+    year=1993,
     author="Takahata",
     reasons={stdpopsim.CiteReason.POP_SIZE},
 )
 
 _tian2019 = stdpopsim.Citation(
     doi="https://doi.org/10.1016/j.ajhg.2019.09.012",
-    year="2019",
+    year=2019,
     author="Tian, Browning, and Browning",
     reasons={stdpopsim.CiteReason.MUT_RATE},
 )
 
 _tremblay2000 = stdpopsim.Citation(
     doi="https://doi.org/10.1086/302770",
-    year="2000",
+    year=2000,
     author="Tremblay and Vézina",
     reasons={stdpopsim.CiteReason.GEN_TIME},
 )
@@ -88,6 +88,7 @@ _genome = stdpopsim.Genome(
 
 _species = stdpopsim.Species(
     id="HomSap",
+    ensembl_id="homo_sapiens",
     name="Homo sapiens",
     common_name="Human",
     genome=_genome,

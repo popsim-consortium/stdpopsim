@@ -3,11 +3,6 @@ import collections
 import stdpopsim
 from . import genome_data
 
-###########################################################
-#
-# Genome definition
-#
-###########################################################
 
 _LiAndStephan = stdpopsim.Citation(
     author="Li et al.", year=2006, doi="https://doi.org/10.1371/journal.pgen.0020166"
@@ -21,7 +16,7 @@ _SchriderEtAl = stdpopsim.Citation(
 
 _DosSantosEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1093/nar/gku1099",
-    year="2015",
+    year=2015,
     author="dos Santos et al.",
     reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
@@ -56,6 +51,7 @@ _genome = stdpopsim.Genome(
 
 _species = stdpopsim.Species(
     id="DroMel",
+    ensembl_id="drosophila_melanogaster",
     name="Drosophila melanogaster",
     common_name="D. melanogaster",
     genome=_genome,

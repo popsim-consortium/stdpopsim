@@ -105,6 +105,7 @@ _genome = stdpopsim.Genome(
 
 _species = stdpopsim.Species(
     id="CanFam",
+    ensembl_id="canis_familiaris",
     name="Canis familiaris",
     common_name="Dog",
     genome=_genome,

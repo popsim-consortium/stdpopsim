@@ -75,6 +75,7 @@ _genome = stdpopsim.Genome(
 
 _species = stdpopsim.Species(
     id="BosTau",
+    ensembl_id="bos_taurus",
     name="Bos Taurus",
     common_name="Cattle",
     genome=_genome,

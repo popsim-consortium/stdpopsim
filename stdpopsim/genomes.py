@@ -25,12 +25,44 @@ class Genome:
     """
 
     chromosomes = attr.ib(factory=list)
-    mutation_rate_citations = attr.ib(factory=list, kw_only=True)
-    recombination_rate_citations = attr.ib(factory=list, kw_only=True)
-    assembly_citations = attr.ib(factory=list, kw_only=True)
     assembly_name = attr.ib(default=None, kw_only=True)
     assembly_accession = attr.ib(default=None, kw_only=True)
     length = attr.ib(default=0, init=False)
+
+    # TODO these should all be combined into a single "citations" attr,
+    # since we already have a "reason" attribute in Citation.
+    mutation_rate_citations = attr.ib(factory=list, kw_only=True)
+    recombination_rate_citations = attr.ib(factory=list, kw_only=True)
+    assembly_citations = attr.ib(factory=list, kw_only=True)
+
+    @staticmethod
+    def from_data(genome_data, *, recombination_rate, mutation_rate):
+        """
+        Construct a Genome object from the specified dictionary of
+        genome information from Ensembl, recombination_rate and
+        mutation_rate dictionaries.
+
+        This method is for internal use only.
+        """
+        chr_names = set(genome_data["chromosomes"].keys())
+        assert set(recombination_rate.keys()) == chr_names
+        assert set(mutation_rate.keys()) == chr_names
+        chromosomes = []
+        for name, data in genome_data["chromosomes"].items():
+            chromosomes.append(
+                Chromosome(
+                    id=name,
+                    length=data["length"],
+                    synonyms=data["synonyms"],
+                    mutation_rate=mutation_rate[name],
+                    recombination_rate=recombination_rate[name],
+                )
+            )
+        return Genome(
+            chromosomes=chromosomes,
+            assembly_name=genome_data["assembly_name"],
+            assembly_accession=genome_data["assembly_accession"],
+        )
 
     def __attrs_post_init__(self):
         for chromosome in self.chromosomes:

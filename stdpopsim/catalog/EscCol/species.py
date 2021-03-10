@@ -1,29 +1,25 @@
 import stdpopsim
 from . import genome_data
 
-###########################################################
-#
-# Genome definition
-#
-###########################################################
-
 _hartl_et_al = stdpopsim.Citation(
     author="Hartl, Moriyama, and Sawyer",
-    year="1994",
+    year=1994,
     # doesn't have a doi
     doi="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1206133/",
 )
 
 _sezonov_et_al = stdpopsim.Citation(
-    author="Sezonov et al.", year="2007", doi="https://doi.org/10.1128/JB.01368-07"
+    author="Sezonov et al.", year=2007, doi="https://doi.org/10.1128/JB.01368-07"
 )
 
 _wielgoss_et_al = stdpopsim.Citation(
-    author="Wielgoss et al.", year="2011", doi="https://doi.org/10.1534/g3.111.000406"
+    author="Wielgoss et al.", year=2011, doi="https://doi.org/10.1534/g3.111.000406"
 )
 
 _blattner_et_al = stdpopsim.Citation(
-    author="Blattner et al.", year="1997", doi="10.1126/science.277.5331.1453"
+    author="Blattner et al.",
+    year=1997,
+    doi="https://doi.org/10.1126/science.277.5331.1453",
 )
 
 _chromosomes = []

@@ -64,6 +64,7 @@ _genome = stdpopsim.Genome(
 
 _species = stdpopsim.Species(
     id="PonAbe",
+    ensembl_id="pongo_abelii",
     name="Pongo abelii",
     common_name="Sumatran orangutan",
     genome=_genome,

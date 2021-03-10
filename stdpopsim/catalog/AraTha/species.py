@@ -31,7 +31,7 @@ _genome = stdpopsim.Genome(
     mutation_rate_citations=[
         stdpopsim.Citation(
             author="Ossowski et al.",
-            year="2010",
+            year=2010,
             doi="https://doi.org/10.1126/science.1180677",
             reasons={stdpopsim.CiteReason.MUT_RATE},
         )
@@ -39,7 +39,7 @@ _genome = stdpopsim.Genome(
     recombination_rate_citations=[
         stdpopsim.Citation(
             author="Huber et al.",
-            year="2014",
+            year=2014,
             doi="https://doi.org/10.1093/molbev/msu247",
             reasons={stdpopsim.CiteReason.REC_RATE},
         )
@@ -47,7 +47,7 @@ _genome = stdpopsim.Genome(
     assembly_citations=[
         stdpopsim.Citation(
             doi="https://doi.org/10.1093/nar/gkm965",
-            year="2007",
+            year=2007,
             author="Swarbreck et al.",
             reasons={stdpopsim.CiteReason.ASSEMBLY},
         )
@@ -56,6 +56,7 @@ _genome = stdpopsim.Genome(
 
 _species = stdpopsim.Species(
     id="AraTha",
+    ensembl_id="arabidopsis_thaliana",
     name="Arabidopsis thaliana",
     common_name="A. thaliana",
     genome=_genome,
@@ -63,7 +64,7 @@ _species = stdpopsim.Species(
     generation_time_citations=[
         stdpopsim.Citation(
             doi="https://doi.org/10.1890/0012-9658(2002)083[1006:GTINSO]2.0.CO;2",
-            year="2002",
+            year=2002,
             author="Donohue",
             reasons={stdpopsim.CiteReason.GEN_TIME},
         )
@@ -72,7 +73,7 @@ _species = stdpopsim.Species(
     population_size_citations=[
         stdpopsim.Citation(
             doi="https://doi.org/10.1016/j.cell.2016.05.063",
-            year="2016",
+            year=2016,
             author="1001GenomesConsortium",
             reasons={stdpopsim.CiteReason.POP_SIZE},
         )

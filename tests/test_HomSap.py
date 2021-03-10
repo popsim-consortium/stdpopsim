@@ -25,6 +25,9 @@ class TestGenome(test_species.GenomeTestBase):
 
     @pytest.mark.parametrize("chr_id", [chrom.id for chrom in genome.chromosomes])
     def test_recombination_rates(self, chr_id):
+        # We should recast this test and just hard code in the values.
+        # Tests should be *obvious* not clever.
+
         # recompute recombination rates from HapMapII_GRCh37 map then
         # compare the results to the current recombination rates for each chromosome
         genetic_map = "HapMapII_GRCh37"
