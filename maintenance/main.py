@@ -58,15 +58,19 @@ _mutation_rate = $chromosome_rate_dict
 _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
-    mutation_rate=_mutation_rate
+    mutation_rate=_mutation_rate,
+    # [ Implementers: please insert citations for the papers you are basing
+    # the estimates for recombination and mutation rates. The assembly
+    # citation is optional and can be deleted if not needed.]
+    citations=[
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.ASSEMBLY}),
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.REC_RATE}),
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.MUT_RATE})
+    ]
 )
-
-# [Implementers: you must add citations for the values that are
-# provided. Do this like:
-# _genome.recombination_rate_citations.append(
-#    stdpopsim.Citation(author=x, date=y, doi=z))
-# _genome.mutation_rate_citations.append(
-#    stdpopsim.Citation(author=x, date=y, doi=z))
 
 _species = stdpopsim.Species(
     id="$sps_id",
@@ -79,10 +83,14 @@ _species = stdpopsim.Species(
     generation_time=0,
     # [Implementers: you must provide an estimate of the population size.
     # TODO: give a definition of what this should be.
-    # Please also add a citation for this.]
+    # Please also add a citation for this below..]
     population_size=0,
-    population_size_citations=[],
-    generation_time_citations=[],
+    citations=[
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.POP_SIZE}),
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.GEN_TIME})
+    ],
 )
 
 stdpopsim.register_species(_species)
