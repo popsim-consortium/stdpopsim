@@ -2,6 +2,7 @@ black
 blacken-docs
 codecov
 coverage
+daiquiri
 flake8
 pytest
 pytest-cov
