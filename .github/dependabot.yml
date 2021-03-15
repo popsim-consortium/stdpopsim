@@ -3,9 +3,5 @@ updates:
 - package-ecosystem: pip
   directory: "/requirements/CI"
   schedule:
-    interval: daily
+    interval: weekly
   open-pull-requests-limit: 10
-  reviewers:
-  - grahamgower
-  labels:
-  - dependancy-upgrade
