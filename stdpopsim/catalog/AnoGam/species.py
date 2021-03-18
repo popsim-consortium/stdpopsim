@@ -9,15 +9,6 @@ _PombiEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.REC_RATE},
 )
 
-_recombination_rate = {
-    "2L": 0,  # setting to zero because of inversion
-    "2R": 1.3e-8,
-    "3L": 1.6e-8,
-    "3R": 1.3e-8,
-    "X": 1e-8,
-    "Mt": 0,
-}
-
 _Ag1000G = stdpopsim.Citation(
     doi="https://doi.org/10.1038/nature24995",
     year=2017,
@@ -35,6 +26,16 @@ _SharakhovaEtAl = stdpopsim.Citation(
     author="Sharakhova et al.",
     reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
+
+_recombination_rate = {
+    "2L": 0,  # setting to zero because of inversion
+    "2R": 1.3e-8,
+    "3L": 1.6e-8,
+    "3R": 1.3e-8,
+    "X": 1e-8,
+    "Mt": 0,
+}
+
 _overall_rate = 5.49e-9
 _mutation_rate = {
     "2L": _overall_rate,
