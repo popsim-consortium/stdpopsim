@@ -1,39 +1,44 @@
 import collections
-
 import stdpopsim
+
 from . import genome_data
 
 # De novo assembly of the cattle reference genome with single-molecule sequencing.
 _RosenEtAl = stdpopsim.Citation(
-    doi="https://doi.org/10.1093/gigascience/giaa021",
-    year="2020",
     author="Rosen et al.",
+    year=2020,
+    doi="https://doi.org/10.1093/gigascience/giaa021",
+    reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
 
 # Frequency of mosaicism points towards mutation-prone early cleavage
 # cell divisions in cattle.
 _HarlandEtAl = stdpopsim.Citation(
     author="Harland et al.",
-    year="2017",
-    # BioRxiv preprint
+    year=2017,
     doi="https://doi.org/10.1101/079863",
+    reasons={stdpopsim.CiteReason.MUT_RATE},
 )
 
 # Cattle Sex-Specific Recombination and Genetic Control from a
 # Large Pedigree Analysis.
 _MaEtAl = stdpopsim.Citation(
     author="Ma et al.",
-    year="2015",
+    year=2015,
     doi="https://doi.org/10.1371/journal.pgen.1005387",
+    reasons={stdpopsim.CiteReason.REC_RATE},
 )
 
 # Inferring Demography from Runs of Homozygosity in Whole-Genome Sequence,
 # with Correction for Sequence Errors.
 _MacLeodEtAl = stdpopsim.Citation(
-    doi="https://doi.org/10.1093/molbev/mst125",
-    year="2013",
     author="MacLeod et al.",
-    reasons={stdpopsim.CiteReason.GEN_TIME, stdpopsim.CiteReason.POP_SIZE},
+    year=2013,
+    doi="https://doi.org/10.1093/molbev/mst125",
+    reasons={
+        stdpopsim.CiteReason.GEN_TIME,
+        stdpopsim.CiteReason.POP_SIZE,
+    },
 )
 
 # Recombination rate has been derived from dairy cattle crossovers
@@ -68,20 +73,20 @@ for name, data in genome_data.data["chromosomes"].items():
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
     citations=[
-        _HarlandEtAl.because(stdpopsim.CiteReason.MUT_RATE),
-        _MaEtAl.because(stdpopsim.CiteReason.REC_RATE),
-        _RosenEtAl.because(stdpopsim.CiteReason.ASSEMBLY),
+        _RosenEtAl,
+        _HarlandEtAl,
+        _MaEtAl,
     ],
 )
 
 _species = stdpopsim.Species(
     id="BosTau",
     ensembl_id="bos_taurus",
-    name="Bos Taurus",
+    name="Bos taurus",
     common_name="Cattle",
     genome=_genome,
     generation_time=5,
-    population_size=62000,
+    population_size=90,  # most recent Ne in _MacLeodEtAl
     citations=[_MacLeodEtAl],
 )
 
