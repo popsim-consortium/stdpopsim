@@ -4,7 +4,7 @@ flake8==3.9.0
 pytest==6.2.2
 pytest-cov==2.11.1
 pytest-xdist==2.2.1
-setuptools-scm==5.0.2
+setuptools-scm==6.0.1
 sphinx==3.5.2
 sphinx-argparse==0.2.5
 sphinx-issues==1.2.0
