@@ -16,6 +16,7 @@ dependencies:
         - msprime
         - scikit-allel
         - matplotlib
+        - slim
         # load the stdpopsim Github repository as a library using pip
         - pip:
-            - "--editable=git+https://github.com/popgensims/stdpopsim.git#egg=stdpopsim-main"
+            - .
