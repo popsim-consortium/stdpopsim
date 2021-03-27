@@ -33,6 +33,8 @@ Each thing should be provided, with a justification (maybe short) and a citation
 
 **Chromosome structure:**
 
+*Note:* The assembly should be *chromosome-level*, i.e., not composed of thousands of scaffolds.
+
 - [] ensembl assembly ID *or*, if the assembly is not in Ensembl, a list of chromosomes with *name* and *length* (in bp)
 
 *Note: species in Ensembl can be found in one of these lists:
