@@ -114,7 +114,7 @@ class GeneticMap:
             # Extend map to the end of the chromosome.
             positions = np.append(recomb_map.position, chrom.length)
             rates = np.append(recomb_map.rate, 0)
-            recomb_map = msprime.RateMap(positions, rates)
+            recomb_map = msprime.RateMap(position=positions, rate=rates)
         elif map_length > chrom.length:
             warnings.warn(
                 f"Recombination map has length {map_length}, which is longer than"
