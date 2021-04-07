@@ -78,9 +78,8 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           conda install --yes --file=requirements/CI/conda.txt
-          # Install pre-release from non standard label until msprime
-          # 1.0 is tagged.
-          conda install -c conda-forge/label/msprime_rc msprime
+          # Install pre-release from pypi until 1.0 is tagged.
+          pip install --pre msprime
           if [ "$RUNNER_OS" != "Windows" ]; then
             conda install --yes slim==${{ env.SLIM_TAG }}
           fi

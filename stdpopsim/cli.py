@@ -581,7 +581,7 @@ def write_simulation_summary(engine, model, contig, samples, seed=None):
         sample_counts[s.population] += s.num_samples
     for p in range(0, model.num_sampling_populations):
         pop_name = model.populations[p].id
-        sample_time = model.populations[p].sampling_time
+        sample_time = model.populations[p].default_sampling_time
         dry_run_text += f"{indent * 2}{pop_name}: "
         dry_run_text += f"{sample_counts[p]} ({sample_time})\n"
     # Get information about relevant contig

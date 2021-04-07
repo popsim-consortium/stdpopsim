@@ -514,7 +514,9 @@ def msprime_rm_to_slim_rm(recombination_map):
     """
     Convert recombination map from start position coords to end position coords.
     """
-    rates = recombination_map.rate
+    rates = recombination_map.rate.copy()
+    # replace missing values with 0 recombination rate
+    rates[recombination_map.missing] = 0
     ends = [int(pos) - 1 for pos in recombination_map.position]
     return rates, ends[1:]
 
@@ -584,7 +586,7 @@ def slim_makescript(
     subpopulation_splits = []
     for i, epoch in enumerate(epochs):
         for de in epoch.demographic_events:
-            if isinstance(de, msprime.LineageMovementEvent):
+            if isinstance(de, msprime.demography.LineageMovementEvent):
                 # This is using internal msprime APIs here, but it's not worth
                 # updating before we change over to Demes.
                 for lm in de._as_lineage_movements():
