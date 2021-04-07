@@ -17,7 +17,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, windows-2019, macos-10.15]
+        # FIXME removing windows from CI until msprime 1.0 is released
+        # and we have conda packages again.
+        os: [ubuntu-18.04, macos-10.15]
         python: [3.7, 3.9]
     env:
       SLIM_TAG: 3.6
