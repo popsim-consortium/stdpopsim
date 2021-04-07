@@ -563,6 +563,7 @@ The demographic model function should follow this format:
         ]
 
         generation_time = "FILL ME"
+        mutation_rate = "FILL ME"
 
         # parameter value definitions based on published values
 
@@ -573,6 +574,7 @@ The demographic model function should follow this format:
             populations=populations,
             citations=citations,
             generation_time=generation_time,
+            mutation_rate=mutation_rate,
             population_configurations=["FILL ME"],
             migration_matrix=["FILL ME"],
             demographic_events=["FILL ME"],
@@ -602,7 +604,10 @@ The demographic model should include the following:
   a specified reason for citing this model.
 * ``generation_time``: The generation time for the species in years. If you are
   implementing a generic model, the generation time should default to 1.
-
+* ``mutation_rate``: The mutation rate assumed during the inference of this demographic
+  model, if a mutation rate was used. If no mutation rate is associated with this
+  demographic model, which is generally uncommon but possible, depending on the
+  inference method, the mutation rate should be set to ``None``.
 
 Every demographic model has a few necessary features or attributes. First of all,
 demographic models are defined by the population sizes, migration rates, split and
@@ -664,6 +669,8 @@ Now check that your new demographic model function has been imported:
     # Zigzag_1S14
     # AncientEurasia_9K19
     # PapuansOutOfAfrica_10J19
+    # AshkSub_7G19
+    # OutOfAfrica_4J17
 
 
 The example above lists the imported demographic models for humans.

@@ -69,6 +69,9 @@ class DemographicModel:
     :ivar citations: A list of :class:`Citation`, that describe the primary
         reference(s) for the model.
     :vartype citations: list of :class:`Citation`
+    :ivar mutation_rate: The mutation rate associated with the demographic model.
+        If no mutation rate is given, the species' default mutation rate is used.
+    :vartype mutation_rate: float
     """
 
     def __init__(
@@ -86,11 +89,13 @@ class DemographicModel:
         population_id_map=None,
         populations=None,
         model=None,
+        mutation_rate=None,
     ):
         self.id = id
         self.description = description
         self.long_description = long_description
         self.generation_time = 1 if generation_time is None else generation_time
+        self.mutation_rate = mutation_rate
         self.citations = [] if citations is None else citations
         self.qc_model = qc_model
 
@@ -172,7 +177,7 @@ class DemographicModel:
             )
         if self.qc_model is not None:
             raise ValueError(f"QC model already registered for {self.id}.")
-        self.qc_model = qc_model.model
+        self.qc_model = qc_model
 
     def get_samples(self, *args):
         """

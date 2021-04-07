@@ -137,7 +137,7 @@ def _ooa_2():
     id = "OutOfAfrica_2T12"
     description = "Two population out-of-Africa"
     long_description = """
-        The model is derived from the Tennesen et al. analysis of the
+        The model is derived from the Tennessen et al. analysis of the
         jSFS from European Americans and African Americans.
         It describes the ancestral human population in Africa, the out of Africa event,
         and two distinct periods of subsequent European population growth over the past
@@ -292,7 +292,11 @@ def _america():
         demographic history to simulate an admixed population with admixture
         occurring 12 generations ago. The admixed population had an initial size
         of 30,000 and grew at a rate of 5% per generation, with 1/6 of the
-        population of African ancestry, 1/3 European, and 1/2 Asian.
+        population of African ancestry, 1/3 European, and 1/2 Asian. Note that this
+        demographic model was not inferred, and the assumed mutation rate is smaller
+        than used in the inference from Gravel et al. Resulting levels of diversity
+        may be considerably lower than observed in human population genetic data for
+        these populations.
     """
     populations = [
         stdpopsim.Population(id="AFR", description="Contemporary African population"),
@@ -598,6 +602,7 @@ def _zigzag():
     ]
 
     generation_time = 30
+
     N0 = 5 * 14312
 
     g_1 = 0.02302578256

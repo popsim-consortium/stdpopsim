@@ -293,6 +293,11 @@ def write_citations(engine, model, contig, species):
     """
     cite_str = ["If you use this simulation in published work, please cite:"]
     for citation in get_citations(engine, model, contig, species):
+        if (
+            stdpopsim.citations.CiteReason.MUT_RATE in citation.reasons
+            and model.mutation_rate is not None
+        ):
+            continue
         cite_str.append("\n")
         cite_str.append(citation.displaystr())
     logger.warning("".join(cite_str))
@@ -518,6 +523,7 @@ def add_simulate_species_parser(parser, species):
             length=args.length,
             inclusion_mask=args.inclusion_mask,
             exclusion_mask=args.exclusion_mask,
+            mutation_rate=model.mutation_rate,
         )
         engine = stdpopsim.get_engine(args.engine)
         logger.info(
@@ -587,7 +593,17 @@ def write_simulation_summary(engine, model, contig, samples, seed=None):
     # Get information about relevant contig
     gmap = "None" if contig.genetic_map is None else contig.genetic_map.id
     mean_recomb_rate = contig.recombination_map.mean_rate
-    mut_rate = contig.mutation_rate
+    # use the model mutation rate, if provided with the demographic model
+    if model.mutation_rate is not None:
+        mut_rate = model.mutation_rate
+        logging.info(
+            f"using mutation rate from demographic model ({model.mutation_rate})"
+        )
+    else:
+        mut_rate = contig.mutation_rate
+        logging.info(
+            f"using mutation rate from species contig ({contig.mutation_rate})"
+        )
     contig_len = contig.recombination_map.sequence_length
     dry_run_text += "Contig Description:\n"
     dry_run_text += f"{indent}Contig length: {contig_len}\n"

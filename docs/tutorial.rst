@@ -75,7 +75,9 @@ chromosome, recombination map, and number of samples.
 The most basic simulation we can run is to simulate two (haploid) genomes
 - i.e., two samples -
 using the species' defaults as seen in the species help (``stdpopsim HomSap --help``).
-These defaults include constant size population and a uniform recombination map.
+These defaults include constant size population, a uniform recombination map based
+on the average recombination rate (either genome-wide or within a chromosome, if
+specified), and the mutation rate shown above.
 To save time we will specify that the simulation use
 chromosome 22, using the ``-c`` option. We also specify that the resulting
 tree-sequence formatted output should be written to the file ``foo.ts`` with the
@@ -123,6 +125,15 @@ model has two populations that we can sample from
 The order of those numbers is the same as the order
 specified in the model documentation. In this case, ``2 3`` means
 we are simulating two African American samples and three European American samples.
+
+.. note::
+    Many demographic models were inferred or calibrated using a mutation rate that
+    differs from the cataloged species' mutation rate. Simulations using the CLI now
+    automatically use the *model's* specified mutation rate instead of the species
+    rate, so that expected levels of diversity more closely match those observed in
+    the data that were used to infer the demographic model. For generic demographic
+    models or those without associated mutation rates, the species mutation rate is
+    used.
 
 Now we want to add an empirical recombination map to make the simulation more
 realistic. We can look up the available recombination maps using the
@@ -282,7 +293,7 @@ using SLiM with a (very large!) scaling factor of 1000, we could run
 
 .. code-block:: console
 
-   $ stdpopsim -e slim --slim-scaling-factor 1000 DroMel \
+   $ stdpopsim -e slim --slim-scaling-factor 1000 DroMel\
    $     -c chr2L -l 0.05 -o foo.ts -d African3Epoch_1S16 100
 
 The scaling factor of 1000 makes this model run very quickly,
@@ -350,31 +361,21 @@ Running a published model
 The first example uses a mostly default genome
 with a published demographic model.
 
-Pick a species and a contig
----------------------------
+Pick a species and demographic model
+------------------------------------
 
-First, we will pick a species (humans), contig (chromosome 22),
-and genetic map (a flat map, the default):
+First, we will pick a species (here, humans) and the published demographic
+model to simulated under. In ``stdpopsim`` there are two types of model: ones
+taken to match the :ref:`demographic history reported in published papers
+<sec_catalog>`, and :ref:`"generic" models <sec_api_generic_models>`. We'll
+first simulate using a published model from the catalog. Let's see what
+demographic models are available for humans:
 
 .. code-block:: python
 
    import stdpopsim
 
    species = stdpopsim.get_species("HomSap")
-   contig = species.get_contig("chr22")  # default is a flat genetic map
-
-Choose a demographic model
---------------------------
-
-Now, we need a demographic model.
-In ``stdpopsim`` there are two types of model:
-ones taken to match the :ref:`demographic history reported in published papers <sec_catalog>`,
-and :ref:`"generic" models <sec_api_generic_models>`.
-First, we'll simulate samples from a published model of human prehistory.
-Let's see what demographic models are available
-for humans:
-
-.. code-block:: python
 
    for x in species.demographic_models:
        print(x.id)
@@ -387,11 +388,13 @@ for humans:
    # Zigzag_1S14
    # AncientEurasia_9K19
    # PapuansOutOfAfrica_10J19
+   # AshkSub_7G19
+   # OutOfAfrica_4J17
 
 These models are described in detail in the :ref:`Catalog <sec_catalog>`.
 We'll look at the first model, "OutOfAfrica_3G09", from
 `Gutenkunst et al (2009) <https://doi.org/10.1371/journal.pgen.1000695>`__.
-First we need to know how many populations it has, and what they are:
+We can check how many populations exist in this model, and what they are:
 
 .. code-block:: python
 
@@ -400,14 +403,50 @@ First we need to know how many populations it has, and what they are:
    # 3
    print(model.num_sampling_populations)
    # 3
-   print([pop.id for pop in model.populations])
+   print([pop.name for pop in model.populations])
    # ['YRI', 'CEU', 'CHB']
 
-This model has 3 populations, named YRI, CEU, CHB,
-and all three can be sampled from.
+This model has 3 populations, named YRI, CEU, CHB, and all three can be sampled from.
 The number of "sampling" populations could be smaller than the number of populations,
 since some models have ancient populations which are currently not allowed to be
 sampled from - but that is not the case in this model.
+
+Set up the contig
+-----------------
+
+We'll next define the contig, which contains information about the genome length we
+want to simulate and recombination and mutation rates. Here, we use the human
+chromosome 22. If no recombination map is specified, we assume a uniform genetic map
+based on the average recombination rate for that chromosome.
+
+.. code-block:: python
+
+   contig = species.get_contig("chr22")
+
+   # default is a flat genetic map
+   print("mean recombination rate:", f"{contig.recombination_map.mean_rate:.3}")
+   # mean recombination rate: 1.44e-08
+
+   # and the default mutation rate is based on the species default
+   print("mean mutation rate:", contig.mutation_rate)
+   # mean mutation rate: 1.29e-08
+
+   # but note that the mutation rate differs from the model's assumed rate
+   print("model mutation rate:", model.mutation_rate)
+   # model mutation rate: 2.35e-08
+
+The Gutenkunst OOA model was inferred using a mutation rate much larger than the
+default mutation rate in the `stdpopsim` catalog. As such, simulating using this
+model and default rate will result in levels of diversity substantially lower than
+expected for the human population data that this model was inferred from. To match
+observed diversity in humans, we should instead use the mutation rate associated
+with the demographic model:
+
+.. code-block:: python
+
+   contig = species.get_contig("chr22", mutation_rate=model.mutation_rate)
+   print(contig.mutation_rate == model.mutation_rate)
+   # True
 
 Choose a sampling scheme and simulate
 -------------------------------------
@@ -459,19 +498,16 @@ so we use the json module to easily parse it:
 Running a generic model
 =======================
 
-Next, we will simulate using a "generic" model,
-with piecewise constant population size.
-This time,
-we will simulate a small portion of human chromosome 2,
-again with a flat recombination map,
-using the current best estimate of the human
-effective population size from the :ref:`sec_catalog`.
+Next, we will simulate using a "generic" model, with piecewise constant
+population size. This time, we will simulate a given genome length under
+a flat recombination map, using an estimate of the
+human effective population size from the :ref:`sec_catalog`.
 
 Choose a species
 ----------------
 
-Although the model is generic, we still need a species,
-to get contig information.
+Although the model is generic, we still need a species in order
+to get the contig information.
 Again, we'll use `Homo sapiens`, which has the id "HomSap".
 (But, you could use any species from the :ref:`sec_catalog`!)
 
@@ -480,25 +516,6 @@ Again, we'll use `Homo sapiens`, which has the id "HomSap".
     import stdpopsim
 
     species = stdpopsim.get_species("HomSap")
-
-Choose a contig and recombination map
--------------------------------------
-
-Next, we set the contig information, to 5% of chromosome 2,
-about 12Mb. Again, you could use a fraction of any of the
-chromosomes listed in the :ref:`sec_catalog`, keeping in mind that
-larger contigs will take longer to simulate.
-
-.. code-block:: python
-
-    contig = species.get_contig("chr2", length_multiplier=0.05)
-    print(contig.recombination_map.get_sequence_length())
-    # 12159968.65
-
-The "sequence length" is the length in base pairs.
-It is not an integer because msprime works in continuous genomic coordinates.
-Again, since we didn't specify a genetic map, by default
-a "flat" map of constant recombination rate is used.
 
 Set up the generic model
 ------------------------
@@ -515,6 +532,32 @@ single population of constant over all time.
 Each species has a "default" population size, ``species.population_size``,
 which for humans is 10,000.
 
+Choose a contig and recombination map
+-------------------------------------
+
+Next, we set the contig information. Again, we could use any of the chromosomes
+listed in the :ref:`sec_catalog` (or a fraction of a chromosome, using the
+``length_multiplier`` argument), keeping in mind that larger contigs will take
+longer to simulate. We could also specify a "generic" contig, which provides
+a segment of a given length with constant recombination rate, taken to be the
+average rate over all chromosomes for that species. Here, we define a contig
+of length 1 Mb:
+
+.. code-block:: python
+
+    contig = species.get_contig(length=1e6)
+    print(contig.recombination_map.sequence_length)
+    # 1000000.0
+    print(contig.recombination_map.mean_rate)
+    # 1.2313743222950562e-08
+    print(contig.mutation_rate)
+    # 1.29e-8
+
+The "sequence length" is the length in base pairs. Since we are using a generic
+contig, we cannot specify a recombination map so we get a "flat" map of
+constant recombination rate. The mutation rate defaults to the species average
+mutation rate, as no mutation rate was provided when defining the contig.
+
 Choose a sampling scheme, and simulate
 --------------------------------------
 
@@ -529,8 +572,8 @@ But, you can go crazy with the sample size!
     samples = model.get_samples(10)
     engine = stdpopsim.get_engine("msprime")
 
-Finally, we simulate the model with the contig length and number of samples we defined above.
-The simulation results are recorded in a tree sequence object
+Finally, we simulate the model with the contig length and number of samples we
+defined above. The simulation results are recorded in a tree sequence object
 (:class:`tskit.TreeSequence`).
 
 .. code-block:: python
@@ -551,17 +594,16 @@ Now, we do some simple checks that our simulation worked with
     print(ts.num_populations)
     # 1
     print(ts.num_mutations)
-    # 18187
+    # 1472
     print(ts.num_trees)
-    # 12203
+    # 1078
 
-As expected, there are 10 samples in one population. We can also see that it takes
-12203 distinct genealogical trees across these 5Mb of sequence,
-on which there were 18187 mutations
-(since we are not using a seed here, the number of mutations
-and trees will be slightly different for you). Try running the simulation again, and notice
-that the number of samples and populations stays the same, while the number of mutations
-and trees changes.
+As expected, there are 10 samples in one population. We can also see that it
+takes 1078 distinct genealogical trees across this 1Mb of sequence, on which
+there were 1472 mutations (since we are not using a seed here, the number of
+mutations and trees will be slightly different for you). Try running the
+simulation again, and notice that the number of samples and populations stays
+the same, while the number of mutations and trees changes.
 
 Output to VCF
 -------------
@@ -574,24 +616,24 @@ See the tskit documentation (:meth:`tskit.TreeSequence.write_vcf`) for more info
 .. code-block:: python
 
     with open("foo.vcf", "w") as vcf_file:
-        ts.write_vcf(vcf_file, contig_id="2")
+        ts.write_vcf(vcf_file, contig_id="0")
 
 Taking a look at the vcf file, we see something like this:
 
 .. code-block:: none
 
     ##fileformat=VCFv4.2
-    ##source=tskit 0.2.2
+    ##source=tskit 0.3.5
     ##FILTER=<ID=PASS,Description="All filters passed">
-    ##contig=<ID=2,length=12159969>
+    ##contig=<ID=0,length=1000000>
     ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
-    #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	tsk_0	tsk_1	tsk_2	tsk_3	tsk_4	tsk_5	tsk_6	tsk_7	tsk_8	tsk_9
-    2	96	.	0	1	.	PASS	.	GT	0	0	1	0	1	0	0	0	1	0
-    2	129	.	0	1	.	PASS	.	GT	0	0	0	0	0	0	0	0	1	0
-    2	436	.	0	1	.	PASS	.	GT	0	0	0	0	0	1	0	0	0	0
-    2	466	.	0	1	.	PASS	.	GT	0	0	1	0	1	0	0	0	0	0
-    2	558	.	0	1	.	PASS	.	GT	0	0	0	0	0	0	0	0	1	0
-    2	992	.	0	1	.	PASS	.	GT	1	1	0	1	0	1	1	1	0	1
+    #CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO    FORMAT  tsk_0   tsk_1   tsk_2   tsk_3   tsk_4   tsk_5   tsk_6   tsk_7   tsk_8   tsk_9
+    0       3608    .       A       T       .       PASS    .       GT      0       0       1       0       0       0       0       0       0       0
+    0       5598    .       T       G       .       PASS    .       GT      1       0       0       0       1       1       0       0       1       0
+    0       6190    .       C       A       .       PASS    .       GT      1       0       0       0       0       0       0       0       0       0
+    0       6479    .       C       T       .       PASS    .       GT      0       0       0       0       0       1       0       0       1       0
+    0       6556    .       A       C       .       PASS    .       GT      0       0       0       1       0       0       0       0       0       0
+    0       6648    .       T       A       .       PASS    .       GT      1       1       1       0       1       1       1       1       1       1
 
 
 Using the SLiM engine
@@ -635,9 +677,11 @@ it doesn't affect this very much either).
    import stdpopsim
 
    species = stdpopsim.get_species("HomSap")
-   contig = species.get_contig("chr22", length_multiplier=0.1)
-   # default is a flat genetic map
    model = species.get_demographic_model("Africa_1T12")
+   contig = species.get_contig(
+       "chr22", length_multiplier=0.1, mutation_rate=model.mutation_rate
+   )
+   # default is a flat genetic map with average rate across chr22
    samples = model.get_samples(200)
 
 
@@ -726,7 +770,9 @@ we'd do the following
 
 .. code-block:: python
 
-   contig = species.get_contig("chr22", genetic_map="HapMapII_GRCh37")
+   contig = species.get_contig(
+       "chr22", genetic_map="HapMapII_GRCh37", mutation_rate=model.mutation_rate
+   )
    samples = model.get_samples(200)
    engine = stdpopsim.get_engine("slim")
    ts = engine.simulate(model, contig, samples, slim_burn_in=0.1, slim_scaling_factor=10)
@@ -863,6 +909,7 @@ Using the ``--help-genetic-maps`` option, we can also see what recombination map
 are available:
 
 .. command-output:: stdpopsim HomSap --help-genetic-maps
+    :ellipsis: 20
 
 Let's go with ``HapMapII_GRCh37``.
 The next command simulates 4 samples of chromosome 1 from each of the four
@@ -873,7 +920,7 @@ To check that we have set up the simulation correctly, we may first wish to perf
 dry run using the ``-D`` option.
 This will print information about the simulation to the terminal:
 
-.. command-output:: stdpopsim HomSap -c chr1 -o   afr-america-chr1.trees -s 13 -g HapMapII_GRCh37 -d AmericanAdmixture_4B11 4 4 4 4 -D
+.. command-output:: stdpopsim HomSap -c chr1 -o afr-america-chr1.trees -s 13 -g HapMapII_GRCh37 -d AmericanAdmixture_4B11 4 4 4 4 -D
 
 Once we're sure, we can remove the ``-D`` flag to run the simulation. (Note: This took around 8 minutes to run on a laptop.)
 
