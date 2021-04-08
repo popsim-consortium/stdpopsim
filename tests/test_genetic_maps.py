@@ -7,6 +7,8 @@ import tarfile
 import tempfile
 import os.path
 import pathlib
+import pytest
+import re
 
 import msprime
 
@@ -235,3 +237,33 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
         for bad_chrom in ["", "ABD", None]:
             with self.assertRaises(ValueError):
                 genetic_map.get_chromosome_map(bad_chrom)
+
+    @pytest.mark.filterwarnings(
+        "ignore: Recombination map.*is longer than chromosome length"
+    )
+    def test_one_chrom_from_each_map(self):
+        for gm in stdpopsim.all_genetic_maps():
+            species = gm.species
+            if gm.id in ("NaterPA_PonAbe2", "NaterPP_PonAbe2"):
+                # XXX: these maps are currently broken:
+                #   ValueError: The last entry in the 'rate' column must be zero
+                continue
+            # Just load the first chromosome in the list.
+            # There's no requirement that any given chromosome is actually
+            # in the map, and we don't have a direct way to check
+            # for its presence. But if this chromsome is *not* in the
+            # map, we will recieve a warning (and then fail the test below).
+            chrom = species.genome.chromosomes[0]
+            with pytest.warns(None) as record:
+                gm.get_chromosome_map(chrom.id)
+
+            # Fail the test if we get any warnings matching the message below.
+            # There doesn't seem to be a way to simply check for the absense
+            # of a specific warning using pytest, so we record all warnings
+            # and check manually.
+            record = [
+                r
+                for r in record
+                if re.match(r"Recombination map not found", str(r.message)) is not None
+            ]
+            assert len(record) == 0, f"{species.id} / {gm.id}"
