@@ -124,8 +124,15 @@ class _MsprimeEngine(Engine):
             reasons={stdpopsim.CiteReason.ENGINE},
         )
     ]
+
     # We default to the first model in the list.
-    supported_models = ["hudson", "dtwf", "smc", "smc_prime"]
+    model_class_map = {
+        "hudson": msprime.StandardCoalescent,
+        "dtwf": msprime.DiscreteTimeWrightFisher,
+        "smc": msprime.SmcApproxCoalescent,
+        "smc_prime": msprime.SmcPrimeApproxCoalescent,
+    }
+
     model_citations = {
         "dtwf": [
             stdpopsim.Citation(
@@ -136,6 +143,46 @@ class _MsprimeEngine(Engine):
             )
         ]
     }
+
+    @property
+    def supported_models(self):
+        return list(self.model_class_map.keys())
+
+    def _convert_model_spec(self, model_str, model_changes):
+        """
+        Convert the specified model specification into a form suitable
+        for sim_ancestry. The model param is a string or None. The
+        model_changes is either None or list of (time, model_str) tuples.
+        Also return the appropriate extra citations.
+        """
+        citations = []
+        if model_str is None:
+            model_str = "hudson"
+        else:
+            if model_str not in self.model_class_map:
+                raise ValueError(f"Unrecognised model '{model_str}'")
+            if model_str in self.model_citations:
+                citations.extend(self.model_citations[model_str])
+
+        if model_changes is None:
+            model = model_str
+        else:
+            model_list = []
+            last_t = 0
+            last_model = model_str
+            for t, model in model_changes:
+                if model not in self.supported_models:
+                    raise ValueError(f"Unrecognised model '{model}'")
+                if model in self.model_citations:
+                    citations.extend(self.model_citations[model])
+                duration = t - last_t
+                model_list.append(self.model_class_map[last_model](duration=duration))
+                last_model = model
+                last_t = t
+            model_list.append(self.model_class_map[last_model](duration=None))
+            model = model_list
+
+        return model, citations
 
     def simulate(
         self,
@@ -164,24 +211,11 @@ class _MsprimeEngine(Engine):
         :param dry_run: If True, ``end_time=0`` is passed to :meth:`msprime.simulate()`
             to initialise the simulation and then immediately return.
         :type dry_run: bool
-        :param \\**kwargs: Further arguments passed to :meth:`msprime.simulate()`
+        :param \\**kwargs: Further arguments passed to :meth:`msprime.sim_ancestry()`
         """
-        if msprime_model is None:
-            msprime_model = self.supported_models[0]
-        else:
-            if msprime_model not in self.supported_models:
-                raise ValueError(f"Unrecognised model '{msprime_model}'")
-            if msprime_model in self.model_citations:
-                self.citations.extend(self.model_citations[msprime_model])
 
-        if msprime_change_model is not None:
-            msprime_model = [msprime_model]
-            for t, model in msprime_change_model:
-                if model not in self.supported_models:
-                    raise ValueError(f"Unrecognised model '{model}'")
-                msprime_model.append((t, model))
-                if model in self.model_citations:
-                    self.citations.extend(self.model_citations[model])
+        model, citations = self._convert_model_spec(msprime_model, msprime_change_model)
+        self.citations.extend(citations)
 
         if "random_seed" in kwargs.keys():
             if seed is None:
@@ -202,7 +236,7 @@ class _MsprimeEngine(Engine):
             demography=demographic_model.model,
             ploidy=2,
             random_seed=seeds[0],
-            model=msprime_model,
+            model=model,
             end_time=0 if dry_run else None,
             **kwargs,
         )

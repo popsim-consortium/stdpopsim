@@ -211,7 +211,7 @@ class SpeciesCatalogDirective(SphinxDirective):
             row += entry
 
             entry = nodes.entry()
-            entry += nodes.paragraph(text=f"{population.sampling_time}")
+            entry += nodes.paragraph(text=f"{population.default_sampling_time}")
             row += entry
 
             entry = nodes.entry()

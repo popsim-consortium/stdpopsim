@@ -121,7 +121,7 @@ class DemographicModel:
                 # moment.
                 msp_pop.allow_samples = True
                 if local_pop.sampling_time is not None:
-                    msp_pop.sampling_time = local_pop.sampling_time
+                    msp_pop.default_sampling_time = local_pop.sampling_time
                 else:
                     msp_pop.allow_samples = False
         else:
@@ -197,7 +197,7 @@ class DemographicModel:
                     msprime.SampleSet(
                         num_samples=n,
                         population=pop_index,
-                        time=self.populations[pop_index].sampling_time,
+                        time=self.populations[pop_index].default_sampling_time,
                         ploidy=1,  # Avoid breaking too much at once.
                     )
                 )
