@@ -101,7 +101,13 @@ class GeneticMap:
         # needs to be redownloaded.
         map_file = self.map_cache_dir / self.file_pattern.format(id=chrom.id)
         if map_file.exists():
-            recomb_map = msprime.RateMap.read_hapmap(map_file)
+            recomb_map = msprime.RateMap.read_hapmap(
+                map_file,
+                rate_col=2,
+                # TODO: set the sequence length. Unfortunately, some of our
+                # maps are shorter than our chromosomes, so this will fail.
+                # sequence_length=chrom.length
+            )
         else:
             warnings.warn(
                 "Recombination map not found for chromosome: '{}'"
