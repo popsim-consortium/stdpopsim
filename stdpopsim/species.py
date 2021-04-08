@@ -106,26 +106,21 @@ class Species:
         model uses the generation time that was used in the original
         publication(s).
     :vartype generation_time: float
-    :ivar generation_time_citations: A list of :class:`.Citation` objects
-        providing justification for the genertion time estimate.
-    :vartype generation_time_citations: list
     :ivar population_size: The current best estimate for the population
         size of this species. Note that individual demographic
         models in the catalog may or may not use this estimate: each
         model uses the population sizes defined in the original
         publication(s).
     :vartype population_size: float
-    :ivar population_size_citations: A list of :class:`.Citation` objects
-        providing justification for the population size estimate.
-    :vartype population_size_citations: list
+    :ivar citations: A list of :class:`.Citation` objects
+        providing the source for the generation time and
+        population size estimates.
+    :vartype citations: list
     :ivar demographic_models: This list of :class:`DemographicModel`
         instances in the catalog for this species.
     :vartype demographic_models: list
-    :ivar ensembl_id: The ensembl id for the species' genome assembly,
-        which will be used by maintenance scripts to query ensembl's database.
-        This parameter will be automatically populated from the species name,
-        and should not be set directly unless a non-default assembly is used
-        for the species definition (e.g. see E. coli).
+    :ivar ensembl_id: The ensembl id for the species which is used by
+        maintenance scripts to query ensembl's database.
     :vartype ensembl_id: str
     """
 
@@ -133,25 +128,17 @@ class Species:
     name = attr.ib(type=str, kw_only=True)
     common_name = attr.ib(type=str, kw_only=True)
     genome = attr.ib(type=int, kw_only=True)
-    generation_time = attr.ib(default=1, kw_only=True)
-    generation_time_citations = attr.ib(factory=list, kw_only=True)
-    population_size = attr.ib(default=1, kw_only=True)
-    population_size_citations = attr.ib(factory=list, kw_only=True)
+    generation_time = attr.ib(default=0, kw_only=True)
+    population_size = attr.ib(default=0, kw_only=True)
     demographic_models = attr.ib(factory=list, kw_only=True)
     ensembl_id = attr.ib(type=str, kw_only=True)
+    citations = attr.ib(factory=list, kw_only=True)
+
     # A list of genetic maps. This is undocumented as the parameter is not
     # intended to be used when the Species is initialsed.
     # Use add_genetic_map() instead.
     genetic_maps = attr.ib(factory=list, kw_only=True)
     annotations = attr.ib(factory=list, kw_only=True)
-
-    @ensembl_id.default
-    def _default_ensembl_id(self):
-        """
-        Returns the ID of this species for the Ensembl REST API.
-        This is the species name, underscore delimited and in lowercase.
-        """
-        return self.name.lower().replace(" ", "_")
 
     def get_contig(
         self,
@@ -226,7 +213,7 @@ class Species:
                     u_tot += chrom_data.length * chrom_data.mutation_rate
             u = u_tot / L_tot
             r = r_tot / L_tot
-            recomb_map = msprime.RecombinationMap.uniform_map(length, r)
+            recomb_map = msprime.RateMap.uniform(length, r)
             ret = stdpopsim.Contig(recombination_map=recomb_map, mutation_rate=u)
         else:
             if length is not None:
@@ -237,8 +224,8 @@ class Species:
             if genetic_map is None:
                 logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.id}")
                 gm = None
-                recomb_map = msprime.RecombinationMap.uniform_map(
-                    chrom.length * length_multiplier, chrom.recombination_rate
+                recomb_map = msprime.RateMap.uniform(
+                    round(chrom.length * length_multiplier), chrom.recombination_rate
                 )
             else:
                 if length_multiplier != 1:
@@ -310,16 +297,16 @@ class Species:
         self.genetic_maps.append(genetic_map)
 
     def get_genetic_map(self, id):
-        """
-        Returns a genetic map (AKA. recombination map) with the specified ``id``.
-
-        :param str id: The string identifier for the genetic map.
-            A complete list of IDs for each species can be found in the
-            "Genetic Maps" subsection for the species in the :ref:`sec_catalog`.
-        :rtype: :class:`GeneticMap`
-        :return: A :class:`GeneticMap` that defines the frequency of
-            recombinations across the genome.
-        """
+        # NOTE: Undocumenting this method as the GeneticMap API isn't part of the
+        # supported public interface.
+        #
+        # Returns a genetic map (AKA. recombination map) with the specified ``id``.
+        # :param str id: The string identifier for the genetic map.
+        #     A complete list of IDs for each species can be found in the
+        #     "Genetic Maps" subsection for the species in the :ref:`sec_catalog`.
+        # :rtype: :class:`GeneticMap`
+        # :return: A :class:`GeneticMap` that defines the frequency of
+        #     recombinations across the genome.
         for gm in self.genetic_maps:
             if gm.id == id:
                 return gm

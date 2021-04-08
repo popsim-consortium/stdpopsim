@@ -268,9 +268,8 @@ def get_citations(engine, model, contig, species):
     """
     citations = [stdpopsim.citations._stdpopsim_citation]
     citations.extend(engine.citations)
-    citations.extend(species.genome.assembly_citations)
-    citations.extend(species.genome.mutation_rate_citations)
-    citations.extend(species.genome.recombination_rate_citations)
+    citations.extend(species.citations)
+    citations.extend(species.genome.citations)
     if contig.genetic_map is not None:
         citations.extend(contig.genetic_map.citations)
     citations.extend(model.citations)
@@ -498,8 +497,10 @@ def add_simulate_species_parser(parser, species):
         if args.demographic_model is None:
             model = stdpopsim.PiecewiseConstantSize(species.population_size)
             model.generation_time = species.generation_time
-            model.citations.extend(species.population_size_citations)
-            model.citations.extend(species.generation_time_citations)
+            for citation in species.citations:
+                reasons = {stdpopsim.CiteReason.POP_SIZE, stdpopsim.CiteReason.GEN_TIME}
+                if len(citation.reasons & reasons) > 0:
+                    model.citations.append(citation)
             qc_complete = True
         else:
             model = get_model_wrapper(species, args.demographic_model)
@@ -577,17 +578,17 @@ def write_simulation_summary(engine, model, contig, samples, seed=None):
     dry_run_text += f"{indent}Population: number_samples (sampling_time_generations):\n"
     sample_counts = [0] * model.num_sampling_populations
     for s in samples:
-        sample_counts[s.population] += 1
+        sample_counts[s.population] += s.num_samples
     for p in range(0, model.num_sampling_populations):
         pop_name = model.populations[p].id
-        sample_time = model.populations[p].sampling_time
+        sample_time = model.populations[p].default_sampling_time
         dry_run_text += f"{indent * 2}{pop_name}: "
         dry_run_text += f"{sample_counts[p]} ({sample_time})\n"
     # Get information about relevant contig
     gmap = "None" if contig.genetic_map is None else contig.genetic_map.id
-    mean_recomb_rate = contig.recombination_map.mean_recombination_rate
+    mean_recomb_rate = contig.recombination_map.mean_rate
     mut_rate = contig.mutation_rate
-    contig_len = contig.recombination_map.get_length()
+    contig_len = contig.recombination_map.sequence_length
     dry_run_text += "Contig Description:\n"
     dry_run_text += f"{indent}Contig length: {contig_len}\n"
     dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"

@@ -11,17 +11,19 @@ import io
 import argparse  # NOQA
 import os
 import logging
+import warnings
 from unittest import mock
 
 import tskit
 import msprime
 import kastore
+import pytest
 
 import stdpopsim
 import stdpopsim.cli as cli
 
 
-class TestException(Exception):
+class ExceptionForTesting(Exception):
     """
     Custom exception we can throw for testing.
     """
@@ -216,20 +218,17 @@ class TestEndToEnd(unittest.TestCase):
             self.assertEqual(len(stdout), 0)
             ts = tskit.load(str(filename))
         self.assertEqual(ts.num_samples, num_samples)
-        provenance = json.loads(ts.provenance(0).record)
-        prov_seed = provenance["parameters"]["random_seed"]
-        self.assertEqual(prov_seed, seed)
 
     def test_homsap_seed(self):
-        cmd = "HomSap -c chr22 -l0.1 -s 1234 20"
+        cmd = "HomSap -c chr20 -l0.1 -s 1234 20"
         self.verify(cmd, num_samples=20, seed=1234)
 
     def test_homsap_constant(self):
-        cmd = "HomSap -c chr22 -l0.1 20"
+        cmd = "HomSap -c chr20 -l0.1 20"
         self.verify(cmd, num_samples=20)
 
     def test_tennessen_two_pop_ooa(self):
-        cmd = "HomSap -c chr22 -l0.1 -d OutOfAfrica_2T12 2 3"
+        cmd = "HomSap -c chr20 -l0.1 -d OutOfAfrica_2T12 2 3"
         self.verify(cmd, num_samples=5)
 
     def test_gutenkunst_three_pop_ooa(self):
@@ -243,10 +242,6 @@ class TestEndToEnd(unittest.TestCase):
     def test_ragsdale_archaic(self):
         cmd = "HomSap -c chr1 -l0.01 -d OutOfAfricaArchaicAdmixture_5R19 10"
         self.verify(cmd, num_samples=10)
-
-    def test_schiffels_zigzag(self):
-        cmd = "HomSap -c chr1 -l0.01 -d Zigzag_1S14 2"
-        self.verify(cmd, num_samples=2)
 
     def test_dromel_constant(self):
         cmd = "DroMel -c 2L -l0.001 4"
@@ -289,9 +284,6 @@ class TestEndToEndSubprocess(TestEndToEnd):
         self.assertEqual(stored_cmd[-1], str(seed))
         self.assertEqual(stored_cmd[-2], "-s")
         self.assertEqual(stored_cmd[1:-4], cmd.split())
-        provenance = json.loads(ts.provenance(0).record)
-        prov_seed = provenance["parameters"]["random_seed"]
-        self.assertEqual(prov_seed, seed)
 
 
 class TestWriteOutput(unittest.TestCase):
@@ -365,11 +357,11 @@ class TestRedirection(unittest.TestCase):
             self.verify_files(filename1, filename2)
 
     def test_quiet(self):
-        cmd = "-q HomSap -s 2 10 -c chr22 -l 0.001"
+        cmd = "-q HomSap -s 2 10 -c chr20 -l 0.001"
         self.verify(cmd)
 
     def test_no_quiet(self):
-        cmd = "HomSap -s 3 10 -c chr22 -l 0.001"
+        cmd = "HomSap -s 3 10 -c chr20 -l 0.001"
         self.verify(cmd)
 
 
@@ -523,9 +515,9 @@ class TestErrors(unittest.TestCase):
 
     def test_exit(self):
         with mock.patch(
-            "sys.exit", side_effect=TestException, autospec=True
+            "sys.exit", side_effect=ExceptionForTesting, autospec=True
         ) as mocked_exit:
-            with self.assertRaises(TestException):
+            with self.assertRaises(ExceptionForTesting):
                 cli.exit("XXX")
             mocked_exit.assert_called_once()
             args = mocked_exit.call_args[0]
@@ -537,9 +529,9 @@ class TestErrors(unittest.TestCase):
     @mock.patch("stdpopsim.cli.setup_logging", autospec=True)
     def verify_bad_samples(self, cmd, mock_setup_logging):
         with mock.patch(
-            "stdpopsim.cli.exit", side_effect=TestException, autospec=True
+            "stdpopsim.cli.exit", side_effect=ExceptionForTesting, autospec=True
         ) as mocked_exit:
-            with self.assertRaises(TestException):
+            with self.assertRaises(ExceptionForTesting):
                 cli.stdpopsim_main(cmd.split())
             mocked_exit.assert_called_once()
 
@@ -559,9 +551,11 @@ class TestErrors(unittest.TestCase):
 class TestHelp(unittest.TestCase):
     def run_stdpopsim(self, command):
         with mock.patch(
-            "argparse.ArgumentParser.exit", side_effect=TestException, autospec=True
+            "argparse.ArgumentParser.exit",
+            side_effect=ExceptionForTesting,
+            autospec=True,
         ) as mocked_exit:
-            with self.assertRaises(TestException):
+            with self.assertRaises(ExceptionForTesting):
                 capture_output(cli.stdpopsim_main, command.split())
             mocked_exit.assert_called_once()
 
@@ -600,7 +594,7 @@ class TestWriteBibtex(unittest.TestCase):
             filename = pathlib.Path(tmpdir) / "output.trees"
             bibfile = pathlib.Path(tmpdir) / "bib.bib"
             full_cmd = (
-                f"HomSap -c chr22 -l0.1 20 "
+                f"HomSap -c chr20 -l0.1 20 "
                 f"-o {filename} -d OutOfAfrica_3G09 --seed={seed} "
                 f"--bibtex={bibfile}"
             )
@@ -618,19 +612,23 @@ class TestWriteBibtex(unittest.TestCase):
         # Test that genetic map citations are converted.
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapMapII_GRCh37")
-        contig = species.get_contig("chr22", genetic_map=genetic_map.id)
+        contig = species.get_contig("chr20", genetic_map=genetic_map.id)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
-        cites_and_cites = [
-            [stdpopsim.citations._stdpopsim_citation],
-            genetic_map.citations,
-            model.citations,
-            engine.citations,
-            species.genome.mutation_rate_citations,
-            species.genome.recombination_rate_citations,
-            species.genome.assembly_citations,
-        ]
-        ncite = len(set([ref.doi for cites in cites_and_cites for ref in cites]))
+        local_cites = stdpopsim.Citation.merge(
+            [stdpopsim.citations._stdpopsim_citation]
+            + genetic_map.citations
+            + model.citations
+            + engine.citations
+            + species.genome.citations
+            + species.citations
+        )
+        dois = set([ref.doi for ref in local_cites])
+        ncite = len(dois)
+        assert ncite == len(local_cites)
+        cli_cites = cli.get_citations(engine, model, contig, species)
+        assert len(cli_cites) == len(local_cites)
+
         # Patch out writing to a file, then
         # ensure that the method is called
         # the correct number of times.
@@ -665,7 +663,7 @@ class TestWriteCitations(unittest.TestCase):
     def test_genetic_map_citations(self):
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapMapII_GRCh37")
-        contig = species.get_contig("chr22", genetic_map=genetic_map.id)
+        contig = species.get_contig("chr20", genetic_map=genetic_map.id)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
         with self.assertLogs() as logs:
@@ -913,7 +911,7 @@ class TestNoQCWarning(unittest.TestCase):
         self.species.demographic_models.remove(self.model)
 
     def verify_noQC_warning(self, cmd):
-        with self.assertWarns(stdpopsim.QCMissingWarning):
+        with pytest.warns(stdpopsim.QCMissingWarning):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
 
     def test_noQC_warning(self):
@@ -926,7 +924,9 @@ class TestNoQCWarning(unittest.TestCase):
         # Non-QCed models shouldn't be used in publications, so citations
         # shouldn't be offered to the user.
         with self.assertLogs() as logs:
-            out, err = capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                out, err = capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
         log_output = "\n".join(logs.output)
         for citation in self.model.citations:
             self.assertFalse(citation.author in out)
@@ -941,3 +941,14 @@ class TestNoQCWarning(unittest.TestCase):
 
     def test_noQC_citations_not_written_verbose(self):
         self.verify_noQC_citations_not_written("-vv EscCol -d FakeModel -D 10 -L 10")
+
+
+@pytest.mark.parametrize(
+    "species_id", [species.id for species in stdpopsim.all_species()]
+)
+def test_species_simulation(species_id):
+    cmd = f"-q {species_id} -L 1 --seed 1234 10"
+    # Just check to see if the simulation runs
+    with mock.patch("sys.stdout", autospec=True) as stdout:
+        stdout.buffer = open(os.devnull, "wb")
+        stdpopsim.cli.stdpopsim_main(cmd.split())

@@ -80,12 +80,20 @@ class SpeciesCatalogDirective(SphinxDirective):
             (
                 "Generation time",
                 species.generation_time,
-                species.generation_time_citations,
+                [
+                    citation
+                    for citation in species.citations
+                    if stdpopsim.CiteReason.GEN_TIME in citation.reasons
+                ],
             ),
             (
                 "Population size",
                 species.population_size,
-                species.population_size_citations,
+                [
+                    citation
+                    for citation in species.citations
+                    if stdpopsim.CiteReason.POP_SIZE in citation.reasons
+                ],
             ),
         ]
         return self.make_field_list(data)
@@ -203,7 +211,7 @@ class SpeciesCatalogDirective(SphinxDirective):
             row += entry
 
             entry = nodes.entry()
-            entry += nodes.paragraph(text=f"{population.sampling_time}")
+            entry += nodes.paragraph(text=f"{population.default_sampling_time}")
             row += entry
 
             entry = nodes.entry()

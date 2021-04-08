@@ -1,8 +1,10 @@
 import logging
+import warnings
 
 import attr
 import msprime
 import stdpopsim
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -65,14 +67,16 @@ class Engine:
 
     def simulate(
         self,
-        demographic_model=None,
-        contig=None,
-        samples=None,
+        demographic_model,
+        contig,
+        samples,
+        *,
         seed=None,
         dry_run=False,
     ):
         """
-        Simulates the model for the specified contig and samples.
+        Simulates the model for the specified contig and samples. ``demographic_model``,
+        ``contig``, and ``samples`` must be specified.
 
         :param demographic_model: The demographic model to simulate.
         :type demographic_model: :class:`.DemographicModel`
@@ -99,6 +103,15 @@ class Engine:
         """
         raise NotImplementedError()
 
+    def _warn_zigzag(self, demographic_model):
+        if demographic_model.id == "Zigzag_1S14":
+            warnings.warn(
+                "In stdpopsim <= 0.1.2, the Zigzag_1S14 model produced population "
+                "sizes 5x lower than those in Schiffels & Durbin (2014). "
+                "The population sizes have now been corrected. For details see: "
+                "https://github.com/popsim-consortium/stdpopsim/issues/745"
+            )
+
 
 class _MsprimeEngine(Engine):
     id = "msprime"  #:
@@ -111,8 +124,15 @@ class _MsprimeEngine(Engine):
             reasons={stdpopsim.CiteReason.ENGINE},
         )
     ]
+
     # We default to the first model in the list.
-    supported_models = ["hudson", "dtwf", "smc", "smc_prime"]
+    model_class_map = {
+        "hudson": msprime.StandardCoalescent,
+        "dtwf": msprime.DiscreteTimeWrightFisher,
+        "smc": msprime.SmcApproxCoalescent,
+        "smc_prime": msprime.SmcPrimeApproxCoalescent,
+    }
+
     model_citations = {
         "dtwf": [
             stdpopsim.Citation(
@@ -124,15 +144,57 @@ class _MsprimeEngine(Engine):
         ]
     }
 
+    @property
+    def supported_models(self):
+        return list(self.model_class_map.keys())
+
+    def _convert_model_spec(self, model_str, model_changes):
+        """
+        Convert the specified model specification into a form suitable
+        for sim_ancestry. The model param is a string or None. The
+        model_changes is either None or list of (time, model_str) tuples.
+        Also return the appropriate extra citations.
+        """
+        citations = []
+        if model_str is None:
+            model_str = "hudson"
+        else:
+            if model_str not in self.model_class_map:
+                raise ValueError(f"Unrecognised model '{model_str}'")
+            if model_str in self.model_citations:
+                citations.extend(self.model_citations[model_str])
+
+        if model_changes is None:
+            model = model_str
+        else:
+            model_list = []
+            last_t = 0
+            last_model = model_str
+            for t, model in model_changes:
+                if model not in self.supported_models:
+                    raise ValueError(f"Unrecognised model '{model}'")
+                if model in self.model_citations:
+                    citations.extend(self.model_citations[model])
+                duration = t - last_t
+                model_list.append(self.model_class_map[last_model](duration=duration))
+                last_model = model
+                last_t = t
+            model_list.append(self.model_class_map[last_model](duration=None))
+            model = model_list
+
+        return model, citations
+
     def simulate(
         self,
-        demographic_model=None,
-        contig=None,
-        samples=None,
+        demographic_model,
+        contig,
+        samples,
+        *,
         seed=None,
         msprime_model=None,
         msprime_change_model=None,
         dry_run=False,
+        **kwargs,
     ):
         """
         Simulate the demographic model using msprime.
@@ -149,36 +211,40 @@ class _MsprimeEngine(Engine):
         :param dry_run: If True, ``end_time=0`` is passed to :meth:`msprime.simulate()`
             to initialise the simulation and then immediately return.
         :type dry_run: bool
+        :param \\**kwargs: Further arguments passed to :meth:`msprime.sim_ancestry()`
         """
-        if msprime_model is None:
-            msprime_model = self.supported_models[0]
-        else:
-            if msprime_model not in self.supported_models:
-                raise ValueError(f"Unrecognised model '{msprime_model}'")
-            if msprime_model in self.model_citations:
-                self.citations.extend(self.model_citations[msprime_model])
 
-        demographic_events = demographic_model.demographic_events.copy()
-        if msprime_change_model is not None:
-            for t, model in msprime_change_model:
-                if model not in self.supported_models:
-                    raise ValueError(f"Unrecognised model '{model}'")
-                model_change = msprime.SimulationModelChange(t, model)
-                demographic_events.append(model_change)
-                if model in self.model_citations:
-                    self.citations.extend(self.model_citations[model])
-            demographic_events.sort(key=lambda x: x.time)
+        model, citations = self._convert_model_spec(msprime_model, msprime_change_model)
+        self.citations.extend(citations)
 
-        ts = msprime.simulate(
+        if "random_seed" in kwargs.keys():
+            if seed is None:
+                seed = kwargs["random_seed"]
+                del kwargs["random_seed"]
+            else:
+                raise ValueError("Cannot set both seed and random_seed")
+
+        # TODO: remove this after a release or two. See #745.
+        self._warn_zigzag(demographic_model)
+
+        rng = np.random.default_rng(seed)
+        seeds = rng.integers(1, 2 ** 31 - 1, size=2)
+
+        ts = msprime.sim_ancestry(
             samples=samples,
-            recombination_map=contig.recombination_map,
-            mutation_rate=contig.mutation_rate,
-            population_configurations=demographic_model.population_configurations,
-            migration_matrix=demographic_model.migration_matrix,
-            demographic_events=demographic_events,
-            random_seed=seed,
-            model=msprime_model,
+            recombination_rate=contig.recombination_map,
+            demography=demographic_model.model,
+            ploidy=2,
+            random_seed=seeds[0],
+            model=model,
             end_time=0 if dry_run else None,
+            **kwargs,
+        )
+        ts = msprime.sim_mutations(
+            ts,
+            end_time=0 if dry_run else None,
+            random_seed=seeds[1],
+            rate=contig.mutation_rate,
         )
 
         if contig.inclusion_mask is not None:

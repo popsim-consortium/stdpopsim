@@ -19,16 +19,9 @@ from .citations import *  # NOQA
 from .engines import *  # NOQA
 from .warning_categories import *  # NOQA
 
-# Add imports for all defined species here.
-# We import these here to build the catalog, but the internal functions
+# We import catalog here, but the internal functions
 # defined are not part of the external API.
-from .catalog import AraTha  # NOQA
-from .catalog import BosTau  # NOQA
-from .catalog import CanFam  # NOQA
-from .catalog import DroMel  # NOQA
-from .catalog import EscCol  # NOQA
-from .catalog import HomSap  # NOQA
-from .catalog import PonAbe  # NOQA
+from .catalog import *  # NOQA
 
 from . import qc  # NOQA
 

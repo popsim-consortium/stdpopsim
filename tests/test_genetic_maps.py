@@ -7,6 +7,8 @@ import tarfile
 import tempfile
 import os.path
 import pathlib
+import pytest
+import re
 
 import msprime
 
@@ -63,6 +65,7 @@ class GeneticMapTestClass(stdpopsim.GeneticMap):
         genome = stdpopsim.Genome(chromosomes=[])
         _species = stdpopsim.Species(
             id="TesSpe",
+            ensembl_id="test_species",
             name="Test species",
             common_name="Testy McTestface",
             genome=genome,
@@ -119,7 +122,7 @@ class TestGeneticMapTarball(unittest.TestCase):
                     with utils.cd(extract_dir):
                         tar_file.extractall()
                         for fn in os.listdir(extract_dir):
-                            maps[fn] = msprime.RecombinationMap.read_hapmap(fn)
+                            maps[fn] = msprime.RateMap.read_hapmap(fn)
         return maps
 
     def test_no_args(self):
@@ -202,22 +205,65 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
     Tests if we get chromosome maps using the HapMapII_GRCh37 human map.
     """
 
-    species = stdpopsim.get_species("HomSap")
-    genetic_map = species.get_genetic_map("HapMapII_GRCh37")
-
     def test_warning_from_no_mapped_chromosome(self):
-        chrom = self.species.genome.get_chromosome("chrY")
+        species = stdpopsim.get_species("HomSap")
+        genetic_map = species.get_genetic_map("HapMapII_GRCh37")
+        chrom = species.genome.get_chromosome("chrY")
         with self.assertWarns(Warning):
-            cm = self.genetic_map.get_chromosome_map(chrom.id)
-            self.assertIsInstance(cm, msprime.RecombinationMap)
-            self.assertEqual(chrom.length, cm.get_sequence_length())
+            cm = genetic_map.get_chromosome_map(chrom.id)
+        self.assertIsInstance(cm, msprime.RateMap)
+        self.assertEqual(chrom.length, cm.sequence_length)
 
     def test_known_chromosome(self):
-        chrom = self.species.genome.get_chromosome("chr22")
-        cm = self.genetic_map.get_chromosome_map(chrom.id)
-        self.assertIsInstance(cm, msprime.RecombinationMap)
+        species = stdpopsim.get_species("CanFam")
+        genetic_map = species.get_genetic_map("Campbell2016_CanFam3_1")
+        chrom = species.genome.get_chromosome("1")
+        cm = genetic_map.get_chromosome_map(chrom.id)
+        self.assertIsInstance(cm, msprime.RateMap)
+        self.assertEqual(chrom.length, cm.sequence_length)
+
+    def test_warning_for_long_recomb_map(self):
+        species = stdpopsim.get_species("HomSap")
+        genetic_map = species.get_genetic_map("HapMapII_GRCh37")
+        chrom = species.genome.get_chromosome("chr1")
+        with self.assertWarns(Warning):
+            cm = genetic_map.get_chromosome_map(chrom.id)
+        self.assertIsInstance(cm, msprime.RateMap)
+        self.assertLess(chrom.length, cm.sequence_length)
 
     def test_unknown_chromosome(self):
+        species = stdpopsim.get_species("HomSap")
+        genetic_map = species.get_genetic_map("HapMapII_GRCh37")
         for bad_chrom in ["", "ABD", None]:
             with self.assertRaises(ValueError):
-                self.genetic_map.get_chromosome_map(bad_chrom)
+                genetic_map.get_chromosome_map(bad_chrom)
+
+    @pytest.mark.filterwarnings(
+        "ignore: Recombination map.*is longer than chromosome length"
+    )
+    def test_one_chrom_from_each_map(self):
+        for gm in stdpopsim.all_genetic_maps():
+            species = gm.species
+            if gm.id in ("NaterPA_PonAbe2", "NaterPP_PonAbe2"):
+                # XXX: these maps are currently broken:
+                #   ValueError: The last entry in the 'rate' column must be zero
+                continue
+            # Just load the first chromosome in the list.
+            # There's no requirement that any given chromosome is actually
+            # in the map, and we don't have a direct way to check
+            # for its presence. But if this chromsome is *not* in the
+            # map, we will recieve a warning (and then fail the test below).
+            chrom = species.genome.chromosomes[0]
+            with pytest.warns(None) as record:
+                gm.get_chromosome_map(chrom.id)
+
+            # Fail the test if we get any warnings matching the message below.
+            # There doesn't seem to be a way to simply check for the absense
+            # of a specific warning using pytest, so we record all warnings
+            # and check manually.
+            record = [
+                r
+                for r in record
+                if re.match(r"Recombination map not found", str(r.message)) is not None
+            ]
+            assert len(record) == 0, f"{species.id} / {gm.id}"

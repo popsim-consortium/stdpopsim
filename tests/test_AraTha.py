@@ -1,18 +1,16 @@
-import unittest
-
 import stdpopsim
 from tests import test_species
 
 
-class TestSpecies(unittest.TestCase, test_species.SpeciesTestMixin):
+class TestSpecies(test_species.SpeciesTestBase):
     species = stdpopsim.get_species("AraTha")
 
     def test_basic_attributes(self):
-        self.assertEqual(self.species.population_size, 10 ** 4)
-        self.assertEqual(self.species.generation_time, 1)
+        assert self.species.population_size == 10 ** 4
+        assert self.species.generation_time == 1
 
 
-class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
+class TestGenome(test_species.GenomeTestBase):
     """
     Tests for the arabidopsis_thaliana genome.
     """
@@ -21,4 +19,4 @@ class TestGenome(unittest.TestCase, test_species.GenomeTestMixin):
 
     def test_basic_attributes(self):
         # 5 autosomes + Mt + Pt
-        self.assertEqual(len(self.genome.chromosomes), 7)
+        assert len(self.genome.chromosomes) == 7

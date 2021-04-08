@@ -5,10 +5,10 @@ Installation
 ============
 
 You can get started right away, without installing ``stdpopsim`` locally, by using the
-`Jupyter Binder <https://mybinder.org/v2/gh/popsim-consortium/stdpopsim/master?filepath=stdpopsim_example.ipynb>`_. |binder|
+`Jupyter Binder <https://mybinder.org/v2/gh/popsim-consortium/stdpopsim/main?filepath=stdpopsim_example.ipynb>`_. |binder|
 
 .. |binder| image:: https://mybinder.org/badge_logo.svg
- :target: https://mybinder.org/v2/gh/popsim-consortium/stdpopsim/master?filepath=stdpopsim_example.ipynb
+ :target: https://mybinder.org/v2/gh/popsim-consortium/stdpopsim/main?filepath=stdpopsim_example.ipynb
 
 
 There are two basic options for installing ``stdpopsim`` and its dependencies: either

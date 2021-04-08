@@ -1,5 +1,5 @@
 """
-Tests for the genetic species interface.
+Tests for the generic species interface.
 """
 import unittest
 import math
@@ -88,42 +88,62 @@ class TestSpecies(unittest.TestCase):
             species.add_annotations(an)
 
 
-class SpeciesTestMixin(object):
+class SpeciesTestBase:
     """
-    Mixin class for testing individual species properties.
+    Base class for testing individual species properties.
     """
 
     species = None  # To be defined in subclasses.
 
     def test_str(self):
         s = str(self.species)
-        self.assertGreater(len(s), 0)
-        self.assertIsInstance(s, str)
+        assert len(s) > 0
+        assert isinstance(s, str)
 
     def test_id(self):
-        self.assertIsInstance(self.species.id, str)
-        self.assertTrue(utils.is_valid_species_id(self.species.id))
+        assert isinstance(self.species.id, str)
+        assert utils.is_valid_species_id(self.species.id)
 
-    def test_name(self):
-        self.assertIsInstance(self.species.name, str)
-        self.assertTrue(utils.is_valid_species_name(self.species.name))
+    def test_name_basics(self):
+        assert isinstance(self.species.name, str)
+        assert utils.is_valid_species_name(self.species.name)
 
-    def test_common_name(self):
-        self.assertIsInstance(self.species.name, str)
-        self.assertTrue(utils.is_valid_species_common_name(self.species.common_name))
+    def test_common_name_basics(self):
+        assert isinstance(self.species.common_name, str)
+        assert utils.is_valid_species_common_name(self.species.name)
+
+    def test_genome_type(self):
+        assert isinstance(self.species.genome, stdpopsim.Genome)
+
+    def test_demographic_model_types(self):
+        assert isinstance(self.species.demographic_models, list)
+        for model in self.species.demographic_models:
+            assert isinstance(model, stdpopsim.DemographicModel)
+
+    def test_citation_properties(self):
+        for citation in self.species.citations:
+            # Test some basic stuff about the citations.
+            assert isinstance(citation, stdpopsim.Citation)
+            citation.assert_valid()
+
+    def test_generation_time_defined(self):
+        assert self.species.generation_time > 0
+
+    def test_population_size_defined(self):
+        assert self.species.population_size > 0
 
 
-class GenomeTestMixin(object):
+class GenomeTestBase:
     """
-    Mixin class for testing individual genome properties.
+    Base class for testing individual genome properties.
     """
 
     genome = None  # To be defined in subclasses.
 
     def test_str(self):
         s = str(self.genome)
-        self.assertGreater(len(s), 0)
-        self.assertIsInstance(s, str)
+        assert len(s) > 0
+        assert isinstance(s, str)
 
     def test_mean_recombination_rate(self):
         # test that the mean recombination rate lies between the max and min values
@@ -137,8 +157,8 @@ class GenomeTestMixin(object):
             highest_rr = max(highest_rr, rr)
         mean_genome_rr = self.genome.mean_recombination_rate
         if not math.isclose(mean_genome_rr, lowest_rr):
-            self.assertGreaterEqual(mean_genome_rr, lowest_rr)
-            self.assertGreaterEqual(highest_rr, mean_genome_rr)
+            assert mean_genome_rr >= lowest_rr
+            assert highest_rr >= mean_genome_rr
 
     def test_mean_mutation_rate(self):
         # test that the mean mutation rate lies between the max and min values
@@ -150,8 +170,27 @@ class GenomeTestMixin(object):
             highest_mr = max(highest_mr, mr)
         mean_genome_mr = self.genome.mean_mutation_rate
         if not math.isclose(mean_genome_mr, lowest_mr):
-            self.assertGreaterEqual(mean_genome_mr, lowest_mr)
-            self.assertGreaterEqual(highest_mr, mean_genome_mr)
+            assert mean_genome_mr >= lowest_mr
+            assert highest_mr >= mean_genome_mr
+
+    def test_chromosomes(self):
+        assert len(self.genome.chromosomes) > 0
+        for chrom in self.genome.chromosomes:
+            assert isinstance(chrom, stdpopsim.Chromosome)
+
+    def test_mutation_rates_set(self):
+        for chrom in self.genome.chromosomes:
+            assert chrom.mutation_rate >= 0
+
+    def test_recombination_rates_set(self):
+        for chrom in self.genome.chromosomes:
+            assert chrom.recombination_rate >= 0
+
+    def test_citation_properties(self):
+        for citation in self.genome.citations:
+            # Test some basic stuff about the citations.
+            assert isinstance(citation, stdpopsim.Citation)
+            citation.assert_valid()
 
 
 class TestAllGenomes(unittest.TestCase):
@@ -178,8 +217,8 @@ class TestGetContig(unittest.TestCase):
         for x in [0.125, 1.0, 2.0]:
             contig2 = self.species.get_contig("chr22", length_multiplier=x)
             self.assertEqual(
-                contig1.recombination_map.get_positions()[-1] * x,
-                contig2.recombination_map.get_positions()[-1],
+                round(contig1.recombination_map.position[-1] * x),
+                contig2.recombination_map.position[-1],
             )
 
     def test_length_multiplier_on_empirical_map(self):
@@ -191,7 +230,7 @@ class TestGetContig(unittest.TestCase):
     def test_genetic_map(self):
         # TODO we should use a different map here so we're not hitting the cache.
         contig = self.species.get_contig("chr22", genetic_map="HapMapII_GRCh37")
-        self.assertIsInstance(contig.recombination_map, msprime.RecombinationMap)
+        self.assertIsInstance(contig.recombination_map, msprime.RateMap)
 
     def test_contig_options(self):
         with self.assertRaises(ValueError):
@@ -226,7 +265,7 @@ class TestGetContig(unittest.TestCase):
     def test_generic_contig(self):
         L = 1e6
         contig = self.species.get_contig(length=L)
-        self.assertTrue(contig.recombination_map.get_length() == L)
+        self.assertTrue(contig.recombination_map.sequence_length == L)
 
         chrom_ids = np.arange(1, 23).astype("str")
         Ls = [c.length for c in self.species.genome.chromosomes if c.id in chrom_ids]
@@ -243,6 +282,5 @@ class TestGetContig(unittest.TestCase):
 
         self.assertTrue(contig.mutation_rate == np.average(us, weights=Ls))
         self.assertTrue(
-            contig.recombination_map.mean_recombination_rate
-            == np.average(rs, weights=Ls)
+            contig.recombination_map.mean_rate == np.average(rs, weights=Ls)
         )

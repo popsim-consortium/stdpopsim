@@ -1,0 +1,8 @@
+__pycache__
+stdpopsim/_version.py
+docs/_build
+docs/_ext
+.*.swp
+build
+dist
+stdpopsim.egg-info

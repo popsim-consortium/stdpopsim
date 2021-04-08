@@ -4,6 +4,7 @@ Infrastructure for managing genetic maps.
 import warnings
 
 import msprime
+import numpy as np
 
 import stdpopsim
 
@@ -14,13 +15,13 @@ class GeneticMap:
     Class representing a genetic map for a species. Provides functionality for
     downloading and cacheing recombination maps from a remote URL.
 
-    .. todo: Document the attributes in this class
+    .. note: This interface is internal, preliminary and should not be used by
+        external code.
 
     :ivar url: The URL where the packed and compressed genetic map can be obtained.
     :vartype url: str
-    :ivar file_pattern: The pattern used to map name individual chromosome to
-        files, suitable for use with Python's :meth:`str.format` method.
-    :vartype file_pattern: str
+    :ivar file_pattern: The pattern used to map individual chromosome id strings
+        to files.
     """
 
     def __init__(
@@ -53,6 +54,11 @@ class GeneticMap:
 
     @property
     def map_cache_dir(self):
+        """
+        The path to the directory in which the files for this map are stored.
+
+        :type: pathlib.Path
+        """
         return self._cache.cache_path
 
     def __str__(self):
@@ -83,8 +89,8 @@ class GeneticMap:
         :param str id: The chromosome identifier.
              A complete list of chromosome IDs for each species can be found in the
              "Genome" subsection for the species in the :ref:`sec_catalog`.
-        :rtype: :class:`msprime.RecombinationMap`
-        :return: A :class:`msprime.RecombinationMap` object.
+        :rtype: :class:`msprime.RateMap`
+        :return: A :class:`msprime.RateMap` object.
         """
         chrom = self.species.genome.get_chromosome(id)
         if not self.is_cached():
@@ -95,14 +101,29 @@ class GeneticMap:
         # needs to be redownloaded.
         map_file = self.map_cache_dir / self.file_pattern.format(id=chrom.id)
         if map_file.exists():
-            ret = msprime.RecombinationMap.read_hapmap(str(map_file))
+            recomb_map = msprime.RateMap.read_hapmap(
+                map_file,
+                rate_col=2,
+                # TODO: set the sequence length. Unfortunately, some of our
+                # maps are shorter than our chromosomes, so this will fail.
+                # sequence_length=chrom.length
+            )
         else:
             warnings.warn(
-                "Warning: recombination map not found for chromosome: '{}'"
+                "Recombination map not found for chromosome: '{}'"
                 " on map: '{}', substituting a flat map with chromosome "
                 "recombination rate {}".format(id, self.id, chrom.recombination_rate)
             )
-            ret = msprime.RecombinationMap.uniform_map(
-                chrom.length, chrom.recombination_rate
+            recomb_map = msprime.RateMap.uniform(chrom.length, chrom.recombination_rate)
+        map_length = recomb_map.sequence_length
+        if map_length < chrom.length:
+            # Extend map to the end of the chromosome.
+            positions = np.append(recomb_map.position, chrom.length)
+            rates = np.append(recomb_map.rate, 0)
+            recomb_map = msprime.RateMap(position=positions, rate=rates)
+        elif map_length > chrom.length:
+            warnings.warn(
+                f"Recombination map has length {map_length}, which is longer than"
+                f" chromosome length {chrom.length}. The former will be used."
             )
-        return ret
+        return recomb_map

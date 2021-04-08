@@ -51,7 +51,7 @@ help+wanted%22>`_
 To get started helping with ``stdpopsim`` development, please read the
 following sections to learn how to contribute.
 And, importantly, please have a look at our
-`code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/master/CODE_OF_CONDUCT.md>`_.
+`code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/main/CODE_OF_CONDUCT.md>`_.
 
 .. _sec_development_installation:
 
@@ -135,7 +135,7 @@ GitHub workflow
        is to follow this recipe::
 
         $ git fetch upstream
-        $ git checkout upstream/master
+        $ git checkout upstream/main
         $ git checkout -b topic_branch_name
 
     4. As you work on your topic branch you can add commits to it. Once you're
@@ -172,14 +172,14 @@ Rebasing
 
 Rebasing is used for two basic tasks we might ask for during review:
 
-1. Your topic branch has gotten out of date with the tip of ``upstream/master``
+1. Your topic branch has gotten out of date with the tip of ``upstream/main``
    and needs to be updated.
 2. Your topic branch has lots of messy commits, which need to be cleaned up
    by "squashing".
 
 `Rebasing <https://help.github.com/articles/about-git-rebase/>`_ in git
 basically means changing where your branch forked off the main code
-in ``upstream/master``. A good way of visualising what's happening is to
+in ``upstream/main``. A good way of visualising what's happening is to
 look at the `Network <https://github.com/popgensims/stdpopsim/network>`_ view on
 GitHub. This shows you all the forks and branches that GitHub knows about
 and how they relate to the main repository. Rebasing lets you change where
@@ -240,7 +240,7 @@ so that we remove some noise from the git history. For example, this PR
     * ad4c807 Please work, CI!
     * 0fe6dc4 Please work, CI!
     * 520e6ac Add documentation for rebasing.
-    *   20fb835 (upstream/master) Merge pull request #22 from mcveanlab/port-tennyson
+    *   20fb835 (upstream/main) Merge pull request #22 from mcveanlab/port-tennyson
     |\
     | * b3d45ea (origin/port-tennyson, port-tennyson) Quickly port Tennesen et al model.
     |/
@@ -255,11 +255,11 @@ using rebase:
 .. code-block:: none
 
     $ git fetch upstream
-    $ git rebase -i upstream/master
+    $ git rebase -i upstream/main
 
 We first make sure that we're rebasing against the most recent version of the
 upstream repo. Then, we ask git to perform an interactive rebase against
-the ``upstream/master`` branch. This starts up your editor, showing something
+the ``upstream/main`` branch. This starts up your editor, showing something
 like this::
 
     pick 520e6ac Add documentation for rebasing.
@@ -432,14 +432,14 @@ Success! We can check the history again to see if everything looks OK:
     $  git log --decorate --oneline --graph
 
     * d033ffa (HEAD -> topic_branch_name, origin/topic_branch_name) Add documentation for rebasing.
-    *   20fb835 (upstream/master) Merge pull request #22 from mcveanlab/port-tennyson
+    *   20fb835 (upstream/main) Merge pull request #22 from mcveanlab/port-tennyson
     |\
     | * b3d45ea (origin/port-tennyson, port-tennyson) Quickly port Tennesen et al model.
     |/
     *   79d26b4 Merge pull request #20 from andrewkern/fly_model
     |
 
-This looks just right: we have one commit, pointing to the head of ``upstream/master``
+This looks just right: we have one commit, pointing to the head of ``upstream/main``
 and have successfully squashed and rebased.
 
 ------------------------
@@ -450,14 +450,14 @@ Sometimes rebasing goes wrong, and you end up in a frustrating loop of making an
 undoing the same changes over and over again. In this case, it can be simplest to
 make a diff of your current changes, and apply these in a single commit. First
 we take the diff between the current state of the files in our branch and
-``upstream/master`` and save it as a patch::
+``upstream/main`` and save it as a patch::
 
-    $ git diff upstream/master > changes.patch
+    $ git diff upstream/main > changes.patch
 
 After that, we can check out a fresh branch and check if everything works
 as it's supposed to::
 
-    $ git checkout -b test_branch upstream/master
+    $ git checkout -b test_branch upstream/main
     $ patch -p1 < changes.patch
     $ git commit -a
     # check things work
@@ -751,7 +751,7 @@ When developers A and B disagree on the model implementation, the process is to:
 
     3. If changes have to be made to the production model Developer A submits a
        PR with the hotfix for the production model. Developer B then rebases
-       the branch containing their PR against master to check for model
+       the branch containing their PR against the main branch to check for model
        equality. Repeat steps 1-3 until this is achieved. If changes have to be
        made to the QC model they are committed to the branch where the QC PR
        originates from.
@@ -962,6 +962,89 @@ Once all this is done, submit a PR containing the code changes and wait for dire
 on whom to send the compressed archive of genetic maps to (currently Andrew Kern is the
 primary uploader but please wait to send files to him until directed).
 
+**************************
+Lifting over a genetic map
+**************************
+Existing genetic maps will need to be lifted over to a new assembly, if and when the
+current assembly is updated in `stdpopsim`. This process can be partially automated by running
+the liftOver maintenance code.
+
+First, you must download and install the ``liftOver`` executable from the
+`UCSC Genome Browser Store <https://genome-store.ucsc.edu/>`_.
+Next, you must download the appropriate chain files, again from UCSC
+(see `UCSC Genome Browser downloads
+<http://hgdownload.soe.ucsc.edu/downloads.html#liftover>`_ for more details).
+To validate the remapping between assemblies it is required to have chain files
+corresponding to both directions of the liftOver
+(e.g. `hg19ToHg38.over.chain.gz` and `hg38ToHg19.over.chain.gz`) as in the
+example below.
+
+An example of the process for
+lifting over the `GeneticMap` ``"HapMapII_GRCh37"`` to the ``"Hg19"`` assembly
+is shown below:
+
+.. code-block:: sh
+
+    python /maintenance/liftOver_catalog.py \
+        --species HomSap \
+        --map HapMapII_GRCh37 \
+        --chainFile hg19ToHg38.over.chain.gz \
+        --validationChain hg38ToHg19.over.chain.gz \
+        --winLen 1000 \
+        --useAdjacentAvg \
+        --retainIntermediates \
+        --gapThresh 1000000
+
+Here, the argument ``"--winLen"`` corresponds to the size of the window over which a weighted
+average of recombination rates is taken when comparing the original map with the
+back-lifted map (for validation purposes only). The argument ``"--gapThresh"`` is used to select a threshold for
+which gaps in the new assembly longer than the ``"--gapThresh"`` will be set with a
+recombination rate equal to 0.0000, instead of an average rate. The type of average rate used for gaps
+shorter than the ``"--gapThresh"`` is determined either by using the mean rate of two most adjacent windows
+or by using the mean rate for the entire chromosome, using options ``"--useAdjacentAvg"`` or
+``"--useChromosomeAvg"``` respectively.
+
+Validation plots will automatically be generated in the ``"/liftOver_validation/"``
+directory. Intermediate files created by the ``liftOver`` executable will be saved
+for inspection in the ``"/liftOver_intermediates/"``, only if the
+``"--retainInermediates"`` option is used. Once the user has inspected the validation plots
+and deemed the liftOver process to be sufficiently accurate, they can proceed to generating
+the SHA256 checksum.
+
+The SHA256 checksum of the new genetic map tarball can be obtained using the
+``sha256sum`` command from GNU coreutils. If this is not available on your
+system, the following can instead be used:
+
+.. code-block:: sh
+
+   python -c 'from stdpopsim.utils import sha256; print(sha256("genetic_map.tgz"))'
+
+The newly lifted over maps will be formatted in a compressed archive and
+automatically named using the assembly name from the chain file.
+This file will be sent to one of the `stdpopsim` uploaders for placement in the
+AWS cloud, once the new map is approved. Finally, you must add a `GeneticMap`
+object to the file named for your species in the `catalog` directory (the same one in
+which the genome is defined) as shown in `Adding a genetic map`_.
+
+Again, once all this is done, submit a PR containing the code changes and wait for
+directions on whom to send the compressed archive of genetic maps to
+(currently Andrew Kern is the primary uploader but please wait to send files
+to him until directed).
+
+.. note::
+
+    The ``GeneticMap`` named ``"ComeronCrossoverV2_dm6"`` for ``"DroMel"``
+    was generated by similar code (albeit slightly different
+    compared to that shown above) using the following command:
+
+.. code-block:: sh
+
+     python /maintenance/liftOver_comeron2012.py \
+         --winLen 1000 \
+         --gapThresh 1000000 \
+         --useAdjacentAvg \
+         --retainIntermediates
+
 ****************
 Coding standards
 ****************
@@ -1017,11 +1100,14 @@ It is not practical to test the statistical properties of simulation models
 as part of unit tests.
 
 The unit test suite is in the ``tests`` directory. Tests are run using the
-`nose <https://nose.readthedocs.io/en/latest/>`_ module. Use::
+`pytest <https://docs.pytest.org/en/stable/>`_ module. Use::
 
-    $ python3 -m nose tests/
+    $ python3 -m pytest
 
-from the project root to run the full test suite.
+from the project root to run the full test suite. Pytest is very powerful and
+has lots of options; please see the `tskit documentation
+<https://tskit.dev/tskit/docs/stable/development.html#tests>`_ for help on
+how to run pytest and some common options.
 
 It's useful to run the ``flake8`` CI tests *locally* before pushing a commit.
 To set this up use either ``pip`` or ``conda`` to install ``flake8``

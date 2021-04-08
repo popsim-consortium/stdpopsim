@@ -110,7 +110,7 @@ def untar(filename, path):
             # Due to security concerns, we only extract tarballs containing a
             # very restrictive set of file types. See the warning here:
             # https://docs.python.org/3/library/tarfile.html#tarfile.TarFile.extractall
-            if not info.isfile():
+            if not (info.isfile() or info.isdir()):
                 raise ValueError(f"Tarball format error: member {info.name} not a file")
             if info.name.startswith("/") or info.name.startswith(".."):
                 raise ValueError(f"Refusing to extract {info.name} outside of {path}")

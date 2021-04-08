@@ -9,6 +9,9 @@ import urllib.request
 import attr
 
 
+# TODO this should be an enum.Enum
+
+
 class CiteReason:
     ENGINE = "simulation engine"
     DEM_MODEL = "demographic model"
@@ -74,6 +77,23 @@ class Citation:
                 citation = cset[citation.doi].because(citation.reasons)
             cset[citation.doi] = citation
         return list(cset.values())
+
+    def assert_valid(self):
+        """
+        Checks that this citation is valid by checking the types and values
+        of the instance variables.
+        """
+        assert isinstance(self.author, str)
+        assert len(self.author) > 0
+        assert isinstance(self.doi, str)
+        assert len(self.doi) > 0
+        parsed = urllib.parse.urlparse(self.doi)
+        assert parsed.scheme.startswith("http")
+        assert isinstance(self.year, int)
+        assert self.year > 0
+        for reason in self.reasons:
+            assert isinstance(reason, str)
+            # TODO check that it's in the set of accepted reasons.
 
     def fetch_bibtex(self):
         """Retrieve the bibtex of a citation from Crossref."""

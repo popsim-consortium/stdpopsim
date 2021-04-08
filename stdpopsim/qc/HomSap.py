@@ -9,10 +9,10 @@ _species = stdpopsim.get_species("HomSap")
 
 # Some generic populations to use for qc
 population_sample_0 = stdpopsim.Population(
-    "sampling_0", "Population that samples at time 0", 0
+    "qc_sampling_0", "Population that samples at time 0", 0
 )
 population_sample_none = stdpopsim.Population(
-    "sampling_none", "Population that does not sample", None
+    "qc_sampling_none", "Population that does not sample", None
 )
 
 
@@ -72,6 +72,13 @@ def TennessenOnePopAfrica():
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0
             ),
+        ],
+        # Mapping of per-epoch population names in the production model to
+        # population IDs in this model.
+        population_id_map=[
+            {"AFR": 0},
+            {"AFR": 0},
+            {"AFR": 0},
         ],
     )
 
@@ -177,6 +184,15 @@ def TennessenTwoPopOutOfAfrica():
                 time=T_AF, initial_size=N_A, population_id=0
             ),
         ],
+        # Mapping of per-epoch population names in the production model to
+        # population IDs in this model.
+        population_id_map=[
+            {"AFR": 0, "EUR": 1},
+            {"AFR": 0, "EUR": 1},
+            {"AFR": 0, "EUR": 1},
+            {"AFR": 0, "EUR": 1},
+            {"AFR": 0, "EUR": 1},
+        ],
     )
 
 
@@ -257,40 +273,49 @@ def BrowningAmerica():
                 time=T_ADMIX0, source=3, destination=0, proportion=mm_AF1
             ),
             msprime.MassMigration(
-                time=T_ADMIX0 + 0.0001, source=3, destination=1, proportion=mm_CEU0
+                time=T_ADMIX0, source=3, destination=1, proportion=mm_CEU0
             ),
             msprime.MassMigration(
-                time=T_ADMIX0 + 0.0002, source=3, destination=2, proportion=mm_CHB0
+                time=T_ADMIX0, source=3, destination=2, proportion=mm_CHB0
             ),
             # Zero out migration rate (desn't matter but added for equality to prod.)
             msprime.MigrationRateChange(time=T_CEU_CHB, rate=0.0),
             # CEU and CHB coalesce and set population to OOA size (T_CEU_CHB)
             msprime.MassMigration(
-                time=T_CEU_CHB + 0.0001, source=2, destination=1, proportion=1.0
+                time=T_CEU_CHB, source=2, destination=1, proportion=1.0
             ),
             msprime.PopulationParametersChange(
-                time=T_CEU_CHB + 0.0002,
+                time=T_CEU_CHB,
                 initial_size=N_OOA,
                 growth_rate=0.0,
                 population_id=1,
             ),
             # Set OOA <--> AF migration rate (T_CEU_CHB)
             msprime.MigrationRateChange(
-                time=T_CEU_CHB + 0.0003, rate=m_AF1_OOA, matrix_index=(0, 1)
+                time=T_CEU_CHB, rate=m_AF1_OOA, matrix_index=(0, 1)
             ),
             msprime.MigrationRateChange(
-                time=T_CEU_CHB + 0.0003, rate=m_AF1_OOA, matrix_index=(1, 0)
+                time=T_CEU_CHB, rate=m_AF1_OOA, matrix_index=(1, 0)
             ),
             # Zero out migration rate
             msprime.MigrationRateChange(time=T_AF1_OOA, rate=0.0),
             # OOA and AF1 coalesce (T_OOA)
             msprime.MassMigration(
-                time=T_AF1_OOA + 0.0001, source=1, destination=0, proportion=1.0
+                time=T_AF1_OOA, source=1, destination=0, proportion=1.0
             ),
             # AF1 -> AF0 population size change (T_AF0_AF1)
             msprime.PopulationParametersChange(
                 time=T_AF0_AF1, initial_size=N_AF0, population_id=0
             ),
+        ],
+        # Mapping of per-epoch population names in the production model to
+        # population IDs in this model.
+        population_id_map=[
+            {"AFR": 0, "EUR": 1, "ASIA": 2, "ADMIX": 3},
+            {"AFR": 0, "EUR": 1, "ASIA": 2, "ADMIX": 3},
+            {"AFR": 0, "EUR": 1, "ASIA": 2, "ADMIX": 3},
+            {"AFR": 0, "EUR": 1, "ASIA": 2, "ADMIX": 3},
+            {"AFR": 0, "EUR": 1, "ASIA": 2, "ADMIX": 3},
         ],
     )
 
@@ -436,6 +461,18 @@ def RagsdaleArchaic():
             # NEAN pop. coalesces into AF (E7)
             msprime.MassMigration(time=T_NEAN_split, source=3, dest=0, proportion=1.0),
         ],
+        # Mapping of per-epoch population names in the production model to
+        # population IDs in this model.
+        population_id_map=[
+            {"YRI": 0, "CEU": 1, "CHB": 2, "Neanderthal": 3, "ArchaicAFR": 4},
+            {"YRI": 0, "CEU": 1, "CHB": 2, "Neanderthal": 3, "ArchaicAFR": 4},
+            {"YRI": 0, "CEU": 1, "CHB": 2, "Neanderthal": 3, "ArchaicAFR": 4},
+            {"YRI": 0, "CEU": 1, "CHB": 2, "Neanderthal": 3, "ArchaicAFR": 4},
+            {"YRI": 0, "CEU": 1, "CHB": 2, "Neanderthal": 3, "ArchaicAFR": 4},
+            {"YRI": 0, "CEU": 1, "CHB": 2, "Neanderthal": 3, "ArchaicAFR": 4},
+            {"YRI": 0, "CEU": 1, "CHB": 2, "Neanderthal": 3, "ArchaicAFR": 4},
+            {"YRI": 0, "CEU": 1, "CHB": 2, "Neanderthal": 3, "ArchaicAFR": 4},
+        ],
     )
 
 
@@ -517,6 +554,18 @@ def KammAncientSamples():
     # at the time of sampling the Altai individual
     r_Nean = -math.log(N_Nean_Losch / N_Nean) / (t_Mbu_Losch - t_Altai)
 
+    pop_id_map = {
+        "Mbuti": 0,
+        "LBK": 1,
+        "Sardinian": 2,
+        "Loschbour": 3,
+        "MA1": 4,
+        "Han": 5,
+        "UstIshim": 6,
+        "Neanderthal": 7,
+        "BasalEurasian": 8,
+    }
+
     return stdpopsim.DemographicModel(
         id=id,
         description=id,
@@ -563,12 +612,12 @@ def KammAncientSamples():
             msprime.PopulationConfiguration(  # Neanderthal
                 initial_size=N_Nean,
                 growth_rate=0,
-                metadata={"name": "Altai", "sampling_time": t_Altai},
+                metadata={"name": "Neanderthal", "sampling_time": t_Altai},
             ),
             msprime.PopulationConfiguration(  # Basal Eurasian
                 initial_size=N_Basal,
                 growth_rate=0,
-                metadata={"name": "Basal", "sampling_time": None},
+                metadata={"name": "BasalEurasian", "sampling_time": None},
             ),
         ],
         # Using columns in figure in Kamm paper as proxies for pop number
@@ -631,6 +680,10 @@ def KammAncientSamples():
                 time=t_Nean_Losch, initial_size=N_Nean_Losch, population_id=3
             ),
         ],
+        # Mapping of per-epoch population names in the production model to
+        # population IDs in this model.
+        # Note: we'll be updating this map as the model is modernised.
+        population_id_map=[pop_id_map] * 13,
     )
 
 
@@ -747,7 +800,7 @@ def DenisovanAncestryInPapuans():
         msprime.PopulationConfiguration(  # 5 NeanA
             initial_size=N_NeanA,
             growth_rate=0,
-            metadata={"name": "NeanA", "sampling_time": t_NeanA},
+            metadata={"name": "NeaA", "sampling_time": t_NeanA},
         ),
         msprime.PopulationConfiguration(  # 6 Den1
             initial_size=N_Den1,
@@ -762,7 +815,7 @@ def DenisovanAncestryInPapuans():
         msprime.PopulationConfiguration(  # 8 Nean1
             initial_size=N_Nean1,
             growth_rate=0,
-            metadata={"name": "Nean1", "sampling_time": None},
+            metadata={"name": "Nea1", "sampling_time": None},
         ),
         msprime.PopulationConfiguration(  # 9 Ghost
             initial_size=N_Ghost,
@@ -911,6 +964,19 @@ def DenisovanAncestryInPapuans():
         ),
     ]
     demographic_events.sort(key=lambda x: x.time)
+
+    pop_id_map = {
+        "YRI": 0,
+        "CEU": 1,
+        "CHB": 2,
+        "Papuan": 3,
+        "DenA": 4,
+        "NeaA": 5,
+        "Den1": 6,
+        "Den2": 7,
+        "Nea1": 8,
+        "Ghost": 9,
+    }
     return stdpopsim.DemographicModel(
         id=id,
         description=id,
@@ -920,6 +986,10 @@ def DenisovanAncestryInPapuans():
         population_configurations=population_configurations,
         migration_matrix=migration_matrix,
         demographic_events=demographic_events,
+        # Mapping of per-epoch population names in the production model to
+        # population IDs in this model.
+        # Note: we'll be updating this map as the model is modernised.
+        population_id_map=[pop_id_map] * 19,
     )
 
 
@@ -997,6 +1067,14 @@ def GutenkunstOOA():
             msprime.PopulationParametersChange(
                 time=T_AF, initial_size=N_A, population_id=0
             ),
+        ],
+        # Mapping of per-epoch population names in the production model to
+        # population IDs in this model.
+        population_id_map=[
+            {"YRI": 0, "CEU": 1, "CHB": 2},
+            {"YRI": 0, "CEU": 1, "CHB": 2},
+            {"YRI": 0, "CEU": 1, "CHB": 2},
+            {"YRI": 0, "CEU": 1, "CHB": 2},
         ],
     )
 
@@ -1084,6 +1162,12 @@ def GladsteinAshkSubstructure():
                 time=T_growth, initial_size=N_ANC, population_id=0
             ),
         ],
+        # Mapping of per-epoch population names in the production model to
+        # population IDs in this model.
+        population_id_map=[
+            {"YRI": 0, "CHB": 1, "CEU": 2, "ME": 3, "J": 4, "WAJ": 5, "EAJ": 6},
+        ]
+        * 10,
     )
 
 
@@ -1103,11 +1187,12 @@ def ZigZag():
     mu = 1.25e-8
     L = 10000000
     theta = 7156
-    Ne = theta / 4 / mu / L
+    Ne = theta / 4 / mu / L  # ancestral size for rescaling times/rates
+    N0 = 5 * Ne  # multiply pop sizes to match 'ms -eN 0 5'
 
     population_configurations = [
         msprime.PopulationConfiguration(
-            initial_size=Ne, growth_rate=0, metadata={"sampling_time": 0}
+            initial_size=N0, growth_rate=0, metadata={"sampling_time": 0}
         )
     ]
 
@@ -1133,7 +1218,7 @@ def ZigZag():
             time=0.596236 * 4 * Ne,
             growth_rate=0,
             population_id=0,
-            initial_size=0.1 * Ne,
+            initial_size=0.1 * N0,
         )
     )
 
@@ -1145,6 +1230,7 @@ def ZigZag():
         populations=populations,
         population_configurations=population_configurations,
         demographic_events=de,
+        population_id_map=[{"generic": 0}] * 7,
     )
 
 

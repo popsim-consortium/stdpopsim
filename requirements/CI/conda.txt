@@ -1,2 +1,3 @@
-gsl
-numcodecs==0.7.2
+# Uncomment when 1.0 is released.
+# msprime==1.0.0
+numcodecs==0.7.3

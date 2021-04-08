@@ -19,9 +19,9 @@ setup(
         "Topic :: Scientific/Engineering :: Bio-Informatics",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
     keywords="simulations, recombination map, models",
     packages=["stdpopsim"],
@@ -31,13 +31,14 @@ setup(
             "stdpopsim=stdpopsim.cli:stdpopsim_main",
         ]
     },
+    python_requires=">=3.7",
     # NOTE: make sure this is the 'attrs' package, not 'attr'!
     install_requires=[
-        "msprime>=0.7.1",
+        "msprime>=1.0.0b1",
         "attrs>=19.1.0",
         "appdirs",
         "humanize",
-        "pyslim>=0.401",
+        "pyslim>=0.600",
         "pandas",
         "zarr",
         "numpy",
