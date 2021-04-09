@@ -75,11 +75,11 @@ _species = stdpopsim.Species(
     name="Anolis carolinensis",
     common_name="Anole lizard",
     genome=_genome,
-    generation_time=2.5,
+    generation_time=1.5,
     # they live between 1-2 years after they are able to mate
     # they mature 8 to 9 months after they are born
     # can live up to 8 years in captivity
-    population_size=5.34e6,
+    population_size=3.05e6,
     # poulation size caculated from theta caculations
     # theta = 4Neu, theta from table 1
     # Ne averaged across the 5 populations from BourgeoisEtAl
