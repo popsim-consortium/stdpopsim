@@ -22,34 +22,35 @@ class TestSpeciesData(test_species.SpeciesTestBase):
     # species definition, filling in the appropriate values
     # and deleting the pytest "skip" annotations.
     def test_qc_population_size(self):
-        assert self.species.population_size == 3052380.952380953
+        assert self.species.population_size == 3.05e6
 
     def test_qc_generation_time(self):
-        assert self.species.generation_time == 1  # 1 gen per year
+        assert self.species.generation_time == 1.5
 
 
 class TestGenomeData(test_species.GenomeTestBase):
 
     genome = stdpopsim.get_species("AnoCar").genome
 
-    @pytest.mark.skip("Recombination rate QC not done yet")
+    rec_rate = 1e-8  # placeholder as we wait for map
+
     @pytest.mark.parametrize(
         ["name", "rate"],
         {
-            "1": -1,
-            "2": -1,
-            "3": -1,
-            "4": -1,
-            "5": -1,
-            "6": -1,
-            "LGa": -1,
-            "LGb": -1,
-            "LGc": -1,
-            "LGd": -1,
-            "LGf": -1,
-            "LGg": -1,
-            "LGh": -1,
-            "MT": -1,
+            "1": rec_rate,
+            "2": rec_rate,
+            "3": rec_rate,
+            "4": rec_rate,
+            "5": rec_rate,
+            "6": rec_rate,
+            "LGa": rec_rate,
+            "LGb": rec_rate,
+            "LGc": rec_rate,
+            "LGd": rec_rate,
+            "LGf": rec_rate,
+            "LGg": rec_rate,
+            "LGh": rec_rate,
+            "MT": rec_rate,
         }.items(),
     )
     def test_recombination_rate(self, name, rate):
