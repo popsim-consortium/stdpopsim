@@ -61,7 +61,7 @@ def get_genome_data(uid):
             if line and line[0] != "#":
                 tokens = line.strip().split("\t")
                 if (
-                    tokens[2] == "Chromosome"
+                    (tokens[2] == "Chromosome" or tokens[2] == "Mitochondrion")
                     and tokens[3] == "all"
                     and tokens[4] == "total-length"
                 ):
