@@ -6,27 +6,43 @@ from . import genome_data
 _recombination_rate = {"1": 0.306, "2": 0.249, "3": 0.291, "MT": 0}
 
 _JunejaEtAl = stdpopsim.Citation(
-    doi="https://doi:10.1371/journal.pntd.0002652",
+    doi="https://doi.org/10.1371/journal.pntd.0002652",
     year=2014,
     author="Juneja et al.",
     reasons={stdpopsim.CiteReason.REC_RATE},
 )
 
-# This rate is for Drosophila (same as used in the A. gambiae tutorial).
-_overall_rate = 5.49e-9
+
+_CrawfordEtAl = stdpopsim.Citation(
+    doi="https://doi.org/10.1186/s12915-017-0351-0",
+    year=2017,
+    author="Crawford et al.",
+    reasons={
+        stdpopsim.CiteReason.GEN_TIME,
+        stdpopsim.CiteReason.POP_SIZE,
+        stdpopsim.CiteReason.MUT_RATE,
+    },
+)
+
+_KeightleyEtAl = stdpopsim.Citation(
+    doi="https://doi.org/10.1101/gr.091231.109",
+    year=2009,
+    author="Keightley et al.",
+    reasons={
+        stdpopsim.CiteReason.MUT_RATE,
+    },
+)
+
+
+# This rate is for DroMel, as used in Crawford
+# TODO: mt should probably be lower
+_overall_rate = 3.5e-9  # per generation, from Keightley et al 2009
 _mutation_rate = {
     "1": _overall_rate,
     "2": _overall_rate,
     "3": _overall_rate,
     "MT": _overall_rate,
 }
-
-_Ag1000G = stdpopsim.Citation(
-    doi="https://doi.org/10.1038/nature24995",
-    year=2017,
-    author="Ag1000G Consortium",
-    reasons={stdpopsim.CiteReason.MUT_RATE},
-)
 
 _NeneEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1126/science.1138878",
@@ -42,26 +58,21 @@ _genome = stdpopsim.Genome.from_data(
     mutation_rate=_mutation_rate,
     citations=[
         _NeneEtAl,
-        _Ag1000G,
         _JunejaEtAl,
+        _CrawfordEtAl,
+        _KeightleyEtAl,
     ],
 )
 
-
-_CrawfordEtAl = stdpopsim.Citation(
-    doi="https://doi.org/10.1186/s12915-017-0351-0",
-    year=2017,
-    author="Crawford et al.",
-    reasons={stdpopsim.CiteReason.GEN_TIME, stdpopsim.CiteReason.POP_SIZE},
-)
 
 _species = stdpopsim.Species(
     id="AedAeg",
     ensembl_id="aedes_aegypti_lvpagwg",
     name="Aedes aegypti",
-    common_name="Aedes aegypti (LVP_AGWG)",
+    common_name="Yellow fever mosquito",
     genome=_genome,
-    generation_time=1 / 10,
+    generation_time=1 / 15,
+    # the estimated population size today the modern Senegal forest population
     population_size=1e6,
     citations=[_CrawfordEtAl],
 )
