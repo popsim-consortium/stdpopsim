@@ -14,6 +14,13 @@ While this list is intended to be comprehensive, it may not be exhaustive.
 Where relevant, the QC reviewer should identify that parameter values match
 those given in the linked citation(s).
 
+The QC reviewer should start a pull request that fills out the test stubs
+with independently obtained values. The reviewer may look at the python code
+for rationale provided in comments, but should ignore the actual code
+as much as possible - comments in the code should give enough information
+that it's obvious how to get the correct value from the provided references.
+(In particular, we shouldn't copy-paste the value from the code into the test!)
+
 - [ ] Recombination rate.
   - This might be genome-wide, or per-chromosome. Both are fine.
   - Check there's a comment describing where it came from, and/or how calculated.
@@ -43,3 +50,8 @@ Citations are required for:
 - [ ] Recombination map(s) (if relevant).
 - [ ] Population size.
 - [ ] Generation time.
+
+The final PR should:
+- [ ] fill out the test stubs
+- [ ] delete the `pytest.mark.skip` lines that make the tests not run
+- [ ] make sure they pass, talking to the original author to figure out discrepancies
