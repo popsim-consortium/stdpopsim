@@ -2,21 +2,11 @@ import stdpopsim
 
 from . import genome_data
 
-# [The following are notes for implementers and should be deleted
-#  once the recombination rates have been inserted]
-# This is the per-chromosome recombination rate, typically the mean
-# rate along the chromosome.
-# Values in this dictionary are set to -1 by default, so you have
-# to update each one. These should be derived from the most reliable
-# data and how they were obtained should be documented here.
-# The appropriate citation must be added to the list of
-# recombination_rate_citations in the Genome object.
-
 _BeyeEtAl = stdpopsim.Citation(
     doi="https://dx.doi.org/10.1101%2Fgr.5680406",
     year=2006,
     author="Beye et al.",
-    reasons=stdpopsim.CiteReason.REC_RATE,
+    reasons={stdpopsim.CiteReason.REC_RATE},
 )
 _recombination_rate = {
     "CM009931.2": 23.9e-8,
@@ -35,7 +25,7 @@ _recombination_rate = {
     "CM009944.2": 24.6e-8,
     "CM009945.2": 22.1e-8,
     "CM009946.2": 22.8e-8,
-    "CM009947.2": 23.2e-8,  # For the 17th "chromosomes", this is the average
+    "CM009947.2": 0,
 }
 
 
@@ -43,7 +33,7 @@ _YangEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1038/nature14649",
     year=2015,
     author="Yang et al.",
-    reasons=stdpopsim.CiteReason.MUT_RATE,
+    reasons={stdpopsim.CiteReason.MUT_RATE},
 )
 
 _overall_mutation_rate = 9 * 10e-9
@@ -71,7 +61,7 @@ _TheHGSC = stdpopsim.Citation(
     doi="http://dx.doi.org/10.1038%2Fnature05260",
     year=2006,
     author="The Honeybee Genome Sequencing Consortium",
-    reasons=stdpopsim.CiteReason.ASSEMBLY,
+    reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
 
 _genome = stdpopsim.Genome.from_data(
@@ -90,14 +80,14 @@ _NelsonEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1111/mec.14122",
     year=2017,
     author="Nelson et al.",
-    reasons=stdpopsim.CiteReason.GEN_TIME,
+    reasons={stdpopsim.CiteReason.GEN_TIME},
 )
 
 _WallbergEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1038/ng.3077",
     year=2014,
     author="Wallberg et al.",
-    reasons=stdpopsim.CiteReason.POP_SIZE,
+    reasons={stdpopsim.CiteReason.POP_SIZE},
 )
 
 _species = stdpopsim.Species(
