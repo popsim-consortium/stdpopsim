@@ -249,13 +249,17 @@ class DataWriter:
         )
 
     def add_species_ncbi(self, ncbi_id, force=False):
-        sps_id = ncbi_stdpopsim_id(ncbi_id)
+        species_name = ncbi.get_species_name(ncbi_id)
+        tmp = species_name.split(" ")[:2]
+        sps_id = "".join([x[0:3].capitalize() for x in tmp])
+        if len(sps_id) != 6:
+            raise ValueError(f"Cannot extract six character id from {species_name}")
         logger.info(f"Adding new species {sps_id} for NCBI ID {ncbi_id}")
         root = catalog_path(sps_id)
         if force:
             shutil.rmtree(root, ignore_errors=True)
         root.mkdir()
-        genome_data = self.write_genome_data_ncbi(ncbi_id)
+        genome_data = self.write_genome_data_ncbi(ncbi_id, sps_id)
         species_data = ncbi.get_species_data(ncbi_id)
         write_catalog_stub(
             path=root,
@@ -282,8 +286,7 @@ class DataWriter:
             f.write(black_format(code))
         return data
 
-    def write_genome_data_ncbi(self, ncbi_id):
-        sps_id = ncbi_stdpopsim_id(ncbi_id)
+    def write_genome_data_ncbi(self, ncbi_id, sps_id):
         path = catalog_path(sps_id)
         if not path.exists():
             raise ValueError(
@@ -371,16 +374,19 @@ def add_species(ensembl_id, force):
     writer.write_ensembl_release()
 
 
+# TODO refactor this so that it's an option to add-species. By default
+# we assume the repository is Ensembl.
 @cli.command()
 @click.argument("NCBI-id")
 @click.option("--force", is_flag=True)
 def add_species_ncbi(ncbi_id, force):
     """
-    Add a new species to the catalog using its NCBI ID.
+    Add a new species to the catalog using its NCBI UID. UIDs can be
+    found by searching NCBI for the species in question and looking
+    at the assembly page.
     """
     writer = DataWriter()
     writer.add_species_ncbi(ncbi_id, force=force)
-    # TODO write NCBI release like ensembl
 
 
 def main():

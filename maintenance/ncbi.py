@@ -3,17 +3,32 @@ Utilites for working with NCBI
 
 """
 import logging
-from Bio import Entrez
 import urllib
-from datetime import datetime
+
+from Bio import Entrez
 
 logger = logging.getLogger("ncbi")
 
+Entrez.email = "stdpopsim@popsimconsortium.org"
 
-def get_species_data(id):
+# TODO This is very badly factored, we're making the same call 3 or 4 times.
+# Fix up!
+
+
+def get_species_name(uid):
+    esummary_handle = Entrez.esummary(db="assembly", id=uid, report="full")
+    esummary_record = Entrez.read(esummary_handle)
+    summary = esummary_record["DocumentSummarySet"]["DocumentSummary"][0]
+    return summary["SpeciesName"]
+
+
+def get_species_data(uid):
+    esummary_handle = Entrez.esummary(db="assembly", id=uid, report="full")
+    esummary_record = Entrez.read(esummary_handle)
+    summary = esummary_record["DocumentSummarySet"]["DocumentSummary"][0]
     species_data = {
-        "scientific_name": id,
-        "display_name": id,
+        "scientific_name": summary["SpeciesName"],
+        "display_name": summary["Organism"],
     }
     return species_data
 
@@ -25,36 +40,12 @@ def get_assembly_summary(id):
     return esummary_record
 
 
-def get_genome_data(species_name):
+def get_genome_data(uid):
     """
-    Searches NCBI for assemblies associated with species name
-    finds most recently submitted assembly and sucks in that
-    chromosome length information
+    Get chromosome data for the specified NCBI UID.
     """
-
-    from Bio import Entrez
-
-    # provide your own mail here
-    Entrez.email = "stdpopsim@popsimconsortium.org"
-    handle = Entrez.esearch(db="assembly", term=species_name, retmax="200")
-    record = Entrez.read(handle)
-    ids = record["IdList"]
-    logger.info(f"Searching NCBI for {species_name}")
-    logger.info(f"found {len(ids)} ids")
-
-    # find most recent assembly
-    recent = datetime.strptime("1900/01/01 11:11", "%Y/%m/%d %H:%M")
-    recent_id = "666"
-    for id in ids:
-        # get summary
-        summary = get_assembly_summary(id)
-        dt = summary["DocumentSummarySet"]["DocumentSummary"][0]["SubmissionDate"]
-        if datetime.strptime(dt, "%Y/%m/%d %H:%M") > recent:
-            recent = datetime.strptime(dt, "%Y/%m/%d %H:%M")
-            recent_id = id
-    logger.info(f"most recent id: {recent_id}")
-    # pull the summary we want
-    summary = get_assembly_summary(recent_id)
+    logger.info(f"Getting genome data for id: {uid}")
+    summary = get_assembly_summary(uid)
     sum_dict = summary["DocumentSummarySet"]["DocumentSummary"][0]
     data = {
         "assembly_accession": sum_dict["AssemblyAccession"],
