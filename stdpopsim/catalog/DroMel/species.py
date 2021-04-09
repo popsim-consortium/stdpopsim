@@ -82,6 +82,9 @@ _species = stdpopsim.Species(
     common_name="D. melanogaster",
     genome=_genome,
     generation_time=0.1,
+    # Population size is the older of two population sizes estimated by
+    # Li and Stephan in a two-epoch model of African populations.
+    # N_A0 is given as 8.603e6, and N_A1 (used here) is 5 times smaller.
     population_size=1720600,
     citations=[_LiAndStephan],
 )
