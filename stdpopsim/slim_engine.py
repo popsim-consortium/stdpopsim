@@ -73,8 +73,6 @@ initialize() {
 
     defineConstant("burn_in", $burn_in);
     defineConstant("generation_time", $generation_time);
-    defineConstant("mutation_rate", Q * $mutation_rate);
-    defineConstant("chromosome_length", $chromosome_length);
     defineConstant("trees_file", "$trees_file");
     defineConstant("pop_names", $pop_names);
 
@@ -88,8 +86,6 @@ _slim_lower = """
     defineConstant("N", asInteger(_N/Q));
 
     initializeTreeSeq();
-    initializeMutationRate(mutation_rate);
-    initializeGenomicElement(g1, 0, chromosome_length-1);
     initializeRecombinationRate(recombination_rates, recombination_ends);
 }
 
@@ -527,12 +523,11 @@ def slim_makescript(
     demographic_model,
     contig,
     samples,
-    mutation_types,
     extended_events,
     scaling_factor,
     burn_in,
 ):
-
+    mutation_types = contig.mutation_types
     pop_names = [pop.name for pop in demographic_model.model.populations]
     # Use copies of these so that the time frobbing below doesn't have
     # side-effects in the caller's model.
@@ -645,12 +640,7 @@ def slim_makescript(
         if hasattr(ee, "mutation_type_id"):
             mt_id = getattr(ee, "mutation_type_id")
             cls_name = ee.__class__.__name__
-            if mutation_types is None:
-                raise ValueError(
-                    f"Invalid {cls_name} event. No mutation types defined."
-                )
-            if not (0 < ee.mutation_type_id <= len(mutation_types)):
-                # FIXME: use zero-based indexes
+            if not (0 <= ee.mutation_type_id < len(mutation_types)):
                 raise ValueError(
                     f"Invalid {cls_name} event with mutation type id {mt_id}."
                 )
@@ -662,6 +652,7 @@ def slim_makescript(
             stdpopsim.ext.validate_time_range(start_time, end_time)
 
         if isinstance(ee, stdpopsim.ext.DrawMutation):
+            # TODO: warning if mutation type id points to a neutral mut.
             time = ee.time * demographic_model.generation_time
             save = 1 if ee.save else 0
             drawn_mutations.append(
@@ -757,10 +748,8 @@ def slim_makescript(
         string.Template(_slim_upper).substitute(
             scaling_factor=scaling_factor,
             burn_in=float(burn_in),
-            chromosome_length=int(contig.recombination_map.sequence_length),
             recombination_rates=recomb_rates_str,
             recombination_ends=recomb_ends_str,
-            mutation_rate=contig.mutation_rate,
             generation_time=demographic_model.generation_time,
             trees_file=trees_file,
             pop_names=f"c({pop_names_str})",
@@ -802,29 +791,38 @@ def slim_makescript(
 
         return "".join(s)
 
-    if mutation_types is None:
-        mutation_types = [stdpopsim.ext.MutationType()]
-
-    # Mutation type; genomic elements.
-    # FIXME: Change this to use zero-based indices---one-based indices are
-    #        inconsistent with everything else, e.g. population IDs.
-    for i, m in enumerate(mutation_types, 1):
+    # Mutation types.
+    for i, m in enumerate(mutation_types):
         distrib_args = [str(arg) for arg in m.distribution_args]
         distrib_args[m.Q_scaled_index] = "Q * " + distrib_args[m.Q_scaled_index]
         distrib_args = ", ".join(distrib_args)
         printsc(
-            f'    initializeMutationType("m{i}", {m.dominance_coeff}, '
+            f"    initializeMutationType({i}, {m.dominance_coeff}, "
             + f'"{m.distribution_type}", {distrib_args});'
         )
         if not m.convert_to_substitution:
             # T is the default for WF simulations.
             printsc(f"    m{i}.convertToSubstitution = F;")
-    mut_weights = ", ".join(str(m.weight) for m in mutation_types)
-    printsc(
-        '    initializeGenomicElementType("g1", '
-        + f"seq(1, {len(mutation_types)}), c({mut_weights}));"
-    )
-    printsc()
+    # Genomic element types.
+    genomic_element_types = contig.genomic_element_types
+    for j, g in enumerate(genomic_element_types):
+        mut_props = ", ".join([str(prop) for prop in g.proportions])
+        mut_types = ", ".join([str(mid) for mid in g.mutation_type_ids])
+        element_starts = np.array2string(g.intervals[:, 0], separator=", ")[1:-1]
+        # stdpopsim intervals are 0-based left inclusive, right exclusive, but
+        # SLiM intervals are right inclusive
+        element_ends = np.array2string((g.intervals[:, 1] - 1), separator=", ")[1:-1]
+        printsc(
+            f"    initializeGenomicElementType({j}, c({mut_types}), c({mut_props}));"
+        )
+        printsc(
+            f"    initializeGenomicElement({j}, c({element_starts}), c({element_ends}));"
+        )
+    # Mutation rate map.
+    breaks, rates = contig.slim_mutation_rate_map
+    mut_rates = ", ".join([str(r) for r in rates])
+    mut_breaks = ", ".join([str(int(b)) for b in breaks])
+    printsc(f"    initializeMutationRate(c({mut_rates})*Q, c({mut_breaks}));")
 
     # Epoch times.
     printsc("    // Time of epoch boundaries, in years before present.")
@@ -1034,7 +1032,6 @@ class _SLiMEngine(stdpopsim.Engine):
         samples,
         *,
         seed=None,
-        mutation_types=None,
         extended_events=None,
         slim_path=None,
         slim_script=False,
@@ -1085,22 +1082,18 @@ class _SLiMEngine(stdpopsim.Engine):
                     "compare results across different values of the scaling factor."
                 )
             )
+        if contig.recombination_map is None:
+            raise ValueError(
+                "Your Contig object is not compatible with the SLiM "
+                "engine. You must specify a recombination map."
+            )
+        if len(contig.genomic_element_types) == 0:
+            contig.fully_neutral()
 
         # TODO: remove this after a release or two. See #745.
         self._warn_zigzag(demographic_model)
 
         run_slim = not slim_script
-
-        # Ensure only "weighted" mutations are introduced by SLiM.
-        mutation_rate = contig.mutation_rate
-        slim_frac = stdpopsim.ext.slim_mutation_frac(mutation_types)
-        contig = stdpopsim.Contig(
-            recombination_map=contig.recombination_map,
-            mutation_rate=slim_frac * mutation_rate,
-            genetic_map=contig.genetic_map,
-            inclusion_mask=contig.inclusion_mask,
-            exclusion_mask=contig.exclusion_mask,
-        )
 
         mktemp = functools.partial(tempfile.NamedTemporaryFile, mode="w")
 
@@ -1120,7 +1113,6 @@ class _SLiMEngine(stdpopsim.Engine):
                 demographic_model,
                 contig,
                 samples,
-                mutation_types,
                 extended_events,
                 slim_scaling_factor,
                 slim_burn_in,
@@ -1140,9 +1132,7 @@ class _SLiMEngine(stdpopsim.Engine):
 
             ts = pyslim.load(ts_file.name)
 
-        ts = self._recap_and_rescale(
-            ts, seed, recap_epoch, contig, mutation_rate, slim_frac, slim_scaling_factor
-        )
+        ts = self._recap_and_rescale(ts, seed, recap_epoch, contig, slim_scaling_factor)
 
         if contig.inclusion_mask is not None:
             ts = stdpopsim.utils.mask_tree_sequence(ts, contig.inclusion_mask, False)
@@ -1216,16 +1206,7 @@ class _SLiMEngine(stdpopsim.Engine):
         )
         return ts.simplify(samples=list(nodes), filter_populations=False)
 
-    def _recap_and_rescale(
-        self,
-        ts,
-        seed,
-        recap_epoch,
-        contig,
-        mutation_rate,
-        slim_frac,
-        slim_scaling_factor,
-    ):
+    def _recap_and_rescale(self, ts, seed, recap_epoch, contig, slim_scaling_factor):
         """
         Apply post-SLiM transformations to ``ts``. This rescales node times,
         does recapitation, simplification, and adds neutral mutations.
@@ -1249,6 +1230,15 @@ class _SLiMEngine(stdpopsim.Engine):
             )
             for pop in recap_epoch.populations
         ]
+        #########################################
+        # FIX THIS BEFORE MERGING INTO MASTER!!!!
+        # NEED THE LATEST SLiM
+        #########################################
+        # TODO: remove this line once SLiM starts populating mutation times
+        tables = ts.tables
+        tables.compute_mutation_times()
+        ts = pyslim.load_tables(tables)
+        # TODO: using recombination map in recapitate. maps should be discrete.
         ts = ts.recapitate(
             recombination_rate=contig.recombination_map.mean_rate,
             population_configurations=population_configurations,
@@ -1258,25 +1248,25 @@ class _SLiMEngine(stdpopsim.Engine):
 
         ts = self._simplify_remembered(ts)
 
-        if slim_frac < 1:
-            # Add mutations to SLiM part of trees.
-            rate = (1 - slim_frac) * mutation_rate
-            ts = pyslim.SlimTreeSequence(
-                msprime.mutate(
-                    ts,
-                    rate=rate,
-                    keep=True,
-                    random_seed=s2,
-                    end_time=ts.slim_generation,
-                )
+        # Adding neutral mutations to the SLiM part
+        breaks, rates = contig.msp_mutation_rate_map
+        rate_map = msprime.RateMap(position=breaks, rate=rates)
+        ts = pyslim.SlimTreeSequence(
+            msprime.mutate(
+                ts,
+                rate=rate_map,
+                keep=True,
+                random_seed=s2,
+                end_time=ts.slim_generation,
             )
+        )
 
         # Add mutations to recapitated part of trees.
         s3 = rng.randrange(1, 2 ** 32)
         ts = pyslim.SlimTreeSequence(
             msprime.mutate(
                 ts,
-                rate=mutation_rate,
+                rate=contig.mutation_rate,
                 keep=True,
                 random_seed=s3,
                 start_time=ts.slim_generation,
@@ -1291,7 +1281,6 @@ class _SLiMEngine(stdpopsim.Engine):
         demographic_model,
         contig,
         samples,
-        mutation_types=None,
         extended_events=None,
         slim_scaling_factor=1.0,
         seed=None,
@@ -1320,14 +1309,6 @@ class _SLiMEngine(stdpopsim.Engine):
             should be consulted to determine if the behaviour is appropriate
             for your case.
         """
-        # Only "weighted" mutations are introduced by SLiM.
-        mutation_rate = contig.mutation_rate
-        slim_frac = stdpopsim.ext.slim_mutation_frac(mutation_types)
-        contig = stdpopsim.Contig(
-            recombination_map=contig.recombination_map,
-            mutation_rate=slim_frac * mutation_rate,
-            genetic_map=contig.genetic_map,
-        )
 
         with open(os.devnull, "w") as script_file:
             recap_epoch = slim_makescript(
@@ -1336,15 +1317,12 @@ class _SLiMEngine(stdpopsim.Engine):
                 demographic_model,
                 contig,
                 samples,
-                mutation_types,
                 extended_events,
                 slim_scaling_factor,
                 1,
             )
 
-        ts = self._recap_and_rescale(
-            ts, seed, recap_epoch, contig, mutation_rate, slim_frac, slim_scaling_factor
-        )
+        ts = self._recap_and_rescale(ts, seed, recap_epoch, contig, slim_scaling_factor)
         return ts
 
 
