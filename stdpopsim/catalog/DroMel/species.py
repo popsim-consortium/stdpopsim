@@ -35,16 +35,20 @@ _ComeronEtAl = stdpopsim.Citation(
     year=2012,
 )
 
-# Mean chromosomal rates, calculated from the Comeron 2012 map.
-# Chromosome 4 isn't in this map, so the weighted mean of 2L, 2R, 3L and 3R
-# was used instead.
+# Mean chromosomal rates, calculated by taking the
+# average of all rates in the
+# "ComeronCrossoverV2_dm6" genetic map, weighted by
+# their respective interval lengths.
+# Chromosome 4 isn't in this map, so the average of
+# 2L, 2R, 3L and 3R weighted by their respective
+# chromosome lengths was used instead.
 _recombination_rate_data = {
-    "2L": 2.4125016027908946e-08,
-    "2R": 2.2366522822806982e-08,
-    "3L": 1.7985794693631893e-08,
-    "3R": 1.7165556232922828e-08,
-    "4": 2.0085234464525437e-08,
-    "X": 2.9151053903465754e-08,
+    "2L": 2.40462600791e-08,
+    "2R": 2.23458641776e-08,
+    "3L": 1.79660308862e-08,
+    "3R": 1.71642045777e-08,
+    "4": 2.00579550709e-08,
+    "X": 2.89650687913e-08,
     "Y": 0,
     "mitochondrion_genome": 0,
 }
