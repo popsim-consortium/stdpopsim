@@ -1,0 +1,29 @@
+Population size,"1000",Boxer pop. size
+Population size,"2,639",Basenji pop. size
+Population size,"1,914",Dingo pop. size
+Population size,"26,092",Chinese wolf pop. size
+Population size,"11,427",Israeli wolf pop. size
+Population size,"5,426",Croatian wolf pop. size
+Population size,"19,446",Golden jackal pop. size
+Population size,"793",Ancestral Boxer and Basenji pop. size
+Population size,"1,999",Ancestral Boxer-Basenji and Dingo pop. size
+Population size,"1,393",Ancestral Israeli and Croatian wolf pop. size
+Population size,"12,627",Ancestral Israeli-Croatian and Chinese wolf pop. size
+Population size,"44,993",Ancestral dog and wolf pop. size
+Population size,"18,169",Ancestral dog, wolf, and jackal pop. size
+Migration rate,0.84,Israeli wolf -> Basenji migration rate
+Migration rate,0.07,Basenji -> Israeli wolf migration rate
+Migration rate,0.03,Chinese wolf -> Dingo migration rate
+Migration rate,0.04,Dingo -> Chinese wolf migration rate
+Migration rate,0,Golden jackal -> Israeli wolf migration rate
+Migration rate,0.05,Israeli wolf -> Golden jackal migration rate
+Migration rate,0.02,Golden jackal -> ancestral dog and wolf migration rate
+Migration rate,0.99,ancestral dog and wolf -> Golden jackal migration rate
+Time (gen.),"12,102",Boxer/Basenji split time
+Time (gen.),"12,795",Ancestral Boxer and Basenji/Dingo split time
+Time (gen.),"13,389",Israeli wolf/Croatian wolf split time
+Time (gen.),"13,455",Ancestral Israeli and Croatian wolf/Chinese wolf split time
+Time (gen.),"14,874",dog/wolf split time
+Time (gen.),"398,262",dog and wolf/Golden jackal split time
+Generation time (yrs.),3,Generation time
+Mutation rate,1e-8,Mutation rate
