@@ -12,6 +12,8 @@ import logging
 import click
 import black
 import daiquiri
+import msprime
+import zarr
 
 import stdpopsim
 from . import ensembl
@@ -325,6 +327,41 @@ def add_species(ensembl_id, force):
     writer = DataWriter()
     writer.add_species(ensembl_id.lower(), force=force)
     writer.write_ensembl_release()
+
+
+@cli.command()
+@click.argument("species")
+@click.argument("path", type=click.Path(exists=True, file_okay=False, dir_okay=True))
+def add_recombination_map(species, path):
+    """
+    Add a recombination map to the local recombination map repository.
+    """
+    species = stdpopsim.get_species(species)
+    path = pathlib.Path(path)
+
+    with zarr.ZipStore("recomb_map.zip", mode="w") as store:
+        root = zarr.group(store=store)
+        for filename in path.glob("*.txt"):
+            chrom_id = filename.stem.split("_")[-1]
+            try:
+                species.genome.get_chromosome(chrom_id)
+            except ValueError:
+                logger.warning(f"Skipping {chrom_id}")
+                continue
+            logger.info(f"reading {chrom_id}")
+            recomb_map = msprime.RateMap.read_hapmap(filename)
+            # TODO check that the map has the same sequence length as the
+            # chromosome. Either error of do something about it.
+
+            chrom_group = root.create_group(chrom_id)
+            chrom_group.create_dataset("position", data=recomb_map.position)
+            chrom_group.create_dataset("rate", data=recomb_map.rate)
+
+        # TODO check that all the chromosomes are in here. If not, check
+        # if the corresponding chrom has a recombination rate of 0, and
+        # insert the 0 map accordingly.
+        # Probably also worth showing some information about the mean
+        # recombination rates, and how they compare to the catalog values?
 
 
 def main():
