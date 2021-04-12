@@ -8,7 +8,7 @@ setuptools-scm==6.0.1
 sphinx==3.5.4
 sphinx-argparse==0.2.5
 sphinx-issues==1.2.0
-sphinx_rtd_theme==0.5.1
+sphinx_rtd_theme==0.5.2
 sphinxcontrib-programoutput==0.17
 msprime==1.0.0b1
 attrs==20.3.0
