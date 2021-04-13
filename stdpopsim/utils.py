@@ -148,3 +148,25 @@ def mask_tree_sequence(ts, mask_intervals, exclude):
     else:
         ts = ts.delete_intervals(mask_intervals)
     return ts
+
+
+def append_common_synonyms(genome):
+    """
+    For common chromosome IDs, add their obvious synonyms if they do not exist already.
+    The input is a stdpopsim.Genome object, and synonyms are appended in place.
+    """
+
+    def add_if_unique(chrom, syn):
+        if syn not in chrom.synonyms:
+            chrom.synonyms.append(syn)
+
+    for chrom in genome.chromosomes:
+        # "1" -> "chr1" and "2L" -> "chr2L"
+        if chrom.id[0].isdigit():
+            add_if_unique(chrom, "chr" + chrom.id)
+        # sex chroms
+        if chrom.id in ["X", "Y", "W", "Z"]:
+            add_if_unique(chrom, "chr" + chrom.id)
+        # Mt
+        if chrom.id == "MT":
+            add_if_unique(chrom, "chr" + "M")

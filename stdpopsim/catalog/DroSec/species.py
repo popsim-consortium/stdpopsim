@@ -71,6 +71,7 @@ _genome = stdpopsim.Genome.from_data(
         _LegrandEtAl,
     ],
 )
+stdpopsim.utils.append_common_synonyms(_genome)
 
 # Generation time was set to that used by
 # by Legrand et al. in an ABC selection of demographic

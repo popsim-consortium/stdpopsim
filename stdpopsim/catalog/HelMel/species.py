@@ -70,6 +70,7 @@ _genome = stdpopsim.Genome.from_data(
         ),
     ],
 )
+stdpopsim.utils.append_common_synonyms(_genome)
 
 _species = stdpopsim.Species(
     id="HelMel",

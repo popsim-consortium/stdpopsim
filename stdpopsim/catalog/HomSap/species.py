@@ -87,6 +87,7 @@ _genome = stdpopsim.Genome(
         _hapmap2007.because(stdpopsim.CiteReason.REC_RATE),
     ],
 )
+stdpopsim.utils.append_common_synonyms(_genome)
 
 _species = stdpopsim.Species(
     id="HomSap",

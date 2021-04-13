@@ -66,7 +66,6 @@ for name, data in genome_data.data["chromosomes"].items():
         )
     )
 
-
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
     assembly_name=genome_data.data["assembly_name"],
@@ -78,6 +77,7 @@ _genome = stdpopsim.Genome(
         _ComeronEtAl.because(stdpopsim.CiteReason.REC_RATE),
     ],
 )
+stdpopsim.utils.append_common_synonyms(_genome)
 
 _species = stdpopsim.Species(
     id="DroMel",
