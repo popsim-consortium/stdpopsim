@@ -28,7 +28,6 @@ class TestGenomeData(test_species.GenomeTestBase):
 
     genome = stdpopsim.get_species("AedAeg").genome
 
-    @pytest.mark.skip("See #915.")
     @pytest.mark.parametrize(
         ["name", "rate"],
         {"1": 0.306e-8, "2": 0.249e-8, "3": 0.291e-8, "MT": 0.0}.items(),
