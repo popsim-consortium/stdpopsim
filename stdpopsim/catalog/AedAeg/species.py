@@ -3,7 +3,7 @@ import stdpopsim
 from . import genome_data
 
 # These are in Table 1 of Juneja et al:
-_recombination_rate = {"1": 0.306, "2": 0.249, "3": 0.291, "MT": 0}
+_recombination_rate = {"1": 0.306e-8, "2": 0.249e-8, "3": 0.291e-8, "MT": 0}
 
 _JunejaEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1371/journal.pntd.0002652",

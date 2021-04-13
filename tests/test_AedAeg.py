@@ -33,10 +33,12 @@ class TestGenomeData(test_species.GenomeTestBase):
         {"1": 0.306e-8, "2": 0.249e-8, "3": 0.291e-8, "MT": 0.0}.items(),
     )
     def test_recombination_rate(self, name, rate):
-        assert pytest.approx(rate, self.genome.get_chromosome(name).recombination_rate)
+        assert rate == pytest.approx(
+            self.genome.get_chromosome(name).recombination_rate
+        )
 
     @pytest.mark.parametrize(
         ["name", "rate"], {"1": 3.5e-9, "2": 3.5e-9, "3": 3.5e-9, "MT": 3.5e-9}.items()
     )
     def test_mutation_rate(self, name, rate):
-        assert pytest.approx(rate, self.genome.get_chromosome(name).mutation_rate)
+        assert rate == pytest.approx(self.genome.get_chromosome(name).mutation_rate)
