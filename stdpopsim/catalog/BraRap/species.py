@@ -2,76 +2,63 @@ import stdpopsim
 
 from . import genome_data
 
-# [The following are notes for implementers and should be deleted
-#  once the recombination rates have been inserted]
-# This is the per-chromosome recombination rate, typically the mean
-# rate along the chromosome.
-# Values in this dictionary are set to -1 by default, so you have
-# to update each one. These should be derived from the most reliable
-# data and how they were obtained should be documented here.
-# The appropriate citation must be added to the list of
-# recombination_rate_citations in the Genome object.
+# I still need an estimate...
+_mean_recombination_rate = 0
 
 _recombination_rate = {
-    "A01": -1,
-    "A02": -1,
-    "A03": -1,
-    "A04": -1,
-    "A05": -1,
-    "A06": -1,
-    "A07": -1,
-    "A08": -1,
-    "A09": -1,
-    "A10": -1,
+    "A01": _mean_recombination_rate,
+    "A02": _mean_recombination_rate,
+    "A03": _mean_recombination_rate,
+    "A04": _mean_recombination_rate,
+    "A05": _mean_recombination_rate,
+    "A06": _mean_recombination_rate,
+    "A07": _mean_recombination_rate,
+    "A08": _mean_recombination_rate,
+    "A09": _mean_recombination_rate,
+    "A10": _mean_recombination_rate,
 }
 
-# [The following are notes for implementers and should be deleted
-#  once the mutation rates have been inserted]
-# This is the per-chromosome mutation rate, typically the mean
-# rate along the chromosome. If per chromosome rates are not available,
-# the same value should be used for each chromosome. In this case,
-# please use a variable to store this value, rather than repeating
-# the same numerical constant, e.g.
-# _mutation_rate = {
-#    1: _overall_rate,
-#    2: _overall_rate,
-#    ...
-# Values in this dictionary are set to -1 by default, so you have
-# to update each one. These should be derived from the most reliable
-# data and how they were obtained should be documented here.
-# The appropriate citation must be added to the list of
-# mutation_rate_citations in the Genome object.
+_mean_mutation_rate = 9e-9
 
 _mutation_rate = {
-    "A01": -1,
-    "A02": -1,
-    "A03": -1,
-    "A04": -1,
-    "A05": -1,
-    "A06": -1,
-    "A07": -1,
-    "A08": -1,
-    "A09": -1,
-    "A10": -1,
+    "A01": _mean_mutation_rate,
+    "A02": _mean_mutation_rate,
+    "A03": _mean_mutation_rate,
+    "A04": _mean_mutation_rate,
+    "A05": _mean_mutation_rate,
+    "A06": _mean_mutation_rate,
+    "A07": _mean_mutation_rate,
+    "A08": _mean_mutation_rate,
+    "A09": _mean_mutation_rate,
+    "A10": _mean_mutation_rate,
 }
+
+_recombination_rate_citation = stdpopsim.Citation(
+    author="", year=-1, doi="", reasons={stdpopsim.CiteReason.REC_RATE}
+)
+
+_mutation_rate_citation = stdpopsim.Citation(
+    doi="https://doi.org/10.1105/tpc.114.126391",
+    author="Kagale et al.",
+    year=2014,
+    reasons={stdpopsim.CiteReason.MUT_RATE},
+)
+
+_assembly_citation = stdpopsim.Citation(
+    author="Wang et al.",
+    year=2011,
+    doi="https://doi.org/10.1038/ng.919",
+    reasons={stdpopsim.CiteReason.ASSEMBLY},
+)
 
 _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
-    # [ Implementers: please insert citations for the papers you are basing
-    # the estimates for recombination and mutation rates. The assembly
-    # citation is optional and can be deleted if not needed.]
     citations=[
-        stdpopsim.Citation(
-            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.ASSEMBLY}
-        ),
-        stdpopsim.Citation(
-            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.REC_RATE}
-        ),
-        stdpopsim.Citation(
-            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.MUT_RATE}
-        ),
+        _assembly_citation,
+        _recombination_rate_citation,
+        _mutation_rate_citation,
     ],
 )
 
@@ -81,19 +68,16 @@ _species = stdpopsim.Species(
     name="Brassica rapa",
     common_name="Brassica rapa",
     genome=_genome,
-    # [Implementers: you must provide an estimate of the generation_time.
-    # Please also add a citation for this.]
-    generation_time=0,
-    # [Implementers: you must provide an estimate of the population size.
-    # TODO: give a definition of what this should be.
-    # Please also add a citation for this below..]
-    population_size=0,
+    # Brassica rapa is an anual crop
+    generation_time=1,
+    # Population size inferred using dadi from the SFS in Qi et al
+    population_size=40e3,
     citations=[
         stdpopsim.Citation(
-            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.POP_SIZE}
-        ),
-        stdpopsim.Citation(
-            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.GEN_TIME}
+            author="Qi et al.",
+            year=2017,
+            doi="https://doi.org/10.1111/mec.14131",
+            reasons={stdpopsim.CiteReason.POP_SIZE},
         ),
     ],
 )
