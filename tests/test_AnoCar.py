@@ -50,7 +50,7 @@ class TestGenomeData(test_species.GenomeTestBase):
             "LGf": rec_rate,
             "LGg": rec_rate,
             "LGh": rec_rate,
-            "MT": rec_rate,
+            "MT": 0,
         }.items(),
     )
     def test_recombination_rate(self, name, rate):
