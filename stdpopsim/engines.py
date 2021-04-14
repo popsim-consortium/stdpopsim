@@ -5,6 +5,7 @@ import attr
 import msprime
 import stdpopsim
 import numpy as np
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -110,6 +111,19 @@ class Engine:
                 "sizes 5x lower than those in Schiffels & Durbin (2014). "
                 "The population sizes have now been corrected. For details see: "
                 "https://github.com/popsim-consortium/stdpopsim/issues/745"
+            )
+
+    def _warn_mutation_rate_mismatch(self, contig, demographic_model):
+        if demographic_model.mutation_rate is not None and not math.isclose(
+            demographic_model.mutation_rate, contig.mutation_rate
+        ):
+            warnings.warn(
+                "The demographic model has mutation rate "
+                f"{demographic_model.mutation_rate}, but this simulation used the "
+                f"contig's mutation rate {contig.mutation_rate}. Diversity levels "
+                "may be different than expected for this species. For details see "
+                "documentation at "
+                "https://stdpopsim.readthedocs.io/en/latest/tutorial.html"
             )
 
 
@@ -226,6 +240,7 @@ class _MsprimeEngine(Engine):
 
         # TODO: remove this after a release or two. See #745.
         self._warn_zigzag(demographic_model)
+        self._warn_mutation_rate_mismatch(contig, demographic_model)
 
         rng = np.random.default_rng(seed)
         seeds = rng.integers(1, 2 ** 31 - 1, size=2)

@@ -23,7 +23,6 @@ def _HolsteinFriesian_1M13():
             reasons={stdpopsim.CiteReason.DEM_MODEL},
         )
     ]
-
     return stdpopsim.DemographicModel(
         id=id,
         description=description,

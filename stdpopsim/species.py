@@ -146,6 +146,7 @@ class Species:
         genetic_map=None,
         length_multiplier=1,
         length=None,
+        mutation_rate=None,
         inclusion_mask=None,
         exclusion_mask=None,
     ):
@@ -169,6 +170,8 @@ class Species:
             same chromosome-specific mutation and recombination rates.
             This option cannot currently be used in conjunction with the
             ``genetic_map`` argument.
+        :param float mutation_rate: The per-base mutation rate. If none is given,
+            the mutation rate defaults to the rate specified by species chromosomes.
         :param inclusion_mask: If specified, simulated genomes are subset to only
             inlude regions given by the mask. The mask can be specified by the
             path and file name of a bed file or as a list or array of intervals
@@ -211,10 +214,13 @@ class Species:
                     L_tot += chrom_data.length
                     r_tot += chrom_data.length * chrom_data.recombination_rate
                     u_tot += chrom_data.length * chrom_data.mutation_rate
-            u = u_tot / L_tot
+            if mutation_rate is None:
+                mutation_rate = u_tot / L_tot
             r = r_tot / L_tot
             recomb_map = msprime.RateMap.uniform(length, r)
-            ret = stdpopsim.Contig(recombination_map=recomb_map, mutation_rate=u)
+            ret = stdpopsim.Contig(
+                recombination_map=recomb_map, mutation_rate=mutation_rate
+            )
         else:
             if length is not None:
                 raise ValueError("Cannot specify sequence length for named contig")
@@ -255,9 +261,12 @@ class Species:
                 else:
                     exclusion_intervals = exclusion_mask
 
+            if mutation_rate is None:
+                mutation_rate = chrom.mutation_rate
+
             ret = stdpopsim.Contig(
                 recombination_map=recomb_map,
-                mutation_rate=chrom.mutation_rate,
+                mutation_rate=mutation_rate,
                 genetic_map=gm,
                 inclusion_mask=inclusion_intervals,
                 exclusion_mask=exclusion_intervals,

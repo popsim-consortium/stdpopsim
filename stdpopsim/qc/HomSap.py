@@ -247,7 +247,7 @@ def BrowningAmerica():
         id=id,
         description=id,
         long_description=id,
-        generation_time=_species.generation_time,
+        generation_time=25,
         populations=populations,
         # Set population sizes at T=0
         # pop0 is Africa, pop1 is Europe, pop2 is Asia, pop3 is admixed
