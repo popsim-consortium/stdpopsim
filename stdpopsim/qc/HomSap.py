@@ -80,6 +80,9 @@ def TennessenOnePopAfrica():
             {"AFR": 0},
             {"AFR": 0},
         ],
+        # I'm guessing the took the mutation rate to be the same as in Gravel et al 2011,
+        # (doi: 10.1073/pnas.1019276108), where they got the demographic model from
+        mutation_rate=2.36e-8,
     )
 
 
@@ -193,6 +196,9 @@ def TennessenTwoPopOutOfAfrica():
             {"AFR": 0, "EUR": 1},
             {"AFR": 0, "EUR": 1},
         ],
+        # I'm guessing the took the mutation rate to be the same as in Gravel et al 2011,
+        # (doi: 10.1073/pnas.1019276108), where they got the demographic model from
+        mutation_rate=2.36e-8,
     )
 
 
@@ -317,6 +323,8 @@ def BrowningAmerica():
             {"AFR": 0, "EUR": 1, "ASIA": 2, "ADMIX": 3},
             {"AFR": 0, "EUR": 1, "ASIA": 2, "ADMIX": 3},
         ],
+        # the model derives from Gravel et al, who used this rate
+        mutation_rate=2.36e-8,
     )
 
 
@@ -473,6 +481,12 @@ def RagsdaleArchaic():
             {"YRI": 0, "CEU": 1, "CHB": 2, "Neanderthal": 3, "ArchaicAFR": 4},
             {"YRI": 0, "CEU": 1, "CHB": 2, "Neanderthal": 3, "ArchaicAFR": 4},
         ],
+        # the method depends on recombination rate, not mutation rate: "This
+        # normalization removes all dependence of the statistics on the overall
+        # mutation rate, so that estimates of split times and population sizes
+        # are calibrated by the recombination rate per generation instead of
+        # the mutation rate"
+        mutation_rate=None,
     )
 
 
@@ -684,6 +698,8 @@ def KammAncientSamples():
         # population IDs in this model.
         # Note: we'll be updating this map as the model is modernised.
         population_id_map=[pop_id_map] * 13,
+        # this is a prediction of the paper rather than an assumption
+        mutation_rate=1.22e-8,
     )
 
 
@@ -990,6 +1006,7 @@ def DenisovanAncestryInPapuans():
         # population IDs in this model.
         # Note: we'll be updating this map as the model is modernised.
         population_id_map=[pop_id_map] * 19,
+        mutation_rate=1.4e-8,
     )
 
 
@@ -1076,6 +1093,7 @@ def GutenkunstOOA():
             {"YRI": 0, "CEU": 1, "CHB": 2},
             {"YRI": 0, "CEU": 1, "CHB": 2},
         ],
+        mutation_rate=2.35e-8,
     )
 
 
@@ -1168,6 +1186,7 @@ def GladsteinAshkSubstructure():
             {"YRI": 0, "CHB": 1, "CEU": 2, "ME": 3, "J": 4, "WAJ": 5, "EAJ": 6},
         ]
         * 10,
+        mutation_rate=2.5e-8,
     )
 
 
@@ -1231,6 +1250,8 @@ def ZigZag():
         population_configurations=population_configurations,
         demographic_events=de,
         population_id_map=[{"generic": 0}] * 7,
+        # This is a test model, not inferred from actual data.
+        mutation_rate=None,
     )
 
 

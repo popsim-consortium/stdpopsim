@@ -5,6 +5,9 @@ import unittest
 import sys
 import textwrap
 import copy
+import csv
+import pathlib
+import os
 
 import numpy as np
 import msprime
@@ -168,6 +171,7 @@ class TestModelOutput:
             description="abc",
             long_description="ABC " * 50,
             generation_time=1234,
+            mutation_rate=888,
             model=msprime.Demography.isolated_model([1]),
         )
         s = str(model)
@@ -179,6 +183,7 @@ class TestModelOutput:
         ║                     ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC
         ║                     ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC
         ║  generation_time  = 1234
+        ║  mutation_rate    = 888
         ║  citations        = []
         """  # noqa 501
         assert textwrap.dedent(expected) in s
@@ -359,3 +364,26 @@ class TestMutationRates(unittest.TestCase):
         self.assertNotEqual(model.mutation_rate, contig.mutation_rate)
         contig = species.get_contig(length=100, mutation_rate=model.mutation_rate)
         self.assertEqual(model.mutation_rate, contig.mutation_rate)
+
+    def test_params_match_docs_tables(self):
+        for species in stdpopsim.all_species():
+            for model in species.demographic_models:
+                table_path = pathlib.Path(
+                    os.path.join(
+                        "./docs/parameter_tables", species.id, model.id + ".csv"
+                    )
+                )
+                if model.qc_model is not None:
+                    self.assertTrue(table_path.exists())
+                    with open(table_path) as csv_file:
+                        reader = csv.reader(csv_file)
+                        param_list = list(reader)
+                        generation_time = None
+                        mutation_rate = None
+                        for param_data in param_list:
+                            if param_data[0].startswith("Generation time"):
+                                generation_time = float(param_data[1])
+                            if param_data[0].startswith("Mutation rate"):
+                                mutation_rate = float(param_data[1])
+                    self.assertEqual(model.mutation_rate, mutation_rate)
+                    self.assertEqual(model.generation_time, generation_time)

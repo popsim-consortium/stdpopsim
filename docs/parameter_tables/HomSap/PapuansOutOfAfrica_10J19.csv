@@ -1,4 +1,3 @@
-Generation time (yrs.),29,Generation time
 Population size,"48,433",African pop. size
 Population size,"6,962",European pop. size
 Population size,"9,025",East Asian pop. size
@@ -51,3 +50,5 @@ Migration rate (x10^-4),5.72,(European + East Asian)--Papuan migration rate
 Migration rate (x10^-4),4.42,(European + East Asian)--Ghost migration rate
 Time (yrs.),"37,497",(European + East Asian)--Papuan migration begins
 Time (yrs.),"37,497",(European + East Asian)--Ghost migration begins
+Generation time (yrs.),29,Generation time
+Mutation rate,1.4e-8,Per-base per-generation mutation rate

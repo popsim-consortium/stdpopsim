@@ -60,6 +60,7 @@ def LiStephanTwoPopulation():
             {"AFR": 0, "EUR": 1},
             {"AFR": 0, "EUR": 1},
         ],
+        mutation_rate=1.450e-9,
     )
 
 
@@ -109,6 +110,7 @@ def SheehanSongThreeEpic():
             ),
         ],
         population_id_map=[{"AFR": 0}] * 3,
+        mutation_rate=8.4e-9,
     )
 
 

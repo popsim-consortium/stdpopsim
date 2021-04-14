@@ -125,6 +125,7 @@ def _sma_1pop():
             )
         ],
         generation_time=1,
+        mutation_rate=7.1e-9,
         demographic_events=demographic_events,
         population_configurations=[
             msprime.PopulationConfiguration(
@@ -167,6 +168,7 @@ def _afr_2epoch():
             )
         ],
         generation_time=1,
+        mutation_rate=7e-9,
         population_configurations=[
             msprime.PopulationConfiguration(
                 initial_size=N_0, metadata=populations[0].asdict()
@@ -218,6 +220,7 @@ def _afr_3epoch():
             )
         ],
         generation_time=1,
+        mutation_rate=7e-9,
         population_configurations=[
             msprime.PopulationConfiguration(
                 initial_size=N_3, metadata=populations[0].asdict()

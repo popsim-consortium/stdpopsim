@@ -39,3 +39,5 @@ Time (yrs.),"91,648",Begining of 17th time interval
 Time (yrs.),"75,958",Begining of 18th time interval
 Time (yrs.),"62,544",Begining of 19th time interval
 Time (yrs.),"51,077",Begining of 20th time interval
+Generation time (yrs.),1,Average generation interval
+Mutation rate,7.1e-9,Per-base per-generation mutation rate

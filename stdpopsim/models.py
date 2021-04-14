@@ -150,6 +150,7 @@ class DemographicModel:
             f"║  description      = {self.description}\n"
             f"║  long_description = {long_desc}\n"
             f"║  generation_time  = {self.generation_time}\n"
+            f"║  mutation_rate    = {self.mutation_rate}\n"
             f"║  citations        = {[cite.doi for cite in self.citations]}\n"
             f"║{self.model}"
         )
