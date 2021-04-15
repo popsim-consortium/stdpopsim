@@ -14,8 +14,6 @@ aliases:
       command: |
         sudo chown -R circleci:circleci /usr/local/bin
         sudo chown -R circleci:circleci /usr/local/lib/python3.7/site-packages
-  - &install_libgsl
-    run: sudo apt-get install libgsl-dev
 
 jobs:
   build-slim-lib:
@@ -70,7 +68,6 @@ jobs:
       - run: sudo chown -R circleci:circleci /usr/local/share
       - checkout
       - run: sudo chown -R circleci:circleci .
-      - *install_libgsl # Needed for msprime
       - restore_cache:
           key: stdpopsim-v3-{{ .Branch }}-{{ checksum "requirements/CI/requirements.txt" }}
       - run:
@@ -98,7 +95,6 @@ jobs:
           at: /usr/local
       - checkout
       - run: sudo chown -R circleci:circleci .
-      - *install_libgsl # Needed for msprime
       - run:
           name: Build Python package
           command: |
@@ -124,7 +120,6 @@ jobs:
     parallelism: 3
     steps:
       - *set_py_circleci_own
-      - *install_libgsl
       - attach_workspace:
           at: /usr/local
       - checkout
@@ -146,7 +141,6 @@ jobs:
           at: /usr/local
       - checkout
       - run: sudo chown -R circleci:circleci .
-      - *install_libgsl
       - run:
           name: Rebuild Python package
           command: |

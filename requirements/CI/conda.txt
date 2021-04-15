@@ -1,3 +1,2 @@
-# Uncomment when 1.0 is released.
-# msprime==1.0.0
+msprime==1.0.0
 numcodecs==0.7.3
