@@ -17,9 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # FIXME removing windows from CI until msprime 1.0 is released
-        # and we have conda packages again.
-        os: [ubuntu-18.04, macos-10.15]
+        os: [ubuntu-18.04, macos-10.15, windows-latest]
         python: [3.7, 3.9]
     env:
       SLIM_TAG: 3.6
@@ -80,8 +78,6 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           conda install --yes --file=requirements/CI/conda.txt
-          # Install pre-release from pypi until 1.0 is tagged.
-          pip install --pre msprime
           if [ "$RUNNER_OS" != "Windows" ]; then
             conda install --yes slim==${{ env.SLIM_TAG }}
           fi

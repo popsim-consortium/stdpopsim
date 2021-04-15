@@ -25,7 +25,6 @@ jobs:
 
       - name: Install deps
         run: |
-          sudo apt-get install libgsl-dev  # for msprime
           python -m pip install wheel
           python -m pip install numpy==1.19.2  # for scikit-allel
           python -m pip install -r requirements/CI/requirements.txt
