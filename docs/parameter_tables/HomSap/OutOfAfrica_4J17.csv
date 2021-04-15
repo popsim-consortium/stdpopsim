@@ -15,8 +15,8 @@ Migration rate (fraction per generation),1.14e-5,YRI-CEU migration rate
 Migration rate (fraction per generation),0.56e-5,YRI-CHB migration rate
 Migration rate (fraction per generation),4.75e-5,CEU-CHB migration rate
 Migration rate (fraction per generation),3.3e-5,CHB-JPT migration rate
-Epoch Time (generations),357,Expansion time of ancestral population
-Epoch Time (generations),119,Time of OOA event
-Epoch Time (generations),46,Time of CEU-CHB split
-Epoch Time (generations),9,Time of CHB-JPT split
+Epoch Time (thousands of years ago),357,Expansion time of ancestral population
+Epoch Time (thousands of years ago),119,Time of OOA event
+Epoch Time (thousands of years ago),46,Time of CEU-CHB split
+Epoch Time (thousands of years ago),9,Time of CHB-JPT split
 Generation time (years),29,Years per generation
