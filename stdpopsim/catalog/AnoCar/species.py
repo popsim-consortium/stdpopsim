@@ -68,6 +68,7 @@ _genome = stdpopsim.Genome.from_data(
     mutation_rate=_mutation_rate,
     citations=[_BourgeoisEtAl],
 )
+stdpopsim.utils.append_common_synonyms(_genome)
 
 _species = stdpopsim.Species(
     id="AnoCar",

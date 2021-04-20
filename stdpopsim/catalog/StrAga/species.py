@@ -57,6 +57,7 @@ _genome = stdpopsim.Genome.from_data(
         _DaCunha_et_al.because(stdpopsim.CiteReason.MUT_RATE),
     ],
 )
+stdpopsim.utils.append_common_synonyms(_genome)
 
 # Generation time :
 #  No estimation was done for S agalactiae, but we can use estimates from E coli (which

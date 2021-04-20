@@ -8,6 +8,7 @@ import tarfile
 import tempfile
 
 from stdpopsim import utils
+from stdpopsim import Chromosome, Genome
 
 
 class TestValidDemographicModelId(unittest.TestCase):
@@ -372,3 +373,64 @@ class TestUntar(unittest.TestCase):
                     utils.untar(tar, dest)
                 rm_f(filename)
                 rm_f(tar)
+
+
+class TestSynonyms(unittest.TestCase):
+    def test_add_digit_autosomes(self):
+        chroms = [
+            Chromosome(
+                id="1",
+                length=100,
+                synonyms=[],
+                mutation_rate=1e-8,
+                recombination_rate=1e-8,
+            )
+        ]
+        genome = Genome(chroms)
+        utils.append_common_synonyms(genome)
+        self.assertTrue("chr1" in genome.chromosomes[0].synonyms)
+
+    def test_add_drosophila_like_synonyms(self):
+        chroms = [
+            Chromosome(
+                id="1a",
+                length=100,
+                synonyms=[],
+                mutation_rate=1e-8,
+                recombination_rate=1e-8,
+            )
+        ]
+        genome = Genome(chroms)
+        utils.append_common_synonyms(genome)
+        self.assertTrue("chr1a" in genome.chromosomes[0].synonyms)
+
+    def test_add_sex_chrom_synonyms(self):
+        chroms = [
+            Chromosome(
+                id=s,
+                length=100,
+                synonyms=[],
+                mutation_rate=1e-8,
+                recombination_rate=1e-8,
+            )
+            for s in ["X", "Y", "Z", "W"]
+        ]
+        genome = Genome(chroms)
+        utils.append_common_synonyms(genome)
+        for chrom in genome.chromosomes:
+            self.assertTrue("chr" + chrom.id in chrom.synonyms)
+
+    def test_add_only_unique_synonyms(self):
+        chroms = [
+            Chromosome(
+                id="1",
+                length=100,
+                synonyms=["chr1"],
+                mutation_rate=1e-8,
+                recombination_rate=1e-8,
+            )
+        ]
+        genome = Genome(chroms)
+        utils.append_common_synonyms(genome)
+        self.assertTrue("chr1" in genome.chromosomes[0].synonyms)
+        self.assertEqual(len(genome.chromosomes[0].synonyms), 1)

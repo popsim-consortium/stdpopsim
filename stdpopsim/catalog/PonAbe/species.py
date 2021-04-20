@@ -67,6 +67,7 @@ _genome = stdpopsim.Genome(
     assembly_accession=genome_data.data["assembly_accession"],
     citations=[_nater2017],
 )
+stdpopsim.utils.append_common_synonyms(_genome)
 
 _species = stdpopsim.Species(
     id="PonAbe",

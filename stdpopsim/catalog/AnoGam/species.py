@@ -58,6 +58,7 @@ _genome = stdpopsim.Genome.from_data(
         _PombiEtAl,
     ],
 )
+stdpopsim.utils.append_common_synonyms(_genome)
 
 _species = stdpopsim.Species(
     id="AnoGam",

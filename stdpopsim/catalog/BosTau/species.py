@@ -78,6 +78,7 @@ _genome = stdpopsim.Genome(
         _MaEtAl,
     ],
 )
+stdpopsim.utils.append_common_synonyms(_genome)
 
 _species = stdpopsim.Species(
     id="BosTau",

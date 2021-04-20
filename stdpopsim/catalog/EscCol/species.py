@@ -48,7 +48,7 @@ _genome = stdpopsim.Genome(
         _blattner_et_al.because(stdpopsim.CiteReason.ASSEMBLY),
     ],
 )
-
+stdpopsim.utils.append_common_synonyms(_genome)
 
 _species = stdpopsim.Species(
     id="EscCol",
@@ -69,6 +69,5 @@ _species = stdpopsim.Species(
         _hartl_et_al.because(stdpopsim.CiteReason.POP_SIZE),
     ],
 )
-
 
 stdpopsim.register_species(_species)
