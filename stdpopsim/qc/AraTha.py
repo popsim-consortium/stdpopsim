@@ -122,6 +122,7 @@ def Durvasula2017MSMC():
         population_configurations=population_configurations,
         demographic_events=demographic_events,
         population_id_map=[{"SouthMiddleAtlas": 0}] * 33,
+        mutation_rate=7.1e-9,
     )
 
 
@@ -157,6 +158,9 @@ def HuberTwoEpoch():
             ),
         ],
         population_id_map=[{"SouthMiddleAtlas": 0}] * 2,
+        # Huber et al say "7e-9" but then refer to Ossowski,
+        # which Durvasula reported as giving 7.1e-9
+        mutation_rate=7e-9,
     )
 
 
@@ -197,6 +201,9 @@ def HuberThreeEpoch():
             ),
         ],
         population_id_map=[{"SouthMiddleAtlas": 0}] * 3,
+        # Huber et al say "7e-9" but then refer to Ossowski,
+        # which Durvasula reported as giving 7.1e-9
+        mutation_rate=7e-9,
     )
 
 

@@ -18,6 +18,7 @@ def LockePongo():
     # decay allowed in each population after the split. They assumed a
     # generation time of 20 years and a mutation rate of 2e-8 per bp per gen
     generation_time = 20
+    mutation_rate = 2e-8
 
     # Parameters given in Table S21-2
     Ne = 17934
@@ -57,6 +58,7 @@ def LockePongo():
             {"Bornean": 0, "Sumatran": 1},
             {"Bornean": 0, "Sumatran": 1},
         ],
+        mutation_rate=mutation_rate,
     )
 
 

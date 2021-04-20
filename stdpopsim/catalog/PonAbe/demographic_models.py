@@ -40,6 +40,8 @@ def _orangutan():
     T_split_years = 403149
     # get split time in units of generations
     generation_time = _species.generation_time
+    mutation_rate = 2e-8
+
     T_split = T_split_years / generation_time
 
     # proportion of ancestral pop to branch B
@@ -72,6 +74,7 @@ def _orangutan():
         citations=citations,
         populations=populations,
         generation_time=generation_time,
+        mutation_rate=mutation_rate,
         population_configurations=[
             msprime.PopulationConfiguration(
                 initial_size=N_B, growth_rate=r_B, metadata=populations[0].asdict()

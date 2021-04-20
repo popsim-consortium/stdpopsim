@@ -19,3 +19,4 @@ ADMIX percentage, 1/6,Amount African admixture
 ADMIX percentage, 1/3,Amount European admixture
 ADMIX percentage, 1/2,Amount Asian admixture
 Generation time (yrs.),25,Generation time
+Mutation rate,2.36e-8,Per-base per-generation mutation rate

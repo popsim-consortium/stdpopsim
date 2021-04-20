@@ -111,7 +111,9 @@ class TestMasking(unittest.TestCase):
         # check we get the right number of trees (simulated with no recomb)
         self.assertTrue(ts_mask.num_trees == len(intervals) * 2 - 1)
         # check that positions of mutations in ts_mask are within mask
-        positions = np.array([m.position for m in ts_mask.mutations()])
+        positions = np.array(
+            [ts_mask.site(m.site).position for m in ts_mask.mutations()]
+        )
         self.assertTrue(np.all(np.logical_and(100 <= positions, positions < 200)))
 
 
@@ -136,7 +138,7 @@ class TestSimulate(unittest.TestCase):
                 demographic_model=model, contig=contig, samples=samples
             )
             # check that positions of mutations are within mask
-            positions = np.array([m.position for m in ts.mutations()])
+            positions = np.array([ts.site(m.site).position for m in ts.mutations()])
             self.assertTrue(np.all(positions >= L // 2))
 
             # test engine with inclusion mask
@@ -146,5 +148,5 @@ class TestSimulate(unittest.TestCase):
                 demographic_model=model, contig=contig, samples=samples
             )
             # check that positions of mutations are within mask
-            positions = np.array([m.position for m in ts.mutations()])
+            positions = np.array([ts.site(m.site).position for m in ts.mutations()])
             self.assertTrue(np.all(positions < L // 2))

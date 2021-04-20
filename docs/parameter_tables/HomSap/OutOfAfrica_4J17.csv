@@ -20,3 +20,4 @@ Epoch Time (thousands of years ago),119,Time of OOA event
 Epoch Time (thousands of years ago),46,Time of CEU-CHB split
 Epoch Time (thousands of years ago),9,Time of CHB-JPT split
 Generation time (years),29,Years per generation
+Mutation rate,1.44e-8,Per-base per-generation mutation rate

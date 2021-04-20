@@ -40,6 +40,7 @@ def _afr_3epoch():
         )
     ]
     generation_time = _species.generation_time
+    mutation_rate = 8.4e-9
 
     # Parameter values from "Simulating Data" section
     # these are assumptions, not estimates
@@ -62,6 +63,7 @@ def _afr_3epoch():
         populations=populations,
         citations=citations,
         generation_time=generation_time,
+        mutation_rate=mutation_rate,
         population_configurations=[
             msprime.PopulationConfiguration(
                 initial_size=N_R, metadata=populations[0].asdict()
@@ -94,6 +96,7 @@ def _ooa_2():
     populations = [_afr_population, _eur_population]
     citations = [_LiAndStephan.because(stdpopsim.CiteReason.DEM_MODEL)]
     generation_time = _species.generation_time
+    mutation_rate = 1.45e-9  # using the average mutation rate (see citation Methods)
 
     # African Parameter values from "Demographic History of the African
     # Population" section
@@ -114,6 +117,7 @@ def _ooa_2():
         populations=populations,
         citations=citations,
         generation_time=generation_time,
+        mutation_rate=mutation_rate,
         population_configurations=[
             msprime.PopulationConfiguration(
                 initial_size=N_A0, metadata=populations[0].asdict()

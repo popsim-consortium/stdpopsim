@@ -487,7 +487,9 @@ def _GAS_sp():
                 reasons={stdpopsim.CiteReason.DEM_MODEL},
             )
         ],
+        # generation times and mutation rate given at bottom of page 32 in supp info
         generation_time=1 / 11,
+        mutation_rate=3.5e-9,
         demographic_events=demographic_events,
         population_configurations=[
             msprime.PopulationConfiguration(

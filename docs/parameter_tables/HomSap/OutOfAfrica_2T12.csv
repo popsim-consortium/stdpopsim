@@ -15,3 +15,4 @@ Epoch Time (gen.),"2,040",Time of OOA event
 Epoch Time (gen.),920,Beginning of 1st EU growth period
 Epoch Time (gen.),204.6,Beginning of 2nd EU/1st AFR growth period
 Generation time (yrs.),25,Generation time
+Mutation rate,2.36e-8,Per-base per-generation mutation rate
