@@ -13,15 +13,8 @@ class MutationType(object):
     distribution_type = attr.ib(default="f", type=str)
     distribution_args = attr.ib(factory=lambda: [0], type=list)
     convert_to_substitution = attr.ib(default=True, type=bool)
-    # MutationTypes with non-zero weight will be simulated by SLiM,
-    # using rates obtained from the relative weights of the types.
-    # I.e. the weights will be used in the ``proportion`` parameter
-    # to SLiM's :func:`initializeGenomicElementType()`.
-    weight = attr.ib(default=0, type=float)
 
     def __attrs_post_init__(self):
-        if self.weight < 0:
-            raise ValueError("weight must be >= 0.")
         if self.dominance_coeff < 0:
             raise ValueError(f"Invalid dominance coefficient {self.dominance_coeff}.")
 
@@ -61,19 +54,6 @@ class MutationType(object):
             "n": 1,  # standard deviation
             "w": 0,  # scale
         }[self.distribution_type]
-
-
-def slim_mutation_frac(mutation_types):
-    """
-    The fraction of mutations that should be added by SLiM.
-    The remainder are added by msprime.mutate() once the SLiM part
-    of the simulation is complete.
-    """
-    if mutation_types is None:
-        weighted = False
-    else:
-        weighted = any(mut_type.weight > 0 for mut_type in mutation_types)
-    return 1 if weighted else 0
 
 
 @attr.s

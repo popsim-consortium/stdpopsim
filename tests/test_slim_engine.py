@@ -10,6 +10,7 @@ import unittest
 import tempfile
 import math
 from unittest import mock
+import numpy as np
 
 import tskit
 import pyslim
@@ -114,6 +115,20 @@ class TestAPI(unittest.TestCase):
         )
         self.assertTrue("sim.registerLateEvent" in out)
 
+    def test_no_recombination_map(self):
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("chr1", genetic_map="HapMapII_GRCh37")
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        contig.recombination_map = None
+        with self.assertRaises(ValueError):
+            engine.simulate(
+                demographic_model=model,
+                contig=contig,
+                samples=model.get_samples(10),
+                dry_run=True,
+            )
+
     def test_recombination_map(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
@@ -147,22 +162,19 @@ class TestAPI(unittest.TestCase):
     def test_recap_and_rescale(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
-        contig = species.get_contig("chr22", length_multiplier=0.001)
         model = species.get_demographic_model("OutOfAfrica_3G09")
         samples = model.get_samples(10, 10, 10)
-
-        for weight, seed in zip((0, 1), (1234, 2345)):
-            if weight:
-                mutation_types = [stdpopsim.ext.MutationType(weight=1)]
+        for proportion, seed in zip((0, 1), (1234, 2345)):
+            contig = species.get_contig("chr22", length_multiplier=0.001)
+            if proportion:
+                contig.fully_neutral(slim_mutations=True)
                 extended_events = None
             else:
-                mutation_types = None
                 extended_events = []
             ts1 = engine.simulate(
                 demographic_model=model,
                 contig=contig,
                 samples=samples,
-                mutation_types=mutation_types,
                 extended_events=extended_events,
                 slim_scaling_factor=10,
                 slim_burn_in=0,
@@ -172,7 +184,6 @@ class TestAPI(unittest.TestCase):
                 demographic_model=model,
                 contig=contig,
                 samples=samples,
-                mutation_types=mutation_types,
                 extended_events=extended_events,
                 slim_scaling_factor=10,
                 slim_burn_in=0,
@@ -183,7 +194,6 @@ class TestAPI(unittest.TestCase):
                 demographic_model=model,
                 contig=contig,
                 samples=samples,
-                mutation_types=mutation_types,
                 extended_events=extended_events,
                 slim_scaling_factor=10,
                 seed=seed,
@@ -518,6 +528,20 @@ class TestWarningsAndErrors(unittest.TestCase):
             with self.assertWarns(stdpopsim.SLiMScalingFactorWarning):
                 capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
 
+    def test_slim_engine_without_recombination_map(self):
+        engine, species, contig = self.triplet()
+        contig.recombination_map = None
+        model = stdpopsim.PiecewiseConstantSize(1000)
+        samples = model.get_samples(100)
+
+        with self.assertRaises(ValueError):
+            engine.simulate(
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                dry_run=True,
+            )
+
 
 class TestSlimAvailable(unittest.TestCase):
     """
@@ -536,13 +560,17 @@ class TestSlimAvailable(unittest.TestCase):
         self.assertEqual(IS_WINDOWS, "slim" not in all_engines)
 
 
+def get_test_contig(spp="HomSap", chrom="chr22", length_multiplier=0.001):
+    species = stdpopsim.get_species(spp)
+    contig = species.get_contig(chrom, length_multiplier=length_multiplier)
+    contig.fully_neutral(convert_to_substitution=False)
+    return contig
+
+
 class PiecewiseConstantSizeMixin(object):
     """
     Mixin that sets up a simple demographic model used by multiple unit tests.
     """
-
-    species = stdpopsim.get_species("HomSap")
-    contig = species.get_contig("chr22", length_multiplier=0.001)  # ~50 kb
 
     N0 = 1000  # size in the present
     N1 = 500  # ancestral size
@@ -551,8 +579,8 @@ class PiecewiseConstantSizeMixin(object):
     model = stdpopsim.PiecewiseConstantSize(N0, (T, N1))
     model.generation_time = 1
     samples = model.get_samples(100)
-    mutation_types = [stdpopsim.ext.MutationType(convert_to_substitution=False)]
-    mut_id = len(mutation_types)
+    contig = get_test_contig()
+    mut_id = 0
 
     def allele_frequency(self, ts):
         """
@@ -573,122 +601,188 @@ class PiecewiseConstantSizeMixin(object):
 
 
 @unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
-class TestMutationTypes(unittest.TestCase, PiecewiseConstantSizeMixin):
-    def test_single_mutation_type_in_script(self):
+class TestGenomicElementTypes(unittest.TestCase, PiecewiseConstantSizeMixin):
+    def test_default_fully_neutral(self):
+        # if no genomic element type is defined, then by default go fully neutral
+        contig = get_test_contig()
+        contig.genomic_element_types = []
+        contig.mutation_types = []
         engine = stdpopsim.get_engine("slim")
         out, _ = capture_output(
             engine.simulate,
             demographic_model=self.model,
-            contig=self.contig,
+            contig=contig,
+            samples=self.samples,
+            slim_script=True,
+        )
+        self.assertEqual(out.count("initializeGenomicElementType"), 1)
+        self.assertEqual(out.count("initializeGenomicElement("), 1)
+
+    def test_single_genomic_element_type_in_script(self):
+        contig = get_test_contig()
+        engine = stdpopsim.get_engine("slim")
+        out, _ = capture_output(
+            engine.simulate,
+            demographic_model=self.model,
+            contig=contig,
+            samples=self.samples,
+            slim_script=True,
+        )
+        self.assertEqual(out.count("initializeGenomicElementType"), 1)
+        self.assertEqual(out.count("initializeGenomicElement("), 1)
+
+    def test_multiple_genomic_element_types_in_script(self):
+        contig = get_test_contig()
+        engine = stdpopsim.get_engine("slim")
+        contig.clear_genomic_mutation_types()
+        contig.add_genomic_element_type(
+            intervals=np.array([[0, 100]]),
+            mutation_types=[stdpopsim.ext.MutationType()],
+            proportions=[0],
+        )
+        contig.add_genomic_element_type(
+            intervals=np.array([[100, 200]]),
+            mutation_types=[stdpopsim.ext.MutationType()],
+            proportions=[0],
+        )
+        contig.add_genomic_element_type(
+            intervals=np.array([[200, 300]]),
+            mutation_types=[stdpopsim.ext.MutationType()],
+            proportions=[0],
+        )
+        out, _ = capture_output(
+            engine.simulate,
+            demographic_model=self.model,
+            contig=contig,
+            samples=self.samples,
+            slim_script=True,
+        )
+        self.assertEqual(out.count("initializeGenomicElementType"), 3)
+        self.assertEqual(out.count("initializeGenomicElement("), 3)
+
+
+@unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
+class TestMutationTypes(unittest.TestCase, PiecewiseConstantSizeMixin):
+    def test_single_mutation_type_in_script(self):
+        contig = get_test_contig()
+        engine = stdpopsim.get_engine("slim")
+        out, _ = capture_output(
+            engine.simulate,
+            demographic_model=self.model,
+            contig=contig,
             samples=self.samples,
             slim_script=True,
         )
         self.assertEqual(out.count("initializeMutationType"), 1)
 
-        mutation_types = [stdpopsim.ext.MutationType(weight=1)]
         out, _ = capture_output(
             engine.simulate,
             demographic_model=self.model,
-            contig=self.contig,
+            contig=contig,
             samples=self.samples,
-            mutation_types=mutation_types,
             slim_script=True,
         )
         self.assertEqual(out.count("initializeMutationType"), 1)
 
     def test_multiple_mutation_types_in_script(self):
+        contig = get_test_contig()
         engine = stdpopsim.get_engine("slim")
-        mutation_types = [
-            stdpopsim.ext.MutationType(weight=1),
-            stdpopsim.ext.MutationType(weight=2),
+        contig.mutation_types = [
+            stdpopsim.ext.MutationType(),
+            stdpopsim.ext.MutationType(),
         ]
         out, _ = capture_output(
             engine.simulate,
             demographic_model=self.model,
-            contig=self.contig,
+            contig=contig,
             samples=self.samples,
-            mutation_types=mutation_types,
             slim_script=True,
         )
         self.assertEqual(out.count("initializeMutationType"), 2)
 
-        mutation_types = [stdpopsim.ext.MutationType(weight=i) for i in range(10)]
         positive = stdpopsim.ext.MutationType(convert_to_substitution=False)
-        mutation_types.append(positive)
+        contig.mutation_types = [stdpopsim.ext.MutationType() for i in range(10)] + [
+            positive
+        ]
+        contig.genomic_element_types[0].proportions = [1 / 11 for i in range(11)]
+        contig.genomic_element_types[0].mutation_type_ids = [i for i in range(11)]
         out, _ = capture_output(
             engine.simulate,
             demographic_model=self.model,
-            contig=self.contig,
+            contig=contig,
             samples=self.samples,
-            mutation_types=mutation_types,
             slim_script=True,
         )
         self.assertEqual(out.count("initializeMutationType"), 11)
 
     def test_unweighted_mutations_are_not_simulated_by_slim(self):
-        mutation_types = [
+        contig = get_test_contig()
+        contig.mutation_types = [
             stdpopsim.ext.MutationType(convert_to_substitution=True),
             stdpopsim.ext.MutationType(convert_to_substitution=False),
         ]
+        contig.genomic_element_types[0].mutation_type_ids = [0, 1]
+        contig.genomic_element_types[0].proportions = [0, 0]
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
-            contig=self.contig,
+            contig=contig,
             samples=self.samples,
-            mutation_types=mutation_types,
             slim_scaling_factor=10,
             slim_burn_in=0.1,
         )
         self.assertEqual(ts.num_sites, 0)
 
-        mutation_types = [
+        contig.mutation_types = [
             stdpopsim.ext.MutationType(),
             stdpopsim.ext.MutationType(
-                weight=0, distribution_type="g", distribution_args=[-0.01, 0.2]
+                distribution_type="g", distribution_args=[-0.01, 0.2]
             ),
         ]
+        contig.genomic_element_types[0].proportions = [0, 0]
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
-            contig=self.contig,
+            contig=contig,
             samples=self.samples,
-            mutation_types=mutation_types,
             slim_scaling_factor=10,
             slim_burn_in=0.1,
         )
         self.assertEqual(ts.num_sites, 0)
 
     def test_weighted_mutations_are_simulated_by_slim(self):
-        mutation_types = [
-            stdpopsim.ext.MutationType(weight=1, convert_to_substitution=True)
+        contig = get_test_contig()
+        contig.mutation_types = [
+            stdpopsim.ext.MutationType(convert_to_substitution=True)
         ]
+        contig.genomic_element_types[0].proportions = [1]
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
-            contig=self.contig,
+            contig=contig,
             samples=self.samples,
-            mutation_types=mutation_types,
             slim_scaling_factor=10,
             slim_burn_in=0.1,
         )
         self.assertTrue(ts.num_sites > 0)
 
-        mutation_types = [
-            stdpopsim.ext.MutationType(weight=1, convert_to_substitution=False)
+        contig.mutation_types = [
+            stdpopsim.ext.MutationType(convert_to_substitution=False)
         ]
+        contig.genomic_element_types[0].proportions = [1]
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
-            contig=self.contig,
+            contig=contig,
             samples=self.samples,
-            mutation_types=mutation_types,
             slim_scaling_factor=10,
             slim_burn_in=0.1,
         )
         self.assertTrue(ts.num_sites > 0)
 
-        mutation_types = [stdpopsim.ext.MutationType(weight=i) for i in range(10)]
+        contig.mutation_types = [stdpopsim.ext.MutationType() for i in range(10)]
+        contig.genomic_element_types[0].proportions = [1 / 10 for i in range(10)]
+        contig.genomic_element_types[0].mutation_type_ids = list(range(10))
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
-            contig=self.contig,
+            contig=contig,
             samples=self.samples,
-            mutation_types=mutation_types,
             slim_scaling_factor=10,
             slim_burn_in=0.1,
         )
@@ -702,15 +796,6 @@ class TestMutationTypes(unittest.TestCase, PiecewiseConstantSizeMixin):
         for dominance_coeff in (-1,):
             with self.assertRaises(ValueError):
                 stdpopsim.ext.MutationType(dominance_coeff=dominance_coeff)
-
-    def test_weight(self):
-        for weight in (0, 0.1, 50):
-            stdpopsim.ext.MutationType(weight=weight)
-
-    def test_bad_weight(self):
-        for weight in (-1,):
-            with self.assertRaises(ValueError):
-                stdpopsim.ext.MutationType(weight=weight)
 
     def test_bad_distribution_type(self):
         for distribution_type in (1, {}, None, "~", "!", "F"):
@@ -743,21 +828,6 @@ class TestMutationTypes(unittest.TestCase, PiecewiseConstantSizeMixin):
                     distribution_type="g", distribution_args=distribution_args
                 )
 
-    def test_slim_mutation_frac(self):
-        for weights in ([0.1], [50], [0, 5], [0] * 100 + [0.1]):
-            mut_types = [
-                stdpopsim.ext.MutationType(weight=weight) for weight in weights
-            ]
-            self.assertEqual(1, stdpopsim.ext.slim_mutation_frac(mut_types))
-
-        for weights in ([], [0], [0] * 100):
-            mut_types = [
-                stdpopsim.ext.MutationType(weight=weight) for weight in weights
-            ]
-            self.assertEqual(0, stdpopsim.ext.slim_mutation_frac(mut_types))
-
-        self.assertEqual(0, stdpopsim.ext.slim_mutation_frac(None))
-
 
 @unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
 class TestDrawMutation(unittest.TestCase, PiecewiseConstantSizeMixin):
@@ -776,7 +846,6 @@ class TestDrawMutation(unittest.TestCase, PiecewiseConstantSizeMixin):
             demographic_model=self.model,
             contig=self.contig,
             samples=self.samples,
-            mutation_types=self.mutation_types,
             extended_events=extended_events,
             dry_run=True,
         )
@@ -795,7 +864,6 @@ class TestDrawMutation(unittest.TestCase, PiecewiseConstantSizeMixin):
             demographic_model=self.model,
             contig=self.contig,
             samples=self.samples,
-            mutation_types=self.mutation_types,
             extended_events=extended_events,
             dry_run=True,
         )
@@ -816,7 +884,6 @@ class TestDrawMutation(unittest.TestCase, PiecewiseConstantSizeMixin):
                     demographic_model=self.model,
                     contig=self.contig,
                     samples=self.samples,
-                    mutation_types=self.mutation_types,
                     extended_events=extended_events,
                     dry_run=True,
                 )
@@ -830,11 +897,13 @@ class TestDrawMutation(unittest.TestCase, PiecewiseConstantSizeMixin):
                 coordinate=100,
             ),
         ]
+        contig = get_test_contig()
+        contig.mutation_types = []
         engine = stdpopsim.get_engine("slim")
         with self.assertRaises(ValueError):
             engine.simulate(
                 demographic_model=self.model,
-                contig=self.contig,
+                contig=contig,
                 samples=self.samples,
                 extended_events=extended_events,
                 dry_run=True,
@@ -891,7 +960,6 @@ class TestAlleleFrequencyConditioning(unittest.TestCase, PiecewiseConstantSizeMi
             demographic_model=self.model,
             contig=self.contig,
             samples=self.samples,
-            mutation_types=self.mutation_types,
             extended_events=extended_events,
             dry_run=True,
         )
@@ -918,7 +986,6 @@ class TestAlleleFrequencyConditioning(unittest.TestCase, PiecewiseConstantSizeMi
             demographic_model=self.model,
             contig=self.contig,
             samples=self.samples,
-            mutation_types=self.mutation_types,
             extended_events=extended_events,
             slim_scaling_factor=10,
             slim_burn_in=0.1,
@@ -947,7 +1014,6 @@ class TestAlleleFrequencyConditioning(unittest.TestCase, PiecewiseConstantSizeMi
             demographic_model=self.model,
             contig=self.contig,
             samples=self.samples,
-            mutation_types=self.mutation_types,
             extended_events=extended_events,
             slim_scaling_factor=10,
             slim_burn_in=0.1,
@@ -978,7 +1044,6 @@ class TestAlleleFrequencyConditioning(unittest.TestCase, PiecewiseConstantSizeMi
                 demographic_model=self.model,
                 contig=self.contig,
                 samples=self.samples,
-                mutation_types=self.mutation_types,
                 extended_events=extended_events,
                 slim_scaling_factor=10,
                 slim_burn_in=0.1,
@@ -1062,7 +1127,6 @@ class TestAlleleFrequencyConditioning(unittest.TestCase, PiecewiseConstantSizeMi
                     demographic_model=self.model,
                     contig=self.contig,
                     samples=self.samples,
-                    mutation_types=self.mutation_types,
                     extended_events=extended_events,
                     dry_run=True,
                 )
@@ -1100,7 +1164,6 @@ class TestAlleleFrequencyConditioning(unittest.TestCase, PiecewiseConstantSizeMi
                 demographic_model=self.model,
                 contig=self.contig,
                 samples=self.samples,
-                mutation_types=self.mutation_types,
                 extended_events=extended_events,
                 slim_scaling_factor=10,
                 slim_burn_in=0.1,
@@ -1124,7 +1187,6 @@ class TestAlleleFrequencyConditioning(unittest.TestCase, PiecewiseConstantSizeMi
                 demographic_model=self.model,
                 contig=self.contig,
                 samples=self.samples,
-                mutation_types=self.mutation_types,
                 extended_events=extended_events,
                 dry_run=True,
             )
@@ -1181,7 +1243,6 @@ class TestChangeMutationFitness(unittest.TestCase, PiecewiseConstantSizeMixin):
                 demographic_model=self.model,
                 contig=self.contig,
                 samples=self.samples,
-                mutation_types=self.mutation_types,
                 extended_events=extended_events,
                 slim_scaling_factor=10,
                 slim_burn_in=0.1,
@@ -1207,7 +1268,6 @@ class TestChangeMutationFitness(unittest.TestCase, PiecewiseConstantSizeMixin):
                 demographic_model=self.model,
                 contig=self.contig,
                 samples=self.samples,
-                mutation_types=self.mutation_types,
                 extended_events=extended_events,
                 dry_run=True,
             )
@@ -1259,7 +1319,6 @@ class TestChangeMutationFitness(unittest.TestCase, PiecewiseConstantSizeMixin):
                     demographic_model=self.model,
                     contig=self.contig,
                     samples=self.samples,
-                    mutation_types=self.mutation_types,
                     extended_events=extended_events,
                     dry_run=True,
                 )
@@ -1283,3 +1342,138 @@ class TestExtendedEvents(unittest.TestCase, PiecewiseConstantSizeMixin):
                     extended_events=[bad_ee],
                     dry_run=True,
                 )
+
+
+class TestMiscFunctions(unittest.TestCase):
+    def get_test_contig(self):
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("chr22", length_multiplier=0.001)
+        return contig
+
+    def test_slim_fractions(self):
+        contig = self.get_test_contig()
+
+        self.assertTrue(stdpopsim.slim_engine.get_slim_fractions(contig).size == 0)
+        contig.fully_neutral()
+        self.assertTrue(
+            np.isclose(stdpopsim.slim_engine.get_slim_fractions(contig), np.array([0]))
+        )
+        contig.fully_neutral(slim_mutations=True)
+        self.assertTrue(
+            np.isclose(stdpopsim.slim_engine.get_slim_fractions(contig), np.array([1]))
+        )
+
+        proportions = ([0, 1.0], [0.5, 0.5], [0, 0], [0.2, 0])
+        for props in proportions:
+            slim_frac = np.array(sum(props))
+            contig.clear_genomic_mutation_types()
+            contig.add_genomic_element_type(
+                intervals=np.array([[0, 1]]),
+                mutation_types=[
+                    stdpopsim.ext.MutationType(),
+                    stdpopsim.ext.MutationType(),
+                ],
+                proportions=props,
+            )
+            self.assertTrue(
+                (slim_frac == stdpopsim.slim_engine.get_slim_fractions(contig)).all()
+            )
+
+    def test_msp_mutation_rate_map(self):
+        contig = self.get_test_contig()
+        contig.fully_neutral()
+        rmap, _ = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(contig)
+        self.assertTrue(
+            np.allclose(
+                rmap.position,
+                np.array([0, int(contig.recombination_map.sequence_length)]),
+            )
+        )
+        self.assertTrue(np.allclose(rmap.rate, np.array([contig.mutation_rate])))
+
+    def test_slim_mutation_rate_map(self):
+        contig = self.get_test_contig()
+        contig.fully_neutral()
+        _, (breaks, rates) = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(
+            contig
+        )
+        self.assertTrue(breaks == [int(contig.recombination_map.sequence_length) - 1])
+        self.assertTrue(rates == [0.0])
+
+    def test_complex_mutation_rate_maps(self):
+        contig = self.get_test_contig()
+        for prop1, prop2 in ((0.3, 0.1), (0.7, 0.2), (1.0, 0.0)):
+            contig.clear_genomic_mutation_types()
+            contig.add_genomic_element_type(
+                intervals=np.array([[10, 100]]),
+                mutation_types=[stdpopsim.ext.MutationType()],
+                proportions=[prop1],
+            )
+
+            rmap, (
+                obs_slim_breaks,
+                obs_slim_rates,
+            ) = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(contig)
+            obs_msp_breaks, obs_msp_rates = rmap.position, rmap.rate
+
+            exp_msp_breaks = [0, 10, 100, int(contig.recombination_map.sequence_length)]
+            exp_msp_rates = [
+                contig.mutation_rate,
+                contig.mutation_rate * (1 - prop1),
+                contig.mutation_rate,
+            ]
+            self.assertTrue(np.allclose(obs_msp_breaks, exp_msp_breaks))
+            self.assertTrue(
+                (np.isclose(np.array(obs_msp_rates), np.array(exp_msp_rates))).all()
+            )
+
+            exp_slim_breaks = [9, 99, int(contig.recombination_map.sequence_length) - 1]
+            exp_slim_rates = [0, contig.mutation_rate * prop1, 0]
+            self.assertEqual(obs_slim_breaks, exp_slim_breaks)
+            self.assertTrue(
+                (np.isclose(np.array(obs_slim_rates), np.array(exp_slim_rates))).all()
+            )
+
+            contig.clear_genomic_mutation_types()
+            contig.add_genomic_element_type(
+                intervals=np.array([[0, 50]]),
+                mutation_types=[stdpopsim.ext.MutationType()],
+                proportions=[prop1],
+            )
+            contig.add_genomic_element_type(
+                intervals=np.array([[50, 100]]),
+                mutation_types=[stdpopsim.ext.MutationType()],
+                proportions=[prop2],
+            )
+
+            rmap, (
+                obs_slim_breaks,
+                obs_slim_rates,
+            ) = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(contig)
+            obs_msp_breaks, obs_msp_rates = rmap.position, rmap.rate
+
+            exp_msp_breaks = [0, 50, 100, int(contig.recombination_map.sequence_length)]
+            exp_msp_rates = [
+                contig.mutation_rate * (1 - prop1),
+                contig.mutation_rate * (1 - prop2),
+                contig.mutation_rate,
+            ]
+            self.assertTrue(np.allclose(obs_msp_breaks, exp_msp_breaks))
+            self.assertTrue(
+                (np.isclose(np.array(obs_msp_rates), np.array(exp_msp_rates))).all()
+            )
+
+            exp_slim_breaks = [
+                49,
+                99,
+                int(contig.recombination_map.sequence_length) - 1,
+            ]
+            exp_slim_rates = [
+                contig.mutation_rate * prop1,
+                contig.mutation_rate * prop2,
+                0,
+            ]
+            self.assertEqual(obs_slim_breaks, exp_slim_breaks)
+            self.assertTrue(
+                (np.isclose(np.array(obs_slim_rates), np.array(exp_slim_rates))).all()
+            )
