@@ -1,0 +1,25 @@
+Population size,"50,000",Bronze Age pop. size
+Population size,"5,000",Yamnaya pop. size
+Population size,"10,000",Western Hunter-Gatherer pop. size
+Population size,"10,000",Eastern Hunter-Gatherer pop. size
+Population size,"50,000",Neolithic Farmer pop. size
+Population size,"10,000",Caucasus Hunter-Gatherer pop. size
+Population size,"5,000",Northern European pop. size (ancestor of WHG and EHG)
+Population size,"5,000",West Asian pop. size (ancestor of Anatolian Farmers and CHG)
+Time (gen.),"140",Time of Yamnaya and Neolithic Farmer admixture
+Time (gen.),"180",Time of EHG and CHG admixture
+Time (gen.),"200",Time of Anatolian Farmer and WHG admixture
+Time (gen.),"600",Time of WHG and EHG divergence
+Time (gen.),"800",Time of Anatolian Farmers and CHG divergence
+Time (gen.),"1500",Time of Basal European split
+Growth rate (per gen.),"6.7",Growth rate from Bronze Age to present day
+Time (gen.),"0",Time of present day samples
+Time (gen.),"135",Time of Bronze Age samples
+Time (gen.),"160",Time of Yamnaya samples
+Time (gen.),"180",Time of Neolithic Farmer samples
+Time (gen.),"250",Time of Western Hunter-Gatherer samples
+Time (gen.),"250",Time of Eastern Hunter-Gatherer samples
+Time (gen.),"260",Time of Anatolian Farmer samples
+Time (gen.),"300",Time of Caucasus Hunter-Gatherer samples
+Generation time (yrs.),"29",Generation time
+Mutation rate,1.25e-8,Per-base per-generation mutation rate
