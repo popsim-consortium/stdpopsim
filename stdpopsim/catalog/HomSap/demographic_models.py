@@ -1809,3 +1809,136 @@ def _africanBoyko():
 
 
 _species.add_demographic_model(_africanBoyko())
+
+
+def _ancient_europe():
+    id = "AncientEurope_4A21"
+    description = "Multi-population model of ancient Europe"
+    long_description = """
+    Population structure that has existed over the last 45,000 years in Europe, leading
+    to modern Europeans. The model demonstrates the divergence of a Basal European
+    Lineages into four ancient populations; Western, Eastern and Caucasus Hunter-
+    Gatherers and Anatolian Farmers. Migration of Anatolian farmers into Western Europe
+    and admixture with Western Hunter-Gatherers produces the European Neolithic Farmers.
+    In West Asia the admixture of Eastern Hunter-Gatherers and Caucasus Hunter-
+    Gatherers leads to the formation of the Yamnaya Steppe population. The Yamnaya
+    migrate into Western Europe to admixture with the Neolithic farmers giving rise to
+    Bronze Age europeans. There is only an exponential growth in population size from
+    then to the Present-day. Samples are taken at multiple point throughout history
+    from each population.
+    """
+    populations = [
+        stdpopsim.Population(
+            id="Pop0",
+            description="1000GenomesEUR/BronzeAge/Neolithic/Anatolian/WestAsian/Basal",
+        ),
+        stdpopsim.Population(id="Pop1", description="Yamnaya/CHG"),
+        stdpopsim.Population(id="Pop2", description="WHG/NorthernEuropean"),
+        stdpopsim.Population(id="Pop3", description="EHG"),
+    ]
+    citations = [
+        stdpopsim.Citation(
+            author="Allentoft et al.",
+            year="2022",
+            doi="https://doi.org/10.1101/2022.05.04.490594",
+            reasons={stdpopsim.CiteReason.DEM_MODEL},
+        )
+    ]
+
+    generation_time = 29
+    mutation_rate = 1.25e-8
+
+    # initial population sizes:
+    N_bronze = 50000
+    N_Yam = 5000
+    N_whg = 10000
+    N_ehg = 10000
+    N_neo = 50000
+    N_chg = 10000
+    N_NE = 5000  # Ancestor of WHG and EHG
+    N_WA = 5000  # Ancestor of CHG and Anatolian farmers
+
+    # Time of events
+    T_bronze = 140
+    T_Yam = 180
+    T_neo = 200
+    T_near_east = 800
+    T_europe = 600
+    T_basal = 1500
+
+    # Growth rate and initial population size for present day from bronze age
+    r_EU = 0.067
+    N_present = N_bronze / math.exp(-r_EU * T_bronze)
+
+    population_configurations = [
+        msprime.PopulationConfiguration(
+            initial_size=N_present, growth_rate=r_EU, metadata=populations[0].asdict()
+        ),
+        msprime.PopulationConfiguration(
+            initial_size=N_Yam, metadata=populations[1].asdict()
+        ),
+        msprime.PopulationConfiguration(
+            initial_size=N_whg, metadata=populations[2].asdict()
+        ),
+        msprime.PopulationConfiguration(
+            initial_size=N_ehg, metadata=populations[3].asdict()
+        ),
+    ]
+
+    Bronze_formation = [
+        msprime.MassMigration(time=T_bronze, source=0, dest=1, proportion=0.5),
+        msprime.PopulationParametersChange(
+            time=T_bronze, initial_size=N_neo, growth_rate=0, population=0
+        ),
+    ]
+
+    Yam_formation = [
+        msprime.MassMigration(time=T_Yam, source=1, dest=3, proportion=0.5),
+        msprime.PopulationParametersChange(
+            time=T_Yam, initial_size=N_chg, population=1
+        ),
+    ]
+
+    European_neolithic = [
+        msprime.MassMigration(time=T_neo, source=0, dest=2, proportion=1.0 / 4.0)
+    ]
+
+    HG_split = [
+        msprime.MassMigration(time=T_europe, source=3, dest=2, proportion=1),
+        msprime.PopulationParametersChange(
+            time=T_europe, initial_size=N_NE, population=2
+        ),
+    ]
+
+    Near_east_split = [
+        msprime.MassMigration(time=T_near_east, source=1, dest=0, proportion=1),
+        msprime.PopulationParametersChange(
+            time=T_near_east, initial_size=N_WA, population=0
+        ),
+    ]
+
+    Basal_split = [msprime.MassMigration(time=T_basal, source=2, dest=0, proportion=1)]
+
+    demographic_events = (
+        Bronze_formation
+        + Yam_formation
+        + European_neolithic
+        + HG_split
+        + Near_east_split
+        + Basal_split
+    )
+
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=generation_time,
+        mutation_rate=mutation_rate,
+        population_configurations=population_configurations,
+        demographic_events=demographic_events,
+    )
+
+
+_species.add_demographic_model(_ancient_europe())
