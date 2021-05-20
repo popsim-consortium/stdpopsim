@@ -6,6 +6,7 @@ import os
 import pathlib
 import tarfile
 import tempfile
+import numpy as np
 
 from stdpopsim import utils
 from stdpopsim import Chromosome, Genome
@@ -434,3 +435,62 @@ class TestSynonyms(unittest.TestCase):
         utils.append_common_synonyms(genome)
         self.assertTrue("chr1" in genome.chromosomes[0].synonyms)
         self.assertEqual(len(genome.chromosomes[0].synonyms), 1)
+
+
+class TestIntervalUtilities(unittest.TestCase):
+    def test_intervals_array_shape(self):
+        # shape (n, x) where x >= 2
+        bad_arrays = (np.array([10, 20]), np.array([[[10, 20]]]))
+        for bad_array in bad_arrays:
+            with self.assertRaises(ValueError):
+                utils.check_intervals_array_shape(intervals=bad_array)
+            with self.assertRaises(ValueError):
+                utils.build_intervals_array(intervals=bad_array)
+        good_arrays = (
+            np.array([[10, 20], [30, 40]]),
+            np.array([[10, 20, 1], [30, 40, 2]]),
+        )
+        for good_array in good_arrays:
+            utils.check_intervals_array_shape(intervals=good_array)
+            built_array = utils.build_intervals_array(intervals=good_array)
+            self.assertTrue((built_array == good_array).all())
+
+    def test_invalid_intervals(self):
+        # right <= left, overlapping, uncastable float->int
+        invalid_arrays = (
+            np.array([[20, 10]]),
+            np.array([[10, 20], [15, 20]]),
+            np.array([[10, 20], [13, 41]]),
+        )
+        for invalid_array in invalid_arrays:
+            with self.assertRaises(ValueError):
+                utils.build_intervals_array(intervals=invalid_array)
+            with self.assertRaises(ValueError):
+                utils.check_intervals_validity(intervals=invalid_array)
+        # interval outside [start, end)
+        with self.assertRaises(ValueError):
+            utils.build_intervals_array(intervals=[[10, 50]], start=20)
+        with self.assertRaises(ValueError):
+            utils.check_intervals_validity(intervals=np.array([[10, 50]]), end=30)
+
+    def test_intervals_casting(self):
+        castable_intervals = (
+            [[10, 20], [20, 40]],
+            [[1, 2, 2], [2, 3, 2]],
+            np.array([[10, 20]]),
+        )
+        for intervals in castable_intervals:
+            casted = utils.build_intervals_array(intervals)
+            self.assertTrue(isinstance(casted, np.ndarray) and casted.dtype == np.int64)
+            self.assertTrue(casted.shape[0] == len(intervals))
+            self.assertTrue(casted.shape[1] >= 2)
+
+    def test_interval_sorting(self):
+        unsorted_intervals = (
+            np.array([[20, 30], [10, 20]]),
+            np.array([[10, 20], [20, 30], [2, 3]]),
+        )
+        for intervals in unsorted_intervals:
+            casted = utils.build_intervals_array(intervals)
+            self.assertFalse(np.all(np.diff(intervals[:, 0]) >= 0))
+            self.assertTrue(np.all(np.diff(casted[:, 0]) >= 0))

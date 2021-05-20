@@ -9,6 +9,7 @@ import shutil
 import tarfile
 import contextlib
 import numpy as np
+import tskit
 
 
 def is_valid_demographic_model_id(model_id):
@@ -170,3 +171,35 @@ def append_common_synonyms(genome):
         # Mt
         if chrom.id == "MT":
             add_if_unique(chrom, "chr" + "M")
+
+
+def check_intervals_array_shape(intervals):
+    if len(intervals.shape) != 2 or intervals.shape[1] < 2:
+        raise ValueError(
+            "Intervals must be 2D objects with at least 2 columns " "[left, right)."
+        )
+
+
+def check_intervals_validity(intervals, start=0, end=np.inf):
+    check_intervals_array_shape(intervals)
+    if np.any(intervals[:, 0] >= intervals[:, 1]):
+        raise ValueError(
+            "Left positions cannot be greater than or equal to right positions."
+        )
+    if np.any(intervals[:, :2] > end) or np.any(intervals[:, :2] < start):
+        raise ValueError(f"Intervals must be within [{start}, {end}]")
+    if not np.all(intervals[1:, 0] >= intervals[:-1, 1]):
+        raise ValueError("Intervals must be non-overlapping.")
+
+
+def build_intervals_array(intervals, start=0, end=np.inf):
+    """
+    Converts a 2D list or numpy.array to an np.int32 array, which is sorted by
+    the first axis. It also checks for the validity of intervals and non-overlappingness.
+    """
+    intervals = tskit.util.safe_np_int_cast(intervals, dtype=np.int64)
+    check_intervals_array_shape(intervals)
+    sorter = intervals[:, 0].argsort()
+    intervals = intervals[sorter]
+    check_intervals_validity(intervals, start, end)
+    return intervals
