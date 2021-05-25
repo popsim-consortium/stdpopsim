@@ -56,9 +56,9 @@ def adaptive_introgression(seed):
     logger.info(f"Parameters: T_mut={T_mut:.3f}, T_sel={T_sel:.3f}, s={s:.3g}")
 
     # Place the drawn mutation in the middle of the contig.
-    coordinate = round(contig.recombination_map.get_length() / 2)
+    coordinate = round(contig.recombination_map.sequence_length / 2)
 
-    pop = {p.id: i for i, p in enumerate(model.populations)}
+    pop = {p.name: i for i, p in enumerate(model.populations)}
 
     # Thinking forwards in time, we define a number of extended events that
     # correspond to drawing the mutation, conditioning on the new allele not
@@ -188,7 +188,8 @@ def OutOfAfrica_3G09_with_DFE(seed):
 
     # neutral and deleterious mutations occur across the whole contig
     contig.add_genomic_element_type(
-        intervals=np.array([[0, int(contig.length)]]), **KimDFE()
+        intervals=np.array([[0, int(contig.recombination_map.sequence_length)]]),
+        **KimDFE(),
     )
 
     # Simulate.
