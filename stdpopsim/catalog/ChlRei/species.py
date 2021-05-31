@@ -2,13 +2,13 @@ import stdpopsim
 
 from . import genome_data
 
-# IMPORTANT: these are recombination rate values with the rate of sex
+# IMPORTANT: These are recombination rate values with the rate of sex
 # incorporated - e.g. they are lower than the physical recombination rates on account
 # of being the 'realized' recombination rates in nature, since C. reinhardtii only
 # undergoes sex/recombination once every ~840 generations (Hasan and Ness 2020).
-# when simulating natural populations with these values, the infrequency
-# of sex should be implicitly taken into account. otherwise, to get estimates
-# of physical rates, divide all values by 0.001194. see Discussion of Hasan
+# When simulating natural populations with these values, the infrequency
+# of sex should be implicitly taken into account. Otherwise, to get estimates
+# of physical rates, divide all values by 0.001194. See Discussion of Hasan
 # and Ness 2020 for more details
 _recombination_rate = {
     "1": 1.21e-10,
@@ -30,26 +30,24 @@ _recombination_rate = {
     "17": 1.83e-10,
 }
 
-_overall_rate = 9.63 * 1e-10  # SNM rate
-# there is also an indel mutation rate in Ness 2015 if that is eventually supported
 _mutation_rate = {
-    "1": _overall_rate,
-    "2": _overall_rate,
-    "3": _overall_rate,
-    "4": _overall_rate,
-    "5": _overall_rate,
-    "6": _overall_rate,
-    "7": _overall_rate,
-    "8": _overall_rate,
-    "9": _overall_rate,
-    "10": _overall_rate,
-    "11": _overall_rate,
-    "12": _overall_rate,
-    "13": _overall_rate,
-    "14": _overall_rate,
-    "15": _overall_rate,
-    "16": _overall_rate,
-    "17": _overall_rate,
+    "1": 9.74e-10,
+    "2": 8.62e-10,
+    "3": 9.5e-10,
+    "4": 9.66e-10,
+    "5": 1.17e-9,
+    "6": 9.12e-10,
+    "7": 9.14e-10,
+    "8": 8.98e-10,
+    "9": 9.17e-10,
+    "10": 9.27e-10,
+    "11": 1.03e-9,
+    "12": 9.55e-10,
+    "13": 7.56e-10,
+    "14": 8.96e-10,
+    "15": 6.91e-10,
+    "16": 9.59e-10,
+    "17": 1.05e-9,
 }
 
 _genome = stdpopsim.Genome.from_data(
@@ -66,13 +64,13 @@ _genome = stdpopsim.Genome.from_data(
         stdpopsim.Citation(
             author="Hasan and Ness",
             year=2020,
-            doi="https://doi.org/10.1093/gbe/evaa057",
+            doi="https://doi.org/10.6084/m9.figshare.14608239.v1",
             reasons={stdpopsim.CiteReason.REC_RATE},
         ),
         stdpopsim.Citation(
             author="Ness et al",
             year=2015,
-            doi="https://doi.org/10.1101/gr.191494.115",
+            doi="https://doi.org/10.6084/m9.figshare.14700156.v1",
             reasons={stdpopsim.CiteReason.MUT_RATE},
         ),
     ],
