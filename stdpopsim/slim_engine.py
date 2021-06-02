@@ -572,6 +572,22 @@ def get_msp_and_slim_mutation_rate_maps(contig):
     return (msp_mutation_rate_map, (slim_breaks, slim_rates))
 
 
+def slim_array_string(iterable, indent, width=80):
+    """
+    Format an array as a SLiM c() array and return as a line-wrapped string.
+    """
+    return (
+        "c(\n"
+        + textwrap.fill(
+            ", ".join(map(str, iterable)),
+            width=width,
+            initial_indent=indent,
+            subsequent_indent=indent,
+        )
+        + ")"
+    )
+
+
 def slim_makescript(
     script_file,
     trees_file,
@@ -778,26 +794,8 @@ def slim_makescript(
 
     recomb_rates, recomb_ends = msprime_rm_to_slim_rm(contig.recombination_map)
     indent = 8 * " "
-    recomb_rates_str = (
-        "c(\n"
-        + textwrap.fill(
-            ", ".join(map(str, recomb_rates)),
-            width=80,
-            initial_indent=indent,
-            subsequent_indent=indent,
-        )
-        + ")"
-    )
-    recomb_ends_str = (
-        "c(\n"
-        + textwrap.fill(
-            ", ".join(map(str, recomb_ends)),
-            width=80,
-            initial_indent=indent,
-            subsequent_indent=indent,
-        )
-        + ")"
-    )
+    recomb_rates_str = slim_array_string(recomb_rates, indent)
+    recomb_ends_str = slim_array_string(recomb_ends, indent)
 
     pop_names_str = ", ".join(map(lambda x: f'"{x}"', pop_names))
 
@@ -865,20 +863,19 @@ def slim_makescript(
     for j, g in enumerate(genomic_element_types):
         mut_props = ", ".join([str(prop) for prop in g.proportions])
         mut_types = ", ".join([str(mid) for mid in g.mutation_type_ids])
-        element_starts = np.array2string(g.intervals[:, 0], separator=", ")[1:-1]
+        element_starts = slim_array_string(g.intervals[:, 0], indent)
         # stdpopsim intervals are 0-based left inclusive, right exclusive, but
         # SLiM intervals are right inclusive
-        element_ends = np.array2string((g.intervals[:, 1] - 1), separator=", ")[1:-1]
+        element_ends = slim_array_string(g.intervals[:, 1] - 1, indent)
         printsc(
             f"    initializeGenomicElementType({j}, c({mut_types}), c({mut_props}));"
         )
-        printsc(
-            f"    initializeGenomicElement({j}, c({element_starts}), c({element_ends}));"
-        )
+        printsc(f"    initializeGenomicElement({j}, {element_starts}, {element_ends});")
     # Mutation rate map.
-    mut_breaks = ", ".join([str(int(b)) for b in slim_rate_map[0]])
-    mut_rates = ", ".join([str(r) for r in slim_rate_map[1]])
-    printsc(f"    initializeMutationRate(c({mut_rates})*Q, c({mut_breaks}));")
+    mut_breaks = slim_array_string(map(int, slim_rate_map[0]), indent)
+    mut_rates = slim_array_string(slim_rate_map[1], indent)
+    printsc(f"    initializeMutationRate(Q*{mut_rates}, {mut_breaks});")
+    printsc()
 
     # Epoch times.
     printsc("    // Time of epoch boundaries, in years before present.")
