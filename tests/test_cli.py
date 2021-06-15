@@ -818,7 +818,7 @@ class TestDryRun:
                 filename = path / "output.trees"
                 cmd = (
                     f"{sys.executable} -m stdpopsim -q HomSap -D -L 1000 "
-                    "-o {filename} 2"
+                    f"-o {filename} 2"
                 )
                 subprocess.run(cmd, stderr=stderr, shell=True, check=True)
                 assert stderr.tell() == 0

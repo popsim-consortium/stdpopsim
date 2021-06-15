@@ -4,16 +4,18 @@ _species = stdpopsim.get_species("HomSap")
 
 _an = stdpopsim.Annotation(
     species=_species,
-    id="Ensembl_GRCh38_gff3",
+    id="Ensembl_GRCh38_104_gff3",
     description="Ensembl GFF3 annotations on GRCh38",
     url=(
-        "ftp://ftp.ensembl.org/pub/release-101/"
-        "gff3/homo_sapiens/Homo_sapiens.GRCh38.101.gff3.gz"
+        "ftp://ftp.ensembl.org/pub/release-104/"
+        "gff3/homo_sapiens/Homo_sapiens.GRCh38.104.gff3.gz"
     ),
-    zarr_url=(
-        "https://stdpopsim.s3-us-west-2.amazonaws.com/annotations/HomSap.GRCh38.zip"
+    gff_sha256="313ad46bd4af78b45b9f5d8407bbcbd3f87f4be0747060e84b3b5eb931530ec1",
+    intervals_url=(
+        "https://stdpopsim.s3-us-west-2.amazonaws.com/"
+        "annotations/HomSap/HomSap.GRCh38.104.tar.gz"
     ),
-    zarr_sha256="929c52dc5e5172d4a96a776d066f014f8f207f1477a21f7b88626f81a7142d0b",
+    intervals_sha256="1a2de33beaf2dada376654769db8370e649ff6f67dd0ec74287544eb52f850b2",
     citations=[
         stdpopsim.Citation(
             year=2018,
@@ -22,6 +24,6 @@ _an = stdpopsim.Annotation(
             reasons={stdpopsim.CiteReason.ANNOTATION},
         )
     ],
+    file_pattern="ensembl_havana_exons_{id}.txt",
 )
-# XXX: zarr deleted from amazon
-# _species.add_annotations(_an)
+_species.add_annotations(_an)

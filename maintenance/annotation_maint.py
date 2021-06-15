@@ -1,38 +1,125 @@
 import allel
-import zarr
+import operator
+import pathlib
 import numpy as np
-import stdpopsim as stp
 import logging
-import warnings
-import urllib.request
 import os
+import glob
+import tarfile
+import stdpopsim
 
 logger = logging.getLogger(__name__)
 # make root directory for zarr annotations
 annot_path = "annotations"
-os.mkdir(annot_path)
-# loop through species and download
-for spc in stp.all_species():
-    if spc.annotations:
-        address = spc.annotations[0].url
-        genome_version = os.path.basename(address).split(".")[1]
-        logger.info(f"Downloading GFF file {spc.id}")
-        tmp_path = f"{spc.id}.tmp.gff.gz"
-        try:
-            x, y = urllib.request.urlretrieve(address, tmp_path)
-        except FileNotFoundError:
-            warnings.warn("can't connnect to url")
-        logger.info(f"creating zarr arrays {spc.id}")
-        # create zarr store and zarr root
-        spc_path = os.path.join(annot_path, spc.id + "." + genome_version + ".zip")
-        store = zarr.ZipStore(spc_path)
-        root = zarr.group(store=store, overwrite=True)
-        x = allel.gff3_to_dataframe(tmp_path)
-        for col_name in x.columns:
-            if x[col_name].dtype == "O":
-                tmp = root.array(col_name, np.array(x[col_name], dtype=str))
+os.makedirs(annot_path, exist_ok=True)
+
+
+def merged(intervals, *, closed: bool):
+    """
+    Merge overlapping and adjacent intervals.
+
+    :param intervals: An iterable of (start, end) coordinates.
+    :param bool closed: If True, [start, end] coordinates are closed,
+        so [1, 2] and [3, 4] are adjacent intervals and will be merged.
+        If False, [start, end) coordinates are half-open,
+        so [1, 2) and [3, 4) are not adjacent and will not be merged.
+    """
+
+    def iter_merged(intervals, *, closed: bool):
+        """
+        Generate tuples of (start, end) coordinates for merged intervals.
+        """
+        intervals = sorted(intervals, key=operator.itemgetter(0))
+        if len(intervals) == 0:
+            return
+        start, end = intervals[0]
+        for a, b in intervals[1:]:
+            assert a <= b
+            if a > end + closed:
+                # No intersection with the current interval.
+                yield start, end
+                start, end = a, b
             else:
-                tmp = root.array(col_name, np.array(x[col_name]))
-        # cleanup
-        os.unlink(tmp_path)
-        store.close()
+                # Intersects, or is contiguous with, the current interval.
+                end = max(end, b)
+        yield start, end
+
+    return list(iter_merged(intervals, closed=closed))
+
+
+def gff_recarray_to_stdpopsim_intervals(gff):
+    """
+    Merge overlapping intervals and convert coordinates. GFF intervals are
+    1-based [i,j], but stdpopsim intervals are 0-based [i-1,j).
+    """
+    intervals = np.array(merged(zip(gff.start, gff.end), closed=True))
+    intervals[:, 0] = intervals[:, 0] - 1
+    return intervals
+
+
+def get_gff_recarray(url, sha256):
+    local_path = pathlib.Path(url).name
+
+    if not pathlib.Path(local_path).exists():
+        print(f"downloading {url}")
+        stdpopsim.utils.download(url, local_path)
+
+    print("checking sha256")
+    local_sha256 = stdpopsim.utils.sha256(local_path)
+    if local_sha256 != sha256:
+        print(
+            f"{local_path}: sha256: expected {sha256}, but found {local_sha256}. "
+            "Delete the file to download it again."
+        )
+        exit(1)
+
+    print(f"loading {local_path} into numpy recarray")
+    gff = allel.gff3_to_recarray(local_path)
+    return gff
+
+
+def make_tarfile(output_filename, source_dir, dest):
+    if os.path.exists(output_filename):
+        os.remove(output_filename)
+    with tarfile.open(output_filename, "w:gz") as tar:
+        tar.add(source_dir, arcname=dest)
+    tar.close()
+
+
+# loop through species and download
+for spc in stdpopsim.all_species():
+    if spc.annotations:
+        for an in spc.annotations:
+            CHROM_IDS = [chrom.id for chrom in spc.genome.chromosomes]
+            genome_version = os.path.basename(an.url).split(".")[1]
+            logger.info(f"Downloading GFF file {spc.id}")
+            tmp_path = f"{spc.id}.tmp.gff.gz"
+            gff = get_gff_recarray(an.url, an.gff_sha256)
+            logger.info("extracting exons {spc.id}")
+            # this is fragile-- is ensembl_havana always a feature?
+            exons = gff[
+                np.where(
+                    np.logical_and(gff.source == "ensembl_havana", gff.type == "exon")
+                )
+            ]
+            logger.info(f"merging overlapping regions {spc.id}")
+            # create zarr store and zarr root
+            spc_name_path = os.path.join(annot_path, spc.id)
+            os.makedirs(spc_name_path, exist_ok=True)
+            for chrom_id in CHROM_IDS:
+                chrom_exons = exons[np.where(exons.seqid == chrom_id)]
+                if len(chrom_exons) == 0:
+                    continue
+                intervals = gff_recarray_to_stdpopsim_intervals(chrom_exons)
+                # double check that the intervals can be used in stdpopsim
+                stdpopsim.utils.check_intervals_validity(intervals)
+                out_file = os.path.join(
+                    spc_name_path, an.file_pattern.format(id=chrom_id)
+                )
+                np.savetxt(out_file, intervals, fmt="%d")
+            tf = spc_name_path + f"/{spc.id}.{genome_version}.tar.gz"
+            make_tarfile(tf, spc_name_path, "")
+            print(spc_name_path + "/*.txt")
+            for f in glob.glob(spc_name_path + "/*.txt"):
+                print(f)
+                os.remove(f)
