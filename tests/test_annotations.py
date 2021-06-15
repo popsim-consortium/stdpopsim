@@ -7,14 +7,13 @@ import tempfile
 import os.path
 import shutil
 import pathlib
-
-import pandas
 import pytest
-
+import numpy as np
+import logging
 import stdpopsim
 from stdpopsim import utils
 import tests
-
+import maintenance as maint
 
 # Here we download all the annotations in one go and store
 # then in the local cache directory, _test_cache. Tests are then run
@@ -27,32 +26,33 @@ saved_urls = {}
 
 
 def setup_module():
-    destination = pathlib.Path("_test_cache/zipfiles/")
+    destination = pathlib.Path("_test_cache/tarballs")
     for an in stdpopsim.all_annotations():
-        key = an._cache.cache_path
-        local_file = destination / key
+        key = an.id
+        local_file = destination / (key + ".tar.gz")
+        logging.info(f"key {key} local_file {local_file}")
         if not local_file.exists():
             cache_dir = local_file.parent
             cache_dir.mkdir(exist_ok=True, parents=True)
-            print("Downloading", an.zarr_url)
-            utils.download(an.zarr_url, local_file)
+            print("Downloading", an.intervals_url)
+            utils.download(an.intervals_url, local_file)
         # This assertion could fail if we update a file on AWS,
         # or a developer creates a new annotation with the wrong checksum
         # (in the latter case, this should at least be caught during CI tests).
-        assert utils.sha256(local_file) == an.zarr_sha256, (
+        assert utils.sha256(local_file) == an.intervals_sha256, (
             f"SHA256 for {local_file} doesn't match the SHA256 for "
             f"{an.id}. If you didn't add this SHA256 yourself, "
             f"try deleting {local_file} and restarting the tests."
         )
-        saved_urls[key] = an.zarr_url
-        an.zarr_url = local_file.resolve().as_uri()
-        an._cache.url = an.zarr_url
+        saved_urls[key] = an.intervals_url
+        an.intervals_url = local_file.resolve().as_uri()
+        an._cache.url = an.intervals_url
 
 
 def teardown_module():
     for an in stdpopsim.all_annotations():
-        an.zarr_url = saved_urls[an._cache.cache_path]
-        an._cache.url = an.zarr_url
+        an.intervals_url = saved_urls[an.id]
+        an._cache.url = an.intervals_url
 
 
 class AnnotationTestClass(stdpopsim.Annotation):
@@ -73,9 +73,11 @@ class AnnotationTestClass(stdpopsim.Annotation):
             species=_species,
             id="test_annotation",
             url="http://example.com/annotation.gff.gz",
-            zarr_url="http://example.com/annotation.zip",
-            zarr_sha256="1234",  # this shouldn't be checked anywhere
+            intervals_url="http://example.com/annotation.zip",
+            intervals_sha256="1234",  # this shouldn't be checked anywhere
+            gff_sha256="6789",
             description="test annotation",
+            file_pattern="yolo_{id}.txt",
         )
 
 
@@ -130,15 +132,14 @@ class TestAnnotationDownload(tests.CacheWritingTest):
             # The destination file will be missing.
             with pytest.raises(FileNotFoundError):
                 an.download()
-        mocked_get.assert_called_once_with(an.zarr_url, filename=mock.ANY)
+        mocked_get.assert_called_once_with(an.intervals_url, filename=mock.ANY)
 
     def test_incorrect_url(self):
         an = AnnotationTestClass()
-        an.zarr_url = "http://asdfwersdf.com/foozip"
+        an.intervals_url = "http://asdfwersdf.com/foozip"
         with pytest.raises(OSError):
             an.download()
 
-    @pytest.mark.xfail  # HomSap annotation not currently available
     def test_download_over_cache(self):
         # TODO: The HomSap annotations are huge. Once we include a smaller
         # annotation set, we should instead use that, so tests are faster.
@@ -150,7 +151,6 @@ class TestAnnotationDownload(tests.CacheWritingTest):
         assert an.is_cached()
 
 
-@pytest.mark.xfail  # HomSap annotation not currently available
 class TestGetChromosomeAnnotations(tests.CacheReadingTest):
     """
     Tests if we get chromosome level annotations
@@ -166,26 +166,46 @@ class TestGetChromosomeAnnotations(tests.CacheReadingTest):
 
     def test_known_chromosome(self):
         cm = self.an.get_chromosome_annotations("21")
-        assert isinstance(cm, pandas.DataFrame)
+        assert isinstance(cm, np.ndarray)
 
     def test_known_chromosome_prefix(self):
         cm = self.an.get_chromosome_annotations("chr21")
-        assert isinstance(cm, pandas.DataFrame)
+        assert isinstance(cm, np.ndarray)
 
     def test_unknown_chromosome(self):
         for bad_chrom in ["", "ABD", None]:
             with pytest.raises(ValueError):
                 self.an.get_chromosome_annotations(bad_chrom)
 
-    def test_get_genes(self):
-        g = self.an.get_genes_from_chromosome("21")
-        assert isinstance(g, pandas.DataFrame)
 
-    def test_get_genes_full(self):
-        g = self.an.get_genes_from_chromosome("21", full_table=True)
-        assert isinstance(g, pandas.DataFrame)
+class TestIntervalMerge:
+    """
+    Tests for the Annotation stuff.
+    """
 
-    def test_bad_annot_type(self):
-        bad_annot = "foo"
-        with pytest.raises(ValueError):
-            self.an.get_annotation_type_from_chromomosome(bad_annot, "21")
+    def test_merged_static(self):
+        for closed in (True, False):
+            assert maint.merged([], closed=closed) == []
+            assert maint.merged([(10, 20), (15, 30)], closed=closed) == [(10, 30)]
+            assert maint.merged([(10, 20), (20, 30)], closed=closed) == [(10, 30)]
+            assert maint.merged([(10, 20), (22, 30)], closed=closed) == [
+                (10, 20),
+                (22, 30),
+            ]
+            assert maint.merged([(10, 20), (12, 16)], closed=closed) == [(10, 20)]
+            assert maint.merged([(12, 16), (10, 20), (13, 15)], closed=closed) == [
+                (10, 20)
+            ]
+
+        assert maint.merged([(10, 20), (21, 30)], closed=True) == [(10, 30)]
+        assert maint.merged([(10, 20), (21, 30)], closed=False) == [(10, 20), (21, 30)]
+
+    def test_merged_random(self):
+        rng = np.random.default_rng(1234)
+        for closed in (True, False):
+            # Check merging is idempotent.
+            for _ in range(100):
+                starts = rng.integers(1, 1000, size=100)
+                ends = starts + rng.integers(1, 100, size=len(starts))
+                merged_intervals = maint.merged(zip(starts, ends), closed=closed)
+                assert merged_intervals == maint.merged(merged_intervals, closed=closed)
