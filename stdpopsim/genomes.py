@@ -242,9 +242,15 @@ class Contig:
         Adds mutation types with their respective proportions to the genomic
         element type provided.
         """
-        if genomic_element_type_id >= len(self.genomic_element_types):
+        if not (0 <= genomic_element_type_id < len(self.genomic_element_types)):
             raise ValueError(
                 f"Genomic element type of id {genomic_element_type_id} does not exist."
+            )
+
+        if len(mutation_types) != len(proportions):
+            raise ValueError(
+                f"number of mutation_types ({len(mutation_types)}) doesn't match "
+                f"the number of proportions ({len(proportions)})"
             )
 
         def _is_index(y, X):

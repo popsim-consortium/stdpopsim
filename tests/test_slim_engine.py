@@ -688,22 +688,6 @@ class PiecewiseConstantSizeMixin(object):
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
-    def test_default_fully_neutral(self):
-        # if no genomic element type is defined, then by default go fully neutral
-        contig = get_test_contig()
-        contig.genomic_element_types = []
-        contig.mutation_types = []
-        engine = stdpopsim.get_engine("slim")
-        out, _ = capture_output(
-            engine.simulate,
-            demographic_model=self.model,
-            contig=contig,
-            samples=self.samples,
-            slim_script=True,
-        )
-        assert out.count("initializeGenomicElementType") == 1
-        assert out.count("initializeGenomicElement(") == 1
-
     def test_single_genomic_element_type_in_script(self):
         contig = get_test_contig()
         engine = stdpopsim.get_engine("slim")
@@ -1492,8 +1476,6 @@ class TestMiscFunctions:
 
     def test_slim_fractions(self):
         contig = self.get_test_contig()
-
-        assert stdpopsim.slim_engine.get_slim_fractions(contig).size == 0
         contig.fully_neutral()
         assert np.isclose(
             stdpopsim.slim_engine.get_slim_fractions(contig), np.array([0])

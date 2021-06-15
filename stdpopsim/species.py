@@ -218,7 +218,7 @@ class Species:
                 mutation_rate = u_tot / L_tot
             r = r_tot / L_tot
             recomb_map = msprime.RateMap.uniform(length, r)
-            ret = stdpopsim.Contig(
+            contig = stdpopsim.Contig(
                 recombination_map=recomb_map, mutation_rate=mutation_rate
             )
         else:
@@ -264,7 +264,7 @@ class Species:
             if mutation_rate is None:
                 mutation_rate = chrom.mutation_rate
 
-            ret = stdpopsim.Contig(
+            contig = stdpopsim.Contig(
                 recombination_map=recomb_map,
                 mutation_rate=mutation_rate,
                 genetic_map=gm,
@@ -272,7 +272,8 @@ class Species:
                 exclusion_mask=exclusion_intervals,
             )
 
-        return ret
+        contig.fully_neutral()
+        return contig
 
     def get_demographic_model(self, id):
         """

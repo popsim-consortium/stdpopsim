@@ -78,6 +78,7 @@ class TestContig:
 
     def test_add_genomic_element_type(self):
         contig = self.get_test_contig()
+        contig.clear_genomic_mutation_types()
         assert contig.mutation_types == []
         assert contig.genomic_element_types == []
         intervals1 = np.array([[10, 20], [20, 40], [100, 200]])
