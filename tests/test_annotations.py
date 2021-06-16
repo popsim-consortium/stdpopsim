@@ -138,6 +138,7 @@ class TestAnnotationDownload(tests.CacheWritingTest):
         with pytest.raises(OSError):
             an.download()
 
+    @pytest.mark.xfail  # HomSap annotation not currently available
     def test_download_over_cache(self):
         # TODO: The HomSap annotations are huge. Once we include a smaller
         # annotation set, we should instead use that, so tests are faster.
@@ -149,6 +150,7 @@ class TestAnnotationDownload(tests.CacheWritingTest):
         assert an.is_cached()
 
 
+@pytest.mark.xfail  # HomSap annotation not currently available
 class TestGetChromosomeAnnotations(tests.CacheReadingTest):
     """
     Tests if we get chromosome level annotations
@@ -157,8 +159,10 @@ class TestGetChromosomeAnnotations(tests.CacheReadingTest):
 
     # TODO: The HomSap annotations are huge. Once we include a smaller
     # annotation set, we should instead use that, so tests are faster.
-    species = stdpopsim.get_species("HomSap")
-    an = species.get_annotations("Ensembl_GRCh38_gff3")
+    @classmethod
+    def setup_class(cls):
+        species = stdpopsim.get_species("HomSap")
+        cls.an = species.get_annotations("Ensembl_GRCh38_gff3")
 
     def test_known_chromosome(self):
         cm = self.an.get_chromosome_annotations("21")

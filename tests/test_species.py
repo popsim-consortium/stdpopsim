@@ -81,6 +81,7 @@ class TestSpecies:
             with pytest.raises(ValueError):
                 species.get_annotations(name)
 
+    @pytest.mark.xfail  # HomSap annotation not currently available
     def test_add_duplicate_annotation(self):
         species = stdpopsim.get_species("HomSap")
         an = species.get_annotations("Ensembl_GRCh38_gff3")
