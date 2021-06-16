@@ -644,8 +644,8 @@ class TestWriteCitations:
 
     @pytest.mark.usefixtures("caplog")
     def test_model_citations(self, caplog):
-        contig = stdpopsim.Contig()
         species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("22")
         model = species.get_demographic_model("OutOfAfrica_3G09")
         engine = stdpopsim.get_default_engine()
         stdout, stderr = capture_output(

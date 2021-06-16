@@ -3,8 +3,12 @@ Infrastructure for defining information about species' genomes and genomic
 regions to be simulated.
 """
 import logging
+import warnings
 import attr
+
 import numpy as np
+import msprime
+
 import stdpopsim
 
 logger = logging.getLogger(__name__)
@@ -167,7 +171,7 @@ class GenomicElementType(object):
         stdpopsim.utils.check_intervals_validity(self.intervals)
 
 
-@attr.s
+@attr.s(kw_only=True)
 class Contig:
     """
     Class representing a contiguous region of genome that is to be
@@ -211,13 +215,128 @@ class Contig:
             )
     """
 
-    recombination_map = attr.ib(default=None, kw_only=True)
-    mutation_rate = attr.ib(default=None, type=float, kw_only=True)
-    genetic_map = attr.ib(default=None, kw_only=True)
-    inclusion_mask = attr.ib(default=None, kw_only=True)
-    exclusion_mask = attr.ib(default=None, kw_only=True)
-    genomic_element_types = attr.ib(factory=list, type=list, kw_only=True)
-    mutation_types = attr.ib(factory=list, type=list, kw_only=True)
+    recombination_map = attr.ib()
+    mutation_rate = attr.ib(type=float)
+    genetic_map = attr.ib(default=None)
+    inclusion_mask = attr.ib(default=None)
+    exclusion_mask = attr.ib(default=None)
+    genomic_element_types = attr.ib(factory=list)
+    mutation_types = attr.ib(factory=list)
+
+    def __attrs_post_init__(self):
+        self.fully_neutral()
+
+    @staticmethod
+    def basic_contig(*, length, mutation_rate=0, recombination_rate=0):
+        recomb_map = msprime.RateMap.uniform(length, recombination_rate)
+        return Contig(recombination_map=recomb_map, mutation_rate=mutation_rate)
+
+    @staticmethod
+    def species_contig(
+        *,
+        species,
+        chromosome=None,
+        genetic_map=None,
+        length_multiplier=1,
+        length=None,
+        mutation_rate=None,
+        inclusion_mask=None,
+        exclusion_mask=None,
+    ):
+        """
+        Build a Contig for a species.
+        """
+        # TODO: add non-autosomal support
+        non_autosomal_lower = ["x", "y", "m", "mt", "chrx", "chry", "chrm"]
+        if chromosome is not None and chromosome.lower() in non_autosomal_lower:
+            warnings.warn(
+                stdpopsim.NonAutosomalWarning(
+                    "Non-autosomal simulations are not yet supported. See "
+                    "https://github.com/popsim-consortium/stdpopsim/issues/383 and "
+                    "https://github.com/popsim-consortium/stdpopsim/issues/406"
+                )
+            )
+        if chromosome is None:
+            if genetic_map is not None:
+                raise ValueError("Cannot use genetic map with generic contic")
+            if length_multiplier != 1:
+                raise ValueError("Cannot use length multiplier for generic contig")
+            if inclusion_mask is not None or exclusion_mask is not None:
+                raise ValueError("Cannot use mask with generic contig")
+            if length is None:
+                raise ValueError("Must specify sequence length of generic contig")
+            L_tot = 0
+            r_tot = 0
+            u_tot = 0
+            for chrom_data in species.genome.chromosomes:
+                if chrom_data.id.lower() not in non_autosomal_lower:
+                    L_tot += chrom_data.length
+                    r_tot += chrom_data.length * chrom_data.recombination_rate
+                    u_tot += chrom_data.length * chrom_data.mutation_rate
+            if mutation_rate is None:
+                mutation_rate = u_tot / L_tot
+            r = r_tot / L_tot
+            contig = Contig.basic_contig(
+                length=length,
+                mutation_rate=mutation_rate,
+                recombination_rate=r,
+            )
+        else:
+            if length is not None:
+                raise ValueError("Cannot specify sequence length for named contig")
+            if inclusion_mask is not None and exclusion_mask is not None:
+                raise ValueError("Cannot specify both inclusion and exclusion masks")
+            chrom = species.genome.get_chromosome(chromosome)
+            if genetic_map is None:
+                logger.debug(f"Making flat chromosome {length_multiplier} * {chrom.id}")
+                gm = None
+                recomb_map = msprime.RateMap.uniform(
+                    round(chrom.length * length_multiplier), chrom.recombination_rate
+                )
+            else:
+                if length_multiplier != 1:
+                    raise ValueError("Cannot use length multiplier with empirical maps")
+                logger.debug(f"Getting map for {chrom.id} from {genetic_map}")
+                gm = species.get_genetic_map(genetic_map)
+                recomb_map = gm.get_chromosome_map(chrom.id)
+
+            inclusion_intervals = None
+            exclusion_intervals = None
+            if inclusion_mask is not None:
+                if length_multiplier != 1:
+                    raise ValueError("Cannot use length multiplier with mask")
+                if isinstance(inclusion_mask, str):
+                    inclusion_intervals = stdpopsim.utils.read_bed(
+                        inclusion_mask, chromosome
+                    )
+                else:
+                    inclusion_intervals = inclusion_mask
+            if exclusion_mask is not None:
+                if length_multiplier != 1:
+                    raise ValueError("Cannot use length multiplier with mask")
+                if isinstance(exclusion_mask, str):
+                    exclusion_intervals = stdpopsim.utils.read_bed(
+                        exclusion_mask, chromosome
+                    )
+                else:
+                    exclusion_intervals = exclusion_mask
+
+            if mutation_rate is None:
+                mutation_rate = chrom.mutation_rate
+
+            contig = stdpopsim.Contig(
+                recombination_map=recomb_map,
+                mutation_rate=mutation_rate,
+                genetic_map=gm,
+                inclusion_mask=inclusion_intervals,
+                exclusion_mask=exclusion_intervals,
+            )
+
+        return contig
+
+    @property
+    def length(self):
+        return self.recombination_map.sequence_length
 
     @property
     def all_intervals_array(self):
@@ -276,11 +395,6 @@ class Contig:
         )
 
     def add_genomic_element_type(self, intervals, mutation_types, proportions):
-        if self.recombination_map is None:
-            raise ValueError(
-                "You cannot add genomic element types to a "
-                "contig that has no recombination map."
-            )
         stdpopsim.utils.check_intervals_validity(intervals)
         ge_type = stdpopsim.GenomicElementType(intervals=intervals)
         self.genomic_element_types.append(ge_type)
@@ -295,10 +409,8 @@ class Contig:
 
     def fully_neutral(self, slim_mutations=False, convert_to_substitution=True):
         self.clear_genomic_mutation_types()
-        if self.recombination_map is None:
-            raise ValueError("You must specify a recombination map.")
         self.add_genomic_element_type(
-            intervals=np.array([[0, int(self.recombination_map.sequence_length)]]),
+            intervals=np.array([[0, int(self.length)]]),
             mutation_types=[
                 stdpopsim.ext.MutationType(
                     convert_to_substitution=convert_to_substitution
@@ -314,7 +426,7 @@ class Contig:
             "mutation_rate={:.2G}, genetic_map={}, genomic_element_types={}, "
             "mutation_types={})"
         ).format(
-            self.recombination_map.sequence_length,
+            self.length,
             self.recombination_map.mean_rate,
             self.mutation_rate,
             gmap,

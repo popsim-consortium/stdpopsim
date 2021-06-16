@@ -34,7 +34,9 @@ class DemographicModelTestMixin:
     def test_simulation_runs(self):
         # With a recombination_map of None, we simulate a coalescent without
         # recombination in msprime, with mutation rate equal to rate from model.
-        contig = stdpopsim.Contig(mutation_rate=self.model.mutation_rate)
+        contig = stdpopsim.Contig.basic_contig(
+            length=100, mutation_rate=self.model.mutation_rate
+        )
         # Generate vector with 2 samples for each pop with sampling enabled
         sample_count = []
         for p in self.model.populations:

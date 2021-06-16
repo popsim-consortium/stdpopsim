@@ -22,14 +22,8 @@ class TestGenomicElementType:
 
 
 class TestContig:
-    def get_test_contig(self):
-        species = stdpopsim.get_species("HomSap")
-        contig = species.get_contig("chr22", length_multiplier=0.001)
-        return contig
-
     def test_all_intervals_array(self):
-        contig = self.get_test_contig()
-        contig.fully_neutral()
+        contig = stdpopsim.Contig.basic_contig(length=100)
         assert len(contig.all_intervals_array) == 1
 
         truth = np.array([[20, 30, 1], [30, 50, 0]])
@@ -46,14 +40,8 @@ class TestContig:
         )
         assert (contig.all_intervals_array == truth).all()
 
-    def test_fully_neutral_error(self):
-        contig = self.get_test_contig()
-        contig.recombination_map = None
-        with pytest.raises(ValueError):
-            contig.fully_neutral()
-
     def test_add_mutation_type_errors(self):
-        contig = self.get_test_contig()
+        contig = stdpopsim.Contig.basic_contig(length=100)
         # diff length mutation types and proportions
         with pytest.raises(ValueError):
             contig.add_mutation_types([stdpopsim.ext.MutationType()], [], 0)
@@ -66,18 +54,13 @@ class TestContig:
             contig.add_mutation_types([stdpopsim.ext.MutationType()], [1.1], 0)
 
     def test_add_genomic_element_type_errors(self):
-        contig = self.get_test_contig()
-        contig.recombination_map = None
-        # can't add ge type without rec map
-        with pytest.raises(ValueError):
-            contig.add_genomic_element_type(np.array([]), [], [])
-        contig = self.get_test_contig()
+        contig = stdpopsim.Contig.basic_contig(length=100)
         # bad intervals
         with pytest.raises(ValueError):
             contig.add_genomic_element_type(np.array([10, 20]), [], [])
 
     def test_add_genomic_element_type(self):
-        contig = self.get_test_contig()
+        contig = stdpopsim.Contig.basic_contig(length=100)
         contig.clear_genomic_mutation_types()
         assert contig.mutation_types == []
         assert contig.genomic_element_types == []

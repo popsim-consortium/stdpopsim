@@ -119,20 +119,6 @@ class TestAPI:
         )
         assert "sim.registerLateEvent" in out
 
-    def test_no_recombination_map(self):
-        engine = stdpopsim.get_engine("slim")
-        species = stdpopsim.get_species("HomSap")
-        contig = species.get_contig("chr1")
-        model = stdpopsim.PiecewiseConstantSize(species.population_size)
-        contig.recombination_map = None
-        with pytest.raises(ValueError):
-            engine.simulate(
-                demographic_model=model,
-                contig=contig,
-                samples=model.get_samples(10),
-                dry_run=True,
-            )
-
     @pytest.mark.filterwarnings("ignore:Recombination map has length:UserWarning")
     def test_recombination_map(self):
         engine = stdpopsim.get_engine("slim")
@@ -611,20 +597,6 @@ class TestWarningsAndErrors:
                 contig=contig,
                 samples=samples,
                 slim_scaling_factor=scaling_factor,
-                dry_run=True,
-            )
-
-    def test_slim_engine_without_recombination_map_error(self):
-        engine, species, contig = self.triplet()
-        contig.recombination_map = None
-        model = stdpopsim.PiecewiseConstantSize(1000)
-        samples = model.get_samples(100)
-
-        with pytest.raises(ValueError):
-            engine.simulate(
-                demographic_model=model,
-                contig=contig,
-                samples=samples,
                 dry_run=True,
             )
 
@@ -1501,7 +1473,6 @@ class TestMiscFunctions:
 
     def test_msp_mutation_rate_map(self):
         contig = self.get_test_contig()
-        contig.fully_neutral()
         rmap, _ = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(contig)
         assert np.allclose(
             rmap.position,
@@ -1511,7 +1482,6 @@ class TestMiscFunctions:
 
     def test_slim_mutation_rate_map(self):
         contig = self.get_test_contig()
-        contig.fully_neutral()
         _, (breaks, rates) = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(
             contig
         )
