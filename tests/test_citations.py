@@ -2,11 +2,11 @@
 Test cases for methods related to citations.
 """
 
-import unittest
 from unittest import mock
 import urllib.error
 
 import stdpopsim
+import pytest
 
 
 class mocked_response:
@@ -33,7 +33,7 @@ class mocked_response:
         pass
 
 
-class TestFetchBibtex(unittest.TestCase):
+class TestFetchBibtex:
     """
     Test the fetching of bibtex files."""
 
@@ -47,13 +47,13 @@ class TestFetchBibtex(unittest.TestCase):
         ):
             with mock.patch("urllib.request.Request", autospec=True):
                 bib = citation.fetch_bibtex()
-                self.assertEqual(bib, "test")
+                assert bib == "test"
 
     def test_get_bibtex_bad_connection(self):
         # Tests an invalid URL
         # Asserts that it raises a value error.
         citation = stdpopsim.Citation(doi="DOI", author="Authors", year="2000")
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             citation.fetch_bibtex()
 
     def test_get_bibtex_404(self):
@@ -61,11 +61,11 @@ class TestFetchBibtex(unittest.TestCase):
         citation = stdpopsim.Citation(
             doi="http://doi.org/url-does-not-exist", author="Authors", year="2000"
         )
-        with self.assertRaises(urllib.error.HTTPError):
+        with pytest.raises(urllib.error.HTTPError):
             citation.fetch_bibtex()
 
 
-class TestEverythingHappensForAReason(unittest.TestCase):
+class TestEverythingHappensForAReason:
     """
     Test that citations have a reason.
     """
@@ -73,30 +73,24 @@ class TestEverythingHappensForAReason(unittest.TestCase):
     def test_reasons_for_engine_citations(self):
         for engine in stdpopsim.all_engines():
             for citation in engine.citations:
-                self.assertGreater(
-                    len(citation.reasons),
-                    0,
-                    msg=f"No reason given for '{citation.author}' citation "
-                    f"in engine {engine.id}",
+                assert len(citation.reasons) > 0, (
+                    f"No reason given for '{citation.author}' citation "
+                    f"in engine {engine.id}"
                 )
 
     def test_reason_for_genetic_map_citations(self):
         for genetic_map in stdpopsim.all_genetic_maps():
             for citation in genetic_map.citations:
-                self.assertGreater(
-                    len(citation.reasons),
-                    0,
-                    msg=f"No reason given for '{citation.author}' citation "
+                assert len(citation.reasons) > 0, (
+                    f"No reason given for '{citation.author}' citation "
                     f"in genetic map "
-                    f"{genetic_map.species.id}/{genetic_map.id}",
+                    f"{genetic_map.species.id}/{genetic_map.id}"
                 )
 
     def test_reason_for_model_citations(self):
         for model in stdpopsim.all_demographic_models():
             for citation in model.citations:
-                self.assertGreater(
-                    len(citation.reasons),
-                    0,
-                    msg=f"No reason given for '{citation.author}' citation "
-                    f"in model {model.id}",
+                assert len(citation.reasons) > 0, (
+                    f"No reason given for '{citation.author}' citation "
+                    f"in model {model.id}"
                 )

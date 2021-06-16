@@ -1,7 +1,6 @@
 """
 Test cases for the command line interfaces to stdpopsim
 """
-import unittest
 import tempfile
 import pathlib
 import subprocess
@@ -11,7 +10,6 @@ import io
 import argparse  # NOQA
 import os
 import logging
-import warnings
 from unittest import mock
 
 import tskit
@@ -51,7 +49,7 @@ def capture_output(func, *args, **kwargs):
     return stdout_output, stderr_output
 
 
-class TestProvenance(unittest.TestCase):
+class TestProvenance:
     """
     Test basic provenance properties.
     """
@@ -64,29 +62,25 @@ class TestProvenance(unittest.TestCase):
         # Basic environment should be the same as tskit.
         d_stdpopsim = cli.get_provenance_dict()
         d_tskit = tskit.provenance.get_provenance_dict()
-        self.assertEqual(d_stdpopsim["environment"]["os"], d_tskit["environment"]["os"])
-        self.assertEqual(
-            d_stdpopsim["environment"]["python"], d_tskit["environment"]["python"]
-        )
+        assert d_stdpopsim["environment"]["os"] == d_tskit["environment"]["os"]
+        assert d_stdpopsim["environment"]["python"] == d_tskit["environment"]["python"]
 
     def test_libraries(self):
         libs = cli.get_provenance_dict()["environment"]["libraries"]
-        self.assertEqual(libs["tskit"]["version"], tskit.__version__)
-        self.assertEqual(libs["msprime"]["version"], msprime.__version__)
+        assert libs["tskit"]["version"] == tskit.__version__
+        assert libs["msprime"]["version"] == msprime.__version__
 
     def test_software(self):
         software = cli.get_provenance_dict()["software"]
-        self.assertEqual(
-            software, {"name": "stdpopsim", "version": stdpopsim.__version__}
-        )
+        assert software == {"name": "stdpopsim", "version": stdpopsim.__version__}
 
     def test_parameters(self):
         d = cli.get_provenance_dict()["parameters"]
-        self.assertEqual(d["command"], sys.argv[0])
-        self.assertEqual(d["args"], sys.argv[1:])
+        assert d["command"] == sys.argv[0]
+        assert d["args"] == sys.argv[1:]
 
 
-class TestDownloadGeneticMapsArgumentParser(unittest.TestCase):
+class TestDownloadGeneticMapsArgumentParser:
     """
     Tests for the download-genetic-maps parser
     """
@@ -95,50 +89,50 @@ class TestDownloadGeneticMapsArgumentParser(unittest.TestCase):
         parser = cli.stdpopsim_cli_parser()
         cmd = "download-genetic-maps"
         args = parser.parse_args([cmd])
-        self.assertEqual(args.species, None)
-        self.assertEqual(len(args.genetic_maps), 0)
+        assert args.species is None
+        assert len(args.genetic_maps) == 0
 
     def test_species_no_maps(self):
         parser = cli.stdpopsim_cli_parser()
         cmd = "download-genetic-maps some_species"
         args = parser.parse_args(cmd.split())
-        self.assertEqual(args.species, "some_species")
-        self.assertEqual(len(args.genetic_maps), 0)
+        assert args.species == "some_species"
+        assert len(args.genetic_maps) == 0
 
     def test_species_one_map(self):
         parser = cli.stdpopsim_cli_parser()
         cmd = "download-genetic-maps some_species map1"
         args = parser.parse_args(cmd.split())
-        self.assertEqual(args.species, "some_species")
-        self.assertEqual(args.genetic_maps, ["map1"])
+        assert args.species == "some_species"
+        assert args.genetic_maps == ["map1"]
 
     def test_species_two_maps(self):
         parser = cli.stdpopsim_cli_parser()
         cmd = "download-genetic-maps some_species map1 map2"
         args = parser.parse_args(cmd.split())
-        self.assertEqual(args.species, "some_species")
-        self.assertEqual(args.genetic_maps, ["map1", "map2"])
+        assert args.species == "some_species"
+        assert args.genetic_maps == ["map1", "map2"]
 
     def test_verbosity(self):
         parser = cli.stdpopsim_cli_parser()
         cmd = "download-genetic-maps"
         args = parser.parse_args(cmd.split())
-        self.assertEqual(args.verbose, 1)
+        assert args.verbose == 1
 
         cmd = "-v download-genetic-maps"
         args = parser.parse_args(cmd.split())
-        self.assertEqual(args.verbose, 2)
+        assert args.verbose == 2
 
         cmd = "-vv download-genetic-maps"
         args = parser.parse_args(cmd.split())
-        self.assertEqual(args.verbose, 3)
+        assert args.verbose == 3
 
         cmd = "-q download-genetic-maps"
         args = parser.parse_args(cmd.split())
-        self.assertEqual(args.verbose, 0)
+        assert args.verbose == 0
 
 
-class TestHomoSapiensArgumentParser(unittest.TestCase):
+class TestHomoSapiensArgumentParser:
     """
     Tests for the argument parsers.
     """
@@ -147,9 +141,9 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
         parser = cli.stdpopsim_cli_parser()
         cmd = "HomSap"
         args = parser.parse_args([cmd, "2"])
-        self.assertEqual(args.output, None)
-        self.assertEqual(args.seed, None)
-        self.assertEqual(args.samples, [2])
+        assert args.output is None
+        assert args.seed is None
+        assert args.samples == [2]
 
     def test_output(self):
         parser = cli.stdpopsim_cli_parser()
@@ -157,38 +151,38 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
         output = "/stuff/tmp.trees"
 
         args = parser.parse_args([cmd, "2", "-o", output])
-        self.assertEqual(args.output, output)
-        self.assertEqual(args.samples, [2])
+        assert args.output == output
+        assert args.samples == [2]
 
         args = parser.parse_args([cmd, "-o", output, "2"])
-        self.assertEqual(args.output, output)
-        self.assertEqual(args.samples, [2])
+        assert args.output == output
+        assert args.samples == [2]
 
         args = parser.parse_args([cmd, "--output", output, "2"])
-        self.assertEqual(args.output, output)
-        self.assertEqual(args.samples, [2])
+        assert args.output == output
+        assert args.samples == [2]
 
     def test_seed(self):
         parser = cli.stdpopsim_cli_parser()
         cmd = "HomSap"
         args = parser.parse_args([cmd, "2", "-s", "1234"])
-        self.assertEqual(args.samples, [2])
-        self.assertEqual(args.seed, 1234)
+        assert args.samples == [2]
+        assert args.seed == 1234
 
         args = parser.parse_args([cmd, "2", "--seed", "14"])
-        self.assertEqual(args.samples, [2])
-        self.assertEqual(args.seed, 14)
+        assert args.samples == [2]
+        assert args.seed == 14
 
     def test_cache_dir(self):
         parser = cli.stdpopsim_cli_parser()
         cmd = "HomSap"
         args = parser.parse_args(["-c", "cache_dir", cmd, "2"])
-        self.assertEqual(args.samples, [2])
-        self.assertEqual(args.cache_dir, "cache_dir")
+        assert args.samples == [2]
+        assert args.cache_dir == "cache_dir"
 
         args = parser.parse_args(["--cache-dir", "/some/cache_dir", cmd, "2"])
-        self.assertEqual(args.samples, [2])
-        self.assertEqual(args.cache_dir, "/some/cache_dir")
+        assert args.samples == [2]
+        assert args.cache_dir == "/some/cache_dir"
 
     def test_bibtex(self):
         parser = cli.stdpopsim_cli_parser()
@@ -198,12 +192,12 @@ class TestHomoSapiensArgumentParser(unittest.TestCase):
 
         with mock.patch.object(argparse.FileType, "__call__", autospec=True) as call:
             args = parser.parse_args([cmd, "-b", bib, "-o", output, "2"])
-            self.assertEqual(args.output, output)
-            self.assertEqual(args.samples, [2])
+            assert args.output == output
+            assert args.samples == [2]
             call.assert_called_with(mock.ANY, bib)
 
 
-class TestEndToEnd(unittest.TestCase):
+class TestEndToEnd:
     """
     Checks that simulations we run from the CLI have plausible looking output.
     """
@@ -214,10 +208,10 @@ class TestEndToEnd(unittest.TestCase):
             full_cmd = f" -q {cmd} -o {filename} --seed={seed}"
             with mock.patch("stdpopsim.cli.setup_logging", autospec=True):
                 stdout, stderr = capture_output(cli.stdpopsim_main, full_cmd.split())
-            self.assertEqual(len(stderr), 0)
-            self.assertEqual(len(stdout), 0)
+            assert len(stderr) == 0
+            assert len(stdout) == 0
             ts = tskit.load(str(filename))
-        self.assertEqual(ts.num_samples, num_samples)
+        assert ts.num_samples == num_samples
 
     def test_homsap_seed(self):
         cmd = "HomSap -c chr20 -l0.1 -s 1234 20"
@@ -276,17 +270,17 @@ class TestEndToEndSubprocess(TestEndToEnd):
             full_cmd = f"{sys.executable} -m stdpopsim -q {cmd} -o {filename} -s {seed}"
             subprocess.run(full_cmd, shell=True, check=True)
             ts = tskit.load(str(filename))
-        self.assertEqual(ts.num_samples, num_samples)
+        assert ts.num_samples == num_samples
         provenance = json.loads(ts.provenance(ts.num_provenances - 1).record)
         tskit.validate_provenance(provenance)
         stored_cmd = provenance["parameters"]["args"]
-        self.assertEqual(stored_cmd[0], "-q")
-        self.assertEqual(stored_cmd[-1], str(seed))
-        self.assertEqual(stored_cmd[-2], "-s")
-        self.assertEqual(stored_cmd[1:-4], cmd.split())
+        assert stored_cmd[0] == "-q"
+        assert stored_cmd[-1] == str(seed)
+        assert stored_cmd[-2] == "-s"
+        assert stored_cmd[1:-4] == cmd.split()
 
 
-class TestWriteOutput(unittest.TestCase):
+class TestWriteOutput:
     """
     Tests the paths through the write_output function.
     """
@@ -311,7 +305,7 @@ class TestWriteOutput(unittest.TestCase):
             mocked_dump.assert_called_once_with(mock.ANY, output_file)
 
 
-class TestRedirection(unittest.TestCase):
+class TestRedirection:
     """
     Tests that the tree sequence file we get from redirecting is identical to the
     the one we get from using the --output option.
@@ -323,11 +317,11 @@ class TestRedirection(unittest.TestCase):
         tables2 = tskit.load(filename2).dump_tables()
         tables1.provenances.clear()
         tables2.provenances.clear()
-        self.assertEqual(tables1, tables2)
+        assert tables1 == tables2
 
         # Load the files into kastore to do some extra checks.
         with kastore.load(filename1) as store1, kastore.load(filename2) as store2:
-            self.assertEqual(set(store1.keys()), set(store2.keys()))
+            assert set(store1.keys()) == set(store2.keys())
 
     def verify(self, cmd):
 
@@ -341,7 +335,7 @@ class TestRedirection(unittest.TestCase):
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE,
             )
-            self.assertEqual(len(result.stdout), 0)
+            assert len(result.stdout) == 0
 
             filename2 = pathlib.Path(tmpdir) / "output2.trees"
             full_cmd = f"{sys.executable} -m stdpopsim {cmd}"
@@ -365,7 +359,7 @@ class TestRedirection(unittest.TestCase):
         self.verify(cmd)
 
 
-class TestArgumentParsing(unittest.TestCase):
+class TestArgumentParsing:
     """
     Tests that basic argument parsing works as expected.
     """
@@ -375,24 +369,24 @@ class TestArgumentParsing(unittest.TestCase):
     def test_quiet_verbose(self):
         parser = cli.stdpopsim_cli_parser()
         args = parser.parse_args(["-q"] + self.basic_cmd)
-        self.assertEqual(args.verbose, 0)
+        assert args.verbose == 0
         args = parser.parse_args(["--quiet"] + self.basic_cmd)
-        self.assertEqual(args.verbose, 0)
+        assert args.verbose == 0
         args = parser.parse_args(self.basic_cmd)
-        self.assertEqual(args.verbose, 1)
+        assert args.verbose == 1
         args = parser.parse_args(["-v"] + self.basic_cmd)
-        self.assertEqual(args.verbose, 2)
+        assert args.verbose == 2
         args = parser.parse_args(["--verbose"] + self.basic_cmd)
-        self.assertEqual(args.verbose, 2)
+        assert args.verbose == 2
         args = parser.parse_args(["-v", "-v"] + self.basic_cmd)
-        self.assertEqual(args.verbose, 3)
+        assert args.verbose == 3
         args = parser.parse_args(["-v", "--verbose"] + self.basic_cmd)
-        self.assertEqual(args.verbose, 3)
+        assert args.verbose == 3
         args = parser.parse_args(["--verbose", "--verbose"] + self.basic_cmd)
-        self.assertEqual(args.verbose, 3)
+        assert args.verbose == 3
 
 
-class TestLogging(unittest.TestCase):
+class TestLogging:
     """
     Tests that logging has the desired effect.
     """
@@ -405,7 +399,7 @@ class TestLogging(unittest.TestCase):
         with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
             cli.setup_logging(args)
         _, kwargs = mocked_config.call_args
-        self.assertEqual(kwargs["level"], "ERROR")
+        assert kwargs["level"] == "ERROR"
 
     def test_default(self):
         parser = cli.stdpopsim_cli_parser()
@@ -413,7 +407,7 @@ class TestLogging(unittest.TestCase):
         with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
             cli.setup_logging(args)
         _, kwargs = mocked_config.call_args
-        self.assertEqual(kwargs["level"], "WARN")
+        assert kwargs["level"] == "WARN"
 
     def test_verbose(self):
         parser = cli.stdpopsim_cli_parser()
@@ -421,7 +415,7 @@ class TestLogging(unittest.TestCase):
         with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
             cli.setup_logging(args)
         _, kwargs = mocked_config.call_args
-        self.assertEqual(kwargs["level"], "INFO")
+        assert kwargs["level"] == "INFO"
 
     def test_very_verbose(self):
         parser = cli.stdpopsim_cli_parser()
@@ -429,8 +423,10 @@ class TestLogging(unittest.TestCase):
         with mock.patch("logging.basicConfig", autospec=True) as mocked_config:
             cli.setup_logging(args)
         _, kwargs = mocked_config.call_args
-        self.assertEqual(kwargs["level"], "DEBUG")
+        assert kwargs["level"] == "DEBUG"
 
+    # XXX: we're now using pytest instead of unittest, so we may be able to
+    # clean up this test.
     def test_logging_formatter(self):
         # unittest has its grubby mits all over logging, making it difficult
         # to test log output without using unittest.TestCase.assertLogs().
@@ -496,33 +492,33 @@ class TestLogging(unittest.TestCase):
         formatted_info_str = fmt.format(logging.makeLogRecord(info_dict))
         formatted_warn_str = fmt.format(logging.makeLogRecord(warn_dict))
         formatted_warn_str2 = fmt.format(logging.makeLogRecord(warn_dict2))
-        self.assertEqual(formatted_debug_str, "DEBUG: " + debug_str)
-        self.assertEqual(formatted_info_str, "INFO: " + info_str)
-        self.assertEqual(formatted_warn_str, "WARNING: " + warn_str)
-        self.assertEqual(formatted_warn_str2, warn_str)
+        assert formatted_debug_str == "DEBUG: " + debug_str
+        assert formatted_info_str == "INFO: " + info_str
+        assert formatted_warn_str == "WARNING: " + warn_str
+        assert formatted_warn_str2 == warn_str
 
 
-class TestErrors(unittest.TestCase):
+class TestErrors:
 
     # Need to mock out setup_logging here or we spew logging to the console
     # in later tests.
     @mock.patch("stdpopsim.cli.setup_logging", autospec=True)
     def run_stdpopsim(self, command, mock_setup_logging):
         stdout, stderr = capture_output(cli.stdpopsim_main, command)
-        self.assertEqual(stderr, "")
-        self.assertEqual(stdout, "")
-        self.assertTrue(mock_setup_logging.called)
+        assert stderr == ""
+        assert stdout == ""
+        assert mock_setup_logging.called
 
     def test_exit(self):
         with mock.patch(
             "sys.exit", side_effect=ExceptionForTesting, autospec=True
         ) as mocked_exit:
-            with self.assertRaises(ExceptionForTesting):
+            with pytest.raises(ExceptionForTesting):
                 cli.exit("XXX")
             mocked_exit.assert_called_once()
             args = mocked_exit.call_args[0]
-            self.assertEqual(len(args), 1)
-            self.assertTrue(args[0].endswith("XXX"))
+            assert len(args) == 1
+            assert args[0].endswith("XXX")
 
     # Need to mock out setup_logging here or we spew logging to the console
     # in later tests.
@@ -531,7 +527,7 @@ class TestErrors(unittest.TestCase):
         with mock.patch(
             "stdpopsim.cli.exit", side_effect=ExceptionForTesting, autospec=True
         ) as mocked_exit:
-            with self.assertRaises(ExceptionForTesting):
+            with pytest.raises(ExceptionForTesting):
                 cli.stdpopsim_main(cmd.split())
             mocked_exit.assert_called_once()
 
@@ -548,14 +544,14 @@ class TestErrors(unittest.TestCase):
         self.verify_bad_samples("HomSap -d AmericanAdmixture_4B11 2 3 4 5 6")
 
 
-class TestHelp(unittest.TestCase):
+class TestHelp:
     def run_stdpopsim(self, command):
         with mock.patch(
             "argparse.ArgumentParser.exit",
             side_effect=ExceptionForTesting,
             autospec=True,
         ) as mocked_exit:
-            with self.assertRaises(ExceptionForTesting):
+            with pytest.raises(ExceptionForTesting):
                 capture_output(cli.stdpopsim_main, command.split())
             mocked_exit.assert_called_once()
 
@@ -582,7 +578,7 @@ class TestHelp(unittest.TestCase):
             self.run_stdpopsim(f"{species} --help-genetic-maps")
 
 
-class TestWriteBibtex(unittest.TestCase):
+class TestWriteBibtex:
     """
     Test that citations are able to be converted to bibtex
     and written to file."""
@@ -638,41 +634,39 @@ class TestWriteBibtex(unittest.TestCase):
                     stdpopsim.citations.Citation, "fetch_bibtex", autospec=True
                 ) as mock_bib:
                     cli.write_bibtex(engine, model, contig, species, bib)
-                    self.assertEqual(mock_bib.call_count, ncite)
+                    assert mock_bib.call_count == ncite
 
 
-class TestWriteCitations(unittest.TestCase):
+class TestWriteCitations:
     """
     Make sure citation information is written.
     """
 
-    def test_model_citations(self):
+    @pytest.mark.usefixtures("caplog")
+    def test_model_citations(self, caplog):
         contig = stdpopsim.Contig()
         species = stdpopsim.get_species("HomSap")
         model = species.get_demographic_model("OutOfAfrica_3G09")
         engine = stdpopsim.get_default_engine()
-        with self.assertLogs() as logs:
-            stdout, stderr = capture_output(
-                cli.write_citations, engine, model, contig, species
-            )
-        self.assertEqual(len(stdout), 0)
+        stdout, stderr = capture_output(
+            cli.write_citations, engine, model, contig, species
+        )
+        assert len(stdout) == 0
         genetic_map = None
-        output = "\n".join(logs.output)
-        self.check_citations(engine, species, genetic_map, model, output)
+        self.check_citations(engine, species, genetic_map, model, caplog.text)
 
-    def test_genetic_map_citations(self):
+    @pytest.mark.usefixtures("caplog")
+    def test_genetic_map_citations(self, caplog):
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapMapII_GRCh37")
         contig = species.get_contig("chr20", genetic_map=genetic_map.id)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
-        with self.assertLogs() as logs:
-            stdout, stderr = capture_output(
-                cli.write_citations, engine, model, contig, species
-            )
-        self.assertEqual(len(stdout), 0)
-        output = "\n".join(logs.output)
-        self.check_citations(engine, species, genetic_map, model, output)
+        stdout, stderr = capture_output(
+            cli.write_citations, engine, model, contig, species
+        )
+        assert len(stdout) == 0
+        self.check_citations(engine, species, genetic_map, model, caplog.text)
 
     def check_citations(self, engine, species, genetic_map, model, output):
         if genetic_map is None:
@@ -692,12 +686,12 @@ class TestWriteCitations(unittest.TestCase):
             ),
         ):
             for citation in citations:
-                self.assertTrue(citation.author in output, msg=assert_msg)
-                self.assertTrue(str(citation.year) in output, msg=assert_msg)
-                self.assertTrue(citation.doi in output, msg=assert_msg)
+                assert citation.author in output, assert_msg
+                assert str(citation.year) in output, assert_msg
+                assert citation.doi in output, assert_msg
 
 
-class TestCacheDir(unittest.TestCase):
+class TestCacheDir:
     """
     Tests for setting the cache directory.
     """
@@ -706,8 +700,8 @@ class TestCacheDir(unittest.TestCase):
     @mock.patch("stdpopsim.cli.run", autospec=True)
     def run_stdpopsim(self, command, mock_setup_logging, mock_run):
         stdout, stderr = capture_output(cli.stdpopsim_main, command)
-        self.assertEqual(stderr, "")
-        self.assertEqual(stdout, "")
+        assert stderr == ""
+        assert stdout == ""
         mock_setup_logging.assert_called_once()
         mock_run.assert_called_once()
 
@@ -734,7 +728,7 @@ class TestCacheDir(unittest.TestCase):
         self.check_cache_dir_set(cmd, cache_dir)
 
 
-class TestDownloadGeneticMaps(unittest.TestCase):
+class TestDownloadGeneticMaps:
     """
     Tests for the download genetic maps function.
     """
@@ -746,17 +740,17 @@ class TestDownloadGeneticMaps(unittest.TestCase):
             "stdpopsim.GeneticMap.download", autospec=True
         ) as mocked_download:
             cli.run_download_genetic_maps(args)
-            self.assertEqual(mocked_download.call_count, expected_num_downloads)
+            assert mocked_download.call_count == expected_num_downloads
 
     def test_defaults(self):
         num_maps = sum(len(species.genetic_maps) for species in stdpopsim.all_species())
-        self.assertGreater(num_maps, 0)
+        assert num_maps > 0
         self.run_download("", num_maps)
 
     def test_homsap_defaults(self):
         species = stdpopsim.get_species("HomSap")
         num_maps = len(species.genetic_maps)
-        self.assertGreater(num_maps, 0)
+        assert num_maps > 0
         self.run_download("HomSap", num_maps)
 
     def test_homsap_specify_maps(self):
@@ -767,7 +761,7 @@ class TestDownloadGeneticMaps(unittest.TestCase):
             self.run_download("HomSap " + args, j + 1)
 
 
-class TestSearchWrappers(unittest.TestCase):
+class TestSearchWrappers:
     """
     Tests that the search wrappers for species etc work correctly.
     """
@@ -794,7 +788,7 @@ class TestSearchWrappers(unittest.TestCase):
             )
 
 
-class TestDryRun(unittest.TestCase):
+class TestDryRun:
     """
     Checks that simulations we run from the CLI with the --dry-run option have no output
     """
@@ -806,8 +800,8 @@ class TestDryRun(unittest.TestCase):
                 filename = path / "output.trees"
                 cmd = f"{sys.executable} -m stdpopsim HomSap -D -L 1000 -o {filename} 2"
                 subprocess.run(cmd, stderr=stderr, shell=True, check=True)
-                self.assertGreater(stderr.tell(), 0)
-            self.assertFalse(os.path.isfile(filename))
+                assert stderr.tell() > 0
+            assert not os.path.isfile(filename)
 
     def test_dry_run_quiet(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -819,11 +813,11 @@ class TestDryRun(unittest.TestCase):
                     "-o {filename} 2"
                 )
                 subprocess.run(cmd, stderr=stderr, shell=True, check=True)
-                self.assertEqual(stderr.tell(), 0)
-            self.assertFalse(os.path.isfile(filename))
+                assert stderr.tell() == 0
+            assert not os.path.isfile(filename)
 
 
-class TestMsprimeEngine(unittest.TestCase):
+class TestMsprimeEngine:
     def docmd(self, _cmd):
         with tempfile.TemporaryDirectory() as tmpdir:
             filename = pathlib.Path(tmpdir) / "output.trees"
@@ -846,15 +840,15 @@ class TestMsprimeEngine(unittest.TestCase):
         )
 
     def test_invalid_CLI_parameters(self):
-        with self.assertRaises(SystemExit):
+        with pytest.raises(SystemExit):
             self.docmd("--msprime-model notamodel")
-        with self.assertRaises(SystemExit):
+        with pytest.raises(SystemExit):
             self.docmd("--msprime-model dtwf --msprime-change-model 50 notamodel")
-        with self.assertRaises(SystemExit):
+        with pytest.raises(SystemExit):
             self.docmd("--msprime-model dtwf --msprime-change-model notanumber hudson")
-        with self.assertRaises(SystemExit):
+        with pytest.raises(SystemExit):
             self.docmd("--msprime-model hudson --msprime-change-model dtwf")
-        with self.assertRaises(SystemExit):
+        with pytest.raises(SystemExit):
             self.docmd("--msprime-model hudson --msprime-change-model 10")
 
     def test_invalid_API_parameters(self):
@@ -863,9 +857,9 @@ class TestMsprimeEngine(unittest.TestCase):
         contig = species.get_contig("chr20")
         model = species.get_demographic_model("OutOfAfrica_2T12")
         samples = model.get_samples(10)
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             engine.simulate(model, contig, samples, msprime_model="notamodel")
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             engine.simulate(
                 model,
                 contig,
@@ -876,16 +870,18 @@ class TestMsprimeEngine(unittest.TestCase):
             )
 
 
-class TestNonAutosomal(unittest.TestCase):
+class TestNonAutosomal:
     # TODO: This test should be removed when #383 is fixed.
     # https://github.com/popsim-consortium/stdpopsim/issues/383
     def test_chrX_gives_a_warning(self):
         cmd = "HomSap -D -c chrX -o /dev/null 10".split()
-        with self.assertWarns(stdpopsim.NonAutosomalWarning):
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        # setup_logging() interferes with pytest.warns().
+        with mock.patch("stdpopsim.cli.setup_logging", autospec=True):
+            with pytest.warns(stdpopsim.NonAutosomalWarning):
+                capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
 
-class TestNoQCWarning(unittest.TestCase):
+class TestNoQCWarning:
     species = stdpopsim.get_species("EscCol")
     model = stdpopsim.DemographicModel(
         id="FakeModel",
@@ -904,15 +900,19 @@ class TestNoQCWarning(unittest.TestCase):
         population_configurations=[msprime.PopulationConfiguration(initial_size=1000)],
     )
 
-    def setUp(self):
-        self.species.add_demographic_model(self.model)
+    @classmethod
+    def setup_class(cls):
+        cls.species.add_demographic_model(cls.model)
 
-    def tearDown(self):
-        self.species.demographic_models.remove(self.model)
+    @classmethod
+    def teardown_class(cls):
+        cls.species.demographic_models.remove(cls.model)
 
     def verify_noQC_warning(self, cmd):
-        with pytest.warns(stdpopsim.QCMissingWarning):
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
+        # setup_logging() interferes with pytest.warns().
+        with mock.patch("stdpopsim.cli.setup_logging", autospec=True):
+            with pytest.warns(stdpopsim.QCMissingWarning):
+                capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
 
     def test_noQC_warning(self):
         self.verify_noQC_warning("EscCol -d FakeModel -D 10 -L 10")
@@ -920,27 +920,36 @@ class TestNoQCWarning(unittest.TestCase):
     def test_noQC_warning_quiet(self):
         self.verify_noQC_warning("-q EscCol -d FakeModel -D 10 -L 10")
 
-    def verify_noQC_citations_not_written(self, cmd):
+    def verify_noQC_citations_not_written(self, cmd, caplog):
         # Non-QCed models shouldn't be used in publications, so citations
         # shouldn't be offered to the user.
-        with self.assertLogs() as logs:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                out, err = capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
-        log_output = "\n".join(logs.output)
+        out, err = capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
+        log_output = caplog.text
         for citation in self.model.citations:
-            self.assertFalse(citation.author in out)
-            self.assertFalse(citation.doi in out)
-            self.assertFalse(citation.author in err)
-            self.assertFalse(citation.doi in err)
-            self.assertFalse(citation.author in log_output)
-            self.assertFalse(citation.doi in log_output)
+            assert not (citation.author in out)
+            assert not (citation.doi in out)
+            assert not (citation.author in err)
+            assert not (citation.doi in err)
+            assert not (citation.author in log_output)
+            assert not (citation.doi in log_output)
 
-    def test_noQC_citations_not_written(self):
-        self.verify_noQC_citations_not_written("EscCol -d FakeModel -D 10 -L 10")
+    # The following two tests use the "caplog" pytest fixture, which captures
+    # the logging output. The caplog param is automatically passed to test_*()
+    # methods by pytest, which we pass through to verify_noQC_citations_not_written().
 
-    def test_noQC_citations_not_written_verbose(self):
-        self.verify_noQC_citations_not_written("-vv EscCol -d FakeModel -D 10 -L 10")
+    @pytest.mark.filterwarnings("ignore::stdpopsim.QCMissingWarning")
+    @pytest.mark.usefixtures("caplog")
+    def test_noQC_citations_not_written(self, caplog):
+        self.verify_noQC_citations_not_written(
+            "EscCol -d FakeModel -D 10 -L 10", caplog
+        )
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.QCMissingWarning")
+    @pytest.mark.usefixtures("caplog")
+    def test_noQC_citations_not_written_verbose(self, caplog):
+        self.verify_noQC_citations_not_written(
+            "-vv EscCol -d FakeModel -D 10 -L 10", caplog
+        )
 
 
 @pytest.mark.parametrize(

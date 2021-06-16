@@ -7,6 +7,7 @@ import tempfile
 import tarfile
 
 import appdirs
+import pytest
 
 import stdpopsim
 from stdpopsim import utils
@@ -23,21 +24,21 @@ class TestSetCacheDir(tests.CacheWritingTest):
     def test_paths(self):
         for test in self.paths:
             stdpopsim.set_cache_dir(test)
-            self.assertEqual(stdpopsim.get_cache_dir(), pathlib.Path(test))
+            assert stdpopsim.get_cache_dir() == pathlib.Path(test)
             stdpopsim.set_cache_dir(pathlib.Path(test))
-            self.assertEqual(stdpopsim.get_cache_dir(), pathlib.Path(test))
+            assert stdpopsim.get_cache_dir() == pathlib.Path(test)
 
     def test_none(self):
         stdpopsim.set_cache_dir(None)
         cache_dir = pathlib.Path(appdirs.user_cache_dir("stdpopsim", "popgensims"))
-        self.assertEqual(stdpopsim.get_cache_dir(), cache_dir)
+        assert stdpopsim.get_cache_dir() == cache_dir
 
     def test_environment_var(self):
         try:
             for test in self.paths:
                 os.environ["STDPOPSIM_CACHE"] = test
                 stdpopsim.set_cache_dir()
-                self.assertEqual(stdpopsim.get_cache_dir(), pathlib.Path(test))
+                assert stdpopsim.get_cache_dir() == pathlib.Path(test)
         finally:
             os.environ.pop("STDPOPSIM_CACHE")
 
@@ -62,27 +63,27 @@ class TestCachedData(tests.CacheWritingTest):
                     sha256=sha256,
                     extract=extract,
                 )
-                self.assertFalse(cache.is_cached())
-                self.assertFalse(cache.is_valid())
+                assert not (cache.is_cached())
+                assert not (cache.is_valid())
                 cache.download()
-                self.assertTrue(cache.is_cached())
-                self.assertTrue(cache.is_valid())
+                assert cache.is_cached()
+                assert cache.is_valid()
 
                 # try to download with incorrect checksum
                 cache.sha256 = "1234"
-                self.assertTrue(cache.is_cached())
-                self.assertFalse(cache.is_valid())
-                with self.assertRaises(ValueError):
+                assert cache.is_cached()
+                assert not (cache.is_valid())
+                with pytest.raises(ValueError):
                     # checksum mismatch
                     cache.download()
-                self.assertFalse(cache.is_cached())
-                self.assertFalse(cache.is_valid())
+                assert not (cache.is_cached())
+                assert not (cache.is_valid())
 
                 # fix the checksum and download again
                 cache.sha256 = sha256
                 cache.download()
-                self.assertTrue(cache.is_cached())
-                self.assertTrue(cache.is_valid())
+                assert cache.is_cached()
+                assert cache.is_valid()
 
     def test_multiple_threads_downloading(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -105,5 +106,5 @@ class TestCachedData(tests.CacheWritingTest):
             # Trick the download code into thinking there's several happening
             # concurrently
             cache.is_cached = lambda: False
-            with self.assertWarns(UserWarning):
+            with pytest.warns(UserWarning, match="multiple processes downloading"):
                 cache.download()

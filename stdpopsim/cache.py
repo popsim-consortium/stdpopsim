@@ -167,7 +167,7 @@ class CachedData:
                 os.rename(local_path, self.cache_path)
             except (OSError, FileExistsError):
                 warnings.warn(
-                    "Error occured renaming map directory. Are multiple processes"
+                    "Error occured renaming map directory. Are multiple processes "
                     "downloading this map at the same time?"
                 )
                 return
