@@ -1293,11 +1293,10 @@ class _SLiMEngine(stdpopsim.Engine):
             migration_matrix=recap_epoch.migration_matrix,
         )
 
-        # TODO: using recombination map in recapitate. maps should be discrete.
         ts = msprime.sim_ancestry(
             initial_state=ts,
             demography=demography,
-            recombination_rate=contig.recombination_map.mean_rate,
+            recombination_rate=contig.recombination_map,
             random_seed=s1,
         )
 

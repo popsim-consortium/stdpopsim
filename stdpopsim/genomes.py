@@ -258,7 +258,7 @@ class Contig:
             )
         if chromosome is None:
             if genetic_map is not None:
-                raise ValueError("Cannot use genetic map with generic contic")
+                raise ValueError("Cannot use genetic map with generic contig")
             if length_multiplier != 1:
                 raise ValueError("Cannot use length multiplier for generic contig")
             if inclusion_mask is not None or exclusion_mask is not None:

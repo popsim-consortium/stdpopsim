@@ -119,18 +119,19 @@ class TestAPI:
         )
         assert "sim.registerLateEvent" in out
 
+    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     @pytest.mark.filterwarnings("ignore:Recombination map has length:UserWarning")
     def test_recombination_map(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("chr1", genetic_map="HapMapII_GRCh37")
-        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        model = stdpopsim.PiecewiseConstantSize(100)
         samples = model.get_samples(10)
         engine.simulate(
             demographic_model=model,
             contig=contig,
             samples=samples,
-            dry_run=True,
+            slim_burn_in=0.1,
         )
 
     @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
