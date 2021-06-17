@@ -1,18 +1,19 @@
 """
 Tests for the genetic maps management.
 """
-import unittest
-
-import stdpopsim.utils
-import msprime
-import numpy as np
 import os
 import sys
+
+import numpy as np
+import msprime
+import pytest
+
+import stdpopsim.utils
 
 IS_WINDOWS = sys.platform.startswith("win")
 
 
-class TestMasking(unittest.TestCase):
+class TestMasking:
     def test_load_intervals(self):
         intervals_in = {
             "chr1": [(10, 10000)],
@@ -26,15 +27,15 @@ class TestMasking(unittest.TestCase):
         intervals_chr22 = stdpopsim.utils.read_bed("temp_file.bed", "chr22")
         os.remove("temp_file.bed")
         for interval in intervals_chr1:
-            self.assertTrue(tuple(interval) in intervals_in["chr1"])
+            assert tuple(interval) in intervals_in["chr1"]
         for interval in intervals_chr22:
-            self.assertTrue(tuple(interval) in intervals_in["chr22"])
-        self.assertTrue(len(intervals_chr1) == len(intervals_in["chr1"]))
-        self.assertTrue(len(intervals_chr22) == len(intervals_in["chr22"]))
+            assert tuple(interval) in intervals_in["chr22"]
+        assert len(intervals_chr1) == len(intervals_in["chr1"])
+        assert len(intervals_chr22) == len(intervals_in["chr22"])
 
     def test_length_interval_invalid(self):
         species = stdpopsim.get_species("HomSap")
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             contig = species.get_contig(
                 "chr22", length_multiplier=0.1, inclusion_mask="test.bed"
             )
@@ -59,23 +60,23 @@ class TestMasking(unittest.TestCase):
         intervals_utils = stdpopsim.utils.read_bed("temp_file.bed", "chr1")
         os.remove("temp_file.bed")
         for i1, i2 in zip(intervals_utils, intervals_test):
-            self.assertTrue(i1[0] == i2[0])
-            self.assertTrue(i1[1] == i2[1])
+            assert i1[0] == i2[0]
+            assert i1[1] == i2[1]
 
     def test_mask_from_intervals(self):
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("chr22", exclusion_mask=[(0, 16.5e6)])
-        self.assertTrue(contig.inclusion_mask is None)
-        self.assertTrue(contig.exclusion_mask[0][0] == 0)
-        self.assertTrue(contig.exclusion_mask[0][1] == 16.5e6)
+        assert contig.inclusion_mask is None
+        assert contig.exclusion_mask[0][0] == 0
+        assert contig.exclusion_mask[0][1] == 16.5e6
         contig = species.get_contig("chr22", inclusion_mask=[(16.5e6, 45e6)])
-        self.assertTrue(contig.inclusion_mask[0][0] == 16.5e6)
-        self.assertTrue(contig.inclusion_mask[0][1] == 45e6)
-        self.assertTrue(contig.exclusion_mask is None)
+        assert contig.inclusion_mask[0][0] == 16.5e6
+        assert contig.inclusion_mask[0][1] == 45e6
+        assert contig.exclusion_mask is None
 
     def test_multiple_masks(self):
         species = stdpopsim.get_species("HomSap")
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             species.get_contig(
                 "chr22", exclusion_mask=[(0, 16.5e6)], inclusion_mask=[(16.5e6, 50e6)]
             )
@@ -88,11 +89,11 @@ class TestMasking(unittest.TestCase):
                     fout.write(f"{c}\t{l}\t{r}\n")
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("chr1", inclusion_mask="temp_file.bed")
-        self.assertTrue(contig.exclusion_mask is None)
-        self.assertTrue(len(contig.inclusion_mask) == 4)
+        assert contig.exclusion_mask is None
+        assert len(contig.inclusion_mask) == 4
         contig = species.get_contig("chr1", exclusion_mask="temp_file.bed")
-        self.assertTrue(contig.inclusion_mask is None)
-        self.assertTrue(contig.exclusion_mask[1][0] == 100)
+        assert contig.inclusion_mask is None
+        assert contig.exclusion_mask[1][0] == 100
         os.remove("temp_file.bed")
 
     def test_mask_tree_sequence(self):
@@ -103,22 +104,23 @@ class TestMasking(unittest.TestCase):
         exclude = False
         ts_mask = stdpopsim.utils.mask_tree_sequence(ts, intervals, exclude)
         # check we get the right number of trees (simulated with no recomb)
-        self.assertTrue(ts_mask.num_trees == len(intervals) * 2 - 1)
+        assert ts_mask.num_trees == len(intervals) * 2 - 1
 
         exclude = True
         intervals = np.array([[0, 100], [200, 1000]])
         ts_mask = stdpopsim.utils.mask_tree_sequence(ts, intervals, exclude)
         # check we get the right number of trees (simulated with no recomb)
-        self.assertTrue(ts_mask.num_trees == len(intervals) * 2 - 1)
+        assert ts_mask.num_trees == len(intervals) * 2 - 1
         # check that positions of mutations in ts_mask are within mask
         positions = np.array(
             [ts_mask.site(m.site).position for m in ts_mask.mutations()]
         )
-        self.assertTrue(np.all(np.logical_and(100 <= positions, positions < 200)))
+        assert np.all(np.logical_and(100 <= positions, positions < 200))
 
 
-@unittest.skipIf(IS_WINDOWS, "SLiM not available on windows")
-class TestSimulate(unittest.TestCase):
+@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
+class TestSimulate:
+    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     def test_simulate_with_mask(self):
         engines = ["msprime", "slim"]
         species = stdpopsim.get_species("HomSap")
@@ -139,7 +141,7 @@ class TestSimulate(unittest.TestCase):
             )
             # check that positions of mutations are within mask
             positions = np.array([ts.site(m.site).position for m in ts.mutations()])
-            self.assertTrue(np.all(positions >= L // 2))
+            assert np.all(positions >= L // 2)
 
             # test engine with inclusion mask
             contig.exclusion_mask = None
@@ -149,4 +151,4 @@ class TestSimulate(unittest.TestCase):
             )
             # check that positions of mutations are within mask
             positions = np.array([ts.site(m.site).position for m in ts.mutations()])
-            self.assertTrue(np.all(positions < L // 2))
+            assert np.all(positions < L // 2)

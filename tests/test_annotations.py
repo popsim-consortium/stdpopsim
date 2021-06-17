@@ -1,7 +1,6 @@
 """
 Tests for the annotations management.
 """
-import unittest
 from unittest import mock
 import gzip
 import tempfile
@@ -10,6 +9,7 @@ import shutil
 import pathlib
 
 import pandas
+import pytest
 
 import stdpopsim
 from stdpopsim import utils
@@ -26,7 +26,7 @@ import tests
 saved_urls = {}
 
 
-def setUpModule():
+def setup_module():
     destination = pathlib.Path("_test_cache/zipfiles/")
     for an in stdpopsim.all_annotations():
         key = an._cache.cache_path
@@ -49,7 +49,7 @@ def setUpModule():
         an._cache.url = an.zarr_url
 
 
-def tearDownModule():
+def teardown_module():
     for an in stdpopsim.all_annotations():
         an.zarr_url = saved_urls[an._cache.cache_path]
         an._cache.url = an.zarr_url
@@ -112,11 +112,11 @@ class TestAnnotation(tests.CacheWritingTest):
     def test_cache_dirs(self):
         an = AnnotationTestClass()
         cache_dir = stdpopsim.get_cache_dir() / "annotations" / an.species.id
-        self.assertEqual(an.cache_path.parent, cache_dir)
+        assert an.cache_path.parent == cache_dir
 
     def test_str(self):
         an = AnnotationTestClass()
-        self.assertGreater(len(str(an)), 0)
+        assert len(str(an)) > 0
 
 
 class TestAnnotationDownload(tests.CacheWritingTest):
@@ -128,27 +128,29 @@ class TestAnnotationDownload(tests.CacheWritingTest):
         an = AnnotationTestClass()
         with mock.patch("stdpopsim.utils.download", autospec=True) as mocked_get:
             # The destination file will be missing.
-            with self.assertRaises(FileNotFoundError):
+            with pytest.raises(FileNotFoundError):
                 an.download()
-        mocked_get.assert_called_once_with(an.zarr_url, filename=unittest.mock.ANY)
+        mocked_get.assert_called_once_with(an.zarr_url, filename=mock.ANY)
 
     def test_incorrect_url(self):
         an = AnnotationTestClass()
         an.zarr_url = "http://asdfwersdf.com/foozip"
-        with self.assertRaises(OSError):
+        with pytest.raises(OSError):
             an.download()
 
+    @pytest.mark.xfail  # HomSap annotation not currently available
     def test_download_over_cache(self):
         # TODO: The HomSap annotations are huge. Once we include a smaller
         # annotation set, we should instead use that, so tests are faster.
         species = stdpopsim.get_species("HomSap")
         an = species.get_annotations("Ensembl_GRCh38_gff3")
         an.download()
-        self.assertTrue(an.is_cached())
+        assert an.is_cached()
         an.download()
-        self.assertTrue(an.is_cached())
+        assert an.is_cached()
 
 
+@pytest.mark.xfail  # HomSap annotation not currently available
 class TestGetChromosomeAnnotations(tests.CacheReadingTest):
     """
     Tests if we get chromosome level annotations
@@ -157,31 +159,33 @@ class TestGetChromosomeAnnotations(tests.CacheReadingTest):
 
     # TODO: The HomSap annotations are huge. Once we include a smaller
     # annotation set, we should instead use that, so tests are faster.
-    species = stdpopsim.get_species("HomSap")
-    an = species.get_annotations("Ensembl_GRCh38_gff3")
+    @classmethod
+    def setup_class(cls):
+        species = stdpopsim.get_species("HomSap")
+        cls.an = species.get_annotations("Ensembl_GRCh38_gff3")
 
     def test_known_chromosome(self):
         cm = self.an.get_chromosome_annotations("21")
-        self.assertIsInstance(cm, pandas.DataFrame)
+        assert isinstance(cm, pandas.DataFrame)
 
     def test_known_chromosome_prefix(self):
         cm = self.an.get_chromosome_annotations("chr21")
-        self.assertIsInstance(cm, pandas.DataFrame)
+        assert isinstance(cm, pandas.DataFrame)
 
     def test_unknown_chromosome(self):
         for bad_chrom in ["", "ABD", None]:
-            with self.assertRaises(ValueError):
+            with pytest.raises(ValueError):
                 self.an.get_chromosome_annotations(bad_chrom)
 
     def test_get_genes(self):
         g = self.an.get_genes_from_chromosome("21")
-        self.assertIsInstance(g, pandas.DataFrame)
+        assert isinstance(g, pandas.DataFrame)
 
     def test_get_genes_full(self):
         g = self.an.get_genes_from_chromosome("21", full_table=True)
-        self.assertIsInstance(g, pandas.DataFrame)
+        assert isinstance(g, pandas.DataFrame)
 
     def test_bad_annot_type(self):
         bad_annot = "foo"
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             self.an.get_annotation_type_from_chromomosome(bad_annot, "21")

@@ -1,13 +1,12 @@
 """
 Package definition for tests. Defined to allow cross-importing.
 """
-import unittest
 import tempfile
 
 import stdpopsim
 
 
-class CacheReadingTest(unittest.TestCase):
+class CacheReadingTest:
     """
     This should be used as the superclass of all tests that use downloaded data.
     Rather than using the standard userdir for downloaded data, we use this
@@ -19,15 +18,17 @@ class CacheReadingTest(unittest.TestCase):
     saved_cache_dir = None
     saved_urls = {}
 
-    def setUp(self):
-        self.saved_cache_dir = stdpopsim.get_cache_dir()
-        stdpopsim.set_cache_dir(self.cache_dir)
+    @classmethod
+    def setup_class(cls):
+        cls.saved_cache_dir = stdpopsim.get_cache_dir()
+        stdpopsim.set_cache_dir(cls.cache_dir)
 
-    def tearDown(self):
-        stdpopsim.set_cache_dir(self.saved_cache_dir)
+    @classmethod
+    def teardown_class(cls):
+        stdpopsim.set_cache_dir(cls.saved_cache_dir)
 
 
-class CacheWritingTest(unittest.TestCase):
+class CacheWritingTest:
     """
     This should be used as the superclass of all tests that alter the
     downloaded data cache in any non-standard way.
@@ -36,11 +37,13 @@ class CacheWritingTest(unittest.TestCase):
     saved_cache_dir = None
     tmp_cache_dir = None
 
-    def setUp(self):
-        self.saved_cache_dir = stdpopsim.get_cache_dir()
-        self.tmp_cache_dir = tempfile.TemporaryDirectory()
-        stdpopsim.set_cache_dir(self.tmp_cache_dir.name)
+    @classmethod
+    def setup_class(cls):
+        cls.saved_cache_dir = stdpopsim.get_cache_dir()
+        cls.tmp_cache_dir = tempfile.TemporaryDirectory()
+        stdpopsim.set_cache_dir(cls.tmp_cache_dir.name)
 
-    def tearDown(self):
-        stdpopsim.set_cache_dir(self.saved_cache_dir)
-        del self.tmp_cache_dir
+    @classmethod
+    def teardown_class(cls):
+        stdpopsim.set_cache_dir(cls.saved_cache_dir)
+        del cls.tmp_cache_dir

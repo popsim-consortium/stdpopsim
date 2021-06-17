@@ -1135,14 +1135,6 @@ class _SLiMEngine(stdpopsim.Engine):
                     "compare results across different values of the scaling factor."
                 )
             )
-        if contig.recombination_map is None:
-            raise ValueError(
-                "Your Contig object is not compatible with the SLiM "
-                "engine. You must specify a recombination map."
-            )
-        # if no GET were defined, fully neutral sim with overlay of muts using msprime
-        if len(contig.genomic_element_types) == 0:
-            contig.fully_neutral()
 
         # figuring out mutations in SLiM and neutral mutations to be added
         # by msprime later
@@ -1379,14 +1371,6 @@ class _SLiMEngine(stdpopsim.Engine):
             should be consulted to determine if the behaviour is appropriate
             for your case.
         """
-        if contig.recombination_map is None:
-            raise ValueError(
-                "Your Contig object is not compatible with the SLiM "
-                "engine. You must specify a recombination map."
-            )
-        # if no GET were defined, fully neutral sim with overlay of muts using msprime
-        if len(contig.genomic_element_types) == 0:
-            contig.fully_neutral()
         msp_rate_map, slim_rate_map = get_msp_and_slim_mutation_rate_maps(contig)
 
         with open(os.devnull, "w") as script_file:

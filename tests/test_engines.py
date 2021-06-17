@@ -1,22 +1,21 @@
 """
 Tests for simulation engine infrastructure.
 """
-import unittest
-
 import stdpopsim
 import msprime
+import pytest
 
 
-class TestEngineAPI(unittest.TestCase):
+class TestEngineAPI:
     """
     Tests for the API exposed for simulation engines.
     """
 
     def _test_engine(self, engine):
-        self.assertIsInstance(engine, stdpopsim.Engine)
-        self.assertIsNotNone(engine.simulate)
-        self.assertNotEqual(len(engine.citations), 0)
-        self.assertNotEqual(len(engine.get_version()), 0)
+        assert isinstance(engine, stdpopsim.Engine)
+        assert engine.simulate is not None
+        assert len(engine.citations) != 0
+        assert len(engine.get_version()) != 0
 
     def test_get_default_engine(self):
         engine = stdpopsim.get_default_engine()
@@ -35,27 +34,31 @@ class TestEngineAPI(unittest.TestCase):
         engine1 = MyEngine()
         stdpopsim.register_engine(engine1)
         engine2 = stdpopsim.get_engine(engine1.id)
-        self.assertEqual(engine1, engine2)
+        assert engine1 == engine2
         # remove engine to avoid possible problems with other tests
         del stdpopsim.engines._registered_engines[engine1.id]
 
     def test_register_duplicate(self):
         engine = stdpopsim.get_default_engine()
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             stdpopsim.register_engine(engine)
 
     def test_get_engine(self):
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             stdpopsim.get_engine("nonexistent")
 
     def test_abstract_base_class(self):
         e = stdpopsim.Engine()
-        with self.assertRaises(NotImplementedError):
+        with pytest.raises(NotImplementedError):
             e.simulate(None, None, None)
-        self.assertRaises(NotImplementedError, e.get_version)
+        with pytest.raises(NotImplementedError):
+            e.get_version()
 
 
-class TestBehaviour(unittest.TestCase):
+@pytest.mark.filterwarnings(
+    "ignore:.*model has mutation rate.*but this simulation used.*"
+)
+class TestBehaviour:
     def test_simulate_nonexistent_param(self):
         species = stdpopsim.get_species("HomSap")
         model = species.get_demographic_model("AshkSub_7G19")
@@ -68,7 +71,7 @@ class TestBehaviour(unittest.TestCase):
         bad_kwargs = good_kwargs.copy().update(nonexistent_param=None)
         for engine in stdpopsim.all_engines():
             engine.simulate(**good_kwargs)
-            with self.assertRaises(TypeError):
+            with pytest.raises(TypeError):
                 engine.simulate(**bad_kwargs)
 
     def test_required_params(self):
@@ -76,7 +79,7 @@ class TestBehaviour(unittest.TestCase):
         model = species.get_demographic_model("AshkSub_7G19")
         contig = (species.get_contig("chr1"),)
         for engine in stdpopsim.all_engines():
-            with self.assertRaises(TypeError):
+            with pytest.raises(TypeError):
                 engine.simulate(model, contig)
 
     def test_msprime_kwargs(self):
@@ -96,8 +99,8 @@ class TestBehaviour(unittest.TestCase):
         contig = species.get_contig("chr22", length_multiplier=0.01)
         samples = model.get_samples(10)
         engine = stdpopsim.get_engine("msprime")
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             engine.simulate(model, contig, samples, seed=1, random_seed=1)
         sim_seed = engine.simulate(model, contig, samples, seed=1)
         sim_random_seed = engine.simulate(model, contig, samples, random_seed=1)
-        self.assertEquals(sim_seed.tables.edges, sim_random_seed.tables.edges)
+        assert sim_seed.tables.edges == sim_random_seed.tables.edges

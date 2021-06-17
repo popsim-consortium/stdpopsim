@@ -1,16 +1,14 @@
 """
 Tests for the genetic maps management.
 """
-import unittest
 from unittest import mock
 import tarfile
 import tempfile
 import os.path
 import pathlib
-import pytest
-import re
 
 import msprime
+import pytest
 
 import stdpopsim
 from stdpopsim import utils
@@ -27,7 +25,7 @@ import tests
 saved_urls = {}
 
 
-def setUpModule():
+def setup_module():
     destination = pathlib.Path("_test_cache/tarballs")
     for genetic_map in stdpopsim.all_genetic_maps():
         key = genetic_map.id
@@ -50,7 +48,7 @@ def setUpModule():
         genetic_map._cache.url = genetic_map.url
 
 
-def tearDownModule():
+def teardown_module():
     for genetic_map in stdpopsim.all_genetic_maps():
         genetic_map.url = saved_urls[genetic_map.id]
         genetic_map._cache.url = genetic_map.url
@@ -107,7 +105,7 @@ def get_genetic_map_tarball():
     return tarball
 
 
-class TestGeneticMapTarball(unittest.TestCase):
+class TestGeneticMapTarball:
     """
     Tests that we correctly encode a genetic map in the tarball test function.
     """
@@ -128,7 +126,7 @@ class TestGeneticMapTarball(unittest.TestCase):
     def test_no_args(self):
         tarball = get_genetic_map_tarball()
         maps = self.get_maps(tarball)
-        self.assertGreater(len(maps), 0)
+        assert len(maps) > 0
 
 
 class TestGeneticMap(tests.CacheWritingTest):
@@ -139,11 +137,11 @@ class TestGeneticMap(tests.CacheWritingTest):
     def test_cache_dirs(self):
         gm = GeneticMapTestClass()
         cache_dir = stdpopsim.get_cache_dir() / "genetic_maps" / gm.species.id / gm.id
-        self.assertEqual(gm.map_cache_dir, cache_dir)
+        assert gm.map_cache_dir == cache_dir
 
     def test_str(self):
         gm = GeneticMapTestClass()
-        self.assertGreater(len(str(gm)), 0)
+        assert len(str(gm)) > 0
 
 
 class TestGeneticMapDownload(tests.CacheWritingTest):
@@ -155,17 +153,17 @@ class TestGeneticMapDownload(tests.CacheWritingTest):
         gm = GeneticMapTestClass()
         with mock.patch("stdpopsim.utils.download", autospec=True) as mocked_get:
             # The destination file will be missing.
-            with self.assertRaises(FileNotFoundError):
+            with pytest.raises(FileNotFoundError):
                 gm.download()
-        mocked_get.assert_called_once_with(gm.url, unittest.mock.ANY)
+        mocked_get.assert_called_once_with(gm.url, mock.ANY)
 
     def test_download_over_cache(self):
         species = stdpopsim.get_species("DroMel")
         gm = species.get_genetic_map("ComeronCrossover_dm6")
         gm.download()
-        self.assertTrue(gm.is_cached())
+        assert gm.is_cached()
         gm.download()
-        self.assertTrue(gm.is_cached())
+        assert gm.is_cached()
 
     def test_multiple_threads_downloading(self):
         species = stdpopsim.get_species("DroMel")
@@ -176,7 +174,7 @@ class TestGeneticMapDownload(tests.CacheWritingTest):
             # Trick the download code into thinking there's several happening
             # concurrently
             gm._cache.is_cached = lambda: False
-            with self.assertWarns(UserWarning):
+            with pytest.warns(UserWarning, match="multiple processes downloading"):
                 gm.download()
         finally:
             gm._cache.is_cached = saved
@@ -188,16 +186,16 @@ class TestAllGeneticMaps(tests.CacheReadingTest):
     """
 
     def test_non_empty(self):
-        self.assertGreater(len(list(stdpopsim.all_genetic_maps())), 0)
+        assert len(list(stdpopsim.all_genetic_maps())) > 0
 
     def test_types(self):
         for gm in stdpopsim.all_genetic_maps():
-            self.assertIsInstance(gm, stdpopsim.GeneticMap)
+            assert isinstance(gm, stdpopsim.GeneticMap)
 
     def test_ids(self):
         for gm in stdpopsim.all_genetic_maps():
-            self.assertIsInstance(gm.id, str)
-            self.assertTrue(utils.is_valid_genetic_map_id(gm.id))
+            assert isinstance(gm.id, str)
+            assert utils.is_valid_genetic_map_id(gm.id)
 
 
 class TestGetChromosomeMap(tests.CacheReadingTest):
@@ -209,38 +207,41 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapMapII_GRCh37")
         chrom = species.genome.get_chromosome("chrY")
-        with self.assertWarns(Warning):
+        with pytest.warns(UserWarning, match="Recombination map not found"):
             cm = genetic_map.get_chromosome_map(chrom.id)
-        self.assertIsInstance(cm, msprime.RateMap)
-        self.assertEqual(chrom.length, cm.sequence_length)
+        assert isinstance(cm, msprime.RateMap)
+        assert chrom.length == cm.sequence_length
 
     def test_known_chromosome(self):
         species = stdpopsim.get_species("CanFam")
         genetic_map = species.get_genetic_map("Campbell2016_CanFam3_1")
         chrom = species.genome.get_chromosome("1")
         cm = genetic_map.get_chromosome_map(chrom.id)
-        self.assertIsInstance(cm, msprime.RateMap)
-        self.assertEqual(chrom.length, cm.sequence_length)
+        assert isinstance(cm, msprime.RateMap)
+        assert chrom.length == cm.sequence_length
 
     def test_warning_for_long_recomb_map(self):
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapMapII_GRCh37")
         chrom = species.genome.get_chromosome("chr1")
-        with self.assertWarns(Warning):
+        with pytest.warns(
+            UserWarning, match="Recombination map.*is longer than chromosome length"
+        ):
             cm = genetic_map.get_chromosome_map(chrom.id)
-        self.assertIsInstance(cm, msprime.RateMap)
-        self.assertLess(chrom.length, cm.sequence_length)
+        assert isinstance(cm, msprime.RateMap)
+        assert chrom.length < cm.sequence_length
 
     def test_unknown_chromosome(self):
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapMapII_GRCh37")
         for bad_chrom in ["", "ABD", None]:
-            with self.assertRaises(ValueError):
+            with pytest.raises(ValueError):
                 genetic_map.get_chromosome_map(bad_chrom)
 
     @pytest.mark.filterwarnings(
         "ignore: Recombination map.*is longer than chromosome length"
     )
+    @pytest.mark.filterwarnings("error: Recombination map not found")
     def test_one_chrom_from_each_map(self):
         for gm in stdpopsim.all_genetic_maps():
             species = gm.species
@@ -252,18 +253,7 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
             # There's no requirement that any given chromosome is actually
             # in the map, and we don't have a direct way to check
             # for its presence. But if this chromsome is *not* in the
-            # map, we will recieve a warning (and then fail the test below).
+            # map, we will recieve a warning (which is treated as an error
+            # using the warnings filter).
             chrom = species.genome.chromosomes[0]
-            with pytest.warns(None) as record:
-                gm.get_chromosome_map(chrom.id)
-
-            # Fail the test if we get any warnings matching the message below.
-            # There doesn't seem to be a way to simply check for the absense
-            # of a specific warning using pytest, so we record all warnings
-            # and check manually.
-            record = [
-                r
-                for r in record
-                if re.match(r"Recombination map not found", str(r.message)) is not None
-            ]
-            assert len(record) == 0, f"{species.id} / {gm.id}"
+            gm.get_chromosome_map(chrom.id)

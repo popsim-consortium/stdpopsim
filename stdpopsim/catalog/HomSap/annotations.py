@@ -23,4 +23,5 @@ _an = stdpopsim.Annotation(
         )
     ],
 )
-_species.add_annotations(_an)
+# XXX: zarr deleted from amazon
+# _species.add_annotations(_an)
