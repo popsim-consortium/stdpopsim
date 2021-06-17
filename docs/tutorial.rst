@@ -869,6 +869,332 @@ of realistic size for real data.
 Again, methods to do this are discussed in the
 `pyslim documentation <https://pyslim.readthedocs.io/en/latest/tutorial.html#simplification>`__.
 
+
+.. _sec_tute_selection:
+
+Incorporating selection
+=======================
+
+Here are some examples of how to incorporate selection.
+This API is **not final**, and will probably change!
+
+1. Simulating with a genome-wide DFE
+------------------------------------
+
+In this example, we'll simulate
+Gutenkunst et al. HomSap/OutOfAfrica_3G09 model, with a DFE.
+To add mutations under selection to a simulation,
+we need to tell the contig where to put the mutations,
+and what distribution of selection coefficients they will have.
+This is set up by :meth:`.contig.add_genomic_element_type`,
+which needs to know which ``intervals`` the mutations will apply to,
+a list of :class:`.ext.MutationType` objects,
+and the ``proportions`` of all mutations that will come from each of these mutation types.
+The specification mirrors that of SLiM,
+and MutationTypes have the same arguments as in SLiM.
+
+.. code-block:: python
+
+    def KimDFE():
+        """
+        Return neutral and negative MutationType()s representing a human DFE.
+        Kim et al. (2018), p.23, http://doi.org/10.1371/journal.pgen.1007741
+        """
+        neutral = stdpopsim.ext.MutationType()
+        gamma_shape = 0.186  # shape
+        gamma_mean = -0.01314833  # expected value
+        h = 0.5 / (1 - 7071.07 * gamma_mean)  # dominance coefficient
+        negative = stdpopsim.ext.MutationType(
+            dominance_coeff=h,
+            distribution_type="g",  # gamma distribution
+            distribution_args=[gamma_mean, gamma_shape],
+        )
+        # neutral mutations have 0 proportion because they are not simulated by SLiM
+        return {"mutation_types": [neutral, negative], "proportions": [0.0, 0.7]}
+
+
+    species = stdpopsim.get_species("HomSap")
+    model = species.get_demographic_model("OutOfAfrica_3G09")
+    contig = species.get_contig("chr1", length_multiplier=0.001)
+    samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
+
+    # neutral and deleterious mutations occur across the whole contig
+    contig.add_genomic_element_type(
+        intervals=np.array([[0, int(contig.recombination_map.sequence_length)]]),
+        **KimDFE(),
+    )
+
+
+Note in particular that we have set the proportion of neutral mutations to zero.
+However, these will be added in later, by msprime.
+Now, we can simulate as usual:
+
+.. code-block:: python
+
+    engine = stdpopsim.get_engine("slim")
+    ts = engine.simulate(
+        model,
+        contig,
+        samples,
+        seed=123,
+        slim_scaling_factor=10,
+        slim_burn_in=10,
+    )
+
+
+Let's verify that we have both neutral and deleterious mutations in the resulting simulation:
+
+.. code-block:: python
+
+    mut_info = {}
+    for mut in ts.mutations():
+        for j, md in zip(mut.derived_state.split(","), mut.metadata["mutation_list"]):
+            if j not in mut_info:
+                mut_info[int(j)] = md
+
+    num_neutral = sum([mut_info[j]["selection_coeff"] == 0.0 for j in mut_info])
+    print(
+        f"There are {num_neutral} neutral mutations, and "
+        f"{len(mut_info) - num_neutral} nonneutral mutations."
+    )
+
+
+2. Simulating selection in a single gene
+----------------------------------------
+
+Next, we'll simulate a 1kb gene flanked by 1kb neutral regions.
+Within genes, 30% of the total influx of mutations are neutral and 70% are deleterious,
+with the DFE again from Kim et al., using the HomSap/OutOfAfrica_4G09 demographic model.
+Within the gene, the neutral mutations are added by msprime (as above),
+and outside the gene, all mutations are neutral and all are added with msprime.
+
+.. code-block:: python
+
+    species = stdpopsim.get_species("HomSap")
+    model = species.get_demographic_model("OutOfAfrica_3G09")
+    contig = species.get_contig(length=3000)
+    samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
+
+    gene_interval = np.array([[1000, 2000]])
+    contig.add_genomic_element_type(intervals=gene_interval, **KimDFE())
+
+    # Simulate.
+    engine = stdpopsim.get_engine("slim")
+    ts = engine.simulate(
+        model,
+        contig,
+        samples,
+        seed=235,
+        slim_scaling_factor=10,
+        slim_burn_in=10,
+    )
+
+
+We'll count up the number of neutral and deleterious mutations in the three regions:
+
+.. code-block:: python
+
+    num_neutral = np.zeros(3, dtype="int")
+    num_del = np.zeros(3, dtype="int")
+    for site in ts.sites():
+        j = (site.position >= 1000) + (site.position >= 2000)
+        unique_muts = {}
+        for mut in site.mutations:
+            for ds, md in zip(mut.derived_state.split(","), mut.metadata["mutation_list"]):
+                if ds not in unique_muts:
+                    unique_muts[ds] = md["selection_coeff"]
+                else:
+                    assert unique_muts[ds] == md["selection_coeff"]
+        for s in unique_muts.values():
+            if s == 0:
+                num_neutral[j] += 1
+            else:
+                num_del[j] += 1
+
+    for j, (n, d) in enumerate(zip(num_neutral, num_del)):
+        print(
+            f"From {j * 1000} to {(j + 1) * 1000}: {n} neutral mutations "
+            f"and {d} deleterious mutations."
+        )
+
+    # From 0 to 1000: 3 neutral mutations and 0 deleterious mutations.
+    # From 1000 to 2000: 1 neutral mutations and 2 deleterious mutations.
+    # From 2000 to 3000: 1 neutral mutations and 0 deleterious mutations.
+
+This verifies that there are only deleterious mutations in the center bit.
+
+
+
+
+3.  Selective sweep
+------------------------------------------
+
+You may be interested in simulating and tracking a single mutation. To illustrate
+this scenario, let's simulate a selective sweep until it reaches an abitrary
+allele frequency.
+
+First, let's define a contig and a demographic model; here, we are simulating a
+small part of chromosome 2L of DroMel with a generic constant size demography.
+The contig will be fully neutral, with the exception of the sweeping mutation
+which we will insert later.
+
+.. code-block:: python
+
+    import stdpopsim
+
+    species = stdpopsim.get_species("DroMel")
+    model = stdpopsim.PiecewiseConstantSize(100000)
+    samples = model.get_samples(100)
+    # TODO: remove the call to fully_neutral, once PR #959 goes in.
+    contig = species.get_contig("2L", length_multiplier=0.01)
+    contig.fully_neutral()
+
+Next, we need to set things up to add a selected mutation to a randomly chosen
+chromosome in the population of our choice at a specific position in the contig.
+We must also decide the time the mutation will be added, when selection will
+start and at what frequency we want our selected mutation to be at the end of
+the simulation.
+
+Let's assume the mutation appeared 1000 generations ago, it has a positive
+effect on fitness (s=0.5). Also, we want the mutation to have reached a frequency
+of at least 0.8 by the end. Next, we'll walk through the steps required to do this:
+
+.. note::
+
+    Note that because we are doing a forward-in-time simulation, you should be
+    careful with your conditioning. For example, even a strongly selected mutation
+    would not be able to reach 80% frequency in just a few generations. Since
+    this conditioning works by re-running the simulation until the condition is
+    achieved, a nearly impossible condition will result in very long run times.
+
+First, we need to define the mutation type for the selected mutation.
+So we can refer to it later, we need its "mutation type ID". This is just
+the index of the new mutation type in the contig's list of mutation types.
+
+.. code-block:: python
+
+    contig.mutation_types.append(
+        stdpopsim.ext.MutationType(
+            distribution_type="f",
+            dominance_coeff=1.0,
+            distribution_args=[0.5],
+            convert_to_substitution=False,
+        )
+    )
+    mut_id = len(contig.mutation_types) - 1
+
+Next, we will set up the "extended events" which will modify the demography.
+The first extended event is placing of the selected mutation,
+which will occur in a random individual from the first population (id 0),
+in the middle of the contig, 1000 generations ago.
+We specify ``save=True`` to ``stdpopsim.ext.DrawMutation``
+so that the simulation can restart from that point if the mutation is lost.
+
+.. code-block:: python
+
+    coordinate = round(contig.recombination_map.sequence_length / 2)
+    T_mut = 1000
+    extended_events = [
+        stdpopsim.ext.DrawMutation(
+            time=T_mut,
+            mutation_type_id=mut_id,
+            population_id=0,
+            coordinate=coordinate,
+            save=True,
+        )
+    ]
+
+Next, we condition on the mutation not being lost.
+Since in the next step we condition on the mutation being at 80% frequency at
+the end, this is redundant, but it allows the simulation to immediately restart
+from any generation in which the mutation is lost, rather than waiting until the end.
+Note that this conditioning must start one
+generation after the mutation is placed, for which we use
+``stdpopsim.ext.GenerationAfter(T_mut)``.
+We cannot simply specify ``T_mut - 1`` if rescaling is present,
+otherwise the conditioning would start
+at the same generation when the mutation is placed.
+
+.. code-block:: python
+
+    extended_events.append(
+        stdpopsim.ext.ConditionOnAlleleFrequency(
+            start_time=stdpopsim.ext.GenerationAfter(T_mut),
+            end_time=0,
+            mutation_type_id=mut_id,
+            population_id=0,
+            op=">",
+            allele_frequency=0.0,
+        )
+    )
+
+Finally, we condition on the mutation being above 80% at the end of the simulation.
+(The "end" is at time 0, since "time" is in generations before the end of the simulation.)
+
+.. code-block:: python
+
+    extended_events.append(
+        stdpopsim.ext.ConditionOnAlleleFrequency(
+            start_time=0,
+            end_time=0,
+            mutation_type_id=mut_id,
+            population_id=0,
+            op=">=",
+            allele_frequency=0.8,
+        )
+    )
+
+Now we can simulate, using SLiM of course.
+For comparison, we will run the same simulation
+without selection - i.e., without the "extended events":
+
+.. code-block:: python
+
+    engine = stdpopsim.get_engine("slim")
+    ts_sweep = engine.simulate(
+        model,
+        contig,
+        samples,
+        seed=123,
+        extended_events=extended_events,
+        slim_scaling_factor=100,
+        slim_burn_in=0.1,
+    )
+
+    ts_neutral = engine.simulate(
+        model,
+        contig,
+        samples,
+        seed=123,
+        # no extended events
+        slim_scaling_factor=100,
+        slim_burn_in=0.1,
+    )
+
+Lastly, we can directly compute nucleotide diversity in 10Kb windows for both the
+neutral and sweep simulations and plot them side by side.
+
+.. code-block:: python
+
+    import matplotlib.pyplot as plt
+
+    windows = [w for w in range(0, int(ts_neutral.sequence_length), 10000)]
+    windows.append(int(ts_neutral.sequence_length))
+    neutral_pi = ts_neutral.diversity(windows=windows)
+    sweep_pi = ts_sweep.diversity(windows=windows)
+    plt.plot(neutral_pi, "b", label="neutral")
+    plt.plot(sweep_pi, "r", label="sweep")
+    plt.legend()
+    plt.xlabel("Genomic window")
+    plt.ylabel("Diversity")
+    plt.show()
+
+.. image:: _static/tute-sweep.png
+    :width: 500px
+    :align: center
+    :alt: Plot with nucleotide diversity along the chromosome for simulations with a without a selective sweep.
+
+
 .. _sec_tute_analyses:
 
 ************************************
