@@ -1542,7 +1542,7 @@ We will scale each AFS by the number of mutated sites in the corresponding sampl
     plt.ylabel("Proportion of mutated sites in sample", fontweight="bold")
     ax.set_xticks(np.arange(0, 11))
     ax.legend()
-    plt.plot()
+    plt.show()
 
 .. image:: _static/tute-sfs.png
     :align: center
