@@ -77,6 +77,8 @@ jobs:
       - name: install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
+          # We install msprime from conda to avoid GSL-related build issues
+          # when pip installing without binary wheels (on Windows).
           conda install --yes --file=requirements/CI/conda.txt
           if [ "$RUNNER_OS" != "Windows" ]; then
             conda install --yes slim==${{ env.SLIM_TAG }}
