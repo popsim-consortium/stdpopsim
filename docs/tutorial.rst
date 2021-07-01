@@ -895,6 +895,9 @@ and MutationTypes have the same arguments as in SLiM.
 
 .. code-block:: python
 
+    import numpy as np
+
+
     def KimDFE():
         """
         Return neutral and negative MutationType()s representing a human DFE.
@@ -969,6 +972,9 @@ Within the gene, the neutral mutations are added by msprime (as above),
 and outside the gene, all mutations are neutral and all are added with msprime.
 
 .. code-block:: python
+
+    import numpy as np
+
 
     species = stdpopsim.get_species("HomSap")
     model = species.get_demographic_model("OutOfAfrica_3G09")
