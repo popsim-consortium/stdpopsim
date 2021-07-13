@@ -906,7 +906,7 @@ and MutationTypes have the same arguments as in SLiM.
         neutral = stdpopsim.ext.MutationType()
         gamma_shape = 0.186  # shape
         gamma_mean = -0.01314833  # expected value
-        h = 0.5 / (1 - 7071.07 * gamma_mean)  # dominance coefficient
+        h = 0.5  # dominance coefficient
         negative = stdpopsim.ext.MutationType(
             dominance_coeff=h,
             distribution_type="g",  # gamma distribution
