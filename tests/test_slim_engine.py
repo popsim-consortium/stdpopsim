@@ -873,6 +873,45 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
                     distribution_type="g", distribution_args=distribution_args
                 )
 
+    def test_distribution_type_e(self):
+        for distribution_args in ([0.1], [10], [5000]):
+            stdpopsim.ext.MutationType(
+                distribution_type="e", distribution_args=distribution_args
+            )
+
+    def test_bad_distribution_args_e(self):
+        for distribution_args in ([], [0], [-0.1], [0.1, 0.4, 0.5]):
+            with pytest.raises(ValueError):
+                stdpopsim.ext.MutationType(
+                    distribution_type="e", distribution_args=distribution_args
+                )
+
+    def test_distribution_type_n(self):
+        for distribution_args in ([-0.1, 0.2], [0.1, 0.1], [50, 50]):
+            stdpopsim.ext.MutationType(
+                distribution_type="n", distribution_args=distribution_args
+            )
+
+    def test_bad_distribution_args_n(self):
+        for distribution_args in ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1]):
+            with pytest.raises(ValueError):
+                stdpopsim.ext.MutationType(
+                    distribution_type="n", distribution_args=distribution_args
+                )
+
+    def test_distribution_type_w(self):
+        for distribution_args in ([0.1, 0.2], [0.1, 0.1], [50, 50]):
+            stdpopsim.ext.MutationType(
+                distribution_type="w", distribution_args=distribution_args
+            )
+
+    def test_bad_distribution_args_w(self):
+        for distribution_args in ([], [-0.1, 1], [0.1, -1], [0.1, 0.4, 0.5], [0.1]):
+            with pytest.raises(ValueError):
+                stdpopsim.ext.MutationType(
+                    distribution_type="w", distribution_args=distribution_args
+                )
+
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestDrawMutation(PiecewiseConstantSizeMixin):
