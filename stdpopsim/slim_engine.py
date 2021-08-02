@@ -848,9 +848,16 @@ def slim_makescript(
 
     # Mutation types.
     for i, m in enumerate(mutation_types):
-        distrib_args = [str(arg) for arg in m.distribution_args]
-        distrib_args[m.Q_scaled_index] = "Q * " + distrib_args[m.Q_scaled_index]
-        distrib_args = ", ".join(distrib_args)
+        if len(m.Q_scaled_index) >= 1:
+            distrib_args = [str(arg) for arg in m.distribution_args]
+            for j in m.Q_scaled_index:
+                distrib_args[m.Q_scaled_index[j]] = (
+                    "Q * " + distrib_args[m.Q_scaled_index[j]]
+                )
+            distrib_args = ", ".join(distrib_args)
+        # dealing with distributions given by "s" Eidos script:
+        else:
+            distrib_args = m.distribution_args
         printsc(
             f"    initializeMutationType({i}, {m.dominance_coeff}, "
             + f'"{m.distribution_type}", {distrib_args});'
