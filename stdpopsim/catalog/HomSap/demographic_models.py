@@ -1552,14 +1552,21 @@ _species.add_demographic_model(_ooa_4pop())
 
 def _africanBoyko():
     id = "Africa_1B08"
-    description = "African population"
+    description = "African-americans population"
     long_description = """
-    This was the best fit model for the African population described
-    in Boyko et al (2008). It is a two-epoch instantaneous growth model
-    and values were extracted from Table S1 of the article.
+        African-American two-epoch instantaneous growth model from Boyko et al
+        2008, fit to the synonymous SFS for the 11 of 15 African Americans showing
+        the least European ancestry, using coalescent simulations with
+        recombination with the maximum likelihood method of Williamson et al 2005;
+        times were calibrated assuming 3e5 generations since human-chimp divergence
+        and fitting the number of synonymous human-chimp differences. Mutation and
+        recombination rates were assumed to be the same (1.8e-8).
     """
     populations = [
-        stdpopsim.Population(id="AFR_Boyko", description="African Boyko"),
+        stdpopsim.Population(
+            id="African_Americans",
+            description="African-Americans from Boyko et al 2008",
+        ),
     ]
     citations = [
         stdpopsim.Citation(
@@ -1570,15 +1577,11 @@ def _africanBoyko():
         )
     ]
 
-    mutation_rate = 1.8e-8  # from Gravel et al, 2011, PNAS
+    mutation_rate = 1.8e-8
     generation_time = None
-    N1 = 25636  # Population size at present
-    N2 = 7778  # Population size at start (forwards in time) of exponential growth.
-    T1 = 0  # End of exponential growth period (forwards in time)
-    T2 = 6809  # Start of exponential growth period (forwards in time)
-    # Calculate growth rate; solve N2 = N1 * exp(-alpha * (T2 - T1))
-    growth_rate = -math.log(N2 / N1) / (T2 - T1)
-    growth_rate = growth_rate
+    Ncurr = 25636
+    Nanc = 7778
+    T = 6809  # Start of instantaneous growth
 
     return stdpopsim.DemographicModel(
         id=id,
@@ -1590,12 +1593,11 @@ def _africanBoyko():
         mutation_rate=mutation_rate,
         population_configurations=[
             msprime.PopulationConfiguration(
-                initial_size=N1, metadata=populations[0].asdict()
+                initial_size=Ncurr, metadata=populations[0].asdict()
             ),
         ],
         demographic_events=[
-            msprime.PopulationParametersChange(time=T1, growth_rate=growth_rate),
-            msprime.PopulationParametersChange(time=T2, growth_rate=0),
+            msprime.PopulationParametersChange(time=T, initial_size=Nanc),
         ],
     )
 

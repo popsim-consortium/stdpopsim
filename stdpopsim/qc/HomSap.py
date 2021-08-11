@@ -1256,3 +1256,42 @@ def ZigZag():
 
 
 _species.get_demographic_model("Zigzag_1S14").register_qc(ZigZag())
+
+
+def Boyko2008():
+    """
+    African-American two-epoch instantaneous growth model from Boyko et al
+    2008, fit to the synonymous SFS for the 11 of 15 African Americans showing
+    the least European ancestry, using coalescent simulations with
+    recombination with the maximum likelihood method of Williamson et al 2005;
+    times were calibrated assuming 3e5 generations since human-chimp divergence
+    and fitting the number of synonymous human-chimp differences.
+    """
+    id = "QC-Africa_1B08"
+    Nanc = 7778
+    Ncurr = 25636
+    Texp = 6809  # generations ago
+
+    de = msprime.Demography()
+    de.add_population(
+        initial_size=Ncurr,
+        name="African_Americans",
+        description="African-Americans from Boyko et al",
+    )
+
+    de.add_population_parameters_change(
+        time=Texp,
+        initial_size=Nanc,
+    )
+
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=id,
+        long_description=id,
+        generation_time=None,
+        model=de,
+        mutation_rate=1.8e-8,
+    )
+
+
+_species.get_demographic_model("Africa_1B08").register_qc(Boyko2008())
