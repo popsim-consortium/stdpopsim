@@ -1548,3 +1548,56 @@ def _ooa_4pop():
 
 
 _species.add_demographic_model(_ooa_4pop())
+
+
+def _africanBoyko():
+    id = "Africa_1B08"
+    description = "African population"
+    long_description = """
+    This was the best fit model for the African population described
+    in Boyko et al (2008). It is a two-epoch instantaneous growth model
+    and values were extracted from Table S1 of the article.
+    """
+    populations = [
+        stdpopsim.Population(id="AFR_Boyko", description="African Boyko"),
+    ]
+    citations = [
+        stdpopsim.Citation(
+            author="Boyko et al.",
+            year=2008,
+            doi="https://doi.org/10.1371/journal.pgen.1000083",
+            reasons={stdpopsim.CiteReason.DEM_MODEL},
+        )
+    ]
+
+    mutation_rate = 1.8e-8  # from Gravel et al, 2011, PNAS
+    generation_time = None
+    N1 = 25636  # Population size at present
+    N2 = 7778  # Population size at start (forwards in time) of exponential growth.
+    T1 = 0  # End of exponential growth period (forwards in time)
+    T2 = 6809  # Start of exponential growth period (forwards in time)
+    # Calculate growth rate; solve N2 = N1 * exp(-alpha * (T2 - T1))
+    growth_rate = -math.log(N2 / N1) / (T2 - T1)
+    growth_rate = growth_rate
+
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=generation_time,
+        mutation_rate=mutation_rate,
+        population_configurations=[
+            msprime.PopulationConfiguration(
+                initial_size=N1, metadata=populations[0].asdict()
+            ),
+        ],
+        demographic_events=[
+            msprime.PopulationParametersChange(time=T1, growth_rate=growth_rate),
+            msprime.PopulationParametersChange(time=T2, growth_rate=0),
+        ],
+    )
+
+
+_species.add_demographic_model(_africanBoyko())
