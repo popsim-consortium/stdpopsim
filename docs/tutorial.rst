@@ -919,6 +919,7 @@ and MutationTypes have the same arguments as in SLiM.
     species = stdpopsim.get_species("HomSap")
     model = species.get_demographic_model("OutOfAfrica_3G09")
     contig = species.get_contig("chr1", length_multiplier=0.001)
+    contig.clear_genomic_mutation_types()
     samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
 
     # neutral and deleterious mutations occur across the whole contig
