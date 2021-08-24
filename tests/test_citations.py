@@ -94,3 +94,11 @@ class TestEverythingHappensForAReason:
                     f"No reason given for '{citation.author}' citation "
                     f"in model {model.id}"
                 )
+
+    def test_reason_for_dfe_citations(self):
+        for dfe in stdpopsim.all_dfes():
+            for citation in dfe.citations:
+                assert len(citation.reasons) > 0, (
+                    f"No reason given for '{citation.author}' citation "
+                    f"in dfe {dfe.id}"
+                )

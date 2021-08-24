@@ -23,6 +23,17 @@ def is_valid_demographic_model_id(model_id):
     return regex.fullmatch(model_id) is not None
 
 
+def is_valid_dfe_id(model_id):
+    """
+    Returns True if the specified string is a valid dfe model ID. This must
+    be a string with the following pattern:
+
+    {something descriptive of model}_{First author initial}{2 digit year}.
+    """
+    regex = re.compile(r"[A-Z][a-z]*_[A-Z]*\d\d")
+    return regex.fullmatch(model_id) is not None
+
+
 def is_valid_genetic_map_id(gmap_id):
     """
     Returns True if the specified string is a valid genetic map ID. This must

@@ -1081,7 +1081,7 @@ Genetic maps are named using a descriptive name and the assembly version accordi
 to ``${CamelCaseDescriptiveName}_${Assembly}``. e.g., the HapMap phase 2 map on
 the GRCh37 assembly becomes HapMapII_GRCh37.
 
-Finally demographic models are named using a combination of a descriptive name,
+Demographic models are named using a combination of a descriptive name,
 information about the simulation, and information about the publication it was
 presented in. Specifically we use
 ``${SomethingDescriptive}_${number_of_populations}${first_author_initial}${two_digit_date}``
@@ -1090,6 +1090,12 @@ where the descriptive text is meant to capture something about the model
 is the number of populations implemented in the model (not necessarily the number
 from which samples are drawn). For author initial we will use a single letter, the 1st,
 until an ID collision, in which case we will include the 2nd letter, and so forth.
+
+DFEs (Distributions of Fitness Effects) are similarly named using something descriptive
+of the distribution, and information about the publication:
+``${SomethingDescriptive}_${First_authors_last_name_first_letter}{two_digit_date}``.
+For instance, if the distribution in question is a lognormal distribution,
+then ``LogNormal`` might be the descriptive string.
 
 
 **********
