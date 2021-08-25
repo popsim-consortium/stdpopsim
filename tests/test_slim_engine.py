@@ -154,6 +154,26 @@ class TestAPI:
 
     @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_simulate_verbosity(self):
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("AraTha")
+        contig = species.get_contig("5", length_multiplier=0.001)
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        samples = model.get_samples(10)
+        for v in [0, 1, 2, 3]:
+            ts = engine.simulate(
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                slim_scaling_factor=10,
+                slim_burn_in=0,
+                verbosity=v,
+            )
+            assert ts.num_samples == 10
+            assert all(tree.num_roots == 1 for tree in ts.trees())
+
+    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings(
         "ignore:.*model has mutation rate.*but this simulation used.*"
     )
