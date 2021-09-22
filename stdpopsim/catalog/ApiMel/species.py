@@ -36,7 +36,14 @@ _YangEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.MUT_RATE},
 )
 
-_overall_mutation_rate = 9 * 10e-9
+_LiuEtAl = stdpopsim.Citation(
+    doi="https://doi.org/10.1093/molbev/msw226",
+    year=2016,
+    author="Liu et al.",
+    reasons={stdpopsim.CiteReason.MUT_RATE},
+)
+
+_overall_mutation_rate = 3.4 * 10e-9
 _mutation_rate = {
     "CM009931.2": _overall_mutation_rate,
     "CM009932.2": _overall_mutation_rate,
