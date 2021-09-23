@@ -68,6 +68,12 @@ def all_demographic_models():
             yield model
 
 
+def all_dfes():
+    for species in all_species():
+        for dfe in species.dfes:
+            yield dfe
+
+
 def all_annotations():
     for species in all_species():
         for an in species.annotations:
@@ -117,6 +123,9 @@ class Species:
     :ivar demographic_models: This list of :class:`DemographicModel`
         instances in the catalog for this species.
     :vartype demographic_models: list
+    :ivar dfes: This list of :class:`DFE`
+        instances in the catalog for this species.
+    :vartype dfes: list
     :ivar ensembl_id: The ensembl id for the species which is used by
         maintenance scripts to query ensembl's database.
     :vartype ensembl_id: str
@@ -129,11 +138,12 @@ class Species:
     generation_time = attr.ib(default=0, kw_only=True)
     population_size = attr.ib(default=0, kw_only=True)
     demographic_models = attr.ib(factory=list, kw_only=True)
+    dfes = attr.ib(factory=list, kw_only=True)
     ensembl_id = attr.ib(type=str, kw_only=True)
     citations = attr.ib(factory=list, kw_only=True)
 
     # A list of genetic maps. This is undocumented as the parameter is not
-    # intended to be used when the Species is initialsed.
+    # intended to be used when the Species is initialised.
     # Use add_genetic_map() instead.
     genetic_maps = attr.ib(factory=list, kw_only=True)
     annotations = attr.ib(factory=list, kw_only=True)
@@ -218,6 +228,28 @@ class Species:
                 f"DemographicModel '{self.id}/{model.id}' already in catalog."
             )
         self.demographic_models.append(model)
+
+    def get_dfe(self, id):
+        """
+        Returns a DFE with the specified ``id``.
+
+        :param str id: The string identifier for the DFE.
+            A complete list of IDs for each species can be found in the
+            # TODO add that section to the species catalogo
+            "DFE" subsection for the species in the
+            :ref:`sec_catalog`.
+        :rtype: :class:`DFE`
+        :return: A :class:`DFE` that defines the requested model.
+        """
+        for dfe in self.dfes:
+            if dfe.id == id:
+                return dfe
+        raise ValueError(f"DFE '{self.id}/{id}' not in catalog")
+
+    def add_dfe(self, dfe):
+        if dfe.id in [d.id for d in self.dfes]:
+            raise ValueError(f"DFE '{self.id}/{dfe.id}' already in catalog.")
+        self.dfes.append(dfe)
 
     def add_genetic_map(self, genetic_map):
         if genetic_map.id in [gm.id for gm in self.genetic_maps]:
