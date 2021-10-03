@@ -44,6 +44,28 @@ class Citation:
     year = attr.ib(type=int, kw_only=True)
     reasons = attr.ib(factory=set, kw_only=True)
 
+    def asdict(self):
+        # FIXME the current encoding of "reasons" isn't well suited to static
+        # declaration. Probably the simplest thing to do is to required that
+        # "reason" be a key in the data model.
+        return {
+            "doi": self.doi,
+            "author": self.author,
+            "year": self.year,
+            "reasons": list(self.reasons),
+        }
+
+    @staticmethod
+    def fromdict(d):
+        return Citation(
+            doi=d["doi"], author=d["author"], year=d["year"], reasons=set(d["reasons"])
+        )
+
+    @staticmethod
+    def fromdictlist(lst):
+        # We usually get used as list of citations
+        return [Citation.fromdict(d) for d in lst]
+
     def __str__(self):
         return f"{self.author}, {self.year}: {self.doi}"
 

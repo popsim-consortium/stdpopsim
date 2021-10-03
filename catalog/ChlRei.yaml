@@ -1,0 +1,139 @@
+id: ChlRei
+name: Chlamydomonas reinhardtii
+common_name: Chlamydomonas reinhardtii
+generation_time: 0.001141552511415525
+population_size: 1.3999999999999998e-07
+ensembl_id: chlamydomonas_reinhardtii
+genome:
+  assembly_name: Chlamydomonas_reinhardtii_v5.5
+  assembly_accession: GCA_000002595.3
+  citations:
+  - doi: https://doi.org/10.1126/science.1143609
+    author: Merchant et al
+    year: 2007
+    reasons:
+    - genome assembly
+  - doi: https://doi.org/10.6084/m9.figshare.14608239.v1
+    author: Hasan and Ness
+    year: 2020
+    reasons:
+    - recombination rate
+  - doi: https://doi.org/10.6084/m9.figshare.14700156.v1
+    author: Ness et al
+    year: 2015
+    reasons:
+    - mutation rate
+  chromosomes:
+    '1':
+      length: 8033585
+      recombination_rate: 1.21e-10
+      mutation_rate: 9.74e-10
+      synonyms:
+      - chr1
+    '2':
+      length: 9223677
+      recombination_rate: 1.49e-10
+      mutation_rate: 8.62e-10
+      synonyms:
+      - chr2
+    '3':
+      length: 9219486
+      recombination_rate: 1.52e-10
+      mutation_rate: 9.5e-10
+      synonyms:
+      - chr3
+    '4':
+      length: 4091191
+      recombination_rate: 1.47e-10
+      mutation_rate: 9.66e-10
+      synonyms:
+      - chr4
+    '5':
+      length: 3500558
+      recombination_rate: 1.7e-10
+      mutation_rate: 1.17e-09
+      synonyms:
+      - chr5
+    '6':
+      length: 9023763
+      recombination_rate: 1.17e-10
+      mutation_rate: 9.12e-10
+      synonyms:
+      - chr6
+    '7':
+      length: 6421821
+      recombination_rate: 8.66e-11
+      mutation_rate: 9.14e-10
+      synonyms:
+      - chr7
+    '8':
+      length: 5033832
+      recombination_rate: 1.39e-10
+      mutation_rate: 8.98e-10
+      synonyms:
+      - chr8
+    '9':
+      length: 7956127
+      recombination_rate: 1.12e-10
+      mutation_rate: 9.17e-10
+      synonyms:
+      - chr9
+    '10':
+      length: 6576019
+      recombination_rate: 1.97e-10
+      mutation_rate: 9.27e-10
+      synonyms:
+      - chr10
+    '11':
+      length: 3826814
+      recombination_rate: 1.63e-10
+      mutation_rate: 1.03e-09
+      synonyms:
+      - chr11
+    '12':
+      length: 9730733
+      recombination_rate: 9.15e-11
+      mutation_rate: 9.55e-10
+      synonyms:
+      - chr12
+    '13':
+      length: 5206065
+      recombination_rate: 1.43e-10
+      mutation_rate: 7.56e-10
+      synonyms:
+      - chr13
+    '14':
+      length: 4157777
+      recombination_rate: 1.9e-10
+      mutation_rate: 8.96e-10
+      synonyms:
+      - chr14
+    '15':
+      length: 1922860
+      recombination_rate: 3.93e-10
+      mutation_rate: 6.91e-10
+      synonyms:
+      - chr15
+    '16':
+      length: 7783580
+      recombination_rate: 1.71e-10
+      mutation_rate: 9.59e-10
+      synonyms:
+      - chr16
+    '17':
+      length: 7188315
+      recombination_rate: 1.83e-10
+      mutation_rate: 1.05e-09
+      synonyms:
+      - chr17
+citations:
+- doi: https://doi.org/10.1093/molbev/msv272
+  author: Ness et al.
+  year: 2016
+  reasons:
+  - population size
+- doi: https://doi.org/10.1007/s00425-011-1427-7
+  author: Vitova et al.
+  year: 2011
+  reasons:
+  - generation time

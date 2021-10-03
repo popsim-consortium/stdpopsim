@@ -1,0 +1,174 @@
+id: PonAbe
+name: Pongo abelii
+common_name: Sumatran orangutan
+generation_time: 20
+population_size: 17900.0
+ensembl_id: pongo_abelii
+genome:
+  assembly_name: PPYG2
+  assembly_accession:
+  citations:
+  - doi: https://doi.org/10.1016/j.cub.2017.09.047
+    author: Nater et al.
+    year: 2017
+    reasons:
+    - mutation rate
+    - recombination rate
+  chromosomes:
+    '1':
+      length: 229942017
+      recombination_rate: 5.19e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr1
+    2a:
+      length: 113028656
+      recombination_rate: 5.43e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr2a
+    2b:
+      length: 135000294
+      recombination_rate: 5.38e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr2b
+    '3':
+      length: 202140232
+      recombination_rate: 5.36e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr3
+    '4':
+      length: 198332218
+      recombination_rate: 5.43e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr4
+    '5':
+      length: 183952662
+      recombination_rate: 5.2e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr5
+    '6':
+      length: 174210431
+      recombination_rate: 5.22e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr6
+    '7':
+      length: 157549271
+      recombination_rate: 5.73e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr7
+    '8':
+      length: 153482349
+      recombination_rate: 5.67e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr8
+    '9':
+      length: 135191526
+      recombination_rate: 5.34e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr9
+    '10':
+      length: 133410057
+      recombination_rate: 5.91e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr10
+    '11':
+      length: 132107971
+      recombination_rate: 5.29e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr11
+    '12':
+      length: 136387465
+      recombination_rate: 5.44e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr12
+    '13':
+      length: 117095149
+      recombination_rate: 4.91e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr13
+    '14':
+      length: 108868599
+      recombination_rate: 4.7e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr14
+    '15':
+      length: 99152023
+      recombination_rate: 4.82e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr15
+    '16':
+      length: 77800216
+      recombination_rate: 6.12e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr16
+    '17':
+      length: 73212453
+      recombination_rate: 7.26e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr17
+    '18':
+      length: 94050890
+      recombination_rate: 4.57e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr18
+    '19':
+      length: 60714840
+      recombination_rate: 7.56e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr19
+    '20':
+      length: 62736349
+      recombination_rate: 5.83e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr20
+    '21':
+      length: 48394510
+      recombination_rate: 4.98e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr21
+    '22':
+      length: 46535552
+      recombination_rate: 6.03e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chr22
+    X:
+      length: 156195299
+      recombination_rate: 9.5e-09
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chrX
+    MT:
+      length: 16499
+      recombination_rate: 0
+      mutation_rate: 1.5e-08
+      synonyms:
+      - chrM
+citations:
+- doi: http://doi.org/10.1038/nature09687
+  author: Locke et al.
+  year: 2011
+  reasons:
+  - population size
+  - generation time

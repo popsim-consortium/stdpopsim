@@ -1,0 +1,155 @@
+id: HelMel
+name: Heliconius melpomene
+common_name: Heliconius melpomene
+generation_time: 0.095
+population_size: 2100000.0
+ensembl_id: heliconius_melpomene
+genome:
+  assembly_name: Hmel2.5
+  assembly_accession:
+  citations:
+  - doi: https://doi.org/10.1002/evl3.12
+    author: Davey et al
+    year: 2017
+    reasons:
+    - genome assembly
+    - recombination rate
+  - doi: https://doi.org/10.1093/molbev/msu302
+    author: Keightley et al
+    year: 2015
+    reasons:
+    - mutation rate
+  chromosomes:
+    '1':
+      length: 17206585
+      recombination_rate: 3.17e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr1
+    '2':
+      length: 9045316
+      recombination_rate: 5.61e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr2
+    '3':
+      length: 10541528
+      recombination_rate: 5.1e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr3
+    '4':
+      length: 9662098
+      recombination_rate: 4.97e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr4
+    '5':
+      length: 9908586
+      recombination_rate: 5.15e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr5
+    '6':
+      length: 1405417
+      recombination_rate: 3.4e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr6
+    '7':
+      length: 1430885
+      recombination_rate: 3.76e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr7
+    '8':
+      length: 9320449
+      recombination_rate: 5.28e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr8
+    '9':
+      length: 8708747
+      recombination_rate: 5.31e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr9
+    '10':
+      length: 1796548
+      recombination_rate: 3.16e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr10
+    '11':
+      length: 1175927
+      recombination_rate: 4.47e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr11
+    '12':
+      length: 1632729
+      recombination_rate: 3.13e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr12
+    '13':
+      length: 1812731
+      recombination_rate: 3.08e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr13
+    '14':
+      length: 9174305
+      recombination_rate: 5.47e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr14
+    '15':
+      length: 1023575
+      recombination_rate: 4.78e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr15
+    '16':
+      length: 1008321
+      recombination_rate: 4.71e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr16
+    '17':
+      length: 1477329
+      recombination_rate: 3.94e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr17
+    '18':
+      length: 1680389
+      recombination_rate: 3.16e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr18
+    '19':
+      length: 1639934
+      recombination_rate: 3.11e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr19
+    '20':
+      length: 1487169
+      recombination_rate: 3.45e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr20
+    '21':
+      length: 1335969
+      recombination_rate: 3.71e-08
+      mutation_rate: 2.9e-09
+      synonyms:
+      - chr21
+citations:
+- doi: https://doi.org/10.1371/journal.pgen.1002752
+  author: Pardo-Diaz et al
+  year: 2012
+  reasons:
+  - population size
+  - generation time

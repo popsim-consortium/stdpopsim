@@ -1,0 +1,277 @@
+id: CanFam
+name: Canis familiaris
+common_name: Dog
+generation_time: 3
+population_size: 13000
+ensembl_id: canis_familiaris
+genome:
+  assembly_name: CanFam3.1
+  assembly_accession: GCA_000002285.2
+  citations:
+  - doi: https://doi.org/10.1016/j.cub.2015.04.019
+    author: Skoglund et al.
+    year: 2015
+    reasons:
+    - mutation rate
+  - doi: https://doi.org/10.1126/science.aaf3161
+    author: Franz et al.
+    year: 2016
+    reasons:
+    - mutation rate
+  - doi: https://doi.org/10.1534/g3.116.034678
+    author: Campbell et al.
+    year: 2016
+    reasons:
+    - recombination rate
+  - doi: https://doi.org/10.1038/nature04338
+    author: Lindblad-Toh et al.
+    year: 2005
+    reasons:
+    - genome assembly
+  chromosomes:
+    '1':
+      length: 122678785
+      recombination_rate: 7.636001498077e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr1
+    '2':
+      length: 85426708
+      recombination_rate: 8.798516284201015e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr2
+    '3':
+      length: 91889043
+      recombination_rate: 8.000868549297668e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr3
+    '4':
+      length: 88276631
+      recombination_rate: 8.052302321538563e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr4
+    '5':
+      length: 88915250
+      recombination_rate: 9.344333839828404e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr5
+    '6':
+      length: 77573801
+      recombination_rate: 8.192191165856811e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr6
+    '7':
+      length: 80974532
+      recombination_rate: 7.293465322857858e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr7
+    '8':
+      length: 74330416
+      recombination_rate: 8.291312822214086e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr8
+    '9':
+      length: 61074082
+      recombination_rate: 9.287722798450121e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr9
+    '10':
+      length: 69331447
+      recombination_rate: 9.107151930130527e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr10
+    '11':
+      length: 74389097
+      recombination_rate: 7.639449804041734e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr11
+    '12':
+      length: 72498081
+      recombination_rate: 7.761061128067527e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr12
+    '13':
+      length: 63241923
+      recombination_rate: 8.413015225299971e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr13
+    '14':
+      length: 60966679
+      recombination_rate: 9.028123091776737e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr14
+    '15':
+      length: 64190966
+      recombination_rate: 7.856754982030383e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr15
+    '16':
+      length: 59632846
+      recombination_rate: 8.614063697877811e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr16
+    '17':
+      length: 64289059
+      recombination_rate: 9.718834385033715e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr17
+    '18':
+      length: 55844845
+      recombination_rate: 1.029925446520415e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr18
+    '19':
+      length: 53741614
+      recombination_rate: 1.0425051705950442e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr19
+    '20':
+      length: 58134056
+      recombination_rate: 9.990971109010329e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr20
+    '21':
+      length: 50858623
+      recombination_rate: 1.0339033506095636e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr21
+    '22':
+      length: 61439934
+      recombination_rate: 8.61504863805126e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr22
+    '23':
+      length: 52294480
+      recombination_rate: 9.1266350068389e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chr23
+    '24':
+      length: 47698779
+      recombination_rate: 1.1146043069685935e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr24
+    '25':
+      length: 51628933
+      recombination_rate: 1.1543746646856006e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr25
+    '26':
+      length: 38964690
+      recombination_rate: 1.2084571786110922e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr26
+    '27':
+      length: 45876710
+      recombination_rate: 1.1260328390864541e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr27
+    '28':
+      length: 41182112
+      recombination_rate: 1.2463587044656355e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr28
+    '29':
+      length: 41845238
+      recombination_rate: 1.1013629677730708e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr29
+    '30':
+      length: 40214260
+      recombination_rate: 1.1687642441683382e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr30
+    '31':
+      length: 39895921
+      recombination_rate: 1.1397713284329192e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr31
+    '32':
+      length: 38810281
+      recombination_rate: 1.1555927931648279e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr32
+    '33':
+      length: 31377067
+      recombination_rate: 1.3339402745926785e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr33
+    '34':
+      length: 42124431
+      recombination_rate: 1.0483812411227089e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr34
+    '35':
+      length: 26524999
+      recombination_rate: 1.4299102611645524e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr35
+    '36':
+      length: 30810995
+      recombination_rate: 1.187517782077471e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr36
+    '37':
+      length: 30902991
+      recombination_rate: 1.3834580623461596e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr37
+    '38':
+      length: 23914537
+      recombination_rate: 1.4363726512881696e-08
+      mutation_rate: 4e-09
+      synonyms:
+      - chr38
+    X:
+      length: 123869142
+      recombination_rate: 9.506483722244087e-09
+      mutation_rate: 4e-09
+      synonyms:
+      - chrX
+    MT:
+      length: 16727
+      recombination_rate: 0
+      mutation_rate: 4e-09
+      synonyms:
+      - chrM
+citations:
+- doi: https://doi.org/10.1038/nature04338
+  author: Lindblad-Toh et al.
+  year: 2005
+  reasons:
+  - population size

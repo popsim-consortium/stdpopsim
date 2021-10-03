@@ -1,0 +1,85 @@
+id: DroMel
+name: Drosophila melanogaster
+common_name: D. melanogaster
+generation_time: 0.1
+population_size: 1720600
+ensembl_id: drosophila_melanogaster
+genome:
+  assembly_name: BDGP6.32
+  assembly_accession: GCA_000001215.4
+  citations:
+  - doi: https://doi.org/10.1534/genetics.113.151670
+    author: Schrider et al.
+    year: 2013
+    reasons:
+    - mutation rate
+  - doi: https://doi.org/10.1093/nar/gku1099
+    author: dos Santos et al.
+    year: 2015
+    reasons:
+    - genome assembly
+  - doi: https://doi.org/10.1101/gr.185579.114
+    author: Hoskins et al.
+    year: 2015
+    reasons:
+    - genome assembly
+  - doi: https://doi.org/10.1371/journal.pgen.1002905
+    author: Comeron et al
+    year: 2012
+    reasons:
+    - recombination rate
+  chromosomes:
+    2L:
+      length: 23513712
+      recombination_rate: 2.40462600791e-08
+      mutation_rate: 5.49e-09
+      synonyms:
+      - chr2L
+    2R:
+      length: 25286936
+      recombination_rate: 2.23458641776e-08
+      mutation_rate: 5.49e-09
+      synonyms:
+      - chr2R
+    3L:
+      length: 28110227
+      recombination_rate: 1.79660308862e-08
+      mutation_rate: 5.49e-09
+      synonyms:
+      - chr3L
+    3R:
+      length: 32079331
+      recombination_rate: 1.71642045777e-08
+      mutation_rate: 5.49e-09
+      synonyms:
+      - chr3R
+    '4':
+      length: 1348131
+      recombination_rate: 2.00579550709e-08
+      mutation_rate: 5.49e-09
+      synonyms:
+      - chr4
+    X:
+      length: 23542271
+      recombination_rate: 2.89650687913e-08
+      mutation_rate: 5.49e-09
+      synonyms:
+      - chrX
+    Y:
+      length: 3667352
+      recombination_rate: 0
+      mutation_rate: 5.49e-09
+      synonyms:
+      - chrY
+    mitochondrion_genome:
+      length: 19524
+      recombination_rate: 0
+      mutation_rate: 5.49e-09
+      synonyms: []
+citations:
+- doi: https://doi.org/10.1371/journal.pgen.0020166
+  author: Li et al.
+  year: 2006
+  reasons:
+  - population size
+  - generation time

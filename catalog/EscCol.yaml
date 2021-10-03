@@ -1,0 +1,37 @@
+id: EscCol
+name: Escherichia coli
+common_name: E. coli
+generation_time: 3.805175e-05
+population_size: 180000000.0
+ensembl_id: escherichia_coli_str_k_12_substr_mg1655_gca_000005845
+genome:
+  assembly_name: ASM584v2
+  assembly_accession: GCA_000005845.2
+  citations:
+  - doi: https://doi.org/10.1534/g3.111.000406
+    author: Wielgoss et al.
+    year: 2011
+    reasons:
+    - mutation rate
+  - doi: https://doi.org/10.1126/science.277.5331.1453
+    author: Blattner et al.
+    year: 1997
+    reasons:
+    - genome assembly
+  chromosomes:
+    Chromosome:
+      length: 4641652
+      recombination_rate: 0.0
+      mutation_rate: 8.9e-11
+      synonyms: []
+citations:
+- doi: https://doi.org/10.1128/JB.01368-07
+  author: Sezonov et al.
+  year: 2007
+  reasons:
+  - generation time
+- doi: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1206133/
+  author: Hartl, Moriyama, and Sawyer
+  year: 1994
+  reasons:
+  - population size

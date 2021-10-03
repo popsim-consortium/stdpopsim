@@ -1,0 +1,280 @@
+id: AnaPla
+name: Anas platyrhynchos
+common_name: Mallard
+generation_time: 4
+population_size: 156000
+ensembl_id: anas_platyrhynchos
+genome:
+  assembly_name: ASM874695v1
+  assembly_accession: GCA_008746955.1
+  citations:
+  - doi: https://doi.org/10.1111/mec.15343
+    author: Lavretsky et al.
+    year: 2019
+    reasons:
+    - mutation rate
+    - generation time
+  - doi: https://dx.doi.org/10.1534%2Fgenetics.105.053256
+    author: Huang et al.
+    year: 2006
+    reasons:
+    - recombination rate
+  chromosomes:
+    '1':
+      length: 208326429
+      recombination_rate: 1.52e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr1
+    '2':
+      length: 162939446
+      recombination_rate: 1.39e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr2
+    '3':
+      length: 119723720
+      recombination_rate: 9.35e-09
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr3
+    '4':
+      length: 77626585
+      recombination_rate: 1.2e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr4
+    '5':
+      length: 64988622
+      recombination_rate: 1.22e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr5
+    '6':
+      length: 39543408
+      recombination_rate: 3.03e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr6
+    '7':
+      length: 37812880
+      recombination_rate: 2.59e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr7
+    '8':
+      length: 33348632
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr8
+    '9':
+      length: 26742597
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr9
+    '10':
+      length: 22933227
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr10
+    '11':
+      length: 22193879
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr11
+    '12':
+      length: 22338721
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr12
+    '13':
+      length: 21714986
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr13
+    '14':
+      length: 20320564
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr14
+    '15':
+      length: 18227546
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr15
+    '16':
+      length: 16053328
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr16
+    '17':
+      length: 15319648
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr17
+    '18':
+      length: 13333155
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr18
+    '19':
+      length: 12198306
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr19
+    '20':
+      length: 12091001
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr20
+    '21':
+      length: 8553409
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr21
+    '22':
+      length: 16160689
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr22
+    '23':
+      length: 7977799
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr23
+    '24':
+      length: 7737077
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr24
+    '25':
+      length: 7574731
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr25
+    '26':
+      length: 6918023
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr26
+    '27':
+      length: 6270716
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr27
+    '28':
+      length: 5960150
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr28
+    '29':
+      length: 1456683
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr29
+    '30':
+      length: 1872559
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr30
+    Z:
+      length: 81233375
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chrZ
+    '31':
+      length: 2637124
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr31
+    '32':
+      length: 3473573
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr32
+    '33':
+      length: 2151773
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr33
+    '34':
+      length: 7214884
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr34
+    '35':
+      length: 5548691
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr35
+    '36':
+      length: 3997205
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr36
+    '37':
+      length: 3148754
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr37
+    '38':
+      length: 2836164
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr38
+    '39':
+      length: 2018729
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr39
+    '40':
+      length: 1354177
+      recombination_rate: 1.47e-08
+      mutation_rate: 4.83e-09
+      synonyms:
+      - chr40
+citations:
+- doi: https://doi.org/10.1111/mec.15343
+  author: Lavretsky et al.
+  year: 2019
+  reasons:
+  - mutation rate
+  - generation time
+- doi: https://doi.org/10.24272/j.issn.2095-8137.2020.133
+  author: Guo et al.
+  year: 2020
+  reasons:
+  - population size

@@ -1,0 +1,72 @@
+id: DroSec
+name: Drosophila sechellia
+common_name: Drosophila sechellia
+generation_time: 0.05
+population_size: 100000
+ensembl_id: drosophila_sechellia
+genome:
+  assembly_name: ASM438219v1
+  assembly_accession: GCA_004382195.1
+  citations:
+  - doi: https://doi.org/10.1101/gr.263442.120
+    author: Chakraborty et al.
+    year: 2021
+    reasons:
+    - genome assembly
+  - doi: https://doi.org/10.1371/journal.pgen.1002905
+    author: Comeron et al.
+    year: 2012
+    reasons:
+    - recombination rate
+  - doi: https://doi.org/10.1534/genetics.108.092080
+    author: Legrand et al.
+    year: 2009
+    reasons:
+    - population size
+    - mutation rate
+    - generation time
+  chromosomes:
+    2L:
+      length: 24956976
+      recombination_rate: 2.40462600791e-08
+      mutation_rate: 1.5e-09
+      synonyms:
+      - chr2L
+    2R:
+      length: 21536224
+      recombination_rate: 2.23458641776e-08
+      mutation_rate: 1.5e-09
+      synonyms:
+      - chr2R
+    3L:
+      length: 28131630
+      recombination_rate: 1.79660308862e-08
+      mutation_rate: 1.5e-09
+      synonyms:
+      - chr3L
+    3R:
+      length: 30464902
+      recombination_rate: 1.71642045777e-08
+      mutation_rate: 1.5e-09
+      synonyms:
+      - chr3R
+    X:
+      length: 22909512
+      recombination_rate: 2.89650687913e-08
+      mutation_rate: 1.5e-09
+      synonyms:
+      - chrX
+    '4':
+      length: 1277805
+      recombination_rate: 2.00579550709e-08
+      mutation_rate: 1.5e-09
+      synonyms:
+      - chr4
+citations:
+- doi: https://doi.org/10.1534/genetics.108.092080
+  author: Legrand et al.
+  year: 2009
+  reasons:
+  - population size
+  - mutation rate
+  - generation time

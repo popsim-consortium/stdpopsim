@@ -1,0 +1,142 @@
+id: MusMus
+name: Mus musculus
+common_name: Mus musculus (house mouse)
+generation_time: 0
+population_size: 0
+ensembl_id: '7358741'
+genome:
+  assembly_name: GRCm39
+  assembly_accession: GCF_000001635.27
+  citations:
+  - doi: ''
+    author: ''
+    year: -1
+    reasons:
+    - genome assembly
+  - doi: ''
+    author: ''
+    year: -1
+    reasons:
+    - recombination rate
+  - doi: ''
+    author: ''
+    year: -1
+    reasons:
+    - mutation rate
+  chromosomes:
+    '1':
+      length: '195974786'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '2':
+      length: '181755017'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '3':
+      length: '159745316'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '4':
+      length: '156862662'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '5':
+      length: '153496487'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '6':
+      length: '149588044'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '7':
+      length: '145171164'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '8':
+      length: '130127694'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '9':
+      length: '124359700'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '10':
+      length: '130530862'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '11':
+      length: '121973369'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '12':
+      length: '120092757'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '13':
+      length: '120883175'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '14':
+      length: '125139656'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '15':
+      length: '104073951'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '16':
+      length: '98008968'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '17':
+      length: '95294699'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '18':
+      length: '90720763'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '19':
+      length: '61420004'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    X:
+      length: '170035695'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    Y:
+      length: '92212126'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+citations:
+- doi: ''
+  author: ''
+  year: -1
+  reasons:
+  - population size
+- doi: ''
+  author: ''
+  year: -1
+  reasons:
+  - generation time

@@ -1,0 +1,108 @@
+id: AnoCar
+name: Anolis carolinensis
+common_name: Anole lizard
+generation_time: 1.5
+population_size: 3050000.0
+ensembl_id: anolis_carolinensis
+genome:
+  assembly_name: AnoCar2.0
+  assembly_accession: GCA_000090745.1
+  citations:
+  - doi: https://doi.org/10.1093/gbe/evz110
+    author: Pombi et al.
+    year: 2019
+    reasons:
+    - population size
+    - mutation rate
+    - recombination rate
+  chromosomes:
+    '1':
+      length: 263920458
+      recombination_rate: 1e-08
+      mutation_rate: 2.1e-10
+      synonyms:
+      - chr1
+    '2':
+      length: 199619895
+      recombination_rate: 1e-08
+      mutation_rate: 2.1e-10
+      synonyms:
+      - chr2
+    '3':
+      length: 204416410
+      recombination_rate: 1e-08
+      mutation_rate: 2.1e-10
+      synonyms:
+      - chr3
+    '4':
+      length: 156502444
+      recombination_rate: 1e-08
+      mutation_rate: 2.1e-10
+      synonyms:
+      - chr4
+    '5':
+      length: 150641573
+      recombination_rate: 1e-08
+      mutation_rate: 2.1e-10
+      synonyms:
+      - chr5
+    '6':
+      length: 80741955
+      recombination_rate: 1e-08
+      mutation_rate: 2.1e-10
+      synonyms:
+      - chr6
+    LGa:
+      length: 7025928
+      recombination_rate: 1e-08
+      mutation_rate: 2.1e-10
+      synonyms: []
+    LGb:
+      length: 3271537
+      recombination_rate: 1e-08
+      mutation_rate: 2.1e-10
+      synonyms: []
+    LGc:
+      length: 9478905
+      recombination_rate: 1e-08
+      mutation_rate: 2.1e-10
+      synonyms: []
+    LGd:
+      length: 1094478
+      recombination_rate: 1e-08
+      mutation_rate: 2.1e-10
+      synonyms: []
+    LGf:
+      length: 4257874
+      recombination_rate: 1e-08
+      mutation_rate: 2.1e-10
+      synonyms: []
+    LGg:
+      length: 424765
+      recombination_rate: 1e-08
+      mutation_rate: 2.1e-10
+      synonyms: []
+    LGh:
+      length: 248369
+      recombination_rate: 1e-08
+      mutation_rate: 2.1e-10
+      synonyms: []
+    MT:
+      length: 17223
+      recombination_rate: 0
+      mutation_rate: 2.1e-10
+      synonyms:
+      - chrM
+citations:
+- doi: https://doi.org/10.1093/ilar.45.1.54
+  author: Lovern et al.
+  year: 2004
+  reasons:
+  - generation time
+- doi: https://doi.org/10.1093/gbe/evz110
+  author: Pombi et al.
+  year: 2019
+  reasons:
+  - population size
+  - mutation rate
+  - recombination rate

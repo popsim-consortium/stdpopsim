@@ -1,0 +1,71 @@
+id: AnoGam
+name: Anopheles gambiae
+common_name: Anopheles gambiae
+generation_time: 0.09090909090909091
+population_size: 6000000.0
+ensembl_id: anopheles_gambiae
+genome:
+  assembly_name: AgamP4
+  assembly_accession: GCA_000005575.1
+  citations:
+  - doi: https://doi.org/10.1186/gb-2007-8-1-r5
+    author: Sharakhova et al.
+    year: 2006
+    reasons:
+    - genome assembly
+  - doi: https://doi.org/10.1038/nature24995
+    author: Ag1000G Consortium
+    year: 2017
+    reasons:
+    - population size
+    - mutation rate
+    - generation time
+  - doi: https://doi.org/10.4269/ajtmh.2006.75.901
+    author: Pombi et al.
+    year: 2006
+    reasons:
+    - recombination rate
+  chromosomes:
+    2L:
+      length: 49364325
+      recombination_rate: 0
+      mutation_rate: 5.49e-09
+      synonyms:
+      - chr2L
+    2R:
+      length: 61545105
+      recombination_rate: 1.3e-08
+      mutation_rate: 5.49e-09
+      synonyms:
+      - chr2R
+    3L:
+      length: 41963435
+      recombination_rate: 1.6e-08
+      mutation_rate: 5.49e-09
+      synonyms:
+      - chr3L
+    3R:
+      length: 53200684
+      recombination_rate: 1.3e-08
+      mutation_rate: 5.49e-09
+      synonyms:
+      - chr3R
+    X:
+      length: 24393108
+      recombination_rate: 1e-08
+      mutation_rate: 5.49e-09
+      synonyms:
+      - chrX
+    Mt:
+      length: 15363
+      recombination_rate: 0
+      mutation_rate: 5.49e-09
+      synonyms: []
+citations:
+- doi: https://doi.org/10.1038/nature24995
+  author: Ag1000G Consortium
+  year: 2017
+  reasons:
+  - population size
+  - mutation rate
+  - generation time

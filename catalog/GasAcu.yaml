@@ -1,0 +1,147 @@
+id: GasAcu
+name: Gasterosteus aculeatus
+common_name: Gasterosteus aculeatus aculeatus (three-spined stickleback)
+generation_time: 0
+population_size: 0
+ensembl_id: '9307941'
+genome:
+  assembly_name: GAculeatus_UGA_version5
+  assembly_accession: GCF_016920845.1
+  citations:
+  - doi: ''
+    author: ''
+    year: -1
+    reasons:
+    - genome assembly
+  - doi: ''
+    author: ''
+    year: -1
+    reasons:
+    - recombination rate
+  - doi: ''
+    author: ''
+    year: -1
+    reasons:
+    - mutation rate
+  chromosomes:
+    '1':
+      length: '29619991'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '2':
+      length: '23686546'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '3':
+      length: '17759012'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '4':
+      length: '34181212'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '5':
+      length: '15550311'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '6':
+      length: '18825451'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '7':
+      length: '30776923'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '8':
+      length: '20553084'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '9':
+      length: '20843631'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '10':
+      length: '17985176'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '11':
+      length: '17651971'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '12':
+      length: '20694444'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '13':
+      length: '20748428'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '14':
+      length: '16147532'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '15':
+      length: '17318724'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '16':
+      length: '19507025'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '17':
+      length: '20195758'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '18':
+      length: '15939336'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '19':
+      length: '20580295'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '20':
+      length: '20445003'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    '21':
+      length: '17421465'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+    Y:
+      length: '15859692'
+      recombination_rate: -1
+      mutation_rate: -1
+      synonyms: []
+citations:
+- doi: ''
+  author: ''
+  year: -1
+  reasons:
+  - population size
+- doi: ''
+  author: ''
+  year: -1
+  reasons:
+  - generation time

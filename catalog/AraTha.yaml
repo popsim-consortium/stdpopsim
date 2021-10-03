@@ -1,0 +1,77 @@
+id: AraTha
+name: Arabidopsis thaliana
+common_name: A. thaliana
+generation_time: 1.0
+population_size: 10000
+ensembl_id: arabidopsis_thaliana
+genome:
+  assembly_name: TAIR10
+  assembly_accession: GCA_000001735.1
+  citations:
+  - doi: https://doi.org/10.1126/science.1180677
+    author: Ossowski et al.
+    year: 2010
+    reasons:
+    - mutation rate
+  - doi: https://doi.org/10.1093/molbev/msu247
+    author: Huber et al.
+    year: 2014
+    reasons:
+    - recombination rate
+  - doi: https://doi.org/10.1093/nar/gkm965
+    author: Swarbreck et al.
+    year: 2007
+    reasons:
+    - genome assembly
+  chromosomes:
+    '1':
+      length: 30427671
+      recombination_rate: 8.064516129032258e-10
+      mutation_rate: 7e-09
+      synonyms:
+      - chr1
+    '2':
+      length: 19698289
+      recombination_rate: 8.064516129032258e-10
+      mutation_rate: 7e-09
+      synonyms:
+      - chr2
+    '3':
+      length: 23459830
+      recombination_rate: 8.064516129032258e-10
+      mutation_rate: 7e-09
+      synonyms:
+      - chr3
+    '4':
+      length: 18585056
+      recombination_rate: 8.064516129032258e-10
+      mutation_rate: 7e-09
+      synonyms:
+      - chr4
+    '5':
+      length: 26975502
+      recombination_rate: 8.064516129032258e-10
+      mutation_rate: 7e-09
+      synonyms:
+      - chr5
+    Mt:
+      length: 366924
+      recombination_rate: 0
+      mutation_rate: 7e-09
+      synonyms: []
+    Pt:
+      length: 154478
+      recombination_rate: 0
+      mutation_rate: 7e-09
+      synonyms: []
+citations:
+- doi: https://doi.org/10.1890/0012-9658(2002)083[1006:GTINSO]2.0.CO;2
+  author: Donohue
+  year: 2002
+  reasons:
+  - generation time
+- doi: https://doi.org/10.1016/j.cell.2016.05.063
+  author: 1001GenomesConsortium
+  year: 2016
+  reasons:
+  - population size

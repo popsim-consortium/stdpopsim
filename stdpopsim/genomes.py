@@ -36,6 +36,26 @@ class Genome:
     assembly_accession = attr.ib(default=None, kw_only=True)
     citations = attr.ib(factory=list, kw_only=True)
 
+    def asdict(self):
+        return {
+            "assembly_name": self.assembly_name,
+            "assembly_accession": self.assembly_accession,
+            "citations": [citation.asdict() for citation in self.citations],
+            "chromosomes": {chrom.id: chrom.asdict() for chrom in self.chromosomes},
+        }
+
+    @staticmethod
+    def fromdict(d):
+        return Genome(
+            assembly_name=d["assembly_name"],
+            assembly_accession=d["assembly_accession"],
+            citations=stdpopsim.Citation.fromdictlist(d["citations"]),
+            chromosomes=[
+                Chromosome.fromdict(value, key)
+                for key, value in d["chromosomes"].items()
+            ],
+        )
+
     @staticmethod
     def from_data(genome_data, *, recombination_rate, mutation_rate, citations):
         """
@@ -141,6 +161,26 @@ class Chromosome:
     recombination_rate = attr.ib(type=float, kw_only=True)
     mutation_rate = attr.ib(type=float, kw_only=True)
     synonyms = attr.ib(factory=list, kw_only=True)
+
+    def asdict(self):
+        # Don't include ID here because it's used as a key - maybe not
+        # such a good idea
+        return {
+            "length": self.length,
+            "recombination_rate": self.recombination_rate,
+            "mutation_rate": self.mutation_rate,
+            "synonyms": self.synonyms,
+        }
+
+    @staticmethod
+    def fromdict(d, id_):
+        return Chromosome(
+            id=id_,
+            length=d["length"],
+            recombination_rate=d["recombination_rate"],
+            mutation_rate=d["mutation_rate"],
+            synonyms=d["synonyms"],
+        )
 
 
 @attr.s(kw_only=True)

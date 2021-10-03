@@ -1,0 +1,82 @@
+id: CaeEle
+name: Caenorhabditis elegans
+common_name: C. elegans
+generation_time: 0.01
+population_size: 10000
+ensembl_id: ''
+genome:
+  assembly_name: ce11
+  assembly_accession: GCA_000002985.3
+  citations:
+  - doi: https://doi.org/10.1126/science.282.5396.2012
+    author: The C. elegans Sequencing Consortium*
+    year: 1998
+    reasons:
+    - genome assembly
+  - doi: https://doi.org/10.1534/genetics.119.302054
+    author: Konrad et al.
+    year: 2019
+    reasons:
+    - mutation rate
+  - doi: https://doi.org/10.1093/molbev/msx051
+    author: Konrad et al.
+    year: 2017
+    reasons:
+    - mutation rate
+  - doi: https://doi.org/10.1371/journal.pgen.1000419
+    author: Rockman & Kruglyak
+    year: 2009
+    reasons:
+    - recombination rate
+  chromosomes:
+    I:
+      length: 15072434
+      recombination_rate: 3.330038e-11
+      mutation_rate: 1.84e-09
+      synonyms: []
+    II:
+      length: 15279421
+      recombination_rate: 3.999342e-11
+      mutation_rate: 1.84e-09
+      synonyms: []
+    III:
+      length: 13783801
+      recombination_rate: 4.484974e-11
+      mutation_rate: 1.84e-09
+      synonyms: []
+    IV:
+      length: 17493829
+      recombination_rate: 2.417689e-11
+      mutation_rate: 1.84e-09
+      synonyms: []
+    V:
+      length: 20924180
+      recombination_rate: 2.722476e-11
+      mutation_rate: 1.84e-09
+      synonyms: []
+    X:
+      length: 17718942
+      recombination_rate: 3.447911e-11
+      mutation_rate: 1.84e-09
+      synonyms: []
+    MtDNA:
+      length: 13794
+      recombination_rate: 0
+      mutation_rate: 1.84e-09
+      synonyms: []
+citations:
+- doi: https://doi.org/10.7554/eLife.05849
+  author: Frézal & Félix
+  year: 2015
+  reasons:
+  - generation time
+- doi: https://doi.org/10.1016/j.cub.2005.06.022
+  author: Barrière & Félix
+  year: 2005
+  reasons:
+  - population size
+- doi: https://doi.org/10.1534/genetics.105.048207
+  author: Cutter
+  year: 2006
+  reasons:
+  - population size

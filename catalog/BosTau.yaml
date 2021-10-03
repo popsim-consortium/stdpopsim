@@ -1,0 +1,219 @@
+id: BosTau
+name: Bos taurus
+common_name: Cattle
+generation_time: 5
+population_size: 90
+ensembl_id: bos_taurus
+genome:
+  assembly_name:
+  assembly_accession:
+  citations:
+  - doi: https://doi.org/10.1093/gigascience/giaa021
+    author: Rosen et al.
+    year: 2020
+    reasons:
+    - genome assembly
+  - doi: https://doi.org/10.1101/079863
+    author: Harland et al.
+    year: 2017
+    reasons:
+    - mutation rate
+  - doi: https://doi.org/10.1371/journal.pgen.1005387
+    author: Ma et al.
+    year: 2015
+    reasons:
+    - recombination rate
+  chromosomes:
+    '1':
+      length: 158534110
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr1
+    '2':
+      length: 136231102
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr2
+    '3':
+      length: 121005158
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr3
+    '4':
+      length: 120000601
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr4
+    '5':
+      length: 120089316
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr5
+    '6':
+      length: 117806340
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr6
+    '7':
+      length: 110682743
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr7
+    '8':
+      length: 113319770
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr8
+    '9':
+      length: 105454467
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr9
+    '10':
+      length: 103308737
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr10
+    '11':
+      length: 106982474
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr11
+    '12':
+      length: 87216183
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr12
+    '13':
+      length: 83472345
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr13
+    '14':
+      length: 82403003
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr14
+    '15':
+      length: 85007780
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr15
+    '16':
+      length: 81013979
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr16
+    '17':
+      length: 73167244
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr17
+    '18':
+      length: 65820629
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr18
+    '19':
+      length: 63449741
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr19
+    '20':
+      length: 71974595
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr20
+    '21':
+      length: 69862954
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr21
+    '22':
+      length: 60773035
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr22
+    '23':
+      length: 52498615
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr23
+    '24':
+      length: 62317253
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr24
+    '25':
+      length: 42350435
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr25
+    '26':
+      length: 51992305
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr26
+    '27':
+      length: 45612108
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr27
+    '28':
+      length: 45940150
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr28
+    '29':
+      length: 51098607
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chr29
+    X:
+      length: 139009144
+      recombination_rate: 9.26e-09
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chrX
+    MT:
+      length: 16338
+      recombination_rate: 0
+      mutation_rate: 1.2e-08
+      synonyms:
+      - chrM
+citations:
+- doi: https://doi.org/10.1093/molbev/mst125
+  author: MacLeod et al.
+  year: 2013
+  reasons:
+  - population size
+  - generation time

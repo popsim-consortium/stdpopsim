@@ -1,0 +1,187 @@
+id: HomSap
+name: Homo sapiens
+common_name: Human
+generation_time: 30
+population_size: 10000
+ensembl_id: homo_sapiens
+genome:
+  assembly_name: GRCh38.p13
+  assembly_accession: GCA_000001405.28
+  citations:
+  - doi: http://dx.doi.org/10.1038/35057062
+    author: International Human Genome Sequencing Consortium
+    year: 2001
+    reasons:
+    - genome assembly
+  - doi: https://doi.org/10.1016/j.ajhg.2019.09.012
+    author: Tian, Browning, and Browning
+    year: 2019
+    reasons:
+    - mutation rate
+  - doi: https://doi.org/10.1038/nature06258
+    author: The International HapMap Consortium
+    year: 2007
+    reasons:
+    - recombination rate
+  chromosomes:
+    '1':
+      length: 248956422
+      recombination_rate: 1.1485597641285933e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr1
+    '2':
+      length: 242193529
+      recombination_rate: 1.1054289277533446e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr2
+    '3':
+      length: 198295559
+      recombination_rate: 1.1279585624662551e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr3
+    '4':
+      length: 190214555
+      recombination_rate: 1.1231162636001008e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr4
+    '5':
+      length: 181538259
+      recombination_rate: 1.1280936570022824e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr5
+    '6':
+      length: 170805979
+      recombination_rate: 1.1222852661225285e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr6
+    '7':
+      length: 159345973
+      recombination_rate: 1.1764614397655721e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr7
+    '8':
+      length: 145138636
+      recombination_rate: 1.1478465778920576e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr8
+    '9':
+      length: 138394717
+      recombination_rate: 1.1780701596308656e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr9
+    '10':
+      length: 133797422
+      recombination_rate: 1.3365134257075317e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr10
+    '11':
+      length: 135086622
+      recombination_rate: 1.1719334320833283e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr11
+    '12':
+      length: 133275309
+      recombination_rate: 1.305017186986983e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr12
+    '13':
+      length: 114364328
+      recombination_rate: 1.0914860554958317e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr13
+    '14':
+      length: 107043718
+      recombination_rate: 1.119730771394731e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr14
+    '15':
+      length: 101991189
+      recombination_rate: 1.3835785893339787e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr15
+    '16':
+      length: 90338345
+      recombination_rate: 1.4834607113882717e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr16
+    '17':
+      length: 83257441
+      recombination_rate: 1.582489036239487e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr17
+    '18':
+      length: 80373285
+      recombination_rate: 1.5075956950023575e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr18
+    '19':
+      length: 58617616
+      recombination_rate: 1.8220141872466202e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr19
+    '20':
+      length: 64444167
+      recombination_rate: 1.7178269031631664e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr20
+    '21':
+      length: 46709983
+      recombination_rate: 1.3045214034879191e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr21
+    '22':
+      length: 50818468
+      recombination_rate: 1.4445022767788226e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chr22
+    X:
+      length: 156040895
+      recombination_rate: 1.164662223273842e-08
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chrX
+    Y:
+      length: 57227415
+      recombination_rate: 0.0
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chrY
+    MT:
+      length: 16569
+      recombination_rate: 0.0
+      mutation_rate: 1.29e-08
+      synonyms:
+      - chrM
+citations:
+- doi: https://doi.org/10.1086/302770
+  author: Tremblay and Vézina
+  year: 2000
+  reasons:
+  - generation time
+- doi: https://doi.org/10.1093/oxfordjournals.molbev.a039995
+  author: Takahata
+  year: 1993
+  reasons:
+  - population size

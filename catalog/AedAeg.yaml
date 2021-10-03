@@ -1,0 +1,65 @@
+id: AedAeg
+name: Aedes aegypti
+common_name: Yellow fever mosquito
+generation_time: 0.06666666666666667
+population_size: 1000000.0
+ensembl_id: aedes_aegypti_lvpagwg
+genome:
+  assembly_name: AaegL5
+  assembly_accession: GCA_002204515.1
+  citations:
+  - doi: https://doi.org/10.1126/science.1138878
+    author: Nene et al.
+    year: 2007
+    reasons:
+    - genome assembly
+  - doi: https://doi.org/10.1371/journal.pntd.0002652
+    author: Juneja et al.
+    year: 2014
+    reasons:
+    - recombination rate
+  - doi: https://doi.org/10.1186/s12915-017-0351-0
+    author: Crawford et al.
+    year: 2017
+    reasons:
+    - population size
+    - mutation rate
+    - generation time
+  - doi: https://doi.org/10.1101/gr.091231.109
+    author: Keightley et al.
+    year: 2009
+    reasons:
+    - mutation rate
+  chromosomes:
+    '1':
+      length: 310827022
+      recombination_rate: 3.06e-09
+      mutation_rate: 3.5e-09
+      synonyms:
+      - chr1
+    '2':
+      length: 474425716
+      recombination_rate: 2.49e-09
+      mutation_rate: 3.5e-09
+      synonyms:
+      - chr2
+    '3':
+      length: 409777670
+      recombination_rate: 2.91e-09
+      mutation_rate: 3.5e-09
+      synonyms:
+      - chr3
+    MT:
+      length: 16790
+      recombination_rate: 0
+      mutation_rate: 3.5e-09
+      synonyms:
+      - chrM
+citations:
+- doi: https://doi.org/10.1186/s12915-017-0351-0
+  author: Crawford et al.
+  year: 2017
+  reasons:
+  - population size
+  - mutation rate
+  - generation time

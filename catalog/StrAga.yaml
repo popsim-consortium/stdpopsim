@@ -1,0 +1,39 @@
+id: StrAga
+name: Streptococcus agalactiae
+common_name: Group B Streptococcus
+generation_time: 0.0027397260273972603
+population_size: 140000
+ensembl_id: NA
+genome:
+  assembly_name: GBCO_p1
+  assembly_accession: GCA_000689235.1
+  citations:
+  - doi: https://doi.org/10.1038/ncomms5544
+    author: Da Cunha et al
+    year: 2014
+    reasons:
+    - genome assembly
+  - doi: https://doi.org/10.1038/ncomms5544
+    author: Da Cunha et al
+    year: 2014
+    reasons:
+    - mutation rate
+  chromosomes:
+    '1':
+      length: 2065074
+      recombination_rate: 0
+      mutation_rate: 1.53e-09
+      synonyms:
+      - I
+      - chr1
+citations:
+- doi: https://doi.org/10.1038/ncomms5544
+  author: Da Cunha et al
+  year: 2014
+  reasons:
+  - population size
+- doi: https://doi.org/10.1086/284168
+  author: Savageau M.A.
+  year: 1983
+  reasons:
+  - generation time

@@ -148,6 +148,31 @@ class Species:
     genetic_maps = attr.ib(factory=list, kw_only=True)
     annotations = attr.ib(factory=list, kw_only=True)
 
+    def asdict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "common_name": self.common_name,
+            "generation_time": self.generation_time,
+            "population_size": self.population_size,
+            "ensembl_id": self.ensembl_id,
+            "genome": self.genome.asdict(),
+            "citations": [citation.asdict() for citation in self.citations],
+        }
+
+    @staticmethod
+    def fromdict(d):
+        return Species(
+            id=d["id"],
+            name=d["name"],
+            common_name=d["common_name"],
+            generation_time=d["generation_time"],
+            population_size=d["population_size"],
+            ensembl_id=d["ensembl_id"],
+            genome=stdpopsim.Genome.fromdict(d["genome"]),
+            citations=stdpopsim.Citation.fromdictlist(d["citations"]),
+        )
+
     def get_contig(
         self,
         chromosome=None,
