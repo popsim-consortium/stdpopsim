@@ -734,7 +734,7 @@ follow these steps for it to be officially supported by stdpopsim:
        assigned/volunteers to do a blind implementation of the model.
 
     3. Developer B creates a blind implementation of the model in the
-       ``stdpopsim/qc/species_name_qc.py`` file, remembering to register the
+       ``stdpopsim/qc/species_name.py`` file, remembering to register the
        QC model implementation (see other QC models for examples).  Note that
        if you are adding a new species you will have to add a new import to
        ``stdpopsim/qc/__init__.py``.
