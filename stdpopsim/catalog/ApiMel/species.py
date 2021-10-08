@@ -8,6 +8,7 @@ _BeyeEtAl = stdpopsim.Citation(
     author="Beye et al.",
     reasons={stdpopsim.CiteReason.REC_RATE},
 )
+
 _recombination_rate = {
     "CM009931.2": 23.9e-8,
     "CM009932.2": 24.6e-8,
@@ -103,9 +104,10 @@ chr_synonyms_dict = {
 }
 
 
-def add_if_unique(chrom, syn):
-    if syn not in chrom.synonyms:
-        chrom.synonyms.append(syn)
+def add_if_unique(chrom, synonyms):
+    for syn in synonyms:
+        if syn not in chrom.synonyms:
+            chrom.synonyms.append(syn)
 
 
 for chrom in _genome.chromosomes:
