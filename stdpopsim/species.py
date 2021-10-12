@@ -40,7 +40,8 @@ def get_species(id):
     if id not in registered_species:
         # TODO we should probably have a custom exception here and standardise
         # on using these for all the catalog search functions.
-        raise ValueError(f"Species '{id}' not in catalog")
+        avail_sps_str = ", ".join(registered_species)
+        raise ValueError(f"Species '{id}' not in catalog ({avail_sps_str})")
     return registered_species[id]
 
 
@@ -220,7 +221,11 @@ class Species:
         for model in self.demographic_models:
             if model.id == id:
                 return model
-        raise ValueError(f"DemographicModel '{self.id}/{id}' not in catalog")
+        available_models = [dm.id for dm in self.demographic_models]
+        avail_models_str = ", ".join(available_models)
+        raise ValueError(
+            f"DemographicModel '{self.id}/{id}' not in catalog ({avail_models_str})"
+        )
 
     def add_demographic_model(self, model):
         if model.id in [m.id for m in self.demographic_models]:
@@ -244,7 +249,9 @@ class Species:
         for dfe in self.dfes:
             if dfe.id == id:
                 return dfe
-        raise ValueError(f"DFE '{self.id}/{id}' not in catalog")
+        available_dfes = [d.id for d in self.dfes]
+        avail_dfes_str = ", ".join(available_dfes)
+        raise ValueError(f"DFE '{self.id}/{id}' not in catalog ({avail_dfes_str})")
 
     def add_dfe(self, dfe):
         if dfe.id in [d.id for d in self.dfes]:
@@ -273,7 +280,11 @@ class Species:
         for gm in self.genetic_maps:
             if gm.id == id:
                 return gm
-        raise ValueError(f"Genetic map '{self.id}/{id}' not in catalog")
+        available_maps = [gm.id for gm in self.genetic_maps]
+        avail_maps_str = ", ".join(available_maps)
+        raise ValueError(
+            f"Genetic map '{self.id}/{id}' not in catalog ({avail_maps_str})"
+        )
 
     def add_annotations(self, annotations):
         if annotations.id in [an.id for an in self.annotations]:
@@ -297,4 +308,8 @@ class Species:
         for an in self.annotations:
             if an.id == id:
                 return an
-        raise ValueError(f"Annotations '{self.id}/{id}' not in catalog")
+        available_anno = [anno.id for anno in self.annotations]
+        avail_anno_str = ", ".join(available_anno)
+        raise ValueError(
+            f"Annotations '{self.id}/{id}' not in catalog ({avail_anno_str})"
+        )
