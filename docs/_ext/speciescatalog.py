@@ -15,6 +15,7 @@ from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
 
 import stdpopsim
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -401,6 +402,25 @@ class SpeciesCatalogDirective(SphinxDirective):
         section += self.model_parameter_table(species, model)
         return [target, section]
 
+    def model_image(self, species, model):
+        import demesdraw
+        import matplotlib.pyplot as plt
+        mid = self.get_demographic_model_id(species, model)
+        _, ax = plt.subplots(1, 1, figsize=(4, 4))
+        # Conversion into demes object for easier plotting  
+        graph = model.model.to_demes()
+        demesdraw.tubes(graph, ax=ax);
+        ax.set_title(f"{model.id}", fontsize=10)
+        ax.set_xticklabels([p.name for p in model.populations], 
+                              rotation=45, ha='right', rotation_mode="anchor", fontsize=10)
+        ax.set_ylabel('Time (generations)', fontsize=10)
+        os.system(f"mkdir -p parameter_images/{species.id}/")
+        img_name = f"parameter_images/{species.id}/{mid}.png"
+        plt.tight_layout()
+        plt.savefig(img_name, dpi=150, bbox_inches='tight')
+        section = nodes.image(uri=img_name)
+        return section
+
     def run(self):
         species = stdpopsim.get_species(self.arguments[0])
         sid = f"sec_catalog_{species.id}"
@@ -427,6 +447,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         models_section += self.models_table(species)
         for i, model in enumerate(species.demographic_models):
             models_section += self.model_section(species, model)
+            models_section += self.model_image(species, model)
             if i < len(species.demographic_models) - 1:
                 models_section += nodes.transition()
         section += models_section

@@ -407,7 +407,7 @@ message:
     hint: 'git pull ...') before pushing again.
     hint: See the 'Note about fast-forwards' in 'git push --help' for details.
 
-**DO NOT LISTEN TO GIT IN THIS CASE!** Git is giving you is **terrible advice**
+**DO NOT LISTEN TO GIT IN THIS CASE!** Git is giving you **terrible advice**
 which will mess up your branch. What we need to do is replace the state of
 the branch ``topic_branch_name`` on your fork on GitHub (the ``upstream`` remote)
 with the state of your local branch, ``topic_branch_name``. We do this
