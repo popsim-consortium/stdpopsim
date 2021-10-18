@@ -24,7 +24,7 @@ import stdpopsim.cli as cli
 class ExceptionForTesting(Exception):
     """
     Custom exception we can throw for testing.
-    """
+   """
 
 
 def capture_output(func, *args, **kwargs):
@@ -769,31 +769,27 @@ class TestSearchWrappers:
     def test_bad_species(self):
         with mock.patch("stdpopsim.cli.exit", autospec=True) as mocked_exit:
             cli.get_species_wrapper("XXX")
-            avail_sps_str = ", ".join(stdpopsim.species.registered_species)
             mocked_exit.assert_called_once_with(
-                f"Species 'XXX' not in catalog ({avail_sps_str})"
-            )
+                stdpopsim.species.missing_from_catalog(
+                    "Species", "XXX", stdpopsim.species.registered_species))
 
     def test_bad_model(self):
         species = stdpopsim.get_species("HomSap")
         with mock.patch("stdpopsim.cli.exit", autospec=True) as mocked_exit:
             cli.get_model_wrapper(species, "XXX")
             available_models = [dm.id for dm in species.demographic_models]
-            avail_models_str = ", ".join(available_models)
             mocked_exit.assert_called_once_with(
-                f"DemographicModel 'HomSap/XXX' not in catalog ({avail_models_str})"
-            )
+                stdpopsim.species.missing_from_catalog(
+                    "DemographicModel", "HomSap/XXX", available_models))
 
     def test_bad_genetic_map(self):
         species = stdpopsim.get_species("HomSap")
         with mock.patch("stdpopsim.cli.exit", autospec=True) as mocked_exit:
             cli.get_genetic_map_wrapper(species, "XXX")
             available_maps = [gm.id for gm in species.genetic_maps]
-            avail_maps_str = ", ".join(available_maps)
-
             mocked_exit.assert_called_once_with(
-                f"Genetic map 'HomSap/XXX' not in catalog ({avail_maps_str})"
-            )
+                stdpopsim.species.missing_from_catalog(
+                    "Genetic map", "HomSap/XXX", available_maps))
 
 
 class TestDryRun:

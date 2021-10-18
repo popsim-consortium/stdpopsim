@@ -14,6 +14,21 @@ logger = logging.getLogger(__name__)
 registered_species = {}
 
 
+def missing_from_catalog(type_of_thing, thing_id, available_things):
+    """
+    Return a user-friendly message if the user requests an identifier not in the
+    catalog
+
+    :param str type_of_thing: The kind of requested object (e.g. species,
+         genetic map, etc.)
+    :param str thing_id: the string identifier of the requested object.
+    :param list available_things: a list of string identifiers that are
+         available.
+    """
+    avail_str = ', '.join(available_things)
+    return "f{type_of_thing} '{thing_id}' not in catalog ({avail_str})"
+
+
 def register_species(species):
     """
     Registers the specified ``species``.
@@ -40,8 +55,7 @@ def get_species(id):
     if id not in registered_species:
         # TODO we should probably have a custom exception here and standardise
         # on using these for all the catalog search functions.
-        avail_sps_str = ", ".join(registered_species)
-        raise ValueError(f"Species '{id}' not in catalog ({avail_sps_str})")
+        raise ValueError(missing_from_catalog("Species", id, registered_species))
     return registered_species[id]
 
 
@@ -222,10 +236,9 @@ class Species:
             if model.id == id:
                 return model
         available_models = [dm.id for dm in self.demographic_models]
-        avail_models_str = ", ".join(available_models)
         raise ValueError(
-            f"DemographicModel '{self.id}/{id}' not in catalog ({avail_models_str})"
-        )
+            missing_from_catalog("DemographicModel", f"{self.id}/{id}",
+                                 available_models))
 
     def add_demographic_model(self, model):
         if model.id in [m.id for m in self.demographic_models]:
@@ -250,8 +263,8 @@ class Species:
             if dfe.id == id:
                 return dfe
         available_dfes = [d.id for d in self.dfes]
-        avail_dfes_str = ", ".join(available_dfes)
-        raise ValueError(f"DFE '{self.id}/{id}' not in catalog ({avail_dfes_str})")
+        raise ValueError(
+            missing_from_catalog("DFE", f"{self.id}/{id}", available_dfes))
 
     def add_dfe(self, dfe):
         if dfe.id in [d.id for d in self.dfes]:
@@ -281,9 +294,8 @@ class Species:
             if gm.id == id:
                 return gm
         available_maps = [gm.id for gm in self.genetic_maps]
-        avail_maps_str = ", ".join(available_maps)
         raise ValueError(
-            f"Genetic map '{self.id}/{id}' not in catalog ({avail_maps_str})"
+            missing_from_catalog("Genetic map", f"{self.id}/{id}", available_maps)
         )
 
     def add_annotations(self, annotations):
@@ -309,7 +321,5 @@ class Species:
             if an.id == id:
                 return an
         available_anno = [anno.id for anno in self.annotations]
-        avail_anno_str = ", ".join(available_anno)
         raise ValueError(
-            f"Annotations '{self.id}/{id}' not in catalog ({avail_anno_str})"
-        )
+            missing_from_catalog("Annotations", f"{self.id}/{id}", available_anno))
