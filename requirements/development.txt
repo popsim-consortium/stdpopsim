@@ -24,3 +24,5 @@ numpy
 scikit-allel
 zarr>=2.4
 biopython
+demes==0.1.2
+demesdraw==0.1.4
