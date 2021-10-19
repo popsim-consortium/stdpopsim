@@ -144,7 +144,7 @@ class TestAnnotationDownload(tests.CacheWritingTest):
         # TODO: The HomSap annotations are huge. Once we include a smaller
         # annotation set, we should instead use that, so tests are faster.
         species = stdpopsim.get_species("HomSap")
-        an = species.get_annotations("Ensembl_GRCh38_gff3")
+        an = species.get_annotations("Ensembl_GRCh38_104_gff3")
         an.download()
         assert an.is_cached()
         an.download()
@@ -162,7 +162,7 @@ class TestGetChromosomeAnnotations(tests.CacheReadingTest):
     @classmethod
     def setup_class(cls):
         species = stdpopsim.get_species("HomSap")
-        cls.an = species.get_annotations("Ensembl_GRCh38_gff3")
+        cls.an = species.get_annotations("Ensembl_GRCh38_104_gff3")
 
     def test_known_chromosome(self):
         cm = self.an.get_chromosome_annotations("21")

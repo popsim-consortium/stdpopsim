@@ -15,7 +15,7 @@ _an = stdpopsim.Annotation(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
         "annotations/HomSap/Ensembl_GRCh38_104_gff3.tar.gz"
     ),
-    intervals_sha256="1a2de33beaf2dada376654769db8370e649ff6f67dd0ec74287544eb52f850b2",
+    intervals_sha256="b0e864ec87274f3084e0d93161c8ed959b845c97a42cbad5bfe33f54c862716d",
     citations=[
         stdpopsim.Citation(
             year=2018,
