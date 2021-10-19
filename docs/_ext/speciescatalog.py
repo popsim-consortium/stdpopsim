@@ -405,19 +405,24 @@ class SpeciesCatalogDirective(SphinxDirective):
     def model_image(self, species, model):
         import demesdraw
         import matplotlib.pyplot as plt
+
         mid = self.get_demographic_model_id(species, model)
-        _, ax = plt.subplots(1, 1, figsize=(4, 4))
-        # Conversion into demes object for easier plotting  
+        _, ax = plt.subplots(1, 1, figsize=(4, 4), tight_layout=True)
+        # Conversion into demes object for easier plotting
         graph = model.model.to_demes()
-        demesdraw.tubes(graph, ax=ax);
+        demesdraw.tubes(graph, ax=ax, log_time=True)
         ax.set_title(f"{model.id}", fontsize=10)
-        ax.set_xticklabels([p.name for p in model.populations], 
-                              rotation=45, ha='right', rotation_mode="anchor", fontsize=10)
-        ax.set_ylabel('Time (generations)', fontsize=10)
-        os.system(f"mkdir -p parameter_images/{species.id}/")
+        ax.set_xticklabels(
+            [p.name for p in model.populations],
+            rotation=45,
+            ha="right",
+            rotation_mode="anchor",
+            fontsize=10,
+        )
+        ax.set_ylabel("Time (generations)", fontsize=10)
+        os.makedirs(f"parameter_images/{species.id}/", exist_ok=True)
         img_name = f"parameter_images/{species.id}/{mid}.png"
-        plt.tight_layout()
-        plt.savefig(img_name, dpi=150, bbox_inches='tight')
+        plt.savefig(img_name, dpi=150)
         section = nodes.image(uri=img_name)
         return section
 
