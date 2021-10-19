@@ -61,19 +61,19 @@ def get_gff_recarray(url, sha256):
     local_path = pathlib.Path(url).name
 
     if not pathlib.Path(local_path).exists():
-        print(f"downloading {url}")
+        logger.info(f"downloading {url}")
         stdpopsim.utils.download(url, local_path)
 
-    print("checking sha256")
+    logger.info("checking sha256")
     local_sha256 = stdpopsim.utils.sha256(local_path)
     if local_sha256 != sha256:
-        print(
+        logger.info(
             f"{local_path}: sha256: expected {sha256}, but found {local_sha256}. "
             "Delete the file to download it again."
         )
         exit(1)
 
-    print(f"loading {local_path} into numpy recarray")
+    logger.info(f"loading {local_path} into numpy recarray")
     gff = allel.gff3_to_recarray(local_path)
     return gff
 
@@ -86,40 +86,45 @@ def make_tarfile(output_filename, source_dir, dest):
     tar.close()
 
 
-# loop through species and download
-for spc in stdpopsim.all_species():
-    if spc.annotations:
-        for an in spc.annotations:
-            CHROM_IDS = [chrom.id for chrom in spc.genome.chromosomes]
-            genome_version = os.path.basename(an.url).split(".")[1]
-            logger.info(f"Downloading GFF file {spc.id}")
-            tmp_path = f"{spc.id}.tmp.gff.gz"
-            gff = get_gff_recarray(an.url, an.gff_sha256)
-            logger.info("extracting exons {spc.id}")
-            # this is fragile-- is ensembl_havana always a feature?
-            exons = gff[
-                np.where(
-                    np.logical_and(gff.source == "ensembl_havana", gff.type == "exon")
-                )
-            ]
-            logger.info(f"merging overlapping regions {spc.id}")
-            # create zarr store and zarr root
-            spc_name_path = os.path.join(annot_path, spc.id)
-            os.makedirs(spc_name_path, exist_ok=True)
-            for chrom_id in CHROM_IDS:
-                chrom_exons = exons[np.where(exons.seqid == chrom_id)]
-                if len(chrom_exons) == 0:
-                    continue
-                intervals = gff_recarray_to_stdpopsim_intervals(chrom_exons)
-                # double check that the intervals can be used in stdpopsim
-                stdpopsim.utils.check_intervals_validity(intervals)
-                out_file = os.path.join(
-                    spc_name_path, an.file_pattern.format(id=chrom_id)
-                )
-                np.savetxt(out_file, intervals, fmt="%d")
-            tf = spc_name_path + f"/{spc.id}.{genome_version}.tar.gz"
-            make_tarfile(tf, spc_name_path, "")
-            print(spc_name_path + "/*.txt")
-            for f in glob.glob(spc_name_path + "/*.txt"):
-                print(f)
-                os.remove(f)
+def download_process_annotations():
+    """
+    loop through all species and download annotation.
+    from those annotations suck out what we want and
+    store them in appropriately named files for upload
+    """
+    for spc in stdpopsim.all_species():
+        if spc.annotations:
+            for an in spc.annotations:
+                CHROM_IDS = [chrom.id for chrom in spc.genome.chromosomes]
+                logger.info(f"Downloading GFF file {spc.id}")
+                gff = get_gff_recarray(an.url, an.gff_sha256)
+                logger.info("extracting exons {spc.id}")
+                # this is fragile-- is ensembl_havana always a feature?
+                exons = gff[
+                    np.where(
+                        np.logical_and(
+                            gff.source == "ensembl_havana", gff.type == "exon"
+                        )
+                    )
+                ]
+                logger.info(f"merging overlapping regions {spc.id}")
+                # create zarr store and zarr root
+                spc_name_path = os.path.join(annot_path, spc.id)
+                os.makedirs(spc_name_path, exist_ok=True)
+                for chrom_id in CHROM_IDS:
+                    chrom_exons = exons[np.where(exons.seqid == chrom_id)]
+                    if len(chrom_exons) == 0:
+                        continue
+                    intervals = gff_recarray_to_stdpopsim_intervals(chrom_exons)
+                    # double check that the intervals can be used in stdpopsim
+                    stdpopsim.utils.check_intervals_validity(intervals)
+                    out_file = os.path.join(
+                        spc_name_path, an.file_pattern.format(id=chrom_id)
+                    )
+                    np.savetxt(out_file, intervals, fmt="%d")
+                tf = spc_name_path + f"/{an.id}.tar.gz"
+                make_tarfile(tf, spc_name_path, "")
+                logger.info("made tarball at " + spc_name_path)
+                for f in glob.glob(spc_name_path + "/*.txt"):
+                    logger.info("removing " + f)
+                    os.remove(f)
