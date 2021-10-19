@@ -13,7 +13,7 @@ _species = stdpopsim.get_species("HomSap")
 
 # population definitions that are reused.
 _yri_population = stdpopsim.Population(
-    id="YRI", description="1000 Genomes YRI (Yorubans)"
+    id="YRI", description="1000 Genomes YRI (Yoruba)"
 )
 _ceu_population = stdpopsim.Population(
     id="CEU",
