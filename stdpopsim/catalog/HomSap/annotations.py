@@ -13,7 +13,7 @@ _an = stdpopsim.Annotation(
     gff_sha256="313ad46bd4af78b45b9f5d8407bbcbd3f87f4be0747060e84b3b5eb931530ec1",
     intervals_url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
-        "annotations/HomSap/HomSap.GRCh38.104.tar.gz"
+        "annotations/HomSap/Ensembl_GRCh38_104_gff3.tar.gz"
     ),
     intervals_sha256="1a2de33beaf2dada376654769db8370e649ff6f67dd0ec74287544eb52f850b2",
     citations=[
