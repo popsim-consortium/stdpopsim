@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 @attr.s(kw_only=True)
 class Annotation:
     """
-    Class representing a GFF3 annotation file.
+    Class representing an annotation track.
 
     :ivar str ~.id: String that uniquely identifies the annotation.
     :ivar species: The species to which this annotation applies.
@@ -37,6 +37,8 @@ class Annotation:
     description = attr.ib()
     citations = attr.ib(factory=list)
     file_pattern = attr.ib()
+    annotation_source = attr.ib()
+    annotation_type = attr.ib()
 
     def __attrs_post_init__(self):
         self._cache = stdpopsim.CachedData(
