@@ -111,6 +111,55 @@ class TestContig:
         assert len(contig.genomic_element_types) == 2
         assert len(contig.mutation_types) == len(mt)
 
+    def test_add_DFE_neutral_background(self):
+        contig = stdpopsim.Contig.basic_contig(length=100)
+        contig.clear_genomic_mutation_types()
+        props = [0.3, 0.7]
+        mt = [stdpopsim.ext.MutationType() for _ in props]
+        dfes = [
+            stdpopsim.DFE(
+                id=str(j),
+                description="test",
+                long_description="test test",
+                proportions=props,
+                mutation_types=mt,
+            )
+            for j in range(2)
+        ]
+        contig.add_DFE_neutral_background(
+            intervals=np.array([[10, 30], [50, 70], [98, 99]]), DFE=dfes[0]
+        )
+        assert len(contig.genomic_element_types) == 2
+        assert len(contig.mutation_types) == len(mt) + 1
+        # also test case where last element ends at contig end
+        contig.clear_genomic_mutation_types()
+        contig.add_DFE_neutral_background(
+            intervals=np.array([[10, 30], [50, 70], [98, 100]]), DFE=dfes[0]
+        )
+        assert len(contig.genomic_element_types) == 2
+        assert len(contig.mutation_types) == len(mt) + 1
+
+    def test_add_DFE_neutral_background_errors(self):
+        contig = stdpopsim.Contig.basic_contig(length=100)
+        contig.clear_genomic_mutation_types()
+        props = [0.3, 0.7]
+        mt = [stdpopsim.ext.MutationType() for _ in props]
+        dfes = [
+            stdpopsim.DFE(
+                id=str(j),
+                description="test",
+                long_description="test test",
+                proportions=props,
+                mutation_types=mt,
+            )
+            for j in range(2)
+        ]
+        # add bad interval
+        with pytest.raises(ValueError):
+            contig.add_DFE_neutral_background(
+                intervals=np.array([[10, 10]]), DFE=dfes[0]
+            )
+
 
 class TestAll_DFE_Models:
     """

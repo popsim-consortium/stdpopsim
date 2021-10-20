@@ -372,6 +372,45 @@ class Contig:
             DFE.mutation_types, DFE.proportions, genomic_element_type_id=getid
         )
 
+    def add_DFE_neutral_background(self, intervals, DFE):
+        """
+        Adds the provided DFE to the intervals specified, by making a new genomic
+        element type with the mutation types and proportions specified by the DFE.
+        Then fills in neutral mutation types / intervals on remainder of chrom
+
+        :param array intervals: A valid set of intervals.
+        :param DFE dfe: A DFE object.
+        """
+        stdpopsim.utils.check_intervals_validity(intervals)
+        self.clear_genomic_mutation_types()
+        ge_type = stdpopsim.GenomicElementType(intervals=intervals)
+        self.genomic_element_types.append(ge_type)
+        getid = len(self.genomic_element_types) - 1
+        self.add_mutation_types(
+            DFE.mutation_types, DFE.proportions, genomic_element_type_id=getid
+        )
+        # now get neutral background intervals that are half open [start, end)
+        start = 0
+        neutral_intervals = []
+        for ele in intervals:
+            neutral_intervals.append([start, ele[0]])
+            start = ele[1]
+        if start < self.length:
+            neutral_intervals.append([start, self.length])
+        ge_type2 = stdpopsim.GenomicElementType(
+            intervals=np.array(neutral_intervals, dtype="int32")
+        )
+        self.genomic_element_types.append(ge_type2)
+        getid = len(self.genomic_element_types) - 1
+        neut_mut = stdpopsim.ext.MutationType(
+            convert_to_substitution=True,
+        )
+        self.add_mutation_types(
+            [neut_mut],
+            [0],  # proportion zero cause simulate with msprime?
+            genomic_element_type_id=getid,
+        )
+
     def add_mutation_types(self, mutation_types, proportions, genomic_element_type_id):
         """
         Adds mutation types with their respective proportions to the genomic
