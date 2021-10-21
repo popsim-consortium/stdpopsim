@@ -504,7 +504,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         dfes_section += nodes.title(text="Distribution of Fitness Effects (DFEs)")
         dfes_section += self.dfes_table(species)
         for i, dfe in enumerate(species.dfes):
-            dfes_section += self.model_section(species, dfe)
+            dfes_section += self.dfe_section(species, dfe)
         section += dfes_section
         section += nodes.transition()
         return [species_target, section]
