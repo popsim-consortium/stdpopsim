@@ -96,18 +96,18 @@ def download_process_annotations():
         if spc.annotations:
             for an in spc.annotations:
                 CHROM_IDS = [chrom.id for chrom in spc.genome.chromosomes]
-                logger.info(f"Downloading GFF file {spc.id}")
+                logger.info(f"Downloading GFF file {an.id}")
                 gff = get_gff_recarray(an.url, an.gff_sha256)
-                logger.info("extracting exons {spc.id}")
-                # this is fragile-- is ensembl_havana always a feature?
+                logger.info(f"extracting annotations {an.id}")
                 exons = gff[
                     np.where(
                         np.logical_and(
-                            gff.source == "ensembl_havana", gff.type == "exon"
+                            gff.source == an.annotation_source,
+                            gff.type == an.annotation_type,
                         )
                     )
                 ]
-                logger.info(f"merging overlapping regions {spc.id}")
+                logger.info(f"merging overlapping regions {an.id}")
                 # create zarr store and zarr root
                 spc_name_path = os.path.join(annot_path, spc.id)
                 os.makedirs(spc_name_path, exist_ok=True)

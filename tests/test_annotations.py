@@ -78,6 +78,8 @@ class AnnotationTestClass(stdpopsim.Annotation):
             gff_sha256="6789",
             description="test annotation",
             file_pattern="yolo_{id}.txt",
+            annotation_source="your mom",
+            annotation_type="test",
         )
 
 
@@ -144,7 +146,7 @@ class TestAnnotationDownload(tests.CacheWritingTest):
         # TODO: The HomSap annotations are huge. Once we include a smaller
         # annotation set, we should instead use that, so tests are faster.
         species = stdpopsim.get_species("HomSap")
-        an = species.get_annotations("Ensembl_GRCh38_104_gff3")
+        an = species.get_annotations("ensembl_havana_104_CDS")
         an.download()
         assert an.is_cached()
         an.download()
@@ -157,12 +159,10 @@ class TestGetChromosomeAnnotations(tests.CacheReadingTest):
     using the Ensembl_GRCh38 human GFF.
     """
 
-    # TODO: The HomSap annotations are huge. Once we include a smaller
-    # annotation set, we should instead use that, so tests are faster.
     @classmethod
     def setup_class(cls):
         species = stdpopsim.get_species("HomSap")
-        cls.an = species.get_annotations("Ensembl_GRCh38_104_gff3")
+        cls.an = species.get_annotations("ensembl_havana_104_exons")
 
     def test_known_chromosome(self):
         cm = self.an.get_chromosome_annotations("21")
@@ -170,6 +170,31 @@ class TestGetChromosomeAnnotations(tests.CacheReadingTest):
 
     def test_known_chromosome_prefix(self):
         cm = self.an.get_chromosome_annotations("chr21")
+        assert isinstance(cm, np.ndarray)
+
+    def test_unknown_chromosome(self):
+        for bad_chrom in ["", "ABD", None]:
+            with pytest.raises(ValueError):
+                self.an.get_chromosome_annotations(bad_chrom)
+
+
+class TestGetChromosomeAnnotationsDroMel(tests.CacheReadingTest):
+    """
+    Tests if we get chromosome level annotations
+    using the FlyBase_BDGP6.32.51_CDS GFF.
+    """
+
+    @classmethod
+    def setup_class(cls):
+        species = stdpopsim.get_species("DroMel")
+        cls.an = species.get_annotations("FlyBase_BDGP6.32.51_CDS")
+
+    def test_known_chromosome(self):
+        cm = self.an.get_chromosome_annotations("2L")
+        assert isinstance(cm, np.ndarray)
+
+    def test_known_chromosome_prefix(self):
+        cm = self.an.get_chromosome_annotations("chr2L")
         assert isinstance(cm, np.ndarray)
 
     def test_unknown_chromosome(self):
