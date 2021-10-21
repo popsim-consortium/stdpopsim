@@ -103,6 +103,13 @@ def get_genetic_map_wrapper(species, genetic_map_id):
         exit(str(ve))
 
 
+def get_dfe_wrapper(species, dfe_id):
+    try:
+        return species.get_dfe(dfe_id)
+    except ValueError as ve:
+        exit(str(ve))
+
+
 def get_models_help(species_id, model_id):
     """
     Generate help text for the specified species. If model_id is None, generate
@@ -179,6 +186,42 @@ class HelpGeneticMaps(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
         help_text = get_genetic_maps_help(namespace.species, values)
+        print(help_text, file=sys.stderr)
+        parser.exit()
+
+
+def get_dfes_help(species_id, dfe_id):
+    """
+    Generate help text for the given genetic map. If map_id is None, generate
+    help for all genetic maps. Otherwise, it must be a string with a valid map
+    ID.
+    """
+    species = stdpopsim.get_species(species_id)
+    if dfe_id is None:
+        dfes_text = f"\nAll DFEs for {species.name}\n\n"
+        dfes = [dfe.id for dfe in species.dfes]
+    else:
+        dfes = [dfe_id]
+        dfes_text = "\nDFE description\n\n"
+
+    indent = " " * 4
+    wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
+    for dfe_id in dfes:
+        gdfe = get_dfe_wrapper(species, dfe_id)
+        dfes_text += f"{gdfe.id}\n"
+        dfes_text += wrapper.fill(textwrap.dedent(gdfe.long_description))
+        dfes_text += "\n\n"
+
+    return dfes_text
+
+
+class HelpDFEs(argparse.Action):
+    """
+    Action used to produce DFE help text.
+    """
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        help_text = get_dfes_help(namespace.species, values)
         print(help_text, file=sys.stderr)
         parser.exit()
 
@@ -395,6 +438,18 @@ def add_simulate_species_parser(parser, species):
                 "the catalog: <https://stdpopsim.readthedocs.io/en/latest/catalog.html> "
                 "Available maps: "
                 f"{', '.join(choices)}. "
+            ),
+        )
+
+    if len(species.dfes) > 0:
+        species_parser.add_argument(
+            "--help-dfes",
+            action=HelpDFEs,
+            nargs="?",
+            help=(
+                "Print list of DFEs and exit. If a DFE ID is "
+                "given as an argument, show help for this DFE. Otherwise show "
+                "help for all available DFEs"
             ),
         )
 
