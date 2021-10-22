@@ -895,6 +895,9 @@ and MutationTypes have the same arguments as in SLiM.
 
 .. code-block:: python
 
+    import numpy as np
+
+
     def KimDFE():
         """
         Return neutral and negative MutationType()s representing a human DFE.
@@ -903,7 +906,7 @@ and MutationTypes have the same arguments as in SLiM.
         neutral = stdpopsim.ext.MutationType()
         gamma_shape = 0.186  # shape
         gamma_mean = -0.01314833  # expected value
-        h = 0.5 / (1 - 7071.07 * gamma_mean)  # dominance coefficient
+        h = 0.5  # dominance coefficient
         negative = stdpopsim.ext.MutationType(
             dominance_coeff=h,
             distribution_type="g",  # gamma distribution
@@ -916,6 +919,7 @@ and MutationTypes have the same arguments as in SLiM.
     species = stdpopsim.get_species("HomSap")
     model = species.get_demographic_model("OutOfAfrica_3G09")
     contig = species.get_contig("chr1", length_multiplier=0.001)
+    contig.clear_genomic_mutation_types()
     samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
 
     # neutral and deleterious mutations occur across the whole contig
@@ -969,6 +973,9 @@ Within the gene, the neutral mutations are added by msprime (as above),
 and outside the gene, all mutations are neutral and all are added with msprime.
 
 .. code-block:: python
+
+    import numpy as np
+
 
     species = stdpopsim.get_species("HomSap")
     model = species.get_demographic_model("OutOfAfrica_3G09")

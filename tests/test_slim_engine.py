@@ -154,6 +154,26 @@ class TestAPI:
 
     @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_simulate_verbosity(self):
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("AraTha")
+        contig = species.get_contig("5", length_multiplier=0.001)
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        samples = model.get_samples(10)
+        for v in [0, 1, 2, 3]:
+            ts = engine.simulate(
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                slim_scaling_factor=10,
+                slim_burn_in=0,
+                verbosity=v,
+            )
+            assert ts.num_samples == 10
+            assert all(tree.num_roots == 1 for tree in ts.trees())
+
+    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings(
         "ignore:.*model has mutation rate.*but this simulation used.*"
     )
@@ -793,6 +813,26 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
         assert ts.num_sites == 0
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_that_DFE_lognornal_produce_sites(self):
+        contig = get_test_contig()
+        contig.mutation_types = [
+            stdpopsim.ext.MutationType(),
+            stdpopsim.ext.MutationType(
+                distribution_type="l", distribution_args=[0.01, 0.2]
+            ),
+        ]
+        contig.genomic_element_types[0].proportions = [0.5]
+        ts = slim_simulate_no_recap(
+            demographic_model=self.model,
+            contig=contig,
+            samples=self.samples,
+            slim_scaling_factor=10,
+            slim_burn_in=0.1,
+            dry_run=True,
+        )
+        assert ts.num_sites > 0
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_weighted_mutations_are_simulated_by_slim(self):
         contig = get_test_contig()
         contig.mutation_types = [
@@ -871,6 +911,58 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
             with pytest.raises(ValueError):
                 stdpopsim.ext.MutationType(
                     distribution_type="g", distribution_args=distribution_args
+                )
+
+    def test_distribution_type_e(self):
+        for distribution_args in ([0.1], [10], [5000]):
+            stdpopsim.ext.MutationType(
+                distribution_type="e", distribution_args=distribution_args
+            )
+
+    def test_bad_distribution_args_e(self):
+        for distribution_args in ([], [0, 1], [0.1, 0.4, 0.5]):
+            with pytest.raises(ValueError):
+                stdpopsim.ext.MutationType(
+                    distribution_type="e", distribution_args=distribution_args
+                )
+
+    def test_distribution_type_n(self):
+        for distribution_args in ([-0.1, 0.2], [0.1, 0.1], [50, 50]):
+            stdpopsim.ext.MutationType(
+                distribution_type="n", distribution_args=distribution_args
+            )
+
+    def test_bad_distribution_args_n(self):
+        for distribution_args in ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1]):
+            with pytest.raises(ValueError):
+                stdpopsim.ext.MutationType(
+                    distribution_type="n", distribution_args=distribution_args
+                )
+
+    def test_distribution_type_w(self):
+        for distribution_args in ([0.1, 0.2], [0.1, 0.1], [50, 50]):
+            stdpopsim.ext.MutationType(
+                distribution_type="w", distribution_args=distribution_args
+            )
+
+    def test_bad_distribution_args_w(self):
+        for distribution_args in ([], [-0.1, 1], [0.1, -1], [0.1, 0.4, 0.5], [0.1]):
+            with pytest.raises(ValueError):
+                stdpopsim.ext.MutationType(
+                    distribution_type="w", distribution_args=distribution_args
+                )
+
+    def test_distribution_type_l(self):
+        for distribution_args in ([-0.1, 0.2], [0.1, 0.1], [50, 50]):
+            stdpopsim.ext.MutationType(
+                distribution_type="l", distribution_args=distribution_args
+            )
+
+    def test_bad_distribution_args_l(self):
+        for distribution_args in ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1]):
+            with pytest.raises(ValueError):
+                stdpopsim.ext.MutationType(
+                    distribution_type="l", distribution_args=distribution_args
                 )
 
 
