@@ -19,9 +19,6 @@ from .citations import *  # NOQA
 from .engines import *  # NOQA
 from .warning_categories import *  # NOQA
 
-# Extensions.
-from . import ext  # NOQA
-
 # We import catalog here, but the internal functions
 # defined are not part of the external API.
 from .catalog import *  # NOQA
@@ -29,3 +26,6 @@ from .catalog import *  # NOQA
 from . import qc  # NOQA
 
 from .slim_engine import *  # NOQA
+
+# Extensions.
+from . import ext  # NOQA

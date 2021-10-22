@@ -18,6 +18,9 @@ class MutationType(object):
         if self.dominance_coeff < 0:
             raise ValueError(f"Invalid dominance coefficient {self.dominance_coeff}.")
 
+        # TODO: Add more distribution types like "e", "n", and "w".
+        #       We probably shouldn't support "s" because it takes an
+        #       arbitrary Eidos code string as an argument.
         # To add a new distribution type: validate the
         # distribution_args here, and add unit tests.
         if self.distribution_type == "f":
@@ -34,65 +37,22 @@ class MutationType(object):
             # See Eidos documentation for rgamma().
             if len(self.distribution_args) != 2 or self.distribution_args[1] <= 0:
                 raise ValueError(
-                    "Gamma-distributed sel. coefs. (distribution_type='g') "
+                    "Gamma-distributed mutation types (distribution_type='g') "
                     "use a (mean, shape) parameterisation, requiring shape > 0."
                 )
-        elif self.distribution_type == "e":
-            # An exponentially-distributed fitness effect (mean).
-            # See Eidos documentation for rexp().
-            if len(self.distribution_args) != 1:
-                raise ValueError(
-                    "Exponentially-distributed sel. coefs. (distribution_type='e') "
-                    "use a (mean) parameterisation."
-                )
-        elif self.distribution_type == "n":
-            # An normally-distributed fitness effect (mean, standard deviation).
-            # See Eidos documentation for rnorm().
-            if len(self.distribution_args) != 2 or self.distribution_args[1] <= 0:
-                raise ValueError(
-                    "Normally-distributed sel. coefs. (distribution_type='n') "
-                    "use a (mean, sd) parameterisation, requiring sd > 0."
-                )
-        elif self.distribution_type == "w":
-            # A Weibull-distributed fitness effect (scale, shape).
-            # See Eidos documentation for rweibull().
-            if (
-                len(self.distribution_args) != 2
-                or self.distribution_args[0] <= 0
-                or self.distribution_args[1] <= 0
-            ):
-                raise ValueError(
-                    "Weibull-distributed sel. coef. (distribution_type='w') "
-                    "use a (scale, shape) parameterisation, requiring parameters > 0."
-                )
-        elif self.distribution_type == "l":
-            # An lognormally-distributed fitness effect (logmean, sdmean).
-            # See Eidos documentation for rlnorm().
-            if len(self.distribution_args) != 2 or self.distribution_args[1] <= 0:
-                raise ValueError(
-                    "Lognormally-distributed sel. coefs. (distribution_type='l') "
-                    "use a (logmean, logsd) parameterisation, requiring logsd > 0."
-                )
-            self.distribution_type = "s"
-            # dealing with lognormal distribution
-            # (adding instead of multiplying the mean):
-            logmean = self.distribution_args[0]
-            logsd = self.distribution_args[1]
-            self.distribution_args = f'"return rlnorm(1, {logmean} + log(Q), {logsd});"'
         else:
             raise ValueError(
                 f"{self.distribution_type} is not a supported distribution type"
             )
 
-        # The index(s) of the param in the distribution_args list that should be
+        # The index of the param in the distribution_args list that should be
         # multiplied by Q when using --slim-scaling-factor Q.
         self.Q_scaled_index = {
-            "e": [0],  # mean
-            "f": [0],  # fixed value
-            "g": [0],  # mean
-            "n": [0, 1],  # mean and sd
-            "w": [0],  # scale
-            "s": [],  # script types should just printout arguments
+            "e": 0,  # mean
+            "f": 0,  # fixed value
+            "g": 0,  # mean
+            "n": 1,  # standard deviation
+            "w": 0,  # scale
         }[self.distribution_type]
 
 

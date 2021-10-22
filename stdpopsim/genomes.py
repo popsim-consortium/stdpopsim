@@ -356,22 +356,6 @@ class Contig:
         all_intervals = stdpopsim.utils.build_intervals_array(all_intervals)
         return all_intervals
 
-    def add_DFE(self, intervals, DFE):
-        """
-        Adds the provided DFE to the intervals specified, by making a new genomic
-        element type with the mutation types and proportions specified by the DFE.
-
-        :param array intervals: A valid set of intervals.
-        :param DFE dfe: A DFE object.
-        """
-        stdpopsim.utils.check_intervals_validity(intervals)
-        ge_type = stdpopsim.GenomicElementType(intervals=intervals)
-        self.genomic_element_types.append(ge_type)
-        getid = len(self.genomic_element_types) - 1
-        self.add_mutation_types(
-            DFE.mutation_types, DFE.proportions, genomic_element_type_id=getid
-        )
-
     def add_mutation_types(self, mutation_types, proportions, genomic_element_type_id):
         """
         Adds mutation types with their respective proportions to the genomic
@@ -411,7 +395,6 @@ class Contig:
         )
 
     def add_genomic_element_type(self, intervals, mutation_types, proportions):
-        # TODO: deprecate, replaced by add_DFE??
         stdpopsim.utils.check_intervals_validity(intervals)
         ge_type = stdpopsim.GenomicElementType(intervals=intervals)
         self.genomic_element_types.append(ge_type)

@@ -16,7 +16,6 @@ import daiquiri
 import stdpopsim
 from . import ensembl
 from . import ncbi
-from . import annotation_maint
 
 logger = logging.getLogger("maint")
 
@@ -388,16 +387,6 @@ def add_species_ncbi(ncbi_id, force):
     """
     writer = DataWriter()
     writer.add_species_ncbi(ncbi_id, force=force)
-
-
-@cli.command()
-def process_annotations():
-    """
-    downloads annotations in catalog and preps them for
-    upload to aws
-    """
-    click.echo("downloading annotations")
-    annotation_maint.download_process_annotations()
 
 
 def main():

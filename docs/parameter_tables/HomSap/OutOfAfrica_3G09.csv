@@ -3,8 +3,8 @@ Population size,"12,300",YRI pop. size
 Population size,"2,100",OOA pop. size
 Population size,"1,000",CEU pop. size after EU/AS divergence
 Population size,510,CHB pop. size after EU/AS divergence
-Growth rate (per gen.),0.004,CEU pop. growth rate (per gen.)
-Growth rate (per gen.),0.0055,CHB pop. growth rate (per gen.)
+Growth rate (per gen.),0.4,CEU pop. growth rate (per gen.)
+Growth rate (per gen.),0.55,CHB pop. growth rate (per gen.)
 Migration rate (x10^-5),25,YRI-OOA migration rate (per gen.)
 Migration rate (x10^-5),3,YRI-CEU migration rate (per gen.)
 Migration rate (x10^-5),1.9,YRI-CHB migration rate (per gen.)

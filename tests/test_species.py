@@ -74,19 +74,6 @@ class TestSpecies:
         with pytest.raises(ValueError):
             species.add_demographic_model(model)
 
-    def test_add_duplicate_dfe(self):
-        species = stdpopsim.get_species("HomSap")
-        model = species.get_dfe("Gamma_K17")
-        with pytest.raises(ValueError):
-            species.add_dfe(model)
-
-    def test_get_unknown_dfe(self):
-        species = stdpopsim.get_species("HomSap")
-        bad = ["Fakedfe_K17", "", None]
-        for name in bad:
-            with pytest.raises(ValueError):
-                species.get_dfe(name)
-
     def test_get_unknown_annotation(self):
         bad = ["GDXXX", "", None]
         species = stdpopsim.get_species("HomSap")
@@ -133,11 +120,6 @@ class SpeciesTestBase:
         assert isinstance(self.species.demographic_models, list)
         for model in self.species.demographic_models:
             assert isinstance(model, stdpopsim.DemographicModel)
-
-    def test_dfes(self):
-        assert isinstance(self.species.dfes, list)
-        for model in self.species.dfes:
-            assert isinstance(model, stdpopsim.DFE)
 
     def test_citation_properties(self):
         for citation in self.species.citations:
