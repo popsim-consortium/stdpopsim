@@ -4,6 +4,7 @@ Tests for simulation engine infrastructure.
 import stdpopsim
 import msprime
 import pytest
+import numpy as np
 
 
 class TestEngineAPI:
@@ -104,3 +105,41 @@ class TestBehaviour:
         sim_seed = engine.simulate(model, contig, samples, seed=1)
         sim_random_seed = engine.simulate(model, contig, samples, random_seed=1)
         assert sim_seed.tables.edges == sim_random_seed.tables.edges
+
+    def test_non_neutral_contig(self):
+        species = stdpopsim.get_species("HomSap")
+        model = species.get_demographic_model("AshkSub_7G19")
+        samples = model.get_samples(10)
+        contig = stdpopsim.Contig.basic_contig(length=100)
+        contig.clear_genomic_mutation_types()
+        props = [1]
+        mt = [stdpopsim.ext.MutationType(distribution_type="f", distribution_args=[1])]
+        dfes = [
+            stdpopsim.DFE(
+                id=str(0),
+                description="test",
+                long_description="test test",
+                proportions=props,
+                mutation_types=mt,
+            )
+        ]
+        contig.add_DFE(intervals=np.array([[0, 50]]), DFE=dfes[0])
+        engine = stdpopsim.get_engine("msprime")
+        with pytest.raises(ValueError):
+            engine.simulate(model, contig, samples, seed=1)
+        # okay now change selection coefficient to neutral
+        contig.clear_genomic_mutation_types()
+        props = [1]
+        mt = [stdpopsim.ext.MutationType(distribution_type="f", distribution_args=[0])]
+        dfes = [
+            stdpopsim.DFE(
+                id=str(0),
+                description="test",
+                long_description="test test",
+                proportions=props,
+                mutation_types=mt,
+            )
+        ]
+        contig.add_DFE(intervals=np.array([[0, 50]]), DFE=dfes[0])
+        engine = stdpopsim.get_engine("msprime")
+        engine.simulate(model, contig, samples, seed=1)

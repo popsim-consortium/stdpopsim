@@ -436,6 +436,13 @@ class Contig:
             proportions=[1 if slim_mutations else 0],
         )
 
+    def is_neutral(self):
+        """
+        returns true if the contig has no non-neutral mutation
+        types
+        """
+        return all(mt.is_neutral() for mt in self.mutation_types)
+
     def __str__(self):
         gmap = "None" if self.genetic_map is None else self.genetic_map.id
         s = (
