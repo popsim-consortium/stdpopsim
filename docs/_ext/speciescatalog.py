@@ -15,6 +15,7 @@ from sphinx.util.docutils import SphinxDirective
 from sphinx.util import logging
 
 import stdpopsim
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,9 @@ class SpeciesCatalogDirective(SphinxDirective):
 
     def get_genetic_map_id(self, species, genetic_map):
         return f"sec_catalog_{species.id}_genetic_maps_{genetic_map.id}".lower()
+
+    def get_annotation_id(self, species, annotation):
+        return f"sec_catalog_{species.id}_annotations_{annotation.id}".lower()
 
     def get_dfe_id(self, species, dfe):
         return f"sec_catalog_{species.id}_dfes_{dfe.id}".lower()
@@ -404,6 +408,94 @@ class SpeciesCatalogDirective(SphinxDirective):
         section += self.model_parameter_table(species, model)
         return [target, section]
 
+    def model_image(self, species, model):
+        import demesdraw
+        import matplotlib.pyplot as plt
+
+        mid = self.get_demographic_model_id(species, model)
+        _, ax = plt.subplots(1, 1, figsize=(4, 4), tight_layout=True)
+        # Conversion into demes object for easier plotting
+        graph = model.model.to_demes()
+        demesdraw.tubes(graph, ax=ax, log_time=True)
+        ax.set_title(f"{model.id}", fontsize=10)
+        ax.set_xticklabels(
+            [p.name for p in model.populations],
+            rotation=45,
+            ha="right",
+            rotation_mode="anchor",
+            fontsize=10,
+        )
+        ax.set_ylabel("Time (generations)", fontsize=10)
+        os.makedirs(f"parameter_images/{species.id}/", exist_ok=True)
+        img_name = f"parameter_images/{species.id}/{mid}.png"
+        plt.savefig(img_name, dpi=150)
+        section = nodes.image(uri=img_name)
+        return section
+
+    def annotation_section(self, species, annotation):
+        map_id = self.get_annotation_id(species, annotation)
+        target = self.get_target(map_id)
+        section = nodes.section(ids=[map_id])
+        section += nodes.title(text=annotation.id)
+        section += nodes.paragraph(text=annotation.description)
+        section += nodes.rubric(text="Citations")
+        section += self.citation_list(annotation)
+        return [target, section]
+
+    def annotation_table(self, species):
+        table = nodes.table()
+        tgroup = nodes.tgroup(cols=3)
+        colspec = nodes.colspec(colwidth=1)
+        tgroup.append(colspec)
+        colspec = nodes.colspec(colwidth=1)
+        tgroup.append(colspec)
+        colspec = nodes.colspec(colwidth=1)
+        tgroup.append(colspec)
+
+        table += tgroup
+
+        thead = nodes.thead()
+        tgroup += thead
+        row = nodes.row()
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="ID")
+        row += entry
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="Year")
+        row += entry
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="Description")
+        row += entry
+
+        thead.append(row)
+
+        rows = []
+        for an in species.annotations:
+            row = nodes.row()
+            rows.append(row)
+
+            map_id = self.get_annotation_id(species, an)
+            entry = nodes.entry()
+            para = nodes.paragraph()
+            entry += para
+            para += nodes.reference(internal=True, refid=map_id, text=an.id)
+            row += entry
+
+            entry = nodes.entry()
+            entry += nodes.paragraph(text=an.citations[0].year)
+            row += entry
+
+            entry = nodes.entry()
+            para = nodes.paragraph()
+            entry += nodes.paragraph(text=an.description)
+            row += entry
+
+        tbody = nodes.tbody()
+        tbody.extend(rows)
+        tgroup += tbody
+
+        return table
+
     def dfe_section(self, species, dfe):
         dfe_id = self.get_dfe_id(species, dfe)
         target = self.get_target(dfe_id)
@@ -442,6 +534,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         thead.append(row)
 
         rows = []
+
         for dfe in species.dfes:
             row = nodes.row()
             rows.append(row)
@@ -490,21 +583,30 @@ class SpeciesCatalogDirective(SphinxDirective):
             maps_section += self.genetic_map_section(species, gmap)
         section += maps_section
         section += nodes.transition()
-        # models:
+        # demographic models:
         models_section = nodes.section(ids=[f"sec_catalog_{species.id}_models"])
         models_section += nodes.title(text="Demographic Models")
         models_section += self.models_table(species)
         for i, model in enumerate(species.demographic_models):
             models_section += self.model_section(species, model)
+            models_section += self.model_image(species, model)
             if i < len(species.demographic_models) - 1:
                 models_section += nodes.transition()
         section += models_section
+        # annotation:
+        annot_section = nodes.section(ids=[f"sec_catalog_{species.id}_annotations"])
+        annot_section += nodes.title(text="Annotations")
+        annot_section += self.annotation_table(species)
+        for an in species.annotations:
+            annot_section += self.annotation_section(species, an)
+        section += annot_section
+        section += nodes.transition()
         # DFE:
         dfes_section = nodes.section(ids=[f"sec_catalog_{species.id}_dfe"])
         dfes_section += nodes.title(text="Distribution of Fitness Effects (DFEs)")
         dfes_section += self.dfes_table(species)
         for i, dfe in enumerate(species.dfes):
-            dfes_section += self.dfe_section(species, dfe)
+            dfes_section += self.model_section(species, dfe)
         section += dfes_section
         section += nodes.transition()
         return [species_target, section]
