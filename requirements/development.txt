@@ -13,7 +13,7 @@ sphinx-argparse
 sphinx-issues
 sphinx_rtd_theme
 sphinxcontrib-programoutput
-msprime>=1.0.0
+msprime>=1.0.2
 attrs
 appdirs
 humanize
@@ -24,3 +24,6 @@ numpy
 scikit-allel
 zarr>=2.4
 biopython
+demes==0.1.2
+demesdraw==0.1.4
+boto3

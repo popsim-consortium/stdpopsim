@@ -83,6 +83,7 @@ initialize() {
     defineConstant("recombination_ends", _recombination_ends);
 """
 
+
 _slim_lower = """
     defineConstant("N", asInteger(_N/Q));
 
@@ -103,6 +104,10 @@ function (void)dbg(string$ s, [integer$ debug_level = 2]) {
         catn(sim.generation + ": " + s);
     }
 }
+"""
+
+
+_slim_functions = """
 
 // Check that sizes aren't dangerously low or zero (e.g. due to scaling).
 function (void)check_size(integer$ pop, integer$ size, integer$ g) {
@@ -150,6 +155,84 @@ function (void)end(void) {
     sim.simulationFinished();
 }
 
+
+// Add `mut_type` mutation at `pos`, to a single individual in `pop`.
+function (void)add_mut(object$ mut_type, object$ pop, integer$ pos) {
+   targets = sample(pop.genomes, 1);
+   targets.addNewDrawnMutation(mut_type, pos);
+}
+
+// Return the allele frequency of a drawn mutation in the specified population.
+// Assumes there's only one mutation of the given type.
+function (float$)af(object$ mut_type, object$ pop) {
+    mut = sim.mutationsOfType(mut_type);
+    if (length(mut) == 0) {
+        return 0.0;
+    }
+    return sim.mutationFrequencies(pop, mut);
+}
+
+// Save the state of the simulation.
+function (void)save(void) {
+    if (sim.getValue("restore_function")) {
+        // Don't save if we're in the restore() function.
+        return;
+    }
+    n_saves = 1 + sim.getValue("n_saves");
+    sim.setValue("n_saves", n_saves);
+    dbg("save() "+n_saves);
+    sim.treeSeqOutput(trees_file);
+}
+
+// Restore the simulation state.
+function (void)restore(void) {
+    g_restore = sim.generation;
+    n_restores = 1 + sim.getValue("n_restores");
+    sim.setValue("n_restores", n_restores);
+    n_saves = sim.getValue("n_saves");
+    if (n_saves == 0) {
+        err("restore() in generation "+g_restore+", but nothing is saved.");
+    }
+    sim.readFromPopulationFile(trees_file);
+    dbg("restore() "+n_restores+" from generation "+g_restore+", returning "+
+        "to state at save() "+n_saves);
+
+    /*
+     * The generation counter sim.generation has now been reset to the
+     * value it had when save() was called. There are two issues relating
+     * to event scheduling which must now be dealt with.
+     *
+     * 1. There may be additional late events for the generation in which
+     * restore() was called, and they are still scheduled to run.
+     * So we deactivate all script blocks to avoid unexpected problems.
+     * They will be automatically reactivated at the start of the next
+     * generation (see SLiM manual section 23.10).
+     */
+    sim.scriptBlocks.active = F;
+
+    /*
+     * 2. The late events below were run in the save() generation,
+     * but after the save() call. We execute these again here, because
+     * the next late events to run will be for sim.generation + 1.
+     * Note that the save() event is indistinguishable from the other
+     * late events in this generation, so we set a flag `restore_function`
+     * to signal the save() function not to save again.
+     */
+    g = sim.generation;
+    sim.setValue("restore_function", T);
+    for (sb in sim.scriptBlocks) {
+        if (sb.type == "late" & g >= sb.start & g <= sb.end) {
+            self = sb;
+            executeLambda(sb.source);
+        }
+    }
+    sim.setValue("restore_function", F);
+}
+
+"""
+
+
+_slim_main = """
 1 {
     // save/restore bookkeeping
     sim.setValue("n_restores", 0);
@@ -431,79 +514,45 @@ function (void)end(void) {
     }
 }
 
-// Add `mut_type` mutation at `pos`, to a single individual in `pop`.
-function (void)add_mut(object$ mut_type, object$ pop, integer$ pos) {
-   targets = sample(pop.genomes, 1);
-   targets.addNewDrawnMutation(mut_type, pos);
+"""
+
+
+_slim_debug_output = """
+
+///
+/// Debugging output
+///
+
+// Print out selection coefficients for every new mutation:
+// this is for development purposes, and the format of this output
+// is subject to change or may even be removed!
+// Header:
+1 late() {
+    if (verbosity >= 3) {
+        dbg(paste(c("dbg_selection_coeff:",
+                    "selectionCoeff",
+                    "id",
+                    "position"),
+                  sep="\t"));
+    }
 }
 
-// Return the allele frequency of a drawn mutation in the specified population.
-// Assumes there's only one mutation of the given type.
-function (float$)af(object$ mut_type, object$ pop) {
-    mut = sim.mutationsOfType(mut_type);
-    if (length(mut) == 0) {
-        return 0.0;
-    }
-    return sim.mutationFrequencies(pop, mut);
-}
-
-// Save the state of the simulation.
-function (void)save(void) {
-    if (sim.getValue("restore_function")) {
-        // Don't save if we're in the restore() function.
-        return;
-    }
-    n_saves = 1 + sim.getValue("n_saves");
-    sim.setValue("n_saves", n_saves);
-    dbg("save() "+n_saves);
-    sim.treeSeqOutput(trees_file);
-}
-
-// Restore the simulation state.
-function (void)restore(void) {
-    g_restore = sim.generation;
-    n_restores = 1 + sim.getValue("n_restores");
-    sim.setValue("n_restores", n_restores);
-    n_saves = sim.getValue("n_saves");
-    if (n_saves == 0) {
-        err("restore() in generation "+g_restore+", but nothing is saved.");
-    }
-    sim.readFromPopulationFile(trees_file);
-    dbg("restore() "+n_restores+" from generation "+g_restore+", returning "+
-        "to state at save() "+n_saves);
-
-    /*
-     * The generation counter sim.generation has now been reset to the
-     * value it had when save() was called. There are two issues relating
-     * to event scheduling which must now be dealt with.
-     *
-     * 1. There may be additional late events for the generation in which
-     * restore() was called, and they are still scheduled to run.
-     * So we deactivate all script blocks to avoid unexpected problems.
-     * They will be automatically reactivated at the start of the next
-     * generation (see SLiM manual section 23.10).
-     */
-    sim.scriptBlocks.active = F;
-
-    /*
-     * 2. The late events below were run in the save() generation,
-     * but after the save() call. We execute these again here, because
-     * the next late events to run will be for sim.generation + 1.
-     * Note that the save() event is indistinguishable from the other
-     * late events in this generation, so we set a flag `restore_function`
-     * to signal the save() function not to save again.
-     */
-    g = sim.generation;
-    sim.setValue("restore_function", T);
-    for (sb in sim.scriptBlocks) {
-        if (sb.type == "late" & g >= sb.start & g <= sb.end) {
-            self = sb;
-            executeLambda(sb.source);
+// Content:
+1: late() {
+    // Print out selection coefficients for every new mutation:
+    // this is for development purposes, and the format of this output
+    // is subject to change or may even be removed!
+    if (verbosity >= 3) {
+        new = (sim.mutations.originGeneration == sim.generation);
+        for (mut in sim.mutations[new]) {
+            dbg(paste(c("dbg_selection_coeff:",
+                        mut.selectionCoeff,
+                        mut.id,
+                        mut.position),
+                      sep="\t"));
         }
     }
-    sim.setValue("restore_function", F);
 }
-
 """
 
 
@@ -848,9 +897,16 @@ def slim_makescript(
 
     # Mutation types.
     for i, m in enumerate(mutation_types):
-        distrib_args = [str(arg) for arg in m.distribution_args]
-        distrib_args[m.Q_scaled_index] = "Q * " + distrib_args[m.Q_scaled_index]
-        distrib_args = ", ".join(distrib_args)
+        if len(m.Q_scaled_index) >= 1:
+            distrib_args = [str(arg) for arg in m.distribution_args]
+            for j in m.Q_scaled_index:
+                distrib_args[m.Q_scaled_index[j]] = (
+                    "Q * " + distrib_args[m.Q_scaled_index[j]]
+                )
+            distrib_args = ", ".join(distrib_args)
+        # dealing with distributions given by "s" Eidos script:
+        else:
+            distrib_args = m.distribution_args
         printsc(
             f"    initializeMutationType({i}, {m.dominance_coeff}, "
             + f'"{m.distribution_type}", {distrib_args});'
@@ -1038,6 +1094,9 @@ def slim_makescript(
     )
 
     printsc(_slim_lower)
+    printsc(_slim_functions)
+    printsc(_slim_main)
+    printsc(_slim_debug_output)
 
     return epochs[0]
 
@@ -1091,6 +1150,7 @@ class _SLiMEngine(stdpopsim.Engine):
         slim_scaling_factor=1.0,
         slim_burn_in=10.0,
         dry_run=False,
+        verbosity=None,
     ):
         """
         Simulate the demographic model using SLiM.
@@ -1176,7 +1236,11 @@ class _SLiMEngine(stdpopsim.Engine):
                 return None
 
             self._run_slim(
-                script_file.name, slim_path=slim_path, seed=seed, dry_run=dry_run
+                script_file.name,
+                slim_path=slim_path,
+                seed=seed,
+                dry_run=dry_run,
+                verbosity=verbosity,
             )
 
             if dry_run:
@@ -1195,7 +1259,9 @@ class _SLiMEngine(stdpopsim.Engine):
 
         return ts
 
-    def _run_slim(self, script_file, slim_path=None, seed=None, dry_run=False):
+    def _run_slim(
+        self, script_file, slim_path=None, seed=None, dry_run=False, verbosity=None
+    ):
         """
         Run SLiM.
 
@@ -1220,6 +1286,8 @@ class _SLiMEngine(stdpopsim.Engine):
             slim_cmd.extend(["-s", f"{seed}"])
         if dry_run:
             slim_cmd.extend(["-d", "dry_run=T"])
+        if verbosity is not None:
+            slim_cmd.extend(["-d", f"verbosity={verbosity}"])
         slim_cmd.append(script_file)
 
         with subprocess.Popen(
