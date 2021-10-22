@@ -13,7 +13,7 @@ _species = stdpopsim.get_species("HomSap")
 
 # population definitions that are reused.
 _yri_population = stdpopsim.Population(
-    id="YRI", description="1000 Genomes YRI (Yoruba)"
+    id="YRI", description="1000 Genomes YRI (Yorubans)"
 )
 _ceu_population = stdpopsim.Population(
     id="CEU",
@@ -1548,58 +1548,3 @@ def _ooa_4pop():
 
 
 _species.add_demographic_model(_ooa_4pop())
-
-
-def _africanBoyko():
-    id = "Africa_1B08"
-    description = "African-americans population"
-    long_description = """
-        African-American two-epoch instantaneous growth model from Boyko et al
-        2008, fit to the synonymous SFS for the 11 of 15 African Americans showing
-        the least European ancestry, using coalescent simulations with
-        recombination with the maximum likelihood method of Williamson et al 2005;
-        times were calibrated assuming 3e5 generations since human-chimp divergence
-        and fitting the number of synonymous human-chimp differences. Mutation and
-        recombination rates were assumed to be the same (1.8e-8).
-    """
-    populations = [
-        stdpopsim.Population(
-            id="African_Americans",
-            description="African-Americans from Boyko et al 2008",
-        ),
-    ]
-    citations = [
-        stdpopsim.Citation(
-            author="Boyko et al.",
-            year=2008,
-            doi="https://doi.org/10.1371/journal.pgen.1000083",
-            reasons={stdpopsim.CiteReason.DEM_MODEL},
-        )
-    ]
-
-    mutation_rate = 1.8e-8
-    generation_time = None
-    Ncurr = 25636
-    Nanc = 7778
-    T = 6809  # Start of instantaneous growth
-
-    return stdpopsim.DemographicModel(
-        id=id,
-        description=description,
-        long_description=long_description,
-        populations=populations,
-        citations=citations,
-        generation_time=generation_time,
-        mutation_rate=mutation_rate,
-        population_configurations=[
-            msprime.PopulationConfiguration(
-                initial_size=Ncurr, metadata=populations[0].asdict()
-            ),
-        ],
-        demographic_events=[
-            msprime.PopulationParametersChange(time=T, initial_size=Nanc),
-        ],
-    )
-
-
-_species.add_demographic_model(_africanBoyko())

@@ -22,7 +22,6 @@ class CiteReason:
     REC_RATE = "recombination rate"
     ASSEMBLY = "genome assembly"
     ANNOTATION = "genome annotation"
-    DFE = "distribution of fitness effects"
     STDPOPSIM = "stdpopsim"
 
 

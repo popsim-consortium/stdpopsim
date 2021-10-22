@@ -407,7 +407,7 @@ message:
     hint: 'git pull ...') before pushing again.
     hint: See the 'Note about fast-forwards' in 'git push --help' for details.
 
-**DO NOT LISTEN TO GIT IN THIS CASE!** Git is giving you **terrible advice**
+**DO NOT LISTEN TO GIT IN THIS CASE!** Git is giving you is **terrible advice**
 which will mess up your branch. What we need to do is replace the state of
 the branch ``topic_branch_name`` on your fork on GitHub (the ``upstream`` remote)
 with the state of your local branch, ``topic_branch_name``. We do this
@@ -734,7 +734,7 @@ follow these steps for it to be officially supported by stdpopsim:
        assigned/volunteers to do a blind implementation of the model.
 
     3. Developer B creates a blind implementation of the model in the
-       ``stdpopsim/qc/species_name.py`` file, remembering to register the
+       ``stdpopsim/qc/species_name_qc.py`` file, remembering to register the
        QC model implementation (see other QC models for examples).  Note that
        if you are adding a new species you will have to add a new import to
        ``stdpopsim/qc/__init__.py``.
@@ -1081,7 +1081,7 @@ Genetic maps are named using a descriptive name and the assembly version accordi
 to ``${CamelCaseDescriptiveName}_${Assembly}``. e.g., the HapMap phase 2 map on
 the GRCh37 assembly becomes HapMapII_GRCh37.
 
-Demographic models are named using a combination of a descriptive name,
+Finally demographic models are named using a combination of a descriptive name,
 information about the simulation, and information about the publication it was
 presented in. Specifically we use
 ``${SomethingDescriptive}_${number_of_populations}${first_author_initial}${two_digit_date}``
@@ -1090,12 +1090,6 @@ where the descriptive text is meant to capture something about the model
 is the number of populations implemented in the model (not necessarily the number
 from which samples are drawn). For author initial we will use a single letter, the 1st,
 until an ID collision, in which case we will include the 2nd letter, and so forth.
-
-DFEs (Distributions of Fitness Effects) are similarly named using something descriptive
-of the distribution, and information about the publication:
-``${SomethingDescriptive}_${First_authors_last_name_first_letter}{two_digit_date}``.
-For instance, if the distribution in question is a lognormal distribution,
-then ``LogNormal`` might be the descriptive string.
 
 
 **********
