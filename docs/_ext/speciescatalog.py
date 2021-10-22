@@ -33,6 +33,9 @@ class SpeciesCatalogDirective(SphinxDirective):
     def get_genetic_map_id(self, species, genetic_map):
         return f"sec_catalog_{species.id}_genetic_maps_{genetic_map.id}".lower()
 
+    def get_annotation_id(self, species, annotation):
+        return f"sec_catalog_{species.id}_annotations_{annotation.id}".lower()
+
     def get_target(self, tid):
         """
         Returns a target node for the specified ID.
@@ -426,6 +429,70 @@ class SpeciesCatalogDirective(SphinxDirective):
         section = nodes.image(uri=img_name)
         return section
 
+    def annotation_section(self, species, annotation):
+        map_id = self.get_annotation_id(species, annotation)
+        target = self.get_target(map_id)
+        section = nodes.section(ids=[map_id])
+        section += nodes.title(text=annotation.id)
+        section += nodes.paragraph(text=annotation.description)
+        section += nodes.rubric(text="Citations")
+        section += self.citation_list(annotation)
+        return [target, section]
+
+    def annotation_table(self, species):
+        table = nodes.table()
+        tgroup = nodes.tgroup(cols=3)
+        colspec = nodes.colspec(colwidth=1)
+        tgroup.append(colspec)
+        colspec = nodes.colspec(colwidth=1)
+        tgroup.append(colspec)
+        colspec = nodes.colspec(colwidth=1)
+        tgroup.append(colspec)
+
+        table += tgroup
+
+        thead = nodes.thead()
+        tgroup += thead
+        row = nodes.row()
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="ID")
+        row += entry
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="Year")
+        row += entry
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="Description")
+        row += entry
+
+        thead.append(row)
+
+        rows = []
+        for an in species.annotations:
+            row = nodes.row()
+            rows.append(row)
+
+            map_id = self.get_annotation_id(species, an)
+            entry = nodes.entry()
+            para = nodes.paragraph()
+            entry += para
+            para += nodes.reference(internal=True, refid=map_id, text=an.id)
+            row += entry
+
+            entry = nodes.entry()
+            entry += nodes.paragraph(text=an.citations[0].year)
+            row += entry
+
+            entry = nodes.entry()
+            para = nodes.paragraph()
+            entry += nodes.paragraph(text=an.description)
+            row += entry
+
+        tbody = nodes.tbody()
+        tbody.extend(rows)
+        tgroup += tbody
+
+        return table
+
     def run(self):
         species = stdpopsim.get_species(self.arguments[0])
         sid = f"sec_catalog_{species.id}"
@@ -456,6 +523,13 @@ class SpeciesCatalogDirective(SphinxDirective):
             if i < len(species.demographic_models) - 1:
                 models_section += nodes.transition()
         section += models_section
+        annot_section = nodes.section(ids=[f"sec_catalog_{species.id}_annotations"])
+        annot_section += nodes.title(text="Annotations")
+        annot_section += self.annotation_table(species)
+        for an in species.annotations:
+            annot_section += self.annotation_section(species, an)
+        section += annot_section
+        section += nodes.transition()
         return [species_target, section]
 
 
