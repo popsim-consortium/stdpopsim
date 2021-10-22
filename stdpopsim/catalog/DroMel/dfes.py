@@ -24,9 +24,7 @@ def _HuberDFE():
             author="Huber et al.",
             year=2017,
             doi="https://doi.org/10.1073/pnas.1619508114",
-            reasons={stdpopsim.CiteReason.DFE},  # include the dfe_model reason
-        )
-    ]
+            reasons={stdpopsim.CiteReason.DFE},
     neutral = stdpopsim.ext.MutationType()
     gamma_shape = 0.33  # shape
     gamma_mean = -3.96e-04  # expected value
