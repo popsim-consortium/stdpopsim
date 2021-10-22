@@ -24,7 +24,7 @@ def _HuberDFE():
             author="Huber et al.",
             year=2017,
             doi="https://doi.org/10.1073/pnas.1619508114",
-            reasons="to be defined",  # include the dfe_model reason
+            reasons={stdpopsim.CiteReason.DFE},  # include the dfe_model reason
         )
     ]
     neutral = stdpopsim.ext.MutationType()
