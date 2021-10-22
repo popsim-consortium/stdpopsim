@@ -103,6 +103,13 @@ def get_genetic_map_wrapper(species, genetic_map_id):
         exit(str(ve))
 
 
+def get_dfe_wrapper(species, dfe_id):
+    try:
+        return species.get_dfe(dfe_id)
+    except ValueError as ve:
+        exit(str(ve))
+
+
 def get_models_help(species_id, model_id):
     """
     Generate help text for the specified species. If model_id is None, generate
@@ -179,6 +186,42 @@ class HelpGeneticMaps(argparse.Action):
 
     def __call__(self, parser, namespace, values, option_string=None):
         help_text = get_genetic_maps_help(namespace.species, values)
+        print(help_text, file=sys.stderr)
+        parser.exit()
+
+
+def get_dfes_help(species_id, dfe_id):
+    """
+    Generate help text for the given DFE. If dfe_id is None, generate
+    help for all DFEs. Otherwise, it must be a string with a valid DFE
+    ID.
+    """
+    species = stdpopsim.get_species(species_id)
+    if dfe_id is None:
+        dfes_text = f"\nAll DFEs for {species.name}\n\n"
+        dfes = [dfe.id for dfe in species.dfes]
+    else:
+        dfes = [dfe_id]
+        dfes_text = "\nDFE description\n\n"
+
+    indent = " " * 4
+    wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
+    for dfe_id in dfes:
+        gdfe = get_dfe_wrapper(species, dfe_id)
+        dfes_text += f"{gdfe.id}\n"
+        dfes_text += wrapper.fill(textwrap.dedent(gdfe.long_description))
+        dfes_text += "\n\n"
+
+    return dfes_text
+
+
+class HelpDFEs(argparse.Action):
+    """
+    Action used to produce DFE help text.
+    """
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        help_text = get_dfes_help(namespace.species, values)
         print(help_text, file=sys.stderr)
         parser.exit()
 
@@ -262,7 +305,7 @@ def write_output(ts, args):
         ts.dump(args.output)
 
 
-def get_citations(engine, model, contig, species):
+def get_citations(engine, model, contig, species, dfe):
     """
     Return a list of all the citations.
     """
@@ -273,6 +316,7 @@ def get_citations(engine, model, contig, species):
     if contig.genetic_map is not None:
         citations.extend(contig.genetic_map.citations)
     citations.extend(model.citations)
+    citations.extend(dfe.citations)
     return stdpopsim.Citation.merge(citations)
 
 
@@ -285,14 +329,14 @@ def write_bibtex(engine, model, contig, species, bibtex_file):
     bibtex_file.close()
 
 
-def write_citations(engine, model, contig, species):
+def write_citations(engine, model, contig, species, dfe):
     """
     Write out citation information so that the user knows what papers to cite
     for the simulation engine, the model and the mutation/recombination rate
     information.
     """
     cite_str = ["If you use this simulation in published work, please cite:"]
-    for citation in get_citations(engine, model, contig, species):
+    for citation in get_citations(engine, model, contig, species, dfe):
         if (
             stdpopsim.citations.CiteReason.MUT_RATE in citation.reasons
             and model.mutation_rate is not None
@@ -398,6 +442,18 @@ def add_simulate_species_parser(parser, species):
             ),
         )
 
+    if len(species.dfes) > 0:
+        species_parser.add_argument(
+            "--help-dfes",
+            action=HelpDFEs,
+            nargs="?",
+            help=(
+                "Print list of DFEs and exit. If a DFE ID is "
+                "given as an argument, show help for this DFE. Otherwise show "
+                "help for all available DFEs"
+            ),
+        )
+
     # To avoid listing too much stuff out in the help, we only list
     # the actual IDs. We make all synonyms available as choices though.
     choices = []
@@ -474,6 +530,22 @@ def add_simulate_species_parser(parser, species):
         choices=[model.id for model in species.demographic_models],
         help=model_help,
     )
+    dfe_help = (
+        "Specify a Distribution of Fitness Effects (DFE) model. If no DFE is specified,"
+        "selection is simulated assuming a constant size demographic model."
+        "Available DFE models:"
+        f"{', '.join(dfe.id for dfe in species.dfes)}"
+        ". Please see --help-dfes for details of these DFE models."
+    )
+    species_parser.add_argument(
+        "-dfe",
+        "--dfe-model",
+        default=None,
+        metavar="",
+        choices=[dfe.id for dfe in species.dfes],
+        help=dfe_help,
+    )
+
     species_parser.add_argument(
         "-o",
         "--output",
@@ -499,37 +571,90 @@ def add_simulate_species_parser(parser, species):
     )
 
     def run_simulation(args):
-        if args.demographic_model is None:
-            model = stdpopsim.PiecewiseConstantSize(species.population_size)
-            model.generation_time = species.generation_time
-            for citation in species.citations:
-                reasons = {stdpopsim.CiteReason.POP_SIZE, stdpopsim.CiteReason.GEN_TIME}
-                if len(citation.reasons & reasons) > 0:
-                    model.citations.append(citation)
-            qc_complete = True
-        else:
-            model = get_model_wrapper(species, args.demographic_model)
-            qc_complete = model.qc_model is not None
-        if len(args.samples) > model.num_sampling_populations:
-            exit(
-                f"Cannot sample from more than {model.num_sampling_populations} "
-                "populations"
+        if args.dfe_model is None:
+            if args.demographic_model is None:
+                model = stdpopsim.PiecewiseConstantSize(species.population_size)
+                model.generation_time = species.generation_time
+                for citation in species.citations:
+                    reasons = {
+                        stdpopsim.CiteReason.POP_SIZE,
+                        stdpopsim.CiteReason.GEN_TIME,
+                    }
+                    if len(citation.reasons & reasons) > 0:
+                        model.citations.append(citation)
+                qc_complete = True
+            else:
+                model = get_model_wrapper(species, args.demographic_model)
+                qc_complete = model.qc_model is not None
+            if len(args.samples) > model.num_sampling_populations:
+                exit(
+                    f"Cannot sample from more than {model.num_sampling_populations} "
+                    "populations"
+                )
+            samples = model.get_samples(*args.samples)
+            contig = species.get_contig(
+                args.chromosome,
+                genetic_map=args.genetic_map,
+                length_multiplier=args.length_multiplier,
+                length=args.length,
+                inclusion_mask=args.inclusion_mask,
+                exclusion_mask=args.exclusion_mask,
+                mutation_rate=model.mutation_rate,
             )
-        samples = model.get_samples(*args.samples)
-        contig = species.get_contig(
-            args.chromosome,
-            genetic_map=args.genetic_map,
-            length_multiplier=args.length_multiplier,
-            length=args.length,
-            inclusion_mask=args.inclusion_mask,
-            exclusion_mask=args.exclusion_mask,
-            mutation_rate=model.mutation_rate,
-        )
-        engine = stdpopsim.get_engine(args.engine)
-        logger.info(
-            f"Running simulation model {model.id} for {species.id} on "
-            f"{contig} with {len(samples)} samples using {engine.id}."
-        )
+            engine = stdpopsim.get_engine(args.engine)
+            logger.info(
+                f"Running simulation model {model.id} for {species.id} on "
+                f"{contig} with {len(samples)} samples using {engine.id}."
+            )
+        # Including DFE (selection) in the simulation
+        else:
+            if args.demographic_model is None:
+                model = stdpopsim.PiecewiseConstantSize(species.population_size)
+                model.generation_time = species.generation_time
+                for citation in species.citations:
+                    reasons = {
+                        stdpopsim.CiteReason.POP_SIZE,
+                        stdpopsim.CiteReason.GEN_TIME,
+                    }
+                    if len(citation.reasons & reasons) > 0:
+                        model.citations.append(citation)
+                qc_complete = True
+            else:
+                model = get_model_wrapper(species, args.demographic_model)
+                qc_complete = model.qc_model is not None
+            if len(args.samples) > model.num_sampling_populations:
+                exit(
+                    f"Cannot sample from more than {model.num_sampling_populations} "
+                    "populations"
+                )
+
+            samples = model.get_samples(*args.samples)
+            contig = species.get_contig(
+                args.chromosome,
+                genetic_map=args.genetic_map,
+                length_multiplier=args.length_multiplier,
+                length=args.length,
+                inclusion_mask=args.inclusion_mask,
+                exclusion_mask=args.exclusion_mask,
+                mutation_rate=model.mutation_rate,
+            )
+            dfe = species.get_dfe(args.dfe_model)
+            # HERE WE NEED TO ADD THE ANOTATION PART,
+            # for now just doing across the whole contig
+            import numpy as np  # exclude it once we add the annotation stuff
+
+            contig.add_DFE(
+                intervals=np.array(
+                    [[0, int(contig.recombination_map.sequence_length)]]
+                ),
+                DFE=dfe,
+            )
+            engine = stdpopsim.get_engine(args.engine)
+            logger.info(
+                f"Running simulation model {model.id} for {species.id} on "
+                f"{contig} with {len(samples)} samples using {engine.id}."
+                f"Including selection under the DFE model {dfe.id}."
+            )
 
         write_simulation_summary(
             engine=engine, model=model, contig=contig, samples=samples, seed=args.seed
@@ -561,9 +686,9 @@ def add_simulate_species_parser(parser, species):
         # Non-QCed models shouldn't be used in publications, so we skip the
         # "If you use this simulation in published work..." citation request.
         if qc_complete:
-            write_citations(engine, model, contig, species)
+            write_citations(engine, model, contig, species, dfe)
         if args.bibtex_file is not None:
-            write_bibtex(engine, model, contig, species, args.bibtex_file)
+            write_bibtex(engine, model, contig, species, args.bibtex_file, dfe)
 
     species_parser.set_defaults(runner=run_simulation)
 
