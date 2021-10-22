@@ -95,6 +95,12 @@ class MutationType(object):
             "s": [],  # script types should just printout arguments
         }[self.distribution_type]
 
+    def is_neutral(self):
+        """
+        tests if the mutation type is strictly neutral
+        """
+        return self.distribution_type == "f" and self.distribution_args[0] == 0
+
 
 @attr.s
 class GenerationAfter(object):

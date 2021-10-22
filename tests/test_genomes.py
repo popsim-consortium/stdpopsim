@@ -111,6 +111,69 @@ class TestContig:
         assert len(contig.genomic_element_types) == 2
         assert len(contig.mutation_types) == len(mt)
 
+    def test_is_neutral(self):
+        contig = stdpopsim.Contig.basic_contig(length=100)
+        contig.clear_genomic_mutation_types()
+        props = [0.3, 0.7]
+        mt = [
+            stdpopsim.ext.MutationType(distribution_type="f", distribution_args=[1])
+            for _ in props
+        ]
+        dfes = [
+            stdpopsim.DFE(
+                id=str(j),
+                description="test",
+                long_description="test test",
+                proportions=props,
+                mutation_types=mt,
+            )
+            for j in range(2)
+        ]
+        contig.add_DFE(intervals=np.array([[10, 30], [50, 100]]), DFE=dfes[0])
+        contig.add_DFE(intervals=np.array([[30, 40]]), DFE=dfes[1])
+        assert not contig.is_neutral()
+
+    def test_is_neutral2(self):
+        contig = stdpopsim.Contig.basic_contig(length=100)
+        contig.clear_genomic_mutation_types()
+        props = [0.3, 0.7]
+        mt = [stdpopsim.ext.MutationType() for _ in props]
+        dfes = [
+            stdpopsim.DFE(
+                id=str(j),
+                description="test",
+                long_description="test test",
+                proportions=props,
+                mutation_types=mt,
+            )
+            for j in range(2)
+        ]
+        contig.add_DFE(intervals=np.array([[10, 30], [50, 100]]), DFE=dfes[0])
+        contig.add_DFE(intervals=np.array([[30, 40]]), DFE=dfes[1])
+        assert contig.is_neutral()
+
+    def test_is_neutral3(self):
+        contig = stdpopsim.Contig.basic_contig(length=100)
+        contig.clear_genomic_mutation_types()
+        props = [0.3, 0.7]
+        mt = [
+            stdpopsim.ext.MutationType(distribution_type="e", distribution_args=[1])
+            for _ in props
+        ]
+        dfes = [
+            stdpopsim.DFE(
+                id=str(j),
+                description="test",
+                long_description="test test",
+                proportions=props,
+                mutation_types=mt,
+            )
+            for j in range(2)
+        ]
+        contig.add_DFE(intervals=np.array([[10, 30], [50, 100]]), DFE=dfes[0])
+        contig.add_DFE(intervals=np.array([[30, 40]]), DFE=dfes[1])
+        assert not contig.is_neutral()
+
 
 class TestAll_DFE_Models:
     """

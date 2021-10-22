@@ -237,6 +237,12 @@ class _MsprimeEngine(Engine):
                 del kwargs["random_seed"]
             else:
                 raise ValueError("Cannot set both seed and random_seed")
+        # test to make sure contig is fully neutral
+        if not contig.is_neutral():
+            raise ValueError(
+                "Contig had non neutral mutation types "
+                "but you are using the msprime engine"
+            )
 
         # TODO: remove this after a release or two. See #745.
         self._warn_zigzag(demographic_model)

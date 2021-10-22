@@ -965,6 +965,16 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
                     distribution_type="l", distribution_args=distribution_args
                 )
 
+    def test_netural_mutation_type(self):
+        assert stdpopsim.ext.MutationType().is_neutral()
+
+    def test_not_neutral_mutation_type(self):
+        mt = stdpopsim.ext.MutationType(
+            distribution_type="f",
+            distribution_args=[1],
+        )
+        assert not mt.is_neutral()
+
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestDrawMutation(PiecewiseConstantSizeMixin):
