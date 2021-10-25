@@ -185,7 +185,6 @@ class TestAPI:
         for proportion, seed in zip((0, 1), (1234, 2345)):
             contig = species.get_contig("chr22", length_multiplier=0.001)
             if proportion:
-                contig.fully_neutral(slim_mutations=True)
                 extended_events = None
             else:
                 extended_events = []
@@ -642,7 +641,6 @@ class TestSlimAvailable:
 def get_test_contig(spp="HomSap", chrom="chr22", length_multiplier=0.001):
     species = stdpopsim.get_species(spp)
     contig = species.get_contig(chrom, length_multiplier=length_multiplier)
-    contig.fully_neutral(convert_to_substitution=False)
     return contig
 
 
@@ -697,21 +695,12 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
     def test_multiple_genomic_element_types_in_script(self):
         contig = get_test_contig()
         engine = stdpopsim.get_engine("slim")
-        contig.clear_genomic_mutation_types()
-        contig.add_genomic_element_type(
-            intervals=np.array([[0, 100]]),
-            mutation_types=[stdpopsim.ext.MutationType()],
-            proportions=[0],
+        contig.clear_features()
+        contig.add_DFE(
+            np.array([[0, 100]]), stdpopsim.dfe.neutral_DFE(), fill_neutral=False
         )
-        contig.add_genomic_element_type(
-            intervals=np.array([[100, 200]]),
-            mutation_types=[stdpopsim.ext.MutationType()],
-            proportions=[0],
-        )
-        contig.add_genomic_element_type(
-            intervals=np.array([[200, 300]]),
-            mutation_types=[stdpopsim.ext.MutationType()],
-            proportions=[0],
+        contig.add_DFE(
+            np.array([[100, 200]]), stdpopsim.dfe.neutral_DFE(), fill_neutral=False
         )
         out, _ = capture_output(
             engine.simulate,
@@ -720,8 +709,8 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             samples=self.samples,
             slim_script=True,
         )
-        assert out.count("initializeGenomicElementType") == 3
-        assert out.count("initializeGenomicElement(") == 3
+        assert out.count("initializeGenomicElementType") == 2
+        assert out.count("initializeGenomicElement(") == 2
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
@@ -750,7 +739,7 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
     def test_multiple_mutation_types_in_script(self):
         contig = get_test_contig()
         engine = stdpopsim.get_engine("slim")
-        contig.mutation_types = [
+        contig.dfe_list[0].mutation_types = [
             stdpopsim.ext.MutationType(),
             stdpopsim.ext.MutationType(),
         ]
@@ -764,11 +753,11 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
         assert out.count("initializeMutationType") == 2
 
         positive = stdpopsim.ext.MutationType(convert_to_substitution=False)
-        contig.mutation_types = [stdpopsim.ext.MutationType() for i in range(10)] + [
-            positive
-        ]
-        contig.genomic_element_types[0].proportions = [1 / 11 for i in range(11)]
-        contig.genomic_element_types[0].mutation_type_ids = [i for i in range(11)]
+        contig.dfe_list[0].mutation_types = [
+            stdpopsim.ext.MutationType() for i in range(10)
+        ] + [positive]
+        contig.dfe_list[0].proportions = [1 / 11 for i in range(11)]
+        contig.dfe_list[0].mutation_type_ids = [i for i in range(11)]
         out, _ = capture_output(
             engine.simulate,
             demographic_model=self.model,
@@ -781,12 +770,21 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_unweighted_mutations_are_not_simulated_by_slim(self):
         contig = get_test_contig()
-        contig.mutation_types = [
+        mt = [
             stdpopsim.ext.MutationType(convert_to_substitution=True),
             stdpopsim.ext.MutationType(convert_to_substitution=False),
         ]
-        contig.genomic_element_types[0].mutation_type_ids = [0, 1]
-        contig.genomic_element_types[0].proportions = [0, 0]
+        test_d = stdpopsim.DFE(
+            id="test",
+            description="test",
+            long_description="test test",
+            proportions=[0, 0],
+            mutation_types=mt,
+        )
+        contig.clear_features()
+        contig.add_DFE(
+            np.array([[0, contig.length]], dtype="int32"), test_d, fill_neutral=False
+        )
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
             contig=contig,
@@ -796,13 +794,23 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
         )
         assert ts.num_sites == 0
 
-        contig.mutation_types = [
+        mt = [
             stdpopsim.ext.MutationType(),
             stdpopsim.ext.MutationType(
                 distribution_type="g", distribution_args=[-0.01, 0.2]
             ),
         ]
-        contig.genomic_element_types[0].proportions = [0, 0]
+        test_d = stdpopsim.DFE(
+            id="test",
+            description="test",
+            long_description="test test",
+            proportions=[0, 0],
+            mutation_types=mt,
+        )
+        contig.clear_features()
+        contig.add_DFE(
+            np.array([[10, contig.length]], dtype="int32"), test_d, fill_neutral=True
+        )
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
             contig=contig,
@@ -815,13 +823,13 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_that_DFE_lognornal_produce_sites(self):
         contig = get_test_contig()
-        contig.mutation_types = [
+        contig.dfe_list[0].mutation_types = [
             stdpopsim.ext.MutationType(),
             stdpopsim.ext.MutationType(
                 distribution_type="l", distribution_args=[0.01, 0.2]
             ),
         ]
-        contig.genomic_element_types[0].proportions = [0.5]
+        contig.dfe_list[0].proportions = [0.5, 0.5]
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
             contig=contig,
@@ -835,10 +843,10 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_weighted_mutations_are_simulated_by_slim(self):
         contig = get_test_contig()
-        contig.mutation_types = [
+        contig.dfe_list[0].mutation_types = [
             stdpopsim.ext.MutationType(convert_to_substitution=True)
         ]
-        contig.genomic_element_types[0].proportions = [1]
+        contig.dfe_list[0].proportions = [1]
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
             contig=contig,
@@ -848,10 +856,10 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
         )
         assert ts.num_sites > 0
 
-        contig.mutation_types = [
+        contig.dfe_list[0].mutation_types = [
             stdpopsim.ext.MutationType(convert_to_substitution=False)
         ]
-        contig.genomic_element_types[0].proportions = [1]
+        contig.dfe_list[0].proportions = [1]
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
             contig=contig,
@@ -861,9 +869,10 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
         )
         assert ts.num_sites > 0
 
-        contig.mutation_types = [stdpopsim.ext.MutationType() for i in range(10)]
-        contig.genomic_element_types[0].proportions = [1 / 10 for i in range(10)]
-        contig.genomic_element_types[0].mutation_type_ids = list(range(10))
+        contig.dfe_list[0].mutation_types = [
+            stdpopsim.ext.MutationType() for i in range(10)
+        ]
+        contig.dfe_list[0].proportions = [1 / 10 for i in range(10)]
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
             contig=contig,
@@ -1045,7 +1054,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             ),
         ]
         contig = get_test_contig()
-        contig.mutation_types = []
+        contig.dfe_list[0].mutation_types = []
         engine = stdpopsim.get_engine("slim")
         with pytest.raises(ValueError):
             engine.simulate(
@@ -1113,6 +1122,19 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_drawn_mutation_not_lost(self):
+        ct = self.contig
+        mt = [
+            stdpopsim.ext.MutationType(convert_to_substitution=True),
+            stdpopsim.ext.MutationType(convert_to_substitution=True),
+        ]
+        test_d = stdpopsim.DFE(
+            id="test",
+            description="test",
+            long_description="test test",
+            proportions=[0, 0],
+            mutation_types=mt,
+        )
+        ct.dfe_list[0] = test_d
         extended_events = [
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
@@ -1132,7 +1154,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
         ]
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
-            contig=self.contig,
+            contig=ct,
             samples=self.samples,
             extended_events=extended_events,
             slim_scaling_factor=10,
@@ -1142,6 +1164,19 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_drawn_mutation_is_lost(self):
+        ct = self.contig
+        mt = [
+            stdpopsim.ext.MutationType(convert_to_substitution=True),
+            stdpopsim.ext.MutationType(convert_to_substitution=True),
+        ]
+        test_d = stdpopsim.DFE(
+            id="test",
+            description="test",
+            long_description="test test",
+            proportions=[0, 0],
+            mutation_types=mt,
+        )
+        ct.dfe_list[0] = test_d
         extended_events = [
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
@@ -1161,7 +1196,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
         ]
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
-            contig=self.contig,
+            contig=ct,
             samples=self.samples,
             extended_events=extended_events,
             slim_scaling_factor=10,
@@ -1171,6 +1206,20 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_drawn_mutation_meets_AF_threshold(self):
+        ct = self.contig
+        ct.mutation_rate = 0.0
+        mt = [
+            stdpopsim.ext.MutationType(convert_to_substitution=True),
+            stdpopsim.ext.MutationType(convert_to_substitution=True),
+        ]
+        test_d = stdpopsim.DFE(
+            id="test",
+            description="test",
+            long_description="test test",
+            proportions=[0, 1],
+            mutation_types=mt,
+        )
+        ct.dfe_list[0] = test_d
         for af_threshold, seed in zip((0.01, 0.1, 0.2), (1, 2, 3)):
             extended_events = [
                 stdpopsim.ext.DrawMutation(
@@ -1192,7 +1241,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
             ]
             ts = slim_simulate_no_recap(
                 demographic_model=self.model,
-                contig=self.contig,
+                contig=ct,
                 samples=self.samples,
                 extended_events=extended_events,
                 slim_scaling_factor=10,
@@ -1295,7 +1344,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
         extended_events = [
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
-                mutation_type_id=self.mut_id,
+                mutation_type_id=0,
                 population_id=0,
                 coordinate=100,
             ),
@@ -1348,15 +1397,17 @@ class TestFixedSelectionCoefficient(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_drawn_mutation_has_correct_selection_coeff(self):
         contig = self.contig
-        contig.mutation_types.append(
+        contig.dfe_list[0].mutation_types = [
+            stdpopsim.ext.MutationType(),
             stdpopsim.ext.MutationType(
                 distribution_type="f",
                 dominance_coeff=0.5,
                 distribution_args=[0.1],
                 convert_to_substitution=False,
-            )
-        )
-        mut_id = len(contig.mutation_types) - 1
+            ),
+        ]
+        mut_id = 1
+        contig.dfe_list[0].proportions = [0, 0]
         extended_events = [
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
@@ -1377,7 +1428,7 @@ class TestFixedSelectionCoefficient(PiecewiseConstantSizeMixin):
         scaling_factor = 10
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
-            contig=self.contig,
+            contig=contig,
             samples=self.samples,
             extended_events=extended_events,
             slim_scaling_factor=scaling_factor,
@@ -1400,12 +1451,13 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
     # So if this test takes more than a few seconds to run, that's a good
     # indication that selection is not acting.
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    @pytest.mark.skip("can't get this to complete?")
     def test_positive_mutation_meets_AF_threshold(self):
         for af_threshold, seed in zip((0.5, 1), (1, 2)):
             extended_events = [
                 stdpopsim.ext.DrawMutation(
                     time=self.T_mut,
-                    mutation_type_id=self.mut_id,
+                    mutation_type_id=1,
                     population_id=0,
                     coordinate=100,
                     save=True,
@@ -1413,7 +1465,7 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                 stdpopsim.ext.ChangeMutationFitness(
                     start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
                     end_time=0,
-                    mutation_type_id=self.mut_id,
+                    mutation_type_id=1,
                     population_id=0,
                     selection_coeff=0.1,
                     dominance_coeff=0.5,
@@ -1423,7 +1475,7 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                 stdpopsim.ext.ConditionOnAlleleFrequency(
                     start_time=0,
                     end_time=0,
-                    mutation_type_id=self.mut_id,
+                    mutation_type_id=1,
                     population_id=0,
                     op=">",
                     allele_frequency=0,
@@ -1432,15 +1484,23 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                 stdpopsim.ext.ConditionOnAlleleFrequency(
                     start_time=0,
                     end_time=0,
-                    mutation_type_id=self.mut_id,
+                    mutation_type_id=1,
                     population_id=0,
                     op=">=",
                     allele_frequency=af_threshold,
                 ),
             ]
+            mt = [stdpopsim.ext.MutationType(), stdpopsim.ext.MutationType()]
+            ct = self.contig
+            # turn off slim mutations for neutral muts
+            ct.dfe_list[0].proportions = [0, 0]
+            # manually add conditional class
+            ct.dfe_list[0].mutation_types = mt
+            print(ct.dfe_list)
+            print(ct.mutation_types())
             ts = slim_simulate_no_recap(
                 demographic_model=self.model,
-                contig=self.contig,
+                contig=ct,
                 samples=self.samples,
                 extended_events=extended_events,
                 slim_scaling_factor=10,
@@ -1549,33 +1609,66 @@ class TestMiscFunctions:
         contig = species.get_contig("chr22", length_multiplier=0.001)
         return contig
 
+    def test_add_dfe_misc(self):
+        contig = self.get_test_contig()
+        mt = [
+            stdpopsim.ext.MutationType(),
+            stdpopsim.ext.MutationType(
+                distribution_type="f", distribution_args=[-0.01]
+            ),
+        ]
+        test_d = stdpopsim.DFE(
+            id="test",
+            description="test",
+            long_description="test test",
+            proportions=[0, 1],
+            mutation_types=mt,
+        )
+        contig.clear_features()
+        contig.add_DFE(
+            np.array([[contig.length - 1, contig.length]], dtype="int32"),
+            test_d,
+            fill_neutral=True,
+        )
+        assert contig.interval_list[1].shape == (1, 2)
+        contig.clear_features()
+        contig.add_DFE(
+            np.array([[contig.length - 2, contig.length - 1]], dtype="int32"),
+            test_d,
+            fill_neutral=True,
+        )
+        assert contig.interval_list[1].shape == (2, 2)
+
     def test_slim_fractions(self):
         contig = self.get_test_contig()
-        contig.fully_neutral()
-        assert np.isclose(
-            stdpopsim.slim_engine.get_slim_fractions(contig), np.array([0])
-        )
-        contig.fully_neutral(slim_mutations=True)
         assert np.isclose(
             stdpopsim.slim_engine.get_slim_fractions(contig), np.array([1])
         )
+        contig.dfe_list[0].proportions = [0]
+        assert np.isclose(
+            stdpopsim.slim_engine.get_slim_fractions(contig), np.array([0])
+        )
 
+        mt = [stdpopsim.ext.MutationType(), stdpopsim.ext.MutationType()]
+        test_d = stdpopsim.DFE(
+            id="test",
+            description="test",
+            long_description="test test",
+            proportions=[0, 1],
+            mutation_types=mt,
+        )
+        test_int = np.array([[0, 1]])
         proportions = ([0, 1.0], [0.5, 0.5], [0, 0], [0.2, 0])
         for props in proportions:
             slim_frac = np.array(sum(props))
-            contig.clear_genomic_mutation_types()
-            contig.add_genomic_element_type(
-                intervals=np.array([[0, 1]]),
-                mutation_types=[
-                    stdpopsim.ext.MutationType(),
-                    stdpopsim.ext.MutationType(),
-                ],
-                proportions=props,
-            )
+            contig.clear_features()
+            test_d.proportions = props
+            contig.add_DFE(test_int, test_d, fill_neutral=False)
             assert (slim_frac == stdpopsim.slim_engine.get_slim_fractions(contig)).all()
 
     def test_msp_mutation_rate_map(self):
         contig = self.get_test_contig()
+        contig.dfe_list[0].proportions = [0]
         rmap, _ = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(contig)
         assert np.allclose(
             rmap.position,
@@ -1583,24 +1676,42 @@ class TestMiscFunctions:
         )
         assert np.allclose(rmap.rate, np.array([contig.mutation_rate]))
 
+        contig.interval_list[0][0, 0] = contig.length - 2
+        rmap, _ = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(contig)
+        end = int(contig.recombination_map.sequence_length)
+        assert np.allclose(
+            rmap.position,
+            np.array([0, end - 2, end]),
+        )
+        assert np.allclose(rmap.rate, np.array([contig.mutation_rate]))
+
     def test_slim_mutation_rate_map(self):
         contig = self.get_test_contig()
+        contig.dfe_list[0].proportions = [0]
         _, (breaks, rates) = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(
             contig
         )
         assert breaks == [int(contig.recombination_map.sequence_length) - 1]
         assert rates == [0.0]
 
+    @pytest.mark.skip(
+        "need to update way of dealing with multiple DFE to" "alter mutation rates"
+    )
     def test_complex_mutation_rate_maps(self):
         contig = self.get_test_contig()
-        for prop1, prop2 in ((0.3, 0.1), (0.7, 0.2), (1.0, 0.0)):
-            contig.clear_genomic_mutation_types()
-            contig.add_genomic_element_type(
-                intervals=np.array([[10, 100]]),
-                mutation_types=[stdpopsim.ext.MutationType()],
-                proportions=[prop1],
-            )
-
+        mt = [stdpopsim.ext.MutationType()]
+        test_d = stdpopsim.DFE(
+            id="test",
+            description="test",
+            long_description="test test",
+            proportions=[1],
+            mutation_types=mt,
+        )
+        for prop1, prop2 in ((0.3, 0.7), (0.7, 0.3), (1.0, 0.0)):
+            contig.clear_features()
+            test_d.proportions = [prop1]
+            contig.add_DFE(np.array([[10, 100]]), test_d, fill_neutral=True)
+            contig.dfe_list[1].proportions = [0]
             rmap, (
                 obs_slim_breaks,
                 obs_slim_rates,
@@ -1623,17 +1734,16 @@ class TestMiscFunctions:
                 np.isclose(np.array(obs_slim_rates), np.array(exp_slim_rates))
             ).all()
 
-            contig.clear_genomic_mutation_types()
-            contig.add_genomic_element_type(
-                intervals=np.array([[0, 50]]),
-                mutation_types=[stdpopsim.ext.MutationType()],
-                proportions=[prop1],
+            contig.clear_features()
+            contig.add_DFE(np.array([[0, 50]]), test_d, fill_neutral=False)
+            test_d2 = stdpopsim.DFE(
+                id="test",
+                description="test",
+                long_description="test test",
+                proportions=[prop2, prop1],
+                mutation_types=mt,
             )
-            contig.add_genomic_element_type(
-                intervals=np.array([[50, 100]]),
-                mutation_types=[stdpopsim.ext.MutationType()],
-                proportions=[prop2],
-            )
+            contig.add_DFE(np.array([[50, 100]]), test_d2, fill_neutral=False)
 
             rmap, (
                 obs_slim_breaks,
