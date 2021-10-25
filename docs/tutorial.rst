@@ -983,6 +983,7 @@ and outside the gene, all mutations are neutral and all are added with msprime.
     samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
 
     gene_interval = np.array([[1000, 2000]])
+    contig.clear_genomic_mutation_types()
     contig.add_genomic_element_type(intervals=gene_interval, **KimDFE())
 
     # Simulate.
