@@ -568,7 +568,7 @@ def msprime_rm_to_slim_rm(recombination_map):
 
 
 def get_slim_fractions(contig):
-    return np.array([sum(g.proportions) for g in contig.genomic_element_types])
+    return np.array([sum(g.proportions) for g in contig.dfe_list])
 
 
 def compute_msp_mutation_rate_map(contig, slim_fractions):
@@ -648,7 +648,8 @@ def slim_makescript(
     burn_in,
     slim_rate_map,
 ):
-    mutation_types = contig.mutation_types
+
+    mutation_types = contig.mutation_types()
     pop_names = [pop.name for pop in demographic_model.model.populations]
     # Use copies of these so that the time frobbing below doesn't have
     # side-effects in the caller's model.
@@ -896,33 +897,40 @@ def slim_makescript(
         return "".join(s)
 
     # Mutation types.
-    for i, m in enumerate(mutation_types):
-        if len(m.Q_scaled_index) >= 1:
-            distrib_args = [str(arg) for arg in m.distribution_args]
-            for j in m.Q_scaled_index:
-                distrib_args[m.Q_scaled_index[j]] = (
-                    "Q * " + distrib_args[m.Q_scaled_index[j]]
+    for m in mutation_types:
+        m_mtype = m["mutation_type"]
+        if len(m_mtype.Q_scaled_index) >= 1:
+            distrib_args = [str(arg) for arg in m_mtype.distribution_args]
+            for j in m_mtype.Q_scaled_index:
+                distrib_args[m_mtype.Q_scaled_index[j]] = (
+                    "Q * " + distrib_args[m_mtype.Q_scaled_index[j]]
                 )
             distrib_args = ", ".join(distrib_args)
         # dealing with distributions given by "s" Eidos script:
         else:
-            distrib_args = m.distribution_args
+            distrib_args = m_mtype.distribution_args
+        mid = m["id"]
         printsc(
-            f"    initializeMutationType({i}, {m.dominance_coeff}, "
-            + f'"{m.distribution_type}", {distrib_args});'
+            f"    initializeMutationType({mid}, {m_mtype.dominance_coeff}, "
+            + f'"{m_mtype.distribution_type}", {distrib_args});'
         )
-        if not m.convert_to_substitution:
+        if not m_mtype.convert_to_substitution:
             # T is the default for WF simulations.
-            printsc(f"    m{i}.convertToSubstitution = F;")
+            printsc(f"    m{mid}.convertToSubstitution = F;")
     # Genomic element types.
-    genomic_element_types = contig.genomic_element_types
-    for j, g in enumerate(genomic_element_types):
-        mut_props = ", ".join([str(prop) for prop in g.proportions])
-        mut_types = ", ".join([str(mid) for mid in g.mutation_type_ids])
-        element_starts = slim_array_string(g.intervals[:, 0], indent)
+    for j, d in enumerate(contig.dfe_list):
+        mut_props = ", ".join([str(prop) for prop in d.proportions])
+        mut_types = ", ".join(
+            [
+                str(m["id"])
+                for m in mutation_types
+                if m["dfe_id"] == contig.dfe_list[j].id
+            ]
+        )
+        element_starts = slim_array_string(contig.interval_list[j][:, 0], indent)
         # stdpopsim intervals are 0-based left inclusive, right exclusive, but
         # SLiM intervals are right inclusive
-        element_ends = slim_array_string(g.intervals[:, 1] - 1, indent)
+        element_ends = slim_array_string(contig.interval_list[j][:, 1] - 1, indent)
         printsc(
             f"    initializeGenomicElementType({j}, c({mut_types}), c({mut_props}));"
         )
@@ -1378,7 +1386,7 @@ class _SLiMEngine(stdpopsim.Engine):
 
         # Creating a SLiM mutation model
         model = msprime.SLiMMutationModel(
-            type=len(contig.mutation_types), next_id=max_id + 1
+            type=len(contig.mutation_types()), next_id=max_id + 1
         )
 
         # Add mutations to recapitated part of trees.

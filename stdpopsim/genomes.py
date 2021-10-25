@@ -144,34 +144,6 @@ class Chromosome:
 
 
 @attr.s(kw_only=True)
-class GenomicElementType(object):
-    """
-    Class that represents a map between genomic intervals and a group of
-    mutation types and the rate in which they occur within those intervals.
-
-    :ivar mutation_type_ids: Indices for the mutation types
-        (:class:`.ext.MutationType`) that can occur in genomic elements of this
-        type.
-    :vartype mutation_type_ids: list
-    :ivar proportions: Proportions (out of the mutation rate) in which each
-        mutation type can happen in genomic intervals of this type.
-    :vartype: proportions: numpy.array, dtype=np.float32
-    :ivar intervals: (n, 2) numpy array with [left, right) genomic intervals
-        that will be of this GenomicElementType. The intervals are used to
-        specify SLiM GenomicElements. Intervals must be non-overlapping.
-    :vartype intervals: numpy.array, dtype=np.int32
-    """
-
-    mutation_type_ids = attr.ib(factory=lambda: [], type=list)
-    proportions = attr.ib(factory=lambda: np.array([]), type=np.ndarray)
-    intervals = attr.ib(default=None, type=np.array)
-
-    def __attrs_post_init__(self):
-        _check_mut_proportions(self.proportions, self.mutation_type_ids)
-        stdpopsim.utils.check_intervals_validity(self.intervals)
-
-
-@attr.s(kw_only=True)
 class Contig:
     """
     Class representing a contiguous region of genome that is to be
@@ -192,13 +164,12 @@ class Contig:
     :ivar exclude: If True, ``mask_intervals`` specify regions to exclude. If False,
         ``mask_intervals`` specify regions in keep.
     :vartype exclude: bool
-    :ivar genomic_element_types: a list of :class:`.GenomicElementType` objects.
-        By default, the only element is a single genomic element type that spans
-        the entire contiguous region.
-    :vartype genomic_element_types: list
-    :ivar mutation_types: a list of :class:`.ext.MutationType` object. By default,
-        the only mutation type is neutral. See :class:`.ext.MutationType` for
-        more details.
+    :ivar dfe_list: a list of :class:`.DFE` objects.
+        By default, the only DFE is neutral
+    :vartype dfe_list: list
+    :ivar interval_list: a list of :class:`np.array` objects. By default,
+        the inital interval list spans the whole chrom with the
+        neutral DFE
 
     .. note::
         To run stdpopsim simulations with alternative, user-specified mutation
@@ -220,8 +191,8 @@ class Contig:
     genetic_map = attr.ib(default=None)
     inclusion_mask = attr.ib(default=None)
     exclusion_mask = attr.ib(default=None)
-    genomic_element_types = attr.ib(factory=list)
-    mutation_types = attr.ib(factory=list)
+    dfe_list = attr.ib(factory=list)
+    interval_list = attr.ib(factory=list)
 
     def __attrs_post_init__(self):
         self.fully_neutral()
@@ -346,129 +317,94 @@ class Contig:
         """
         all_intervals = np.concatenate(
             [
-                np.column_stack(
-                    (g.intervals[:, :2], np.full((g.intervals.shape[0]), i))
-                )
-                for i, g in enumerate(self.genomic_element_types)
+                np.column_stack((g[:, :2], np.full((g.shape[0]), i)))
+                for i, g in enumerate(self.interval_list)
             ],
             axis=0,
         )
         all_intervals = stdpopsim.utils.build_intervals_array(all_intervals)
         return all_intervals
 
-    def add_DFE(self, intervals, DFE):
+    def clear_features(self):
         """
-        Adds the provided DFE to the intervals specified, by making a new genomic
-        element type with the mutation types and proportions specified by the DFE.
+        convenience function to clear dfe_list and interval_list
+        """
+        self.dfe_list = []
+        self.interval_list = []
+
+    def add_DFE(self, intervals, DFE, fill_neutral=True):
+        """
+        Adds the provided DFE and the intervals specified to go with it
+        to the contig
 
         :param array intervals: A valid set of intervals.
         :param DFE dfe: A DFE object.
         """
+        if len(self.dfe_list) >= 2:
+            raise ValueError("only single DFE + neutral sites implemented")
+        if fill_neutral:
+            self.clear_features()
         stdpopsim.utils.check_intervals_validity(intervals)
-        ge_type = stdpopsim.GenomicElementType(intervals=intervals)
-        self.genomic_element_types.append(ge_type)
-        getid = len(self.genomic_element_types) - 1
-        self.add_mutation_types(
-            DFE.mutation_types, DFE.proportions, genomic_element_type_id=getid
+        self.dfe_list.append(DFE)
+        self.interval_list.append(intervals)
+        if fill_neutral:
+            # now get neutral background intervals -- [start, end)
+            start = 0
+            neutral_intervals = []
+            for ele in intervals:
+                neutral_intervals.append([start, ele[0]])
+                start = ele[1]
+            if start < self.length:
+                neutral_intervals.append([start, self.length])
+            self.dfe_list.append(stdpopsim.dfe.neutral_DFE())
+            self.interval_list.append(np.array(neutral_intervals, dtype="int32"))
+
+    def fully_neutral(self, convert_to_substitution=True):
+        self.add_DFE(
+            np.array([[0, int(self.length)]]),
+            stdpopsim.dfe.neutral_DFE(),
+            fill_neutral=False,
         )
 
-    def add_mutation_types(self, mutation_types, proportions, genomic_element_type_id):
-        """
-        Adds mutation types with their respective proportions to the genomic
-        element type provided.
-        """
-        if not (0 <= genomic_element_type_id < len(self.genomic_element_types)):
-            raise ValueError(
-                f"Genomic element type of id {genomic_element_type_id} does not exist."
-            )
-
-        if len(mutation_types) != len(proportions):
-            raise ValueError(
-                f"number of mutation_types ({len(mutation_types)}) doesn't match "
-                f"the number of proportions ({len(proportions)})"
-            )
-
-        def _is_index(y, X):
-            for i, e in enumerate(X):
-                if e is y:
-                    return i
-            return -1
-
-        for mut_type, prop in zip(mutation_types, proportions):
-            mid = _is_index(mut_type, self.mutation_types)
-            if mid == -1:
-                self.mutation_types.append(mut_type)
-                mid = len(self.mutation_types) - 1
-            self.genomic_element_types[
-                genomic_element_type_id
-            ].mutation_type_ids.append(mid)
-            self.genomic_element_types[genomic_element_type_id].proportions = np.append(
-                self.genomic_element_types[genomic_element_type_id].proportions, [prop]
-            )
-        genomic_element_type = self.genomic_element_types[genomic_element_type_id]
-        _check_mut_proportions(
-            genomic_element_type.proportions, genomic_element_type.mutation_type_ids
-        )
-
-    def add_genomic_element_type(self, intervals, mutation_types, proportions):
-        # TODO: deprecate, replaced by add_DFE??
-        stdpopsim.utils.check_intervals_validity(intervals)
-        ge_type = stdpopsim.GenomicElementType(intervals=intervals)
-        self.genomic_element_types.append(ge_type)
-        getid = len(self.genomic_element_types) - 1
-        self.add_mutation_types(
-            mutation_types, proportions, genomic_element_type_id=getid
-        )
-
-    def clear_genomic_mutation_types(self):
-        self.genomic_element_types = []
-        self.mutation_types = []
-
-    def fully_neutral(self, slim_mutations=False, convert_to_substitution=True):
-        self.clear_genomic_mutation_types()
-        self.add_genomic_element_type(
-            intervals=np.array([[0, int(self.length)]]),
-            mutation_types=[
-                stdpopsim.ext.MutationType(
-                    convert_to_substitution=convert_to_substitution
-                )
-            ],
-            proportions=[1 if slim_mutations else 0],
-        )
-
+    @property
     def is_neutral(self):
         """
         returns true if the contig has no non-neutral mutation
         types
         """
-        return all(mt.is_neutral() for mt in self.mutation_types)
+        return all(mt.is_neutral() for d in self.dfe_list for mt in d.mutation_types)
+
+    def mutation_types(self):
+        """
+        returns a list of hashes where each hash has structure
+        {dfe_id:<val>, mutation_type:, id:}
+        """
+        id = 0
+        hash_list = []
+        for d in self.dfe_list:
+            for mt in d.mutation_types:
+                hash_list.append(
+                    {
+                        "dfe_id": d.id,
+                        "mutation_type": mt,
+                        "id": id,
+                    }
+                )
+                id += 1
+        return hash_list
 
     def __str__(self):
         gmap = "None" if self.genetic_map is None else self.genetic_map.id
         s = (
             "Contig(length={:.2G}, recombination_rate={:.2G}, "
-            "mutation_rate={:.2G}, genetic_map={}, genomic_element_types={}, "
-            "mutation_types={})"
+            "mutation_rate={:.2G}, genetic_map={}, dfe_list={}, "
+            "interval_list={})"
         ).format(
             self.length,
             self.recombination_map.mean_rate,
             self.mutation_rate,
             gmap,
-            self.genomic_element_types,
-            self.mutation_types,
+            self.dfe_list,
+            self.interval_list,
         )
         return s
-
-
-def _check_mut_proportions(proportions, mutation_type=None, atol=1e-15):
-    if mutation_type is not None and len(proportions) != len(mutation_type):
-        raise ValueError(
-            "The list of proportions and mutation types should be of the same length."
-        )
-    if any([not (0 <= prop <= 1) for prop in proportions]):
-        raise ValueError("Proportions must lie within the [0,1] interval.")
-    if sum(proportions) > 1 + atol:
-        raise ValueError(
-            "The sum of the proportions within genomic element types cannot"
-            " exceed 1."
-        )

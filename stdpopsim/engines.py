@@ -238,7 +238,7 @@ class _MsprimeEngine(Engine):
             else:
                 raise ValueError("Cannot set both seed and random_seed")
         # test to make sure contig is fully neutral
-        if not contig.is_neutral():
+        if not contig.is_neutral:
             raise ValueError(
                 "Contig had non neutral mutation types "
                 "but you are using the msprime engine"
