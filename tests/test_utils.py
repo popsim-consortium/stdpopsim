@@ -1,6 +1,7 @@
 """
 Tests for the utils module.
 """
+import functools
 import os
 import pathlib
 import tarfile
@@ -497,3 +498,54 @@ class TestIntervalUtilities:
             casted = utils.build_intervals_array(intervals)
             assert not (np.all(np.diff(intervals[:, 0]) >= 0))
             assert np.all(np.diff(casted[:, 0]) >= 0)
+
+    def intervals_to_set(self, intervals):
+        # note: we may want to use intervaltree for more complicated operations
+        # in the future
+        utils.check_intervals_validity(intervals)
+        return functools.reduce(
+            lambda a, b: a | b, [set(range(a, b)) for a, b in intervals], set()
+        )
+
+    def test_mask_intervals(self):
+        empty_array = np.array([]).reshape((0, 2))
+        for a, b in [
+            (empty_array, [[1, 2]]),
+            (
+                [[0, 5], [5, 10]],
+                [[0, 10]],
+            ),
+            (
+                [[3, 4], [5, 12]],
+                [[0, 10]],
+            ),
+            (
+                [[0, 3], [3, 4], [5, 9]],
+                [[1, 10]],
+            ),
+            (
+                [[k, k + 1] for k in range(12)],
+                [[0, 10]],
+            ),
+            (
+                [[1, 4], [6, 9], [11, 13], [14, 17], [19, 21]],
+                [[0, 3], [5, 9], [11, 13], [15, 17], [20, 22]],
+            ),
+            (
+                [[1, 2], [6, 7], [11, 12], [14, 15], [19, 20], [20, 21], [22, 23]],
+                [[0, 3], [5, 7], [11, 12], [14, 16], [19, 23]],
+            ),
+        ]:
+            for u, v in [(a, b), (b, a), (a, empty_array), (empty_array, a)]:
+                u = np.array(u)
+                v = np.array(v)
+                umv = utils.mask_intervals(u, v)
+                x = self.intervals_to_set(umv)
+                y = self.intervals_to_set(u) - self.intervals_to_set(v)
+                assert x == y
+
+    def test_mask_intervals_errors(self):
+        with pytest.raises(ValueError):
+            utils.mask_intervals(intervals=np.array([[50, 10]]), mask=np.array([[]]))
+        with pytest.raises(ValueError):
+            utils.mask_intervals(intervals=np.array([[]]), mask=np.array([[10, 5]]))
