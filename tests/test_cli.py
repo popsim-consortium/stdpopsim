@@ -769,30 +769,27 @@ class TestSearchWrappers:
     def test_bad_species(self):
         with mock.patch("stdpopsim.cli.exit", autospec=True) as mocked_exit:
             cli.get_species_wrapper("XXX")
-            avail_sps_str = ", ".join(stdpopsim.species.registered_species)
+            available_species = ", ".join(stdpopsim.species.registered_species)
             mocked_exit.assert_called_once_with(
-                f"Species 'XXX' not in catalog ({avail_sps_str})"
+                f"Species 'XXX' not in catalog ({available_species})"
             )
 
     def test_bad_model(self):
         species = stdpopsim.get_species("HomSap")
         with mock.patch("stdpopsim.cli.exit", autospec=True) as mocked_exit:
             cli.get_model_wrapper(species, "XXX")
-            available_models = [dm.id for dm in species.demographic_models]
-            avail_models_str = ", ".join(available_models)
+            available_models = ", ".join([dm.id for dm in species.demographic_models])
             mocked_exit.assert_called_once_with(
-                f"DemographicModel 'HomSap/XXX' not in catalog ({avail_models_str})"
+                f"DemographicModel 'HomSap/XXX' not in catalog ({available_models})"
             )
 
     def test_bad_genetic_map(self):
         species = stdpopsim.get_species("HomSap")
         with mock.patch("stdpopsim.cli.exit", autospec=True) as mocked_exit:
             cli.get_genetic_map_wrapper(species, "XXX")
-            available_maps = [gm.id for gm in species.genetic_maps]
-            avail_maps_str = ", ".join(available_maps)
-
+            available_maps = ", ".join([gm.id for gm in species.genetic_maps])
             mocked_exit.assert_called_once_with(
-                f"Genetic map 'HomSap/XXX' not in catalog ({avail_maps_str})"
+                f"GeneticMap 'HomSap/XXX' not in catalog ({available_maps})"
             )
 
 
