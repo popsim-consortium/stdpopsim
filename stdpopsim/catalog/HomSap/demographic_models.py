@@ -1,6 +1,7 @@
 import math
 import msprime
-
+from scipy import stats
+import pandas as pd
 import stdpopsim
 
 _species = stdpopsim.get_species("HomSap")
@@ -33,6 +34,204 @@ _tennessen_et_al = stdpopsim.Citation(
     doi="https://doi.org/10.1126/science.1219240",
     reasons={stdpopsim.CiteReason.DEM_MODEL},
 )
+
+
+def _ooa_nea_extended_pulse():
+    def extended_pulse(
+        split_time,
+        migration_start,
+        migration_stop,
+        total_migration_rate,
+        source,
+        dest,
+        migration_cutoff=1e-6,
+    ):
+
+        """
+        This function creates a dataframe of migration rate changes to simulate
+        an extended pulse of unidirectional gene flow from a dest to a source
+        population (forward in time) in msprime.
+        The extended pulse models the migration rate m(t) as a rescaled
+        Gamma distribution with a total contribution of migrant alleles entering
+        between the start (backwards in time) (migration_start) and end
+        (migration_stop) time of gene flow.
+        The total migration rate is defined by the total_migration_rate.
+        The start and end are not hard start and endpoints of the gene flow.
+        The split_time time gives the maximum range (0 to split time)
+        for the extended pulse.
+        The migration_cutoff gives the lower cutoff for the per generation
+        migration rate. The function returns a dataframe of the migration rates.
+        """
+
+        event_in_range = list()
+        event_out_of_range = list([0])
+        D_extended_pulse = {"time": [], "rate": [], "source": [], "dest": []}
+
+        """
+        The shape and scale parameters are calculated from the input.
+        """
+        tm = (migration_stop - migration_start) / 2 + migration_start
+        k = 1 / ((migration_stop - migration_start) / (4 * tm)) ** 2
+        m = [stats.gamma.pdf(x=range(split_time + 1), a=k, loc=0, scale=tm / k)]
+
+        """
+        Scaling the distribution by the total migration rate.
+        """
+        m = m[0]
+        m[abs(m) < migration_cutoff] = 0
+        m_scaled = m * total_migration_rate / sum(m)
+
+        """
+        Filling the table of migration rate for each generation.
+        """
+        for x in range(split_time + 1):
+
+            """
+            Writing gene flow events which are inside the set time boarders and
+            over the set migration cutoff. They will be included in the m(t)
+            distribution.
+            """
+            if x >= migration_start and x <= migration_stop:
+                D_extended_pulse["time"].append(x)
+                D_extended_pulse["rate"].append(m_scaled[x])
+                D_extended_pulse["source"].append(source)
+                D_extended_pulse["dest"].append(dest)
+                event_in_range.append(x)
+            """
+            Writing gene flow events which are outside the set time boarders
+            but stil over the set migration cutoff. They will be included
+            in the m(t) distribution.
+            """
+            if x < migration_start or x > migration_stop:
+                if m_scaled[x] > migration_cutoff:
+                    D_extended_pulse["time"].append(x)
+                    D_extended_pulse["rate"].append(m_scaled[x])
+                    D_extended_pulse["source"].append(source)
+                    D_extended_pulse["dest"].append(dest)
+                    event_out_of_range.append(x)
+        """
+        Setting migration rate to 0 at the end/ the start of
+        gene flow (end of gene flow backwards in time).
+        """
+        if event_out_of_range[-1] > event_in_range[-1]:
+            D_extended_pulse["time"].append((event_out_of_range[-1] + 1))
+            D_extended_pulse["rate"].append(0)
+            D_extended_pulse["source"].append(source)
+            D_extended_pulse["dest"].append(dest)
+        else:
+            D_extended_pulse["time"].append((event_in_range[-1] + 1))
+            D_extended_pulse["rate"].append(0)
+            D_extended_pulse["source"].append(source)
+            D_extended_pulse["dest"].append(dest)
+        """
+        Storing all migration event in a df, sorted by time
+        """
+        extended_pulse = pd.DataFrame.from_dict(D_extended_pulse)
+        extended_pulse.sort_values(by=["time"], ignore_index=True)
+
+        return extended_pulse
+
+    generation_time = 25 / 1000
+    """Setting population sizes"""
+    n_Hy = 10000
+    n_Hc = 10000
+    n_N = 10000
+
+    """Setting population splits"""
+    t_NH = int(290 / generation_time)
+    t_Hy_Hc = int(73.950 / generation_time)
+
+    """Setting the total, unidirectional migration rate from NEA to EUR"""
+    m_NHc = 0.03
+
+    """Setting start and stop of the extended admixture pulse"""
+    tm_NHc_start = int(30 / generation_time)
+    tm_NHc_stop = int(50 / generation_time)
+
+    demographic_events = msprime.Demography()
+    demographic_events.add_population(
+        name="AFR", initial_size=n_Hy, initially_active=True
+    )
+    demographic_events.add_population(
+        name="EUR", initial_size=n_Hc, initially_active=True
+    )
+    demographic_events.add_population(
+        name="NEA", initial_size=n_N, initially_active=True
+    )
+
+    """Absolute start end end of admixture"""
+    demographic_events.add_migration_rate_change(time=0, rate=0, source=1, dest=2),
+    demographic_events.add_migration_rate_change(
+        time=t_Hy_Hc - 1, rate=0, source=1, dest=2
+    )
+
+    """Split time EUR"""
+    demographic_events.add_population_split(time=t_Hy_Hc, derived=[1], ancestral=0)
+
+    """Human Archaic split"""
+    demographic_events.add_population_split(time=t_NH, derived=[2], ancestral=0)
+
+    """Creating all migration events of the extended pulse"""
+    extended_GF = extended_pulse(
+        split_time=t_Hy_Hc,
+        migration_start=tm_NHc_start,
+        migration_stop=tm_NHc_stop,
+        total_migration_rate=m_NHc,
+        source=1,
+        dest=2,
+        migration_cutoff=1e-6,
+    )
+
+    for i in range(extended_GF.shape[0]):
+        demographic_events.add_migration_rate_change(
+            time=extended_GF.time[i],
+            rate=extended_GF.rate[i],
+            source=extended_GF.source[i],
+            dest=extended_GF.dest[i],
+        )
+
+    demographic_events.sort_events()
+
+    populations = [
+        stdpopsim.Population(id=0, description="1000 Genomes YRI (Yorubans)"),
+        stdpopsim.Population(
+            id=1,
+            description="1000 Genomes CEU (Utah Residents \
+            (CEPH) with Northern and Western European Ancestry",
+        ),
+        stdpopsim.Population(id=2, description="Putative Neandertals"),
+    ]
+    citations = [
+        stdpopsim.Citation(
+            author="Iasi et al.",
+            year="2021",
+            doi="https://doi.org/10.1093/molbev/msab210",
+            reasons={stdpopsim.CiteReason.DEM_MODEL},
+        )
+    ]
+
+    return stdpopsim.DemographicModel(
+        id="OutOfAfricaExtendedNeandertalAdmixturePulse_3I21",
+        description="Three population out-of-Africa with an extended pulse of \
+        Neandertal admixture into Europeans",
+        long_description="""
+        Demographic model af an extended admixture pulse from Neandertals into
+        Europenas taken from Iasi et al. (2021).
+        This model simulates 3 populations: Africans, Europeans and Neandertals
+        with an Out-of-Africa event. The population sizes are constant
+        with an unidirectional admixture from Neandertals into Europeans after
+        the split between Europeans and Africans.
+        The admixture event is modelled as an 800 generation (20 ky) long
+        extended admixture pulse.
+        """,
+        populations=populations,
+        citations=citations,
+        generation_time=generation_time,
+        demographic_events=demographic_events,
+    )
+
+
+_species.add_demographic_model(_ooa_nea_extended_pulse())
 
 
 def _ooa_3():
