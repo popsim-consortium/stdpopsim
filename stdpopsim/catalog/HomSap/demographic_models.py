@@ -194,13 +194,13 @@ def _ooa_nea_extended_pulse():
     demographic_events.sort(key=lambda x: x.time)
 
     populations = [
-        stdpopsim.Population(id=0, description="1000 Genomes YRI (Yorubans)"),
+        stdpopsim.Population(id="YRI", description="1000 Genomes YRI (Yorubans)"),
         stdpopsim.Population(
-            id=1,
+            id="CEU",
             description="1000 Genomes CEU (Utah Residents \
             (CEPH) with Northern and Western European Ancestry",
         ),
-        stdpopsim.Population(id=2, description="Neandertals"),
+        stdpopsim.Population(id="NEA", description="Neandertals"),
     ]
 
     population_configurations = [
