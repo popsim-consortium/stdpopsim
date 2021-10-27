@@ -148,28 +148,28 @@ def _ooa_nea_extended_pulse():
     tm_NHc_start = int(30 / generation_time)
     tm_NHc_stop = int(50 / generation_time)
 
-    demographic_events = msprime.Demography()
-    demographic_events.add_population(
-        name="AFR", initial_size=n_Hy, initially_active=True
-    )
-    demographic_events.add_population(
-        name="EUR", initial_size=n_Hc, initially_active=True
-    )
-    demographic_events.add_population(
-        name="NEA", initial_size=n_N, initially_active=True
-    )
-
     """Absolute start end end of admixture"""
-    demographic_events.add_migration_rate_change(time=0, rate=0, source=1, dest=2),
-    demographic_events.add_migration_rate_change(
-        time=t_Hy_Hc - 1, rate=0, source=1, dest=2
+    Neandertal_Gene_Flow_absolute_start = msprime.MigrationRateChange(time=0, rate=0)
+    Neandertal_Gene_Flow_absolute_end = msprime.MigrationRateChange(
+        time=t_Hy_Hc, rate=0
     )
 
-    """Split time EUR"""
-    demographic_events.add_population_split(time=t_Hy_Hc, derived=[1], ancestral=0)
+    """Split time CEU"""
+    Split_Time_non_Africans = msprime.MassMigration(
+        time=t_Hy_Hc, source=1, destination=0, proportion=1.0
+    )
 
     """Human Archaic split"""
-    demographic_events.add_population_split(time=t_NH, derived=[2], ancestral=0)
+    Human_Archaic_split_time = msprime.MassMigration(
+        time=t_NH, source=2, destination=0, proportion=1.0
+    )
+
+    demographic_events_without_admixture = [
+        Human_Archaic_split_time,
+        Split_Time_non_Africans,
+        Neandertal_Gene_Flow_absolute_end,
+        Neandertal_Gene_Flow_absolute_start,
+    ]
 
     """Creating all migration events of the extended pulse"""
     extended_GF = extended_pulse(
@@ -179,18 +179,19 @@ def _ooa_nea_extended_pulse():
         total_migration_rate=m_NHc,
         source=1,
         dest=2,
-        migration_cutoff=1e-6,
+        migration_cutoff=1e-5,
     )
 
-    for i in range(extended_GF.shape[0]):
-        demographic_events.add_migration_rate_change(
+    demographic_events = demographic_events_without_admixture + [
+        msprime.MigrationRateChange(
             time=extended_GF.time[i],
             rate=extended_GF.rate[i],
-            source=extended_GF.source[i],
-            dest=extended_GF.dest[i],
+            matrix_index=(extended_GF.source[i], extended_GF.dest[i]),
         )
+        for i in range(extended_GF.shape[0])
+    ]
 
-    demographic_events.sort_events()
+    demographic_events.sort(key=lambda x: x.time)
 
     populations = [
         stdpopsim.Population(id=0, description="1000 Genomes YRI (Yorubans)"),
@@ -199,8 +200,27 @@ def _ooa_nea_extended_pulse():
             description="1000 Genomes CEU (Utah Residents \
             (CEPH) with Northern and Western European Ancestry",
         ),
-        stdpopsim.Population(id=2, description="Putative Neandertals"),
+        stdpopsim.Population(id=2, description="Neandertals"),
     ]
+
+    population_configurations = [
+        msprime.PopulationConfiguration(
+            initial_size=n_Hy, metadata=populations[0].asdict()
+        ),
+        msprime.PopulationConfiguration(
+            initial_size=n_Hc, metadata=populations[1].asdict()
+        ),
+        msprime.PopulationConfiguration(
+            initial_size=n_N, metadata=populations[2].asdict()
+        ),
+    ]
+
+    migration_matrix = [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0],
+    ]
+
     citations = [
         stdpopsim.Citation(
             author="Iasi et al.",
@@ -227,6 +247,8 @@ def _ooa_nea_extended_pulse():
         populations=populations,
         citations=citations,
         generation_time=generation_time,
+        population_configurations=population_configurations,
+        migration_matrix=migration_matrix,
         demographic_events=demographic_events,
     )
 
