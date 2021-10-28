@@ -214,3 +214,39 @@ def build_intervals_array(intervals, start=0, end=np.inf):
     intervals = intervals[sorter]
     check_intervals_validity(intervals, start, end)
     return intervals
+
+
+def mask_intervals(intervals, mask):
+    """
+    Removes the intervals of ``mask`` from those in ``intervals``.
+    Both ``intervals`` and ``mask`` should be sets of intervals
+    (i.e., sorted numpy arrays with two columns); then the result will
+    be the the intervals in ``intervals`` except with those in
+    ``mask`` removed.
+    """
+    check_intervals_validity(intervals)
+    check_intervals_validity(mask)
+    out = []
+    last_mask_right = -1 * np.inf
+    j = 0
+    if j < len(mask):
+        next_mask_left, next_mask_right = mask[j]
+    else:
+        # the mask is of zero length, return for efficiency
+        return intervals
+    for inter in intervals:
+        left, right = inter
+        while left < right:
+            while left >= next_mask_left:
+                last_mask_right = next_mask_right
+                j += 1
+                if j < len(mask):
+                    next_mask_left, next_mask_right = mask[j]
+                else:
+                    next_mask_left, next_mask_right = np.inf, np.inf
+            next_left = max(left, last_mask_right)
+            next_right = min(right, next_mask_left)
+            if next_left < next_right:
+                out.append([next_left, next_right])
+            left = max(next_left, next_right)
+    return np.array(out).reshape((len(out), 2))
