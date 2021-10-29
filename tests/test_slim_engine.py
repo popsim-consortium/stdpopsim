@@ -695,7 +695,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
     def test_multiple_genomic_element_types_in_script(self):
         contig = get_test_contig()
         engine = stdpopsim.get_engine("slim")
-        contig.clear_features()
+        contig.clear_DFEs()
         contig.add_DFE(
             np.array([[0, 100]]), stdpopsim.dfe.neutral_DFE(), fill_neutral=False
         )
@@ -781,7 +781,7 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
             proportions=[0, 0],
             mutation_types=mt,
         )
-        contig.clear_features()
+        contig.clear_DFEs()
         contig.add_DFE(
             np.array([[0, contig.length]], dtype="int32"), test_d, fill_neutral=False
         )
@@ -807,7 +807,7 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
             proportions=[0, 0],
             mutation_types=mt,
         )
-        contig.clear_features()
+        contig.clear_DFEs()
         contig.add_DFE(
             np.array([[10, contig.length]], dtype="int32"), test_d, fill_neutral=True
         )
@@ -1624,14 +1624,14 @@ class TestMiscFunctions:
             proportions=[0, 1],
             mutation_types=mt,
         )
-        contig.clear_features()
+        contig.clear_DFEs()
         contig.add_DFE(
             np.array([[contig.length - 1, contig.length]], dtype="int32"),
             test_d,
             fill_neutral=True,
         )
         assert contig.interval_list[1].shape == (1, 2)
-        contig.clear_features()
+        contig.clear_DFEs()
         contig.add_DFE(
             np.array([[contig.length - 2, contig.length - 1]], dtype="int32"),
             test_d,
@@ -1661,7 +1661,7 @@ class TestMiscFunctions:
         proportions = ([0, 1.0], [0.5, 0.5], [0, 0], [0.2, 0])
         for props in proportions:
             slim_frac = np.array(sum(props))
-            contig.clear_features()
+            contig.clear_DFEs()
             test_d.proportions = props
             contig.add_DFE(test_int, test_d, fill_neutral=False)
             assert (slim_frac == stdpopsim.slim_engine.get_slim_fractions(contig)).all()
@@ -1708,7 +1708,7 @@ class TestMiscFunctions:
             mutation_types=mt,
         )
         for prop1, prop2 in ((0.3, 0.7), (0.7, 0.3), (1.0, 0.0)):
-            contig.clear_features()
+            contig.clear_DFEs()
             test_d.proportions = [prop1]
             contig.add_DFE(np.array([[10, 100]]), test_d, fill_neutral=True)
             contig.dfe_list[1].proportions = [0]
@@ -1734,7 +1734,7 @@ class TestMiscFunctions:
                 np.isclose(np.array(obs_slim_rates), np.array(exp_slim_rates))
             ).all()
 
-            contig.clear_features()
+            contig.clear_DFEs()
             contig.add_DFE(np.array([[0, 50]]), test_d, fill_neutral=False)
             test_d2 = stdpopsim.DFE(
                 id="test",

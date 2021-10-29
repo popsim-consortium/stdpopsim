@@ -325,7 +325,7 @@ class Contig:
         all_intervals = stdpopsim.utils.build_intervals_array(all_intervals)
         return all_intervals
 
-    def clear_features(self):
+    def clear_DFEs(self):
         """
         convenience function to clear dfe_list and interval_list
         """
@@ -343,7 +343,7 @@ class Contig:
         if len(self.dfe_list) >= 2:
             raise ValueError("only single DFE + neutral sites implemented")
         if fill_neutral:
-            self.clear_features()
+            self.clear_DFEs()
         stdpopsim.utils.check_intervals_validity(intervals)
         self.dfe_list.append(DFE)
         self.interval_list.append(intervals)
