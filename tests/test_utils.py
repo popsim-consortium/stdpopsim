@@ -540,6 +540,7 @@ class TestIntervalUtilities:
                 u = np.array(u)
                 v = np.array(v)
                 umv = utils.mask_intervals(u, v)
+                assert u.dtype == umv.dtype
                 x = self.intervals_to_set(umv)
                 y = self.intervals_to_set(u) - self.intervals_to_set(v)
                 assert x == y

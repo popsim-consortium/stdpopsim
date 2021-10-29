@@ -10,6 +10,7 @@ import tempfile
 import math
 from unittest import mock
 import numpy as np
+from numpy.testing import assert_array_equal
 
 import pytest
 import tskit
@@ -184,6 +185,21 @@ class TestAPI:
         samples = model.get_samples(10, 10, 10)
         for proportion, seed in zip((0, 1), (1234, 2345)):
             contig = species.get_contig("chr22", length_multiplier=0.001)
+            # need selected mutations so that SLiM produces some
+            contig.add_DFE(
+                intervals=np.array([[0, contig.length / 2]], dtype="int"),
+                DFE=stdpopsim.DFE(
+                    id="test",
+                    description="test",
+                    long_description="test",
+                    mutation_types=[
+                        stdpopsim.MutationType(
+                            distribution_type="n",
+                            distribution_args=[0, 0.01],
+                        )
+                    ],
+                ),
+            )
             if proportion:
                 extended_events = None
             else:
@@ -679,112 +695,312 @@ class PiecewiseConstantSizeMixin(object):
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
-    def test_single_genomic_element_type_in_script(self):
-        contig = get_test_contig()
-        engine = stdpopsim.get_engine("slim")
-        out, _ = capture_output(
-            engine.simulate,
-            demographic_model=self.model,
-            contig=contig,
-            samples=self.samples,
-            slim_script=True,
-        )
-        assert out.count("initializeGenomicElementType") == 1
-        assert out.count("initializeGenomicElement(") == 1
 
-    def test_multiple_genomic_element_types_in_script(self):
-        contig = get_test_contig()
-        engine = stdpopsim.get_engine("slim")
-        contig.clear_DFEs()
-        contig.add_DFE(
-            np.array([[0, 100]]), stdpopsim.dfe.neutral_DFE(), fill_neutral=False
-        )
-        contig.add_DFE(
-            np.array([[100, 200]]), stdpopsim.dfe.neutral_DFE(), fill_neutral=False
-        )
-        out, _ = capture_output(
-            engine.simulate,
-            demographic_model=self.model,
-            contig=contig,
-            samples=self.samples,
-            slim_script=True,
-        )
-        assert out.count("initializeGenomicElementType") == 2
-        assert out.count("initializeGenomicElement(") == 2
+    mut_params = {
+        "f": ([-0.1], [0]),
+        "g": ([-0.1, 0.1], [1, 2]),
+        "e": ([0.1],),
+        "n": ([-0.1, 0.2],),
+        "w": ([0.1, 0.4],),
+        "l": ([-0.1, 0.2],),
+    }
+    example_mut_types = [stdpopsim.MutationType()] + [
+        stdpopsim.MutationType(distribution_type=t, distribution_args=p)
+        for t, params in mut_params.items()
+        for p in params
+    ]
+    assert len(example_mut_types) == 9
 
-
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
-class TestMutationTypes(PiecewiseConstantSizeMixin):
-    def test_single_mutation_type_in_script(self):
-        contig = get_test_contig()
-        engine = stdpopsim.get_engine("slim")
-        out, _ = capture_output(
-            engine.simulate,
-            demographic_model=self.model,
-            contig=contig,
-            samples=self.samples,
-            slim_script=True,
-        )
-        assert out.count("initializeMutationType") == 1
-
-        out, _ = capture_output(
-            engine.simulate,
-            demographic_model=self.model,
-            contig=contig,
-            samples=self.samples,
-            slim_script=True,
-        )
-        assert out.count("initializeMutationType") == 1
-
-    def test_multiple_mutation_types_in_script(self):
-        contig = get_test_contig()
-        engine = stdpopsim.get_engine("slim")
-        contig.dfe_list[0].mutation_types = [
-            stdpopsim.ext.MutationType(),
-            stdpopsim.ext.MutationType(),
+    def get_example_dfes(self):
+        # this is in a function because scoping is weird
+        example_dfes = [
+            stdpopsim.dfe.neutral_DFE(),
+            stdpopsim.DFE(
+                id="simple",
+                description="just one mut type",
+                long_description="🐺 🦊 🐕 🦝 🦮 🐩",
+                mutation_types=[self.example_mut_types[4]],
+            ),
+            stdpopsim.DFE(
+                id="less_simple",
+                description="two mutation types",
+                long_description="🦕 🦖 🐳 🐋 🐬 🦭🐠 🐡 🦈 🐙",
+                proportions=[0.5, 0.5],
+                mutation_types=self.example_mut_types[2:4],
+            ),
+            stdpopsim.DFE(
+                id="everything",
+                description="all of them",
+                long_description="this has one of each distribution type",
+                proportions=[
+                    2
+                    * j
+                    / (len(self.example_mut_types) * (len(self.example_mut_types) - 1))
+                    for j in range(len(self.example_mut_types))
+                ],
+                mutation_types=self.example_mut_types,
+            ),
         ]
-        out, _ = capture_output(
-            engine.simulate,
-            demographic_model=self.model,
-            contig=contig,
-            samples=self.samples,
-            slim_script=True,
-        )
-        assert out.count("initializeMutationType") == 2
+        return example_dfes
 
-        positive = stdpopsim.ext.MutationType(convert_to_substitution=False)
-        contig.dfe_list[0].mutation_types = [
-            stdpopsim.ext.MutationType() for i in range(10)
-        ] + [positive]
-        contig.dfe_list[0].proportions = [1 / 11 for i in range(11)]
-        contig.dfe_list[0].mutation_type_ids = [i for i in range(11)]
-        out, _ = capture_output(
-            engine.simulate,
+    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
+    def test_slim_simulates_dfes(self):
+        contig = get_test_contig()
+        contig.mutation_rate = 10 * contig.mutation_rate
+        dfes = [
+            stdpopsim.DFE(
+                id=str(j),
+                description=f"mut_{j}",
+                long_description=f"mut_{j}",
+                mutation_types=[mt],
+            )
+            for j, mt in enumerate(self.example_mut_types)
+        ]
+        n = len(dfes)
+        breaks = np.linspace(0, contig.length, n + 1)
+        for j, dfe in enumerate(dfes):
+            interval = [breaks[j], breaks[j + 1]]
+            contig.add_DFE(intervals=np.array([interval], dtype="int"), DFE=dfe)
+        engine = stdpopsim.get_engine("slim")
+        ts = engine.simulate(
             demographic_model=self.model,
             contig=contig,
             samples=self.samples,
-            slim_script=True,
+            seed=123,
         )
-        assert out.count("initializeMutationType") == 11
+        for j, mt in enumerate(self.example_mut_types):
+            sites = np.where(
+                np.logical_and(
+                    ts.tables.sites.position >= breaks[j],
+                    ts.tables.sites.position < breaks[j + 1],
+                )
+            )[0]
+            assert len(sites) > 0
+            for k in sites:
+                s = ts.site(k)
+                for mut in s.mutations:
+                    for md in mut.metadata["mutation_list"]:
+                        if not mt.is_neutral:
+                            assert md["selection_coeff"] != 0
+
+    def slim_metadata_key0(self, metadata, key):
+        # Everything in SLiM is a vector, so you can't just put a singleton
+        # into the JSON dictionary, you've got to have a vector of length 1;
+        # so this method is in place of doing `metadata[key][0]` a lot:
+        # see discussion at https://github.com/MesserLab/SLiM/issues/236
+        assert key in metadata and len(metadata[key]) == 1
+        return metadata[key][0]
+
+    def verify_rates_match(self, match_rate, intervals, slim_rates, slim_ends):
+        for left, right in intervals:
+            for rate, end in zip(slim_rates, slim_ends):
+                # SLiM's endpoints are inclusive
+                if left <= end:
+                    assert rate == match_rate
+                if right - 1 <= end:
+                    break
+            assert right - 1 <= end
+
+    def verify_mutation_rates(self, contig, ts):
+        # compare information about the mutation rate map as recorded
+        # by SLiM itself in metadata to what we think it should be
+        mut_rate_metadata = self.slim_metadata_key0(
+            ts.metadata["SLiM"]["user_metadata"], "mutationRates"
+        )
+        slim_rates = mut_rate_metadata["rates"]
+        slim_ends = mut_rate_metadata["ends"]
+        Q = self.slim_metadata_key0(ts.metadata["SLiM"]["user_metadata"], "Q")
+
+        for dfe, intervals in zip(contig.dfe_list, contig.interval_list):
+            prop_neutral = 0.0
+            for mt, p in zip(dfe.mutation_types, dfe.proportions):
+                if mt.is_neutral:
+                    prop_neutral += p
+            mut_rate = contig.mutation_rate * (1 - prop_neutral) * Q
+            self.verify_rates_match(mut_rate, intervals, slim_rates, slim_ends)
+
+        # also verify any bits not covered by DFEs have no mutations
+        empty_intervals = np.empty((0, 2))
+        for intervals in contig.interval_list:
+            empty_intervals = stdpopsim.utils.mask_intervals(
+                empty_intervals,
+                intervals,
+            )
+        self.verify_rates_match(0.0, empty_intervals, slim_rates, slim_ends)
+
+    def verify_genomic_elements(self, contig, ts):
+        # compare information about genomic elements as recorded
+        # by SLiM itself in metadata to what we think it should be
+        mut_types = self.slim_metadata_key0(
+            ts.metadata["SLiM"]["user_metadata"], "mutationTypes"
+        )
+        ge_types = self.slim_metadata_key0(
+            ts.metadata["SLiM"]["user_metadata"], "genomicElementTypes"
+        )
+        assert len(contig.dfe_list) == len(ge_types)
+        for j, (dfe, intervals) in enumerate(
+            zip(contig.dfe_list, contig.interval_list)
+        ):
+            assert str(j) in ge_types
+            ge = self.slim_metadata_key0(ge_types, str(j))
+            # "+1" because SLiM's intervals are closed on both ends,
+            # stdpopsim's are closed on the left, open on the right
+            slim_intervals = np.column_stack(
+                [
+                    ge["intervalStarts"],
+                    [x + 1 for x in ge["intervalEnds"]],
+                ]
+            )
+            assert_array_equal(intervals, slim_intervals)
+            slim_mut_types = ge["mutationTypes"]
+            assert len(dfe.mutation_types) == len(slim_mut_types)
+            for mt, mt_id in zip(dfe.mutation_types, slim_mut_types):
+                assert str(mt_id) in mut_types
+                slim_mt = self.slim_metadata_key0(mut_types, str(mt_id))
+                assert mt.dominance_coeff == self.slim_metadata_key0(
+                    slim_mt, "dominanceCoeff"
+                )
+                assert mt.distribution_type == self.slim_metadata_key0(
+                    slim_mt, "distributionType"
+                )
+                assert len(mt.distribution_args) == len(slim_mt["distributionParams"])
+                for a, b in zip(mt.distribution_args, slim_mt["distributionParams"]):
+                    assert a == b
+
+    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
+    def test_no_dfe(self):
+        contig = get_test_contig()
+        contig.clear_DFEs()
+        assert len(contig.dfe_list) == 0
+        engine = stdpopsim.get_engine("slim")
+        with pytest.raises(ValueError):
+            _ = engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+            )
+
+    @pytest.mark.skip(reason="TODO wait for SLiM v3.7")
+    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
+    def test_default_dfe(self):
+        contig = get_test_contig()
+        assert len(contig.dfe_list) == 1
+        engine = stdpopsim.get_engine("slim")
+        ts = engine.simulate(
+            demographic_model=self.model,
+            contig=contig,
+            samples=self.samples,
+            verbosity=3,  # to get metadata output
+        )
+        self.verify_genomic_elements(contig, ts)
+        self.verify_mutation_rates(contig, ts)
+
+    @pytest.mark.skip(reason="TODO wait for SLiM v3.7")
+    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
+    def test_multiple_dfes(self):
+        contig = get_test_contig()
+        L = contig.length
+        example_dfes = self.get_example_dfes()
+        for j, dfe in enumerate(example_dfes):
+            contig.add_DFE(
+                np.array([[10 * (j + 1), 100 * (10 - j)], [L / 2, L]], dtype="int"), dfe
+            )
+        assert len(contig.dfe_list) == 1 + len(example_dfes)
+        engine = stdpopsim.get_engine("slim")
+        ts = engine.simulate(
+            demographic_model=self.model,
+            contig=contig,
+            samples=self.samples,
+            verbosity=3,  # to get metadata output
+        )
+        self.verify_genomic_elements(contig, ts)
+        self.verify_mutation_rates(contig, ts)
+
+    @pytest.mark.skip(reason="TODO wait for SLiM v3.7")
+    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
+    def test_unused_dfe(self):
+        # test that even if a DFE ends up being unused then it'll still be there
+        contig = get_test_contig()
+        example_dfes = self.get_example_dfes()
+        contig.add_DFE(np.array([[0, contig.length]], dtype="int"), example_dfes[0])
+        contig.add_DFE(np.array([[0, contig.length]], dtype="int"), example_dfes[3])
+        assert len(contig.dfe_list) == 3
+        engine = stdpopsim.get_engine("slim")
+        ts = engine.simulate(
+            demographic_model=self.model,
+            contig=contig,
+            samples=self.samples,
+            verbosity=3,  # to get metadata output
+        )
+        self.verify_genomic_elements(contig, ts)
+        self.verify_mutation_rates(contig, ts)
+
+    @pytest.mark.skip(reason="TODO wait for SLiM v3.7")
+    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
+    def test_same_dfes(self):
+        # test that we can add multiple DFEs with the same name
+        # (maybe the same, maybe not)
+        contig = get_test_contig()
+        L = int(contig.length)
+        dfe0 = stdpopsim.DFE(
+            id="dfe",
+            description="the first one",
+            long_description="hello world",
+            proportions=[1.0],
+            mutation_types=[self.example_mut_types[5]],
+        )
+        dfe1 = stdpopsim.DFE(
+            id="dfe",
+            description="the second one",
+            long_description="I'm different but have the same name! =( =(",
+            proportions=[0.2, 0.8],
+            mutation_types=self.example_mut_types[7:9],
+        )
+        contig.add_DFE(np.array([[0, 0.5 * L]], dtype="int"), dfe0)
+        contig.add_DFE(np.array([[0.2 * L, 0.4 * L]], dtype="int"), dfe0)
+        contig.add_DFE(np.array([[0.45 * L, L]], dtype="int"), dfe1)
+        contig.add_DFE(np.array([[0.7 * L, 0.9 * L]], dtype="int"), dfe0)
+        assert len(contig.dfe_list) == 5
+        engine = stdpopsim.get_engine("slim")
+        ts = engine.simulate(
+            demographic_model=self.model,
+            contig=contig,
+            samples=self.samples,
+            verbosity=3,  # to get metadata output
+        )
+        self.verify_genomic_elements(contig, ts)
+        self.verify_mutation_rates(contig, ts)
+
+    @pytest.mark.skip(reason="TODO wait for SLiM v3.7")
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_slim_produces_mutations(self):
+        contig = get_test_contig()
+        dfe = stdpopsim.DFE(
+            id="test",
+            description="non-neutral",
+            long_description="",
+            mutation_types=[
+                stdpopsim.MutationType(),
+                stdpopsim.MutationType(
+                    distribution_type="l", distribution_args=[0.01, 0.2]
+                ),
+            ],
+            proportions=[0.5, 0.5],
+        )
+        contig.add_DFE(np.array([[0, contig.length]], dtype="int"), dfe)
+        ts = slim_simulate_no_recap(
+            demographic_model=self.model,
+            contig=contig,
+            samples=self.samples,
+            slim_scaling_factor=10,
+            slim_burn_in=0.1,
+            verbosity=3,  # to get metadata output
+        )
+        assert ts.num_sites > 0
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_unweighted_mutations_are_not_simulated_by_slim(self):
+    def test_no_neutral_mutations_are_simulated_by_slim(self):
         contig = get_test_contig()
-        mt = [
-            stdpopsim.ext.MutationType(convert_to_substitution=True),
-            stdpopsim.ext.MutationType(convert_to_substitution=False),
-        ]
-        test_d = stdpopsim.DFE(
-            id="test",
-            description="test",
-            long_description="test test",
-            proportions=[0, 0],
-            mutation_types=mt,
-        )
-        contig.clear_DFEs()
-        contig.add_DFE(
-            np.array([[0, contig.length]], dtype="int32"), test_d, fill_neutral=False
-        )
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
             contig=contig,
@@ -794,83 +1010,8 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
         )
         assert ts.num_sites == 0
 
-        mt = [
-            stdpopsim.ext.MutationType(),
-            stdpopsim.ext.MutationType(
-                distribution_type="g", distribution_args=[-0.01, 0.2]
-            ),
-        ]
-        test_d = stdpopsim.DFE(
-            id="test",
-            description="test",
-            long_description="test test",
-            proportions=[0, 0],
-            mutation_types=mt,
-        )
-        contig.clear_DFEs()
-        contig.add_DFE(
-            np.array([[10, contig.length]], dtype="int32"), test_d, fill_neutral=True
-        )
-        ts = slim_simulate_no_recap(
-            demographic_model=self.model,
-            contig=contig,
-            samples=self.samples,
-            slim_scaling_factor=10,
-            slim_burn_in=0.1,
-        )
-        assert ts.num_sites == 0
-
-    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_that_DFE_lognornal_produce_sites(self):
-        contig = get_test_contig()
         contig.dfe_list[0].mutation_types = [
-            stdpopsim.ext.MutationType(),
-            stdpopsim.ext.MutationType(
-                distribution_type="l", distribution_args=[0.01, 0.2]
-            ),
-        ]
-        contig.dfe_list[0].proportions = [0.5, 0.5]
-        ts = slim_simulate_no_recap(
-            demographic_model=self.model,
-            contig=contig,
-            samples=self.samples,
-            slim_scaling_factor=10,
-            slim_burn_in=0.1,
-            dry_run=True,
-        )
-        assert ts.num_sites > 0
-
-    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_weighted_mutations_are_simulated_by_slim(self):
-        contig = get_test_contig()
-        contig.dfe_list[0].mutation_types = [
-            stdpopsim.ext.MutationType(convert_to_substitution=True)
-        ]
-        contig.dfe_list[0].proportions = [1]
-        ts = slim_simulate_no_recap(
-            demographic_model=self.model,
-            contig=contig,
-            samples=self.samples,
-            slim_scaling_factor=10,
-            slim_burn_in=0.1,
-        )
-        assert ts.num_sites > 0
-
-        contig.dfe_list[0].mutation_types = [
-            stdpopsim.ext.MutationType(convert_to_substitution=False)
-        ]
-        contig.dfe_list[0].proportions = [1]
-        ts = slim_simulate_no_recap(
-            demographic_model=self.model,
-            contig=contig,
-            samples=self.samples,
-            slim_scaling_factor=10,
-            slim_burn_in=0.1,
-        )
-        assert ts.num_sites > 0
-
-        contig.dfe_list[0].mutation_types = [
-            stdpopsim.ext.MutationType() for i in range(10)
+            stdpopsim.MutationType() for i in range(10)
         ]
         contig.dfe_list[0].proportions = [1 / 10 for i in range(10)]
         ts = slim_simulate_no_recap(
@@ -880,109 +1021,7 @@ class TestMutationTypes(PiecewiseConstantSizeMixin):
             slim_scaling_factor=10,
             slim_burn_in=0.1,
         )
-        assert ts.num_sites > 0
-
-    def test_dominance_coeff(self):
-        for dominance_coeff in (0, 0.5, 1, 50):
-            stdpopsim.ext.MutationType(dominance_coeff=dominance_coeff)
-
-    def test_bad_dominance_coeff(self):
-        for dominance_coeff in (-1,):
-            with pytest.raises(ValueError):
-                stdpopsim.ext.MutationType(dominance_coeff=dominance_coeff)
-
-    def test_bad_distribution_type(self):
-        for distribution_type in (1, {}, None, "~", "!", "F"):
-            with pytest.raises(ValueError):
-                stdpopsim.ext.MutationType(distribution_type=distribution_type)
-
-    def test_distribution_type_f(self):
-        for distribution_args in ([-0.1], [0], [0.1], [50]):
-            stdpopsim.ext.MutationType(
-                distribution_type="f", distribution_args=distribution_args
-            )
-
-    def test_bad_distribution_args_f(self):
-        for distribution_args in ([0.1, 0.2], []):
-            with pytest.raises(ValueError):
-                stdpopsim.ext.MutationType(
-                    distribution_type="f", distribution_args=distribution_args
-                )
-
-    def test_distribution_type_g(self):
-        for distribution_args in ([-0.1, 0.1], [0.1, 0.1], [50, 50]):
-            stdpopsim.ext.MutationType(
-                distribution_type="g", distribution_args=distribution_args
-            )
-
-    def test_bad_distribution_args_g(self):
-        for distribution_args in ([], [0.1, 0], [0.1, -0.1], [0.1, 0.4, 0.5]):
-            with pytest.raises(ValueError):
-                stdpopsim.ext.MutationType(
-                    distribution_type="g", distribution_args=distribution_args
-                )
-
-    def test_distribution_type_e(self):
-        for distribution_args in ([0.1], [10], [5000]):
-            stdpopsim.ext.MutationType(
-                distribution_type="e", distribution_args=distribution_args
-            )
-
-    def test_bad_distribution_args_e(self):
-        for distribution_args in ([], [0, 1], [0.1, 0.4, 0.5]):
-            with pytest.raises(ValueError):
-                stdpopsim.ext.MutationType(
-                    distribution_type="e", distribution_args=distribution_args
-                )
-
-    def test_distribution_type_n(self):
-        for distribution_args in ([-0.1, 0.2], [0.1, 0.1], [50, 50]):
-            stdpopsim.ext.MutationType(
-                distribution_type="n", distribution_args=distribution_args
-            )
-
-    def test_bad_distribution_args_n(self):
-        for distribution_args in ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1]):
-            with pytest.raises(ValueError):
-                stdpopsim.ext.MutationType(
-                    distribution_type="n", distribution_args=distribution_args
-                )
-
-    def test_distribution_type_w(self):
-        for distribution_args in ([0.1, 0.2], [0.1, 0.1], [50, 50]):
-            stdpopsim.ext.MutationType(
-                distribution_type="w", distribution_args=distribution_args
-            )
-
-    def test_bad_distribution_args_w(self):
-        for distribution_args in ([], [-0.1, 1], [0.1, -1], [0.1, 0.4, 0.5], [0.1]):
-            with pytest.raises(ValueError):
-                stdpopsim.ext.MutationType(
-                    distribution_type="w", distribution_args=distribution_args
-                )
-
-    def test_distribution_type_l(self):
-        for distribution_args in ([-0.1, 0.2], [0.1, 0.1], [50, 50]):
-            stdpopsim.ext.MutationType(
-                distribution_type="l", distribution_args=distribution_args
-            )
-
-    def test_bad_distribution_args_l(self):
-        for distribution_args in ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1]):
-            with pytest.raises(ValueError):
-                stdpopsim.ext.MutationType(
-                    distribution_type="l", distribution_args=distribution_args
-                )
-
-    def test_netural_mutation_type(self):
-        assert stdpopsim.ext.MutationType().is_neutral()
-
-    def test_not_neutral_mutation_type(self):
-        mt = stdpopsim.ext.MutationType(
-            distribution_type="f",
-            distribution_args=[1],
-        )
-        assert not mt.is_neutral()
+        assert ts.num_sites == 0
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
@@ -1123,15 +1162,16 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_drawn_mutation_not_lost(self):
         ct = self.contig
+        ct.mutation_rate = 0.0
         mt = [
-            stdpopsim.ext.MutationType(convert_to_substitution=True),
-            stdpopsim.ext.MutationType(convert_to_substitution=True),
+            stdpopsim.MutationType(convert_to_substitution=True),
+            stdpopsim.MutationType(convert_to_substitution=True),
         ]
         test_d = stdpopsim.DFE(
             id="test",
             description="test",
             long_description="test test",
-            proportions=[0, 0],
+            proportions=[0.5, 0.5],
             mutation_types=mt,
         )
         ct.dfe_list[0] = test_d
@@ -1165,15 +1205,16 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_drawn_mutation_is_lost(self):
         ct = self.contig
+        ct.mutation_rate = 0.0
         mt = [
-            stdpopsim.ext.MutationType(convert_to_substitution=True),
-            stdpopsim.ext.MutationType(convert_to_substitution=True),
+            stdpopsim.MutationType(convert_to_substitution=True),
+            stdpopsim.MutationType(convert_to_substitution=True),
         ]
         test_d = stdpopsim.DFE(
             id="test",
             description="test",
             long_description="test test",
-            proportions=[0, 0],
+            proportions=[0.5, 0.5],
             mutation_types=mt,
         )
         ct.dfe_list[0] = test_d
@@ -1209,8 +1250,8 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
         ct = self.contig
         ct.mutation_rate = 0.0
         mt = [
-            stdpopsim.ext.MutationType(convert_to_substitution=True),
-            stdpopsim.ext.MutationType(convert_to_substitution=True),
+            stdpopsim.MutationType(convert_to_substitution=True),
+            stdpopsim.MutationType(convert_to_substitution=True),
         ]
         test_d = stdpopsim.DFE(
             id="test",
@@ -1398,8 +1439,8 @@ class TestFixedSelectionCoefficient(PiecewiseConstantSizeMixin):
     def test_drawn_mutation_has_correct_selection_coeff(self):
         contig = self.contig
         contig.dfe_list[0].mutation_types = [
-            stdpopsim.ext.MutationType(),
-            stdpopsim.ext.MutationType(
+            stdpopsim.MutationType(),
+            stdpopsim.MutationType(
                 distribution_type="f",
                 dominance_coeff=0.5,
                 distribution_args=[0.1],
@@ -1490,7 +1531,7 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                     allele_frequency=af_threshold,
                 ),
             ]
-            mt = [stdpopsim.ext.MutationType(), stdpopsim.ext.MutationType()]
+            mt = [stdpopsim.MutationType(), stdpopsim.MutationType()]
             ct = self.contig
             # turn off slim mutations for neutral muts
             ct.dfe_list[0].proportions = [0, 0]
@@ -1601,176 +1642,3 @@ class TestExtendedEvents(PiecewiseConstantSizeMixin):
                     extended_events=[bad_ee],
                     dry_run=True,
                 )
-
-
-class TestMiscFunctions:
-    def get_test_contig(self):
-        species = stdpopsim.get_species("HomSap")
-        contig = species.get_contig("chr22", length_multiplier=0.001)
-        return contig
-
-    def test_add_dfe_misc(self):
-        contig = self.get_test_contig()
-        mt = [
-            stdpopsim.ext.MutationType(),
-            stdpopsim.ext.MutationType(
-                distribution_type="f", distribution_args=[-0.01]
-            ),
-        ]
-        test_d = stdpopsim.DFE(
-            id="test",
-            description="test",
-            long_description="test test",
-            proportions=[0, 1],
-            mutation_types=mt,
-        )
-        contig.clear_DFEs()
-        contig.add_DFE(
-            np.array([[contig.length - 1, contig.length]], dtype="int32"),
-            test_d,
-            fill_neutral=True,
-        )
-        assert contig.interval_list[1].shape == (1, 2)
-        contig.clear_DFEs()
-        contig.add_DFE(
-            np.array([[contig.length - 2, contig.length - 1]], dtype="int32"),
-            test_d,
-            fill_neutral=True,
-        )
-        assert contig.interval_list[1].shape == (2, 2)
-
-    def test_slim_fractions(self):
-        contig = self.get_test_contig()
-        assert np.isclose(
-            stdpopsim.slim_engine.get_slim_fractions(contig), np.array([1])
-        )
-        contig.dfe_list[0].proportions = [0]
-        assert np.isclose(
-            stdpopsim.slim_engine.get_slim_fractions(contig), np.array([0])
-        )
-
-        mt = [stdpopsim.ext.MutationType(), stdpopsim.ext.MutationType()]
-        test_d = stdpopsim.DFE(
-            id="test",
-            description="test",
-            long_description="test test",
-            proportions=[0, 1],
-            mutation_types=mt,
-        )
-        test_int = np.array([[0, 1]])
-        proportions = ([0, 1.0], [0.5, 0.5], [0, 0], [0.2, 0])
-        for props in proportions:
-            slim_frac = np.array(sum(props))
-            contig.clear_DFEs()
-            test_d.proportions = props
-            contig.add_DFE(test_int, test_d, fill_neutral=False)
-            assert (slim_frac == stdpopsim.slim_engine.get_slim_fractions(contig)).all()
-
-    def test_msp_mutation_rate_map(self):
-        contig = self.get_test_contig()
-        contig.dfe_list[0].proportions = [0]
-        rmap, _ = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(contig)
-        assert np.allclose(
-            rmap.position,
-            np.array([0, int(contig.recombination_map.sequence_length)]),
-        )
-        assert np.allclose(rmap.rate, np.array([contig.mutation_rate]))
-
-        contig.interval_list[0][0, 0] = contig.length - 2
-        rmap, _ = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(contig)
-        end = int(contig.recombination_map.sequence_length)
-        assert np.allclose(
-            rmap.position,
-            np.array([0, end - 2, end]),
-        )
-        assert np.allclose(rmap.rate, np.array([contig.mutation_rate]))
-
-    def test_slim_mutation_rate_map(self):
-        contig = self.get_test_contig()
-        contig.dfe_list[0].proportions = [0]
-        _, (breaks, rates) = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(
-            contig
-        )
-        assert breaks == [int(contig.recombination_map.sequence_length) - 1]
-        assert rates == [0.0]
-
-    @pytest.mark.skip(
-        "need to update way of dealing with multiple DFE to" "alter mutation rates"
-    )
-    def test_complex_mutation_rate_maps(self):
-        contig = self.get_test_contig()
-        mt = [stdpopsim.ext.MutationType()]
-        test_d = stdpopsim.DFE(
-            id="test",
-            description="test",
-            long_description="test test",
-            proportions=[1],
-            mutation_types=mt,
-        )
-        for prop1, prop2 in ((0.3, 0.7), (0.7, 0.3), (1.0, 0.0)):
-            contig.clear_DFEs()
-            test_d.proportions = [prop1]
-            contig.add_DFE(np.array([[10, 100]]), test_d, fill_neutral=True)
-            contig.dfe_list[1].proportions = [0]
-            rmap, (
-                obs_slim_breaks,
-                obs_slim_rates,
-            ) = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(contig)
-            obs_msp_breaks, obs_msp_rates = rmap.position, rmap.rate
-
-            exp_msp_breaks = [0, 10, 100, int(contig.recombination_map.sequence_length)]
-            exp_msp_rates = [
-                contig.mutation_rate,
-                contig.mutation_rate * (1 - prop1),
-                contig.mutation_rate,
-            ]
-            assert np.allclose(obs_msp_breaks, exp_msp_breaks)
-            assert (np.isclose(np.array(obs_msp_rates), np.array(exp_msp_rates))).all()
-
-            exp_slim_breaks = [9, 99, int(contig.recombination_map.sequence_length) - 1]
-            exp_slim_rates = [0, contig.mutation_rate * prop1, 0]
-            assert obs_slim_breaks == exp_slim_breaks
-            assert (
-                np.isclose(np.array(obs_slim_rates), np.array(exp_slim_rates))
-            ).all()
-
-            contig.clear_DFEs()
-            contig.add_DFE(np.array([[0, 50]]), test_d, fill_neutral=False)
-            test_d2 = stdpopsim.DFE(
-                id="test",
-                description="test",
-                long_description="test test",
-                proportions=[prop2, prop1],
-                mutation_types=mt,
-            )
-            contig.add_DFE(np.array([[50, 100]]), test_d2, fill_neutral=False)
-
-            rmap, (
-                obs_slim_breaks,
-                obs_slim_rates,
-            ) = stdpopsim.slim_engine.get_msp_and_slim_mutation_rate_maps(contig)
-            obs_msp_breaks, obs_msp_rates = rmap.position, rmap.rate
-
-            exp_msp_breaks = [0, 50, 100, int(contig.recombination_map.sequence_length)]
-            exp_msp_rates = [
-                contig.mutation_rate * (1 - prop1),
-                contig.mutation_rate * (1 - prop2),
-                contig.mutation_rate,
-            ]
-            assert np.allclose(obs_msp_breaks, exp_msp_breaks)
-            assert (np.isclose(np.array(obs_msp_rates), np.array(exp_msp_rates))).all()
-
-            exp_slim_breaks = [
-                49,
-                99,
-                int(contig.recombination_map.sequence_length) - 1,
-            ]
-            exp_slim_rates = [
-                contig.mutation_rate * prop1,
-                contig.mutation_rate * prop2,
-                0,
-            ]
-            assert obs_slim_breaks == exp_slim_breaks
-            assert (
-                np.isclose(np.array(obs_slim_rates), np.array(exp_slim_rates))
-            ).all()

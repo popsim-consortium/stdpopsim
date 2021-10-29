@@ -5,40 +5,188 @@ Common infrastructure for specifying DFEs.
 import textwrap
 import attr
 import collections.abc
-from . import ext
+import numpy as np
+
+
+@attr.s(kw_only=True)
+class MutationType(object):
+    """
+    Class representing a "type" of mutation.  The design closely (exactly)
+    mirrors SLiM's MutationType class.
+
+    The main thing that mutation types carry is a way of drawing a selection
+    coefficient for each new mutation. This ``distribution_type`` should be one
+    of (see the SLiM manual for more information on these):
+
+    - ``f``: fixed, one parameter (the selection coefficient)
+    - ``e``: exponential, one parameter (mean)
+    - ``g``: gamma, two parameters (mean, shape)
+    - ``n``: normal, two parameters (mean, SD)
+    - ``w``: Weibull, two parameters (scale, shape)
+    - ``l``: logNormal, two parameters (mean and sd on log scale; see rlnorm)
+
+    :ivar distribution_type: A one-letter abbreviation for the distribution of
+        fitness effects that each new mutation of this type draws from (see below).
+    :vartype distribution_type: str
+    :ivar distribution_args: Arguments for the distribution type.
+    :vartype distribution_type: list
+    :ivar dominance_coeff: A single dominance coefficient (negative = underdominance,
+        0 = recessive, 0.5 = additive, 1.0 = completely dominant, > 1.0 = overdominant)
+    :vartype dominance_coeff: float
+    :ivar convert_to_substitution: Whether to retain any fixed mutations in the
+        simulation: if not, we cannot ask about their frequency once fixed.
+        (Either way, they will remain in the tree sequence).
+    :vartype convert_to_substitution: bool
+    """
+
+    dominance_coeff = attr.ib(default=0.5, type=float)
+    distribution_type = attr.ib(default="f", type=str)
+    distribution_args = attr.ib(factory=lambda: [0], type=list)
+    convert_to_substitution = attr.ib(default=True, type=bool)
+
+    def __attrs_post_init__(self):
+        if not np.isfinite(self.dominance_coeff):
+            raise ValueError(f"Invalid dominance coefficient {self.dominance_coeff}.")
+
+        # To add a new distribution type: validate the
+        # distribution_args here, and add unit tests.
+        if self.distribution_type == "f":
+            # Fixed-value selection coefficent.
+            if len(self.distribution_args) != 1 or not np.isfinite(
+                self.distribution_args[0]
+            ):
+                raise ValueError(
+                    "Fixed-value mutation types (distribution_type='f')"
+                    "take a single selection-coefficient parameter."
+                )
+        elif self.distribution_type == "g":
+            # Gamma-distributed selection coefficient with (mean, shape)
+            # parameterisation. A negative value for the mean is permitted,
+            # and indicates a reflection of the horizontal axis.
+            # See Eidos documentation for rgamma().
+            if (
+                len(self.distribution_args) != 2
+                or self.distribution_args[1] <= 0
+                or not np.all(np.isfinite(self.distribution_args))
+            ):
+                raise ValueError(
+                    "Gamma-distributed sel. coefs. (distribution_type='g') "
+                    "use a (mean, shape) parameterisation, requiring shape > 0."
+                )
+        elif self.distribution_type == "e":
+            # An exponentially-distributed fitness effect (mean).
+            # See Eidos documentation for rexp().
+            if len(self.distribution_args) != 1 or not np.isfinite(
+                self.distribution_args[0]
+            ):
+                raise ValueError(
+                    "Exponentially-distributed sel. coefs. (distribution_type='e') "
+                    "use a (mean) parameterisation."
+                )
+        elif self.distribution_type == "n":
+            # An normally-distributed fitness effect (mean, standard deviation).
+            # See Eidos documentation for rnorm().
+            if (
+                len(self.distribution_args) != 2
+                or self.distribution_args[1] <= 0
+                or not np.all(np.isfinite(self.distribution_args))
+            ):
+                raise ValueError(
+                    "Normally-distributed sel. coefs. (distribution_type='n') "
+                    "use a (mean, sd) parameterisation, requiring sd > 0."
+                )
+        elif self.distribution_type == "w":
+            # A Weibull-distributed fitness effect (scale, shape).
+            # See Eidos documentation for rweibull().
+            if (
+                len(self.distribution_args) != 2
+                or self.distribution_args[0] <= 0
+                or self.distribution_args[1] <= 0
+                or not np.all(np.isfinite(self.distribution_args))
+            ):
+                raise ValueError(
+                    "Weibull-distributed sel. coef. (distribution_type='w') "
+                    "use a (scale, shape) parameterisation, requiring parameters > 0."
+                )
+        elif self.distribution_type == "l":
+            # An lognormally-distributed fitness effect (meanlog, sdlog).
+            # See Eidos documentation for rlnorm().
+            if (
+                len(self.distribution_args) != 2
+                or self.distribution_args[1] <= 0
+                or not np.all(np.isfinite(self.distribution_args))
+            ):
+                raise ValueError(
+                    "Lognormally-distributed sel. coefs. (distribution_type='l') "
+                    "use a (meanlog, sdlog) parameterisation, requiring sdlog > 0."
+                )
+            self.distribution_type = "s"
+            # dealing with lognormal distribution
+            # (adding instead of multiplying the mean):
+            logmean = self.distribution_args[0]
+            logsd = self.distribution_args[1]
+            self.distribution_args = [f"return rlnorm(1, {logmean} + log(Q), {logsd});"]
+        else:
+            raise ValueError(
+                f"{self.distribution_type} is not a supported distribution type"
+            )
+
+        # The index(s) of the param in the distribution_args list that should be
+        # multiplied by Q when using --slim-scaling-factor Q.
+        self.Q_scaled_index = {
+            "e": [0],  # mean
+            "f": [0],  # fixed value
+            "g": [0],  # mean
+            "n": [0, 1],  # mean and sd
+            "w": [0],  # scale
+            "s": [],  # script types should just printout arguments
+        }[self.distribution_type]
+
+    @property
+    def is_neutral(self):
+        """
+        Tests whether the mutation type is strictly neutral. This is defined here to
+        be of type "f" and with fitness effect 0.0, and so excludes other situations
+        that also produce only neutral mutations (e.g., exponential with mean 0).
+        """
+        return self.distribution_type == "f" and self.distribution_args[0] == 0
 
 
 @attr.s(kw_only=True)
 class DFE:
     """
-        Class representing a "Distribution of Fitness Effects", i.e., a DFE.
+    Class representing a "Distribution of Fitness Effects", i.e., a DFE.
+    The class records the different *mutation types*, and the *proportions*
+    with which they occur. The overall rate of mutations will be determined
+    by the Contig to which the DFE is applied (see :meth:`.Contig.add_DFE`).
 
-        Instances of this class are constructed by DFE implementors, following the
-        :ref:`developer documentation <sec_development_dfe_model>`. To instead
-        obtain a pre-specified model as listed in the :ref:`sec_catalog`,
-        see :class:`Species.get_dfe`.
+    Instances of this class are constructed by DFE implementors, following the
+    :ref:`developer documentation <sec_development_dfe_model>`. To instead
+    obtain a pre-specified model as listed in the :ref:`sec_catalog`,
+    see :meth:`Species.get_dfe`.
 
     ``proportions`` and ``mutation_types`` must be lists of the same length,
-    and ``proportions should be nonnegative numbers summing to 1.
+    and ``proportions`` should be nonnegative numbers summing to 1.
 
-        :ivar ~.mutation_types: a list of MutationTypes associated with the DFE.
-        :vartype ~.mutation_types: list
-        :ivar ~.proportions: a list of MutationTypes proportions
-        :vartype ~.proportions: list
-        :ivar ~.id: The unique identifier for this model. DFE IDs should be
-            short and memorable, and conform to the stdpopsim
-            :ref:`naming conventions <sec_development_naming_conventions>`
-            for DFE models.
-        :vartype ~.id: str
-        :ivar ~.description: A short description of this model as it would be used in
-            written text, e.g., "Lognormal DFE". This should
-            describe the DFE itself and not contain author or year information.
-        :vartype ~.description: str
-        :ivar long_description: A concise, but detailed, summary of the DFE model.
-        :vartype long_description: str
-        :ivar citations: A list of :class:`Citation`, that describe the primary
-            reference(s) for the DFE model.
-        :vartype citations: list of :class:`Citation`
+    :ivar ~.mutation_types: A list of MutationTypes associated with the DFE.
+    :vartype ~.mutation_types: list
+    :ivar ~.proportions: A list of the proportions of new mutations that
+        fall in to each of the mutation types (must sum to 1).
+    :vartype ~.proportions: list
+    :ivar ~.id: The unique identifier for this model. DFE IDs should be
+        short and memorable, and conform to the stdpopsim
+        :ref:`naming conventions <sec_development_naming_conventions>`
+        for DFE models.
+    :vartype ~.id: str
+    :ivar ~.description: A short description of this model as it would be used in
+        written text, e.g., "Lognormal DFE". This should
+        describe the DFE itself and not contain author or year information.
+    :vartype ~.description: str
+    :ivar long_description: A concise, but detailed, summary of the DFE model.
+    :vartype long_description: str
+    :ivar citations: A list of :class:`Citations <.Citation>`, that describe the primary
+        reference(s) for the DFE model.
+    :vartype citations: list of :class:`Citation`
     """
 
     id = attr.ib()
@@ -65,12 +213,12 @@ class DFE:
         for p in self.proportions:
             if not isinstance(p, (float, int)) or p < 0:
                 raise ValueError("proportions must be nonnegative numbers.")
-        # sum_p = sum(self.proportions)
-        #    if not np.isclose(sum_p, 1):
-        #       raise ValueError("proportions must sum 1.0.")
+        sum_p = sum(self.proportions)
+        if not np.isclose(sum_p, 1):
+            raise ValueError("proportions must sum 1.0.")
 
         for m in self.mutation_types:
-            if not isinstance(m, ext.MutationType):
+            if not isinstance(m, MutationType):
                 raise ValueError(
                     "mutation_types must be a list of MutationType objects."
                 )
@@ -95,7 +243,7 @@ def neutral_DFE(convert_to_substitution=True):
     id = "neutral"
     description = "neutral DFE"
     long_description = "strictly neutral mutations"
-    neutral = ext.MutationType(convert_to_substitution=convert_to_substitution)
+    neutral = MutationType(convert_to_substitution=convert_to_substitution)
     return DFE(
         id=id,
         description=description,

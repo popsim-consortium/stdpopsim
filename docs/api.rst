@@ -35,6 +35,8 @@ accessed through the main entry point, :func:`.get_species`.
 .. autoclass:: stdpopsim.Annotation()
     :members:
 
+.. _sec_api_demographic_models:
+
 ******************
 Demographic Models
 ******************
@@ -43,6 +45,25 @@ Demographic Models
     :members:
 
 .. autoclass:: stdpopsim.Population()
+    :members:
+
+.. _sec_api_dfes:
+
+******************
+Selection and DFEs
+******************
+
+To allow for different kinds of mutations,
+each :class:`Contig` carries a list of :class:`.DFE` objects
+(for "Distribution of Fitness Effects"),
+and a list of collections of intervals to which these apply.
+The :class:`Contig` contains the overall mutation rate,
+and the :class:`.DFE` describes the proportions of different types of mutations.
+Each :class:`.Contig` comes, by default, with a single, neutral DFE
+that applies to the entire Contig.
+
+
+.. autoclass:: stdpopsim.DFE()
     :members:
 
 .. _sec_api_generic_models:

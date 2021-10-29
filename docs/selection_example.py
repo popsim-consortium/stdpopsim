@@ -1,6 +1,5 @@
 import random
 import logging
-import numpy as np
 import stdpopsim
 
 logger = logging.getLogger(__name__)
@@ -25,7 +24,7 @@ def adaptive_introgression(seed):
     # One mutation type, which we'll use for the positively selected mutation.
     # Neutral mutations will be added by the SLiM engine as usual, after the
     # SLiM phase of the simulation has completed.
-    positive = stdpopsim.ext.MutationType(convert_to_substitution=False)
+    positive = stdpopsim.MutationType(convert_to_substitution=False)
     mutation_types = [positive]
     mut_id = len(mutation_types) - 1
 
@@ -159,85 +158,6 @@ def adaptive_introgression(seed):
     return ts, T_mut, T_sel, s
 
 
-def KimDFE():
-    """
-    Return neutral and negative MutationType()s representing a human DFE.
-    Kim et al. (2018), p.23, http://doi.org/10.1371/journal.pgen.1007741
-    """
-    neutral = stdpopsim.ext.MutationType()
-    gamma_shape = 0.186  # shape
-    gamma_mean = -0.01314833  # expected value
-    h = 0.5  # dominance coefficient
-    negative = stdpopsim.ext.MutationType(
-        dominance_coeff=h,
-        distribution_type="g",
-        distribution_args=[gamma_mean, gamma_shape],
-    )
-    # note neutral mutations have 0 proportion because they are not simulated by SLiM
-    return {"mutation_types": [neutral, negative], "proportions": [0.0, 0.7]}
-
-
-def OutOfAfrica_3G09_with_DFE(seed):
-    """
-    The Gutenkunst et al. HomSap/OutOfAfrica_3G09 model, simulated with a DFE.
-    """
-    species = stdpopsim.get_species("HomSap")
-    model = species.get_demographic_model("OutOfAfrica_3G09")
-    contig = species.get_contig("chr1", length_multiplier=0.001)
-    samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
-
-    # neutral and deleterious mutations occur across the whole contig
-    contig.add_genomic_element_type(
-        intervals=np.array([[0, int(contig.recombination_map.sequence_length)]]),
-        **KimDFE(),
-    )
-
-    # Simulate.
-    engine = stdpopsim.get_engine("slim")
-    ts = engine.simulate(
-        model,
-        contig,
-        samples,
-        seed=seed,
-        slim_scaling_factor=10,
-        slim_burn_in=10,
-        # Set slim_script=True to print the script instead of running it.
-        # slim_script=True,
-    )
-    return ts
-
-
-def gene_with_noncoding_OutOfAfrica_3G09(seed):
-    """
-    Simulating a 1kb gene flanked by 1kb neutral regions. Within genes,
-    30% of the total influx of mutations are neutral and 70% are deleterious,
-    with the DFE from Kim et al. The HomSap/OutOfAfrica_3G09 model was simulated.
-    """
-    species = stdpopsim.get_species("HomSap")
-    model = species.get_demographic_model("OutOfAfrica_3G09")
-    contig = species.get_contig(length=3000)
-    samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
-
-    # within the gene, KimDFE is used, outside genomic elements
-    # neutral muts are added with msprime
-    gene_interval = np.array([[1000, 2000]])
-    contig.add_genomic_element_type(intervals=gene_interval, **KimDFE())
-
-    # Simulate.
-    engine = stdpopsim.get_engine("slim")
-    ts = engine.simulate(
-        model,
-        contig,
-        samples,
-        seed=seed,
-        slim_scaling_factor=10,
-        slim_burn_in=10,
-        # Set slim_script=True to print the script instead of running it.
-        # slim_script=True,
-    )
-    return ts
-
-
 if __name__ == "__main__":
     import sys
     import stdpopsim.cli
@@ -253,7 +173,3 @@ if __name__ == "__main__":
     stdpopsim.cli.setup_logging(args)
 
     ts, T_mut, T_sel, s = adaptive_introgression(seed)
-
-    ts = OutOfAfrica_3G09_with_DFE(seed)
-
-    ts = gene_with_noncoding_OutOfAfrica_3G09(seed)

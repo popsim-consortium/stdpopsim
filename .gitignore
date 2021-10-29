@@ -6,3 +6,7 @@ docs/_ext
 build
 dist
 stdpopsim.egg-info
+.coverage
+htmlcov
+_test_cache
+test_cache
