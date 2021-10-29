@@ -35,7 +35,7 @@ class TestContig:
 
     def test_add_DFE(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
-        contig.clear_features()
+        contig.clear_DFEs()
         props = [0.3, 0.7]
         mt = [stdpopsim.ext.MutationType() for _ in props]
         dfes = [
@@ -57,7 +57,7 @@ class TestContig:
 
     def test_is_neutral(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
-        contig.clear_features()
+        contig.clear_DFEs()
         props = [0.3, 0.7]
         mt = [
             stdpopsim.ext.MutationType(distribution_type="f", distribution_args=[1])
@@ -81,7 +81,7 @@ class TestContig:
 
     def test_is_neutral2(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
-        contig.clear_features()
+        contig.clear_DFEs()
         props = [0.3, 0.7]
         mt = [stdpopsim.ext.MutationType() for _ in props]
         dfes = [
@@ -102,7 +102,7 @@ class TestContig:
 
     def test_is_neutral3(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
-        contig.clear_features()
+        contig.clear_DFEs()
         props = [0.3, 0.7]
         mt = [
             stdpopsim.ext.MutationType(distribution_type="e", distribution_args=[1])
@@ -126,7 +126,7 @@ class TestContig:
 
     def test_too_many_dfes(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
-        contig.clear_features()
+        contig.clear_DFEs()
         props = [0.3, 0.7]
         mt = [
             stdpopsim.ext.MutationType(distribution_type="e", distribution_args=[1])
@@ -307,7 +307,7 @@ class DFEModelTestMixin:
             length=10000,
             mutation_rate=1e-6,  # Ne=1e3 and length=1e4 so theta=40
         )
-        contig.clear_features()
+        contig.clear_DFEs()
         contig.add_DFE(
             intervals=np.array([[0, contig.length / 2]], dtype="int"),
             DFE=self.dfe,

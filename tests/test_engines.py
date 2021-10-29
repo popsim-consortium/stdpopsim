@@ -111,7 +111,7 @@ class TestBehaviour:
         model = species.get_demographic_model("AshkSub_7G19")
         samples = model.get_samples(10)
         contig = stdpopsim.Contig.basic_contig(length=100)
-        contig.clear_features()
+        contig.clear_DFEs()
         props = [1]
         mt = [stdpopsim.ext.MutationType(distribution_type="f", distribution_args=[1])]
         dfes = [
@@ -128,7 +128,7 @@ class TestBehaviour:
         with pytest.raises(ValueError):
             engine.simulate(model, contig, samples, seed=1)
         # okay now change selection coefficient to neutral
-        contig.clear_features()
+        contig.clear_DFEs()
         props = [1]
         mt = [stdpopsim.ext.MutationType(distribution_type="f", distribution_args=[0])]
         dfes = [
