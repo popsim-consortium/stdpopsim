@@ -1142,6 +1142,23 @@ before::
 Finally, rename ``pre-commit.sample`` to simply ``pre-commit``
 
 *************
+Code Coverage
+*************
+
+As part of the continuous testing suite we have automated checking of how
+well the test units cover the source code. As a result it's very helpful
+to check locally how well your tests are covering your code by asking
+`pytest` for coverage reports. This can be done with::
+
+    $ pytest --cov-report html --cov=stdpopsim tests/
+
+this will output of directory of html files for you to browse test coverage
+for every file in `stdpopsim` in a reasonably straightfoward graphical
+way. You'll be looking for lines of code that are highlighted yellow or red
+indicated that tests do not currently cover that bit of code.
+
+
+*************
 Documentation
 *************
 
