@@ -93,7 +93,7 @@ _species = stdpopsim.Species(
             reasons={stdpopsim.CiteReason.POP_SIZE},  # Quebec population
         ),
         stdpopsim.Citation(
-            author="Vitova et al.",
+            author="Vítová et al",
             year=2011,
             doi="https://doi.org/10.1007/s00425-011-1427-7",
             reasons={stdpopsim.CiteReason.GEN_TIME},
