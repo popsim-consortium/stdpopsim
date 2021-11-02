@@ -44,7 +44,7 @@ def _ooa_nea_extended_pulse():
         total_migration_rate,
         source,
         dest,
-        migration_cutoff=1e-6,
+        migration_cutoff=1e-5,
     ):
 
         """
@@ -64,7 +64,6 @@ def _ooa_nea_extended_pulse():
         """
 
         event_in_range = list()
-        event_out_of_range = list([0])
         D_extended_pulse = {"time": [], "rate": [], "source": [], "dest": []}
 
         """
@@ -91,43 +90,28 @@ def _ooa_nea_extended_pulse():
             over the set migration cutoff. They will be included in the m(t)
             distribution.
             """
-            if x >= migration_start and x <= migration_stop:
-                D_extended_pulse["time"].append(x)
-                D_extended_pulse["rate"].append(m_scaled[x])
-                D_extended_pulse["source"].append(source)
-                D_extended_pulse["dest"].append(dest)
-                event_in_range.append(x)
-            """
-            Writing gene flow events which are outside the set time boarders
-            but stil over the set migration cutoff. They will be included
-            in the m(t) distribution.
-            """
-            if x < migration_start or x > migration_stop:
-                if m_scaled[x] > migration_cutoff:
-                    D_extended_pulse["time"].append(x)
-                    D_extended_pulse["rate"].append(m_scaled[x])
-                    D_extended_pulse["source"].append(source)
-                    D_extended_pulse["dest"].append(dest)
-                    event_out_of_range.append(x)
+            D_extended_pulse["time"].append(x)
+            D_extended_pulse["rate"].append(m_scaled[x])
+            D_extended_pulse["source"].append(source)
+            D_extended_pulse["dest"].append(dest)
+            event_in_range.append(x)
+
         """
         Setting migration rate to 0 at the end/ the start of
         gene flow (end of gene flow backwards in time).
         """
-        if event_out_of_range[-1] > event_in_range[-1]:
-            D_extended_pulse["time"].append((event_out_of_range[-1] + 1))
-            D_extended_pulse["rate"].append(0)
-            D_extended_pulse["source"].append(source)
-            D_extended_pulse["dest"].append(dest)
-        else:
-            D_extended_pulse["time"].append((event_in_range[-1] + 1))
-            D_extended_pulse["rate"].append(0)
-            D_extended_pulse["source"].append(source)
-            D_extended_pulse["dest"].append(dest)
+
+        D_extended_pulse["time"].append((event_in_range[-1] + 1))
+        D_extended_pulse["rate"].append(0)
+        D_extended_pulse["source"].append(source)
+        D_extended_pulse["dest"].append(dest)
         """
         Storing all migration event in a df, sorted by time
         """
         extended_pulse = pd.DataFrame.from_dict(D_extended_pulse)
+        extended_pulse = extended_pulse[extended_pulse.rate != 0]
         extended_pulse.sort_values(by=["time"], ignore_index=True)
+        extended_pulse.reset_index(inplace=True)
 
         return extended_pulse
 
@@ -148,12 +132,6 @@ def _ooa_nea_extended_pulse():
     tm_NHc_start = int(30 / generation_time)
     tm_NHc_stop = int(50 / generation_time)
 
-    """Absolute start end end of admixture"""
-    Neandertal_Gene_Flow_absolute_start = msprime.MigrationRateChange(time=0, rate=0)
-    Neandertal_Gene_Flow_absolute_end = msprime.MigrationRateChange(
-        time=t_Hy_Hc, rate=0
-    )
-
     """Split time CEU"""
     Split_Time_non_Africans = msprime.MassMigration(
         time=t_Hy_Hc, source=1, destination=0, proportion=1.0
@@ -163,13 +141,6 @@ def _ooa_nea_extended_pulse():
     Human_Archaic_split_time = msprime.MassMigration(
         time=t_NH, source=2, destination=0, proportion=1.0
     )
-
-    demographic_events_without_admixture = [
-        Human_Archaic_split_time,
-        Split_Time_non_Africans,
-        Neandertal_Gene_Flow_absolute_end,
-        Neandertal_Gene_Flow_absolute_start,
-    ]
 
     """Creating all migration events of the extended pulse"""
     extended_GF = extended_pulse(
@@ -181,6 +152,20 @@ def _ooa_nea_extended_pulse():
         dest=2,
         migration_cutoff=1e-5,
     )
+    """Absolute start end end of admixture"""
+    Neandertal_Gene_Flow_absolute_start = msprime.MigrationRateChange(
+        time=int(extended_GF.time.head(1) - 1), rate=0
+    )
+    Neandertal_Gene_Flow_absolute_end = msprime.MigrationRateChange(
+        time=int(extended_GF.time.tail(1) + 1), rate=0
+    )
+
+    demographic_events_without_admixture = [
+        Human_Archaic_split_time,
+        Split_Time_non_Africans,
+        Neandertal_Gene_Flow_absolute_end,
+        Neandertal_Gene_Flow_absolute_start,
+    ]
 
     demographic_events = demographic_events_without_admixture + [
         msprime.MigrationRateChange(
