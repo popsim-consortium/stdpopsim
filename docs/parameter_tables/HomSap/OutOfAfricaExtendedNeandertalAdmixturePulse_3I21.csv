@@ -1,11 +1,3 @@
-Population size,3600,Ancestral pop. size
-Population size,13900,YRI pop. size
-Population size,880,OOA pop. size
-Population size,2300,CEU pop. size after EU/AS divergence
-Population size,650,CHB pop. size after EU/AS divergence
-Growth rate (per gen.),0.00125,CEU pop. growth rate (per gen.)
-Growth rate (per gen.),0.00372,CHB pop. growth rate (per gen.)
-Migration rate (x10^-5),52.2,YRI-OOA migration rate (per gen.)
 Population size,10000,YRI pop. size
 Population size,10000,CEU pop. size
 Population size,10000,Neandertal pop. size
