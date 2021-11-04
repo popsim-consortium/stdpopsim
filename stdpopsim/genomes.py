@@ -153,7 +153,7 @@ class Contig:
 
     Information about targets of selection are contained in the ``dfe_list``
     and ``interval_list``. These must be of the same length, and the k-th DFE
-    applies to the k-th interval; see :meth:`.add_DFE` for more information.
+    applies to the k-th interval; see :meth:`.add_dfe` for more information.
 
     :ivar mutation_rate: The rate of mutation per base per generation.
     :vartype mutation_rate: float
@@ -199,9 +199,9 @@ class Contig:
     interval_list = attr.ib(factory=list)
 
     def __attrs_post_init__(self):
-        self.add_DFE(
+        self.add_dfe(
             np.array([[0, int(self.length)]]),
-            stdpopsim.dfe.neutral_DFE(),
+            stdpopsim.dfe.neutral_dfe(),
         )
 
     @staticmethod
@@ -349,7 +349,7 @@ class Contig:
             dfe_labels[np.isin(breaks[:-1], intervals[:, 0], assume_unique=True)] = j
         return breaks, dfe_labels
 
-    def clear_DFEs(self):
+    def clear_dfes(self):
         """
         Removes all DFEs from the contig (as well as the corresponding list of
         intervals).
@@ -357,22 +357,22 @@ class Contig:
         self.dfe_list = []
         self.interval_list = []
 
-    def add_DFE(self, intervals, DFE):
+    def add_dfe(self, intervals, DFE):
         """
         Adds the provided DFE to the contig, applying to the regions of the
         contig specified in ``intervals``. These intervals are also *removed*
         from the intervals of any previously-present DFEs - in other words,
         more recently-added DFEs take precedence. Each DFE added in this way
         carries its own MutationTypes: no mutation types are shared between
-        DFEs added by different calls to ``add_DFE( )``, even if the same DFE
+        DFEs added by different calls to ``add_dfe( )``, even if the same DFE
         object is added more than once.
 
         For instance, if we do
         ```
         a1 = np.array([[0, 100]])
         a2 = np.array([[50, 120]])
-        contig.add_DFE(a1, dfe1)
-        contig.add_DFE(a2, dfe2)
+        contig.add_dfe(a1, dfe1)
+        contig.add_dfe(a2, dfe2)
         ```
         then ``dfe1`` applies to the region from 0 to 50 and ``dfe2`` applies to the
         region from 50 to 120.
