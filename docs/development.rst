@@ -1052,6 +1052,17 @@ to him until directed).
          --useAdjacentAvg \
          --retainIntermediates
 
+
+
+.. _sec_development_dfe_model:
+
+******************
+Adding a DFE model
+******************
+
+TODO: WRITE ME
+
+
 ****************
 Coding standards
 ****************

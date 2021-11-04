@@ -10,146 +10,221 @@ from stdpopsim import utils
 IS_WINDOWS = sys.platform.startswith("win")
 
 
-class TestContig:
-    def test_all_intervals_array(self):
+class TestContig(object):
+
+    example_dfe = stdpopsim.DFE(
+        id="abc",
+        description="example DFE",
+        long_description="test test beep boop beep",
+        proportions=[0.3, 0.7],
+        mutation_types=[stdpopsim.MutationType() for _ in range(2)],
+    )
+
+    def verify_dfe_breakpoints(self, contig):
+        breaks, dfe_labels = contig.dfe_breakpoints()
+        for j, intervals in enumerate(contig.interval_list):
+            for left, right in intervals:
+                assert left in breaks
+                assert right in breaks
+                k = np.searchsorted(breaks, left)
+                assert dfe_labels[k] == j
+
+    def test_default_DFE(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
-        assert len(contig.all_intervals_array) == 1
-        truth = np.array([[0, 100, 0], [100, 200, 1]])
-        contig.interval_list.append(np.array([[100, 200]]))
-        assert (contig.all_intervals_array == truth).all()
+        assert len(contig.dfe_list) == 1
+        assert len(contig.interval_list) == 1
+        assert contig.dfe_list[0].id == "neutral"
+        assert np.all(contig.interval_list[0] == np.array([[0, contig.length]]))
 
     def test_add_DFE_errors(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
-        props = [0.3, 0.7]
-        mt = [stdpopsim.ext.MutationType() for _ in props]
         # bad intervals
-        dfe = stdpopsim.DFE(
-            id="abc",
-            description="test",
-            long_description="test test",
-            proportions=props,
-            mutation_types=mt,
-        )
         with pytest.raises(ValueError):
-            contig.add_DFE(np.array([10, 20]), dfe)
+            contig.add_DFE(np.array([10, 20]), self.example_dfe)
+        with pytest.raises(ValueError):
+            contig.add_DFE("abc", self.example_dfe)
+
+    def test_dfe_breakpoints(self):
+        contig = stdpopsim.Contig.basic_contig(length=100)
+        contig.clear_DFEs()
+        mt = stdpopsim.MutationType()
+        for j in range(3):
+            dfe = stdpopsim.DFE(
+                id=str(j),
+                description="test",
+                long_description="test test",
+                mutation_types=[mt],
+            )
+            contig.add_DFE(
+                np.array(
+                    [[(j + 1) * 5, (j + 1) * 10], [(j + 1) * 20, (j + 1) * 20 + 1]],
+                    dtype="int",
+                ),
+                dfe,
+            )
+        self.verify_dfe_breakpoints(contig)
 
     def test_add_DFE(self):
-        contig = stdpopsim.Contig.basic_contig(length=100)
-        contig.clear_DFEs()
-        props = [0.3, 0.7]
-        mt = [stdpopsim.ext.MutationType() for _ in props]
-        dfes = [
-            stdpopsim.DFE(
-                id=str(j),
-                description="test",
-                long_description="test test",
-                proportions=props,
-                mutation_types=mt,
+        for clear in (True, False):
+            contig = stdpopsim.Contig.basic_contig(length=100)
+            if clear:
+                contig.clear_DFEs()
+            props = [0.3, 0.7]
+            mt = [stdpopsim.MutationType() for _ in props]
+            dfes = [
+                stdpopsim.DFE(
+                    id=str(j),
+                    description="test",
+                    long_description="test test",
+                    proportions=props,
+                    mutation_types=mt,
+                )
+                for j in range(3)
+            ]
+            contig.add_DFE(
+                intervals=np.array([[10, 30], [50, 100]]),
+                DFE=dfes[0],
             )
-            for j in range(2)
-        ]
-        contig.add_DFE(
-            intervals=np.array([[10, 30], [50, 100]]), DFE=dfes[0], fill_neutral=False
-        )
-        contig.add_DFE(intervals=np.array([[30, 40]]), DFE=dfes[1], fill_neutral=False)
-        assert len(contig.dfe_list) == 2
-        assert len(contig.mutation_types()) == 4
+            contig.add_DFE(intervals=np.array([[30, 40]]), DFE=dfes[1])
+            contig.add_DFE(intervals=np.array([[20, 60]]), DFE=dfes[2])
+            assert len(contig.dfe_list) == 4 - clear
+            assert len(contig.mutation_types()) == 7 - clear
+            if clear:
+                dfe_ids = []
+                true_ints = []
+            else:
+                true_ints = [np.array([[0, 10]])]
+                dfe_ids = ["neutral"]
+            dfe_ids += [dfe.id for dfe in dfes]
+            true_ints += [
+                np.array([[10, 20], [60, 100]]),
+                np.empty((0, 2)),
+                np.array([[20, 60]]),
+            ]
+            for d, i in zip(contig.dfe_list, dfe_ids):
+                assert d.id == i
+            for a1, a2 in zip(contig.interval_list, true_ints):
+                assert np.all(a1.shape == a2.shape)
+                assert np.all(a1 == a2)
+            self.verify_dfe_breakpoints(contig)
+
+    @pytest.mark.skip(reason="TODO allow more flexible inputs")
+    def test_add_DFE_interval_formats(self):
+        L = 50818
+        for intervals in (
+            [[0, L]],
+            [[0, int(0.2 * L)]],
+            ([0, int(0.2 * L)], [int(0.6 * L), L]),
+        ):
+            contig = stdpopsim.Contig.basic_contig(length=L)
+            contig.add_DFE(intervals=intervals, DFE=self.example_dfe)
+            np.testing.assert_array_equal(intervals, contig.interval_list[1])
 
     def test_is_neutral(self):
-        contig = stdpopsim.Contig.basic_contig(length=100)
-        contig.clear_DFEs()
-        props = [0.3, 0.7]
-        mt = [
-            stdpopsim.ext.MutationType(distribution_type="f", distribution_args=[1])
-            for _ in props
-        ]
-        dfes = [
-            stdpopsim.DFE(
-                id=str(j),
-                description="test",
-                long_description="test test",
-                proportions=props,
-                mutation_types=mt,
-            )
-            for j in range(2)
-        ]
-        contig.add_DFE(
-            intervals=np.array([[10, 30], [50, 100]]), DFE=dfes[0], fill_neutral=False
-        )
-        contig.add_DFE(intervals=np.array([[30, 40]]), DFE=dfes[1], fill_neutral=False)
-        assert not contig.is_neutral
+        for neutral in (True, False):
+            for dist in ("f", "e"):
+                contig = stdpopsim.Contig.basic_contig(length=100)
+                contig.clear_DFEs()
+                props = [0.3, 0.7]
+                if neutral:
+                    s = 0
+                else:
+                    s = 0.1
+                mt = [
+                    stdpopsim.MutationType(
+                        distribution_type=dist, distribution_args=[s]
+                    )
+                    for _ in props
+                ]
+                dfes = [
+                    stdpopsim.DFE(
+                        id=str(j),
+                        description="test",
+                        long_description="test test",
+                        proportions=props,
+                        mutation_types=mt,
+                    )
+                    for j in range(2)
+                ]
+                contig.add_DFE(
+                    intervals=np.array([[10, 30], [50, 100]]),
+                    DFE=dfes[0],
+                )
+                contig.add_DFE(intervals=np.array([[30, 40]]), DFE=dfes[1])
+                # exponential with mean zero doesn't count as neutral!
+                assert contig.is_neutral is (neutral and dist == "f")
 
-    def test_is_neutral2(self):
-        contig = stdpopsim.Contig.basic_contig(length=100)
-        contig.clear_DFEs()
-        props = [0.3, 0.7]
-        mt = [stdpopsim.ext.MutationType() for _ in props]
-        dfes = [
-            stdpopsim.DFE(
-                id=str(j),
-                description="test",
-                long_description="test test",
-                proportions=props,
-                mutation_types=mt,
-            )
-            for j in range(2)
-        ]
-        contig.add_DFE(
-            intervals=np.array([[10, 30], [50, 100]]), DFE=dfes[0], fill_neutral=False
-        )
-        contig.add_DFE(intervals=np.array([[30, 40]]), DFE=dfes[1], fill_neutral=False)
-        assert contig.is_neutral
 
-    def test_is_neutral3(self):
-        contig = stdpopsim.Contig.basic_contig(length=100)
-        contig.clear_DFEs()
-        props = [0.3, 0.7]
-        mt = [
-            stdpopsim.ext.MutationType(distribution_type="e", distribution_args=[1])
-            for _ in props
-        ]
-        dfes = [
-            stdpopsim.DFE(
-                id=str(j),
-                description="test",
-                long_description="test test",
-                proportions=props,
-                mutation_types=mt,
-            )
-            for j in range(2)
-        ]
-        contig.add_DFE(
-            intervals=np.array([[10, 30], [50, 100]]), DFE=dfes[0], fill_neutral=False
-        )
-        contig.add_DFE(intervals=np.array([[30, 40]]), DFE=dfes[1], fill_neutral=False)
-        assert not contig.is_neutral
+class TestMutationTypes(object):
+    def test_netural_mutation_type(self):
+        mt = stdpopsim.MutationType()
+        assert mt.is_neutral
 
-    def test_too_many_dfes(self):
-        contig = stdpopsim.Contig.basic_contig(length=100)
-        contig.clear_DFEs()
-        props = [0.3, 0.7]
-        mt = [
-            stdpopsim.ext.MutationType(distribution_type="e", distribution_args=[1])
-            for _ in props
-        ]
-        dfes = [
-            stdpopsim.DFE(
-                id=str(j),
-                description="test",
-                long_description="test test",
-                proportions=props,
-                mutation_types=mt,
-            )
-            for j in range(3)
-        ]
-        contig.add_DFE(
-            intervals=np.array([[10, 30], [50, 100]]), DFE=dfes[0], fill_neutral=False
+    def test_mutation_types(self):
+        mut_params = {
+            "f": ([-0.1], [0], [0.1], [50]),
+            "g": ([-0.1, 0.1], [0.1, 0.1], [50, 50]),
+            "e": ([0.1], [10], [5000], [0]),
+            "n": ([-0.1, 0.2], [0.1, 0.1], [50, 50]),
+            "w": ([0.1, 0.2], [0.1, 0.1], [50, 50]),
+            "l": ([-0.1, 0.2], [0.1, 0.1], [50, 50]),
+        }
+        for t in mut_params:
+            for p in mut_params[t]:
+                mt = stdpopsim.MutationType(distribution_type=t, distribution_args=p)
+                if t == "l":
+                    assert mt.distribution_type == "s"
+                else:
+                    assert mt.distribution_type == t
+                    assert len(mt.distribution_args) == len(p)
+                    for a, b in zip(mt.distribution_args, p):
+                        assert a == b
+
+    def test_bad_mutation_types(self):
+        bad_mut_params = {
+            "f": ([0.1, 0.2], [], [np.inf]),
+            "g": ([], [0.1, 0], [0.1, -0.1], [0.1, 0.4, 0.5], [0.1, np.inf]),
+            "e": ([], [0, 1], [0.1, 0.4, 0.5], [np.inf]),
+            "n": ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [0.1, 0.0], [0.3, np.inf]),
+            "w": ([], [-0.1, 1], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [np.inf, 2.3]),
+            "l": ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [0.1, np.inf]),
+        }
+        for t in bad_mut_params:
+            for p in bad_mut_params[t]:
+                print(t, p)
+                with pytest.raises(ValueError):
+                    stdpopsim.MutationType(distribution_type=t, distribution_args=p)
+
+    def test_convert_to_substitution(self):
+        mt = stdpopsim.MutationType()
+        assert mt.convert_to_substitution is True
+        for c in (True, False):
+            mt = stdpopsim.MutationType(convert_to_substitution=c)
+            assert mt.convert_to_substitution == c
+
+    def test_dominance_coeff(self):
+        mt = stdpopsim.MutationType()
+        assert mt.dominance_coeff == 0.5
+        for dominance_coeff in (-10, 0, 0.5, 1, 50):
+            mt = stdpopsim.MutationType(dominance_coeff=dominance_coeff)
+            assert mt.dominance_coeff == dominance_coeff
+
+    def test_bad_dominance_coeff(self):
+        for dominance_coeff in (np.inf, np.nan):
+            with pytest.raises(ValueError):
+                stdpopsim.MutationType(dominance_coeff=dominance_coeff)
+
+    def test_bad_distribution_type(self):
+        for distribution_type in (1, {}, None, "~", "!", "F"):
+            with pytest.raises(ValueError):
+                stdpopsim.MutationType(distribution_type=distribution_type)
+
+    def test_not_neutral_mutation_type(self):
+        mt = stdpopsim.MutationType(
+            distribution_type="f",
+            distribution_args=[1],
         )
-        contig.add_DFE(intervals=np.array([[30, 40]]), DFE=dfes[1], fill_neutral=False)
-        with pytest.raises(ValueError):
-            contig.add_DFE(
-                intervals=np.array([[30, 40]]), DFE=dfes[2], fill_neutral=False
-            )
+        assert not mt.is_neutral
 
 
 class TestAll_DFE_Models:
@@ -173,7 +248,7 @@ class TestDFE:
         desc = "test test"
         long_desc = "test test 🐢"
         for props in ([0.4, 0.6], [1.0, 0.0], [1.0], [1 / 3, 1 / 3, 1 / 3]):
-            mt = [stdpopsim.ext.MutationType() for _ in props]
+            mt = [stdpopsim.MutationType() for _ in props]
             dfe = stdpopsim.DFE(
                 id="abc",
                 description=desc,
@@ -190,7 +265,7 @@ class TestDFE:
                 assert a == b
 
     def test_DFE_defaults(self):
-        m1 = stdpopsim.ext.MutationType()
+        m1 = stdpopsim.MutationType()
         desc = "test test"
         long_desc = "test test 🐢"
         dfe = stdpopsim.DFE(
@@ -204,8 +279,9 @@ class TestDFE:
         assert len(dfe.proportions) == 1
         assert dfe.proportions[0] == 1
 
+    @pytest.mark.usefixtures("capsys")
     def test_printing_DFE(self, capsys):
-        m1 = stdpopsim.ext.MutationType()
+        m1 = stdpopsim.MutationType()
         desc = "test test"
         long_desc = "test test 🐢"
         dfe = stdpopsim.DFE(
@@ -221,8 +297,8 @@ class TestDFE:
         assert "║  id               = abc\n" in captured.out
 
     def test_DFE_errors(self):
-        m1 = stdpopsim.ext.MutationType()
-        m2 = stdpopsim.ext.MutationType()
+        m1 = stdpopsim.MutationType()
+        m2 = stdpopsim.MutationType()
         for bad_props in [["abc"], 1.0, [1.0], [0.2, 0.4, 0.4], [-0.1, -0.1]]:
             with pytest.raises(ValueError):
                 _ = stdpopsim.DFE(
@@ -241,23 +317,21 @@ class TestDFE:
                     proportions=[0.6, 0.4],
                     mutation_types=bad_mut_types,
                 )
-        # commenting out the test below because currently removed this checking
-        # behavior. not sure is this is desired?
-        # for bad_sums in [[-0.4, 0.5], [0.6, 0.8], [139487135987, 0.0], [0.2, 0.3]]:
-        #    with pytest.raises(ValueError):
-        #        _ = stdpopsim.DFE(
-        #            id="abc",
-        #            description="test test",
-        #            long_description="test test test test",
-        #            proportions=bad_sums,
-        #            mutation_types=[m1, m2],
-        #        )
+        for bad_sums in [[-0.4, 0.5], [0.6, 0.8], [139487135987, 0.0], [0.2, 0.3]]:
+            print(bad_sums)
+            with pytest.raises(ValueError):
+                _ = stdpopsim.DFE(
+                    id="abc",
+                    description="test test",
+                    long_description="test test test test",
+                    proportions=bad_sums,
+                    mutation_types=[m1, m2],
+                )
 
     @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
-    @pytest.mark.skip("this isn't tested for yet (issue #1016)")
     def test_no_msprime_DFE(self):
         # test we cannot simulate a non-neutral DFE with msprime
-        m1 = stdpopsim.ext.MutationType(
+        m1 = stdpopsim.MutationType(
             dominance_coeff=0.2,
             distribution_type="e",
             distribution_args=[0.1],
@@ -274,7 +348,6 @@ class TestDFE:
             length=10000,
             mutation_rate=1e-6,
         )
-        contig.clear_genomic_mutation_types()
         contig.add_DFE(
             intervals=np.array([[0, contig.length / 2]], dtype="int"),
             DFE=dfe,

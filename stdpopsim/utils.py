@@ -185,7 +185,11 @@ def append_common_synonyms(genome):
 
 
 def check_intervals_array_shape(intervals):
-    if len(intervals.shape) != 2 or intervals.shape[1] < 2:
+    if (
+        (not isinstance(intervals, np.ndarray))
+        or (len(intervals.shape) != 2)
+        or (intervals.shape[1] < 2)
+    ):
         raise ValueError(
             "Intervals must be 2D objects with at least 2 columns " "[left, right)."
         )
@@ -208,6 +212,7 @@ def build_intervals_array(intervals, start=0, end=np.inf):
     Converts a 2D list or numpy.array to an np.int32 array, which is sorted by
     the first axis. It also checks for the validity of intervals and non-overlappingness.
     """
+    # TODO: allow floats that can be converted to ints?
     intervals = tskit.util.safe_np_int_cast(intervals, dtype=np.int64)
     check_intervals_array_shape(intervals)
     sorter = intervals[:, 0].argsort()
@@ -249,4 +254,5 @@ def mask_intervals(intervals, mask):
             if next_left < next_right:
                 out.append([next_left, next_right])
             left = max(next_left, next_right)
-    return np.array(out).reshape((len(out), 2))
+    out = np.array(out, dtype=intervals.dtype).reshape((len(out), 2))
+    return out

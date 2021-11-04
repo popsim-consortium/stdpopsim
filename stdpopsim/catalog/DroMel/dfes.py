@@ -27,11 +27,11 @@ def _HuberDFE():
             reasons="to be defined",  # include the dfe_model reason
         )
     ]
-    neutral = stdpopsim.ext.MutationType()
+    neutral = stdpopsim.MutationType()
     gamma_shape = 0.33  # shape
     gamma_mean = -3.96e-04  # expected value
     h = 0.5  # dominance coefficient
-    negative = stdpopsim.ext.MutationType(
+    negative = stdpopsim.MutationType(
         dominance_coeff=h,
         distribution_type="g",  # gamma distribution
         distribution_args=[gamma_mean, gamma_shape],

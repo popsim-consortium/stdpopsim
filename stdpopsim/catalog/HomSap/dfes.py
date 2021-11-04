@@ -24,11 +24,11 @@ def _KimDFE():
             reasons="to be defined",  # include the dfe_model reason
         )
     ]
-    neutral = stdpopsim.ext.MutationType()
+    neutral = stdpopsim.MutationType()
     gamma_shape = 0.186  # shape
     gamma_mean = -0.01314833  # expected value
     h = 0.5  # dominance coefficient
-    negative = stdpopsim.ext.MutationType(
+    negative = stdpopsim.MutationType(
         dominance_coeff=h,
         distribution_type="g",  # gamma distribution
         distribution_args=[gamma_mean, gamma_shape],

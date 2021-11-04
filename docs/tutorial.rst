@@ -3,6 +3,7 @@
 =========
 Tutorials
 =========
+
 There are two main ways of accessing the resources of the ``stdpopsim`` package
 that will be detailed in this tutorial. The first is via the command line
 interface (CLI). This is useful if you want to do a straightforward run of the
@@ -875,62 +876,67 @@ Again, methods to do this are discussed in the
 Incorporating selection
 =======================
 
-Here are some examples of how to incorporate selection.
-This API is **not final**, and will probably change!
+There are two general ways to incorporate selection into a simulation:
+Currently, both ways only work using the SLiM engine.
+The first way is by specifying a
+:class:`distribution of fitness effects <.DFE>` for all new mutations
+across the genome or in some subset of it.
+This is demonstrated below on
+`the whole genome <sec_tute_genome_wide_dfe>`_,
+on a given `subset of the genome <sec_tute_selection_single_gene>`_,
+and on `many subsets of the genome <sec_tute_selection_annotation>`_
+obtained from an :class:`.Annotation`.
+The second way is suitable for studying the effects of single
+selective sweeps: we add a single mutation under selection,
+as for instance in a `selective sweep <sec_tute_selective_sweep>`_.
+
+To make it so that new mutation added during the course of a simulation
+can affect fitness,
+we need to tell the contig where to put the mutations,
+and what distribution of selection coefficients they will have.
+To do this, we need to
+
+- choose a distribution of fitness effects (a :class:`.DFE`),
+- choose which part(s) of the Contig to apply the DFE to
+    (e.g., by choosing an :class:`.Annotation`), and
+- add these to the :meth:`Contig <.Contig.add_DFE>`,
+    with the Annotation saying which portions of the genome the DFE
+    applies to.
+
+The next three examples demonstrate how to do this.
+
+.. _sec_tute_genome_wide_dfe:
 
 1. Simulating with a genome-wide DFE
 ------------------------------------
 
-In this example, we'll simulate
-Gutenkunst et al. HomSap/OutOfAfrica_3G09 model, with a DFE.
-To add mutations under selection to a simulation,
-we need to tell the contig where to put the mutations,
-and what distribution of selection coefficients they will have.
-This is set up by :meth:`.contig.add_genomic_element_type`,
-which needs to know which ``intervals`` the mutations will apply to,
-a list of :class:`.ext.MutationType` objects,
-and the ``proportions`` of all mutations that will come from each of these mutation types.
-The specification mirrors that of SLiM,
-and MutationTypes have the same arguments as in SLiM.
+
+In this example, we'll add the Kim et al. HomSap/Gamma_K17 DFE to the
+Gutenkunst et al. HomSap/OutOfAfrica_3G09 model.
+We can see the DFEs available for a species in the catalog,
+and get one using the :meth:`.Species.get_dfe` method.
 
 .. code-block:: python
 
     import numpy as np
 
-
-    def KimDFE():
-        """
-        Return neutral and negative MutationType()s representing a human DFE.
-        Kim et al. (2018), p.23, http://doi.org/10.1371/journal.pgen.1007741
-        """
-        neutral = stdpopsim.ext.MutationType()
-        gamma_shape = 0.186  # shape
-        gamma_mean = -0.01314833  # expected value
-        h = 0.5  # dominance coefficient
-        negative = stdpopsim.ext.MutationType(
-            dominance_coeff=h,
-            distribution_type="g",  # gamma distribution
-            distribution_args=[gamma_mean, gamma_shape],
-        )
-        # neutral mutations have 0 proportion because they are not simulated by SLiM
-        return {"mutation_types": [neutral, negative], "proportions": [0.0, 0.7]}
-
-
     species = stdpopsim.get_species("HomSap")
-    model = species.get_demographic_model("OutOfAfrica_3G09")
     contig = species.get_contig("chr1", length_multiplier=0.001)
-    contig.clear_genomic_mutation_types()
+
+    dfe = species.get_dfe("Gamma_K17")
+    print(dfe)
+
+
+Once we have the DFE, we can add it to the Contig,
+specifying which set of *intervals* it will apply to:
+
+.. code-block:: python
+
+    contig.add_DFE(intervals=np.array([[0, int(contig.length)]]), DFE=dfe)
+
+    model = species.get_demographic_model("OutOfAfrica_3G09")
     samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
 
-    # neutral and deleterious mutations occur across the whole contig
-    contig.add_genomic_element_type(
-        intervals=np.array([[0, int(contig.recombination_map.sequence_length)]]),
-        **KimDFE(),
-    )
-
-
-Note in particular that we have set the proportion of neutral mutations to zero.
-However, these will be added in later, by msprime.
 Now, we can simulate as usual:
 
 .. code-block:: python
@@ -944,7 +950,6 @@ Now, we can simulate as usual:
         slim_scaling_factor=10,
         slim_burn_in=10,
     )
-
 
 Let's verify that we have both neutral and deleterious mutations in the resulting simulation:
 
@@ -962,37 +967,42 @@ Let's verify that we have both neutral and deleterious mutations in the resultin
         f"{len(mut_info) - num_neutral} nonneutral mutations."
     )
 
+    # There are 323 neutral mutations, and 420 nonneutral mutations.
+
+
+.. _sec_tute_selection_single_gene:
 
 2. Simulating selection in a single gene
 ----------------------------------------
 
-Next, we'll simulate a 1kb gene flanked by 1kb neutral regions.
-Within genes, 30% of the total influx of mutations are neutral and 70% are deleterious,
-with the DFE again from Kim et al., using the HomSap/OutOfAfrica_4G09 demographic model.
-Within the gene, the neutral mutations are added by msprime (as above),
-and outside the gene, all mutations are neutral and all are added with msprime.
+Next, we'll simulate a 10kb gene flanked by 10kb neutral regions,
+by specifying a particular interval to apply the HomSap/Gamma_K17 DFE to.
+Contigs come by default covered by a neutral DFE,
+so all we need to do is apply the DFE to the middle region
+(which we'll imagine is the coding region of a gene).
+This works because
+when a newly added DFE covers a portion of a Contig already covered by
+previous DFEs, the new DFE takes precedence:
+concretely, the intervals to which the new DFE apply
+are removed from the intervals associated with previous DFEs.
 
 .. code-block:: python
 
-    import numpy as np
-
-
     species = stdpopsim.get_species("HomSap")
+    dfe = species.get_dfe("Gamma_K17")
+    contig = species.get_contig(length=30000)
     model = species.get_demographic_model("OutOfAfrica_3G09")
-    contig = species.get_contig(length=3000)
     samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
 
-    gene_interval = np.array([[1000, 2000]])
-    contig.clear_genomic_mutation_types()
-    contig.add_genomic_element_type(intervals=gene_interval, **KimDFE())
+    gene_interval = np.array([[10000, 20000]])
+    contig.add_DFE(intervals=gene_interval, DFE=dfe)
 
-    # Simulate.
     engine = stdpopsim.get_engine("slim")
     ts = engine.simulate(
         model,
         contig,
         samples,
-        seed=235,
+        seed=236,
         slim_scaling_factor=10,
         slim_burn_in=10,
     )
@@ -1005,7 +1015,9 @@ We'll count up the number of neutral and deleterious mutations in the three regi
     num_neutral = np.zeros(3, dtype="int")
     num_del = np.zeros(3, dtype="int")
     for site in ts.sites():
-        j = (site.position >= 1000) + (site.position >= 2000)
+        j = int(site.position >= gene_interval[0, 0]) + int(
+            site.position >= gene_interval[0, 1]
+        )
         unique_muts = {}
         for mut in site.mutations:
             for ds, md in zip(mut.derived_state.split(","), mut.metadata["mutation_list"]):
@@ -1025,17 +1037,94 @@ We'll count up the number of neutral and deleterious mutations in the three regi
             f"and {d} deleterious mutations."
         )
 
-    # From 0 to 1000: 3 neutral mutations and 0 deleterious mutations.
-    # From 1000 to 2000: 1 neutral mutations and 2 deleterious mutations.
-    # From 2000 to 3000: 1 neutral mutations and 0 deleterious mutations.
+    # From 0 to 1000: 50 neutral mutations and 0 deleterious mutations.
+    # From 1000 to 2000: 12 neutral mutations and 20 deleterious mutations.
+    # From 2000 to 3000: 45 neutral mutations and 0 deleterious mutations.
 
-This verifies that there are only deleterious mutations in the center bit.
+This verifies that the only deleterious mutations are in the center bit,
+and in the center there are both deleterious and neutral mutations,
+as expected under the Gamma_K17.
+
+
+.. _sec_tute_selection_annotation:
+
+3. Simulating selection on exons
+--------------------------------
+
+The catalog also has a certain number of *annotations* available,
+obtained from Ensembl.
+For instance, for humans we have:
+
+.. code-block:: python
+
+    for a in species.annotations:
+        print(f"{a.id}: {a.description}")
+
+    # ensembl_havana_104_exons: Ensembl Havana exon annotations on GRCh38
+    # ensembl_havana_104_CDS: Ensembl Havana CDS annotations on GRCh38
+
+To simulate with the HomSap/Gamma_K17 DFE, now applied
+to *all* exons on chromosome 21
+(the remainder of the chromosome will have only neutral mutations),
+we extract the intervals from the :class:`.Annotation` object
+and use this in :meth:`.Contig.add_DFE`:
+
+.. code-block:: python
+
+    species = stdpopsim.get_species("HomSap")
+    dfe = species.get_dfe("Gamma_K17")
+    contig = species.get_contig("chr20")
+    model = species.get_demographic_model("OutOfAfrica_3G09")
+    samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
+
+    exons = species.get_annotations("ensembl_havana_104_exons")
+    exon_intervals = exons.get_chromosome_annotations("chr20").astype("int")
+    contig.add_DFE(intervals=exon_intervals, DFE=dfe)
+
+    engine = stdpopsim.get_engine("slim")
+    ts = engine.simulate(
+        model,
+        contig,
+        samples,
+        seed=236,
+        slim_scaling_factor=100,
+        slim_burn_in=10,
+    )
+
+Note the very large scaling factor ($Q=100$) that we've used here to get this
+to run fast enough to be used for a quick example!
+This is *not* expected to be a good example because of this extreme scaling,
+but nonetheless there is lower diversity in exons than outside of them:
+
+.. code-block:: python
+
+    breaks, labels = contig.dfe_breakpoints()
+
+    diffs = ts.diversity(windows=breaks, span_normalise=False)
+    pi = (
+        np.sum(diffs[labels == 1]) / np.sum(np.diff(breaks)[labels == 1]),
+        np.sum(diffs[labels == 0]) / np.sum(np.diff(breaks)[labels == 0]),
+    )
+
+    print(
+        f"Mean sequence diversity in exons is {1000 * pi[0]:.3f} differences per Kb,\n"
+        f"and outside of exons it is {1000 * pi[1]:.3f} differences per Kb."
+    )
+
+    # Mean sequence diversity in exons is 0.154 differences per Kb,
+    # and outside of exons it is 0.211 differences per Kb.
 
 
 
+.. _sec_tute_selective_sweep:
 
-3.  Selective sweep
+4.  Selective sweep
 ------------------------------------------
+
+.. warning::
+
+    The following interface for adding selective sweeps
+    is preliminary, and subject to change!
 
 You may be interested in simulating and tracking a single mutation. To illustrate
 this scenario, let's simulate a selective sweep until it reaches an abitrary
@@ -1053,9 +1142,7 @@ which we will insert later.
     species = stdpopsim.get_species("DroMel")
     model = stdpopsim.PiecewiseConstantSize(100000)
     samples = model.get_samples(100)
-    # TODO: remove the call to fully_neutral, once PR #959 goes in.
     contig = species.get_contig("2L", length_multiplier=0.01)
-    contig.fully_neutral()
 
 Next, we need to set things up to add a selected mutation to a randomly chosen
 chromosome in the population of our choice at a specific position in the contig.
@@ -1081,15 +1168,28 @@ the index of the new mutation type in the contig's list of mutation types.
 
 .. code-block:: python
 
-    contig.mutation_types.append(
-        stdpopsim.ext.MutationType(
-            distribution_type="f",
-            dominance_coeff=1.0,
-            distribution_args=[0.5],
-            convert_to_substitution=False,
-        )
+    mt = stdpopsim.MutationType(
+        distribution_type="f",
+        dominance_coeff=1.0,
+        distribution_args=[0.5],
+        convert_to_substitution=False,
     )
-    mut_id = len(contig.mutation_types) - 1
+    dfe = stdpopsim.DFE(
+        id="new_mutation",
+        mutation_types=[mt],
+        proportions=[1.0],
+        description="added mutation",
+        long_description="mutation type to be added",
+    )
+    contig.add_DFE(
+        intervals=np.empty((0, 2), dtype="int"),
+        DFE=dfe,
+    )
+    for mt_info in contig.mutation_types():
+        if mt_info["dfe_id"] == dfe.id:
+            break
+
+    mut_id = mt_info["id"]
 
 Next, we will set up the "extended events" which will modify the demography.
 The first extended event is placing of the selected mutation,

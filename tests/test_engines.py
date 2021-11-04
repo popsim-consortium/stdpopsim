@@ -113,7 +113,7 @@ class TestBehaviour:
         contig = stdpopsim.Contig.basic_contig(length=100)
         contig.clear_DFEs()
         props = [1]
-        mt = [stdpopsim.ext.MutationType(distribution_type="f", distribution_args=[1])]
+        mt = [stdpopsim.MutationType(distribution_type="f", distribution_args=[1])]
         dfes = [
             stdpopsim.DFE(
                 id=str(0),
@@ -130,7 +130,7 @@ class TestBehaviour:
         # okay now change selection coefficient to neutral
         contig.clear_DFEs()
         props = [1]
-        mt = [stdpopsim.ext.MutationType(distribution_type="f", distribution_args=[0])]
+        mt = [stdpopsim.MutationType(distribution_type="f", distribution_args=[0])]
         dfes = [
             stdpopsim.DFE(
                 id=str(0),

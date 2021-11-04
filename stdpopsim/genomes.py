@@ -146,10 +146,14 @@ class Chromosome:
 @attr.s(kw_only=True)
 class Contig:
     """
-    Class representing a contiguous region of genome that is to be
-    simulated. This contains the information about mutation rates
-    and recombination rates that are needed to simulate this region.
-    Genomic element types can be provided.
+    Class representing a contiguous region of genome that is to be simulated.
+    This contains the information about mutation rates, distributions of
+    fitness effects (DFEs), and recombination rates that are needed to simulate
+    this region.
+
+    Information about targets of selection are contained in the ``dfe_list``
+    and ``interval_list``. These must be of the same length, and the k-th DFE
+    applies to the k-th interval; see :meth:`.add_DFE` for more information.
 
     :ivar mutation_rate: The rate of mutation per base per generation.
     :vartype mutation_rate: float
@@ -165,11 +169,11 @@ class Contig:
         ``mask_intervals`` specify regions in keep.
     :vartype exclude: bool
     :ivar dfe_list: a list of :class:`.DFE` objects.
-        By default, the only DFE is neutral
+        By default, the only DFE is completely neutral.
     :vartype dfe_list: list
-    :ivar interval_list: a list of :class:`np.array` objects. By default,
-        the inital interval list spans the whole chrom with the
-        neutral DFE
+    :ivar interval_list: A list of :class:`np.array` objects containing integers.
+        By default, the inital interval list spans the whole chromosome with the
+        neutral DFE.
 
     .. note::
         To run stdpopsim simulations with alternative, user-specified mutation
@@ -195,7 +199,10 @@ class Contig:
     interval_list = attr.ib(factory=list)
 
     def __attrs_post_init__(self):
-        self.fully_neutral()
+        self.add_DFE(
+            np.array([[0, int(self.length)]]),
+            stdpopsim.dfe.neutral_DFE(),
+        )
 
     @staticmethod
     def basic_contig(*, length, mutation_rate=0, recombination_rate=0):
@@ -309,81 +316,116 @@ class Contig:
     def length(self):
         return self.recombination_map.sequence_length
 
-    @property
-    def all_intervals_array(self):
+    def dfe_breakpoints(self):
         """
-        Returns an (n, 3) numpy array with the intervals across all genomic
-        element types in the form (left, right, type).
+        Returns two things: the sorted vector of endpoints of all intervals across
+        all DFEs in the contig, and a vector of integer labels for these intervals,
+        saying which DFE goes with which interval.
+        This provides a complementary method to tell which bit of the contig
+        has which DFE attached, which may be more convenient than the list of two-column
+        arrays provided by interval_list.
+
+        Suppose there are n+1 unique interval endpoints across all the DFE intervals
+        in :attr:`.interval_list`.  (If the intervals in that list
+        cover the whole genome, the number of intervals is n.)
+        This method returns a tuple of two things: ``breaks, dfe_labels``.
+        "breaks" is the array containing those n+1 unique endpoints, in increasing order,
+        and "dfe" is the array of length n containing the index of the DFE
+        the applies to that interval. So, ``breaks[0]`` is always 0, and
+        ``breaks[n+1]`` is always the length of the contig, and
+        ``dfe_labels[k] = j`` if
+        ``[breaks[k], breaks[k+1]]`` is an interval in ``contig.interval_list[j]``,
+        i.e., if ``contig.dfe_list[j]`` applies to the interval starting at
+        ``breaks[k]``.  Some intervals may not be covered by a DFE, in which
+        case they will have the label ``-1`` (beware of python indexing!).
+
+        :return: A tuple (breaks, dfe_labels).
         """
-        all_intervals = np.concatenate(
-            [
-                np.column_stack((g[:, :2], np.full((g.shape[0]), i)))
-                for i, g in enumerate(self.interval_list)
-            ],
-            axis=0,
+        breaks = np.unique(
+            np.vstack(self.interval_list + [[[0, int(self.length)]]])  # also sorted
         )
-        all_intervals = stdpopsim.utils.build_intervals_array(all_intervals)
-        return all_intervals
+        dfe_labels = np.full(len(breaks) - 1, -1, dtype="int")
+        for j, intervals in enumerate(self.interval_list):
+            dfe_labels[np.isin(breaks[:-1], intervals[:, 0], assume_unique=True)] = j
+        return breaks, dfe_labels
 
     def clear_DFEs(self):
         """
-        convenience function to clear dfe_list and interval_list
+        Removes all DFEs from the contig (as well as the corresponding list of
+        intervals).
         """
         self.dfe_list = []
         self.interval_list = []
 
-    def add_DFE(self, intervals, DFE, fill_neutral=True):
+    def add_DFE(self, intervals, DFE):
         """
-        Adds the provided DFE and the intervals specified to go with it
-        to the contig
+        Adds the provided DFE to the contig, applying to the regions of the
+        contig specified in ``intervals``. These intervals are also *removed*
+        from the intervals of any previously-present DFEs - in other words,
+        more recently-added DFEs take precedence. Each DFE added in this way
+        carries its own MutationTypes: no mutation types are shared between
+        DFEs added by different calls to ``add_DFE( )``, even if the same DFE
+        object is added more than once.
+
+        For instance, if we do
+        ```
+        a1 = np.array([[0, 100]])
+        a2 = np.array([[50, 120]])
+        contig.add_DFE(a1, dfe1)
+        contig.add_DFE(a2, dfe2)
+        ```
+        then ``dfe1`` applies to the region from 0 to 50 and ``dfe2`` applies to the
+        region from 50 to 120.
 
         :param array intervals: A valid set of intervals.
         :param DFE dfe: A DFE object.
         """
-        if len(self.dfe_list) >= 2:
-            raise ValueError("only single DFE + neutral sites implemented")
-        if fill_neutral:
-            self.clear_DFEs()
         stdpopsim.utils.check_intervals_validity(intervals)
+        for j, ints in enumerate(self.interval_list):
+            self.interval_list[j] = stdpopsim.utils.mask_intervals(ints, intervals)
         self.dfe_list.append(DFE)
         self.interval_list.append(intervals)
-        if fill_neutral:
-            # now get neutral background intervals -- [start, end)
-            start = 0
-            neutral_intervals = []
-            for ele in intervals:
-                neutral_intervals.append([start, ele[0]])
-                start = ele[1]
-            if start < self.length:
-                neutral_intervals.append([start, self.length])
-            self.dfe_list.append(stdpopsim.dfe.neutral_DFE())
-            self.interval_list.append(np.array(neutral_intervals, dtype="int32"))
-
-    def fully_neutral(self, convert_to_substitution=True):
-        self.add_DFE(
-            np.array([[0, int(self.length)]]),
-            stdpopsim.dfe.neutral_DFE(),
-            fill_neutral=False,
-        )
 
     @property
     def is_neutral(self):
         """
-        returns true if the contig has no non-neutral mutation
-        types
+        Returns True if the contig has no non-neutral mutation types.
         """
-        return all(mt.is_neutral() for d in self.dfe_list for mt in d.mutation_types)
+        return all(mt.is_neutral for d in self.dfe_list for mt in d.mutation_types)
 
     def mutation_types(self):
         """
-        returns a list of hashes where each hash has structure
-        {dfe_id:<val>, mutation_type:, id:}
+        Provides information about the MutationTypes assigned to this Contig,
+        along with information about which DFE they correspond to. This is
+        useful because when simulating with SLiM, the mutation types are
+        assigned numeric IDs in the order provided here (e.g., in the order
+        encountered when iterating over the DFEs); this method provides an easy
+        way to map back from their numeric ID to the DFE that each MutationType
+        corresponds to.
+
+        This method returns a list of dictionaries of length equal to the
+        number of MutationTypes in all DFEs of the contig, each dictionary
+        containing three things: ``"dfe_id"``: the ID of the DFE this
+        MutationType comes from; ``mutation_type``: the mutation type; and
+        ``id``: the index in the list.
+
+        For instance, if ``muts`` is a list of mutation objects in a SLiM tree
+        sequence, then the following code will print the IDs of the DFEs that
+        each comes from:
+
+        .. code-block:: python
+
+            mut_types = contig.mutation_types()
+            for m in muts:
+                dfe_ids = [mut_types[k]["dfe_id"] for md in m.metadata["muation_list"]]
+                print(f"Mutation {m.id} has mutations from DFE(s) {','.join(dfe_ids)")
+
         """
         id = 0
-        hash_list = []
+        mut_types = []
         for d in self.dfe_list:
             for mt in d.mutation_types:
-                hash_list.append(
+                mut_types.append(
                     {
                         "dfe_id": d.id,
                         "mutation_type": mt,
@@ -391,7 +433,7 @@ class Contig:
                     }
                 )
                 id += 1
-        return hash_list
+        return mut_types
 
     def __str__(self):
         gmap = "None" if self.genetic_map is None else self.genetic_map.id
