@@ -158,7 +158,7 @@ class DFE:
     Class representing a "Distribution of Fitness Effects", i.e., a DFE.
     The class records the different *mutation types*, and the *proportions*
     with which they occur. The overall rate of mutations will be determined
-    by the Contig to which the DFE is applied (see :meth:`.Contig.add_DFE`).
+    by the Contig to which the DFE is applied (see :meth:`.Contig.add_dfe`).
 
     Instances of this class are constructed by DFE implementors, following the
     :ref:`developer documentation <sec_development_dfe_model>`. To instead
@@ -239,7 +239,7 @@ class DFE:
         return s
 
 
-def neutral_DFE(convert_to_substitution=True):
+def neutral_dfe(convert_to_substitution=True):
     id = "neutral"
     description = "neutral DFE"
     long_description = "strictly neutral mutations"

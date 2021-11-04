@@ -899,7 +899,7 @@ To do this, we need to
 - choose a distribution of fitness effects (a :class:`.DFE`),
 - choose which part(s) of the Contig to apply the DFE to
     (e.g., by choosing an :class:`.Annotation`), and
-- add these to the :meth:`Contig <.Contig.add_DFE>`,
+- add these to the :meth:`Contig <.Contig.add_dfe>`,
     with the Annotation saying which portions of the genome the DFE
     applies to.
 
@@ -932,7 +932,7 @@ specifying which set of *intervals* it will apply to:
 
 .. code-block:: python
 
-    contig.add_DFE(intervals=np.array([[0, int(contig.length)]]), DFE=dfe)
+    contig.add_dfe(intervals=np.array([[0, int(contig.length)]]), DFE=dfe)
 
     model = species.get_demographic_model("OutOfAfrica_3G09")
     samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
@@ -995,7 +995,7 @@ are removed from the intervals associated with previous DFEs.
     samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
 
     gene_interval = np.array([[10000, 20000]])
-    contig.add_DFE(intervals=gene_interval, DFE=dfe)
+    contig.add_dfe(intervals=gene_interval, DFE=dfe)
 
     engine = stdpopsim.get_engine("slim")
     ts = engine.simulate(
@@ -1067,7 +1067,7 @@ To simulate with the HomSap/Gamma_K17 DFE, now applied
 to *all* exons on chromosome 21
 (the remainder of the chromosome will have only neutral mutations),
 we extract the intervals from the :class:`.Annotation` object
-and use this in :meth:`.Contig.add_DFE`:
+and use this in :meth:`.Contig.add_dfe`:
 
 .. code-block:: python
 
@@ -1079,7 +1079,7 @@ and use this in :meth:`.Contig.add_DFE`:
 
     exons = species.get_annotations("ensembl_havana_104_exons")
     exon_intervals = exons.get_chromosome_annotations("chr20").astype("int")
-    contig.add_DFE(intervals=exon_intervals, DFE=dfe)
+    contig.add_dfe(intervals=exon_intervals, DFE=dfe)
 
     engine = stdpopsim.get_engine("slim")
     ts = engine.simulate(
@@ -1181,7 +1181,7 @@ the index of the new mutation type in the contig's list of mutation types.
         description="added mutation",
         long_description="mutation type to be added",
     )
-    contig.add_DFE(
+    contig.add_dfe(
         intervals=np.empty((0, 2), dtype="int"),
         DFE=dfe,
     )
