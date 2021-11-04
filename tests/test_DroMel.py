@@ -25,12 +25,12 @@ class TestGenome(test_species.GenomeTestBase):
     def test_basic_attributes(self):
         assert len(self.genome.chromosomes) == 8
 
-    @pytest.mark.parametrize("chr_id", ["Y", "mitochondrion_genome"])
+    @pytest.mark.parametrize("chr_id", ["Y", "mitochondrion_genome", "4"])
     def test_non_recombining_chrs(self, chr_id):
         chrom = self.genome.get_chromosome(chr_id)
         assert chrom.recombination_rate == 0
 
-    @pytest.mark.parametrize("chr_id", ["2L", "2R", "3L", "3R", "4", "X"])
+    @pytest.mark.parametrize("chr_id", ["2L", "2R", "3L", "3R", "X"])
     def test_recombining_chrs(self, chr_id):
         chrom = self.genome.get_chromosome(chr_id)
         assert chrom.recombination_rate > 0
