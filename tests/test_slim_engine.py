@@ -186,7 +186,7 @@ class TestAPI:
         for proportion, seed in zip((0, 1), (1234, 2345)):
             contig = species.get_contig("chr22", length_multiplier=0.001)
             # need selected mutations so that SLiM produces some
-            contig.add_DFE(
+            contig.add_dfe(
                 intervals=np.array([[0, contig.length / 2]], dtype="int"),
                 DFE=stdpopsim.DFE(
                     id="test",
@@ -714,7 +714,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
     def get_example_dfes(self):
         # this is in a function because scoping is weird
         example_dfes = [
-            stdpopsim.dfe.neutral_DFE(),
+            stdpopsim.dfe.neutral_dfe(),
             stdpopsim.DFE(
                 id="simple",
                 description="just one mut type",
@@ -760,7 +760,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         breaks = np.linspace(0, contig.length, n + 1)
         for j, dfe in enumerate(dfes):
             interval = [breaks[j], breaks[j + 1]]
-            contig.add_DFE(intervals=np.array([interval], dtype="int"), DFE=dfe)
+            contig.add_dfe(intervals=np.array([interval], dtype="int"), DFE=dfe)
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
             demographic_model=self.model,
@@ -870,7 +870,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     def test_no_dfe(self):
         contig = get_test_contig()
-        contig.clear_DFEs()
+        contig.clear_dfes()
         assert len(contig.dfe_list) == 0
         engine = stdpopsim.get_engine("slim")
         with pytest.raises(ValueError):
@@ -902,7 +902,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         L = contig.length
         example_dfes = self.get_example_dfes()
         for j, dfe in enumerate(example_dfes):
-            contig.add_DFE(
+            contig.add_dfe(
                 np.array([[10 * (j + 1), 100 * (10 - j)], [L / 2, L]], dtype="int"), dfe
             )
         assert len(contig.dfe_list) == 1 + len(example_dfes)
@@ -922,8 +922,8 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         # test that even if a DFE ends up being unused then it'll still be there
         contig = get_test_contig()
         example_dfes = self.get_example_dfes()
-        contig.add_DFE(np.array([[0, contig.length]], dtype="int"), example_dfes[0])
-        contig.add_DFE(np.array([[0, contig.length]], dtype="int"), example_dfes[3])
+        contig.add_dfe(np.array([[0, contig.length]], dtype="int"), example_dfes[0])
+        contig.add_dfe(np.array([[0, contig.length]], dtype="int"), example_dfes[3])
         assert len(contig.dfe_list) == 3
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
@@ -956,10 +956,10 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             proportions=[0.2, 0.8],
             mutation_types=self.example_mut_types[7:9],
         )
-        contig.add_DFE(np.array([[0, 0.5 * L]], dtype="int"), dfe0)
-        contig.add_DFE(np.array([[0.2 * L, 0.4 * L]], dtype="int"), dfe0)
-        contig.add_DFE(np.array([[0.45 * L, L]], dtype="int"), dfe1)
-        contig.add_DFE(np.array([[0.7 * L, 0.9 * L]], dtype="int"), dfe0)
+        contig.add_dfe(np.array([[0, 0.5 * L]], dtype="int"), dfe0)
+        contig.add_dfe(np.array([[0.2 * L, 0.4 * L]], dtype="int"), dfe0)
+        contig.add_dfe(np.array([[0.45 * L, L]], dtype="int"), dfe1)
+        contig.add_dfe(np.array([[0.7 * L, 0.9 * L]], dtype="int"), dfe0)
         assert len(contig.dfe_list) == 5
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
@@ -987,7 +987,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             ],
             proportions=[0.5, 0.5],
         )
-        contig.add_DFE(np.array([[0, contig.length]], dtype="int"), dfe)
+        contig.add_dfe(np.array([[0, contig.length]], dtype="int"), dfe)
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
             contig=contig,
