@@ -19,3 +19,5 @@ dependencies:
   - sphinx-issues=1.2.0
   - sphinxcontrib-programoutput=0.16
   - scipy
+  - demes==0.1.2
+  - demesdraw==0.1.4
