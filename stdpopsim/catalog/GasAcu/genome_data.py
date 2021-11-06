@@ -33,5 +33,6 @@ data = {
         "20": {"length": 20450000, "synonyms": []},
         "21": {"length": 17420000, "synonyms": []},
         "Y": {"length": 15860000, "synonyms": []},
+        "Mt": {"length": 20000, "synonyms": []},
     },
 }

@@ -25,6 +25,7 @@ _recombination_rate = {
     "20": 3.11e-08,
     "21": 3.11e-08,
     "Y": 0,
+    "Mt": 0,
 }
 
 _overall_rate = 3.7e-8
@@ -51,6 +52,7 @@ _mutation_rate = {
     "20": _overall_rate,
     "21": _overall_rate,
     "Y": _overall_rate,
+    "Mt": _overall_rate,
 }
 
 _genome = stdpopsim.Genome.from_data(
