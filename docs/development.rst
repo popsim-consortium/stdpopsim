@@ -1183,3 +1183,23 @@ HTML output in the ``_build/html/`` directory.
 .. note::
 
     You will need ``stdpopsim`` to be installed for the build to work.
+
+
+********************
+Making a new release
+********************
+
+Here is a list of things to do when making a new release:
+
+1. Update the changelog and commit
+2. Create a release using the GitHub UI
+3. `git fetch upstream` on your local branch.
+    Then check out `upstream/main` and create a release tarball
+    (with `python setup.py sdist`).
+    Setuptools_scm will detect the version appopriately.
+4. Upload to PyPI: `twine upload dist/{version just tagged}.tar.gz`
+5. After the release, if everything looks OK,
+   update the symlink for ``stable`` in the
+   `stdpopsim-docs <https://github.com/popsim-consortium/stdpopsim-docs>`_
+   repository
+6. Check on the conda feedstock PR.
