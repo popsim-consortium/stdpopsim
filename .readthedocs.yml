@@ -1,20 +1,13 @@
-# .readthedocs.yml
 # Read the Docs configuration file
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
 
-# Required
 version: 2
 
+# Build documentation in the docs/ directory with Sphinx
 sphinx:
-  builder: html
   configuration: docs/conf.py
-  fail_on_warning: true
-
-conda:
-  environment: requirements/rtd-conda-environment.yml
 
 python:
-  # Install the local package using pip so that stdpopsim is in the path.
+  version: 3.7
   install:
-    - method: pip
-      path: .
+    - requirements: docs/rtd_requirements.txt
