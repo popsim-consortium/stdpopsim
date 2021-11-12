@@ -392,7 +392,9 @@ def add_simulate_species_parser(parser, species):
             help=(
                 "Specify a particular genetic map. By default, a chromosome-specific "
                 "uniform recombination rate is used. These default rates are listed in "
-                "the catalog: <https://stdpopsim.readthedocs.io/en/latest/catalog.html> "
+                "the catalog: "
+                "<https://popsim-consortium.github.io/stdpopsim-docs/"
+                "stable/catalog.html> "
                 "Available maps: "
                 f"{', '.join(choices)}. "
             ),
@@ -544,8 +546,8 @@ def add_simulate_species_parser(parser, species):
                     "and the model described in the original publication. "
                     "More information about the QC process can be found in "
                     "the developer documentation. "
-                    "https://stdpopsim.readthedocs.io/en/latest/development.html"
-                    "#demographic-model-review-process"
+                    "https://popsim-consortium.github.io/stdpopsim-docs/"
+                    "latest/development.html#demographic-model-review-process"
                 )
             )
 

@@ -83,7 +83,7 @@ To save time we will specify that the simulation use
 chromosome 22, using the ``-c`` option. We also specify that the resulting
 tree-sequence formatted output should be written to the file ``foo.ts`` with the
 ``-o`` option. For more information on how to use tree-sequence files see
-`tskit <https://tskit.readthedocs.io/en/latest/>`_ .
+`tskit <https://tskit.dev/tskit/docs/stable/introduction.html>`__.
 
 .. code-block:: console
 
@@ -172,7 +172,7 @@ a compact and efficient format for storing both genealogies and genome sequence.
 Some examples of analyzing tree sequences are given
 :ref:`below <sec_tute_analyses>`.
 If desired, these can be converted to VCF on the command line if the
-`tskit <https://tskit.readthedocs.io/>`__ package is installed,
+`tskit <https://tskit.dev/tskit/>`__ package is installed,
 with the ``tskit vcf`` command:
 
 .. code-block:: console
@@ -212,7 +212,7 @@ Using the SLiM simulation engine
 
 The default "simulation engine" -
 i.e., the program that actually does the simulating -
-is `msprime <https://msprime.readthedocs.io/en/stable/>`__,
+is `msprime <https://tskit.dev/msprime/>`__,
 a coalescent simulator.
 However, it is also possible to swap this out for
 `SLiM <https://messerlab.org/slim/>`__,
@@ -349,7 +349,7 @@ Running stdpopsim with the Python interface (API)
 Nearly all the functionality of ``stdpopsim`` is available through the CLI,
 but for complex situations it may be desirable to use python.
 Furthermore, downstream analysis may happen in python,
-using the `tskit <https://tskit.readthedocs.io>`__ tools for working
+using the `tskit <https://tskit.dev/tskit/>`__ tools for working
 with tree sequences.
 In order to use the ``stdpopsim`` API the ``stdpopsim`` package must be
 installed (see :ref:`Installation <sec_installation>`).
@@ -586,7 +586,7 @@ Sanity check the tree sequence output
 
 Now, we do some simple checks that our simulation worked with
 `tskit
-<https://tskit.readthedocs.io>`__.
+<https://tskit.dev/tskit/>`__.
 
 .. code-block:: python
 
@@ -646,7 +646,7 @@ However, ``stdpopsim`` also has the ability to produce
 simulations with SLiM, a forwards-time, individual-based simulator.
 Using SLiM provides us with a few more options.
 You may also want to install the
-`pyslim <https://pyslim.readthedocs.io/>`__ package
+`pyslim <https://tskit.dev/pyslim/>`__ package
 to extract the additional SLiM-specific information
 in the tree sequences that are produced.
 
@@ -719,7 +719,7 @@ the amount of time before the first demographic model change that SLiM begins si
 in units of N generations, where N is the population size at the first demographic model change.
 By default, this is set to 10, which is fairly safe.
 History before this period is simulated with an ``msprime`` coalescent simulation,
-called `"recapitation" <https://pyslim.readthedocs.io/en/latest/tutorial.html#recapitation>`__
+called `"recapitation" <https://tskit.dev/pyslim/docs/latest/tutorial.html#recapitation>`__
 because it attaches tops to any trees that have not yet coalesced.
 For instance, the ``Africa_1T12`` model
 `(Tennesen et al 2012) <https://doi.org/10.1126/science.1219240>`__
@@ -853,7 +853,7 @@ The first, and most essential step, is undoing the rescaling of time
 that the ``slim_scaling_factor`` has introduced.
 Next is "recapitation",
 for which the rationale and method is described in detail in the
-`pyslim documentation <https://pyslim.readthedocs.io/en/latest/tutorial.html#recapitation>`__.
+`pyslim documentation <https://tskit.dev/pyslim/docs/latest/tutorial.html#recapitation>`__.
 The third (and least crucial) step is to *simplify* the tree sequence.
 If as above we ask for 200 samples from a population whose final size is
 1,450 individuals (after rescaling),
@@ -868,7 +868,7 @@ because the size of the tree sequence grows very slowly with the number of sampl
 However, for many analyses you will probably want to extract samples
 of realistic size for real data.
 Again, methods to do this are discussed in the
-`pyslim documentation <https://pyslim.readthedocs.io/en/latest/tutorial.html#simplification>`__.
+`pyslim documentation <https://tskit.dev/pyslim/docs/latest/tutorial.html#simplification>`__.
 
 
 .. _sec_tute_selection:
@@ -1315,7 +1315,7 @@ Calculating genetic divergence
 ==============================
 
 Next we'll give an example of computing some summaries of the simulation output.
-The `tskit <https://tskit.readthedocs.io/en/latest/>`_  documentation
+The `tskit <https://tskit.dev/tskit/docs/stable/>`__  documentation
 has details on many more statistics that you can compute using the tree sequences.
 We will simulate some samples of human chromosomes
 from different populations,
@@ -1386,7 +1386,7 @@ These quantities can be computed directly from our sample using tskit's
 :meth:`tskit.TreeSequence.divergence`.
 
 By looking at
-`the documentation <https://tskit.readthedocs.io/en/latest/python-api.html#tskit.TreeSequence.divergence>`_
+:meth:`the documentation <tskit.TreeSequence.divergence>`
 for this method, we can see that we'll need two inputs: ``sample_sets`` and
 ``indexes``.
 In our case, we want ``sample_sets`` to give the list
@@ -1615,7 +1615,7 @@ The somewhat mysterious ``polarised=True`` option indicates that we wish to
 calculate the AFS for derived alleles only, without "folding" the spectrum,
 and the ``span_normalise=False`` option disables tskit's
 default behaviour of dividing by the sequence length. See
-`tskit's documentation <https://tskit.readthedocs.io/en/latest/stats.html#interface>`__
+`tskit's documentation <https://tskit.dev/tskit/docs/stable/stats.html#interface>`__
 for more information on these options.
 
 We will do further analysis in the next section, but you might first wish to convince
