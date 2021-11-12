@@ -380,7 +380,7 @@ class Contig:
         :param array intervals: A valid set of intervals.
         :param DFE dfe: A DFE object.
         """
-        stdpopsim.utils.check_intervals_validity(intervals)
+        stdpopsim.utils._check_intervals_validity(intervals)
         for j, ints in enumerate(self.interval_list):
             self.interval_list[j] = stdpopsim.utils.mask_intervals(ints, intervals)
         self.dfe_list.append(DFE)
