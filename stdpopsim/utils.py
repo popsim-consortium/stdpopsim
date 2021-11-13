@@ -9,7 +9,6 @@ import shutil
 import tarfile
 import contextlib
 import numpy as np
-import tskit
 
 
 def is_valid_demographic_model_id(model_id):
@@ -184,19 +183,23 @@ def append_common_synonyms(genome):
             add_if_unique(chrom, "chr" + "M")
 
 
-def check_intervals_array_shape(intervals):
-    if (
-        (not isinstance(intervals, np.ndarray))
-        or (len(intervals.shape) != 2)
-        or (intervals.shape[1] < 2)
-    ):
+def _check_intervals_array_shape(intervals):
+    if (len(intervals.shape) != 2) or (intervals.shape[1] < 2):
         raise ValueError(
-            "Intervals must be 2D objects with at least 2 columns " "[left, right)."
+            "Intervals must be 2D numpy arrays with 2 columns " "[left, right)."
         )
 
 
-def check_intervals_validity(intervals, start=0, end=np.inf):
-    check_intervals_array_shape(intervals)
+def _check_intervals_validity(intervals, start=0, end=np.inf):
+    # is numpy?
+    if not isinstance(intervals, np.ndarray):
+        raise ValueError("Intervals must be a numpy array, did you try to pass a list?")
+    # are the intervals ints?
+    if (intervals.dtype != "int32") and (intervals.dtype != "int64"):
+        raise ValueError(
+            "Intervals must be arrays of type integer" "(i.e., with dtype='int')."
+        )
+    _check_intervals_array_shape(intervals)
     if np.any(intervals[:, 0] >= intervals[:, 1]):
         raise ValueError(
             "Left positions cannot be greater than or equal to right positions."
@@ -207,20 +210,6 @@ def check_intervals_validity(intervals, start=0, end=np.inf):
         raise ValueError("Intervals must be non-overlapping.")
 
 
-def build_intervals_array(intervals, start=0, end=np.inf):
-    """
-    Converts a 2D list or numpy.array to an np.int32 array, which is sorted by
-    the first axis. It also checks for the validity of intervals and non-overlappingness.
-    """
-    # TODO: allow floats that can be converted to ints?
-    intervals = tskit.util.safe_np_int_cast(intervals, dtype=np.int64)
-    check_intervals_array_shape(intervals)
-    sorter = intervals[:, 0].argsort()
-    intervals = intervals[sorter]
-    check_intervals_validity(intervals, start, end)
-    return intervals
-
-
 def mask_intervals(intervals, mask):
     """
     Removes the intervals of ``mask`` from those in ``intervals``.
@@ -229,8 +218,8 @@ def mask_intervals(intervals, mask):
     be the the intervals in ``intervals`` except with those in
     ``mask`` removed.
     """
-    check_intervals_validity(intervals)
-    check_intervals_validity(mask)
+    _check_intervals_validity(intervals)
+    _check_intervals_validity(mask)
     out = []
     last_mask_right = -1 * np.inf
     j = 0
