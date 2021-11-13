@@ -83,7 +83,7 @@ class Annotation:
         if not self.is_cached():
             self.download()
         file_path = os.path.join(self.cache_path, self.file_pattern.format(id=chrom.id))
-        ret = np.loadtxt(file_path)
+        ret = np.loadtxt(file_path, dtype="int32")
         if len(ret) == 0:
             raise ValueError(f"No annotations found for {id}")
         return ret

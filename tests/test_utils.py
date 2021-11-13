@@ -447,17 +447,7 @@ class TestIntervalUtilities:
         bad_arrays = (np.array([10, 20]), np.array([[[10, 20]]]))
         for bad_array in bad_arrays:
             with pytest.raises(ValueError):
-                utils.check_intervals_array_shape(intervals=bad_array)
-            with pytest.raises(ValueError):
-                utils.build_intervals_array(intervals=bad_array)
-        good_arrays = (
-            np.array([[10, 20], [30, 40]]),
-            np.array([[10, 20, 1], [30, 40, 2]]),
-        )
-        for good_array in good_arrays:
-            utils.check_intervals_array_shape(intervals=good_array)
-            built_array = utils.build_intervals_array(intervals=good_array)
-            assert (built_array == good_array).all()
+                utils._check_intervals_array_shape(intervals=bad_array)
 
     def test_invalid_intervals(self):
         # right <= left, overlapping, uncastable float->int
@@ -468,41 +458,17 @@ class TestIntervalUtilities:
         )
         for invalid_array in invalid_arrays:
             with pytest.raises(ValueError):
-                utils.build_intervals_array(intervals=invalid_array)
-            with pytest.raises(ValueError):
-                utils.check_intervals_validity(intervals=invalid_array)
+                utils._check_intervals_validity(intervals=invalid_array)
         # interval outside [start, end)
         with pytest.raises(ValueError):
-            utils.build_intervals_array(intervals=[[10, 50]], start=20)
+            utils._check_intervals_validity(intervals=np.array([[10, 50]]), end=30)
         with pytest.raises(ValueError):
-            utils.check_intervals_validity(intervals=np.array([[10, 50]]), end=30)
-
-    def test_intervals_casting(self):
-        castable_intervals = (
-            [[10, 20], [20, 40]],
-            [[1, 2, 2], [2, 3, 2]],
-            np.array([[10, 20]]),
-        )
-        for intervals in castable_intervals:
-            casted = utils.build_intervals_array(intervals)
-            assert isinstance(casted, np.ndarray) and casted.dtype == np.int64
-            assert casted.shape[0] == len(intervals)
-            assert casted.shape[1] >= 2
-
-    def test_interval_sorting(self):
-        unsorted_intervals = (
-            np.array([[20, 30], [10, 20]]),
-            np.array([[10, 20], [20, 30], [2, 3]]),
-        )
-        for intervals in unsorted_intervals:
-            casted = utils.build_intervals_array(intervals)
-            assert not (np.all(np.diff(intervals[:, 0]) >= 0))
-            assert np.all(np.diff(casted[:, 0]) >= 0)
+            utils._check_intervals_validity(intervals=np.array([[10.2, 50.3]]))
 
     def intervals_to_set(self, intervals):
         # note: we may want to use intervaltree for more complicated operations
         # in the future
-        utils.check_intervals_validity(intervals)
+        utils._check_intervals_validity(intervals)
         return functools.reduce(
             lambda a, b: a | b, [set(range(a, b)) for a, b in intervals], set()
         )
@@ -537,8 +503,8 @@ class TestIntervalUtilities:
             ),
         ]:
             for u, v in [(a, b), (b, a), (a, empty_array), (empty_array, a)]:
-                u = np.array(u)
-                v = np.array(v)
+                u = np.array(u, dtype="int32")
+                v = np.array(v, dtype="int32")
                 umv = utils.mask_intervals(u, v)
                 assert u.dtype == umv.dtype
                 x = self.intervals_to_set(umv)
