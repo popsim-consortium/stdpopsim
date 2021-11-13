@@ -80,7 +80,7 @@ environment and then should be able to install the development requirements usin
 
 
 We do require ``msprime``, so please see the the `installation notes
-<https://msprime.readthedocs.io/en/stable/installation.html>`_ if you
+<https://tskit.dev/msprime/docs/stable/installation.html>`_ if you
 encounter problems with it.
 
 .. Note:: If you have trouble installing any of the requirements, your ``pip`` may be the wrong version.
@@ -488,8 +488,7 @@ Steps for adding a new demographic model:
 5. `Submit a Pull Request on GitHub`_
 
 If this is your first time implementing a demographic model in `stdpopsim`, it's a good
-idea to take some time browsing the
-`Catalog <https://stdpopsim.readthedocs.io/en/latest/catalog.html>`_
+idea to take some time browsing the :ref:`sec_catalog`
 and species' demographic models in the
 source code to see how existing models are typically written and documented. If you have
 any questions or confusion about formatting or implementing demographic models, please
@@ -620,7 +619,7 @@ parameters that give the maximum likelihood fit), which are translated into
 ``population_configurations``, ``migration_matrix``, and ``demographic_events``. If this
 is your first time specifying a model using `msprime`, it's worth taking some time to
 read through the `msprime`
-`documentation and tutorials <https://msprime.readthedocs.io/en/stable/tutorial.html>`_.
+`documentation and tutorials <https://tskit.dev/msprime/docs/stable/quickstart.html>`_.
 
 
 ---------------------
@@ -921,7 +920,7 @@ Each chromosome should be placed in a separate file and with the chromosome id i
 file name in such a way that it can be programatically parsed out. IMPORTANT: chromosome
 ids must match those provided in the genome definition exactly! Below is an example start
 to a recombination map file (see `here
-<https://msprime.readthedocs.io/en/stable/api.html#msprime.RecombinationMap.read_hapmap>`_
+<https://tskit.dev/msprime/docs/stable/api.html#msprime.RateMap.read_hapmap>`_
 for more details)::
 
     Chromosome Position(bp) Rate(cM/Mb) Map(cM)
@@ -1183,3 +1182,23 @@ HTML output in the ``_build/html/`` directory.
 .. note::
 
     You will need ``stdpopsim`` to be installed for the build to work.
+
+
+********************
+Making a new release
+********************
+
+Here is a list of things to do when making a new release:
+
+1. Update the changelog and commit
+2. Create a release using the GitHub UI
+3. `git fetch upstream` on your local branch.
+    Then check out `upstream/main` and create a release tarball
+    (with `python setup.py sdist`).
+    Setuptools_scm will detect the version appopriately.
+4. Upload to PyPI: `twine upload dist/{version just tagged}.tar.gz`
+5. After the release, if everything looks OK,
+   update the symlink for ``stable`` in the
+   `stdpopsim-docs <https://github.com/popsim-consortium/stdpopsim-docs>`_
+   repository
+6. Check on the conda feedstock PR.

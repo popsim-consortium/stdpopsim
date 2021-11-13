@@ -2,11 +2,11 @@
 **Standard library of population genetic simulations**
 
 Stdpopsim is a community-maintained standard library of population genetic models.
-Please see the `documentation <https://stdpopsim.readthedocs.org/en/stable/>`_
+Please see the `documentation <https://popsim-consortium.github.io/stdpopsim-docs/stable/index.html>`_
 for details.
 
 Stdpopsim is highly portable, and provides a number of
-`installation options <https://stdpopsim.readthedocs.org/en/stable/installation.html>`_.
+`installation options <https://popsim-consortium.github.io/stdpopsim-docs/stable/installation.html>`_.
 
 To start an interactive Jupyter Notebook and start playing with ``stdpopsim`` now click
 
@@ -16,5 +16,5 @@ To start an interactive Jupyter Notebook and start playing with ``stdpopsim`` no
 
 If you use ``stdpopsim`` in your work, please cite our
 `manuscript <https://doi.org/10.1101/2019.12.20.885129>`_ .
-See `here <https://stdpopsim.readthedocs.io/en/latest/introduction.html#citations>`__ for
+See `here <https://popsim-consortium.github.io/stdpopsim-docs/stable/introduction.html#citations>`__ for
 full citation details.

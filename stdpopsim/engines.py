@@ -123,7 +123,7 @@ class Engine:
                 f"contig's mutation rate {contig.mutation_rate}. Diversity levels "
                 "may be different than expected for this species. For details see "
                 "documentation at "
-                "https://stdpopsim.readthedocs.io/en/latest/tutorial.html"
+                "https://popsim-consortium.github.io/stdpopsim-docs/stable/tutorial.html"
             )
 
 
