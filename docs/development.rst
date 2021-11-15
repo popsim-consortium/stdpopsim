@@ -446,13 +446,39 @@ and have successfully squashed and rebased.
 When rebasing goes wrong
 ------------------------
 
-Sometimes rebasing goes wrong, and you end up in a frustrating loop of making and
-undoing the same changes over and over again. In this case, it can be simplest to
-make a diff of your current changes, and apply these in a single commit. First
-we take the diff between the current state of the files in our branch and
-``upstream/main`` and save it as a patch::
+Sometimes rebasing goes wrong, and you end up in a frustrating loop of making
+and undoing the same changes over and over again. First, here's an explanation
+of what's going on. Let's say that the branch we're working on (and trying to
+rebase) is called ``topic_branch``, and it branched off from ``upstream/main``
+at some point in the past::
 
-    $ git diff upstream/main > changes.patch
+         A1---A2---A3  (topic_branch)
+        /
+    ---M---o---o---o---o---B  (upstream/main)
+
+So, what we'd really like to do is to take the commits ``A1``, ``A2``, and
+``A3`` and apply them to the current state of the ``upstream/main`` branch,
+i.e., on top of commit ``B``. If we just do ``git rebase upstream/main``
+then git will try to first apply ``A1``; then ``A2``; and finally ``A3``.
+If there's conflicts, this is painful, so we might want to *first* squash
+the three commits together into one commit, and then rebase that single commit.
+Then we'll only have to resolve conflicts once. Said another way: we often
+use ``git rebase -i upstream/main`` to both squash *and* rebase; but
+it may be easier to squash first then rebase after.
+
+We'll be doing irreversible changes, so first we should make a backup copy of
+the branch::
+
+    $ git checkout topic_branch  # make sure we're on the right branch
+    $ git checkout -b topic_backup # make the backup
+    $ git checkout topic_branch  # go back to the topic branch
+
+Next, we take the diff between the current state of the files and the place
+where your changes last diverged from ``upstream/main`` (the commit labelled
+``M`` in the diagram above), and save it as a patch. To do this, make sure
+you are in the root of the git directory, and::
+
+    $ git diff --merge-base upstream/main > changes.patch
 
 After that, we can check out a fresh branch and check if everything works
 as it's supposed to::
@@ -466,12 +492,16 @@ After we've verified that everything works, we then checkout the original
 topic branch and replace it with the state of the ``test_branch``, and
 finally force-push to the remote topic branch on your fork::
 
-    $ git checkout topic_branch_name
+    $ git checkout topic_branch
     $ git reset --hard test_branch
-    $ git push -f origin topic_branch_name
+    $ git push -f origin topic_branch
 
 Hard resetting and force pushing are not reversible operations, so please
-beware!
+beware! After you've done this, you can go make sure nothing bad happened
+by checking that the only changes listed under "files changed" in the github
+pull request are changes that you have made. For more on finding the fork
+point, with diagrams, and an alternative workflow, see `the git docs
+<https://git-scm.com/docs/git-merge-base>`__.
 
 .. _sec_development_demographic_model:
 
