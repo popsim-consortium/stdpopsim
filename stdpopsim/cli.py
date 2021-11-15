@@ -248,6 +248,14 @@ def get_species_help(species_id):
     species_text += (
         f"Recombination rate: {species.genome.mean_recombination_rate:.4g}\n"
     )
+    species_text += (
+        f"Gene conversion rate: {species.genome.mean_gene_conversion_rate:.4g}\n"
+    )
+    species_text += (
+        f"Gene conversion tract length: "
+        f"{species.genome.range_gene_conversion_lengths}\n"
+    )
+
     return species_text
 
 

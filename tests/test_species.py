@@ -151,6 +151,15 @@ class SpeciesTestBase:
     def test_population_size_defined(self):
         assert self.species.population_size > 0
 
+    def test_default_gc(self):
+        for chrom in self.species.genome.chromosomes:
+            contig = self.species.get_contig(chrom.id)
+            assert contig.gene_conversion_rate is None
+            assert contig.gene_conversion_length is None
+            contig = self.species.get_contig(chrom.id, use_species_gene_conversion=True)
+            assert chrom.gene_conversion_rate == contig.gene_conversion_rate
+            assert chrom.gene_conversion_length == contig.gene_conversion_length
+
 
 class GenomeTestBase:
     """
@@ -253,38 +262,66 @@ class TestGetContig:
         assert isinstance(contig.recombination_map, msprime.RateMap)
 
     def test_contig_options(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Cannot use genetic map"):
             # cannot use genetic map with generic contig
             self.species.get_contig(genetic_map="ABC")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Cannot use length multiplier"):
             # cannot use length multiplier with generic contig
             self.species.get_contig(length_multiplier=0.1)
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Must specify sequence length"):
             # must specify length with generic contig or give chromosome name
             self.species.get_contig()
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="Cannot specify sequence length"):
             # cannot specify length with named chromosome
             self.species.get_contig("chr1", length=1e6)
-        with pytest.raises(ValueError):
-            # cannot specify mask for generic contig
+        with pytest.raises(ValueError, match="Cannot use mask"):
+            # cannot specify inclusion mask for generic contig
             self.species.get_contig(length=1e4, inclusion_mask=[(0, 100)])
-        with pytest.raises(ValueError):
-            # connot specify mask for generic contig
+        with pytest.raises(ValueError, match="Cannot use mask"):
+            # cannot specify exclusion mask for generic contig
             self.species.get_contig(length=1e4, exclusion_mask=[(0, 100)])
-        with pytest.raises(ValueError):
-            # cannot use length multiplier with mask
+        with pytest.raises(ValueError, match="Cannot use length multiplier"):
+            # cannot use length multiplier with inclusion mask
             self.species.get_contig(
                 "chr22", inclusion_mask=[(0, 100)], length_multiplier=0.1
             )
-        with pytest.raises(ValueError):
-            # cannot use length multiplier with mask
+        with pytest.raises(ValueError, match="Cannot use length multiplier"):
+            # cannot use length multiplier with exclusion mask
             self.species.get_contig(
                 "chr22", exclusion_mask=[(0, 100)], length_multiplier=0.1
+            )
+        with pytest.raises(
+            ValueError, match="Cannot use species gene conversion rates"
+        ):
+            # cannot specify use_species_gene_conversion and custom gc rate
+            self.species.get_contig(
+                "chr1", use_species_gene_conversion=True, gene_conversion_rate=0.1
+            )
+        with pytest.raises(ValueError, match="without setting gene conversion length"):
+            # cannot specify custom gene conversion rate without gene conversion length
+            self.species.get_contig("chr1", gene_conversion_rate=0.1)
+        with pytest.raises(ValueError, match="without setting gene conversion rate"):
+            # cannot specify custom gene conversion length without gene conversion rate
+            self.species.get_contig("chr1", gene_conversion_length=1)
+
+    def test_use_species_gene_conversion(self):
+        contig = self.species.get_contig("chr22", use_species_gene_conversion=True)
+        if self.species.genome.get_chromosome("chr22").gene_conversion_rate is None:
+            assert contig.gene_conversion_rate is None
+            assert contig.gene_conversion_length is None
+        else:
+            assert (
+                contig.gene_conversion_rate
+                == self.species.genome.get_chromosome("chr22").gene_conversion_rate
+            )
+            assert (
+                contig.gene_conversion_length
+                == self.species.genome.get_chromosome("chr22").gene_conversion_length
             )
 
     def test_generic_contig(self):
         L = 1e6
-        contig = self.species.get_contig(length=L)
+        contig = self.species.get_contig(length=L, use_species_gene_conversion=True)
         assert contig.recombination_map.sequence_length == L
 
         chrom_ids = np.arange(1, 23).astype("str")
@@ -299,6 +336,22 @@ class TestGetContig:
             for c in self.species.genome.chromosomes
             if c.id in chrom_ids
         ]
+        gcs = [
+            c.gene_conversion_rate if c.gene_conversion_rate is not None else 0
+            for c in self.species.genome.chromosomes
+            if c.id in chrom_ids
+        ]
+        gcls = [
+            c.gene_conversion_length if c.gene_conversion_length is not None else 0
+            for c in self.species.genome.chromosomes
+            if c.id in chrom_ids
+        ]
 
         assert contig.mutation_rate == np.average(us, weights=Ls)
         assert contig.recombination_map.mean_rate == np.average(rs, weights=Ls)
+        if np.average(gcs, weights=Ls) == 0 or np.average(gcls, weights=Ls) == 0:
+            assert contig.gene_conversion_rate is None
+            assert contig.gene_conversion_length is None
+        else:
+            assert contig.gene_conversion_rate == np.average(gcs, weights=Ls)
+            assert contig.gene_conversion_length == np.average(gcls, weights=Ls)

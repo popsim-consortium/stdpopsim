@@ -254,7 +254,7 @@ class TestEndToEnd:
         self.verify(cmd, num_samples=7)
 
     def test_lapierre_constant(self):
-        cmd = "EscCol -L 100 2"
+        cmd = "EscCol -L 1000 2"
         self.verify(cmd, num_samples=2)
 
 
@@ -985,10 +985,10 @@ class TestNoQCWarning:
                 capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
 
     def test_noQC_warning(self):
-        self.verify_noQC_warning("EscCol -d FakeModel -D 10 -L 10")
+        self.verify_noQC_warning("EscCol -d FakeModel -D 10 -L 1000")
 
     def test_noQC_warning_quiet(self):
-        self.verify_noQC_warning("-q EscCol -d FakeModel -D 10 -L 10")
+        self.verify_noQC_warning("-q EscCol -d FakeModel -D 10 -L 1000")
 
     def verify_noQC_citations_not_written(self, cmd, caplog):
         # Non-QCed models shouldn't be used in publications, so citations
@@ -1011,14 +1011,14 @@ class TestNoQCWarning:
     @pytest.mark.usefixtures("caplog")
     def test_noQC_citations_not_written(self, caplog):
         self.verify_noQC_citations_not_written(
-            "EscCol -d FakeModel -D 10 -L 10", caplog
+            "EscCol -d FakeModel -D 10 -L 1000", caplog
         )
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.QCMissingWarning")
     @pytest.mark.usefixtures("caplog")
     def test_noQC_citations_not_written_verbose(self, caplog):
         self.verify_noQC_citations_not_written(
-            "-vv EscCol -d FakeModel -D 10 -L 10", caplog
+            "-vv EscCol -d FakeModel -D 10 -L 1000", caplog
         )
 
 

@@ -254,6 +254,8 @@ class _MsprimeEngine(Engine):
         ts = msprime.sim_ancestry(
             samples=samples,
             recombination_rate=contig.recombination_map,
+            gene_conversion_rate=contig.gene_conversion_rate,
+            gene_conversion_tract_length=contig.gene_conversion_length,
             demography=demographic_model.model,
             ploidy=2,
             random_seed=seeds[0],

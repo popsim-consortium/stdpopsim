@@ -23,7 +23,7 @@ class Genome:
     :vartype chromosomes: list
     :ivar citations: A list of :class:`.Citation` objects
         providing the source for the genome assembly,
-        mutation rate and recombination rate estimates.
+        mutation rate, recombination rate, and gene conversion rate estimates.
     :vartype citations: list
     :ivar length: The total length of the genome.
     :vartype length: int
@@ -94,6 +94,34 @@ class Genome:
         raise ValueError("Chromosome not found")
 
     @property
+    def mean_gene_conversion_rate(self):
+        """
+        The length-weighted mean gene conversion rate across all chromosomes.
+        """
+        length = self.length
+        mean_gene_conversion_rate = 0
+        for chrom in self.chromosomes:
+            normalized_weight = chrom.length / length
+            if chrom.gene_conversion_rate is None:
+                rate = 0.0
+            else:
+                rate = chrom.gene_conversion_rate
+            cont = rate * normalized_weight
+            mean_gene_conversion_rate += cont
+        return mean_gene_conversion_rate
+
+    @property
+    def range_gene_conversion_lengths(self):
+        """
+        The range of gene conversion tract lengths across chromosomes.
+        """
+        prelim_lengths = [chrom.gene_conversion_length for chrom in self.chromosomes]
+        gc_tract_lengths = [0 if gctl is None else gctl for gctl in prelim_lengths]
+        min_gctl = min(gc_tract_lengths)
+        max_gctl = max(gc_tract_lengths)
+        return f"{min_gctl}" if min_gctl == max_gctl else f"{min_gctl} - {max_gctl}"
+
+    @property
     def mean_recombination_rate(self):
         """
         The length-weighted mean recombination rate across all chromosomes.
@@ -131,6 +159,10 @@ class Chromosome:
         chromosome.
     :ivar float recombination_rate: The recombination rate used when simulating
         this chromosome (if not using a genetic map).
+    :ivar float gene_conversion_rate: The gene conversion rate used when
+        simulating this chromosome.
+    :ivar float gene_conversion_length: The mean tract length of gene
+        conversion events used when simulating this chromosome.
     :ivar synonyms: List of synonyms that may be used when requesting this
         chromosome by ID, e.g. from the command line interface.
     :vartype synonyms: list of str
@@ -139,6 +171,8 @@ class Chromosome:
     id = attr.ib(type=str, kw_only=True)
     length = attr.ib(kw_only=True)
     recombination_rate = attr.ib(type=float, kw_only=True)
+    gene_conversion_rate = attr.ib(default=None, type=float, kw_only=True)
+    gene_conversion_length = attr.ib(default=None, type=float, kw_only=True)
     mutation_rate = attr.ib(type=float, kw_only=True)
     synonyms = attr.ib(factory=list, kw_only=True)
 
@@ -148,8 +182,8 @@ class Contig:
     """
     Class representing a contiguous region of genome that is to be simulated.
     This contains the information about mutation rates, distributions of
-    fitness effects (DFEs), and recombination rates that are needed to simulate
-    this region.
+    fitness effects (DFEs), gene conversion rates and recombination rates
+    that are needed to simulate this region.
 
     Information about targets of selection are contained in the ``dfe_list``
     and ``interval_list``. These must be of the same length, and the k-th DFE
@@ -157,6 +191,11 @@ class Contig:
 
     :ivar mutation_rate: The rate of mutation per base per generation.
     :vartype mutation_rate: float
+    :ivar gene_conversion_rate: The rate of gene conversion initiation per base per
+        generation.
+    :vartype gene_conversion_rate: float
+    :ivar gene_conversion_length: The mean tract length of gene conversions.
+    :vartype gene_conversion_length: float
     :ivar recombination_map: The recombination map for the region. See the
         :class:`msprime.RateMap` for details.
     :vartype recombination_map: msprime.RateMap
@@ -192,6 +231,8 @@ class Contig:
 
     recombination_map = attr.ib()
     mutation_rate = attr.ib(type=float)
+    gene_conversion_rate = attr.ib(default=None, type=float, kw_only=True)
+    gene_conversion_length = attr.ib(default=None, type=float, kw_only=True)
     genetic_map = attr.ib(default=None)
     inclusion_mask = attr.ib(default=None)
     exclusion_mask = attr.ib(default=None)
@@ -205,9 +246,21 @@ class Contig:
         )
 
     @staticmethod
-    def basic_contig(*, length, mutation_rate=0, recombination_rate=0):
+    def basic_contig(
+        *,
+        length,
+        mutation_rate=0,
+        recombination_rate=0,
+        gene_conversion_rate=None,
+        gene_conversion_length=None,
+    ):
         recomb_map = msprime.RateMap.uniform(length, recombination_rate)
-        return Contig(recombination_map=recomb_map, mutation_rate=mutation_rate)
+        return Contig(
+            recombination_map=recomb_map,
+            mutation_rate=mutation_rate,
+            gene_conversion_rate=gene_conversion_rate,
+            gene_conversion_length=gene_conversion_length,
+        )
 
     @staticmethod
     def species_contig(
@@ -218,6 +271,9 @@ class Contig:
         length_multiplier=1,
         length=None,
         mutation_rate=None,
+        use_species_gene_conversion=False,
+        gene_conversion_rate=None,
+        gene_conversion_length=None,
         inclusion_mask=None,
         exclusion_mask=None,
     ):
@@ -234,6 +290,24 @@ class Contig:
                     "https://github.com/popsim-consortium/stdpopsim/issues/406"
                 )
             )
+        if use_species_gene_conversion is True:
+            if gene_conversion_rate is not None or gene_conversion_length is not None:
+                raise ValueError(
+                    "Cannot use species gene conversion rates "
+                    "and set gene conversion rate or length"
+                )
+        if gene_conversion_rate is not None:
+            if gene_conversion_length is None:
+                raise ValueError(
+                    "Cannot set gene conversion rate without setting "
+                    "gene conversion length"
+                )
+        if gene_conversion_length is not None:
+            if gene_conversion_rate is None:
+                raise ValueError(
+                    "Cannot set gene conversion length without setting "
+                    "gene conversion rate"
+                )
         if chromosome is None:
             if genetic_map is not None:
                 raise ValueError("Cannot use genetic map with generic contig")
@@ -246,18 +320,32 @@ class Contig:
             L_tot = 0
             r_tot = 0
             u_tot = 0
+            gc_tot = 0
+            gcl_tot = 0
             for chrom_data in species.genome.chromosomes:
                 if chrom_data.id.lower() not in non_autosomal_lower:
                     L_tot += chrom_data.length
                     r_tot += chrom_data.length * chrom_data.recombination_rate
                     u_tot += chrom_data.length * chrom_data.mutation_rate
+                    if chrom_data.gene_conversion_rate is None:
+                        local_gc_rate = 0
+                    else:
+                        local_gc_rate = chrom_data.gene_conversion_rate
+                        gcl_tot += chrom_data.length * chrom_data.gene_conversion_length
+                    gc_tot += chrom_data.length * local_gc_rate
             if mutation_rate is None:
                 mutation_rate = u_tot / L_tot
             r = r_tot / L_tot
+            if use_species_gene_conversion is True:
+                if gc_tot > 0 and gcl_tot > 0:
+                    gene_conversion_rate = gc_tot / L_tot
+                    gene_conversion_length = gcl_tot / L_tot
             contig = Contig.basic_contig(
                 length=length,
                 mutation_rate=mutation_rate,
                 recombination_rate=r,
+                gene_conversion_rate=gene_conversion_rate,
+                gene_conversion_length=gene_conversion_length,
             )
         else:
             if length is not None:
@@ -302,10 +390,16 @@ class Contig:
             if mutation_rate is None:
                 mutation_rate = chrom.mutation_rate
 
+            if use_species_gene_conversion is True:
+                gene_conversion_rate = chrom.gene_conversion_rate
+                gene_conversion_length = chrom.gene_conversion_length
+
             contig = stdpopsim.Contig(
                 recombination_map=recomb_map,
                 mutation_rate=mutation_rate,
                 genetic_map=gm,
+                gene_conversion_rate=gene_conversion_rate,
+                gene_conversion_length=gene_conversion_length,
                 inclusion_mask=inclusion_intervals,
                 exclusion_mask=exclusion_intervals,
             )
@@ -439,12 +533,15 @@ class Contig:
         gmap = "None" if self.genetic_map is None else self.genetic_map.id
         s = (
             "Contig(length={:.2G}, recombination_rate={:.2G}, "
-            "mutation_rate={:.2G}, genetic_map={}, dfe_list={}, "
+            "mutation_rate={:.2G}, gene_conversion_rate={}, "
+            "gene_conversion_length{}, genetic_map={}, dfe_list={}, "
             "interval_list={})"
         ).format(
             self.length,
             self.recombination_map.mean_rate,
             self.mutation_rate,
+            self.gene_conversion_rate,
+            self.gene_conversion_length,
             gmap,
             self.dfe_list,
             self.interval_list,

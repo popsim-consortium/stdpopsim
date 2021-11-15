@@ -33,6 +33,8 @@ for name, data in genome_data.data["chromosomes"].items():
             # from synonymous substitutions over 40,000 generations.
             mutation_rate=8.9e-11,
             recombination_rate=0.0,
+            gene_conversion_rate=8.9e-11,
+            gene_conversion_length=345,
         )
     )
 
