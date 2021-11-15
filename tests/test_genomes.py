@@ -3,6 +3,7 @@ Tests for classes that hold information about genomic region to be simulated.
 """
 import numpy as np
 import pytest
+import copy
 import stdpopsim
 
 
@@ -24,6 +25,11 @@ class TestContig(object):
                 assert right in breaks
                 k = np.searchsorted(breaks, left)
                 assert dfe_labels[k] == j
+
+    def test_default_gc(self):
+        contig = stdpopsim.Contig.basic_contig(length=42)
+        assert contig.gene_conversion_rate is None
+        assert contig.gene_conversion_length is None
 
     def test_default_dfe(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
@@ -149,3 +155,41 @@ class TestContig(object):
                 contig.add_dfe(intervals=np.array([[30, 40]]), DFE=dfes[1])
                 # exponential with mean zero doesn't count as neutral!
                 assert contig.is_neutral is (neutral and dist == "f")
+
+
+class TestGeneConversion(object):
+    species = stdpopsim.get_species("EscCol")
+
+    def test_modifiying_gene_conversion(self):
+        genome = self.species.get_contig(
+            chromosome="Chromosome", gene_conversion_rate=0.1, gene_conversion_length=1
+        )
+        assert genome.gene_conversion_rate == 0.1
+        assert genome.gene_conversion_length == 1
+
+    def test_use_species_gene_conversion(self):
+        genome = self.species.get_contig(
+            chromosome="Chromosome", use_species_gene_conversion=True
+        )
+        assert genome.gene_conversion_rate == 8.9e-11
+        assert genome.gene_conversion_length == 345
+
+    def test_unnamed_contig_with_gc(self):
+        genome = self.species.get_contig(
+            length=42, gene_conversion_rate=0.1, gene_conversion_length=1
+        )
+        assert genome.gene_conversion_rate == 0.1
+        assert genome.gene_conversion_length == 1
+
+    def test_use_species_gene_conversion_unnamed_contig(self):
+        genome = self.species.get_contig(length=42, use_species_gene_conversion=True)
+        assert genome.gene_conversion_rate == 8.9e-11
+        assert genome.gene_conversion_length == 345
+
+    def test_use_species_gene_conversion_unnamed_contig_undefined_gc(self):
+        mod_species = copy.deepcopy(self.species)
+        mod_species.genome.get_chromosome("Chromosome").gene_conversion_rate = None
+        mod_species.genome.get_chromosome("Chromosome").gene_conversion_length = None
+        genome = mod_species.get_contig(length=42, use_species_gene_conversion=True)
+        assert genome.gene_conversion_rate is None
+        assert genome.gene_conversion_length is None
