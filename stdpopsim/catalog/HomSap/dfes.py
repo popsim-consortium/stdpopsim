@@ -21,7 +21,7 @@ def _KimDFE():
             author="Kim et al.",
             year=2017,
             doi="https://doi.org/10.1534/genetics.116.197145",
-            reasons="to be defined",  # include the dfe_model reason
+            reasons={stdpopsim.CiteReason.DFE},  # include the dfe_model reason
         )
     ]
     neutral = stdpopsim.MutationType()

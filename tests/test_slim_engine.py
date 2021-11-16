@@ -315,6 +315,65 @@ class TestCLI:
         assert observed_counts == [0, 0, 8]
         assert all(tree.num_roots == 1 for tree in ts.trees())
 
+    def test_simulate_dfe(self):
+        slim_path = os.environ.get("SLIM", "slim")
+
+        def count_mut_types(ts):
+            mut_info = {}
+            for mut in ts.mutations():
+                for j, md in zip(
+                    mut.derived_state.split(","), mut.metadata["mutation_list"]
+                ):
+                    if j not in mut_info:
+                        mut_info[int(j)] = md
+            num_neutral = sum([mut_info[j]["selection_coeff"] == 0.0 for j in mut_info])
+            return [num_neutral, abs(len(mut_info) - num_neutral)]
+
+        # test a DFE without demography
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            cmd = (
+                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"HomSap -c chr22 -l0.1 -o {f.name} --dfe Gamma_K17 10"
+            ).split()
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+            ts = tskit.load(f.name)
+        assert ts.num_samples == 10
+        assert all(tree.num_roots == 1 for tree in ts.trees())
+        n_mut_types = count_mut_types(ts)
+        assert n_mut_types[0] > 0
+        assert n_mut_types[1] > 0
+
+        # test a DFE without demography with interval
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            cmd = (
+                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"HomSap -c chr22 -l0.01 -o {f.name} --dfe Gamma_K17 "
+                f"--dfe-interval 1000,100000 10"
+            ).split()
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+            ts = tskit.load(f.name)
+        assert ts.num_samples == 10
+        assert all(tree.num_roots == 1 for tree in ts.trees())
+        n_mut_types = count_mut_types(ts)
+        assert n_mut_types[0] > 0
+        assert n_mut_types[1] > 0
+
+        # test DFE with demography and interval
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            cmd = (
+                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"HomSap -c chr22 -l0.01 -o {f.name} "
+                "-d OutOfAfrica_3G09 --dfe Gamma_K17 "
+                "--dfe-interval 1000,100000 10"
+            ).split()
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+            ts = tskit.load(f.name)
+        assert ts.num_samples == 10
+        assert all(tree.num_roots == 1 for tree in ts.trees())
+        n_mut_types = count_mut_types(ts)
+        assert n_mut_types[0] > 0
+        assert n_mut_types[1] > 0
+
     @mock.patch("stdpopsim.slim_engine._SLiMEngine.get_version", return_value="64.64")
     def test_dry_run(self, _mocked_get_version):
         # --dry-run should run slim, but not create an output file.

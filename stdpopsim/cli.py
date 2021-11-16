@@ -21,6 +21,7 @@ import tskit
 import humanize
 
 import stdpopsim
+import numpy as np
 
 # resource is from the standard library, but it's not available on
 # Windows. We break from the usual import grouping conventions here
@@ -99,6 +100,13 @@ def get_model_wrapper(species, model_id):
 def get_genetic_map_wrapper(species, genetic_map_id):
     try:
         return species.get_genetic_map(genetic_map_id)
+    except ValueError as ve:
+        exit(str(ve))
+
+
+def get_dfe_wrapper(species, dfe_id):
+    try:
+        return species.get_dfe(dfe_id)
     except ValueError as ve:
         exit(str(ve))
 
@@ -183,6 +191,42 @@ class HelpGeneticMaps(argparse.Action):
         parser.exit()
 
 
+def get_dfes_help(species_id, dfe_id):
+    """
+    Generate help text for the given DFE. If dfe_id is None, generate
+    help for all DFEs. Otherwise, it must be a string with a valid DFE
+    ID.
+    """
+    species = stdpopsim.get_species(species_id)
+    if dfe_id is None:
+        dfes_text = f"\nAll DFEs for {species.name}\n\n"
+        dfes = [dfe.id for dfe in species.dfes]
+    else:
+        dfes = [dfe_id]
+        dfes_text = "\nDFE description\n\n"
+
+    indent = " " * 4
+    wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
+    for dfe_id in dfes:
+        gdfe = get_dfe_wrapper(species, dfe_id)
+        dfes_text += f"{gdfe.id}\n"
+        dfes_text += wrapper.fill(textwrap.dedent(gdfe.long_description))
+        dfes_text += "\n\n"
+
+    return dfes_text
+
+
+class HelpDFEs(argparse.Action):
+    """
+    Action used to produce DFE help text.
+    """
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        help_text = get_dfes_help(namespace.species, values)
+        print(help_text, file=sys.stderr)
+        parser.exit()
+
+
 def get_species_help(species_id):
     """
     Generate help text for the given species with some of the species attributes
@@ -262,7 +306,7 @@ def write_output(ts, args):
         ts.dump(args.output)
 
 
-def get_citations(engine, model, contig, species):
+def get_citations(engine, model, contig, species, dfe):
     """
     Return a list of all the citations.
     """
@@ -273,26 +317,28 @@ def get_citations(engine, model, contig, species):
     if contig.genetic_map is not None:
         citations.extend(contig.genetic_map.citations)
     citations.extend(model.citations)
+    if dfe is not None:
+        citations.extend(dfe.citations)
     return stdpopsim.Citation.merge(citations)
 
 
-def write_bibtex(engine, model, contig, species, bibtex_file):
+def write_bibtex(engine, model, contig, species, bibtex_file, dfe):
     """
     Write bibtex for available citations to a file."""
-    citations = get_citations(engine, model, contig, species)
+    citations = get_citations(engine, model, contig, species, dfe)
     for citation in citations:
         bibtex_file.write(citation.fetch_bibtex())
     bibtex_file.close()
 
 
-def write_citations(engine, model, contig, species):
+def write_citations(engine, model, contig, species, dfe):
     """
     Write out citation information so that the user knows what papers to cite
     for the simulation engine, the model and the mutation/recombination rate
     information.
     """
     cite_str = ["If you use this simulation in published work, please cite:"]
-    for citation in get_citations(engine, model, contig, species):
+    for citation in get_citations(engine, model, contig, species, dfe):
         if (
             stdpopsim.citations.CiteReason.MUT_RATE in citation.reasons
             and model.mutation_rate is not None
@@ -400,6 +446,18 @@ def add_simulate_species_parser(parser, species):
             ),
         )
 
+    if len(species.dfes) > 0:
+        species_parser.add_argument(
+            "--help-dfes",
+            action=HelpDFEs,
+            nargs="?",
+            help=(
+                "Print list of DFEs and exit. If a DFE ID is "
+                "given as an argument, show help for this DFE. Otherwise show "
+                "help for all available DFEs"
+            ),
+        )
+
     # To avoid listing too much stuff out in the help, we only list
     # the actual IDs. We make all synonyms available as choices though.
     choices = []
@@ -463,8 +521,8 @@ def add_simulate_species_parser(parser, species):
     )
 
     model_help = (
-        "Specify a simulation model. If no model is specified, a single population"
-        "constant size model is used. Available models:"
+        "Specify a simulation model. If no model is specified, a single population "
+        "constant size model is used. Available models: "
         f"{', '.join(model.id for model in species.demographic_models)}"
         ". Please see --help-models for details of these models."
     )
@@ -476,6 +534,38 @@ def add_simulate_species_parser(parser, species):
         choices=[model.id for model in species.demographic_models],
         help=model_help,
     )
+    dfe_help = (
+        "Specify a Distribution of Fitness Effects (DFE) model. "
+        "If no DFE is specified, all mutations are neutral. "
+        "Available DFE models:"
+        f"{', '.join(dfe.id for dfe in species.dfes)}"
+        ". Please see --help-dfes for details of these DFE models."
+    )
+    species_parser.add_argument(
+        "--dfe",
+        default=None,
+        type=str,
+        metavar="",
+        choices=[dfe.id for dfe in species.dfes],
+        help=dfe_help,
+    )
+    interval_help = (
+        "Specify the interval where selection (given a DFE) is simulated. "
+        "Anything outside of the interval is simulated as neutral "
+        "If no interval is specified, "
+        "selection is simulated across the entire region (contig). "
+        "Interval (for now) is writen as 'left,right' (separated by a comma, "
+        "with no space, for instance: --dfe-interval 1000,2000"
+        # say something here about multiple dfes?
+    )
+    species_parser.add_argument(
+        "--dfe-interval",
+        default=None,
+        type=str,
+        metavar="",
+        help=interval_help,
+    )
+
     species_parser.add_argument(
         "-o",
         "--output",
@@ -505,7 +595,10 @@ def add_simulate_species_parser(parser, species):
             model = stdpopsim.PiecewiseConstantSize(species.population_size)
             model.generation_time = species.generation_time
             for citation in species.citations:
-                reasons = {stdpopsim.CiteReason.POP_SIZE, stdpopsim.CiteReason.GEN_TIME}
+                reasons = {
+                    stdpopsim.CiteReason.POP_SIZE,
+                    stdpopsim.CiteReason.GEN_TIME,
+                }
                 if len(citation.reasons & reasons) > 0:
                     model.citations.append(citation)
             qc_complete = True
@@ -532,9 +625,32 @@ def add_simulate_species_parser(parser, species):
             f"Running simulation model {model.id} for {species.id} on "
             f"{contig} with {len(samples)} samples using {engine.id}."
         )
+        dfe_interval = args.dfe_interval
+        dfe = args.dfe
+        if dfe_interval is None:
+            dfe_interval = ",".join(
+                map(str, [0, int(contig.recombination_map.sequence_length)])
+            )
+        if dfe is not None:
+            dfe = species.get_dfe(args.dfe)
+            left, right = dfe_interval.split(",")
+            contig.add_dfe(
+                intervals=np.array([[int(left), int(right)]]),
+                DFE=dfe,
+            )
+            logger.info(
+                f"Applying selection under the DFE model {dfe.id} "
+                f"in interval [{left}, {right})."
+            )
 
         write_simulation_summary(
-            engine=engine, model=model, contig=contig, samples=samples, seed=args.seed
+            engine=engine,
+            model=model,
+            contig=contig,
+            samples=samples,
+            dfe=args.dfe,
+            dfe_interval=dfe_interval,
+            seed=args.seed,
         )
         if not qc_complete:
             warnings.warn(
@@ -563,14 +679,16 @@ def add_simulate_species_parser(parser, species):
         # Non-QCed models shouldn't be used in publications, so we skip the
         # "If you use this simulation in published work..." citation request.
         if qc_complete:
-            write_citations(engine, model, contig, species)
+            write_citations(engine, model, contig, species, dfe)
         if args.bibtex_file is not None:
-            write_bibtex(engine, model, contig, species, args.bibtex_file)
+            write_bibtex(engine, model, contig, species, args.bibtex_file, dfe)
 
     species_parser.set_defaults(runner=run_simulation)
 
 
-def write_simulation_summary(engine, model, contig, samples, seed=None):
+def write_simulation_summary(
+    engine, model, contig, samples, dfe, dfe_interval, seed=None
+):
     indent = " " * 4
     # Header
     dry_run_text = "Simulation information:\n"
@@ -578,7 +696,7 @@ def write_simulation_summary(engine, model, contig, samples, seed=None):
     dry_run_text += f"{indent}Engine: {engine.id} ({engine.get_version()})\n"
     # Get information about model
     dry_run_text += f"{indent}Model id: {model.id}\n"
-    dry_run_text += f"{indent}Model desciption: {model.description}\n"
+    dry_run_text += f"{indent}Model description: {model.description}\n"
     # Add seed information if extant
     if seed is not None:
         dry_run_text += f"{indent}Seed: {seed}\n"
@@ -612,6 +730,9 @@ def write_simulation_summary(engine, model, contig, samples, seed=None):
     dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"
     dry_run_text += f"{indent}Mean mutation rate: {mut_rate}\n"
     dry_run_text += f"{indent}Genetic map: {gmap}\n"
+    if dfe is not None:
+        dry_run_text += f"{indent}DFE: {dfe}\n"
+        dry_run_text += f"{indent}DFE in interval: {dfe_interval}\n"
     logger.warning(dry_run_text)
 
 

@@ -543,6 +543,14 @@ class TestErrors:
     def test_browning_america(self):
         self.verify_bad_samples("HomSap -d AmericanAdmixture_4B11 2 3 4 5 6")
 
+    IS_WINDOWS = sys.platform.startswith("win")
+
+    @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
+    def test_browning_america_dfe(self):
+        self.verify_bad_samples(
+            "HomSap -d AmericanAdmixture_4B11 --dfe Gamma_K17 2 3 4 5 6"
+        )
+
 
 class TestHelp:
     def run_stdpopsim(self, command):
@@ -576,6 +584,11 @@ class TestHelp:
     def test_all_species_genetic_maps_help(self):
         for species in stdpopsim.all_species():
             self.run_stdpopsim(f"{species} --help-genetic-maps")
+
+    def test_DroMel_HomSap_dfe_help(self):
+        for species in ["DroMel", "HomSap"]:
+            self.run_stdpopsim(f"{species} --help-dfes")
+        self.run_stdpopsim("HomSap --help-dfes Gamma_K17")
 
 
 class TestWriteBibtex:
@@ -611,6 +624,7 @@ class TestWriteBibtex:
         contig = species.get_contig("chr20", genetic_map=genetic_map.id)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
+        dfe = species.get_dfe("Gamma_K17")
         local_cites = stdpopsim.Citation.merge(
             [stdpopsim.citations._stdpopsim_citation]
             + genetic_map.citations
@@ -618,11 +632,12 @@ class TestWriteBibtex:
             + engine.citations
             + species.genome.citations
             + species.citations
+            + dfe.citations
         )
         dois = set([ref.doi for ref in local_cites])
         ncite = len(dois)
         assert ncite == len(local_cites)
-        cli_cites = cli.get_citations(engine, model, contig, species)
+        cli_cites = cli.get_citations(engine, model, contig, species, dfe)
         assert len(cli_cites) == len(local_cites)
 
         # Patch out writing to a file, then
@@ -633,7 +648,7 @@ class TestWriteBibtex:
                 with mock.patch.object(
                     stdpopsim.citations.Citation, "fetch_bibtex", autospec=True
                 ) as mock_bib:
-                    cli.write_bibtex(engine, model, contig, species, bib)
+                    cli.write_bibtex(engine, model, contig, species, bib, dfe)
                     assert mock_bib.call_count == ncite
 
 
@@ -648,8 +663,9 @@ class TestWriteCitations:
         contig = species.get_contig("22")
         model = species.get_demographic_model("OutOfAfrica_3G09")
         engine = stdpopsim.get_default_engine()
+        dfe = None
         stdout, stderr = capture_output(
-            cli.write_citations, engine, model, contig, species
+            cli.write_citations, engine, model, contig, species, dfe
         )
         assert len(stdout) == 0
         genetic_map = None
@@ -662,11 +678,28 @@ class TestWriteCitations:
         contig = species.get_contig("chr20", genetic_map=genetic_map.id)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         engine = stdpopsim.get_default_engine()
+        dfe = None
         stdout, stderr = capture_output(
-            cli.write_citations, engine, model, contig, species
+            cli.write_citations, engine, model, contig, species, dfe
         )
         assert len(stdout) == 0
         self.check_citations(engine, species, genetic_map, model, caplog.text)
+
+    @pytest.mark.usefixtures("caplog")
+    def test_dfe_citations(self, caplog):
+        species = stdpopsim.get_species("HomSap")
+        genetic_map = species.get_genetic_map("HapMapII_GRCh37")
+        dfe = species.get_genetic_map("HapMapII_GRCh37")
+        contig = species.get_contig("chr20", genetic_map=genetic_map.id)
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        engine = stdpopsim.get_default_engine()
+        dfe = species.get_dfe("Gamma_K17")
+        stdout, stderr = capture_output(
+            cli.write_citations, engine, model, contig, species, dfe
+        )
+        assert len(stdout) == 0
+        assert "[distribution of fitness effects]" in caplog.text
+        assert "Kim et al., 2017" in caplog.text
 
     def check_citations(self, engine, species, genetic_map, model, output):
         if genetic_map is None:
@@ -790,6 +823,16 @@ class TestSearchWrappers:
             available_maps = ", ".join([gm.id for gm in species.genetic_maps])
             mocked_exit.assert_called_once_with(
                 f"GeneticMap 'HomSap/XXX' not in catalog ({available_maps})"
+            )
+
+    def test_bad_dfe(self):
+        species = stdpopsim.get_species("HomSap")
+        with mock.patch("stdpopsim.cli.exit", autospec=True) as mocked_exit:
+            cli.get_dfe_wrapper(species, "XXX")
+            available_dfes = [dm.id for dm in species.dfes]
+            avail_dfes_str = ", ".join(available_dfes)
+            mocked_exit.assert_called_once_with(
+                f"DFE 'HomSap/XXX' not in catalog ({avail_dfes_str})"
             )
 
 
