@@ -362,7 +362,7 @@ class TestCLI:
         with tempfile.NamedTemporaryFile(mode="w") as f:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l0.01 -o {f.name} "
+                f"HomSap -c chr22 -s 1234 -l0.01 -o {f.name} "
                 "-d OutOfAfrica_3G09 --dfe Gamma_K17 "
                 "--dfe-interval 1000,100000 10"
             ).split()
@@ -373,6 +373,29 @@ class TestCLI:
         n_mut_types = count_mut_types(ts)
         assert n_mut_types[0] > 0
         assert n_mut_types[1] > 0
+
+        # test DFE with demography and interval as a bed file
+        # bed file
+        lines = ["chr1  100000  145000", "chr1  150000  302425"]
+        bedfile = open("ex.bed", "w")
+        for lin in lines:
+            bedfile.write(lin + "\n")
+        bedfile.close()
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            cmd = (
+                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"HomSap -c chr22 -s 1234 -l0.01 -o {f.name} "
+                "-d OutOfAfrica_3G09 --dfe Gamma_K17 "
+                "--dfe-interval ex.bed 10"
+            ).split()
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+            ts = tskit.load(f.name)
+        assert ts.num_samples == 10
+        assert all(tree.num_roots == 1 for tree in ts.trees())
+        n_mut_types = count_mut_types(ts)
+        assert n_mut_types[0] > 0
+        assert n_mut_types[1] > 0
+        os.remove("ex.bed")
 
     @mock.patch("stdpopsim.slim_engine._SLiMEngine.get_version", return_value="64.64")
     def test_dry_run(self, _mocked_get_version):

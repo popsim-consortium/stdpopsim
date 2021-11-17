@@ -633,11 +633,25 @@ def add_simulate_species_parser(parser, species):
             )
         if dfe is not None:
             dfe = species.get_dfe(args.dfe)
-            left, right = dfe_interval.split(",")
-            contig.add_dfe(
-                intervals=np.array([[int(left), int(right)]]),
-                DFE=dfe,
-            )
+            # I know this is not ideal yet, but it is a start
+            if "," in dfe_interval:
+                left, right = dfe_interval.split(",")
+                contig.add_dfe(
+                    intervals=np.array([[int(left), int(right)]]),
+                    DFE=dfe,
+                )
+            else:
+                # loading bed file
+                interval_array = np.loadtxt(
+                    args.dfe_interval, usecols=[1, 2], dtype="int"
+                )
+                contig.add_dfe(
+                    intervals=interval_array,
+                    DFE=dfe,
+                )
+                left = np.min(interval_array)
+                right = np.max(interval_array)
+
             logger.info(
                 f"Applying selection under the DFE model {dfe.id} "
                 f"in interval [{left}, {right})."
