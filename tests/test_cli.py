@@ -585,10 +585,22 @@ class TestHelp:
         for species in stdpopsim.all_species():
             self.run_stdpopsim(f"{species} --help-genetic-maps")
 
+    def test_all_species_annots_help(self):
+        for species in stdpopsim.all_species():
+            self.run_stdpopsim(f"{species} --help-annotations")
+
     def test_DroMel_HomSap_dfe_help(self):
         for species in ["DroMel", "HomSap"]:
             self.run_stdpopsim(f"{species} --help-dfes")
         self.run_stdpopsim("HomSap --help-dfes Gamma_K17")
+
+    def test_homsap_annotations_help(self):
+        self.run_stdpopsim("HomSap --help-annotations")
+        self.run_stdpopsim("HomSap --help-annotations ensembl_havana_104_exons")
+
+    def test_dromel_annotations_help(self):
+        self.run_stdpopsim("DroMel --help-annotations")
+        self.run_stdpopsim("DroMel --help-annotations FlyBase_BDGP6.32.51_exons")
 
 
 class TestWriteBibtex:
@@ -833,6 +845,16 @@ class TestSearchWrappers:
             avail_dfes_str = ", ".join(available_dfes)
             mocked_exit.assert_called_once_with(
                 f"DFE 'HomSap/XXX' not in catalog ({avail_dfes_str})"
+            )
+
+    def test_bad_annotation(self):
+        species = stdpopsim.get_species("HomSap")
+        with mock.patch("stdpopsim.cli.exit", autospec=True) as mocked_exit:
+            cli.get_annotation_wrapper(species, "666_foo_666")
+            available_annots = [dm.id for dm in species.annotations]
+            avail_annots_str = ", ".join(available_annots)
+            mocked_exit.assert_called_once_with(
+                f"Annotations 'HomSap/666_foo_666' not in catalog ({avail_annots_str})"
             )
 
 
