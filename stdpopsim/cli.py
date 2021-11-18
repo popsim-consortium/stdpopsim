@@ -608,7 +608,20 @@ def add_simulate_species_parser(parser, species):
         metavar="",
         help=interval_help,
     )
-
+    bed_help = (
+        "A bed file specifing the intervals where selection (given a DFE) is simulated. "
+        "Non-overlaping intervals belonging to the same chromosome are required. "
+        "If no interval is specified, "
+        "selection is simulated across the entire contig. "
+        "See also --dfe-interval and --dfe-annotation."
+    )
+    species_parser.add_argument(
+        "--dfe-bed-file",
+        default=None,
+        type=str,
+        metavar="",
+        help=bed_help,
+    )
     annot_choices = [gm.id for gm in species.annotations]
     if len(species.annotations) > 0:
         species_parser.add_argument(
@@ -703,9 +716,14 @@ def add_simulate_species_parser(parser, species):
                     "A DFE interval has been assigned without a DFE. "
                     "Please specify a DFE."
                 )
-            elif args.dfe_annotation is not None:
+            if args.dfe_annotation is not None:
                 exit(
                     "A DFE annotation has been assigned without a DFE. "
+                    "Please specify a DFE."
+                )
+            if args.dfe_bed_file is not None:
+                exit(
+                    "A DFE bed file has been assigned without a DFE. "
                     "Please specify a DFE."
                 )
         else:
@@ -715,13 +733,28 @@ def add_simulate_species_parser(parser, species):
                         "A DFE annotation and a DFE interval have been "
                         "selected. Please only use one."
                     )
+                if args.dfe_bed_file is not None:
+                    exit(
+                        "A DFE bed file and a DFE interval have been "
+                        "selected. Please only use one."
+                    )
                 left, right = args.dfe_interval.split(",")
                 intervals = np.array([[int(left), int(right)]])
                 intervals_summary_str = f"[{left}, {right})"
-            elif args.dfe_annotation is not None:
+            if args.dfe_annotation is not None:
+                if args.dfe_bed_file is not None:
+                    exit(
+                        "A DFE bed file and a DFE annotation have been "
+                        "selected. Please only use one."
+                    )
                 annot = species.get_annotations(args.dfe_annotation)
                 intervals = annot.get_chromosome_annotations(args.chromosome)
                 intervals_summary_str = f"{annot.id} elements on {args.chromosome}"
+            if args.dfe_bed_file is not None:
+                intervals = np.loadtxt(args.dfe_bed_file, usecols=[1, 2], dtype="int")
+                left = np.min(intervals)
+                right = np.max(intervals)
+                intervals_summary_str = f"[{left}, {right})"
             else:
                 # case where no intervals specified but we have a DFE
                 intervals = np.array(
