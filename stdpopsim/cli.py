@@ -104,6 +104,13 @@ def get_genetic_map_wrapper(species, genetic_map_id):
         exit(str(ve))
 
 
+def get_annotation_wrapper(species, annotation_id):
+    try:
+        return species.get_annotations(annotation_id)
+    except ValueError as ve:
+        exit(str(ve))
+
+
 def get_dfe_wrapper(species, dfe_id):
     try:
         return species.get_dfe(dfe_id)
@@ -242,6 +249,42 @@ def get_species_help(species_id):
         f"Recombination rate: {species.genome.mean_recombination_rate:.4g}\n"
     )
     return species_text
+
+
+class HelpAnnotations(argparse.Action):
+    """
+    Action used to produce genetic map help text.
+    """
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        help_text = get_annotations_help(namespace.species, values)
+        print(help_text, file=sys.stderr)
+        parser.exit()
+
+
+def get_annotations_help(species_id, annotation_id):
+    """
+    Generate help text for the given annotation. If annotation_id is None, generate
+    help for all annotations. Otherwise, it must be a string with a valid
+    annotation ID.
+    """
+    species = stdpopsim.get_species(species_id)
+    if annotation_id is None:
+        annotation_text = f"\nAll annotations for {species.name}\n\n"
+        annotations = [annotation.id for annotation in species.annotations]
+    else:
+        annotations = [annotation_id]
+        annotation_text = "\nAnnotation  description\n\n"
+
+    indent = " " * 4
+    wrapper = textwrap.TextWrapper(initial_indent=indent, subsequent_indent=indent)
+    for an_id in annotations:
+        annot = get_annotation_wrapper(species, an_id)
+        annotation_text += f"{annot.id}\n"
+        annotation_text += wrapper.fill(textwrap.dedent(annot.description))
+        annotation_text += "\n\n"
+
+    return annotation_text
 
 
 def get_environment():
@@ -385,7 +428,7 @@ def add_simulate_species_parser(parser, species):
         help=f"Run simulations for {species.name}.",
     )
     species_parser.set_defaults(species=species.id)
-    species_parser.set_defaults(genetic_map=None)
+    species_parser.set_defaults(genetic_map=None, dfe_annotation=None)
     species_parser.add_argument(
         "--help-models",
         action=HelpModels,
@@ -566,6 +609,32 @@ def add_simulate_species_parser(parser, species):
         help=interval_help,
     )
 
+    annot_choices = [gm.id for gm in species.annotations]
+    if len(species.annotations) > 0:
+        species_parser.add_argument(
+            "--help-annotations",
+            action=HelpAnnotations,
+            nargs="?",
+            help=(
+                "Print list of annotations and exit. If a annotation ID is "
+                "given as an argument, show help for this annotation. Otherwise show "
+                "help for all available annotations"
+            ),
+        )
+    if len(species.annotations) > 0:
+        species_parser.add_argument(
+            "--dfe-annotation",
+            choices=annot_choices,
+            metavar="",
+            default=None,
+            help=(
+                "Specify the intervals over which a given DFE acts "
+                "using a genomic annotation track "
+                "Available maps: "
+                f"{', '.join(annot_choices)}. "
+            ),
+        )
+
     species_parser.add_argument(
         "-o",
         "--output",
@@ -625,22 +694,49 @@ def add_simulate_species_parser(parser, species):
             f"Running simulation model {model.id} for {species.id} on "
             f"{contig} with {len(samples)} samples using {engine.id}."
         )
-        dfe_interval = args.dfe_interval
-        dfe = args.dfe
-        if dfe_interval is None:
-            dfe_interval = ",".join(
-                map(str, [0, int(contig.recombination_map.sequence_length)])
-            )
-        if dfe is not None:
+        # DFE assignment
+        dfe = None
+        intervals_summary_str = None
+        if args.dfe is None:
+            if args.dfe_interval is not None:
+                exit(
+                    "A DFE interval has been assigned without a DFE. "
+                    "Please specify a DFE."
+                )
+            elif args.dfe_annotation is not None:
+                exit(
+                    "A DFE annotation has been assigned without a DFE. "
+                    "Please specify a DFE."
+                )
+        else:
+            if args.dfe_interval is not None:
+                if args.dfe_annotation is not None:
+                    exit(
+                        "A DFE annotation and a DFE interval have been "
+                        "selected. Please only use one."
+                    )
+                left, right = args.dfe_interval.split(",")
+                intervals = np.array([[int(left), int(right)]])
+                intervals_summary_str = f"[{left}, {right})"
+            elif args.dfe_annotation is not None:
+                annot = species.get_annotations(args.dfe_annotation)
+                intervals = annot.get_chromosome_annotations(args.chromosome)
+                intervals_summary_str = f"{annot.id} elements on {args.chromosome}"
+            else:
+                # case where no intervals specified but we have a DFE
+                intervals = np.array(
+                    [[0, int(contig.recombination_map.sequence_length)]]
+                )
+                intervals_summary_str = f"[{intervals[0][0]}, {intervals[0][1]})"
+
             dfe = species.get_dfe(args.dfe)
-            left, right = dfe_interval.split(",")
             contig.add_dfe(
-                intervals=np.array([[int(left), int(right)]]),
+                intervals=intervals,
                 DFE=dfe,
             )
             logger.info(
                 f"Applying selection under the DFE model {dfe.id} "
-                f"in interval [{left}, {right})."
+                f"in intervals {intervals_summary_str}."
             )
 
         write_simulation_summary(
@@ -649,7 +745,7 @@ def add_simulate_species_parser(parser, species):
             contig=contig,
             samples=samples,
             dfe=args.dfe,
-            dfe_interval=dfe_interval,
+            dfe_interval=intervals_summary_str,
             seed=args.seed,
         )
         if not qc_complete:
@@ -732,7 +828,7 @@ def write_simulation_summary(
     dry_run_text += f"{indent}Genetic map: {gmap}\n"
     if dfe is not None:
         dry_run_text += f"{indent}DFE: {dfe}\n"
-        dry_run_text += f"{indent}DFE in interval: {dfe_interval}\n"
+        dry_run_text += f"{indent}DFE applied to: {dfe_interval}\n"
     logger.warning(dry_run_text)
 
 

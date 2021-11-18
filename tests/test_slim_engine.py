@@ -373,6 +373,54 @@ class TestCLI:
         n_mut_types = count_mut_types(ts)
         assert n_mut_types[0] > 0
         assert n_mut_types[1] > 0
+        # test DFE with dfe-annotation
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            cmd = (
+                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"HomSap -c chr22 -o {f.name} "
+                "-d OutOfAfrica_3G09 --dfe Gamma_K17 "
+                "--dfe-annotation ensembl_havana_104_CDS 10"
+            ).split()
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+            ts = tskit.load(f.name)
+        assert ts.num_samples == 10
+        assert all(tree.num_roots == 1 for tree in ts.trees())
+        n_mut_types = count_mut_types(ts)
+        assert n_mut_types[0] > 0
+        assert n_mut_types[1] > 0
+        # test DFE with interval and no dfe
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            cmd = (
+                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"HomSap -c chr22 -l0.01 -o {f.name} "
+                "-d OutOfAfrica_3G09 "
+                "--dfe-interval 1000,100000 10"
+            ).split()
+            with pytest.raises(
+                SystemExit, match="interval has been assigned " "without a DFE"
+            ):
+                capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        # test DFE annotation and no dfe
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            cmd = (
+                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"HomSap -c chr22 -l0.01 -o {f.name} "
+                "-d OutOfAfrica_3G09 "
+                "--dfe-annotation ensembl_havana_104_exons 10"
+            ).split()
+            with pytest.raises(SystemExit):
+                capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        # test DFE annotation and dfe interval
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            cmd = (
+                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"HomSap -c chr22 -l0.01 -o {f.name} "
+                "-d OutOfAfrica_3G09 --dfe Gamma_K17 "
+                "--dfe-interval 999,1000 "
+                "--dfe-annotation ensembl_havana_104_exons 10"
+            ).split()
+            with pytest.raises(SystemExit):
+                capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
     @mock.patch("stdpopsim.slim_engine._SLiMEngine.get_version", return_value="64.64")
     def test_dry_run(self, _mocked_get_version):
