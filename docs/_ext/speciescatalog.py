@@ -416,10 +416,10 @@ class SpeciesCatalogDirective(SphinxDirective):
         _, ax = plt.subplots(1, 1, figsize=(4, 4), tight_layout=True)
         # Conversion into demes object for easier plotting
         graph = model.model.to_demes()
-        demesdraw.tubes(graph, ax=ax, log_time=True)
+        ax = demesdraw.tubes(graph, ax=ax, log_time=True)
         ax.set_title(f"{model.id}", fontsize=10)
         ax.set_xticklabels(
-            [p.name for p in model.populations],
+            ax.get_xticklabels(),
             rotation=45,
             ha="right",
             rotation_mode="anchor",
