@@ -1064,7 +1064,7 @@ For instance, for humans we have:
     # ensembl_havana_104_CDS: Ensembl Havana CDS annotations on GRCh38
 
 To simulate with the HomSap/Gamma_K17 DFE, now applied
-to *all* exons on chromosome 21
+to *all* exons on chromosome 20
 (the remainder of the chromosome will have only neutral mutations),
 we extract the intervals from the :class:`.Annotation` object
 and use this in :meth:`.Contig.add_dfe`:
@@ -1091,7 +1091,7 @@ and use this in :meth:`.Contig.add_dfe`:
         slim_burn_in=10,
     )
 
-Note the very large scaling factor ($Q=100$) that we've used here to get this
+Note the very large scaling factor (:math:`Q=100`) that we've used here to get this
 to run fast enough to be used for a quick example!
 This is *not* expected to be a good example because of this extreme scaling,
 but nonetheless there is lower diversity in exons than outside of them:
