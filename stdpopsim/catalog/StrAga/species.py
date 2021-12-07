@@ -9,10 +9,11 @@ _DaCunha_et_al = stdpopsim.Citation(
     doi="https://doi.org/10.1038/ncomms5544",
 )
 
-# per site per generation
+# Per site per generation
 # Estimated in Da Cunha et al. as 0.56 SNP/Mb/Year
+# See mutation rate for CC17 at Table 2 (SNP/Mb/Year).
 # Given that the generation time is estimated at 1 generation per day we have :
-#  0.56/(1e6*365)
+# mu =  0.56/(1e6*365)
 _mutation_rate = {"1": 1.53e-9}
 
 # no cross-over recombination in bacteria
@@ -60,7 +61,7 @@ _genome = stdpopsim.Genome.from_data(
 stdpopsim.utils.append_common_synonyms(_genome)
 
 # Generation time :
-#  No estimation was done for S agalactiae, but we can use estimates from E coli (which
+# No estimation was done for S agalactiae, but we can use estimates from E coli (which
 # grows a bit faster in the lab than S agalactiae), which ranges from around
 # 0.5 to 20 generations per day.
 # ref for lower range estimates : Michael A. Savageau, « Escherichia coli habitats,
@@ -76,13 +77,14 @@ stdpopsim.utils.append_common_synonyms(_genome)
 # unlike outside of it where growth might be slower.
 # So we use the value of 1 generation per day.
 
-# population size
+# Population size
 # We estimate it from the Watterson estimator :
 # theta = 2.Ne.mu = S / sum_{i=1}^{k=n-1}(1/k)
 # With n the number of samples and S the number of segregating sites.
-# From Da Cunha et al, we have
-# S = 3922 / 1.86Mb = 2.1×10−3 SNP/bp; k = 79; mu=1.53×10−9 SNP/bp/generation
-# So Ne ~ 140000
+# From Da Cunha et al, we have 3,922 polymorphic SNPs in 1,860Kbp sites.
+# which means that they found that S = 3922 / 1.86Mb = 2.1×10−3 SNP/bp.
+# Given k = 79 (number of isolates for CC17 in Table ), theta =  4.2e-4$.
+# For mu=1.53×10−9 SNP/bp/generation and theta, Ne ~ 140000.
 
 
 _species = stdpopsim.Species(
