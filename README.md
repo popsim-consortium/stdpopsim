@@ -1,7 +1,9 @@
 # stdpopsim
 
-![CircleCI](https://circleci.com/gh/popsim-consortium/stdpopsim.svg?style=svg)[![codecov](https://codecov.io/gh/popsim-consortium/stdpopsim/branch/main/graph/badge.svg)](https://codecov.io/gh/popsim-consortium/stdpopsim)[![Appveyor](https://ci.appveyor.com/api/projects/status/4ugxq19ql80gcpio?svg=true)](https://ci.appveyor.com/project/popsim-consortium/stdpopsim)[![TravisCI](https://travis-ci.org/popsim-consortium/stdpopsim.svg?branch=main)](https://travis-ci.org/popsim-consortium/stdpopsim)
-
+![CircleCI](https://circleci.com/gh/popsim-consortium/stdpopsim.svg?style=shield)
+![codecov](https://codecov.io/gh/popsim-consortium/stdpopsim/branch/main/graph/badge.svg)
+![tests](https://github.com/popsim-consortium/stdpopsim/actions/workflows/tests.yml/badge.svg)
+![docs](https://github.com/popsim-consortium/stdpopsim/actions/workflows/docs.yml/badge.svg)
 
 A community-maintained library of standard population genetic simulation models.
 Please see the [stable documentation](https://popsim-consortium.github.io/stdpopsim-docs/stable/index.html) for further details.
