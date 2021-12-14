@@ -755,7 +755,7 @@ def add_simulate_species_parser(parser, species):
                 left = np.min(intervals)
                 right = np.max(intervals)
                 intervals_summary_str = f"[{left}, {right})"
-            else:
+            if intervals_summary_str is None:
                 # case where no intervals specified but we have a DFE
                 intervals = np.array(
                     [[0, int(contig.recombination_map.sequence_length)]]
@@ -771,7 +771,6 @@ def add_simulate_species_parser(parser, species):
                 f"Applying selection under the DFE model {dfe.id} "
                 f"in intervals {intervals_summary_str}."
             )
-
         write_simulation_summary(
             engine=engine,
             model=model,
