@@ -276,6 +276,69 @@ See the SLiM manual and/or
 `Urrichio & Hernandez (2014) <https://www.genetics.org/content/197/1/221.short>`__
 for more discussion.
 
+Simulating genomes with selection
+---------------------------------
+
+In the example above given a species, recombination map, and demography, a contig
+was simulated assuming strictly neutrality. It is possible to incorporate selection in the
+simulations by (1) specifying the Distribution of Fitness Effects (DFE) for all new mutations
+across the entire contig or a subset of it; or by (2) adding a single mutation under selection,
+as for instance in a selective sweep.
+
+If a DFE is already described in the catalog, one can incorporate it into the simulation
+with the flag ``--dfe``. For instance, HomSap has a DFE described as Gamma_K17.
+To add it the example above we can type as follows:
+
+.. code-block:: console
+
+    $ stdpopsim -e slim --slim-scaling-factor 10 HomSap \
+        -c chr22 -l 0.05 --dfe Gamma_K17 -o foo.ts -d OutOfAfrica_2T12 2 4
+
+This example will simulate selection following the proportion of sites described in `Gamma_K17 <https://popsim-consortium.github.io/stdpopsim-docs/main/catalog.html#sec_catalog_homsap_dfes_gamma_k17>`_
+
+Instead of simulating the whole contig one can simulate only coding sequence (CDS) by using the flag ``--dfe-annotation``
+and specifying a CDS annotation:
+
+.. code-block:: console
+
+    $ stdpopsim -e slim --slim-scaling-factor 20 HomSap \
+         -c chr22 --dfe Gamma_K17 -o foo.ts -d OutOfAfrica_2T12 \
+         --dfe-annotation ensembl_havana_104_CDS 2 4
+
+
+If instead of an annotation file one has a bed file (ex.bed) like the one below:
+
+.. code-block:: console
+
+     chr1  100000  145000
+     chr1  150000  302425
+     chr1  302430  303000
+
+then it is possible to simulate selection in all intervals provided by the bed file by using the flag
+``--dfe-bed-file`` as follow:
+
+.. code-block:: console
+
+    $ stdpopsim -e slim --slim-scaling-factor 10 HomSap \
+         -c chr22 -l 0.05 --dfe Gamma_K17 -o foo.ts -d OutOfAfrica_2T12 \
+         --dfe-bed-file ex.bed 2 4
+
+The examples above (using the flags ``--dfe-annotation``, to use a named annotation, or ``--dfe-bed-file`` to include a bed file)
+incorporate selection on the specified segments of genome.
+
+To simulate, however, only a small chunk of contig with selection––as in a selective sweep––one can use the flag
+``--dfe-interval``:
+
+.. code-block:: console
+
+    $ stdpopsim -e slim --slim-scaling-factor 10 HomSap \
+        -c chr22 -l 0.05 --dfe Gamma_K17 -o foo.ts -d OutOfAfrica_2T12 \
+        --dfe-interval 1000,100000 2 4
+
+The DFE defined by Gamma_K17 will be incorporated only in positions between 1000 and 100000.
+
+See also the python API to incorporate `selection <https://popsim-consortium.github.io/stdpopsim-docs/latest/tutorial.html#incorporating-selection>`__.
+
 
 Debugging output from SLiM
 ==========================
@@ -338,7 +401,6 @@ as would be for instance if we had population sizes of 1 or 2 individuals.
 However, extensive testing would need to be done to find out
 if data produced with such an extreme scaling factor
 actually resembles the data that would be produced without rescaling.
-
 
 .. _sec_python_tute:
 
