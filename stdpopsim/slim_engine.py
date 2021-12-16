@@ -943,7 +943,14 @@ def slim_makescript(
                 # T is the default for WF simulations.
                 printsc(f"    m{mid}.convertToSubstitution = F;")
         mut_types = ", ".join([str(mt) for mt in mut_type_list])
-        mut_props = ", ".join([str(prop) for prop in d.proportions])
+        mut_props_list = [
+            prop if (not mt.is_neutral) else 0.0
+            for prop, mt in zip(d.proportions, d.mutation_types)
+        ]
+        mut_props = ", ".join(map(str, mut_props_list))
+        # SLiM does not let you define a GET with all 0 proportions
+        # if np.isclose(sum(mut_props_list), 0.0):
+        #    continue
         printsc(
             f"    initializeGenomicElementType({j}, c({mut_types}), c({mut_props}));"
         )

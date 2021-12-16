@@ -24,14 +24,14 @@ from .test_cli import capture_output
 IS_WINDOWS = sys.platform.startswith("win")
 
 
-def slim_simulate_no_recap(seed=1234, **kwargs):
+def slim_simulate_no_recap(seed=1234, verbosity=2, **kwargs):
     """
     Return the tree sequence produced by SLiM, without recapitation, etc.
     """
     kwargs.update(slim_script=True)
     engine = stdpopsim.get_engine("slim")
+    print(kwargs)
     out, _ = capture_output(engine.simulate, **kwargs)
-
     # Find the name of the temporary trees_file in the script.
     match = re.search(r'"trees_file",\s*"([^"]*)"', out)
     assert match is not None
@@ -44,8 +44,8 @@ def slim_simulate_no_recap(seed=1234, **kwargs):
         out = out.replace(tmp_trees_file, trees_file)
         with open(script_file, "w") as f:
             f.write(out)
-        engine._run_slim(script_file, seed=seed)
-        ts = pyslim.load(trees_file)
+        engine._run_slim(script_file, seed=seed, verbosity=verbosity)
+        ts = tskit.load(trees_file)
     return ts
 
 
@@ -950,6 +950,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             contig=contig,
             samples=self.samples,
             seed=123,
+            verbosity=3,
         )
         for j, mt in enumerate(self.example_mut_types):
             sites = np.where(
@@ -979,7 +980,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             for rate, end in zip(slim_rates, slim_ends):
                 # SLiM's endpoints are inclusive
                 if left <= end:
-                    assert rate == match_rate
+                    assert np.isclose(rate, match_rate)
                 if right - 1 <= end:
                     break
             assert right - 1 <= end
@@ -1003,7 +1004,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             self.verify_rates_match(mut_rate, intervals, slim_rates, slim_ends)
 
         # also verify any bits not covered by DFEs have no mutations
-        empty_intervals = np.empty((0, 2))
+        empty_intervals = np.array([[0, int(contig.length)]])
         for intervals in contig.interval_list:
             empty_intervals = stdpopsim.utils.mask_intervals(
                 empty_intervals,
@@ -1020,12 +1021,23 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         ge_types = self.slim_metadata_key0(
             ts.metadata["SLiM"]["user_metadata"], "genomicElementTypes"
         )
+        # getting the ids for the neutral mutation types
+        neutral_ids = [
+            mtdict["id"]
+            for mtdict in contig.mutation_types()
+            if mtdict["mutation_type"].is_neutral
+        ]
+
         assert len(contig.dfe_list) == len(ge_types)
         for j, (dfe, intervals) in enumerate(
             zip(contig.dfe_list, contig.interval_list)
         ):
             assert str(j) in ge_types
             ge = self.slim_metadata_key0(ge_types, str(j))
+            # checking that the neutral mutations have 0.0 proportion
+            for mtype_id, prop in zip(ge["mutationTypes"], ge["mutationFractions"]):
+                if mtype_id in neutral_ids:
+                    assert np.isclose(prop, 0.0)
             # "+1" because SLiM's intervals are closed on both ends,
             # stdpopsim's are closed on the left, open on the right
             slim_intervals = np.column_stack(
@@ -1184,14 +1196,18 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_no_neutral_mutations_are_simulated_by_slim(self):
         contig = get_test_contig()
+        contig.mutation_rate = 10 * contig.mutation_rate
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
             contig=contig,
             samples=self.samples,
             slim_scaling_factor=10,
             slim_burn_in=0.1,
+            verbosity=3,
         )
         assert ts.num_sites == 0
+        self.verify_genomic_elements(contig, ts)
+        self.verify_mutation_rates(contig, ts)
 
         contig.dfe_list[0].mutation_types = [
             stdpopsim.MutationType() for i in range(10)
@@ -1203,8 +1219,11 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             samples=self.samples,
             slim_scaling_factor=10,
             slim_burn_in=0.1,
+            verbosity=3,
         )
         assert ts.num_sites == 0
+        self.verify_genomic_elements(contig, ts)
+        self.verify_mutation_rates(contig, ts)
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
@@ -1473,6 +1492,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
                 seed=seed,
             )
             assert ts.num_mutations == 1
+            ts = pyslim.SlimTreeSequence(ts)
             assert self.allele_frequency(ts) >= af_threshold
 
     def test_bad_AF_conditioning_parameters(self):
