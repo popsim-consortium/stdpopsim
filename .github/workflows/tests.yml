@@ -20,7 +20,7 @@ jobs:
         os: [ubuntu-18.04, macos-10.15, windows-latest]
         python: [3.7, "3.10"]
     env:
-      SLIM_TAG: 3.6
+      SLIM_TAG: 3.7
       CONDA_ENV_NAME: stdpopsim
 
     steps:
@@ -48,7 +48,7 @@ jobs:
         uses: actions/cache@v2
         env:
           # Increase this to reset the cache if the key hasn't changed.
-          CACHE_NUM: 0
+          CACHE_NUM: 1
         with:
           path: |
             ${{ steps.find-conda.outputs.CONDA }}/envs/${{ env.CONDA_ENV_NAME }}
