@@ -29,8 +29,8 @@ jobs:
             git clone --bare https://github.com/MesserLab/SLiM /tmp/SLiM_top/SLiM
             cd /tmp/SLiM_top/SLiM
             git describe --tags $(git rev-list --tags --max-count=1) > ${TAG_FILE}
-            # Pinning to SLiM 3.6; comment out the next line to use latest tag.
-            echo v3.6 > ${TAG_FILE}
+            # Pinning to SLiM 3.7; comment out the next line to use latest tag.
+            echo v3.7 > ${TAG_FILE}
             echo Using SLiM version $(cat /tmp/SLiM_tag)
 
       - restore_cache:
@@ -52,7 +52,7 @@ jobs:
                 echo "Cache found!"
             fi
       - save_cache:
-          key: SLiM-v2-{{ checksum "/tmp/SLiM_tag" }}
+          key: SLiM-{{ checksum "/tmp/SLiM_tag" }}-build-0
           paths:
             - "/usr/local/bin"
       - persist_to_workspace:
@@ -74,7 +74,6 @@ jobs:
           name: Install Python dependencies
           command: |
             pip install --upgrade setuptools pip wheel twine
-            pip install numpy==1.19.2
             pip install -r requirements/CI/requirements.txt
       - save_cache:
           key: stdpopsim-v3-{{ .Branch }}-{{ checksum "requirements/CI/requirements.txt" }}

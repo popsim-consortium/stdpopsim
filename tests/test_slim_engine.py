@@ -120,7 +120,6 @@ class TestAPI:
         )
         assert "sim.registerLateEvent" in out
 
-    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     @pytest.mark.filterwarnings("ignore:Recombination map has length:UserWarning")
     def test_recombination_map(self):
         engine = stdpopsim.get_engine("slim")
@@ -135,7 +134,6 @@ class TestAPI:
             slim_burn_in=0.1,
         )
 
-    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_simulate(self):
         engine = stdpopsim.get_engine("slim")
@@ -153,7 +151,6 @@ class TestAPI:
         assert ts.num_samples == 10
         assert all(tree.num_roots == 1 for tree in ts.trees())
 
-    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_simulate_verbosity(self):
         engine = stdpopsim.get_engine("slim")
@@ -173,7 +170,6 @@ class TestAPI:
             assert ts.num_samples == 10
             assert all(tree.num_roots == 1 for tree in ts.trees())
 
-    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings(
         "ignore:.*model has mutation rate.*but this simulation used.*"
@@ -275,7 +271,6 @@ class TestCLI:
         out, _ = self.docmd("--slim-script HomSap -d AmericanAdmixture_4B11")
         assert "sim.registerLateEvent" in out
 
-    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")
     def test_simulate(self):
@@ -926,7 +921,6 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         ]
         return example_dfes
 
-    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     def test_slim_simulates_dfes(self):
         contig = get_test_contig()
         contig.mutation_rate = 10 * contig.mutation_rate
@@ -1003,7 +997,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             self.verify_rates_match(mut_rate, intervals, slim_rates, slim_ends)
 
         # also verify any bits not covered by DFEs have no mutations
-        empty_intervals = np.empty((0, 2))
+        empty_intervals = np.empty((0, 2), dtype="int")
         for intervals in contig.interval_list:
             empty_intervals = stdpopsim.utils.mask_intervals(
                 empty_intervals,
@@ -1050,7 +1044,6 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                 for a, b in zip(mt.distribution_args, slim_mt["distributionParams"]):
                     assert a == b
 
-    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     def test_no_dfe(self):
         contig = get_test_contig()
         contig.clear_dfes()
@@ -1063,8 +1056,6 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                 samples=self.samples,
             )
 
-    @pytest.mark.skip(reason="TODO wait for SLiM v3.7")
-    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     def test_default_dfe(self):
         contig = get_test_contig()
         assert len(contig.dfe_list) == 1
@@ -1078,8 +1069,6 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
 
-    @pytest.mark.skip(reason="TODO wait for SLiM v3.7")
-    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     def test_multiple_dfes(self):
         contig = get_test_contig()
         L = contig.length
@@ -1099,8 +1088,6 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
 
-    @pytest.mark.skip(reason="TODO wait for SLiM v3.7")
-    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     def test_unused_dfe(self):
         # test that even if a DFE ends up being unused then it'll still be there
         contig = get_test_contig()
@@ -1118,8 +1105,6 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
 
-    @pytest.mark.skip(reason="TODO wait for SLiM v3.7")
-    @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     def test_same_dfes(self):
         # test that we can add multiple DFEs with the same name
         # (maybe the same, maybe not)
@@ -1154,7 +1139,6 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
 
-    @pytest.mark.skip(reason="TODO wait for SLiM v3.7")
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_slim_produces_mutations(self):
         contig = get_test_contig()

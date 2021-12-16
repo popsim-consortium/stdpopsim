@@ -249,8 +249,10 @@ _slim_main = """
     for (i in 0:(num_populations-1)) {
         if (N[0,i] > 0) {
             check_size(i, N[0,i], sim.generation);
-            dbg("sim.addSubpop("+i+", "+N[0,i]+");");
-            sim.addSubpop(i, N[0,i]);
+            dbg("p = sim.addSubpop("+i+", "+N[0,i]+");");
+            p = sim.addSubpop(i, N[0,i]);
+            dbg("p.name = '"+pop_names[i]+"';");
+            p.name = pop_names[i];
         }
     }
 
@@ -341,7 +343,8 @@ _slim_main = """
             check_size(newpop, size, g);
             sim.registerLateEvent(NULL,
                 "{dbg(self.source); " +
-                "sim.addSubpopSplit("+newpop+","+size+","+oldpop+");}",
+                "p = sim.addSubpopSplit("+newpop+","+size+","+oldpop+"); " +
+                "p.name = '"+pop_names[newpop]+"';}",
                 g, g);
         }
     }
@@ -1381,7 +1384,9 @@ class _SLiMEngine(stdpopsim.Engine):
 
         population_configurations = [
             msprime.PopulationConfiguration(
-                initial_size=pop.start_size, growth_rate=pop.growth_rate
+                initial_size=pop.start_size,
+                growth_rate=pop.growth_rate,
+                metadata={"name": pop.name},
             )
             for pop in recap_epoch.populations
         ]
