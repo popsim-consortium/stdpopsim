@@ -623,11 +623,11 @@ def get_msp_and_slim_mutation_rate_maps(contig):
             sum(
                 [
                     p
-                    for p, mt in zip(g.proportions, g.mutation_types)
-                    if not mt.is_neutral
+                    for p, mt in zip(d.proportions, d.mutation_types)
+                    if (not mt.is_neutral)
                 ]
             )
-            for g in contig.dfe_list
+            for d in contig.dfe_list
         ]
         + [0]
     )  # append 0 for the -1 labels
@@ -637,7 +637,6 @@ def get_msp_and_slim_mutation_rate_maps(contig):
     msp_mutation_rate_map = msprime.RateMap(
         position=breaks, rate=contig.mutation_rate * (1 - slim_fractions[dfe_labels])
     )
-
     return (msp_mutation_rate_map, (slim_breaks, slim_rates))
 
 
@@ -944,13 +943,10 @@ def slim_makescript(
                 printsc(f"    m{mid}.convertToSubstitution = F;")
         mut_types = ", ".join([str(mt) for mt in mut_type_list])
         mut_props_list = [
-            prop if (not mt.is_neutral) else 0.0
+            prop if (not mt.is_neutral) or d.is_neutral else 0.0
             for prop, mt in zip(d.proportions, d.mutation_types)
         ]
         mut_props = ", ".join(map(str, mut_props_list))
-        # SLiM does not let you define a GET with all 0 proportions
-        # if np.isclose(sum(mut_props_list), 0.0):
-        #    continue
         printsc(
             f"    initializeGenomicElementType({j}, c({mut_types}), c({mut_props}));"
         )
