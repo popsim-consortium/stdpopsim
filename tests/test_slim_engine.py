@@ -1277,7 +1277,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         ge_types = self.slim_metadata_key0(
             ts.metadata["SLiM"]["user_metadata"], "genomicElementTypes"
         )
-        assert np.allclose(ge_types["1"][0]["mutationFractions"], [0.0, 1.0])
+        assert np.allclose(ge_types["1"][0]["mutationFractions"], [0.0, 0.1])
         assert np.allclose(
             ts.metadata["SLiM"]["user_metadata"]["mutationRates"][0]["rates"],
             [contig.mutation_rate * 0.1 * Q],
