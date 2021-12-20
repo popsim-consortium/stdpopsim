@@ -1037,7 +1037,8 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             all_neutral = all(
                 [mtype_id in neutral_ids for mtype_id in ge["mutationTypes"]]
             )
-            # checking that the neutral mutations have 0.0 proportion
+            # checking that the neutral mutations have 0.0 proportion unless
+            # all the mutations are neutral in this dfe
             for mtype_id, prop in zip(ge["mutationTypes"], ge["mutationFractions"]):
                 if mtype_id in neutral_ids:
                     if all_neutral:
