@@ -263,6 +263,7 @@ class TestDFE:
                 assert a == b
             for a, b in zip(mt, dfe.mutation_types):
                 assert a == b
+        assert dfe.is_neutral
 
     def test_dfe_defaults(self):
         m1 = stdpopsim.MutationType()
@@ -278,6 +279,30 @@ class TestDFE:
         assert isinstance(dfe.proportions, list)
         assert len(dfe.proportions) == 1
         assert dfe.proportions[0] == 1
+        assert dfe.is_neutral
+
+    def test_dfe_is_neutral(self):
+        for neutral in (True, False):
+            for dist in ("f", "e"):
+                props = [0.3, 0.7]
+                if neutral:
+                    s = 0
+                else:
+                    s = 0.1
+                mt = [
+                    stdpopsim.MutationType(
+                        distribution_type=dist, distribution_args=[s]
+                    )
+                    for _ in props
+                ]
+                dfe = stdpopsim.DFE(
+                    id=0,
+                    description="test",
+                    long_description="test test",
+                    proportions=props,
+                    mutation_types=mt,
+                )
+                assert dfe.is_neutral is (neutral and dist == "f")
 
     @pytest.mark.usefixtures("capsys")
     def test_printing_dfe(self, capsys):
