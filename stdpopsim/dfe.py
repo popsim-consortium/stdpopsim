@@ -168,7 +168,8 @@ class DFE:
     ``proportions`` and ``mutation_types`` must be lists of the same length,
     and ``proportions`` should be nonnegative numbers summing to 1.
 
-    :ivar ~.mutation_types: A list of MutationTypes associated with the DFE.
+    :ivar ~.mutation_types: A list of :class:`.MutationType` objects associated
+        with the DFE.
     :vartype ~.mutation_types: list
     :ivar ~.proportions: A list of the proportions of new mutations that
         fall in to each of the mutation types (must sum to 1).
