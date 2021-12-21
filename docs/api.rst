@@ -4,6 +4,37 @@
 API
 ===
 
+***************
+Quick reference
+***************
+
+Functions to get things:
+
+.. autosummary::
+
+    stdpopsim.get_species
+    stdpopsim.Species.get_contig
+    stdpopsim.Species.get_demographic_model
+    stdpopsim.Species.get_dfe
+    stdpopsim.Species.get_annotations
+    stdpopsim.Contig.add_dfe
+    stdpopsim.get_engine
+
+Classes of objects:
+
+.. autosummary::
+
+   stdpopsim.Species
+   stdpopsim.Genome
+   stdpopsim.Chromosome
+   stdpopsim.Contig
+   stdpopsim.Citation
+   stdpopsim.Annotation
+   stdpopsim.DFE
+   stdpopsim.MutationType
+   stdpopsim.DemographicModel
+   stdpopsim.Population
+
 .. _sec_api_species_definitions:
 
 *******************
@@ -64,6 +95,9 @@ that applies to the entire Contig.
 
 
 .. autoclass:: stdpopsim.DFE()
+    :members:
+
+.. autoclass:: stdpopsim.MutationType()
     :members:
 
 .. _sec_api_generic_models:
