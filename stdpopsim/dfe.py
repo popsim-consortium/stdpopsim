@@ -224,6 +224,10 @@ class DFE:
                     "mutation_types must be a list of MutationType objects."
                 )
 
+    @property
+    def is_neutral(self):
+        return all([m.is_neutral for m in self.mutation_types])
+
     def __str__(self):
         long_desc_lines = [
             line.strip()
