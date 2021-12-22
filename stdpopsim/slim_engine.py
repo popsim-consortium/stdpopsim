@@ -603,17 +603,6 @@ _slim_debug_output = """
 """
 
 
-def msprime_rm_to_slim_rm(recombination_map):
-    """
-    Convert recombination map from start position coords to end position coords.
-    """
-    rates = recombination_map.rate.copy()
-    # replace missing values with 0 recombination rate
-    rates[recombination_map.missing] = 0
-    ends = [int(pos) - 1 for pos in recombination_map.position]
-    return rates, ends[1:]
-
-
 def get_msp_and_slim_mutation_rate_maps(contig):
     """
     Returns a :class:`msprime.RateMap` with the mutation rate map for overlay
@@ -626,11 +615,11 @@ def get_msp_and_slim_mutation_rate_maps(contig):
             sum(
                 [
                     p
-                    for p, mt in zip(g.proportions, g.mutation_types)
-                    if not mt.is_neutral
+                    for p, mt in zip(d.proportions, d.mutation_types)
+                    if (not mt.is_neutral)
                 ]
             )
-            for g in contig.dfe_list
+            for d in contig.dfe_list
         ]
         + [0]
     )  # append 0 for the -1 labels
@@ -640,7 +629,6 @@ def get_msp_and_slim_mutation_rate_maps(contig):
     msp_mutation_rate_map = msprime.RateMap(
         position=breaks, rate=contig.mutation_rate * (1 - slim_fractions[dfe_labels])
     )
-
     return (msp_mutation_rate_map, (slim_breaks, slim_rates))
 
 
@@ -658,6 +646,17 @@ def slim_array_string(iterable, indent, width=80):
         )
         + ")"
     )
+
+
+def msprime_rm_to_slim_rm(recombination_map):
+    """
+    Convert recombination map from start position coords to end position coords.
+    """
+    rates = recombination_map.rate.copy()
+    # replace missing values with 0 recombination rate
+    rates[recombination_map.missing] = 0
+    ends = [int(pos) - 1 for pos in recombination_map.position]
+    return rates, ends[1:]
 
 
 def slim_makescript(
@@ -946,10 +945,19 @@ def slim_makescript(
                 # T is the default for WF simulations.
                 printsc(f"    m{mid}.convertToSubstitution = F;")
         mut_types = ", ".join([str(mt) for mt in mut_type_list])
-        mut_props = ", ".join([str(prop) for prop in d.proportions])
+        mut_props_list = [
+            prop if (not mt.is_neutral) or d.is_neutral else 0.0
+            for prop, mt in zip(d.proportions, d.mutation_types)
+        ]
+        mut_props = ", ".join(map(str, mut_props_list))
         printsc(
             f"    initializeGenomicElementType({j}, c({mut_types}), c({mut_props}));"
         )
+        if d.is_neutral:
+            printsc(
+                f"    // Note: genomic element type {j} is entirely neutral,"
+                " so will not be simulated by SLiM."
+            )
         if contig.interval_list[j].shape[0] > 0:
             element_starts = slim_array_string(contig.interval_list[j][:, 0], indent)
             # stdpopsim intervals are 0-based left inclusive, right exclusive, but

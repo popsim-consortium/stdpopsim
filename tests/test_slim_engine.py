@@ -5,7 +5,6 @@ import os
 import re
 import io
 import sys
-import itertools
 import tempfile
 import math
 from unittest import mock
@@ -14,7 +13,6 @@ from numpy.testing import assert_array_equal
 
 import pytest
 import tskit
-import pyslim
 import msprime
 
 import stdpopsim
@@ -24,14 +22,13 @@ from .test_cli import capture_output
 IS_WINDOWS = sys.platform.startswith("win")
 
 
-def slim_simulate_no_recap(seed=1234, **kwargs):
+def slim_simulate_no_recap(seed=1234, verbosity=2, **kwargs):
     """
     Return the tree sequence produced by SLiM, without recapitation, etc.
     """
     kwargs.update(slim_script=True)
     engine = stdpopsim.get_engine("slim")
     out, _ = capture_output(engine.simulate, **kwargs)
-
     # Find the name of the temporary trees_file in the script.
     match = re.search(r'"trees_file",\s*"([^"]*)"', out)
     assert match is not None
@@ -44,8 +41,8 @@ def slim_simulate_no_recap(seed=1234, **kwargs):
         out = out.replace(tmp_trees_file, trees_file)
         with open(script_file, "w") as f:
             f.write(out)
-        engine._run_slim(script_file, seed=seed)
-        ts = pyslim.load(trees_file)
+        engine._run_slim(script_file, seed=seed, verbosity=verbosity)
+        ts = tskit.load(trees_file)
     return ts
 
 
@@ -859,11 +856,7 @@ class PiecewiseConstantSizeMixin(object):
         """
         # surely there's a simpler way!
         assert ts.num_mutations == 1
-        alive = list(
-            itertools.chain.from_iterable(
-                ts.individual(i).nodes for i in ts.individuals_alive_at(0)
-            )
-        )
+        alive = ts.samples(time=0)
         mut = next(ts.mutations())
         tree = ts.at(ts.site(mut.site).position)
         have_mut = [u for u in alive if tree.is_descendant(u, mut.node)]
@@ -944,6 +937,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             contig=contig,
             samples=self.samples,
             seed=123,
+            verbosity=3,
         )
         for j, mt in enumerate(self.example_mut_types):
             sites = np.where(
@@ -989,15 +983,15 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         Q = self.slim_metadata_key0(ts.metadata["SLiM"]["user_metadata"], "Q")
 
         for dfe, intervals in zip(contig.dfe_list, contig.interval_list):
-            prop_neutral = 0.0
+            prop_nonneutral = 0.0
             for mt, p in zip(dfe.mutation_types, dfe.proportions):
-                if mt.is_neutral:
-                    prop_neutral += p
-            mut_rate = contig.mutation_rate * (1 - prop_neutral) * Q
+                if not mt.is_neutral:
+                    prop_nonneutral += p
+            mut_rate = contig.mutation_rate * prop_nonneutral * Q
             self.verify_rates_match(mut_rate, intervals, slim_rates, slim_ends)
 
         # also verify any bits not covered by DFEs have no mutations
-        empty_intervals = np.empty((0, 2), dtype="int")
+        empty_intervals = np.array([[0, int(contig.length)]], dtype="int")
         for intervals in contig.interval_list:
             empty_intervals = stdpopsim.utils.mask_intervals(
                 empty_intervals,
@@ -1020,6 +1014,15 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         ):
             assert str(j) in ge_types
             ge = self.slim_metadata_key0(ge_types, str(j))
+            # checking that the neutral mutations have 0.0 proportion unless
+            # all the mutations are neutral in this dfe
+            for mt, dfe_prop, slim_prop in zip(
+                dfe.mutation_types, dfe.proportions, ge["mutationFractions"]
+            ):
+                if mt.is_neutral and not dfe.is_neutral:
+                    assert slim_prop == 0.0
+                else:
+                    assert slim_prop == dfe_prop
             # "+1" because SLiM's intervals are closed on both ends,
             # stdpopsim's are closed on the left, open on the right
             slim_intervals = np.column_stack(
@@ -1168,14 +1171,18 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_no_neutral_mutations_are_simulated_by_slim(self):
         contig = get_test_contig()
+        contig.mutation_rate = 10 * contig.mutation_rate
         ts = slim_simulate_no_recap(
             demographic_model=self.model,
             contig=contig,
             samples=self.samples,
             slim_scaling_factor=10,
             slim_burn_in=0.1,
+            verbosity=3,
         )
         assert ts.num_sites == 0
+        self.verify_genomic_elements(contig, ts)
+        self.verify_mutation_rates(contig, ts)
 
         contig.dfe_list[0].mutation_types = [
             stdpopsim.MutationType() for i in range(10)
@@ -1187,8 +1194,62 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             samples=self.samples,
             slim_scaling_factor=10,
             slim_burn_in=0.1,
+            verbosity=3,
         )
         assert ts.num_sites == 0
+        self.verify_genomic_elements(contig, ts)
+        self.verify_mutation_rates(contig, ts)
+
+    def test_neutral_dfe_slim_proportions(self):
+        contig = get_test_contig()
+        Q = 10
+        ts = slim_simulate_no_recap(
+            demographic_model=self.model,
+            contig=contig,
+            samples=self.samples,
+            slim_scaling_factor=Q,
+            slim_burn_in=0.1,
+            verbosity=3,
+        )
+        ge_types = self.slim_metadata_key0(
+            ts.metadata["SLiM"]["user_metadata"], "genomicElementTypes"
+        )
+        assert np.allclose(ge_types["0"][0]["mutationFractions"], [1.0])
+        assert np.allclose(
+            ts.metadata["SLiM"]["user_metadata"]["mutationRates"][0]["rates"], [0.0 * Q]
+        )
+        contig.add_dfe(
+            intervals=np.array([[0, contig.length]], dtype="int"),
+            DFE=stdpopsim.DFE(
+                id="neutral_sel",
+                description="neutral with some selected",
+                long_description="test",
+                mutation_types=[
+                    stdpopsim.MutationType(),
+                    stdpopsim.MutationType(
+                        distribution_type="e",
+                        distribution_args=[-0.01],
+                    ),
+                ],
+                proportions=[0.9, 0.1],
+            ),
+        )
+        ts = slim_simulate_no_recap(
+            demographic_model=self.model,
+            contig=contig,
+            samples=self.samples,
+            slim_scaling_factor=Q,
+            slim_burn_in=0.1,
+            verbosity=3,
+        )
+        ge_types = self.slim_metadata_key0(
+            ts.metadata["SLiM"]["user_metadata"], "genomicElementTypes"
+        )
+        assert np.allclose(ge_types["1"][0]["mutationFractions"], [0.0, 0.1])
+        assert np.allclose(
+            ts.metadata["SLiM"]["user_metadata"]["mutationRates"][0]["rates"],
+            [contig.mutation_rate * 0.1 * Q],
+        )
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
