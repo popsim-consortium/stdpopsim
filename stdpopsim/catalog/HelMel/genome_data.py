@@ -6,6 +6,8 @@
 # Data source:
 # http://ensembl.lepbase.org/Heliconius_melpomene_melpomene_hmel25/Info/Index
 #
+# Chromosomes lengths from Davey et al. 2017
+#
 data = {
     "assembly_accession": None,  # No accession number available
     "assembly_name": "Hmel2.5",
@@ -15,21 +17,21 @@ data = {
         "3": {"length": 10541528, "synonyms": []},
         "4": {"length": 9662098, "synonyms": []},
         "5": {"length": 9908586, "synonyms": []},
-        "6": {"length": 1405417, "synonyms": []},
-        "7": {"length": 1430885, "synonyms": []},
+        "6": {"length": 14054175, "synonyms": []},
+        "7": {"length": 14308859, "synonyms": []},
         "8": {"length": 9320449, "synonyms": []},
         "9": {"length": 8708747, "synonyms": []},
-        "10": {"length": 1796548, "synonyms": []},
-        "11": {"length": 1175927, "synonyms": []},
-        "12": {"length": 1632729, "synonyms": []},
-        "13": {"length": 1812731, "synonyms": []},
+        "10": {"length": 17965481, "synonyms": []},
+        "11": {"length": 11759272, "synonyms": []},
+        "12": {"length": 16327298, "synonyms": []},
+        "13": {"length": 18127314, "synonyms": []},
         "14": {"length": 9174305, "synonyms": []},
-        "15": {"length": 1023575, "synonyms": []},
-        "16": {"length": 1008321, "synonyms": []},
-        "17": {"length": 1477329, "synonyms": []},
-        "18": {"length": 1680389, "synonyms": []},
-        "19": {"length": 1639934, "synonyms": []},
-        "20": {"length": 1487169, "synonyms": []},
-        "21": {"length": 1335969, "synonyms": []},
+        "15": {"length": 10235750, "synonyms": []},
+        "16": {"length": 10083215, "synonyms": []},
+        "17": {"length": 14773299, "synonyms": []},
+        "18": {"length": 16803890, "synonyms": []},
+        "19": {"length": 16399344, "synonyms": []},
+        "20": {"length": 14871695, "synonyms": []},
+        "21": {"length": 13359691, "synonyms": []},
     },
 }

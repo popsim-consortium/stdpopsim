@@ -22,10 +22,10 @@ class TestSpeciesData(test_species.SpeciesTestBase):
     # species definition, filling in the appropriate values
     # and deleting the pytest "skip" annotations.
     def test_qc_population_size(self):
-        assert self.species.population_size == 2.1e06
+        assert self.species.population_size == 2111109
 
     def test_qc_generation_time(self):
-        assert self.species.generation_time == 1 / 10
+        assert self.species.generation_time == 35 / 365
 
 
 class TestGenomeData(test_species.GenomeTestBase):
