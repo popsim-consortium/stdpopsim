@@ -78,8 +78,9 @@ _species = stdpopsim.Species(
     name="Heliconius melpomene",
     common_name="Heliconius melpomene",
     genome=_genome,
-    generation_time=1 / 10,
-    population_size=2.1e6,
+    generation_time=35 / 365,  # 35 days
+    # population size from the first of two datasets in Pardo-Diaz et al 2012
+    population_size=2111109,
     citations=[
         stdpopsim.Citation(
             author="Pardo-Diaz et al",
