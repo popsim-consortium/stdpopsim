@@ -816,6 +816,73 @@ class PiecewiseConstantSizeMixin(object):
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
+class TestRecombinationMap(PiecewiseConstantSizeMixin):
+    def verify_recombination_map(self, contig, ts):
+        Q = ts.metadata["SLiM"]["user_metadata"]["Q"]
+        ends = ts.metadata["SLiM"]["user_metadata"]["recombination_ends"]
+        rates = ts.metadata["SLiM"]["user_metadata"]["recombination_rates"]
+        rm = contig.recombination_map
+        rm_rates = rm.rate.copy()
+        rm_rates[np.isnan(rm_rates)] = 0.0
+        rescaled_rates = (1 - (1 - 2 * rm_rates) ** Q) / 2
+        assert np.allclose(ends, rm.right - 1)
+        assert np.allclose(rates, rescaled_rates)
+        # check we have no recombinations where they aren't allowed
+        # ... and we need zero rates for this to be a good check
+        assert np.min(rm_rates) == 0
+        breaks = [x for x in ts.breakpoints() if x > 0 and x < ts.sequence_length]
+        # this will have rm.position[i-1] <= breaks < rm.position[i]
+        i = np.searchsorted(
+            rm.position,
+            breaks,
+            side="right",
+        )
+        assert np.max(i) < rm.num_intervals
+        assert np.min(i) > 0
+        assert np.all(rm.rate[i - 1] > 0)
+
+    @pytest.mark.parametrize("Q", [1, 12])
+    @pytest.mark.filterwarnings("ignore:Recombination map has length:UserWarning")
+    def test_chr1(self, Q):
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("chr1", genetic_map="HapMapII_GRCh37")
+        model = stdpopsim.PiecewiseConstantSize(100)
+        samples = model.get_samples(10)
+        ts = engine.simulate(
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            slim_burn_in=0.1,
+            verbosity=3,
+        )
+        self.verify_recombination_map(contig, ts)
+
+    def test_off_by_one(self):
+        # make an extreme example that tests whether we've got the endpoints
+        # of recombination rates right
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("AraTha")
+        contig = species.get_contig("5")
+        midpoint = int(contig.length / 2)
+        contig.recombination_map = msprime.RateMap(
+            position=np.array([0.0, midpoint, midpoint + 1, contig.length]),
+            rate=np.array([0.0, 0.1, 0.0]),
+        )
+        model = stdpopsim.PiecewiseConstantSize(100)
+        samples = model.get_samples(10)
+        ts = engine.simulate(
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            slim_burn_in=0.1,
+            verbosity=3,
+        )
+        self.verify_recombination_map(contig, ts)
+        assert list(ts.breakpoints()) == [0.0, midpoint, contig.length]
+
+
+@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
 
     mut_params = {
