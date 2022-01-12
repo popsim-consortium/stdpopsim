@@ -79,8 +79,11 @@ initialize() {
     defineConstant("pop_names", $pop_names);
 
     _recombination_rates = $recombination_rates;
+    if (Q != 1) {
+        _recombination_rates = (1-(1-2*_recombination_rates)^Q)/2;
+    }
     _recombination_ends = $recombination_ends;
-    defineConstant("recombination_rates", (1-(1-2*_recombination_rates)^Q)/2);
+    defineConstant("recombination_rates", _recombination_rates);
     defineConstant("recombination_ends", _recombination_ends);
     // whatever is in this dictionary will be saved out in the .trees file
     defineConstant("metadata", Dictionary("Q", Q));
@@ -566,6 +569,15 @@ _slim_debug_output = """
 // is subject to change or may even be removed!
 1 {
     if (verbosity >= 3) {
+        // recombination map
+        metadata.setValue(
+            "recombination_rates",
+            sim.chromosome.recombinationRates
+        );
+        metadata.setValue(
+            "recombination_ends",
+            sim.chromosome.recombinationEndPositions
+        );
         // mutationTypes
         muts = Dictionary();
         for (mt in sim.mutationTypes) {
@@ -766,6 +778,24 @@ def _add_dfes_to_metadata(ts, contig):
 def msprime_rm_to_slim_rm(recombination_map):
     """
     Convert recombination map from start position coords to end position coords.
+
+    In SLiM, if ends[j-1] = a and ends[j] = b, then the recombination rate rates[j]
+    applies to the links between a and b, i.e., to the links a:(a+1), (a+1):(a+2),
+    ... (b-1):b. The tree sequence output by a SLiM simulation with L loci
+    (i.e., positions 0, ..., L-1) will have sequence length equal to L, because
+    intervals in tskit are open on the right, so the interval [0, L) does not
+    include L.
+
+    On the other hand, in msprime, a recombination rate map with some rate
+    applied to the interval [x, y) will allow recombination events to the
+    integers falling in [x, y); an event occuring at x will split x-1 from x,
+    and so this implies recombination for the links from
+    (x-1):x, x:(x+1), ..., (y-2):(y-1); this would correspond to ends of x-1
+    and y-1 in SLiM.
+
+    Note that this implies that the recombination rate that a msprime RateMap
+    assigns to the interval [0, 1) has no effect in a discrete msprime
+    simulation.
     """
     rates = recombination_map.rate.copy()
     # replace missing values with 0 recombination rate
