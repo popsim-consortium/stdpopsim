@@ -11,7 +11,7 @@ sphinx-issues==1.2.0
 sphinx_rtd_theme==1.0.0
 sphinxcontrib-programoutput==0.17
 msprime==1.1.0
-attrs==21.2.0
+attrs==21.4.0
 appdirs==1.4.4
 humanize==3.13.1
 pyslim==0.700
