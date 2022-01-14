@@ -20,6 +20,7 @@ import stdpopsim.cli
 from .test_cli import capture_output
 
 IS_WINDOWS = sys.platform.startswith("win")
+slim_path = os.environ.get("SLIM", "slim")
 
 
 def slim_simulate_no_recap(seed=1234, verbosity=2, **kwargs):
@@ -44,6 +45,16 @@ def slim_simulate_no_recap(seed=1234, verbosity=2, **kwargs):
         engine._run_slim(script_file, seed=seed, verbosity=verbosity)
         ts = tskit.load(trees_file)
     return ts
+
+
+def count_mut_types(ts):
+    mut_info = {}
+    for mut in ts.mutations():
+        for j, md in zip(mut.derived_state.split(","), mut.metadata["mutation_list"]):
+            if j not in mut_info:
+                mut_info[int(j)] = md
+    num_neutral = sum([mut_info[j]["selection_coeff"] == 0.0 for j in mut_info])
+    return [num_neutral, abs(len(mut_info) - num_neutral)]
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
@@ -307,188 +318,152 @@ class TestCLI:
         assert observed_counts == [0, 0, 8]
         assert all(tree.num_roots == 1 for tree in ts.trees())
 
-    def test_simulate_dfe(self):
-        slim_path = os.environ.get("SLIM", "slim")
-
-        def count_mut_types(ts):
-            mut_info = {}
-            for mut in ts.mutations():
-                for j, md in zip(
-                    mut.derived_state.split(","), mut.metadata["mutation_list"]
-                ):
-                    if j not in mut_info:
-                        mut_info[int(j)] = md
-            num_neutral = sum([mut_info[j]["selection_coeff"] == 0.0 for j in mut_info])
-            return [num_neutral, abs(len(mut_info) - num_neutral)]
-
-        # test a DFE without demography
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l0.1 -o {f.name} --dfe Gamma_K17 10"
-            ).split()
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
-        assert ts.num_samples == 10
+    def verify_slim_sim(self, ts, num_samples):
+        assert ts.num_samples == num_samples
         assert all(tree.num_roots == 1 for tree in ts.trees())
         n_mut_types = count_mut_types(ts)
         assert n_mut_types[0] > 0
         assert n_mut_types[1] > 0
 
-        # test a DFE without demography with interval
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_dfe_no_demography(self):
         with tempfile.NamedTemporaryFile(mode="w") as f:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l0.01 -o {f.name} --dfe Gamma_K17 "
+                f"HomSap -c chr22 -l 0.02 -o {f.name} --dfe Gamma_K17 -s 24 10"
+            ).split()
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+            ts = tskit.load(f.name)
+        self.verify_slim_sim(ts, num_samples=10)
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_dfe_interval(self):
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            cmd = (
+                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"HomSap -c chr22 -l 0.01 -o {f.name} --dfe Gamma_K17 -s 984 "
                 f"--dfe-interval 1000,100000 10"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
-        assert ts.num_samples == 10
-        assert all(tree.num_roots == 1 for tree in ts.trees())
-        n_mut_types = count_mut_types(ts)
-        assert n_mut_types[0] > 0
-        assert n_mut_types[1] > 0
+        self.verify_slim_sim(ts, num_samples=10)
 
-        # test DFE with demography and interval
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")
+    def test_dfe_demography(self):
         with tempfile.NamedTemporaryFile(mode="w") as f:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l0.01 -o {f.name} "
-                "-d OutOfAfrica_3G09 --dfe Gamma_K17 "
+                f"HomSap -c chr22 -l 0.01 -o {f.name} "
+                "-d OutOfAfrica_3G09 --dfe Gamma_K17 -s 148 "
                 "--dfe-interval 1000,100000 10"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
-        assert ts.num_samples == 10
-        assert all(tree.num_roots == 1 for tree in ts.trees())
-        n_mut_types = count_mut_types(ts)
-        assert n_mut_types[0] > 0
-        assert n_mut_types[1] > 0
+        self.verify_slim_sim(ts, num_samples=10)
 
-        # test DFE with dfe-annotation
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_dfe_annotation(self):
         with tempfile.NamedTemporaryFile(mode="w") as f:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -o {f.name} "
-                "-d OutOfAfrica_3G09 --dfe Gamma_K17 "
+                f"HomSap -c chr22 -o {f.name} --dfe Gamma_K17 -s 913 "
                 "--dfe-annotation ensembl_havana_104_CDS 10"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
-        assert ts.num_samples == 10
-        assert all(tree.num_roots == 1 for tree in ts.trees())
-        n_mut_types = count_mut_types(ts)
-        assert n_mut_types[0] > 0
-        assert n_mut_types[1] > 0
+        self.verify_slim_sim(ts, num_samples=10)
 
-        # test DFE with interval and no dfe
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -s 1234 -l0.01 -o {f.name} "
-                "-d OutOfAfrica_3G09 "
-                "--dfe-interval 1000,100000 10"
-            ).split()
-            with pytest.raises(
-                SystemExit, match="interval has been assigned " "without a DFE"
-            ):
-                capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        # test DFE annotation and no dfe
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -s 1234 -l0.01 -o {f.name} "
-                "-d OutOfAfrica_3G09 "
-                "--dfe-annotation ensembl_havana_104_exons 10"
-            ).split()
-            with pytest.raises(
-                SystemExit, match="A DFE annotation has been assigned without a DFE."
-            ):
-                capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        # test DFE annotation and dfe interval
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l0.01 -o {f.name} "
-                "-d OutOfAfrica_3G09 --dfe Gamma_K17 "
-                "--dfe-interval 999,1000 "
-                "--dfe-annotation ensembl_havana_104_exons 10"
-            ).split()
-            with pytest.raises(
-                SystemExit, match="A DFE annotation and a DFE interval have been"
-            ):
-                capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        # test DFE with demography and interval as a bed file
-        lines = ["chr1  100000  145000", "chr1  150000  302425"]
-        bedfile = open("ex.bed", "w")
+    # tmp_path is a pytest fixture
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_dfe_bed_file(self, tmp_path):
+        lines = [
+            "\t".join(["chr22", "100000", "145000"]),
+            "\t".join(["chr22", "150000", "302425"]),
+        ]
+        bedfile = open(tmp_path / "ex.bed", "w")
         for lin in lines:
             bedfile.write(lin + "\n")
         bedfile.close()
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -s 1234 -l0.01 -o {f.name} "
-                "-d OutOfAfrica_3G09 --dfe Gamma_K17 "
-                "--dfe-bed-file ex.bed 10"
-            ).split()
+        fname = tmp_path / "sim.trees"
+        cmd = (
+            f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+            f"HomSap -c chr22 -s 1234 -l 0.01 -o {fname} --dfe Gamma_K17 -s 183 "
+            f"--dfe-bed-file {tmp_path / 'ex.bed'} 10"
+        ).split()
+        capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        ts = tskit.load(fname)
+        self.verify_slim_sim(ts, num_samples=10)
+
+    # tmp_path is a pytest fixture
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_errors(self, tmp_path):
+        lines = [
+            "\t".join(["chr22", "100000", "145000"]),
+            "\t".join(["chr22", "150000", "302425"]),
+        ]
+        bedfile = open(tmp_path / "ex.bed", "w")
+        for lin in lines:
+            bedfile.write(lin + "\n")
+        bedfile.close()
+        fname = tmp_path / "sim.trees"
+        base_cmd = (
+            f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+            f"HomSap -c chr22 -s 1234 -l 0.01 -o {fname} "
+            "-d OutOfAfrica_3G09 "
+        )
+
+        # Intervals but no DFE
+        cmd = (base_cmd + "--dfe-interval 1000,100000 10").split()
+        with pytest.raises(
+            SystemExit, match="interval has been assigned " "without a DFE"
+        ):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
-        assert ts.num_samples == 10
-        assert all(tree.num_roots == 1 for tree in ts.trees())
-        n_mut_types = count_mut_types(ts)
-        assert n_mut_types[0] > 0
-        assert n_mut_types[1] > 0
-        # test DFE with bed file and interval
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l0.01 -o {f.name} "
-                "-d OutOfAfrica_3G09 --dfe Gamma_K17 "
-                "--dfe-interval 999,1000 "
-                "--dfe-bed-file ex.bed 10"
-            ).split()
-            with pytest.raises(
-                SystemExit, match="A DFE bed file and a DFE interval have been"
-            ):
-                capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        # test DFE with interval file and annotation
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l0.01 -o {f.name} "
-                "-d OutOfAfrica_3G09 --dfe Gamma_K17 "
-                "--dfe-interval 999,1000 "
-                "--dfe-annotation ensembl_havana_104_exons 10"
-            ).split()
-            with pytest.raises(
-                SystemExit, match="A DFE annotation and a DFE interval have been"
-            ):
-                capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        # test DFE with bed file and annotation
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l0.01 -o {f.name} "
-                "-d OutOfAfrica_3G09 --dfe Gamma_K17 "
-                "--dfe-bed-file ex.bed "
-                "--dfe-annotation ensembl_havana_104_exons 10"
-            ).split()
-            with pytest.raises(SystemExit, match="A DFE bed file and a DFE annotation"):
-                capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        # test DFE with bed file without a specified DFE
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l0.01 -o {f.name} "
-                "-d OutOfAfrica_3G09 "
-                "--dfe-bed-file ex.bed 10"
-            ).split()
-            with pytest.raises(
-                SystemExit, match="A DFE bed file has been assigned without a DFE."
-            ):
-                capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        os.remove("ex.bed")
+
+        # Annotation but no DFE
+        cmd = (base_cmd + "--dfe-annotation ensembl_havana_104_exons 10").split()
+        with pytest.raises(
+            SystemExit, match="A DFE annotation has been assigned without a DFE."
+        ):
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+
+        # bed file but no DFE
+        cmd = (base_cmd + f"--dfe-bed-file {tmp_path / 'ex.bed'} 10").split()
+        with pytest.raises(
+            SystemExit, match="A DFE bed file has been assigned without a DFE."
+        ):
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+
+        # annotation and dfe interval
+        cmd = (
+            base_cmd + "--dfe Gamma_K17 "
+            "--dfe-interval 999,1000 "
+            "--dfe-annotation ensembl_havana_104_exons 10"
+        ).split()
+        with pytest.raises(
+            SystemExit, match="A DFE annotation and a DFE interval have been"
+        ):
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+
+        # bed file and interval
+        cmd = (
+            base_cmd + "--dfe Gamma_K17 "
+            "--dfe-interval 999,1000 "
+            f"--dfe-bed-file {tmp_path / 'ex.bed'} 10"
+        ).split()
+        with pytest.raises(
+            SystemExit, match="A DFE bed file and a DFE interval have been"
+        ):
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+
+        # bed file and annotation
+        cmd = (
+            base_cmd + "--dfe Gamma_K17 "
+            f"--dfe-bed-file {tmp_path / 'ex.bed'} "
+            "--dfe-annotation ensembl_havana_104_exons 10"
+        ).split()
+        with pytest.raises(SystemExit, match="A DFE bed file and a DFE annotation"):
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
     @mock.patch("stdpopsim.slim_engine._SLiMEngine.get_version", return_value="64.64")
     def test_dry_run(self, _mocked_get_version):
@@ -1200,6 +1175,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_neutral_dfe_slim_proportions(self):
         contig = get_test_contig()
         Q = 10
