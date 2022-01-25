@@ -57,6 +57,7 @@ import numpy as np
 import msprime
 import pyslim
 import tskit
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -602,12 +603,62 @@ _slim_debug_output = """
 
 """
 
+_raw_stdpopsim_top_level_schema = {
+    "stdpopsim": {
+        "description": "Top-level metadata for a tree sequence produced by stdposim using the SLiM engine",  # noqa: E501
+        "type": "object",
+        "properties": {
+            "DFEs": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "string"},
+                        "description": {"type": "string"},
+                        "long_description": {"type": "string"},
+                        "mutation_types": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "dominance_coeff": {"type": "number"},
+                                    "distribution_type": {"type": "string"},
+                                    "distribution_args": {
+                                        "type": "array",
+                                        "items": {"type": ["number", "string"]},
+                                    },
+                                    "convert_to_substitution": {"type": "boolean"},
+                                    "Q_scaled_index": {
+                                        "type": "array",
+                                        "items": {"type": "number"},
+                                    },
+                                    "slim_mutation_type_id": {"type": "integer"},
+                                    "is_neutral": {"type": "boolean"},
+                                },
+                            },
+                        },
+                        "proportions": {"type": "array", "items": {"type": "number"}},
+                        "citations": {
+                            "type": "array",
+                            "items": {"type": ["string", "object"]},
+                        },
+                        "intervals": {
+                            "type": "array",
+                            "items": {"type": "array", "minItems": 2, "maxItems": 2},
+                        },
+                        "start_time": {"type": "number"},
+                        "end_time": {"type": "number"},
+                    },
+                },
+            }
+        },
+    }
+}
 
-def get_msp_and_slim_mutation_rate_maps(contig):
+
+def get_slim_mutation_rate_map(contig):
     """
-    Returns a :class:`msprime.RateMap` with the mutation rate map for overlay
-    of neutral mutations and a tuple with the breakpoints and rates of mutations
-    for SLiM.
+    Returns a tuple with the breakpoints and rates of mutations for SLiM.
     """
     breaks, dfe_labels = contig.dfe_breakpoints()  # beware -1 labels
     slim_fractions = np.array(
@@ -625,11 +676,7 @@ def get_msp_and_slim_mutation_rate_maps(contig):
     )  # append 0 for the -1 labels
     slim_rates = contig.mutation_rate * slim_fractions[dfe_labels]
     slim_breaks = breaks[1:] - 1  # SLiM has inclusive right endpoints
-
-    msp_mutation_rate_map = msprime.RateMap(
-        position=breaks, rate=contig.mutation_rate * (1 - slim_fractions[dfe_labels])
-    )
-    return (msp_mutation_rate_map, (slim_breaks, slim_rates))
+    return (slim_breaks, slim_rates)
 
 
 def slim_array_string(iterable, indent, width=80):
@@ -646,6 +693,74 @@ def slim_array_string(iterable, indent, width=80):
         )
         + ")"
     )
+
+
+def _enum_dfe_and_intervals(contig):
+    """
+    Returns an iterator which, for every `DFE` in the `contig`, returns a tuple
+    containing a numeric id for said DFE, the DFE object and the list of
+    intervals associated with the DFE. We need to assign each DFE a numeric id
+    both in the slim_makescript and in the _add_dfes_to_metadata, so with this
+    function we can ensure these two steps assigns numeric ids to the DFEs in the
+    same way.
+    """
+    assert len(contig.dfe_list) == len(contig.interval_list)
+    for i, (d, ints) in enumerate(zip(contig.dfe_list, contig.interval_list)):
+        yield i, d, ints
+
+
+def _dfe_to_mtypes(contig):
+    """
+    Assigns a mutation type id to each of the mutation types contained in this
+    `Contig`. This function will return a dictionary with `len(contig.dfe_list)`
+    elements, in which the position of the DFE in `contig.dfe_list` is the key.
+    For each DFE, the dictionary holds a list of tuples that contain the an
+    assigned mutation type id (used in  SLiM) and the `MutationType` object.
+    This is necessary so that we use the same numeric ids to the mutation types
+    in the _add_dfes_to_metadata and slim_makescript steps.
+    """
+    mid = 0
+    dfe_to_mtypes = {}
+    for i, d, _ in _enum_dfe_and_intervals(contig):
+        dfe_to_mtypes[i] = []
+        for mt in d.mutation_types:
+            dfe_to_mtypes[i].append((mid, mt))
+            mid += 1
+    return dfe_to_mtypes
+
+
+def _add_dfes_to_metadata(ts, contig):
+    """
+    Adds the DFEs to the top-level metadata of a tree sequence using
+    information in the `contig`.
+    """
+
+    def _get_json(obj):
+        # recursively flattens an object to a dictionary.
+        return json.loads(
+            json.dumps(obj, default=lambda o: getattr(o, "__dict__", str(o)))
+        )
+
+    tables = ts.dump_tables()
+    schema = tables.metadata_schema.asdict()
+    metadata = tables.metadata
+    schema["properties"].update(_raw_stdpopsim_top_level_schema)
+    dfes = _get_json(contig.dfe_list)
+    dfe_to_mtypes = _dfe_to_mtypes(contig)
+    for i, d, ints in _enum_dfe_and_intervals(contig):
+        dfes[i]["intervals"] = ints.tolist()
+        dfes[i]["proportions"] = d.proportions
+        for j, (mid, mt) in enumerate(dfe_to_mtypes[i]):
+            add = {
+                "slim_mutation_type_id": mid,
+                "is_neutral": mt.is_neutral,
+            }
+            dfes[i]["mutation_types"][j].update(add)
+    new_metadata = {"stdpopsim": {"DFEs": dfes}}
+    metadata.update(new_metadata)
+    tables.metadata_schema = tskit.MetadataSchema(schema)
+    tables.metadata = metadata
+    return tables.tree_sequence()
 
 
 def msprime_rm_to_slim_rm(recombination_map):
@@ -671,7 +786,6 @@ def slim_makescript(
     slim_rate_map,
 ):
 
-    mutation_types = contig.mutation_types()
     pop_names = [pop.name for pop in demographic_model.model.populations]
     # Use copies of these so that the time frobbing below doesn't have
     # side-effects in the caller's model.
@@ -780,14 +894,17 @@ def slim_makescript(
     fitness_callbacks = []
     condition_on_allele_frequency = []
     op_id = stdpopsim.ext.ConditionOnAlleleFrequency.op_id
+    slim_mutation_ids = []
+    for x in _dfe_to_mtypes(contig).values():
+        slim_mutation_ids.extend([u[0] for u in x])
     for ee in extended_events:
         if hasattr(ee, "mutation_type_id"):
             mt_id = getattr(ee, "mutation_type_id")
             cls_name = ee.__class__.__name__
-            if not (0 <= mt_id < len(mutation_types)):
+            if mt_id not in slim_mutation_ids:
                 raise ValueError(
-                    f"Invalid {cls_name} {ee.mutation_type_id} {len(mutation_types)} "
-                    f"event with mutation type id {mt_id}.{contig}"
+                    f"Invalid {cls_name} event with mutation type id "
+                    f"{mt_id} on {contig} with valid IDs {slim_mutation_ids}."
                 )
         if hasattr(ee, "start_time") and hasattr(ee, "end_time"):
             # Now that GenerationAfter times have been accounted for, we can
@@ -919,11 +1036,12 @@ def slim_makescript(
         return "".join(s)
 
     # Genomic element types.
-    next_mutation_type_id = 0
-    for j, d in enumerate(contig.dfe_list):
+    dfe_mtypes = _dfe_to_mtypes(contig)
+    for j, d, ints in _enum_dfe_and_intervals(contig):
         # Mutation types.
         mut_type_list = []
-        for m in d.mutation_types:
+        assert len(dfe_mtypes[j]) == len(d.mutation_types)
+        for mid, m in dfe_mtypes[j]:
             if len(m.Q_scaled_index) >= 1:
                 distrib_args = [str(arg) for arg in m.distribution_args]
                 for k in m.Q_scaled_index:
@@ -934,8 +1052,6 @@ def slim_makescript(
             # dealing with distributions given by "s" Eidos script,
             else:
                 distrib_args = "; ".join([f'"{a}"' for a in m.distribution_args])
-            mid = next_mutation_type_id
-            next_mutation_type_id += 1
             mut_type_list.append(mid)
             printsc(
                 f"    initializeMutationType({mid}, {m.dominance_coeff}, "
@@ -945,6 +1061,12 @@ def slim_makescript(
                 # T is the default for WF simulations.
                 printsc(f"    m{mid}.convertToSubstitution = F;")
         mut_types = ", ".join([str(mt) for mt in mut_type_list])
+        # We will assign a proportion of 0.0 to mutation types that are neutral
+        # unless all the mutation types in a DFE are neutral. In such case,
+        # SLiM would not allow all mutation types in a genomic element type to
+        # have 0.0 proportion. And the proportions in SLiM won't matter anyway,
+        # because all the intervals in this fully neutral DFE will have 0.0
+        # mutation rate anyway.
         mut_props_list = [
             prop if (not mt.is_neutral) or d.is_neutral else 0.0
             for prop, mt in zip(d.proportions, d.mutation_types)
@@ -958,11 +1080,11 @@ def slim_makescript(
                 f"    // Note: genomic element type {j} is entirely neutral,"
                 " so will not be simulated by SLiM."
             )
-        if contig.interval_list[j].shape[0] > 0:
-            element_starts = slim_array_string(contig.interval_list[j][:, 0], indent)
+        if ints.shape[0] > 0:
+            element_starts = slim_array_string(ints[:, 0], indent)
             # stdpopsim intervals are 0-based left inclusive, right exclusive, but
             # SLiM intervals are right inclusive
-            element_ends = slim_array_string(contig.interval_list[j][:, 1] - 1, indent)
+            element_ends = slim_array_string(ints[:, 1] - 1, indent)
             printsc(
                 f"    initializeGenomicElement({j}, {element_starts}, {element_ends});"
             )
@@ -1190,6 +1312,7 @@ class _SLiMEngine(stdpopsim.Engine):
         slim_burn_in=10.0,
         dry_run=False,
         verbosity=None,
+        _recap_and_rescale=True,
     ):
         """
         Simulate the demographic model using SLiM.
@@ -1239,7 +1362,7 @@ class _SLiMEngine(stdpopsim.Engine):
 
         # figuring out mutations in SLiM and neutral mutations to be added
         # by msprime later
-        msp_rate_map, slim_rate_map = get_msp_and_slim_mutation_rate_maps(contig)
+        slim_rate_map = get_slim_mutation_rate_map(contig)
 
         # TODO: remove this after a release or two. See #745.
         self._warn_zigzag(demographic_model)
@@ -1289,9 +1412,11 @@ class _SLiMEngine(stdpopsim.Engine):
 
             ts = tskit.load(ts_file.name)
 
-        ts = self._recap_and_rescale(
-            ts, seed, recap_epoch, contig, slim_scaling_factor, msp_rate_map
-        )
+        ts = _add_dfes_to_metadata(ts, contig)
+        if _recap_and_rescale:
+            ts = self._recap_and_rescale(
+                ts, seed, recap_epoch, contig, slim_scaling_factor
+            )
 
         if contig.inclusion_mask is not None:
             ts = stdpopsim.utils.mask_tree_sequence(ts, contig.inclusion_mask, False)
@@ -1369,27 +1494,49 @@ class _SLiMEngine(stdpopsim.Engine):
         )
         return ts.simplify(samples=list(nodes), filter_populations=False)
 
-    def _recap_and_rescale(
-        self, ts, seed, recap_epoch, contig, slim_scaling_factor, msp_rate_map
-    ):
+    def _recap_and_rescale(self, ts, seed, recap_epoch, contig, slim_scaling_factor):
         """
         Apply post-SLiM transformations to ``ts``. This rescales node times,
         does recapitation, simplification, and adds neutral mutations.
         """
-        # Node times come from SLiM generation numbers, which may have been
+        # Times come from SLiM generation numbers, which may have been
         # divided by a scaling factor for computational tractability.
         tables = ts.dump_tables()
         for table in (tables.nodes, tables.migrations, tables.mutations):
             table.time *= slim_scaling_factor
-        ts_metadata = tables.metadata
-        ts_metadata["SLiM"]["generation"] *= slim_scaling_factor
-        tables.metadata = ts_metadata
+        metadata = tables.metadata
+        metadata["SLiM"]["generation"] *= slim_scaling_factor
+        # Finding what slim id to use in recap DFE
+        max_id = -1
+        for dfe in metadata["stdpopsim"]["DFEs"]:
+            for mt in dfe["mutation_types"]:
+                max_id = max(mt["slim_mutation_type_id"], max_id)
+        recap_dfe = {
+            "id": "recapitation",
+            "description": "DFE used in recapitation",
+            "long_description": "neutral mutations added with msprime.sim_mutations "
+            "to the recapited portion of the tree sequence",
+            "mutation_types": [
+                {
+                    "dominance_coeff": 0.5,
+                    "distribution_type": "f",
+                    "distribution_args": [0],
+                    "convert_to_substitution": False,
+                    "Q_scaled_index": [0],
+                    "slim_mutation_type_id": max_id + 1,
+                    "is_neutral": True,
+                }
+            ],
+            "proportions": [1.0],
+            "citations": [],
+            "intervals": [[0, ts.sequence_length]],
+        }
+        metadata["stdpopsim"]["DFEs"].append(recap_dfe)
+        tables.metadata = metadata
         ts = tables.tree_sequence()
-        slim_gen = ts.metadata["SLiM"]["generation"]
 
         rng = random.Random(seed)
-        s1, s2 = rng.randrange(1, 2 ** 32), rng.randrange(1, 2 ** 32)
-
+        s0 = rng.randrange(1, 2 ** 32)
         population_configurations = [
             msprime.PopulationConfiguration(
                 initial_size=pop.start_size,
@@ -1408,44 +1555,58 @@ class _SLiMEngine(stdpopsim.Engine):
             initial_state=ts,
             demography=demography,
             recombination_rate=contig.recombination_map,
-            random_seed=s1,
+            random_seed=s0,
         )
-
         ts = self._simplify_remembered(ts)
 
-        # Figuring out SLiM mutation id metadata
-        max_id = -1
-        for mut in ts.mutations():
-            for d in mut.derived_state.split(","):
-                max_id = max(max_id, int(d))
+        # Adding neutral mutations to simulation and recapitation periods
+        breaks, dfe_labels = contig.dfe_breakpoints()  # beware -1 labels
+        for i, dfe in enumerate(ts.metadata["stdpopsim"]["DFEs"]):
+            assert len(dfe["proportions"]) == len(dfe["mutation_types"])
+            for prop, mt in zip(dfe["proportions"], dfe["mutation_types"]):
+                if mt["is_neutral"]:
+                    mut_seed = rng.randrange(1, 2 ** 32)
+                    # Figuring out SLiM mutation id metadata
 
-        # Creating a SLiM mutation model
-        # TODO: fix this up to do the right types? or, share them?
-        model = msprime.SLiMMutationModel(
-            type=len(contig.mutation_types()), next_id=max_id + 1
-        )
+                    def _get_next_id(ts):
+                        max_id = -1
+                        for mut in ts.mutations():
+                            for d in mut.derived_state.split(","):
+                                max_id = max(max_id, int(d))
+                        return max_id + 1
 
-        # Add mutations to recapitated part of trees.
-        ts = msprime.sim_mutations(
-            ts,
-            rate=contig.mutation_rate,
-            model=model,
-            start_time=slim_gen,
-            keep=True,
-            random_seed=s2,
-        )
+                    def _get_msp_rate_map(breaks, is_this_dfe, rate):
+                        rates = np.zeros(shape=is_this_dfe.shape)
+                        rates[is_this_dfe] = rate
+                        return msprime.RateMap(position=breaks, rate=rates)
 
-        # Adding neutral mutations to the SLiM part
-        s3 = rng.randrange(1, 2 ** 32)
-        ts = msprime.sim_mutations(
-            ts,
-            rate=msp_rate_map,
-            model=model,
-            end_time=slim_gen,
-            keep=True,
-            random_seed=s3,
-        )
-
+                    # Add mutations to recapitated part of trees.
+                    model = msprime.SLiMMutationModel(
+                        type=mt["slim_mutation_type_id"], next_id=_get_next_id(ts)
+                    )
+                    start_time = None
+                    end_time = None
+                    if dfe["id"] == "recapitation":
+                        start_time = metadata["SLiM"]["generation"]
+                        msp_rate_map = _get_msp_rate_map(
+                            np.array([0, contig.length]),
+                            np.array([True]),
+                            contig.mutation_rate,
+                        )
+                    else:
+                        msp_rate_map = _get_msp_rate_map(
+                            breaks, dfe_labels == i, prop * contig.mutation_rate
+                        )
+                        end_time = metadata["SLiM"]["generation"]
+                    ts = msprime.sim_mutations(
+                        ts,
+                        rate=msp_rate_map,
+                        model=model,
+                        start_time=start_time,
+                        end_time=end_time,
+                        keep=True,
+                        random_seed=mut_seed,
+                    )
         return ts
 
     def recap_and_rescale(
@@ -1482,7 +1643,7 @@ class _SLiMEngine(stdpopsim.Engine):
             should be consulted to determine if the behaviour is appropriate
             for your case.
         """
-        msp_rate_map, slim_rate_map = get_msp_and_slim_mutation_rate_maps(contig)
+        slim_rate_map = get_slim_mutation_rate_map(contig)
 
         with open(os.devnull, "w") as script_file:
             recap_epoch = slim_makescript(
@@ -1497,9 +1658,7 @@ class _SLiMEngine(stdpopsim.Engine):
                 slim_rate_map,
             )
 
-        ts = self._recap_and_rescale(
-            ts, seed, recap_epoch, contig, slim_scaling_factor, msp_rate_map
-        )
+        ts = self._recap_and_rescale(ts, seed, recap_epoch, contig, slim_scaling_factor)
         return ts
 
 
