@@ -27,9 +27,9 @@ def is_valid_dfe_id(model_id):
     Returns True if the specified string is a valid dfe model ID. This must
     be a string with the following pattern:
 
-    {something descriptive of model}_{First author initial}{2 digit year}.
+    {CamelCaseName}_{First author initial}{2 digit year}.
     """
-    regex = re.compile(r"[A-Z][a-z]*_[A-Z]*\d\d")
+    regex = re.compile(r"[A-Z][A-Za-z]*_[A-Z]*\d\d")
     return regex.fullmatch(model_id) is not None
 
 
