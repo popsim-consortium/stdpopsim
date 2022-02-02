@@ -81,7 +81,16 @@ jobs:
           # when pip installing without binary wheels (on Windows).
           conda install --yes --file=requirements/CI/conda.txt
           if [ "$RUNNER_OS" != "Windows" ]; then
-            conda install --yes slim==${{ env.SLIM_TAG }}
+            # TODO: put this back at next SLiM release
+            # conda install --yes slim==${{ env.SLIM_TAG }}
+            # but FOR NOW install github SLiM
+            git clone https://github.com/MesserLab/SLiM/pull/276
+            cd SLiM
+            mkdir build
+            cd build
+            cmake ..
+            make
+            export PATH=$PATH:$PWD
           fi
           pip install -r requirements/CI/requirements.txt
 
