@@ -48,7 +48,7 @@ jobs:
         uses: actions/cache@v2
         env:
           # Increase this to reset the cache if the key hasn't changed.
-          CACHE_NUM: 1
+          CACHE_NUM: 2
         with:
           path: |
             ${{ steps.find-conda.outputs.CONDA }}/envs/${{ env.CONDA_ENV_NAME }}
@@ -80,21 +80,35 @@ jobs:
           # We install msprime from conda to avoid GSL-related build issues
           # when pip installing without binary wheels (on Windows).
           conda install --yes --file=requirements/CI/conda.txt
-          if [ "$RUNNER_OS" != "Windows" ]; then
-            # TODO: put this back at next SLiM release
-            # conda install --yes slim==${{ env.SLIM_TAG }}
-            # but FOR NOW install github SLiM
-            git clone https://github.com/MesserLab/SLiM/pull/276
-            cd SLiM
-            mkdir build
-            cd build
-            cmake ..
-            make
-            export PATH=$PATH:$PWD
-          fi
           pip install -r requirements/CI/requirements.txt
+          # TODO[#1182]: put this back at next SLiM release
+          # conda install --yes slim==${{ env.SLIM_TAG }}
+          # but FOR NOW install github SLiM
+
+      # TODO[#1182]: remove this step
+      - name: checkout SLiM
+        if: runner.os != 'Windows'
+        uses: actions/checkout@v2
+        with:
+          repository: MesserLab/SLiM
+          fetch-depth: 0
+          path: SLiM
+
+      # TODO[#1182]: remove this step
+      - name: build SLiM
+        if: runner.os != 'Windows'
+        run: |
+          cd SLiM
+          mkdir build
+          cd build
+          cmake ..
+          make -j 2
+          ./slim -testEidos
+          ./slim -testSLiM
 
       - name: run test suite
         run: |
+          # TODO[#1182]: remove this export
+          export PATH=$PATH:./SLiM/build
           pytest -n0 --cov=stdpopsim --cov-branch tests
           coverage report -m
