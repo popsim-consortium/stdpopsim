@@ -1,7 +1,7 @@
 codecov==2.1.12
 coverage==6.3
 flake8==4.0.1
-pytest==6.2.5
+pytest==7.0.1
 pytest-cov==3.0.0
 pytest-xdist==2.4.0
 setuptools-scm==6.4.2
