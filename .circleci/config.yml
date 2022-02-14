@@ -29,8 +29,8 @@ jobs:
             git clone --bare https://github.com/MesserLab/SLiM /tmp/SLiM_top/SLiM
             cd /tmp/SLiM_top/SLiM
             git describe --tags $(git rev-list --tags --max-count=1) > ${TAG_FILE}
-            # Pinning to SLiM 3.7; comment out the next line to use latest tag.
-            echo v3.7 > ${TAG_FILE}
+            # Pinning to SLiM 3.7.1; comment out the next line to use latest tag.
+            echo v3.7.1 > ${TAG_FILE}
             echo Using SLiM version $(cat /tmp/SLiM_tag)
 
       - restore_cache:

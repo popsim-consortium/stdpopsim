@@ -20,7 +20,6 @@ jobs:
         os: [ubuntu-18.04, macos-10.15, windows-latest]
         python: [3.7, "3.10"]
     env:
-      SLIM_TAG: 3.7
       CONDA_ENV_NAME: stdpopsim
 
     steps:
@@ -48,12 +47,12 @@ jobs:
         uses: actions/cache@v2
         env:
           # Increase this to reset the cache if the key hasn't changed.
-          CACHE_NUM: 2
+          CACHE_NUM: 0
         with:
           path: |
             ${{ steps.find-conda.outputs.CONDA }}/envs/${{ env.CONDA_ENV_NAME }}
             ~/.bash_profile
-          key: ${{ runner.os }}-${{ matrix.python }}-conda-${{ hashFiles('requirements/CI/*') }}-${{ env.SLIM_TAG }}-${{ env.CACHE_NUM }}
+          key: ${{ runner.os }}-${{ matrix.python }}-conda-${{ hashFiles('requirements/CI/*') }}-${{ env.CACHE_NUM }}
 
       - name: install conda
         uses: conda-incubator/setup-miniconda@v2
@@ -81,34 +80,8 @@ jobs:
           # when pip installing without binary wheels (on Windows).
           conda install --yes --file=requirements/CI/conda.txt
           pip install -r requirements/CI/requirements.txt
-          # TODO[#1182]: put this back at next SLiM release
-          # conda install --yes slim==${{ env.SLIM_TAG }}
-          # but FOR NOW install github SLiM
-
-      # TODO[#1182]: remove this step
-      - name: checkout SLiM
-        if: runner.os != 'Windows'
-        uses: actions/checkout@v2
-        with:
-          repository: MesserLab/SLiM
-          fetch-depth: 0
-          path: SLiM
-
-      # TODO[#1182]: remove this step
-      - name: build SLiM
-        if: runner.os != 'Windows'
-        run: |
-          cd SLiM
-          mkdir build
-          cd build
-          cmake ..
-          make -j 2
-          ./slim -testEidos
-          ./slim -testSLiM
 
       - name: run test suite
         run: |
-          # TODO[#1182]: remove this export
-          export PATH=$PATH:./SLiM/build
           pytest -n0 --cov=stdpopsim --cov-branch tests
           coverage report -m
