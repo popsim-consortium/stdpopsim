@@ -10,7 +10,7 @@ sphinx-argparse==0.3.1
 sphinx-issues==3.0.1
 sphinx_rtd_theme==1.0.0
 sphinxcontrib-programoutput==0.17
-msprime==1.1.0
+msprime==1.1.1
 attrs==21.4.0
 appdirs==1.4.4
 humanize==4.0.0
