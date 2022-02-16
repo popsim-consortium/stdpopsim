@@ -1065,3 +1065,4 @@ def stdpopsim_main(arg_list=None):
     if args.cache_dir is not None:
         stdpopsim.set_cache_dir(args.cache_dir)
     run(args)
+    
