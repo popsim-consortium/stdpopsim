@@ -15,6 +15,11 @@ def _KimDFE():
     long_description = """
     Return neutral and negative MutationType()s representing a human DFE.
     Kim et al. (2017), https://doi.org/10.1534/genetics.116.197145
+    The DFE was inferred assuming synonymous variants are neutral and a relative
+    mutation rate ratio of 2.31 nonsynonymous to 1 synonymous mutation
+    (Huber et al. 2016). Gamma parameters are given as the shape and the mean
+    selection coefficient (E[s]) escaled, such that E[s] = -shape*scale*2/(2Na),
+    where Na is the ancestral population size (12378) as in Kim et al. (2017).
     """
     citations = [
         stdpopsim.Citation(
@@ -25,8 +30,10 @@ def _KimDFE():
         )
     ]
     neutral = stdpopsim.MutationType()
+    Na = 12378
+    gamma_scale = 875
     gamma_shape = 0.186  # shape
-    gamma_mean = -0.01314833  # expected value
+    gamma_mean = (-gamma_shape * gamma_scale * 2) / (2 * Na)  # expected value
     h = 0.5  # dominance coefficient
     negative = stdpopsim.MutationType(
         dominance_coeff=h,
