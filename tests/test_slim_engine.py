@@ -1317,6 +1317,30 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
+class TestLogfile(PiecewiseConstantSizeMixin):
+    # tmp_path is a pytest fixture
+    def test_logfile(self, tmp_path):
+        engine = stdpopsim.get_engine("slim")
+        logfile = tmp_path / "slim.log"
+        _ = engine.simulate(
+            demographic_model=self.model,
+            contig=self.contig,
+            samples=self.samples,
+            slim_burn_in=0.1,
+            logfile=logfile,
+        )
+        with open(logfile, "r") as f:
+            header = f.readline().strip().split(",")
+            data = np.loadtxt(f, delimiter=",")
+        assert header[0] == "generation"
+        assert header[1][:12] == "mean_fitness"
+        assert header[2][:10] == "sd_fitness"
+        # neutral model, should have no fitness variation
+        assert np.all(data[:, 1] == 1.0)
+        assert np.all(data[:, 2] == 0.0)
+
+
+@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestDrawMutation(PiecewiseConstantSizeMixin):
     def test_draw_mutation_save(self):
         extended_events = [

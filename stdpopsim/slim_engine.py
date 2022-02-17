@@ -526,6 +526,32 @@ _slim_main = """
 """
 
 
+_slim_logfile = """
+// Optional logfile output:
+// Fitness values are only available in early(),
+// so logging happens in that stage.
+1 early () {
+    defineConstant("log", sim.createLogFile("$logfile", logInterval=NULL));
+    log.addGeneration();
+    for (pop in sim.subpopulations.id) {
+        log.addCustomColumn(
+            "mean_fitness_p" + pop,
+            "mean(p" + pop + ".cachedFitness(NULL));"
+        );
+        log.addCustomColumn(
+            "sd_fitness_p" + pop,
+            "sd(p" + pop + ".cachedFitness(NULL));"
+        );
+    }
+}
+
+1: early() {
+    if (sim.generation % $loginterval == 1)
+        log.logRow();
+}
+"""
+
+
 _slim_debug_output = """
 
 ///
@@ -562,7 +588,6 @@ _slim_debug_output = """
         }
     }
 }
-
 
 // Save genomic element type information in tree sequence metadata
 // This is for development purposes, and the format of this metadata
@@ -814,6 +839,8 @@ def slim_makescript(
     scaling_factor,
     burn_in,
     slim_rate_map,
+    logfile=None,
+    logfile_interval=1,
 ):
 
     pop_names = [pop.name for pop in demographic_model.model.populations]
@@ -1287,6 +1314,13 @@ def slim_makescript(
     printsc(_slim_lower)
     printsc(_slim_functions)
     printsc(_slim_main)
+    if logfile is not None:
+        printsc(
+            string.Template(_slim_logfile).substitute(
+                logfile=logfile,
+                loginterval=logfile_interval,
+            )
+        )
     printsc(_slim_debug_output)
 
     return epochs[0]
@@ -1342,6 +1376,8 @@ class _SLiMEngine(stdpopsim.Engine):
         slim_burn_in=10.0,
         dry_run=False,
         verbosity=None,
+        logfile=None,
+        logfile_interval=100,
         _recap_and_rescale=True,
     ):
         """
@@ -1370,6 +1406,10 @@ class _SLiMEngine(stdpopsim.Engine):
         :param dry_run: If True, run the first generation setup and then end the
             simulation.
         :type dry_run: bool
+        :param logfile: Name of file to write a log of summary statistics
+            (currently, only mean and SD of fitness values per population).
+            Defaults to None, meaning "do not log".
+        :param logfile_interval: How often to write to the log file, in generations.
         """
 
         if slim_scaling_factor <= 0:
@@ -1422,6 +1462,8 @@ class _SLiMEngine(stdpopsim.Engine):
                 slim_scaling_factor,
                 slim_burn_in,
                 slim_rate_map,
+                logfile=logfile,
+                logfile_interval=logfile_interval,
             )
 
             script_file.flush()
