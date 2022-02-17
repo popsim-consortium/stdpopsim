@@ -592,7 +592,7 @@ The demographic model function should follow this format:
         ]
 
         generation_time = "FILL ME"
-        mutation_rate = "FILL ME"
+        mutation_rate = "FILL ME"  # per bp per generation
 
         # parameter value definitions based on published values
 
@@ -634,9 +634,10 @@ The demographic model should include the following:
 * ``generation_time``: The generation time for the species in years. If you are
   implementing a generic model, the generation time should default to 1.
 * ``mutation_rate``: The mutation rate assumed during the inference of this demographic
-  model, if a mutation rate was used. If no mutation rate is associated with this
-  demographic model, which is generally uncommon but possible, depending on the
-  inference method, the mutation rate should be set to ``None``.
+  model, per bp per generation, if a mutation rate was used. If no mutation
+  rate is associated with this demographic model, which is generally uncommon
+  but possible, depending on the inference method, the mutation rate should be
+  set to ``None``.
 
 Every demographic model has a few necessary features or attributes. First of all,
 demographic models are defined by the population sizes, migration rates, split and
@@ -796,6 +797,7 @@ When developers A and B disagree on the model implementation, the process is to:
 Adding a new species
 ********************
 To add a new species to `stdpopsim` several things are required:
+
 1. The genome definition
 2. Default species parameters
 3. A genetic map with local recombination rates (optional)
@@ -809,9 +811,10 @@ Default species parameters
 --------------------------
 
 Four default parameters are required to create a new species:
+
 1. Generation time estimate
-2. Mutation rate
-3. Recombination rate
+2. Mutation rate (per generation)
+3. Recombination rate (per generation)
 4. Characteristic population size
 
 These parameters should be based on what values might be drawn from a typical population
