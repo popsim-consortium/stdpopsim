@@ -342,7 +342,6 @@ class SpeciesCatalogDirective(SphinxDirective):
             entry += nodes.paragraph(text="{:g}".format(chrom.mutation_rate))
             row += entry
 
-            # TODO add mutation/recombination rate.
             rows.append(row)
         tbody = nodes.tbody()
         tbody.extend(rows)
@@ -573,6 +572,10 @@ class SpeciesCatalogDirective(SphinxDirective):
         genome_section = nodes.section(ids=[f"sec_catalog_{species.id}_genome"])
         genome_section += nodes.title(text="Genome")
         genome_section += self.chromosomes_table(species)
+        genome_section += nodes.paragraph(
+            text="Mutation and recombination rates "
+            "are in units of per bp and per generation."
+        )
         section += genome_section
         section += nodes.transition()
         # genetic maps:
