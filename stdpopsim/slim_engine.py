@@ -534,13 +534,9 @@ _slim_logfile = """
     defineConstant("log", sim.createLogFile("$logfile", logInterval=NULL));
     log.addGeneration();
     for (pop in sim.subpopulations.id) {
-        log.addCustomColumn(
-            "mean_fitness_p" + pop,
-            "mean(p" + pop + ".cachedFitness(NULL));"
-        );
-        log.addCustomColumn(
-            "sd_fitness_p" + pop,
-            "sd(p" + pop + ".cachedFitness(NULL));"
+        log.addMeanSDColumns(
+            "fitness_p" + pop,
+            "p" + pop + ".cachedFitness(NULL);"
         );
     }
 }
