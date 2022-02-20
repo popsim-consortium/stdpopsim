@@ -1333,8 +1333,8 @@ class TestLogfile(PiecewiseConstantSizeMixin):
             header = f.readline().strip().split(",")
             data = np.loadtxt(f, delimiter=",")
         assert header[0] == "generation"
-        assert header[1][:12] == "mean_fitness"
-        assert header[2][:10] == "sd_fitness"
+        assert header[1][:8] == "fitness_"
+        assert header[2][:8] == "fitness_"
         # neutral model, should have no fitness variation
         assert np.all(data[:, 1] == 1.0)
         assert np.all(data[:, 2] == 0.0)
