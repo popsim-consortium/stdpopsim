@@ -214,7 +214,7 @@ class SpeciesCatalogDirective(SphinxDirective):
             row += entry
 
             entry = nodes.entry()
-            entry += nodes.paragraph(text=population.id)
+            entry += nodes.paragraph(text=population.name)
             row += entry
 
             entry = nodes.entry()
@@ -412,7 +412,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         import matplotlib.pyplot as plt
 
         mid = self.get_demographic_model_id(species, model)
-        _, ax = plt.subplots(1, 1, figsize=(4, 4), tight_layout=True)
+        _, ax = plt.subplots(1, 1, figsize=(4.5, 4), tight_layout=True)
         # Conversion into demes object for easier plotting
         graph = model.model.to_demes()
         ax = demesdraw.tubes(graph, ax=ax, log_time=True)

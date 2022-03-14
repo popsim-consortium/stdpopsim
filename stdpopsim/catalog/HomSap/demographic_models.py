@@ -220,7 +220,7 @@ def _ooa_nea_extended_pulse():
         description="Three population out-of-Africa with an extended pulse of \
         Neandertal admixture into Europeans",
         long_description="""
-        Demographic model af an extended admixture pulse from Neandertals into
+        Demographic model of an extended admixture pulse from Neandertals into
         Europenas taken from Iasi et al. (2021).
         This model simulates 3 populations: Africans, Europeans and Neandertals
         with an Out-of-Africa event. The population sizes are constant
