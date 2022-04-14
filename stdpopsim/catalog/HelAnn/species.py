@@ -4,7 +4,7 @@ from . import genome_data
 
 # Currently specifying a genome wide recombination rate
 # reported by Renaut et al., 2013. This study, and other
-# more recent studies, have produced good genetic maps 
+# more recent studies, have produced good genetic maps
 # for sunflower (but it's not easy to find the data).
 _overall_rate = 4e-9
 _recombination_rate = {
@@ -101,4 +101,3 @@ _species = stdpopsim.Species(
 )
 
 stdpopsim.register_species(_species)
-
