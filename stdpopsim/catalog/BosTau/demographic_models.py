@@ -30,7 +30,7 @@ def _HolsteinFriesian_1M13():
         populations=populations,
         citations=citations,
         generation_time=_species.generation_time,
-        mutation_rate=1e-8,
+        mutation_rate=0.94e-8,
         population_configurations=[
             #      3 generations at    90,     1-     3
             msprime.PopulationConfiguration(
