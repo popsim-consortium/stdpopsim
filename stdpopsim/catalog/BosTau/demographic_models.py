@@ -32,61 +32,62 @@ def _HolsteinFriesian_1M13():
         generation_time=_species.generation_time,
         mutation_rate=0.94e-8,
         population_configurations=[
-            #      3 generations at    90,     1-     3
+            #       3 generations at     90,      [0-      3)
             msprime.PopulationConfiguration(
                 initial_size=90, metadata=populations[0].asdict()
             )
         ],
         # Here 'time' should be in generation notation ie. how many
         # generations ago were that Ne (effective population size)
+        # Note the zero-based counting in the code
         demographic_events=[
-            #      3 generations at   120,     4-     6
+            #       3 generations at    120,      [3-      6)
             msprime.PopulationParametersChange(
-                time=4, initial_size=120, population_id=0
+                time=3, initial_size=120, population_id=0
             ),
-            #      6 generations at   250,     7-    12
+            #       6 generations at    250,      [6-     12)
             msprime.PopulationParametersChange(
-                time=7, initial_size=250, population_id=0
+                time=6, initial_size=250, population_id=0
             ),
-            #      6 generations at   350,    13-    18
+            #       6 generations at    350,     [12-     18)
             msprime.PopulationParametersChange(
-                time=13, initial_size=350, population_id=0
+                time=12, initial_size=350, population_id=0
             ),
-            #      6 generations at  1000,    19-    24
+            #       6 generations at  1,000,     [18-     24)
             msprime.PopulationParametersChange(
-                time=19, initial_size=1000, population_id=0
+                time=18, initial_size=1000, population_id=0
             ),
-            #    130 generations at  1500,    25-   154
+            #     130 generations at  1,500,     [24-    154)
             msprime.PopulationParametersChange(
-                time=25, initial_size=1500, population_id=0
+                time=24, initial_size=1500, population_id=0
             ),
-            #    200 generations at  2000,   155-   454
+            #     300 generations at  2,000,    [154-    454)
             msprime.PopulationParametersChange(
-                time=155, initial_size=2000, population_id=0
+                time=154, initial_size=2000, population_id=0
             ),
-            #    200 generations at  2500,   455-   654
+            #     200 generations at  2,500,    [454-    654)
             msprime.PopulationParametersChange(
-                time=455, initial_size=2500, population_id=0
+                time=454, initial_size=2500, population_id=0
             ),
-            #   1100 generations at  3500,   655-  1754
+            #   1,100 generations at  3,500,    [654-  1,754)
             msprime.PopulationParametersChange(
-                time=655, initial_size=3500, population_id=0
+                time=654, initial_size=3500, population_id=0
             ),
-            #    600 generations at  7000,  1755-  2354
+            #     600 generations at  7,000,  [1,754-  2,354)
             msprime.PopulationParametersChange(
-                time=1755, initial_size=7000, population_id=0
+                time=1754, initial_size=7000, population_id=0
             ),
-            #   1000 generations at 10000,  2355-  3354
+            #   1,000 generations at 10,000,  [2,354-  3,354)
             msprime.PopulationParametersChange(
-                time=2355, initial_size=10000, population_id=0
+                time=2354, initial_size=10000, population_id=0
             ),
-            #  29800 generations at 17000,  3355- 33154
+            #  29,800 generations at 17 000,  [3,354- 33,154)
             msprime.PopulationParametersChange(
-                time=3355, initial_size=17000, population_id=0
+                time=3354, initial_size=17000, population_id=0
             ),
-            # 900000 generations at 62000, 33155-933154
+            # 900,000 generations at 62,000, [33,154-93,3154)
             msprime.PopulationParametersChange(
-                time=33155, initial_size=62000, population_id=0
+                time=33154, initial_size=62000, population_id=0
             ),
         ],
     )
