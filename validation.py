@@ -646,7 +646,7 @@ def do_simulations(rng, path, num_replicates, executor, key):
     out_dir = path / "trees" / key
     out_dir.mkdir(parents=True, exist_ok=True)
     func = functools.partial(simulation_functions[key], out_dir)
-    seeds = (rng.randrange(1, 2 ** 32) for _ in range(num_replicates))
+    seeds = (rng.randrange(1, 2**32) for _ in range(num_replicates))
     res = list(executor.map(func, seeds))
     files, times = zip(*res)
     # dump timing info to a file

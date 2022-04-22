@@ -6,7 +6,7 @@ class TestSpecies(test_species.SpeciesTestBase):
     species = stdpopsim.get_species("PonAbe")
 
     def test_basic_attributes(self):
-        assert self.species.population_size == 1.79 * 10 ** 4
+        assert self.species.population_size == 1.79 * 10**4
         assert self.species.generation_time == 20
 
 

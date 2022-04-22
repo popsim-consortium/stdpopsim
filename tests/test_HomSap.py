@@ -12,7 +12,7 @@ class TestSpecies(test_species.SpeciesTestBase):
     species = stdpopsim.get_species("HomSap")
 
     def test_basic_attributes(self):
-        assert self.species.population_size == 10 ** 4
+        assert self.species.population_size == 10**4
         assert self.species.generation_time == 30
 
 
