@@ -147,7 +147,7 @@ def adaptive_introgression(seed):
         model,
         contig,
         samples,
-        seed=rng.randrange(1, 2 ** 32),
+        seed=rng.randrange(1, 2**32),
         extended_events=extended_events,
         slim_scaling_factor=10,
         slim_burn_in=0.1,

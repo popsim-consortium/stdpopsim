@@ -1500,14 +1500,14 @@ def _AJ():
 
     # effective population sizes
     NANC = 7300  # not inferred. Value taken from Gutenkunst et al. 2009
-    NYRI = 10 ** 4.26
-    NCHB = 10 ** 3.61
-    NCEU = 10 ** 4.52
-    NM = 10 ** 5.64
-    NJ = 10 ** 5.55
-    NAg = 10 ** 3.04
-    NWA = 10 ** 3.82
-    NEA = 10 ** 6.29
+    NYRI = 10**4.26
+    NCHB = 10**3.61
+    NCEU = 10**4.52
+    NM = 10**5.64
+    NJ = 10**5.55
+    NAg = 10**3.04
+    NWA = 10**3.82
+    NEA = 10**6.29
 
     # admixture proportion from European to Ashkenazi Jews.
     m = 0.17

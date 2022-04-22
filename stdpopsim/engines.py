@@ -249,7 +249,7 @@ class _MsprimeEngine(Engine):
         self._warn_mutation_rate_mismatch(contig, demographic_model)
 
         rng = np.random.default_rng(seed)
-        seeds = rng.integers(1, 2 ** 31 - 1, size=2)
+        seeds = rng.integers(1, 2**31 - 1, size=2)
 
         ts = msprime.sim_ancestry(
             samples=samples,

@@ -96,7 +96,7 @@ _species = stdpopsim.Species(
     common_name="Human",
     genome=_genome,
     generation_time=30,
-    population_size=10 ** 4,
+    population_size=10**4,
     citations=[
         _tremblay2000.because(stdpopsim.CiteReason.GEN_TIME),
         _takahata1993.because(stdpopsim.CiteReason.POP_SIZE),

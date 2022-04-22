@@ -1604,7 +1604,7 @@ class _SLiMEngine(stdpopsim.Engine):
         ts = tables.tree_sequence()
 
         rng = random.Random(seed)
-        s0 = rng.randrange(1, 2 ** 32)
+        s0 = rng.randrange(1, 2**32)
         population_configurations = [
             msprime.PopulationConfiguration(
                 initial_size=pop.start_size,
@@ -1633,7 +1633,7 @@ class _SLiMEngine(stdpopsim.Engine):
             assert len(dfe["proportions"]) == len(dfe["mutation_types"])
             for prop, mt in zip(dfe["proportions"], dfe["mutation_types"]):
                 if mt["is_neutral"]:
-                    mut_seed = rng.randrange(1, 2 ** 32)
+                    mut_seed = rng.randrange(1, 2**32)
                     # Figuring out SLiM mutation id metadata
 
                     def _get_next_id(ts):

@@ -58,7 +58,7 @@ _species = stdpopsim.Species(
     common_name="A. thaliana",
     genome=_genome,
     generation_time=1.0,
-    population_size=10 ** 4,
+    population_size=10**4,
     citations=[
         stdpopsim.Citation(
             doi="https://doi.org/10.1890/0012-9658(2002)083[1006:GTINSO]2.0.CO;2",
