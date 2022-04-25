@@ -1,0 +1,29 @@
+Population size,10000,Ancestral pop. size
+Population size,10000,Ghost pop. size
+Population size,11600,Ancestral Bonobo-Chimpanzee pop. size
+Population size,10200,Ancestral Common Chimpanzee pop. size
+Population size,3700,Ancestral Bonobo pop. size
+Population size,24900,Ancestral Central Chimpanzee pop. size
+Population size,8000,Ancestral Western Chimpanzee pop. size
+Population size,29100,Current Bonobo pop. size
+Population size,65900,Current Central Chimpanzee pop. size
+Population size,9200,Current Western Chimpanzee pop. size
+ADMIX percentage,0.015,Amount of Central Chimpanzee in Western Chimpanzee
+ADMIX percentage,0.005,Amount of Western Chimpanzee in Central Chimpanzee
+ADMIX percentage,0.00125,Amount of Bonobo in Central Chimpanzee
+ADMIX percentage,0.001,Amount of Central Chimpanzee in Bonobo
+ADMIX percentage,0.02,Amount of Ghost pop. in Bonobo
+Migration rates (x10^-7),1,Bonobo-Common Chimpanzee migration
+Time (kya),3500,Ghost pop. split
+Time (kya),1990,Bonobo-Chimpanzee split
+Time (kya),1500,Bonobo-Common Chimpanzee migration start
+Time (kya),1200,Bonobo-Common Chimpanzee migration stop
+Time (kya),700,Western Chimpanzee split
+Time (kya),500,Ghost introgression into Bonobo
+Time (kya),155.05,Bonobo-Central Chimpanzee admixture
+Time (kya),100.1,Western-Central Chimpanzee admixture
+Time (kya),379,Central Chimpanzee resize
+Time (kya),308,Bonobo resize
+Time (kya),261,Western Chimpanzee resize
+Generation time (yrs.),25,Generation time
+Mutation rate,1.2e-8,Per-base per-generation mutation rate
