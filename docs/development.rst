@@ -799,134 +799,90 @@ Adding a new species
 To add a new species to `stdpopsim` several things are required:
 
 1. The genome definition
-2. Default species parameters
-3. A genetic map with local recombination rates (optional)
+2. Generation time estimate
+3. Mutation rate (per generation)
+4. Recombination rate (per generation)
+5. Characteristic population size
 
-Once you have these things the first step is to create a new file in the `catalog`
-directory named for the species (see `Naming conventions`_ for more details). All
-code described below should go in this file unless explicitly specified otherwise.
-
---------------------------
-Default species parameters
---------------------------
-
-Four default parameters are required to create a new species:
-
-1. Generation time estimate
-2. Mutation rate (per generation)
-3. Recombination rate (per generation)
-4. Characteristic population size
+A genetic map with local recombination rates is optional.
 
 These parameters should be based on what values might be drawn from a typical population
 as represented in the literature for that species. Consequently one or more citations for
 each value are expected and will be required for constructing the species object detailed
 below.
 
+Once you have these things the first step is to create a new subdirectory of the `catalog/`
+directory named for the species (see `Naming conventions`_ for more details). All
+code described below should go in this directory unless explicitly specified otherwise.
+
 -----------------------------------
 Adding/Updating a genome definition
 -----------------------------------
 
-A genome definition is created with a call to `stdpopsim.Genome()`  which requires a list
-of chromosomes and a citation for the assembly. `stdpopsim` has an automated procedure
-for obtaining this list from ensembl and saving it for automated parsing. First however
-the initial species directory must be created in the `stdpopsim/catalog` directory (e.g.
-`stdpopsim/catalog/AraTha`). Once that is done, run the `update_ensembl_data.py` script
-present in the top level directory providing the ensembl species id(s) as "_" delimited
-name(s) for positional arguments as shown below. If no positional arguments are specified
-then all specified registered in `stdpopsim` will be updated.
+`stdpopsim` has an automated procedure for generating a genome definition, which is
+accomplished by pulling data from Ensembl and saving it for parsing. To do this,
+hand the `maintenance` command line interface a "_" delimited Ensembl species ID as a
+positional argument as shown below. A partial list of the
+genomes housed on Ensembl can be found `here <https://metazoa.ensembl.org/species.html>`__.
 
 .. code-block:: shell
 
-    python update_ensembl_data.py arabidopsis_thaliana
+    python -m maintenance add-species arabidopsis_thaliana
 
-This will write/overwrite the `ensembl_info.py` file in the appropriate catalog
-subdirectory. Then add the following to the head of `catalog/{species_id}/__init__.py`.
+This will generate new files inside `catalog/{species_id}/`:
 
-.. code-block:: python
+* genome_data.py
+* species.py
+* __init__.py
 
-    from . import genome_data
+The genome_data.py file contains the physical map of the genome; the `maintenance` utility sucks down a whole lot of useful information for free. This genome_data.py essentially puts together a data dictionary which has slots for the assembly accession number, the assembly name, and a dict representing the chromosome names and their associated lengths. If synonyns are defined (e.g., chr2L for 2L) then those are given in the list that follows. There is no reason to edit this file-- we are good here.
 
-To create the chromosome object that make up a genome add the following code to
-`catalog/{species_id}/__init__.py` and supply default mutation and recombination rates
-along with citations for the assembly (and additional ones for the mutation, and
-recombination rates if necessary). This is then used to create a `genome` object.
+Next, the species.py file will need to be edited with the species-specific information and corresponding citations. Inside this file are commented instructions for ech section. Either chromosome-specific or genome-wide recombination rates and mutations rates can be used at this stage; the citations attached to these rates will be filled in inside the code block beginning with `_genome`. For example, below is the _genome code block for `A. thaliana` with citations included:
 
 .. code-block:: python
-
-    # A citation for the chromosome parameters. Additional citations may be needed if
-    # the mutation or recombination rates come from other sources. In that case create
-    # additional citations with the appropriate reasons specified (see API documentation
-    # for stdpopsim.citations)
-
-    _assembly_citation = stdpopsim.Citation(
-        doi="FILL ME",
-        year="FILL ME",
-        author="Author et al.",
-        reasons={stdpopsim.CiteReason.ASSEMBLY},
-    )
-
-    # Parse list of chromosomes into a list of Chromosome objects which contain the
-    # chromosome name, length, mutation rate, and recombination rate
-    _chromosomes = []
-
-    for name, data in genome_data.data["chromosomes"].items():
-        _chromosomes.append(
-            stdpopsim.Chromosome(
-                id=name,
-                length=data["length"],
-                synonyms=data["synonyms"],
-                mutation_rate=FILL_ME,
-                recombination_rate=FILL_ME,
-            )
-        )
-
-    # Create a genome object
 
     _genome = stdpopsim.Genome(
-        chromosomes=_chromosomes, assembly_citations=[_assembly_citation]
+        chromosomes=_chromosomes,
+        assembly_name=genome_data.data["assembly_name"],
+        assembly_accession=genome_data.data["assembly_accession"],
+        citations=[
+            stdpopsim.Citation(
+                author="Ossowski et al.",
+                year=2010,
+                doi="https://doi.org/10.1126/science.1180677",
+                reasons={stdpopsim.CiteReason.MUT_RATE},
+            ),
+            stdpopsim.Citation(
+                author="Huber et al.",
+                year=2014,
+                doi="https://doi.org/10.1093/molbev/msu247",
+                reasons={stdpopsim.CiteReason.REC_RATE},
+            ),
+            stdpopsim.Citation(
+                doi="https://doi.org/10.1093/nar/gkm965",
+                year=2007,
+                author="Swarbreck et al.",
+                reasons={stdpopsim.CiteReason.ASSEMBLY},
+            ),
+        ],
     )
 
-Once you have a genome object you can create a new `Species` object which contains
-species identifiers, the genome, and default generation time and population size settings
-along with the relevant citation(s). Below is an example species definition for
-Arabidopsis thaliana and a final line of code that registers the species in the catalog.
 
-.. code-block:: python
+Generation time and population size, along with relevent citations, are filled in inside the code block beginning with `_species`. It may be useful to look at the existing species.py files inside the catalog/ directory for reference.
 
-    _gen_time_citation = stdpopsim.Citation(
-        doi="https://doi.org/10.1890/0012-9658(2002)083[1006:GTINSO]2.0.CO;2",
-        year="2002",
-        author="Donohue",
-        reasons={stdpopsim.CiteReason.GEN_TIME},
-    )
+Once these fields have been entered, you should be able to load and simulate the newly added species using `stdpopsim`.
 
-    _pop_size_citation = stdpopsim.Citation(
-        doi="https://doi.org/10.1016/j.cell.2016.05.063",
-        year="2016",
-        author="1001GenomesConsortium",
-        reasons={stdpopsim.CiteReason.POP_SIZE},
-    )
+-----------------------------------
+Tests for new species
+-----------------------------------
 
-    _species = stdpopsim.Species(
-        id="AraTha",
-        name="Arabidopsis thaliana",
-        common_name="A. thaliana",
-        genome=_genome,
-        generation_time=1.0,
-        generation_time_citations=[_gen_time_citation],
-        population_size=10 ** 4,
-        population_size_citations=[_pop_size_citation],
-    )
+Basic sanity tests for the new species will be completed through QC over in the `tests/test_{species_id}.py` file, which was also created by the add-species utility. To run the tests in stdpopsim we use the pytest module.
 
-    stdpopsim.register_species(_species)
+.. code-block:: shell
 
-Once all of this is done, go to the `catalog/__init__.py` file and add a line like the
-one below using the six-letter species identifier. Make sure to keep the comment to
-prevent linting issues.
+   python -m pytest tests/test_AnoGam.py
 
-.. code-block:: python
-
-    from .catalog import PonAbe  # NOQA
+This test checks for things related to missing information and formatting. For example, it wants the citation year to be of type `int` rather than `str` (i.e. no quotes).
 
 ----------------------
 Species review process
