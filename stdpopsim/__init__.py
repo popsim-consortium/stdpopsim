@@ -8,6 +8,8 @@ try:
 except ImportError:
     pass
 
+import pathlib as _pathlib
+
 # Internal modules. Import here to flatten the namespace.
 from .genetic_maps import *  # NOQA
 from .models import *  # NOQA
@@ -26,6 +28,12 @@ from . import ext  # NOQA
 # We import catalog here, but the internal functions
 # defined are not part of the external API.
 from .catalog import *  # NOQA
+
+for sp in all_species():
+    path = _pathlib.Path(__path__[0]) / "catalog" / "demographic-models" / sp.id
+    for yaml_file in path.glob("*.yaml"):
+        dm = DemographicModel.from_yaml(yaml_file)
+        sp.add_demographic_model(dm)
 
 from . import qc  # NOQA
 
