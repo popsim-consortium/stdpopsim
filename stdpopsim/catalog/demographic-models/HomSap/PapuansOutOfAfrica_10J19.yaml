@@ -1,0 +1,126 @@
+description: 'Out-of-Africa with archaic admixture into Papuans
+
+  A ten population model of out-of-Africa, including two pulses of Denisovan admixture
+  into Papuans, and several pulses of Neandertal admixture into non-Africans. Most
+  parameters are from Jacobs et al. (2019), Table S5 and Figure S5. This model is
+  an extension of one from Malaspinas et al. (2016), thus some parameters are inherited
+  from there.'
+time_units: generations
+generation_time: 1
+doi: ['Jacobs et al., 2019: https://doi.org/10.1016/j.cell.2019.02.035', 'Malaspinas
+    et al., 2016: https://doi.org/10.1038/nature18299']
+metadata: {mutation_rate: 1.4e-08}
+demes:
+- name: YRI
+  description: 1000 Genomes YRI (Yoruba)
+  epochs:
+  - {end_time: 20225, start_size: 32671}
+  - {end_time: 2218, start_size: 41563.0}
+  - {end_time: 0, start_size: 48433.0}
+- name: DenA
+  description: Altai Denisovan (sampling) lineage
+  start_time: 20225
+  ancestors: [YRI]
+  epochs:
+  - {end_time: 15090, start_size: 13249}
+  - {end_time: 12500, start_size: 100.0}
+  - {end_time: 9750, start_size: 100.0}
+  - {end_time: 0, start_size: 5083.0}
+- name: NeaA
+  description: Altai Neandertal (sampling) lineage
+  start_time: 15090
+  ancestors: [DenA]
+  epochs:
+  - {end_time: 3375, start_size: 13249}
+  - {end_time: 0, start_size: 826.0}
+- name: Den2
+  description: Denisovan D2 (introgressing) lineage
+  start_time: 12500
+  ancestors: [DenA]
+  epochs:
+  - {end_time: 0, start_size: 13249}
+- name: Den1
+  description: Denisovan D1 (introgressing) lineage
+  start_time: 9750
+  ancestors: [DenA]
+  epochs:
+  - {end_time: 0, start_size: 13249}
+- name: Nea1
+  description: Neandertal N1 (introgressing) lineage
+  start_time: 3375
+  ancestors: [NeaA]
+  epochs:
+  - {end_time: 0, start_size: 13249}
+- name: Ghost
+  description: Out-of-Africa lineage
+  start_time: 2218
+  ancestors: [YRI]
+  epochs:
+  - {end_time: 2119, start_size: 1394}
+  - {end_time: 0, start_size: 8516.0}
+- name: Papuan
+  description: Papuans from Indonesia and New Guinea
+  start_time: 1784
+  ancestors: [Ghost]
+  epochs:
+  - {end_time: 1685, start_size: 243}
+  - {end_time: 0, start_size: 8834.0}
+- name: CHB
+  description: 1000 Genomes CHB (Han Chinese in Beijing, China)
+  start_time: 1758
+  ancestors: [Ghost]
+  epochs:
+  - {end_time: 1659, start_size: 2231}
+  - {end_time: 1293, start_size: 12971.0}
+  - {end_time: 0, start_size: 9025.0}
+- name: CEU
+  description: 1000 Genomes CEU (Utah Residents (CEPH) with Northern and Western European
+    Ancestry
+  start_time: 1293
+  ancestors: [CHB]
+  epochs:
+  - {end_time: 0, start_size: 6962}
+migrations:
+- demes: [YRI, Ghost]
+  rate: 0.000179
+  start_time: 1659.0
+- demes: [CHB, Papuan]
+  rate: 0.000572
+  start_time: 1659.0
+  end_time: 1293.0
+- demes: [CHB, Ghost]
+  rate: 0.000442
+  start_time: 1659.0
+  end_time: 1293.0
+- demes: [CEU, CHB]
+  rate: 3.14e-05
+- demes: [CEU, Ghost]
+  rate: 0.000442
+- demes: [CHB, Papuan]
+  rate: 5.72e-05
+  start_time: 1293.0
+pulses:
+- sources: [Nea1]
+  dest: Ghost
+  time: 1853
+  proportions: [0.024]
+- sources: [Den2]
+  dest: Papuan
+  time: 1575.8620689655172
+  proportions: [0.018]
+- sources: [Nea1]
+  dest: CHB
+  time: 1566
+  proportions: [0.011]
+- sources: [Nea1]
+  dest: Papuan
+  time: 1412
+  proportions: [0.002]
+- sources: [Den1]
+  dest: Papuan
+  time: 1027.5862068965516
+  proportions: [0.022000000000000002]
+- sources: [Nea1]
+  dest: CHB
+  time: 883
+  proportions: [0.002]

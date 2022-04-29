@@ -1,0 +1,19 @@
+description: 'Periodic growth and decline.
+
+  A validation model used by Schiffels and Durbin (2014) and Terhorst and Terhorst,
+  Kamm, and Song (2017) with periods of exponential growth and decline in a single
+  population.'
+time_units: generations
+generation_time: 1
+doi: ['Schiffels and Durbin, 2014: https://doi.org/10.1038/ng.3015']
+demes:
+- name: generic
+  description: Generic expanding and contracting population
+  epochs:
+  - {end_time: 34133.318528, start_size: 7156.0}
+  - {end_time: 8533.329632, start_size: 7155.959997685153, end_size: 71559.65925132985}
+  - {end_time: 2133.3352704, start_size: 71559.65925132985, end_size: 7155.999712600628}
+  - {end_time: 533.33324512, start_size: 7155.999712600628, end_size: 71560.21678822454}
+  - {end_time: 133.3334544, start_size: 71560.21678822454, end_size: 7156.029247798124}
+  - {end_time: 33.333334976, start_size: 7156.029247798124, end_size: 71560.0}
+  - {end_time: 0, start_size: 71560.0}

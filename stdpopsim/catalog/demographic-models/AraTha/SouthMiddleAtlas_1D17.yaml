@@ -1,0 +1,49 @@
+description: 'South Middle Atlas piecewise constant size
+
+  This model comes from MSMC using two randomly sampled homozygous individuals (Khe32
+  and Ifr4) from the South Middle Atlas region from the Middle Atlas Mountains in
+  Morocco. The model is estimated with 32 time periods. Because estimates from the
+  recent and ancient past are less accurate, we set the population size in the first
+  7 time periods equal to the size at the 8th time period and the size during last
+  2 time periods equal to the size in the 30th time period.'
+time_units: generations
+generation_time: 1
+doi: ['Durvasula et al., 2017: https://doi.org/10.1073/pnas.1616736114']
+metadata: {mutation_rate: 7.1e-09}
+demes:
+- name: SouthMiddleAtlas
+  description: Arabidopsis Thaliana South Middle Atlas population
+  epochs:
+  - {end_time: 2110100, start_size: 73989}
+  - {end_time: 1801500, start_size: 73989.0}
+  - {end_time: 1537686, start_size: 73989.0}
+  - {end_time: 1312147, start_size: 121796.0}
+  - {end_time: 1119341, start_size: 121796.0}
+  - {end_time: 954517, start_size: 165210.0}
+  - {end_time: 813610, start_size: 198019.0}
+  - {end_time: 693151, start_size: 217752.0}
+  - {end_time: 590173, start_size: 228222.0}
+  - {end_time: 502139, start_size: 238593.0}
+  - {end_time: 426879, start_size: 246984.0}
+  - {end_time: 362541, start_size: 241400.0}
+  - {end_time: 307540, start_size: 217331.0}
+  - {end_time: 260520, start_size: 181571.0}
+  - {end_time: 220324, start_size: 143456.0}
+  - {end_time: 185960, start_size: 111644.0}
+  - {end_time: 156584, start_size: 91813.0}
+  - {end_time: 131471, start_size: 83829.0}
+  - {end_time: 110001, start_size: 83932.0}
+  - {end_time: 91648, start_size: 87661.0}
+  - {end_time: 75958, start_size: 96283.0}
+  - {end_time: 62544, start_size: 110745.0}
+  - {end_time: 51077, start_size: 111132.0}
+  - {end_time: 41275, start_size: 78908.0}
+  - {end_time: 32894, start_size: 78908.0}
+  - {end_time: 25730, start_size: 78908.0}
+  - {end_time: 19606, start_size: 78908.0}
+  - {end_time: 14370, start_size: 78908.0}
+  - {end_time: 9894, start_size: 78908.0}
+  - {end_time: 6068, start_size: 78908.0}
+  - {end_time: 2796, start_size: 78908.0}
+  - {end_time: 699, start_size: 78908.0}
+  - {end_time: 0, start_size: 78908.0}

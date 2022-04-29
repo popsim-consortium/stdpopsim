@@ -1,0 +1,26 @@
+description: 'Piecewise size changes in Holstein-Friesian cattle.
+
+  The piecewise-constant population size model of Holstein-Friesian cattle from MacLeod
+  et al. (2013). Population sizes were estimated from inferred runs of homozygosity,
+  with parameter values taken from Figure 4A and Table S1.'
+time_units: generations
+generation_time: 1
+doi: ['MacLeod et al., 2013: https://doi.org/10.1093/molbev/mst125']
+metadata: {mutation_rate: 9.4e-09}
+demes:
+- name: Holstein_Friesian
+  description: Holstein-Friesian
+  epochs:
+  - {end_time: 33154, start_size: 62000}
+  - {end_time: 3354, start_size: 17000.0}
+  - {end_time: 2354, start_size: 10000.0}
+  - {end_time: 1754, start_size: 7000.0}
+  - {end_time: 654, start_size: 3500.0}
+  - {end_time: 454, start_size: 2500.0}
+  - {end_time: 154, start_size: 2000.0}
+  - {end_time: 24, start_size: 1500.0}
+  - {end_time: 18, start_size: 1000.0}
+  - {end_time: 12, start_size: 350.0}
+  - {end_time: 6, start_size: 250.0}
+  - {end_time: 3, start_size: 120.0}
+  - {end_time: 0, start_size: 90.0}

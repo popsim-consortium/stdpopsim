@@ -1,0 +1,67 @@
+description: 'Ghost admixture into bonobos
+
+  Demographic model of ghost admixture into bonobos from Kuhlwilm et al. (2019) Supplementary
+  Table S2.2 column I and Table S3. This model simulates four populations: western
+  chimpanzees, central chimpanzees, bonobos, and a extinct ghost lineage. The ghost
+  admixture event is modelled as a 2% pulse from the ghost lineage to bonobos. Migration
+  events among western chimpanzees, central chimpanzees, and bonobos are modelled
+  as single generation pulses. Populatio size changes are also modelled.'
+time_units: thousands of years
+generation_time: 0.025
+doi: ['Kuhlwilm et al. 2019, 2019: https://doi.org/10.1038/s41559-019-0881-7']
+metadata: {mutation_rate: 1.2e-08}
+demes:
+- name: ghost
+  description: Extinct ghost lineage
+  epochs:
+  - {end_time: 3500.0, start_size: 10000}
+  - {end_time: 0.0, start_size: 10000.0}
+- name: bonobo
+  description: Contemporary Bonobos
+  start_time: 3500.0
+  ancestors: [ghost]
+  epochs:
+  - {end_time: 1990.0, start_size: 11600}
+  - {end_time: 308.0, start_size: 3700.0}
+  - {end_time: 0.0, start_size: 29100.0}
+- name: central
+  description: Contemporary Central Chimpanzees
+  start_time: 1990.0
+  ancestors: [bonobo]
+  epochs:
+  - {end_time: 700.0, start_size: 10200}
+  - {end_time: 379.0, start_size: 24900.0}
+  - {end_time: 0.0, start_size: 65900.0}
+- name: western
+  description: Contemporary Western Chimpanzees
+  start_time: 700.0
+  ancestors: [central]
+  epochs:
+  - {end_time: 261.0, start_size: 8000}
+  - {end_time: 0.0, start_size: 9200.0}
+migrations:
+- demes: [central, bonobo]
+  rate: 1e-07
+  start_time: 1500.0
+  end_time: 1200.0
+pulses:
+- sources: [ghost]
+  dest: bonobo
+  time: 500.0
+  proportions: [0.02]
+- sources: [central]
+  dest: bonobo
+  time: 155.05
+  proportions: [0.001]
+- sources: [bonobo]
+  dest: central
+  time: 155.05
+  proportions: [0.00125]
+- sources: [western]
+  dest: central
+  time: 100.10000000000001
+  proportions: [0.005]
+- sources: [central]
+  dest: western
+  time: 100.10000000000001
+  proportions: [0.015]

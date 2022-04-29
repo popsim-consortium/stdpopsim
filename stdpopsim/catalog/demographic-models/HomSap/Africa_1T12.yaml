@@ -1,0 +1,16 @@
+description: 'African population
+
+  The model is a simplification of the two population Tennesen et al. model with the
+  European-American population removed so that we are modeling the African population
+  in isolation.'
+time_units: years
+generation_time: 25
+doi: ['Tennessen et al., 2012: https://doi.org/10.1126/science.1219240']
+metadata: {mutation_rate: 2.36e-08}
+demes:
+- name: AFR
+  description: African
+  epochs:
+  - {end_time: 148000.0, start_size: 7310}
+  - {end_time: 5115.0, start_size: 14474.0}
+  - {end_time: 0, start_size: 14474.0, end_size: 432124.58438330283}

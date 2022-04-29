@@ -1,0 +1,1486 @@
+description: 'Three population out-of-Africa with an extended pulse of         Neandertal
+  admixture into Europeans
+
+  Demographic model of an extended admixture pulse from Neandertals into Europenas
+  taken from Iasi et al. (2021). This model simulates 3 populations: Africans, Europeans
+  and Neandertals with an Out-of-Africa event. The population sizes are constant with
+  an unidirectional admixture from Neandertals into Europeans after the split between
+  Europeans and Africans. The admixture event is modelled as an 800 generation (20
+  ky) long extended admixture pulse.'
+time_units: thousands of years
+generation_time: 0.025
+doi: ['Iasi et al., 2021: https://doi.org/10.1093/molbev/msab210']
+demes:
+- name: YRI
+  description: 1000 Genomes YRI (Yorubans)
+  epochs:
+  - {end_time: 0.0, start_size: 10000}
+- name: NEA
+  description: Neandertals
+  start_time: 290.0
+  ancestors: [YRI]
+  epochs:
+  - {end_time: 0.0, start_size: 10000}
+- name: CEU
+  description: 1000 Genomes CEU (Utah Residents             (CEPH) with Northern and
+    Western European Ancestry
+  start_time: 73.95
+  ancestors: [YRI]
+  epochs:
+  - {end_time: 0.0, start_size: 10000}
+migrations:
+- {source: NEA, dest: CEU, start_time: 57.825, end_time: 57.800000000000004, rate: 3.0192460273732266e-07}
+- {source: NEA, dest: CEU, start_time: 57.800000000000004, end_time: 57.775000000000006,
+  rate: 3.057972488131404e-07}
+- {source: NEA, dest: CEU, start_time: 57.775000000000006, end_time: 57.75, rate: 3.0971591403373647e-07}
+- {source: NEA, dest: CEU, start_time: 57.75, end_time: 57.725, rate: 3.136810918688777e-07}
+- {source: NEA, dest: CEU, start_time: 57.725, end_time: 57.7, rate: 3.1769328032512753e-07}
+- {source: NEA, dest: CEU, start_time: 57.7, end_time: 57.675000000000004, rate: 3.217529819773187e-07}
+- {source: NEA, dest: CEU, start_time: 57.675000000000004, end_time: 57.650000000000006,
+  rate: 3.25860703999786e-07}
+- {source: NEA, dest: CEU, start_time: 57.650000000000006, end_time: 57.625, rate: 3.300169581979287e-07}
+- {source: NEA, dest: CEU, start_time: 57.625, end_time: 57.6, rate: 3.342222610395823e-07}
+- {source: NEA, dest: CEU, start_time: 57.6, end_time: 57.575, rate: 3.3847713368662833e-07}
+- {source: NEA, dest: CEU, start_time: 57.575, end_time: 57.550000000000004, rate: 3.427821020267549e-07}
+- {source: NEA, dest: CEU, start_time: 57.550000000000004, end_time: 57.525000000000006,
+  rate: 3.471376967048838e-07}
+- {source: NEA, dest: CEU, start_time: 57.525000000000006, end_time: 57.5, rate: 3.515444531551823e-07}
+- {source: NEA, dest: CEU, start_time: 57.5, end_time: 57.475, rate: 3.5600291163266583e-07}
+- {source: NEA, dest: CEU, start_time: 57.475, end_time: 57.45, rate: 3.6051361724513285e-07}
+- {source: NEA, dest: CEU, start_time: 57.45, end_time: 57.425000000000004, rate: 3.650771199850946e-07}
+- {source: NEA, dest: CEU, start_time: 57.425000000000004, end_time: 57.400000000000006,
+  rate: 3.696939747616166e-07}
+- {source: NEA, dest: CEU, start_time: 57.400000000000006, end_time: 57.375, rate: 3.743647414323874e-07}
+- {source: NEA, dest: CEU, start_time: 57.375, end_time: 57.35, rate: 3.790899848358033e-07}
+- {source: NEA, dest: CEU, start_time: 57.35, end_time: 57.325, rate: 3.8387027482286524e-07}
+- {source: NEA, dest: CEU, start_time: 57.325, end_time: 57.300000000000004, rate: 3.8870618628946427e-07}
+- {source: NEA, dest: CEU, start_time: 57.300000000000004, end_time: 57.275000000000006,
+  rate: 3.93598299208366e-07}
+- {source: NEA, dest: CEU, start_time: 57.275000000000006, end_time: 57.25, rate: 3.9854719866153065e-07}
+- {source: NEA, dest: CEU, start_time: 57.25, end_time: 57.225, rate: 4.0355347487218515e-07}
+- {source: NEA, dest: CEU, start_time: 57.225, end_time: 57.2, rate: 4.086177232371074e-07}
+- {source: NEA, dest: CEU, start_time: 57.2, end_time: 57.175000000000004, rate: 4.137405443588547e-07}
+- {source: NEA, dest: CEU, start_time: 57.175000000000004, end_time: 57.150000000000006,
+  rate: 4.189225440779959e-07}
+- {source: NEA, dest: CEU, start_time: 57.150000000000006, end_time: 57.125, rate: 4.2416433350541874e-07}
+- {source: NEA, dest: CEU, start_time: 57.125, end_time: 57.1, rate: 4.294665290545643e-07}
+- {source: NEA, dest: CEU, start_time: 57.1, end_time: 57.075, rate: 4.348297524738522e-07}
+- {source: NEA, dest: CEU, start_time: 57.075, end_time: 57.050000000000004, rate: 4.402546308787582e-07}
+- {source: NEA, dest: CEU, start_time: 57.050000000000004, end_time: 57.025000000000006,
+  rate: 4.4574179678434523e-07}
+- {source: NEA, dest: CEU, start_time: 57.025000000000006, end_time: 57.0, rate: 4.5129188813741297e-07}
+- {source: NEA, dest: CEU, start_time: 57.0, end_time: 56.975, rate: 4.5690554834878655e-07}
+- {source: NEA, dest: CEU, start_time: 56.975, end_time: 56.95, rate: 4.625834263257682e-07}
+- {source: NEA, dest: CEU, start_time: 56.95, end_time: 56.925000000000004, rate: 4.683261765041486e-07}
+- {source: NEA, dest: CEU, start_time: 56.925000000000004, end_time: 56.900000000000006,
+  rate: 4.7413445888073734e-07}
+- {source: NEA, dest: CEU, start_time: 56.900000000000006, end_time: 56.875, rate: 4.800089390453879e-07}
+- {source: NEA, dest: CEU, start_time: 56.875, end_time: 56.85, rate: 4.859502882133716e-07}
+- {source: NEA, dest: CEU, start_time: 56.85, end_time: 56.825, rate: 4.919591832573303e-07}
+- {source: NEA, dest: CEU, start_time: 56.825, end_time: 56.800000000000004, rate: 4.980363067398044e-07}
+- {source: NEA, dest: CEU, start_time: 56.800000000000004, end_time: 56.775000000000006,
+  rate: 5.041823469449943e-07}
+- {source: NEA, dest: CEU, start_time: 56.775000000000006, end_time: 56.75, rate: 5.103979979110657e-07}
+- {source: NEA, dest: CEU, start_time: 56.75, end_time: 56.725, rate: 5.166839594620611e-07}
+- {source: NEA, dest: CEU, start_time: 56.725, end_time: 56.7, rate: 5.230409372399794e-07}
+- {source: NEA, dest: CEU, start_time: 56.7, end_time: 56.675000000000004, rate: 5.294696427367044e-07}
+- {source: NEA, dest: CEU, start_time: 56.675000000000004, end_time: 56.650000000000006,
+  rate: 5.359707933258949e-07}
+- {source: NEA, dest: CEU, start_time: 56.650000000000006, end_time: 56.625, rate: 5.425451122947814e-07}
+- {source: NEA, dest: CEU, start_time: 56.625, end_time: 56.6, rate: 5.491933288759472e-07}
+- {source: NEA, dest: CEU, start_time: 56.6, end_time: 56.575, rate: 5.55916178279025e-07}
+- {source: NEA, dest: CEU, start_time: 56.575, end_time: 56.550000000000004, rate: 5.627144017224351e-07}
+- {source: NEA, dest: CEU, start_time: 56.550000000000004, end_time: 56.525000000000006,
+  rate: 5.695887464646803e-07}
+- {source: NEA, dest: CEU, start_time: 56.525000000000006, end_time: 56.5, rate: 5.765399658361175e-07}
+- {source: NEA, dest: CEU, start_time: 56.5, end_time: 56.475, rate: 5.83568819270083e-07}
+- {source: NEA, dest: CEU, start_time: 56.475, end_time: 56.45, rate: 5.906760723343968e-07}
+- {source: NEA, dest: CEU, start_time: 56.45, end_time: 56.425000000000004, rate: 5.978624967624301e-07}
+- {source: NEA, dest: CEU, start_time: 56.425000000000004, end_time: 56.400000000000006,
+  rate: 6.051288704841839e-07}
+- {source: NEA, dest: CEU, start_time: 56.400000000000006, end_time: 56.375, rate: 6.124759776574537e-07}
+- {source: NEA, dest: CEU, start_time: 56.375, end_time: 56.35, rate: 6.199046086985084e-07}
+- {source: NEA, dest: CEU, start_time: 56.35, end_time: 56.325, rate: 6.274155603129806e-07}
+- {source: NEA, dest: CEU, start_time: 56.325, end_time: 56.300000000000004, rate: 6.350096355265898e-07}
+- {source: NEA, dest: CEU, start_time: 56.300000000000004, end_time: 56.275000000000006,
+  rate: 6.426876437154012e-07}
+- {source: NEA, dest: CEU, start_time: 56.275000000000006, end_time: 56.25, rate: 6.504504006365829e-07}
+- {source: NEA, dest: CEU, start_time: 56.25, end_time: 56.225, rate: 6.582987284583409e-07}
+- {source: NEA, dest: CEU, start_time: 56.225, end_time: 56.2, rate: 6.662334557902432e-07}
+- {source: NEA, dest: CEU, start_time: 56.2, end_time: 56.175000000000004, rate: 6.742554177132185e-07}
+- {source: NEA, dest: CEU, start_time: 56.175000000000004, end_time: 56.150000000000006,
+  rate: 6.823654558091944e-07}
+- {source: NEA, dest: CEU, start_time: 56.150000000000006, end_time: 56.125, rate: 6.905644181909187e-07}
+- {source: NEA, dest: CEU, start_time: 56.125, end_time: 56.1, rate: 6.988531595315302e-07}
+- {source: NEA, dest: CEU, start_time: 56.1, end_time: 56.075, rate: 7.072325410936665e-07}
+- {source: NEA, dest: CEU, start_time: 56.075, end_time: 56.050000000000004, rate: 7.157034307588481e-07}
+- {source: NEA, dest: CEU, start_time: 56.050000000000004, end_time: 56.025000000000006,
+  rate: 7.242667030565171e-07}
+- {source: NEA, dest: CEU, start_time: 56.025000000000006, end_time: 56.0, rate: 7.329232391925176e-07}
+- {source: NEA, dest: CEU, start_time: 56.0, end_time: 55.975, rate: 7.416739270781019e-07}
+- {source: NEA, dest: CEU, start_time: 55.975, end_time: 55.95, rate: 7.505196613581492e-07}
+- {source: NEA, dest: CEU, start_time: 55.95, end_time: 55.925000000000004, rate: 7.594613434392775e-07}
+- {source: NEA, dest: CEU, start_time: 55.925000000000004, end_time: 55.900000000000006,
+  rate: 7.684998815182838e-07}
+- {source: NEA, dest: CEU, start_time: 55.900000000000006, end_time: 55.875, rate: 7.77636190609365e-07}
+- {source: NEA, dest: CEU, start_time: 55.875, end_time: 55.85, rate: 7.868711925722152e-07}
+- {source: NEA, dest: CEU, start_time: 55.85, end_time: 55.825, rate: 7.962058161390541e-07}
+- {source: NEA, dest: CEU, start_time: 55.825, end_time: 55.800000000000004, rate: 8.056409969419244e-07}
+- {source: NEA, dest: CEU, start_time: 55.800000000000004, end_time: 55.775000000000006,
+  rate: 8.151776775394165e-07}
+- {source: NEA, dest: CEU, start_time: 55.775000000000006, end_time: 55.75, rate: 8.248168074434888e-07}
+- {source: NEA, dest: CEU, start_time: 55.75, end_time: 55.725, rate: 8.345593431457636e-07}
+- {source: NEA, dest: CEU, start_time: 55.725, end_time: 55.7, rate: 8.444062481435365e-07}
+- {source: NEA, dest: CEU, start_time: 55.7, end_time: 55.675000000000004, rate: 8.543584929659723e-07}
+- {source: NEA, dest: CEU, start_time: 55.675000000000004, end_time: 55.650000000000006,
+  rate: 8.644170551992432e-07}
+- {source: NEA, dest: CEU, start_time: 55.650000000000006, end_time: 55.625, rate: 8.745829195123266e-07}
+- {source: NEA, dest: CEU, start_time: 55.625, end_time: 55.6, rate: 8.848570776816961e-07}
+- {source: NEA, dest: CEU, start_time: 55.6, end_time: 55.575, rate: 8.952405286160812e-07}
+- {source: NEA, dest: CEU, start_time: 55.575, end_time: 55.550000000000004, rate: 9.057342783812346e-07}
+- {source: NEA, dest: CEU, start_time: 55.550000000000004, end_time: 55.525000000000006,
+  rate: 9.163393402234585e-07}
+- {source: NEA, dest: CEU, start_time: 55.525000000000006, end_time: 55.5, rate: 9.27056734594194e-07}
+- {source: NEA, dest: CEU, start_time: 55.5, end_time: 55.475, rate: 9.378874891728816e-07}
+- {source: NEA, dest: CEU, start_time: 55.475, end_time: 55.45, rate: 9.488326388902855e-07}
+- {source: NEA, dest: CEU, start_time: 55.45, end_time: 55.425000000000004, rate: 9.598932259516828e-07}
+- {source: NEA, dest: CEU, start_time: 55.425000000000004, end_time: 55.400000000000006,
+  rate: 9.71070299859105e-07}
+- {source: NEA, dest: CEU, start_time: 55.400000000000006, end_time: 55.375, rate: 9.82364917433264e-07}
+- {source: NEA, dest: CEU, start_time: 55.375, end_time: 55.35, rate: 9.9377814283576e-07}
+- {source: NEA, dest: CEU, start_time: 55.35, end_time: 55.325, rate: 1.0053110475902383e-06}
+- {source: NEA, dest: CEU, start_time: 55.325, end_time: 55.300000000000004, rate: 1.0169647106036455e-06}
+- {source: NEA, dest: CEU, start_time: 55.300000000000004, end_time: 55.275000000000006,
+  rate: 1.0287402181868023e-06}
+- {source: NEA, dest: CEU, start_time: 55.275000000000006, end_time: 55.25, rate: 1.0406386640746688e-06}
+- {source: NEA, dest: CEU, start_time: 55.25, end_time: 55.225, rate: 1.0526611494461836e-06}
+- {source: NEA, dest: CEU, start_time: 55.225, end_time: 55.2, rate: 1.0648087829440297e-06}
+- {source: NEA, dest: CEU, start_time: 55.2, end_time: 55.175000000000004, rate: 1.0770826806935498e-06}
+- {source: NEA, dest: CEU, start_time: 55.175000000000004, end_time: 55.150000000000006,
+  rate: 1.0894839663213876e-06}
+- {source: NEA, dest: CEU, start_time: 55.150000000000006, end_time: 55.125, rate: 1.1020137709737287e-06}
+- {source: NEA, dest: CEU, start_time: 55.125, end_time: 55.1, rate: 1.1146732333343037e-06}
+- {source: NEA, dest: CEU, start_time: 55.1, end_time: 55.075, rate: 1.1274634996414094e-06}
+- {source: NEA, dest: CEU, start_time: 55.075, end_time: 55.050000000000004, rate: 1.1403857237050792e-06}
+- {source: NEA, dest: CEU, start_time: 55.050000000000004, end_time: 55.025000000000006,
+  rate: 1.1534410669237093e-06}
+- {source: NEA, dest: CEU, start_time: 55.025000000000006, end_time: 55.0, rate: 1.166630698299601e-06}
+- {source: NEA, dest: CEU, start_time: 55.0, end_time: 54.975, rate: 1.1799557944548009e-06}
+- {source: NEA, dest: CEU, start_time: 54.975, end_time: 54.95, rate: 1.1934175396459711e-06}
+- {source: NEA, dest: CEU, start_time: 54.95, end_time: 54.925000000000004, rate: 1.2070171257791676e-06}
+- {source: NEA, dest: CEU, start_time: 54.925000000000004, end_time: 54.900000000000006,
+  rate: 1.2207557524235436e-06}
+- {source: NEA, dest: CEU, start_time: 54.900000000000006, end_time: 54.875, rate: 1.234634626825223e-06}
+- {source: NEA, dest: CEU, start_time: 54.875, end_time: 54.85, rate: 1.2486549639200044e-06}
+- {source: NEA, dest: CEU, start_time: 54.85, end_time: 54.825, rate: 1.2628179863459099e-06}
+- {source: NEA, dest: CEU, start_time: 54.825, end_time: 54.800000000000004, rate: 1.2771249244556068e-06}
+- {source: NEA, dest: CEU, start_time: 54.800000000000004, end_time: 54.775000000000006,
+  rate: 1.2915770163269517e-06}
+- {source: NEA, dest: CEU, start_time: 54.775000000000006, end_time: 54.75, rate: 1.3061755077746356e-06}
+- {source: NEA, dest: CEU, start_time: 54.75, end_time: 54.725, rate: 1.3209216523598536e-06}
+- {source: NEA, dest: CEU, start_time: 54.725, end_time: 54.7, rate: 1.3358167114006145e-06}
+- {source: NEA, dest: CEU, start_time: 54.7, end_time: 54.675000000000004, rate: 1.3508619539803962e-06}
+- {source: NEA, dest: CEU, start_time: 54.675000000000004, end_time: 54.650000000000006,
+  rate: 1.366058656956915e-06}
+- {source: NEA, dest: CEU, start_time: 54.650000000000006, end_time: 54.625, rate: 1.3814081049699613e-06}
+- {source: NEA, dest: CEU, start_time: 54.625, end_time: 54.6, rate: 1.3969115904488915e-06}
+- {source: NEA, dest: CEU, start_time: 54.6, end_time: 54.575, rate: 1.4125704136193176e-06}
+- {source: NEA, dest: CEU, start_time: 54.575, end_time: 54.550000000000004, rate: 1.4283858825087161e-06}
+- {source: NEA, dest: CEU, start_time: 54.550000000000004, end_time: 54.525000000000006,
+  rate: 1.444359312952972e-06}
+- {source: NEA, dest: CEU, start_time: 54.525000000000006, end_time: 54.5, rate: 1.4604920285999813e-06}
+- {source: NEA, dest: CEU, start_time: 54.5, end_time: 54.475, rate: 1.4767853609145343e-06}
+- {source: NEA, dest: CEU, start_time: 54.475, end_time: 54.45, rate: 1.493240649181601e-06}
+- {source: NEA, dest: CEU, start_time: 54.45, end_time: 54.425000000000004, rate: 1.5098592405092363e-06}
+- {source: NEA, dest: CEU, start_time: 54.425000000000004, end_time: 54.400000000000006,
+  rate: 1.5266424898304074e-06}
+- {source: NEA, dest: CEU, start_time: 54.400000000000006, end_time: 54.375, rate: 1.5435917599047716e-06}
+- {source: NEA, dest: CEU, start_time: 54.375, end_time: 54.35, rate: 1.5607084213193237e-06}
+- {source: NEA, dest: CEU, start_time: 54.35, end_time: 54.325, rate: 1.5779938524881943e-06}
+- {source: NEA, dest: CEU, start_time: 54.325, end_time: 54.300000000000004, rate: 1.5954494396523408e-06}
+- {source: NEA, dest: CEU, start_time: 54.300000000000004, end_time: 54.275000000000006,
+  rate: 1.6130765768775679e-06}
+- {source: NEA, dest: CEU, start_time: 54.275000000000006, end_time: 54.25, rate: 1.6308766660529764e-06}
+- {source: NEA, dest: CEU, start_time: 54.25, end_time: 54.225, rate: 1.6488511168873398e-06}
+- {source: NEA, dest: CEU, start_time: 54.225, end_time: 54.2, rate: 1.6670013469058527e-06}
+- {source: NEA, dest: CEU, start_time: 54.2, end_time: 54.175000000000004, rate: 1.6853287814456142e-06}
+- {source: NEA, dest: CEU, start_time: 54.175000000000004, end_time: 54.150000000000006,
+  rate: 1.7038348536501732e-06}
+- {source: NEA, dest: CEU, start_time: 54.150000000000006, end_time: 54.125, rate: 1.7225210044634661e-06}
+- {source: NEA, dest: CEU, start_time: 54.125, end_time: 54.1, rate: 1.7413886826233925e-06}
+- {source: NEA, dest: CEU, start_time: 54.1, end_time: 54.075, rate: 1.760439344653255e-06}
+- {source: NEA, dest: CEU, start_time: 54.075, end_time: 54.050000000000004, rate: 1.779674454854083e-06}
+- {source: NEA, dest: CEU, start_time: 54.050000000000004, end_time: 54.025000000000006,
+  rate: 1.7990954852952082e-06}
+- {source: NEA, dest: CEU, start_time: 54.025000000000006, end_time: 54.0, rate: 1.8187039158033129e-06}
+- {source: NEA, dest: CEU, start_time: 54.0, end_time: 53.975, rate: 1.838501233952083e-06}
+- {source: NEA, dest: CEU, start_time: 53.975, end_time: 53.95, rate: 1.8584889350504688e-06}
+- {source: NEA, dest: CEU, start_time: 53.95, end_time: 53.925000000000004, rate: 1.8786685221289469e-06}
+- {source: NEA, dest: CEU, start_time: 53.925000000000004, end_time: 53.900000000000006,
+  rate: 1.8990415059266166e-06}
+- {source: NEA, dest: CEU, start_time: 53.900000000000006, end_time: 53.875, rate: 1.9196094048766342e-06}
+- {source: NEA, dest: CEU, start_time: 53.875, end_time: 53.85, rate: 1.9403737450900693e-06}
+- {source: NEA, dest: CEU, start_time: 53.85, end_time: 53.825, rate: 1.9613360603401944e-06}
+- {source: NEA, dest: CEU, start_time: 53.825, end_time: 53.800000000000004, rate: 1.982497892044821e-06}
+- {source: NEA, dest: CEU, start_time: 53.800000000000004, end_time: 53.775000000000006,
+  rate: 2.0038607892476105e-06}
+- {source: NEA, dest: CEU, start_time: 53.775000000000006, end_time: 53.75, rate: 2.025426308599852e-06}
+- {source: NEA, dest: CEU, start_time: 53.75, end_time: 53.725, rate: 2.0471960143391226e-06}
+- {source: NEA, dest: CEU, start_time: 53.725, end_time: 53.7, rate: 2.0691714782688505e-06}
+- {source: NEA, dest: CEU, start_time: 53.7, end_time: 53.675000000000004, rate: 2.091354279735744e-06}
+- {source: NEA, dest: CEU, start_time: 53.675000000000004, end_time: 53.650000000000006,
+  rate: 2.1137460056067438e-06}
+- {source: NEA, dest: CEU, start_time: 53.650000000000006, end_time: 53.625, rate: 2.13634825024497e-06}
+- {source: NEA, dest: CEU, start_time: 53.625, end_time: 53.6, rate: 2.159162615484482e-06}
+- {source: NEA, dest: CEU, start_time: 53.6, end_time: 53.575, rate: 2.1821907106036893e-06}
+- {source: NEA, dest: CEU, start_time: 53.575, end_time: 53.550000000000004, rate: 2.2054341522986434e-06}
+- {source: NEA, dest: CEU, start_time: 53.550000000000004, end_time: 53.525000000000006,
+  rate: 2.2288945646543594e-06}
+- {source: NEA, dest: CEU, start_time: 53.525000000000006, end_time: 53.5, rate: 2.252573579115569e-06}
+- {source: NEA, dest: CEU, start_time: 53.5, end_time: 53.475, rate: 2.2764728344560824e-06}
+- {source: NEA, dest: CEU, start_time: 53.475, end_time: 53.45, rate: 2.300593976747382e-06}
+- {source: NEA, dest: CEU, start_time: 53.45, end_time: 53.425000000000004, rate: 2.3249386593260587e-06}
+- {source: NEA, dest: CEU, start_time: 53.425000000000004, end_time: 53.400000000000006,
+  rate: 2.3495085427602235e-06}
+- {source: NEA, dest: CEU, start_time: 53.400000000000006, end_time: 53.375, rate: 2.374305294813788e-06}
+- {source: NEA, dest: CEU, start_time: 53.375, end_time: 53.35, rate: 2.3993305904115427e-06}
+- {source: NEA, dest: CEU, start_time: 53.35, end_time: 53.325, rate: 2.4245861116015833e-06}
+- {source: NEA, dest: CEU, start_time: 53.325, end_time: 53.300000000000004, rate: 2.4500735475168992e-06}
+- {source: NEA, dest: CEU, start_time: 53.300000000000004, end_time: 53.275000000000006,
+  rate: 2.4757945943360084e-06}
+- {source: NEA, dest: CEU, start_time: 53.275000000000006, end_time: 53.25, rate: 2.501750955242631e-06}
+- {source: NEA, dest: CEU, start_time: 53.25, end_time: 53.225, rate: 2.527944340383057e-06}
+- {source: NEA, dest: CEU, start_time: 53.225, end_time: 53.2, rate: 2.5543764668240733e-06}
+- {source: NEA, dest: CEU, start_time: 53.2, end_time: 53.175000000000004, rate: 2.5810490585086448e-06}
+- {source: NEA, dest: CEU, start_time: 53.175000000000004, end_time: 53.150000000000006,
+  rate: 2.6079638462097086e-06}
+- {source: NEA, dest: CEU, start_time: 53.150000000000006, end_time: 53.125, rate: 2.6351225674848508e-06}
+- {source: NEA, dest: CEU, start_time: 53.125, end_time: 53.1, rate: 2.6625269666265152e-06}
+- {source: NEA, dest: CEU, start_time: 53.1, end_time: 53.075, rate: 2.6901787946148735e-06}
+- {source: NEA, dest: CEU, start_time: 53.075, end_time: 53.050000000000004, rate: 2.718079809066337e-06}
+- {source: NEA, dest: CEU, start_time: 53.050000000000004, end_time: 53.025000000000006,
+  rate: 2.7462317741817266e-06}
+- {source: NEA, dest: CEU, start_time: 53.025000000000006, end_time: 53.0, rate: 2.774636460693786e-06}
+- {source: NEA, dest: CEU, start_time: 53.0, end_time: 52.975, rate: 2.8032956458131958e-06}
+- {source: NEA, dest: CEU, start_time: 52.975, end_time: 52.95, rate: 2.8322111131717594e-06}
+- {source: NEA, dest: CEU, start_time: 52.95, end_time: 52.925000000000004, rate: 2.8613846527673784e-06}
+- {source: NEA, dest: CEU, start_time: 52.925000000000004, end_time: 52.900000000000006,
+  rate: 2.890818060903944e-06}
+- {source: NEA, dest: CEU, start_time: 52.900000000000006, end_time: 52.875, rate: 2.920513140133263e-06}
+- {source: NEA, dest: CEU, start_time: 52.875, end_time: 52.85, rate: 2.950471699193128e-06}
+- {source: NEA, dest: CEU, start_time: 52.85, end_time: 52.825, rate: 2.9806955529462477e-06}
+- {source: NEA, dest: CEU, start_time: 52.825, end_time: 52.800000000000004, rate: 3.011186522314717e-06}
+- {source: NEA, dest: CEU, start_time: 52.800000000000004, end_time: 52.775000000000006,
+  rate: 3.0419464342177355e-06}
+- {source: NEA, dest: CEU, start_time: 52.775000000000006, end_time: 52.75, rate: 3.072977121502266e-06}
+- {source: NEA, dest: CEU, start_time: 52.75, end_time: 52.725, rate: 3.104280422877648e-06}
+- {source: NEA, dest: CEU, start_time: 52.725, end_time: 52.7, rate: 3.135858182844595e-06}
+- {source: NEA, dest: CEU, start_time: 52.7, end_time: 52.675000000000004, rate: 3.1677122516259784e-06}
+- {source: NEA, dest: CEU, start_time: 52.675000000000004, end_time: 52.650000000000006,
+  rate: 3.1998444850934575e-06}
+- {source: NEA, dest: CEU, start_time: 52.650000000000006, end_time: 52.625, rate: 3.232256744695605e-06}
+- {source: NEA, dest: CEU, start_time: 52.625, end_time: 52.6, rate: 3.2649508973807817e-06}
+- {source: NEA, dest: CEU, start_time: 52.6, end_time: 52.575, rate: 3.2979288155230202e-06}
+- {source: NEA, dest: CEU, start_time: 52.575, end_time: 52.550000000000004, rate: 3.3311923768421048e-06}
+- {source: NEA, dest: CEU, start_time: 52.550000000000004, end_time: 52.525000000000006,
+  rate: 3.364743464325216e-06}
+- {source: NEA, dest: CEU, start_time: 52.525000000000006, end_time: 52.5, rate: 3.3985839661464567e-06}
+- {source: NEA, dest: CEU, start_time: 52.5, end_time: 52.475, rate: 3.4327157755831453e-06}
+- {source: NEA, dest: CEU, start_time: 52.475, end_time: 52.45, rate: 3.467140790932581e-06}
+- {source: NEA, dest: CEU, start_time: 52.45, end_time: 52.425000000000004, rate: 3.5018609154275264e-06}
+- {source: NEA, dest: CEU, start_time: 52.425000000000004, end_time: 52.400000000000006,
+  rate: 3.5368780571470893e-06}
+- {source: NEA, dest: CEU, start_time: 52.400000000000006, end_time: 52.375, rate: 3.5721941289304e-06}
+- {source: NEA, dest: CEU, start_time: 52.375, end_time: 52.35, rate: 3.6078110482852763e-06}
+- {source: NEA, dest: CEU, start_time: 52.35, end_time: 52.325, rate: 3.6437307372965945e-06}
+- {source: NEA, dest: CEU, start_time: 52.325, end_time: 52.300000000000004, rate: 3.679955122533188e-06}
+- {source: NEA, dest: CEU, start_time: 52.300000000000004, end_time: 52.275000000000006,
+  rate: 3.716486134954335e-06}
+- {source: NEA, dest: CEU, start_time: 52.275000000000006, end_time: 52.25, rate: 3.753325709810461e-06}
+- {source: NEA, dest: CEU, start_time: 52.25, end_time: 52.225, rate: 3.790475786548422e-06}
+- {source: NEA, dest: CEU, start_time: 52.225, end_time: 52.2, rate: 3.82793830870982e-06}
+- {source: NEA, dest: CEU, start_time: 52.2, end_time: 52.175000000000004, rate: 3.865715223829664e-06}
+- {source: NEA, dest: CEU, start_time: 52.175000000000004, end_time: 52.150000000000006,
+  rate: 3.903808483334614e-06}
+- {source: NEA, dest: CEU, start_time: 52.150000000000006, end_time: 52.125, rate: 3.942220042438422e-06}
+- {source: NEA, dest: CEU, start_time: 52.125, end_time: 52.1, rate: 3.980951860034472e-06}
+- {source: NEA, dest: CEU, start_time: 52.1, end_time: 52.075, rate: 4.020005898589675e-06}
+- {source: NEA, dest: CEU, start_time: 52.075, end_time: 52.050000000000004, rate: 4.0593841240329894e-06}
+- {source: NEA, dest: CEU, start_time: 52.050000000000004, end_time: 52.025000000000006,
+  rate: 4.099088505646226e-06}
+- {source: NEA, dest: CEU, start_time: 52.025000000000006, end_time: 52.0, rate: 4.139121015950351e-06}
+- {source: NEA, dest: CEU, start_time: 52.0, end_time: 51.975, rate: 4.179483630590517e-06}
+- {source: NEA, dest: CEU, start_time: 51.975, end_time: 51.95, rate: 4.220178328220685e-06}
+- {source: NEA, dest: CEU, start_time: 51.95, end_time: 51.925000000000004, rate: 4.261207090385517e-06}
+- {source: NEA, dest: CEU, start_time: 51.925000000000004, end_time: 51.900000000000006,
+  rate: 4.302571901398923e-06}
+- {source: NEA, dest: CEU, start_time: 51.900000000000006, end_time: 51.875, rate: 4.344274748226864e-06}
+- {source: NEA, dest: CEU, start_time: 51.875, end_time: 51.85, rate: 4.38631762035892e-06}
+- {source: NEA, dest: CEU, start_time: 51.85, end_time: 51.825, rate: 4.428702509687765e-06}
+- {source: NEA, dest: CEU, start_time: 51.825, end_time: 51.800000000000004, rate: 4.471431410380539e-06}
+- {source: NEA, dest: CEU, start_time: 51.800000000000004, end_time: 51.775000000000006,
+  rate: 4.514506318750779e-06}
+- {source: NEA, dest: CEU, start_time: 51.775000000000006, end_time: 51.75, rate: 4.557929233128096e-06}
+- {source: NEA, dest: CEU, start_time: 51.75, end_time: 51.725, rate: 4.601702153728034e-06}
+- {source: NEA, dest: CEU, start_time: 51.725, end_time: 51.7, rate: 4.645827082514312e-06}
+- {source: NEA, dest: CEU, start_time: 51.7, end_time: 51.675000000000004, rate: 4.69030602306904e-06}
+- {source: NEA, dest: CEU, start_time: 51.675000000000004, end_time: 51.650000000000006,
+  rate: 4.735140980450859e-06}
+- {source: NEA, dest: CEU, start_time: 51.650000000000006, end_time: 51.625, rate: 4.7803339610575166e-06}
+- {source: NEA, dest: CEU, start_time: 51.625, end_time: 51.6, rate: 4.82588697248553e-06}
+- {source: NEA, dest: CEU, start_time: 51.6, end_time: 51.575, rate: 4.8718020233876285e-06}
+- {source: NEA, dest: CEU, start_time: 51.575, end_time: 51.550000000000004, rate: 4.918081123327147e-06}
+- {source: NEA, dest: CEU, start_time: 51.550000000000004, end_time: 51.525000000000006,
+  rate: 4.964726282632642e-06}
+- {source: NEA, dest: CEU, start_time: 51.525000000000006, end_time: 51.5, rate: 5.011739512250034e-06}
+- {source: NEA, dest: CEU, start_time: 51.5, end_time: 51.475, rate: 5.0591228235913364e-06}
+- {source: NEA, dest: CEU, start_time: 51.475, end_time: 51.45, rate: 5.106878228384826e-06}
+- {source: NEA, dest: CEU, start_time: 51.45, end_time: 51.425000000000004, rate: 5.155007738520692e-06}
+- {source: NEA, dest: CEU, start_time: 51.425000000000004, end_time: 51.400000000000006,
+  rate: 5.203513365894655e-06}
+- {source: NEA, dest: CEU, start_time: 51.400000000000006, end_time: 51.375, rate: 5.2523971222522145e-06}
+- {source: NEA, dest: CEU, start_time: 51.375, end_time: 51.35, rate: 5.3016610190278265e-06}
+- {source: NEA, dest: CEU, start_time: 51.35, end_time: 51.325, rate: 5.351307067185918e-06}
+- {source: NEA, dest: CEU, start_time: 51.325, end_time: 51.300000000000004, rate: 5.401337277057247e-06}
+- {source: NEA, dest: CEU, start_time: 51.300000000000004, end_time: 51.275000000000006,
+  rate: 5.451753658172885e-06}
+- {source: NEA, dest: CEU, start_time: 51.275000000000006, end_time: 51.25, rate: 5.502558219099543e-06}
+- {source: NEA, dest: CEU, start_time: 51.25, end_time: 51.225, rate: 5.5537529672702825e-06}
+- {source: NEA, dest: CEU, start_time: 51.225, end_time: 51.2, rate: 5.605339908813807e-06}
+- {source: NEA, dest: CEU, start_time: 51.2, end_time: 51.175000000000004, rate: 5.657321048383427e-06}
+- {source: NEA, dest: CEU, start_time: 51.175000000000004, end_time: 51.150000000000006,
+  rate: 5.7096983889818165e-06}
+- {source: NEA, dest: CEU, start_time: 51.150000000000006, end_time: 51.125, rate: 5.7624739317854146e-06}
+- {source: NEA, dest: CEU, start_time: 51.125, end_time: 51.1, rate: 5.81564967596718e-06}
+- {source: NEA, dest: CEU, start_time: 51.1, end_time: 51.075, rate: 5.869227618515601e-06}
+- {source: NEA, dest: CEU, start_time: 51.075, end_time: 51.050000000000004, rate: 5.923209754054994e-06}
+- {source: NEA, dest: CEU, start_time: 51.050000000000004, end_time: 51.025000000000006,
+  rate: 5.977598074659066e-06}
+- {source: NEA, dest: CEU, start_time: 51.025000000000006, end_time: 51.0, rate: 6.032394569669276e-06}
+- {source: NEA, dest: CEU, start_time: 51.0, end_time: 50.975, rate: 6.087601225504792e-06}
+- {source: NEA, dest: CEU, start_time: 50.975, end_time: 50.95, rate: 6.1432200254729925e-06}
+- {source: NEA, dest: CEU, start_time: 50.95, end_time: 50.925000000000004, rate: 6.199252949580721e-06}
+- {source: NEA, dest: CEU, start_time: 50.925000000000004, end_time: 50.900000000000006,
+  rate: 6.255701974339668e-06}
+- {source: NEA, dest: CEU, start_time: 50.900000000000006, end_time: 50.875, rate: 6.312569072572119e-06}
+- {source: NEA, dest: CEU, start_time: 50.875, end_time: 50.85, rate: 6.3698562132128374e-06}
+- {source: NEA, dest: CEU, start_time: 50.85, end_time: 50.825, rate: 6.427565361113187e-06}
+- {source: NEA, dest: CEU, start_time: 50.825, end_time: 50.800000000000004, rate: 6.485698476837061e-06}
+- {source: NEA, dest: CEU, start_time: 50.800000000000004, end_time: 50.775000000000006,
+  rate: 6.544257516461241e-06}
+- {source: NEA, dest: CEU, start_time: 50.775000000000006, end_time: 50.75, rate: 6.60324443137044e-06}
+- {source: NEA, dest: CEU, start_time: 50.75, end_time: 50.725, rate: 6.662661168049309e-06}
+- {source: NEA, dest: CEU, start_time: 50.725, end_time: 50.7, rate: 6.722509667877596e-06}
+- {source: NEA, dest: CEU, start_time: 50.7, end_time: 50.675000000000004, rate: 6.782791866916086e-06}
+- {source: NEA, dest: CEU, start_time: 50.675000000000004, end_time: 50.650000000000006,
+  rate: 6.843509695698431e-06}
+- {source: NEA, dest: CEU, start_time: 50.650000000000006, end_time: 50.625, rate: 6.904665079015967e-06}
+- {source: NEA, dest: CEU, start_time: 50.625, end_time: 50.6, rate: 6.966259935699824e-06}
+- {source: NEA, dest: CEU, start_time: 50.6, end_time: 50.575, rate: 7.028296178407204e-06}
+- {source: NEA, dest: CEU, start_time: 50.575, end_time: 50.550000000000004, rate: 7.09077571340077e-06}
+- {source: NEA, dest: CEU, start_time: 50.550000000000004, end_time: 50.525000000000006,
+  rate: 7.153700440325075e-06}
+- {source: NEA, dest: CEU, start_time: 50.525000000000006, end_time: 50.5, rate: 7.217072251986357e-06}
+- {source: NEA, dest: CEU, start_time: 50.5, end_time: 50.475, rate: 7.2808930341266754e-06}
+- {source: NEA, dest: CEU, start_time: 50.475, end_time: 50.45, rate: 7.345164665195952e-06}
+- {source: NEA, dest: CEU, start_time: 50.45, end_time: 50.425000000000004, rate: 7.409889016124432e-06}
+- {source: NEA, dest: CEU, start_time: 50.425000000000004, end_time: 50.400000000000006,
+  rate: 7.475067950092269e-06}
+- {source: NEA, dest: CEU, start_time: 50.400000000000006, end_time: 50.375, rate: 7.540703322296462e-06}
+- {source: NEA, dest: CEU, start_time: 50.375, end_time: 50.35, rate: 7.606796979716543e-06}
+- {source: NEA, dest: CEU, start_time: 50.35, end_time: 50.325, rate: 7.673350760879974e-06}
+- {source: NEA, dest: CEU, start_time: 50.325, end_time: 50.300000000000004, rate: 7.740366495621183e-06}
+- {source: NEA, dest: CEU, start_time: 50.300000000000004, end_time: 50.275000000000006,
+  rate: 7.807846004847716e-06}
+- {source: NEA, dest: CEU, start_time: 50.275000000000006, end_time: 50.25, rate: 7.875791100291237e-06}
+- {source: NEA, dest: CEU, start_time: 50.25, end_time: 50.225, rate: 7.944203584270587e-06}
+- {source: NEA, dest: CEU, start_time: 50.225, end_time: 50.2, rate: 8.013085249442633e-06}
+- {source: NEA, dest: CEU, start_time: 50.2, end_time: 50.175000000000004, rate: 8.082437878558296e-06}
+- {source: NEA, dest: CEU, start_time: 50.175000000000004, end_time: 50.150000000000006,
+  rate: 8.152263244212054e-06}
+- {source: NEA, dest: CEU, start_time: 50.150000000000006, end_time: 50.125, rate: 8.222563108592186e-06}
+- {source: NEA, dest: CEU, start_time: 50.125, end_time: 50.1, rate: 8.2933392232288e-06}
+- {source: NEA, dest: CEU, start_time: 50.1, end_time: 50.075, rate: 8.364593328740865e-06}
+- {source: NEA, dest: CEU, start_time: 50.075, end_time: 50.050000000000004, rate: 8.436327154578407e-06}
+- {source: NEA, dest: CEU, start_time: 50.050000000000004, end_time: 50.025000000000006,
+  rate: 8.508542418766533e-06}
+- {source: NEA, dest: CEU, start_time: 50.025000000000006, end_time: 50.0, rate: 8.581240827648037e-06}
+- {source: NEA, dest: CEU, start_time: 50.0, end_time: 49.975, rate: 8.654424075619478e-06}
+- {source: NEA, dest: CEU, start_time: 49.975, end_time: 49.95, rate: 8.728093844869128e-06}
+- {source: NEA, dest: CEU, start_time: 49.95, end_time: 49.925000000000004, rate: 8.802251805116768e-06}
+- {source: NEA, dest: CEU, start_time: 49.925000000000004, end_time: 49.900000000000006,
+  rate: 8.87689961334469e-06}
+- {source: NEA, dest: CEU, start_time: 49.900000000000006, end_time: 49.875, rate: 8.952038913528958e-06}
+- {source: NEA, dest: CEU, start_time: 49.875, end_time: 49.85, rate: 9.027671336374812e-06}
+- {source: NEA, dest: CEU, start_time: 49.85, end_time: 49.825, rate: 9.103798499041662e-06}
+- {source: NEA, dest: CEU, start_time: 49.825, end_time: 49.800000000000004, rate: 9.180422004873803e-06}
+- {source: NEA, dest: CEU, start_time: 49.800000000000004, end_time: 49.775000000000006,
+  rate: 9.257543443125749e-06}
+- {source: NEA, dest: CEU, start_time: 49.775000000000006, end_time: 49.75, rate: 9.335164388684336e-06}
+- {source: NEA, dest: CEU, start_time: 49.75, end_time: 49.725, rate: 9.413286401796926e-06}
+- {source: NEA, dest: CEU, start_time: 49.725, end_time: 49.7, rate: 9.49191102778778e-06}
+- {source: NEA, dest: CEU, start_time: 49.7, end_time: 49.675000000000004, rate: 9.571039796780548e-06}
+- {source: NEA, dest: CEU, start_time: 49.675000000000004, end_time: 49.650000000000006,
+  rate: 9.650674223416886e-06}
+- {source: NEA, dest: CEU, start_time: 49.650000000000006, end_time: 49.625, rate: 9.730815806572233e-06}
+- {source: NEA, dest: CEU, start_time: 49.625, end_time: 49.6, rate: 9.811466029071976e-06}
+- {source: NEA, dest: CEU, start_time: 49.6, end_time: 49.575, rate: 9.89262635740422e-06}
+- {source: NEA, dest: CEU, start_time: 49.575, end_time: 49.550000000000004, rate: 9.974298241434775e-06}
+- {source: NEA, dest: CEU, start_time: 49.550000000000004, end_time: 49.525000000000006,
+  rate: 1.0056483114114784e-05}
+- {source: NEA, dest: CEU, start_time: 49.525000000000006, end_time: 49.5, rate: 1.0139182391195169e-05}
+- {source: NEA, dest: CEU, start_time: 49.5, end_time: 49.475, rate: 1.0222397470928888e-05}
+- {source: NEA, dest: CEU, start_time: 49.475, end_time: 49.45, rate: 1.030612973378349e-05}
+- {source: NEA, dest: CEU, start_time: 49.45, end_time: 49.425000000000004, rate: 1.0390380542144085e-05}
+- {source: NEA, dest: CEU, start_time: 49.425000000000004, end_time: 49.400000000000006,
+  rate: 1.0475151240016335e-05}
+- {source: NEA, dest: CEU, start_time: 49.400000000000006, end_time: 49.375, rate: 1.0560443152731949e-05}
+- {source: NEA, dest: CEU, start_time: 49.375, end_time: 49.35, rate: 1.0646257586650654e-05}
+- {source: NEA, dest: CEU, start_time: 49.35, end_time: 49.325, rate: 1.0732595828855064e-05}
+- {source: NEA, dest: CEU, start_time: 49.325, end_time: 49.300000000000004, rate: 1.0819459146860078e-05}
+- {source: NEA, dest: CEU, start_time: 49.300000000000004, end_time: 49.275000000000006,
+  rate: 1.0906848788300142e-05}
+- {source: NEA, dest: CEU, start_time: 49.275000000000006, end_time: 49.25, rate: 1.0994765980631684e-05}
+- {source: NEA, dest: CEU, start_time: 49.25, end_time: 49.225, rate: 1.1083211930828673e-05}
+- {source: NEA, dest: CEU, start_time: 49.225, end_time: 49.2, rate: 1.1172187825075436e-05}
+- {source: NEA, dest: CEU, start_time: 49.2, end_time: 49.175000000000004, rate: 1.1261694828460526e-05}
+- {source: NEA, dest: CEU, start_time: 49.175000000000004, end_time: 49.150000000000006,
+  rate: 1.1351734084668539e-05}
+- {source: NEA, dest: CEU, start_time: 49.150000000000006, end_time: 49.125, rate: 1.1442306715672825e-05}
+- {source: NEA, dest: CEU, start_time: 49.125, end_time: 49.1, rate: 1.1533413821422929e-05}
+- {source: NEA, dest: CEU, start_time: 49.1, end_time: 49.075, rate: 1.1625056479537852e-05}
+- {source: NEA, dest: CEU, start_time: 49.075, end_time: 49.050000000000004, rate: 1.171723574498819e-05}
+- {source: NEA, dest: CEU, start_time: 49.050000000000004, end_time: 49.025000000000006,
+  rate: 1.180995264978946e-05}
+- {source: NEA, dest: CEU, start_time: 49.025000000000006, end_time: 49.0, rate: 1.1903208202683583e-05}
+- {source: NEA, dest: CEU, start_time: 49.0, end_time: 48.975, rate: 1.1997003388825769e-05}
+- {source: NEA, dest: CEU, start_time: 48.975, end_time: 48.95, rate: 1.20913391694709e-05}
+- {source: NEA, dest: CEU, start_time: 48.95, end_time: 48.925000000000004, rate: 1.2186216481653987e-05}
+- {source: NEA, dest: CEU, start_time: 48.925000000000004, end_time: 48.900000000000006,
+  rate: 1.2281636237876277e-05}
+- {source: NEA, dest: CEU, start_time: 48.900000000000006, end_time: 48.875, rate: 1.2377599325780556e-05}
+- {source: NEA, dest: CEU, start_time: 48.875, end_time: 48.85, rate: 1.2474106607842354e-05}
+- {source: NEA, dest: CEU, start_time: 48.85, end_time: 48.825, rate: 1.2571158921040583e-05}
+- {source: NEA, dest: CEU, start_time: 48.825, end_time: 48.800000000000004, rate: 1.2668757076546054e-05}
+- {source: NEA, dest: CEU, start_time: 48.800000000000004, end_time: 48.775000000000006,
+  rate: 1.2766901859391264e-05}
+- {source: NEA, dest: CEU, start_time: 48.775000000000006, end_time: 48.75, rate: 1.2865594028157757e-05}
+- {source: NEA, dest: CEU, start_time: 48.75, end_time: 48.725, rate: 1.2964834314648555e-05}
+- {source: NEA, dest: CEU, start_time: 48.725, end_time: 48.7, rate: 1.3064623423566098e-05}
+- {source: NEA, dest: CEU, start_time: 48.7, end_time: 48.675000000000004, rate: 1.3164962032191175e-05}
+- {source: NEA, dest: CEU, start_time: 48.675000000000004, end_time: 48.650000000000006,
+  rate: 1.32658507900573e-05}
+- {source: NEA, dest: CEU, start_time: 48.650000000000006, end_time: 48.625, rate: 1.3367290318626836e-05}
+- {source: NEA, dest: CEU, start_time: 48.625, end_time: 48.6, rate: 1.346928121096631e-05}
+- {source: NEA, dest: CEU, start_time: 48.6, end_time: 48.575, rate: 1.3571824031422495e-05}
+- {source: NEA, dest: CEU, start_time: 48.575, end_time: 48.550000000000004, rate: 1.367491931529625e-05}
+- {source: NEA, dest: CEU, start_time: 48.550000000000004, end_time: 48.525000000000006,
+  rate: 1.3778567568514833e-05}
+- {source: NEA, dest: CEU, start_time: 48.525000000000006, end_time: 48.5, rate: 1.3882769267308555e-05}
+- {source: NEA, dest: CEU, start_time: 48.5, end_time: 48.475, rate: 1.3987524857886145e-05}
+- {source: NEA, dest: CEU, start_time: 48.475, end_time: 48.45, rate: 1.409283475610316e-05}
+- {source: NEA, dest: CEU, start_time: 48.45, end_time: 48.425000000000004, rate: 1.419869934713846e-05}
+- {source: NEA, dest: CEU, start_time: 48.425000000000004, end_time: 48.400000000000006,
+  rate: 1.430511898516868e-05}
+- {source: NEA, dest: CEU, start_time: 48.400000000000006, end_time: 48.375, rate: 1.4412093993038142e-05}
+- {source: NEA, dest: CEU, start_time: 48.375, end_time: 48.35, rate: 1.4519624661934776e-05}
+- {source: NEA, dest: CEU, start_time: 48.35, end_time: 48.325, rate: 1.4627711251061566e-05}
+- {source: NEA, dest: CEU, start_time: 48.325, end_time: 48.300000000000004, rate: 1.4736353987310914e-05}
+- {source: NEA, dest: CEU, start_time: 48.300000000000004, end_time: 48.275000000000006,
+  rate: 1.484555306493529e-05}
+- {source: NEA, dest: CEU, start_time: 48.275000000000006, end_time: 48.25, rate: 1.4955308645226008e-05}
+- {source: NEA, dest: CEU, start_time: 48.25, end_time: 48.225, rate: 1.506562085617781e-05}
+- {source: NEA, dest: CEU, start_time: 48.225, end_time: 48.2, rate: 1.5176489792173528e-05}
+- {source: NEA, dest: CEU, start_time: 48.2, end_time: 48.175000000000004, rate: 1.5287915513647316e-05}
+- {source: NEA, dest: CEU, start_time: 48.175000000000004, end_time: 48.150000000000006,
+  rate: 1.539989804676742e-05}
+- {source: NEA, dest: CEU, start_time: 48.150000000000006, end_time: 48.125, rate: 1.5512437383105052e-05}
+- {source: NEA, dest: CEU, start_time: 48.125, end_time: 48.1, rate: 1.5625533479310532e-05}
+- {source: NEA, dest: CEU, start_time: 48.1, end_time: 48.075, rate: 1.5739186256791236e-05}
+- {source: NEA, dest: CEU, start_time: 48.075, end_time: 48.050000000000004, rate: 1.5853395601384732e-05}
+- {source: NEA, dest: CEU, start_time: 48.050000000000004, end_time: 48.025000000000006,
+  rate: 1.596816136303453e-05}
+- {source: NEA, dest: CEU, start_time: 48.025000000000006, end_time: 48.0, rate: 1.608348335546823e-05}
+- {source: NEA, dest: CEU, start_time: 48.0, end_time: 47.975, rate: 1.6199361355876793e-05}
+- {source: NEA, dest: CEU, start_time: 47.975, end_time: 47.95, rate: 1.6315795104588484e-05}
+- {source: NEA, dest: CEU, start_time: 47.95, end_time: 47.925000000000004, rate: 1.6432784304747556e-05}
+- {source: NEA, dest: CEU, start_time: 47.925000000000004, end_time: 47.900000000000006,
+  rate: 1.6550328622000714e-05}
+- {source: NEA, dest: CEU, start_time: 47.900000000000006, end_time: 47.875, rate: 1.6668427684168574e-05}
+- {source: NEA, dest: CEU, start_time: 47.875, end_time: 47.85, rate: 1.678708108093332e-05}
+- {source: NEA, dest: CEU, start_time: 47.85, end_time: 47.825, rate: 1.6906288363513576e-05}
+- {source: NEA, dest: CEU, start_time: 47.825, end_time: 47.800000000000004, rate: 1.7026049044355937e-05}
+- {source: NEA, dest: CEU, start_time: 47.800000000000004, end_time: 47.775000000000006,
+  rate: 1.7146362596812654e-05}
+- {source: NEA, dest: CEU, start_time: 47.775000000000006, end_time: 47.75, rate: 1.7267228454828513e-05}
+- {source: NEA, dest: CEU, start_time: 47.75, end_time: 47.725, rate: 1.7388646012627365e-05}
+- {source: NEA, dest: CEU, start_time: 47.725, end_time: 47.7, rate: 1.7510614624399315e-05}
+- {source: NEA, dest: CEU, start_time: 47.7, end_time: 47.675000000000004, rate: 1.76331336039846e-05}
+- {source: NEA, dest: CEU, start_time: 47.675000000000004, end_time: 47.650000000000006,
+  rate: 1.7756202224571125e-05}
+- {source: NEA, dest: CEU, start_time: 47.650000000000006, end_time: 47.625, rate: 1.7879819718380924e-05}
+- {source: NEA, dest: CEU, start_time: 47.625, end_time: 47.6, rate: 1.8003985276358812e-05}
+- {source: NEA, dest: CEU, start_time: 47.6, end_time: 47.575, rate: 1.812869804787308e-05}
+- {source: NEA, dest: CEU, start_time: 47.575, end_time: 47.550000000000004, rate: 1.8253957140404995e-05}
+- {source: NEA, dest: CEU, start_time: 47.550000000000004, end_time: 47.525000000000006,
+  rate: 1.8379761619248447e-05}
+- {source: NEA, dest: CEU, start_time: 47.525000000000006, end_time: 47.5, rate: 1.850611050720861e-05}
+- {source: NEA, dest: CEU, start_time: 47.5, end_time: 47.475, rate: 1.8633002784294882e-05}
+- {source: NEA, dest: CEU, start_time: 47.475, end_time: 47.45, rate: 1.8760437387432767e-05}
+- {source: NEA, dest: CEU, start_time: 47.45, end_time: 47.425000000000004, rate: 1.888841321015859e-05}
+- {source: NEA, dest: CEU, start_time: 47.425000000000004, end_time: 47.400000000000006,
+  rate: 1.9016929102327008e-05}
+- {source: NEA, dest: CEU, start_time: 47.400000000000006, end_time: 47.375, rate: 1.914598386981608e-05}
+- {source: NEA, dest: CEU, start_time: 47.375, end_time: 47.35, rate: 1.927557627424349e-05}
+- {source: NEA, dest: CEU, start_time: 47.35, end_time: 47.325, rate: 1.940570503266462e-05}
+- {source: NEA, dest: CEU, start_time: 47.325, end_time: 47.300000000000004, rate: 1.9536368817295956e-05}
+- {source: NEA, dest: CEU, start_time: 47.300000000000004, end_time: 47.275000000000006,
+  rate: 1.9667566255219245e-05}
+- {source: NEA, dest: CEU, start_time: 47.275000000000006, end_time: 47.25, rate: 1.979929592810867e-05}
+- {source: NEA, dest: CEU, start_time: 47.25, end_time: 47.225, rate: 1.993155637194309e-05}
+- {source: NEA, dest: CEU, start_time: 47.225, end_time: 47.2, rate: 2.006434607672881e-05}
+- {source: NEA, dest: CEU, start_time: 47.2, end_time: 47.175000000000004, rate: 2.0197663486222926e-05}
+- {source: NEA, dest: CEU, start_time: 47.175000000000004, end_time: 47.150000000000006,
+  rate: 2.0331506997657316e-05}
+- {source: NEA, dest: CEU, start_time: 47.150000000000006, end_time: 47.125, rate: 2.0465874961469062e-05}
+- {source: NEA, dest: CEU, start_time: 47.125, end_time: 47.1, rate: 2.0600765681030416e-05}
+- {source: NEA, dest: CEU, start_time: 47.1, end_time: 47.075, rate: 2.0736177412379586e-05}
+- {source: NEA, dest: CEU, start_time: 47.075, end_time: 47.050000000000004, rate: 2.0872108363959275e-05}
+- {source: NEA, dest: CEU, start_time: 47.050000000000004, end_time: 47.025000000000006,
+  rate: 2.1008556696349042e-05}
+- {source: NEA, dest: CEU, start_time: 47.025000000000006, end_time: 47.0, rate: 2.1145520522017577e-05}
+- {source: NEA, dest: CEU, start_time: 47.0, end_time: 46.975, rate: 2.1282997905052744e-05}
+- {source: NEA, dest: CEU, start_time: 46.975, end_time: 46.95, rate: 2.1420986860916402e-05}
+- {source: NEA, dest: CEU, start_time: 46.95, end_time: 46.925000000000004, rate: 2.1559485356194544e-05}
+- {source: NEA, dest: CEU, start_time: 46.925000000000004, end_time: 46.900000000000006,
+  rate: 2.1698491308338588e-05}
+- {source: NEA, dest: CEU, start_time: 46.900000000000006, end_time: 46.875, rate: 2.183800258543972e-05}
+- {source: NEA, dest: CEU, start_time: 46.875, end_time: 46.85, rate: 2.19780170059645e-05}
+- {source: NEA, dest: CEU, start_time: 46.85, end_time: 46.825, rate: 2.211853233853362e-05}
+- {source: NEA, dest: CEU, start_time: 46.825, end_time: 46.800000000000004, rate: 2.225954630168043e-05}
+- {source: NEA, dest: CEU, start_time: 46.800000000000004, end_time: 46.775000000000006,
+  rate: 2.2401056563614365e-05}
+- {source: NEA, dest: CEU, start_time: 46.775000000000006, end_time: 46.75, rate: 2.2543060741999112e-05}
+- {source: NEA, dest: CEU, start_time: 46.75, end_time: 46.725, rate: 2.2685556403723307e-05}
+- {source: NEA, dest: CEU, start_time: 46.725, end_time: 46.7, rate: 2.2828541064679218e-05}
+- {source: NEA, dest: CEU, start_time: 46.7, end_time: 46.675000000000004, rate: 2.297201218954153e-05}
+- {source: NEA, dest: CEU, start_time: 46.675000000000004, end_time: 46.650000000000006,
+  rate: 2.3115967191556894e-05}
+- {source: NEA, dest: CEU, start_time: 46.650000000000006, end_time: 46.625, rate: 2.326040343232663e-05}
+- {source: NEA, dest: CEU, start_time: 46.625, end_time: 46.6, rate: 2.3405318221602884e-05}
+- {source: NEA, dest: CEU, start_time: 46.6, end_time: 46.575, rate: 2.355070881708534e-05}
+- {source: NEA, dest: CEU, start_time: 46.575, end_time: 46.550000000000004, rate: 2.369657242421289e-05}
+- {source: NEA, dest: CEU, start_time: 46.550000000000004, end_time: 46.525000000000006,
+  rate: 2.384290619598003e-05}
+- {source: NEA, dest: CEU, start_time: 46.525000000000006, end_time: 46.5, rate: 2.3989707232730916e-05}
+- {source: NEA, dest: CEU, start_time: 46.5, end_time: 46.475, rate: 2.413697258197549e-05}
+- {source: NEA, dest: CEU, start_time: 46.475, end_time: 46.45, rate: 2.4284699238210505e-05}
+- {source: NEA, dest: CEU, start_time: 46.45, end_time: 46.425000000000004, rate: 2.4432884142733052e-05}
+- {source: NEA, dest: CEU, start_time: 46.425000000000004, end_time: 46.400000000000006,
+  rate: 2.458152418346149e-05}
+- {source: NEA, dest: CEU, start_time: 46.400000000000006, end_time: 46.375, rate: 2.4730616194771097e-05}
+- {source: NEA, dest: CEU, start_time: 46.375, end_time: 46.35, rate: 2.488015695731586e-05}
+- {source: NEA, dest: CEU, start_time: 46.35, end_time: 46.325, rate: 2.5030143197876306e-05}
+- {source: NEA, dest: CEU, start_time: 46.325, end_time: 46.300000000000004, rate: 2.518057158919141e-05}
+- {source: NEA, dest: CEU, start_time: 46.300000000000004, end_time: 46.275000000000006,
+  rate: 2.533143874980686e-05}
+- {source: NEA, dest: CEU, start_time: 46.275000000000006, end_time: 46.25, rate: 2.548274124392873e-05}
+- {source: NEA, dest: CEU, start_time: 46.25, end_time: 46.225, rate: 2.5634475581264337e-05}
+- {source: NEA, dest: CEU, start_time: 46.225, end_time: 46.2, rate: 2.5786638216901775e-05}
+- {source: NEA, dest: CEU, start_time: 46.2, end_time: 46.175000000000004, rate: 2.5939225551155034e-05}
+- {source: NEA, dest: CEU, start_time: 46.175000000000004, end_time: 46.150000000000006,
+  rate: 2.6092233929445158e-05}
+- {source: NEA, dest: CEU, start_time: 46.150000000000006, end_time: 46.125, rate: 2.6245659642159814e-05}
+- {source: NEA, dest: CEU, start_time: 46.125, end_time: 46.1, rate: 2.6399498924548024e-05}
+- {source: NEA, dest: CEU, start_time: 46.1, end_time: 46.075, rate: 2.6553747956591053e-05}
+- {source: NEA, dest: CEU, start_time: 46.075, end_time: 46.050000000000004, rate: 2.6708402862896792e-05}
+- {source: NEA, dest: CEU, start_time: 46.050000000000004, end_time: 46.025000000000006,
+  rate: 2.6863459712586534e-05}
+- {source: NEA, dest: CEU, start_time: 46.025000000000006, end_time: 46.0, rate: 2.701891451919887e-05}
+- {source: NEA, dest: CEU, start_time: 46.0, end_time: 45.975, rate: 2.7174763240593642e-05}
+- {source: NEA, dest: CEU, start_time: 45.975, end_time: 45.95, rate: 2.7331001778855698e-05}
+- {source: NEA, dest: CEU, start_time: 45.95, end_time: 45.925000000000004, rate: 2.7487625980213953e-05}
+- {source: NEA, dest: CEU, start_time: 45.925000000000004, end_time: 45.900000000000006,
+  rate: 2.7644631634957325e-05}
+- {source: NEA, dest: CEU, start_time: 45.900000000000006, end_time: 45.875, rate: 2.7802014477361583e-05}
+- {source: NEA, dest: CEU, start_time: 45.875, end_time: 45.85, rate: 2.7959770185616138e-05}
+- {source: NEA, dest: CEU, start_time: 45.85, end_time: 45.825, rate: 2.811789438176828e-05}
+- {source: NEA, dest: CEU, start_time: 45.825, end_time: 45.800000000000004, rate: 2.82763826316532e-05}
+- {source: NEA, dest: CEU, start_time: 45.800000000000004, end_time: 45.775000000000006,
+  rate: 2.843523044485114e-05}
+- {source: NEA, dest: CEU, start_time: 45.775000000000006, end_time: 45.75, rate: 2.8594433274636768e-05}
+- {source: NEA, dest: CEU, start_time: 45.75, end_time: 45.725, rate: 2.8753986517930935e-05}
+- {source: NEA, dest: CEU, start_time: 45.725, end_time: 45.7, rate: 2.8913885515278653e-05}
+- {source: NEA, dest: CEU, start_time: 45.7, end_time: 45.675000000000004, rate: 2.9074125550809383e-05}
+- {source: NEA, dest: CEU, start_time: 45.675000000000004, end_time: 45.650000000000006,
+  rate: 2.9234701852213756e-05}
+- {source: NEA, dest: CEU, start_time: 45.650000000000006, end_time: 45.625, rate: 2.9395609590732227e-05}
+- {source: NEA, dest: CEU, start_time: 45.625, end_time: 45.6, rate: 2.955684388114153e-05}
+- {source: NEA, dest: CEU, start_time: 45.6, end_time: 45.575, rate: 2.971839978173623e-05}
+- {source: NEA, dest: CEU, start_time: 45.575, end_time: 45.550000000000004, rate: 2.988027229435681e-05}
+- {source: NEA, dest: CEU, start_time: 45.550000000000004, end_time: 45.525000000000006,
+  rate: 3.0042456364364252e-05}
+- {source: NEA, dest: CEU, start_time: 45.525000000000006, end_time: 45.5, rate: 3.0204946880678172e-05}
+- {source: NEA, dest: CEU, start_time: 45.5, end_time: 45.475, rate: 3.0367738675788565e-05}
+- {source: NEA, dest: CEU, start_time: 45.475, end_time: 45.45, rate: 3.0530826525770935e-05}
+- {source: NEA, dest: CEU, start_time: 45.45, end_time: 45.425000000000004, rate: 3.069420515033642e-05}
+- {source: NEA, dest: CEU, start_time: 45.425000000000004, end_time: 45.400000000000006,
+  rate: 3.085786921286173e-05}
+- {source: NEA, dest: CEU, start_time: 45.400000000000006, end_time: 45.375, rate: 3.102181332042716e-05}
+- {source: NEA, dest: CEU, start_time: 45.375, end_time: 45.35, rate: 3.1186032023888406e-05}
+- {source: NEA, dest: CEU, start_time: 45.35, end_time: 45.325, rate: 3.1350519817911984e-05}
+- {source: NEA, dest: CEU, start_time: 45.325, end_time: 45.300000000000004, rate: 3.151527114105519e-05}
+- {source: NEA, dest: CEU, start_time: 45.300000000000004, end_time: 45.275000000000006,
+  rate: 3.16802803758397e-05}
+- {source: NEA, dest: CEU, start_time: 45.275000000000006, end_time: 45.25, rate: 3.184554184881484e-05}
+- {source: NEA, dest: CEU, start_time: 45.25, end_time: 45.225, rate: 3.2011049830660854e-05}
+- {source: NEA, dest: CEU, start_time: 45.225, end_time: 45.2, rate: 3.217679853627133e-05}
+- {source: NEA, dest: CEU, start_time: 45.2, end_time: 45.175000000000004, rate: 3.2342782124854116e-05}
+- {source: NEA, dest: CEU, start_time: 45.175000000000004, end_time: 45.150000000000006,
+  rate: 3.250899470004389e-05}
+- {source: NEA, dest: CEU, start_time: 45.150000000000006, end_time: 45.125, rate: 3.267543031000437e-05}
+- {source: NEA, dest: CEU, start_time: 45.125, end_time: 45.1, rate: 3.284208294755585e-05}
+- {source: NEA, dest: CEU, start_time: 45.1, end_time: 45.075, rate: 3.300894655030351e-05}
+- {source: NEA, dest: CEU, start_time: 45.075, end_time: 45.050000000000004, rate: 3.317601500077012e-05}
+- {source: NEA, dest: CEU, start_time: 45.050000000000004, end_time: 45.025000000000006,
+  rate: 3.3343282126536755e-05}
+- {source: NEA, dest: CEU, start_time: 45.025000000000006, end_time: 45.0, rate: 3.351074170039751e-05}
+- {source: NEA, dest: CEU, start_time: 45.0, end_time: 44.975, rate: 3.3678387440506115e-05}
+- {source: NEA, dest: CEU, start_time: 44.975, end_time: 44.95, rate: 3.384621301054437e-05}
+- {source: NEA, dest: CEU, start_time: 44.95, end_time: 44.925000000000004, rate: 3.4014212019903455e-05}
+- {source: NEA, dest: CEU, start_time: 44.925000000000004, end_time: 44.900000000000006,
+  rate: 3.4182378023845116e-05}
+- {source: NEA, dest: CEU, start_time: 44.900000000000006, end_time: 44.875, rate: 3.435070452369698e-05}
+- {source: NEA, dest: CEU, start_time: 44.875, end_time: 44.85, rate: 3.451918496704674e-05}
+- {source: NEA, dest: CEU, start_time: 44.85, end_time: 44.825, rate: 3.468781274793902e-05}
+- {source: NEA, dest: CEU, start_time: 44.825, end_time: 44.800000000000004, rate: 3.485658120708467e-05}
+- {source: NEA, dest: CEU, start_time: 44.800000000000004, end_time: 44.775000000000006,
+  rate: 3.502548363208446e-05}
+- {source: NEA, dest: CEU, start_time: 44.775000000000006, end_time: 44.75, rate: 3.5194513257634794e-05}
+- {source: NEA, dest: CEU, start_time: 44.75, end_time: 44.725, rate: 3.5363663265779654e-05}
+- {source: NEA, dest: CEU, start_time: 44.725, end_time: 44.7, rate: 3.5532926786135484e-05}
+- {source: NEA, dest: CEU, start_time: 44.7, end_time: 44.675000000000004, rate: 3.5702296896140666e-05}
+- {source: NEA, dest: CEU, start_time: 44.675000000000004, end_time: 44.650000000000006,
+  rate: 3.587176662131987e-05}
+- {source: NEA, dest: CEU, start_time: 44.650000000000006, end_time: 44.625, rate: 3.604132893552688e-05}
+- {source: NEA, dest: CEU, start_time: 44.625, end_time: 44.6, rate: 3.621097676123264e-05}
+- {source: NEA, dest: CEU, start_time: 44.6, end_time: 44.575, rate: 3.638070296979376e-05}
+- {source: NEA, dest: CEU, start_time: 44.575, end_time: 44.550000000000004, rate: 3.655050038174211e-05}
+- {source: NEA, dest: CEU, start_time: 44.550000000000004, end_time: 44.525000000000006,
+  rate: 3.672036176706887e-05}
+- {source: NEA, dest: CEU, start_time: 44.525000000000006, end_time: 44.5, rate: 3.6890279845542336e-05}
+- {source: NEA, dest: CEU, start_time: 44.5, end_time: 44.475, rate: 3.706024728700473e-05}
+- {source: NEA, dest: CEU, start_time: 44.475, end_time: 44.45, rate: 3.723025671168818e-05}
+- {source: NEA, dest: CEU, start_time: 44.45, end_time: 44.425000000000004, rate: 3.740030069055245e-05}
+- {source: NEA, dest: CEU, start_time: 44.425000000000004, end_time: 44.400000000000006,
+  rate: 3.7570371745597936e-05}
+- {source: NEA, dest: CEU, start_time: 44.400000000000006, end_time: 44.375, rate: 3.774046235023427e-05}
+- {source: NEA, dest: CEU, start_time: 44.375, end_time: 44.35, rate: 3.79105649295998e-05}
+- {source: NEA, dest: CEU, start_time: 44.35, end_time: 44.325, rate: 3.8080671860938704e-05}
+- {source: NEA, dest: CEU, start_time: 44.325, end_time: 44.300000000000004, rate: 3.8250775473961095e-05}
+- {source: NEA, dest: CEU, start_time: 44.300000000000004, end_time: 44.275000000000006,
+  rate: 3.8420868051214007e-05}
+- {source: NEA, dest: CEU, start_time: 44.275000000000006, end_time: 44.25, rate: 3.859094182845828e-05}
+- {source: NEA, dest: CEU, start_time: 44.25, end_time: 44.225, rate: 3.876098899507885e-05}
+- {source: NEA, dest: CEU, start_time: 44.225, end_time: 44.2, rate: 3.893100169444495e-05}
+- {source: NEA, dest: CEU, start_time: 44.2, end_time: 44.175000000000004, rate: 3.910097202435637e-05}
+- {source: NEA, dest: CEU, start_time: 44.175000000000004, end_time: 44.150000000000006,
+  rate: 3.927089203743306e-05}
+- {source: NEA, dest: CEU, start_time: 44.150000000000006, end_time: 44.125, rate: 3.94407537415324e-05}
+- {source: NEA, dest: CEU, start_time: 44.125, end_time: 44.1, rate: 3.9610549100204916e-05}
+- {source: NEA, dest: CEU, start_time: 44.1, end_time: 44.075, rate: 3.9780270033105545e-05}
+- {source: NEA, dest: CEU, start_time: 44.075, end_time: 44.050000000000004, rate: 3.994990841644773e-05}
+- {source: NEA, dest: CEU, start_time: 44.050000000000004, end_time: 44.025000000000006,
+  rate: 4.0119456083475965e-05}
+- {source: NEA, dest: CEU, start_time: 44.025000000000006, end_time: 44.0, rate: 4.028890482489545e-05}
+- {source: NEA, dest: CEU, start_time: 44.0, end_time: 43.975, rate: 4.045824638936551e-05}
+- {source: NEA, dest: CEU, start_time: 43.975, end_time: 43.95, rate: 4.062747248398193e-05}
+- {source: NEA, dest: CEU, start_time: 43.95, end_time: 43.925000000000004, rate: 4.079657477474564e-05}
+- {source: NEA, dest: CEU, start_time: 43.925000000000004, end_time: 43.900000000000006,
+  rate: 4.096554488705875e-05}
+- {source: NEA, dest: CEU, start_time: 43.900000000000006, end_time: 43.875, rate: 4.113437440625338e-05}
+- {source: NEA, dest: CEU, start_time: 43.875, end_time: 43.85, rate: 4.1303054878070486e-05}
+- {source: NEA, dest: CEU, start_time: 43.85, end_time: 43.825, rate: 4.147157780920144e-05}
+- {source: NEA, dest: CEU, start_time: 43.825, end_time: 43.800000000000004, rate: 4.163993466780394e-05}
+- {source: NEA, dest: CEU, start_time: 43.800000000000004, end_time: 43.775000000000006,
+  rate: 4.180811688403638e-05}
+- {source: NEA, dest: CEU, start_time: 43.775000000000006, end_time: 43.75, rate: 4.1976115850615816e-05}
+- {source: NEA, dest: CEU, start_time: 43.75, end_time: 43.725, rate: 4.2143922923350794e-05}
+- {source: NEA, dest: CEU, start_time: 43.725, end_time: 43.7, rate: 4.231152942171184e-05}
+- {source: NEA, dest: CEU, start_time: 43.7, end_time: 43.675000000000004, rate: 4.247892662940298e-05}
+- {source: NEA, dest: CEU, start_time: 43.675000000000004, end_time: 43.650000000000006,
+  rate: 4.2646105794915944e-05}
+- {source: NEA, dest: CEU, start_time: 43.650000000000006, end_time: 43.625, rate: 4.281305813214297e-05}
+- {source: NEA, dest: CEU, start_time: 43.625, end_time: 43.6, rate: 4.297977482094808e-05}
+- {source: NEA, dest: CEU, start_time: 43.6, end_time: 43.575, rate: 4.314624700777419e-05}
+- {source: NEA, dest: CEU, start_time: 43.575, end_time: 43.550000000000004, rate: 4.331246580624708e-05}
+- {source: NEA, dest: CEU, start_time: 43.550000000000004, end_time: 43.525000000000006,
+  rate: 4.3478422297793535e-05}
+- {source: NEA, dest: CEU, start_time: 43.525000000000006, end_time: 43.5, rate: 4.3644107532262294e-05}
+- {source: NEA, dest: CEU, start_time: 43.5, end_time: 43.475, rate: 4.380951252855662e-05}
+- {source: NEA, dest: CEU, start_time: 43.475, end_time: 43.45, rate: 4.397462827527096e-05}
+- {source: NEA, dest: CEU, start_time: 43.45, end_time: 43.425000000000004, rate: 4.41394457313416e-05}
+- {source: NEA, dest: CEU, start_time: 43.425000000000004, end_time: 43.400000000000006,
+  rate: 4.430395582669383e-05}
+- {source: NEA, dest: CEU, start_time: 43.400000000000006, end_time: 43.375, rate: 4.446814946291304e-05}
+- {source: NEA, dest: CEU, start_time: 43.375, end_time: 43.35, rate: 4.463201751390736e-05}
+- {source: NEA, dest: CEU, start_time: 43.35, end_time: 43.325, rate: 4.4795550826583924e-05}
+- {source: NEA, dest: CEU, start_time: 43.325, end_time: 43.300000000000004, rate: 4.495874022154189e-05}
+- {source: NEA, dest: CEU, start_time: 43.300000000000004, end_time: 43.275000000000006,
+  rate: 4.512157649375632e-05}
+- {source: NEA, dest: CEU, start_time: 43.275000000000006, end_time: 43.25, rate: 4.528405041328112e-05}
+- {source: NEA, dest: CEU, start_time: 43.25, end_time: 43.225, rate: 4.5446152725954345e-05}
+- {source: NEA, dest: CEU, start_time: 43.225, end_time: 43.2, rate: 4.5607874154119816e-05}
+- {source: NEA, dest: CEU, start_time: 43.2, end_time: 43.175000000000004, rate: 4.576920539734475e-05}
+- {source: NEA, dest: CEU, start_time: 43.175000000000004, end_time: 43.150000000000006,
+  rate: 4.593013713314318e-05}
+- {source: NEA, dest: CEU, start_time: 43.150000000000006, end_time: 43.125, rate: 4.609066001772107e-05}
+- {source: NEA, dest: CEU, start_time: 43.125, end_time: 43.1, rate: 4.625076468671811e-05}
+- {source: NEA, dest: CEU, start_time: 43.1, end_time: 43.075, rate: 4.641044175596089e-05}
+- {source: NEA, dest: CEU, start_time: 43.075, end_time: 43.050000000000004, rate: 4.656968182221242e-05}
+- {source: NEA, dest: CEU, start_time: 43.050000000000004, end_time: 43.025000000000006,
+  rate: 4.672847546394849e-05}
+- {source: NEA, dest: CEU, start_time: 43.025000000000006, end_time: 43.0, rate: 4.688681324212012e-05}
+- {source: NEA, dest: CEU, start_time: 43.0, end_time: 42.975, rate: 4.704468570094259e-05}
+- {source: NEA, dest: CEU, start_time: 42.975, end_time: 42.95, rate: 4.720208336866886e-05}
+- {source: NEA, dest: CEU, start_time: 42.95, end_time: 42.925000000000004, rate: 4.73589967583925e-05}
+- {source: NEA, dest: CEU, start_time: 42.925000000000004, end_time: 42.900000000000006,
+  rate: 4.751541636884802e-05}
+- {source: NEA, dest: CEU, start_time: 42.900000000000006, end_time: 42.875, rate: 4.767133268521252e-05}
+- {source: NEA, dest: CEU, start_time: 42.875, end_time: 42.85, rate: 4.782673617991532e-05}
+- {source: NEA, dest: CEU, start_time: 42.85, end_time: 42.825, rate: 4.7981617313466214e-05}
+- {source: NEA, dest: CEU, start_time: 42.825, end_time: 42.800000000000004, rate: 4.8135966535270025e-05}
+- {source: NEA, dest: CEU, start_time: 42.800000000000004, end_time: 42.775000000000006,
+  rate: 4.828977428447879e-05}
+- {source: NEA, dest: CEU, start_time: 42.775000000000006, end_time: 42.75, rate: 4.844303099080805e-05}
+- {source: NEA, dest: CEU, start_time: 42.75, end_time: 42.725, rate: 4.859572707538523e-05}
+- {source: NEA, dest: CEU, start_time: 42.725, end_time: 42.7, rate: 4.874785295161951e-05}
+- {source: NEA, dest: CEU, start_time: 42.7, end_time: 42.675000000000004, rate: 4.8899399026035074e-05}
+- {source: NEA, dest: CEU, start_time: 42.675000000000004, end_time: 42.650000000000006,
+  rate: 4.905035569915592e-05}
+- {source: NEA, dest: CEU, start_time: 42.650000000000006, end_time: 42.625, rate: 4.920071336635655e-05}
+- {source: NEA, dest: CEU, start_time: 42.625, end_time: 42.6, rate: 4.9350462418743345e-05}
+- {source: NEA, dest: CEU, start_time: 42.6, end_time: 42.575, rate: 4.9499593244040496e-05}
+- {source: NEA, dest: CEU, start_time: 42.575, end_time: 42.550000000000004, rate: 4.964809622747752e-05}
+- {source: NEA, dest: CEU, start_time: 42.550000000000004, end_time: 42.525000000000006,
+  rate: 4.979596175266106e-05}
+- {source: NEA, dest: CEU, start_time: 42.525000000000006, end_time: 42.5, rate: 4.994318020250729e-05}
+- {source: NEA, dest: CEU, start_time: 42.5, end_time: 42.475, rate: 5.008974196010925e-05}
+- {source: NEA, dest: CEU, start_time: 42.475, end_time: 42.45, rate: 5.02356374096644e-05}
+- {source: NEA, dest: CEU, start_time: 42.45, end_time: 42.425000000000004, rate: 5.0380856937396465e-05}
+- {source: NEA, dest: CEU, start_time: 42.425000000000004, end_time: 42.400000000000006,
+  rate: 5.052539093244375e-05}
+- {source: NEA, dest: CEU, start_time: 42.400000000000006, end_time: 42.375, rate: 5.0669229787818106e-05}
+- {source: NEA, dest: CEU, start_time: 42.375, end_time: 42.35, rate: 5.081236390131052e-05}
+- {source: NEA, dest: CEU, start_time: 42.35, end_time: 42.325, rate: 5.09547836764226e-05}
+- {source: NEA, dest: CEU, start_time: 42.325, end_time: 42.300000000000004, rate: 5.109647952333052e-05}
+- {source: NEA, dest: CEU, start_time: 42.300000000000004, end_time: 42.275000000000006,
+  rate: 5.123744185979436e-05}
+- {source: NEA, dest: CEU, start_time: 42.275000000000006, end_time: 42.25, rate: 5.137766111212974e-05}
+- {source: NEA, dest: CEU, start_time: 42.25, end_time: 42.225, rate: 5.151712771615069e-05}
+- {source: NEA, dest: CEU, start_time: 42.225, end_time: 42.2, rate: 5.165583211812702e-05}
+- {source: NEA, dest: CEU, start_time: 42.2, end_time: 42.175000000000004, rate: 5.1793764775732546e-05}
+- {source: NEA, dest: CEU, start_time: 42.175000000000004, end_time: 42.150000000000006,
+  rate: 5.193091615904314e-05}
+- {source: NEA, dest: CEU, start_time: 42.150000000000006, end_time: 42.125, rate: 5.2067276751466716e-05}
+- {source: NEA, dest: CEU, start_time: 42.125, end_time: 42.1, rate: 5.220283705072847e-05}
+- {source: NEA, dest: CEU, start_time: 42.1, end_time: 42.075, rate: 5.233758756986748e-05}
+- {source: NEA, dest: CEU, start_time: 42.075, end_time: 42.050000000000004, rate: 5.2471518838179166e-05}
+- {source: NEA, dest: CEU, start_time: 42.050000000000004, end_time: 42.025000000000006,
+  rate: 5.260462140222805e-05}
+- {source: NEA, dest: CEU, start_time: 42.025000000000006, end_time: 42.0, rate: 5.273688582682672e-05}
+- {source: NEA, dest: CEU, start_time: 42.0, end_time: 41.975, rate: 5.2868302696015215e-05}
+- {source: NEA, dest: CEU, start_time: 41.975, end_time: 41.95, rate: 5.299886261407195e-05}
+- {source: NEA, dest: CEU, start_time: 41.95, end_time: 41.925000000000004, rate: 5.312855620649014e-05}
+- {source: NEA, dest: CEU, start_time: 41.925000000000004, end_time: 41.900000000000006,
+  rate: 5.325737412098873e-05}
+- {source: NEA, dest: CEU, start_time: 41.900000000000006, end_time: 41.875, rate: 5.338530702851573e-05}
+- {source: NEA, dest: CEU, start_time: 41.875, end_time: 41.85, rate: 5.351234562425417e-05}
+- {source: NEA, dest: CEU, start_time: 41.85, end_time: 41.825, rate: 5.3638480628604716e-05}
+- {source: NEA, dest: CEU, start_time: 41.825, end_time: 41.800000000000004, rate: 5.376370278823154e-05}
+- {source: NEA, dest: CEU, start_time: 41.800000000000004, end_time: 41.775000000000006,
+  rate: 5.388800287704817e-05}
+- {source: NEA, dest: CEU, start_time: 41.775000000000006, end_time: 41.75, rate: 5.4011371697241964e-05}
+- {source: NEA, dest: CEU, start_time: 41.75, end_time: 41.725, rate: 5.413380008028694e-05}
+- {source: NEA, dest: CEU, start_time: 41.725, end_time: 41.7, rate: 5.4255278887956906e-05}
+- {source: NEA, dest: CEU, start_time: 41.7, end_time: 41.675000000000004, rate: 5.437579901336039e-05}
+- {source: NEA, dest: CEU, start_time: 41.675000000000004, end_time: 41.650000000000006,
+  rate: 5.4495351381941745e-05}
+- {source: NEA, dest: CEU, start_time: 41.650000000000006, end_time: 41.625, rate: 5.461392695251141e-05}
+- {source: NEA, dest: CEU, start_time: 41.625, end_time: 41.6, rate: 5.473151671827613e-05}
+- {source: NEA, dest: CEU, start_time: 41.6, end_time: 41.575, rate: 5.484811170785947e-05}
+- {source: NEA, dest: CEU, start_time: 41.575, end_time: 41.550000000000004, rate: 5.496370298632182e-05}
+- {source: NEA, dest: CEU, start_time: 41.550000000000004, end_time: 41.525000000000006,
+  rate: 5.507828165619841e-05}
+- {source: NEA, dest: CEU, start_time: 41.525000000000006, end_time: 41.5, rate: 5.5191838858511646e-05}
+- {source: NEA, dest: CEU, start_time: 41.5, end_time: 41.475, rate: 5.5304365773816906e-05}
+- {source: NEA, dest: CEU, start_time: 41.475, end_time: 41.45, rate: 5.5415853623222106e-05}
+- {source: NEA, dest: CEU, start_time: 41.45, end_time: 41.425000000000004, rate: 5.5526293669415605e-05}
+- {source: NEA, dest: CEU, start_time: 41.425000000000004, end_time: 41.400000000000006,
+  rate: 5.563567721769255e-05}
+- {source: NEA, dest: CEU, start_time: 41.400000000000006, end_time: 41.375, rate: 5.574399561699872e-05}
+- {source: NEA, dest: CEU, start_time: 41.375, end_time: 41.35, rate: 5.5851240260942703e-05}
+- {source: NEA, dest: CEU, start_time: 41.35, end_time: 41.325, rate: 5.595740258884099e-05}
+- {source: NEA, dest: CEU, start_time: 41.325, end_time: 41.300000000000004, rate: 5.606247408671984e-05}
+- {source: NEA, dest: CEU, start_time: 41.300000000000004, end_time: 41.275000000000006,
+  rate: 5.6166446288375305e-05}
+- {source: NEA, dest: CEU, start_time: 41.275000000000006, end_time: 41.25, rate: 5.626931077638031e-05}
+- {source: NEA, dest: CEU, start_time: 41.25, end_time: 41.225, rate: 5.637105918312556e-05}
+- {source: NEA, dest: CEU, start_time: 41.225, end_time: 41.2, rate: 5.647168319181345e-05}
+- {source: NEA, dest: CEU, start_time: 41.2, end_time: 41.175000000000004, rate: 5.657117453752406e-05}
+- {source: NEA, dest: CEU, start_time: 41.175000000000004, end_time: 41.150000000000006,
+  rate: 5.666952500820806e-05}
+- {source: NEA, dest: CEU, start_time: 41.150000000000006, end_time: 41.125, rate: 5.676672644572282e-05}
+- {source: NEA, dest: CEU, start_time: 41.125, end_time: 41.1, rate: 5.6862770746846146e-05}
+- {source: NEA, dest: CEU, start_time: 41.1, end_time: 41.075, rate: 5.6957649864279946e-05}
+- {source: NEA, dest: CEU, start_time: 41.075, end_time: 41.050000000000004, rate: 5.70513558076989e-05}
+- {source: NEA, dest: CEU, start_time: 41.050000000000004, end_time: 41.025000000000006,
+  rate: 5.714388064473726e-05}
+- {source: NEA, dest: CEU, start_time: 41.025000000000006, end_time: 41.0, rate: 5.723521650200879e-05}
+- {source: NEA, dest: CEU, start_time: 41.0, end_time: 40.975, rate: 5.732535556610661e-05}
+- {source: NEA, dest: CEU, start_time: 40.975, end_time: 40.95, rate: 5.741429008463443e-05}
+- {source: NEA, dest: CEU, start_time: 40.95, end_time: 40.925000000000004, rate: 5.750201236717495e-05}
+- {source: NEA, dest: CEU, start_time: 40.925000000000004, end_time: 40.900000000000006,
+  rate: 5.7588514786325246e-05}
+- {source: NEA, dest: CEU, start_time: 40.900000000000006, end_time: 40.875, rate: 5.7673789778659086e-05}
+- {source: NEA, dest: CEU, start_time: 40.875, end_time: 40.85, rate: 5.7757829845752807e-05}
+- {source: NEA, dest: CEU, start_time: 40.85, end_time: 40.825, rate: 5.784062755515397e-05}
+- {source: NEA, dest: CEU, start_time: 40.825, end_time: 40.800000000000004, rate: 5.792217554138398e-05}
+- {source: NEA, dest: CEU, start_time: 40.800000000000004, end_time: 40.775000000000006,
+  rate: 5.800246650690261e-05}
+- {source: NEA, dest: CEU, start_time: 40.775000000000006, end_time: 40.75, rate: 5.8081493223109634e-05}
+- {source: NEA, dest: CEU, start_time: 40.75, end_time: 40.725, rate: 5.815924853130295e-05}
+- {source: NEA, dest: CEU, start_time: 40.725, end_time: 40.7, rate: 5.823572534365389e-05}
+- {source: NEA, dest: CEU, start_time: 40.7, end_time: 40.675000000000004, rate: 5.8310916644179766e-05}
+- {source: NEA, dest: CEU, start_time: 40.675000000000004, end_time: 40.650000000000006,
+  rate: 5.8384815489700306e-05}
+- {source: NEA, dest: CEU, start_time: 40.650000000000006, end_time: 40.625, rate: 5.845741501079433e-05}
+- {source: NEA, dest: CEU, start_time: 40.625, end_time: 40.6, rate: 5.852870841275818e-05}
+- {source: NEA, dest: CEU, start_time: 40.6, end_time: 40.575, rate: 5.8598688976537494e-05}
+- {source: NEA, dest: CEU, start_time: 40.575, end_time: 40.550000000000004, rate: 5.8667350059696914e-05}
+- {source: NEA, dest: CEU, start_time: 40.550000000000004, end_time: 40.525000000000006,
+  rate: 5.8734685097323046e-05}
+- {source: NEA, dest: CEU, start_time: 40.525000000000006, end_time: 40.5, rate: 5.8800687602981565e-05}
+- {source: NEA, dest: CEU, start_time: 40.5, end_time: 40.475, rate: 5.8865351169640547e-05}
+- {source: NEA, dest: CEU, start_time: 40.475, end_time: 40.45, rate: 5.892866947056594e-05}
+- {source: NEA, dest: CEU, start_time: 40.45, end_time: 40.425000000000004, rate: 5.899063626026297e-05}
+- {source: NEA, dest: CEU, start_time: 40.425000000000004, end_time: 40.400000000000006,
+  rate: 5.90512453753695e-05}
+- {source: NEA, dest: CEU, start_time: 40.400000000000006, end_time: 40.375, rate: 5.9110490735553e-05}
+- {source: NEA, dest: CEU, start_time: 40.375, end_time: 40.35, rate: 5.916836634442618e-05}
+- {source: NEA, dest: CEU, start_time: 40.35, end_time: 40.325, rate: 5.922486629040052e-05}
+- {source: NEA, dest: CEU, start_time: 40.325, end_time: 40.300000000000004, rate: 5.927998474759843e-05}
+- {source: NEA, dest: CEU, start_time: 40.300000000000004, end_time: 40.275000000000006,
+  rate: 5.933371597670968e-05}
+- {source: NEA, dest: CEU, start_time: 40.275000000000006, end_time: 40.25, rate: 5.93860543258557e-05}
+- {source: NEA, dest: CEU, start_time: 40.25, end_time: 40.225, rate: 5.9436994231461725e-05}
+- {source: NEA, dest: CEU, start_time: 40.225, end_time: 40.2, rate: 5.9486530219102964e-05}
+- {source: NEA, dest: CEU, start_time: 40.2, end_time: 40.175000000000004, rate: 5.953465690433444e-05}
+- {source: NEA, dest: CEU, start_time: 40.175000000000004, end_time: 40.150000000000006,
+  rate: 5.958136899353856e-05}
+- {source: NEA, dest: CEU, start_time: 40.150000000000006, end_time: 40.125, rate: 5.962666128477294e-05}
+- {source: NEA, dest: CEU, start_time: 40.125, end_time: 40.1, rate: 5.967052866854256e-05}
+- {source: NEA, dest: CEU, start_time: 40.1, end_time: 40.075, rate: 5.971296612865319e-05}
+- {source: NEA, dest: CEU, start_time: 40.075, end_time: 40.050000000000004, rate: 5.975396874299716e-05}
+- {source: NEA, dest: CEU, start_time: 40.050000000000004, end_time: 40.025000000000006,
+  rate: 5.979353168433542e-05}
+- {source: NEA, dest: CEU, start_time: 40.025000000000006, end_time: 40.0, rate: 5.983165022111685e-05}
+- {source: NEA, dest: CEU, start_time: 40.0, end_time: 39.975, rate: 5.9868319718222115e-05}
+- {source: NEA, dest: CEU, start_time: 39.975, end_time: 39.95, rate: 5.9903535637741144e-05}
+- {source: NEA, dest: CEU, start_time: 39.95, end_time: 39.925000000000004, rate: 5.993729353973604e-05}
+- {source: NEA, dest: CEU, start_time: 39.925000000000004, end_time: 39.900000000000006,
+  rate: 5.996958908298283e-05}
+- {source: NEA, dest: CEU, start_time: 39.900000000000006, end_time: 39.875, rate: 6.000041802570518e-05}
+- {source: NEA, dest: CEU, start_time: 39.875, end_time: 39.85, rate: 6.002977622633429e-05}
+- {source: NEA, dest: CEU, start_time: 39.85, end_time: 39.825, rate: 6.00576596441737e-05}
+- {source: NEA, dest: CEU, start_time: 39.825, end_time: 39.800000000000004, rate: 6.008406434016133e-05}
+- {source: NEA, dest: CEU, start_time: 39.800000000000004, end_time: 39.775000000000006,
+  rate: 6.010898647754132e-05}
+- {source: NEA, dest: CEU, start_time: 39.775000000000006, end_time: 39.75, rate: 6.0132422322549395e-05}
+- {source: NEA, dest: CEU, start_time: 39.75, end_time: 39.725, rate: 6.015436824510313e-05}
+- {source: NEA, dest: CEU, start_time: 39.725, end_time: 39.7, rate: 6.0174820719471324e-05}
+- {source: NEA, dest: CEU, start_time: 39.7, end_time: 39.675000000000004, rate: 6.019377632491207e-05}
+- {source: NEA, dest: CEU, start_time: 39.675000000000004, end_time: 39.650000000000006,
+  rate: 6.0211231746337584e-05}
+- {source: NEA, dest: CEU, start_time: 39.650000000000006, end_time: 39.625, rate: 6.0227183774933826e-05}
+- {source: NEA, dest: CEU, start_time: 39.625, end_time: 39.6, rate: 6.024162930880642e-05}
+- {source: NEA, dest: CEU, start_time: 39.6, end_time: 39.575, rate: 6.025456535356059e-05}
+- {source: NEA, dest: CEU, start_time: 39.575, end_time: 39.550000000000004, rate: 6.026598902293118e-05}
+- {source: NEA, dest: CEU, start_time: 39.550000000000004, end_time: 39.525000000000006,
+  rate: 6.027589753934297e-05}
+- {source: NEA, dest: CEU, start_time: 39.525000000000006, end_time: 39.5, rate: 6.0284288234515554e-05}
+- {source: NEA, dest: CEU, start_time: 39.5, end_time: 39.475, rate: 6.029115855001544e-05}
+- {source: NEA, dest: CEU, start_time: 39.475, end_time: 39.45, rate: 6.029650603780459e-05}
+- {source: NEA, dest: CEU, start_time: 39.45, end_time: 39.425000000000004, rate: 6.030032836078879e-05}
+- {source: NEA, dest: CEU, start_time: 39.425000000000004, end_time: 39.400000000000006,
+  rate: 6.0302623293340124e-05}
+- {source: NEA, dest: CEU, start_time: 39.400000000000006, end_time: 39.375, rate: 6.030338872182583e-05}
+- {source: NEA, dest: CEU, start_time: 39.375, end_time: 39.35, rate: 6.030262264508693e-05}
+- {source: NEA, dest: CEU, start_time: 39.35, end_time: 39.325, rate: 6.0300323174967624e-05}
+- {source: NEA, dest: CEU, start_time: 39.325, end_time: 39.300000000000004, rate: 6.029648853674282e-05}
+- {source: NEA, dest: CEU, start_time: 39.300000000000004, end_time: 39.275000000000006,
+  rate: 6.02911170696338e-05}
+- {source: NEA, dest: CEU, start_time: 39.275000000000006, end_time: 39.25, rate: 6.028420722722526e-05}
+- {source: NEA, dest: CEU, start_time: 39.25, end_time: 39.225, rate: 6.0275757577925707e-05}
+- {source: NEA, dest: CEU, start_time: 39.225, end_time: 39.2, rate: 6.026576680537008e-05}
+- {source: NEA, dest: CEU, start_time: 39.2, end_time: 39.175000000000004, rate: 6.025423370885869e-05}
+- {source: NEA, dest: CEU, start_time: 39.175000000000004, end_time: 39.150000000000006,
+  rate: 6.024115720374323e-05}
+- {source: NEA, dest: CEU, start_time: 39.150000000000006, end_time: 39.125, rate: 6.022653632179241e-05}
+- {source: NEA, dest: CEU, start_time: 39.125, end_time: 39.1, rate: 6.021037021161068e-05}
+- {source: NEA, dest: CEU, start_time: 39.1, end_time: 39.075, rate: 6.0192658138943696e-05}
+- {source: NEA, dest: CEU, start_time: 39.075, end_time: 39.050000000000004, rate: 6.017339948706255e-05}
+- {source: NEA, dest: CEU, start_time: 39.050000000000004, end_time: 39.025000000000006,
+  rate: 6.015259375706192e-05}
+- {source: NEA, dest: CEU, start_time: 39.025000000000006, end_time: 39.0, rate: 6.013024056820578e-05}
+- {source: NEA, dest: CEU, start_time: 39.0, end_time: 38.975, rate: 6.010633965819726e-05}
+- {source: NEA, dest: CEU, start_time: 38.975, end_time: 38.95, rate: 6.0080890883492446e-05}
+- {source: NEA, dest: CEU, start_time: 38.95, end_time: 38.925000000000004, rate: 6.0053894219558626e-05}
+- {source: NEA, dest: CEU, start_time: 38.925000000000004, end_time: 38.900000000000006,
+  rate: 6.002534976113177e-05}
+- {source: NEA, dest: CEU, start_time: 38.900000000000006, end_time: 38.875, rate: 5.999525772246464e-05}
+- {source: NEA, dest: CEU, start_time: 38.875, end_time: 38.85, rate: 5.996361843755316e-05}
+- {source: NEA, dest: CEU, start_time: 38.85, end_time: 38.825, rate: 5.993043236034658e-05}
+- {source: NEA, dest: CEU, start_time: 38.825, end_time: 38.800000000000004, rate: 5.9895700064968264e-05}
+- {source: NEA, dest: CEU, start_time: 38.800000000000004, end_time: 38.775000000000006,
+  rate: 5.985942224584994e-05}
+- {source: NEA, dest: CEU, start_time: 38.775000000000006, end_time: 38.75, rate: 5.982159971796173e-05}
+- {source: NEA, dest: CEU, start_time: 38.75, end_time: 38.725, rate: 5.978223341692158e-05}
+- {source: NEA, dest: CEU, start_time: 38.725, end_time: 38.7, rate: 5.974132439915243e-05}
+- {source: NEA, dest: CEU, start_time: 38.7, end_time: 38.675000000000004, rate: 5.969887384200377e-05}
+- {source: NEA, dest: CEU, start_time: 38.675000000000004, end_time: 38.650000000000006,
+  rate: 5.9654883043852946e-05}
+- {source: NEA, dest: CEU, start_time: 38.650000000000006, end_time: 38.625, rate: 5.960935342420107e-05}
+- {source: NEA, dest: CEU, start_time: 38.625, end_time: 38.6, rate: 5.95622865237656e-05}
+- {source: NEA, dest: CEU, start_time: 38.6, end_time: 38.575, rate: 5.951368400450984e-05}
+- {source: NEA, dest: CEU, start_time: 38.575, end_time: 38.550000000000004, rate: 5.946354764972314e-05}
+- {source: NEA, dest: CEU, start_time: 38.550000000000004, end_time: 38.525000000000006,
+  rate: 5.941187936402597e-05}
+- {source: NEA, dest: CEU, start_time: 38.525000000000006, end_time: 38.5, rate: 5.9358681173393586e-05}
+- {source: NEA, dest: CEU, start_time: 38.5, end_time: 38.475, rate: 5.9303955225165356e-05}
+- {source: NEA, dest: CEU, start_time: 38.475, end_time: 38.45, rate: 5.924770378801144e-05}
+- {source: NEA, dest: CEU, start_time: 38.45, end_time: 38.425000000000004, rate: 5.918992925191413e-05}
+- {source: NEA, dest: CEU, start_time: 38.425000000000004, end_time: 38.400000000000006,
+  rate: 5.913063412810294e-05}
+- {source: NEA, dest: CEU, start_time: 38.400000000000006, end_time: 38.375, rate: 5.906982104900754e-05}
+- {source: NEA, dest: CEU, start_time: 38.375, end_time: 38.35, rate: 5.900749276817131e-05}
+- {source: NEA, dest: CEU, start_time: 38.35, end_time: 38.325, rate: 5.8943652160155456e-05}
+- {source: NEA, dest: CEU, start_time: 38.325, end_time: 38.300000000000004, rate: 5.887830222042077e-05}
+- {source: NEA, dest: CEU, start_time: 38.300000000000004, end_time: 38.275, rate: 5.881144606520652e-05}
+- {source: NEA, dest: CEU, start_time: 38.275, end_time: 38.25, rate: 5.8743086931388516e-05}
+- {source: NEA, dest: CEU, start_time: 38.25, end_time: 38.225, rate: 5.867322817631093e-05}
+- {source: NEA, dest: CEU, start_time: 38.225, end_time: 38.2, rate: 5.8601873277613935e-05}
+- {source: NEA, dest: CEU, start_time: 38.2, end_time: 38.175000000000004, rate: 5.852902583304005e-05}
+- {source: NEA, dest: CEU, start_time: 38.175000000000004, end_time: 38.15, rate: 5.845468956023123e-05}
+- {source: NEA, dest: CEU, start_time: 38.15, end_time: 38.125, rate: 5.8378868296498134e-05}
+- {source: NEA, dest: CEU, start_time: 38.125, end_time: 38.1, rate: 5.830156599857327e-05}
+- {source: NEA, dest: CEU, start_time: 38.1, end_time: 38.075, rate: 5.8222786742373e-05}
+- {source: NEA, dest: CEU, start_time: 38.075, end_time: 38.050000000000004, rate: 5.814253472270688e-05}
+- {source: NEA, dest: CEU, start_time: 38.050000000000004, end_time: 38.025, rate: 5.806081425299242e-05}
+- {source: NEA, dest: CEU, start_time: 38.025, end_time: 38.0, rate: 5.797762976495049e-05}
+- {source: NEA, dest: CEU, start_time: 38.0, end_time: 37.975, rate: 5.789298580829285e-05}
+- {source: NEA, dest: CEU, start_time: 37.975, end_time: 37.95, rate: 5.780688705036707e-05}
+- {source: NEA, dest: CEU, start_time: 37.95, end_time: 37.925000000000004, rate: 5.771933827581365e-05}
+- {source: NEA, dest: CEU, start_time: 37.925000000000004, end_time: 37.9, rate: 5.763034438620185e-05}
+- {source: NEA, dest: CEU, start_time: 37.9, end_time: 37.875, rate: 5.7539910399623336e-05}
+- {source: NEA, dest: CEU, start_time: 37.875, end_time: 37.85, rate: 5.744804145031414e-05}
+- {source: NEA, dest: CEU, start_time: 37.85, end_time: 37.825, rate: 5.735474278821462e-05}
+- {source: NEA, dest: CEU, start_time: 37.825, end_time: 37.800000000000004, rate: 5.726001977855933e-05}
+- {source: NEA, dest: CEU, start_time: 37.800000000000004, end_time: 37.775, rate: 5.716387790139869e-05}
+- {source: NEA, dest: CEU, start_time: 37.775, end_time: 37.75, rate: 5.7066322751156895e-05}
+- {source: NEA, dest: CEU, start_time: 37.75, end_time: 37.725, rate: 5.696736003613822e-05}
+- {source: NEA, dest: CEU, start_time: 37.725, end_time: 37.7, rate: 5.6866995578036794e-05}
+- {source: NEA, dest: CEU, start_time: 37.7, end_time: 37.675000000000004, rate: 5.676523531140171e-05}
+- {source: NEA, dest: CEU, start_time: 37.675000000000004, end_time: 37.65, rate: 5.6662085283144445e-05}
+- {source: NEA, dest: CEU, start_time: 37.65, end_time: 37.625, rate: 5.655755165196429e-05}
+- {source: NEA, dest: CEU, start_time: 37.625, end_time: 37.6, rate: 5.645164068778426e-05}
+- {source: NEA, dest: CEU, start_time: 37.6, end_time: 37.575, rate: 5.63443587712081e-05}
+- {source: NEA, dest: CEU, start_time: 37.575, end_time: 37.550000000000004, rate: 5.623571239289607e-05}
+- {source: NEA, dest: CEU, start_time: 37.550000000000004, end_time: 37.525, rate: 5.6125708152960556e-05}
+- {source: NEA, dest: CEU, start_time: 37.525, end_time: 37.5, rate: 5.601435276037022e-05}
+- {source: NEA, dest: CEU, start_time: 37.5, end_time: 37.475, rate: 5.5901653032271764e-05}
+- {source: NEA, dest: CEU, start_time: 37.475, end_time: 37.45, rate: 5.578761589337778e-05}
+- {source: NEA, dest: CEU, start_time: 37.45, end_time: 37.425000000000004, rate: 5.567224837525343e-05}
+- {source: NEA, dest: CEU, start_time: 37.425000000000004, end_time: 37.4, rate: 5.555555761567226e-05}
+- {source: NEA, dest: CEU, start_time: 37.4, end_time: 37.375, rate: 5.5437550857899895e-05}
+- {source: NEA, dest: CEU, start_time: 37.375, end_time: 37.35, rate: 5.531823544997375e-05}
+- {source: NEA, dest: CEU, start_time: 37.35, end_time: 37.325, rate: 5.5197618843990246e-05}
+- {source: NEA, dest: CEU, start_time: 37.325, end_time: 37.300000000000004, rate: 5.5075708595353296e-05}
+- {source: NEA, dest: CEU, start_time: 37.300000000000004, end_time: 37.275, rate: 5.495251236200057e-05}
+- {source: NEA, dest: CEU, start_time: 37.275, end_time: 37.25, rate: 5.482803790365897e-05}
+- {source: NEA, dest: CEU, start_time: 37.25, end_time: 37.225, rate: 5.4702293081037005e-05}
+- {source: NEA, dest: CEU, start_time: 37.225, end_time: 37.2, rate: 5.457528585503724e-05}
+- {source: NEA, dest: CEU, start_time: 37.2, end_time: 37.175000000000004, rate: 5.444702428591708e-05}
+- {source: NEA, dest: CEU, start_time: 37.175000000000004, end_time: 37.15, rate: 5.4317516532488286e-05}
+- {source: NEA, dest: CEU, start_time: 37.15, end_time: 37.125, rate: 5.4186770851243276e-05}
+- {source: NEA, dest: CEU, start_time: 37.125, end_time: 37.1, rate: 5.405479559552345e-05}
+- {source: NEA, dest: CEU, start_time: 37.1, end_time: 37.075, rate: 5.392159921462718e-05}
+- {source: NEA, dest: CEU, start_time: 37.075, end_time: 37.050000000000004, rate: 5.37871902529196e-05}
+- {source: NEA, dest: CEU, start_time: 37.050000000000004, end_time: 37.025, rate: 5.3651577348962575e-05}
+- {source: NEA, dest: CEU, start_time: 37.025, end_time: 37.0, rate: 5.3514769234574404e-05}
+- {source: NEA, dest: CEU, start_time: 37.0, end_time: 36.975, rate: 5.33767747338977e-05}
+- {source: NEA, dest: CEU, start_time: 36.975, end_time: 36.95, rate: 5.3237602762495216e-05}
+- {source: NEA, dest: CEU, start_time: 36.95, end_time: 36.925000000000004, rate: 5.3097262326357946e-05}
+- {source: NEA, dest: CEU, start_time: 36.925000000000004, end_time: 36.9, rate: 5.2955762520958115e-05}
+- {source: NEA, dest: CEU, start_time: 36.9, end_time: 36.875, rate: 5.2813112530269544e-05}
+- {source: NEA, dest: CEU, start_time: 36.875, end_time: 36.85, rate: 5.26693216257694e-05}
+- {source: NEA, dest: CEU, start_time: 36.85, end_time: 36.825, rate: 5.25243991654469e-05}
+- {source: NEA, dest: CEU, start_time: 36.825, end_time: 36.800000000000004, rate: 5.237835459277267e-05}
+- {source: NEA, dest: CEU, start_time: 36.800000000000004, end_time: 36.775, rate: 5.2231197435666464e-05}
+- {source: NEA, dest: CEU, start_time: 36.775, end_time: 36.75, rate: 5.208293730547954e-05}
+- {source: NEA, dest: CEU, start_time: 36.75, end_time: 36.725, rate: 5.193358389591896e-05}
+- {source: NEA, dest: CEU, start_time: 36.725, end_time: 36.7, rate: 5.1783146981998725e-05}
+- {source: NEA, dest: CEU, start_time: 36.7, end_time: 36.675000000000004, rate: 5.163163641894248e-05}
+- {source: NEA, dest: CEU, start_time: 36.675000000000004, end_time: 36.65, rate: 5.1479062141120306e-05}
+- {source: NEA, dest: CEU, start_time: 36.65, end_time: 36.625, rate: 5.132543416093608e-05}
+- {source: NEA, dest: CEU, start_time: 36.625, end_time: 36.6, rate: 5.117076256771395e-05}
+- {source: NEA, dest: CEU, start_time: 36.6, end_time: 36.575, rate: 5.101505752658565e-05}
+- {source: NEA, dest: CEU, start_time: 36.575, end_time: 36.550000000000004, rate: 5.0858329277361115e-05}
+- {source: NEA, dest: CEU, start_time: 36.550000000000004, end_time: 36.525, rate: 5.0700588133368124e-05}
+- {source: NEA, dest: CEU, start_time: 36.525, end_time: 36.5, rate: 5.0541844480316516e-05}
+- {source: NEA, dest: CEU, start_time: 36.5, end_time: 36.475, rate: 5.0382108775128824e-05}
+- {source: NEA, dest: CEU, start_time: 36.475, end_time: 36.45, rate: 5.02213915447695e-05}
+- {source: NEA, dest: CEU, start_time: 36.45, end_time: 36.425000000000004, rate: 5.0059703385050044e-05}
+- {source: NEA, dest: CEU, start_time: 36.425000000000004, end_time: 36.4, rate: 4.989705495945587e-05}
+- {source: NEA, dest: CEU, start_time: 36.4, end_time: 36.375, rate: 4.973345699791935e-05}
+- {source: NEA, dest: CEU, start_time: 36.375, end_time: 36.35, rate: 4.95689202956264e-05}
+- {source: NEA, dest: CEU, start_time: 36.35, end_time: 36.325, rate: 4.9403455711793836e-05}
+- {source: NEA, dest: CEU, start_time: 36.325, end_time: 36.300000000000004, rate: 4.923707416842251e-05}
+- {source: NEA, dest: CEU, start_time: 36.300000000000004, end_time: 36.275, rate: 4.906978664908241e-05}
+- {source: NEA, dest: CEU, start_time: 36.275, end_time: 36.25, rate: 4.8901604197642884e-05}
+- {source: NEA, dest: CEU, start_time: 36.25, end_time: 36.225, rate: 4.87325379170297e-05}
+- {source: NEA, dest: CEU, start_time: 36.225, end_time: 36.2, rate: 4.856259896796385e-05}
+- {source: NEA, dest: CEU, start_time: 36.2, end_time: 36.175000000000004, rate: 4.839179856766921e-05}
+- {source: NEA, dest: CEU, start_time: 36.175000000000004, end_time: 36.15, rate: 4.822014798861935e-05}
+- {source: NEA, dest: CEU, start_time: 36.15, end_time: 36.125, rate: 4.804765855723249e-05}
+- {source: NEA, dest: CEU, start_time: 36.125, end_time: 36.1, rate: 4.787434165257613e-05}
+- {source: NEA, dest: CEU, start_time: 36.1, end_time: 36.075, rate: 4.770020870508052e-05}
+- {source: NEA, dest: CEU, start_time: 36.075, end_time: 36.050000000000004, rate: 4.75252711952141e-05}
+- {source: NEA, dest: CEU, start_time: 36.050000000000004, end_time: 36.025, rate: 4.734954065217266e-05}
+- {source: NEA, dest: CEU, start_time: 36.025, end_time: 36.0, rate: 4.7173028652557923e-05}
+- {source: NEA, dest: CEU, start_time: 36.0, end_time: 35.975, rate: 4.699574681904999e-05}
+- {source: NEA, dest: CEU, start_time: 35.975, end_time: 35.95, rate: 4.68177068190762e-05}
+- {source: NEA, dest: CEU, start_time: 35.95, end_time: 35.925000000000004, rate: 4.663892036345975e-05}
+- {source: NEA, dest: CEU, start_time: 35.925000000000004, end_time: 35.9, rate: 4.6459399205086614e-05}
+- {source: NEA, dest: CEU, start_time: 35.9, end_time: 35.875, rate: 4.627915513754444e-05}
+- {source: NEA, dest: CEU, start_time: 35.875, end_time: 35.85, rate: 4.6098199993771094e-05}
+- {source: NEA, dest: CEU, start_time: 35.85, end_time: 35.825, rate: 4.591654564469666e-05}
+- {source: NEA, dest: CEU, start_time: 35.825, end_time: 35.800000000000004, rate: 4.5734203997865285e-05}
+- {source: NEA, dest: CEU, start_time: 35.800000000000004, end_time: 35.775, rate: 4.5551186996078586e-05}
+- {source: NEA, dest: CEU, start_time: 35.775, end_time: 35.75, rate: 4.53675066160075e-05}
+- {source: NEA, dest: CEU, start_time: 35.75, end_time: 35.725, rate: 4.51831748668287e-05}
+- {source: NEA, dest: CEU, start_time: 35.725, end_time: 35.7, rate: 4.499820378882484e-05}
+- {source: NEA, dest: CEU, start_time: 35.7, end_time: 35.675000000000004, rate: 4.481260545201614e-05}
+- {source: NEA, dest: CEU, start_time: 35.675000000000004, end_time: 35.65, rate: 4.462639195475014e-05}
+- {source: NEA, dest: CEU, start_time: 35.65, end_time: 35.625, rate: 4.443957542232675e-05}
+- {source: NEA, dest: CEU, start_time: 35.625, end_time: 35.6, rate: 4.4252168005593665e-05}
+- {source: NEA, dest: CEU, start_time: 35.6, end_time: 35.575, rate: 4.4064181879551896e-05}
+- {source: NEA, dest: CEU, start_time: 35.575, end_time: 35.550000000000004, rate: 4.3875629241956333e-05}
+- {source: NEA, dest: CEU, start_time: 35.550000000000004, end_time: 35.525, rate: 4.3686522311895545e-05}
+- {source: NEA, dest: CEU, start_time: 35.525, end_time: 35.5, rate: 4.349687332841953e-05}
+- {source: NEA, dest: CEU, start_time: 35.5, end_time: 35.475, rate: 4.330669454910351e-05}
+- {source: NEA, dest: CEU, start_time: 35.475, end_time: 35.45, rate: 4.311599824865505e-05}
+- {source: NEA, dest: CEU, start_time: 35.45, end_time: 35.425000000000004, rate: 4.292479671750029e-05}
+- {source: NEA, dest: CEU, start_time: 35.425000000000004, end_time: 35.4, rate: 4.273310226037401e-05}
+- {source: NEA, dest: CEU, start_time: 35.4, end_time: 35.375, rate: 4.254092719491265e-05}
+- {source: NEA, dest: CEU, start_time: 35.375, end_time: 35.35, rate: 4.2348283850234856e-05}
+- {source: NEA, dest: CEU, start_time: 35.35, end_time: 35.325, rate: 4.215518456553389e-05}
+- {source: NEA, dest: CEU, start_time: 35.325, end_time: 35.300000000000004, rate: 4.196164168867221e-05}
+- {source: NEA, dest: CEU, start_time: 35.300000000000004, end_time: 35.275, rate: 4.176766757475984e-05}
+- {source: NEA, dest: CEU, start_time: 35.275, end_time: 35.25, rate: 4.1573274584747284e-05}
+- {source: NEA, dest: CEU, start_time: 35.25, end_time: 35.225, rate: 4.137847508401827e-05}
+- {source: NEA, dest: CEU, start_time: 35.225, end_time: 35.2, rate: 4.1183281440971306e-05}
+- {source: NEA, dest: CEU, start_time: 35.2, end_time: 35.175000000000004, rate: 4.098770602562864e-05}
+- {source: NEA, dest: CEU, start_time: 35.175000000000004, end_time: 35.15, rate: 4.079176120820662e-05}
+- {source: NEA, dest: CEU, start_time: 35.15, end_time: 35.125, rate: 4.059545935773101e-05}
+- {source: NEA, dest: CEU, start_time: 35.125, end_time: 35.1, rate: 4.039881284061476e-05}
+- {source: NEA, dest: CEU, start_time: 35.1, end_time: 35.075, rate: 4.0201834019280664e-05}
+- {source: NEA, dest: CEU, start_time: 35.075, end_time: 35.050000000000004, rate: 4.000453525073687e-05}
+- {source: NEA, dest: CEU, start_time: 35.050000000000004, end_time: 35.025, rate: 3.9806928885196494e-05}
+- {source: NEA, dest: CEU, start_time: 35.025, end_time: 35.0, rate: 3.9609027264680524e-05}
+- {source: NEA, dest: CEU, start_time: 35.0, end_time: 34.975, rate: 3.941084272162502e-05}
+- {source: NEA, dest: CEU, start_time: 34.975, end_time: 34.95, rate: 3.9212387577500784e-05}
+- {source: NEA, dest: CEU, start_time: 34.95, end_time: 34.925000000000004, rate: 3.9013674141424013e-05}
+- {source: NEA, dest: CEU, start_time: 34.925000000000004, end_time: 34.9, rate: 3.881471470877225e-05}
+- {source: NEA, dest: CEU, start_time: 34.9, end_time: 34.875, rate: 3.861552155982196e-05}
+- {source: NEA, dest: CEU, start_time: 34.875, end_time: 34.85, rate: 3.8416106958364894e-05}
+- {source: NEA, dest: CEU, start_time: 34.85, end_time: 34.825, rate: 3.8216483150344604e-05}
+- {source: NEA, dest: CEU, start_time: 34.825, end_time: 34.800000000000004, rate: 3.8016662362500795e-05}
+- {source: NEA, dest: CEU, start_time: 34.800000000000004, end_time: 34.775, rate: 3.781665680100233e-05}
+- {source: NEA, dest: CEU, start_time: 34.775, end_time: 34.75, rate: 3.761647865010076e-05}
+- {source: NEA, dest: CEU, start_time: 34.75, end_time: 34.725, rate: 3.7416140070781595e-05}
+- {source: NEA, dest: CEU, start_time: 34.725, end_time: 34.7, rate: 3.721565319942243e-05}
+- {source: NEA, dest: CEU, start_time: 34.7, end_time: 34.675000000000004, rate: 3.701503014646432e-05}
+- {source: NEA, dest: CEU, start_time: 34.675000000000004, end_time: 34.65, rate: 3.681428299506809e-05}
+- {source: NEA, dest: CEU, start_time: 34.65, end_time: 34.625, rate: 3.6613423799809824e-05}
+- {source: NEA, dest: CEU, start_time: 34.625, end_time: 34.6, rate: 3.641246458535321e-05}
+- {source: NEA, dest: CEU, start_time: 34.6, end_time: 34.575, rate: 3.621141734513529e-05}
+- {source: NEA, dest: CEU, start_time: 34.575, end_time: 34.550000000000004, rate: 3.601029404007877e-05}
+- {source: NEA, dest: CEU, start_time: 34.550000000000004, end_time: 34.525, rate: 3.5809106597284584e-05}
+- {source: NEA, dest: CEU, start_time: 34.525, end_time: 34.5, rate: 3.560786690874959e-05}
+- {source: NEA, dest: CEU, start_time: 34.5, end_time: 34.475, rate: 3.540658683008045e-05}
+- {source: NEA, dest: CEU, start_time: 34.475, end_time: 34.45, rate: 3.520527817922879e-05}
+- {source: NEA, dest: CEU, start_time: 34.45, end_time: 34.425000000000004, rate: 3.500395273522008e-05}
+- {source: NEA, dest: CEU, start_time: 34.425000000000004, end_time: 34.4, rate: 3.480262223689798e-05}
+- {source: NEA, dest: CEU, start_time: 34.4, end_time: 34.375, rate: 3.460129838168216e-05}
+- {source: NEA, dest: CEU, start_time: 34.375, end_time: 34.35, rate: 3.4399992824321684e-05}
+- {source: NEA, dest: CEU, start_time: 34.35, end_time: 34.325, rate: 3.419871717566462e-05}
+- {source: NEA, dest: CEU, start_time: 34.325, end_time: 34.300000000000004, rate: 3.3997483001452e-05}
+- {source: NEA, dest: CEU, start_time: 34.300000000000004, end_time: 34.275, rate: 3.379630182107739e-05}
+- {source: NEA, dest: CEU, start_time: 34.275, end_time: 34.25, rate: 3.359518510640949e-05}
+- {source: NEA, dest: CEU, start_time: 34.25, end_time: 34.225, rate: 3.3394144280589306e-05}
+- {source: NEA, dest: CEU, start_time: 34.225, end_time: 34.2, rate: 3.319319071684706e-05}
+- {source: NEA, dest: CEU, start_time: 34.2, end_time: 34.175000000000004, rate: 3.299233573733099e-05}
+- {source: NEA, dest: CEU, start_time: 34.175000000000004, end_time: 34.15, rate: 3.279159061193703e-05}
+- {source: NEA, dest: CEU, start_time: 34.15, end_time: 34.125, rate: 3.259096655717056e-05}
+- {source: NEA, dest: CEU, start_time: 34.125, end_time: 34.1, rate: 3.239047473499158e-05}
+- {source: NEA, dest: CEU, start_time: 34.1, end_time: 34.075, rate: 3.219012625168933e-05}
+- {source: NEA, dest: CEU, start_time: 34.075, end_time: 34.050000000000004, rate: 3.198993215676249e-05}
+- {source: NEA, dest: CEU, start_time: 34.050000000000004, end_time: 34.025, rate: 3.1789903441807615e-05}
+- {source: NEA, dest: CEU, start_time: 34.025, end_time: 34.0, rate: 3.159005103942272e-05}
+- {source: NEA, dest: CEU, start_time: 34.0, end_time: 33.975, rate: 3.139038582212321e-05}
+- {source: NEA, dest: CEU, start_time: 33.975, end_time: 33.95, rate: 3.119091860126228e-05}
+- {source: NEA, dest: CEU, start_time: 33.95, end_time: 33.925000000000004, rate: 3.099166012597405e-05}
+- {source: NEA, dest: CEU, start_time: 33.925000000000004, end_time: 33.9, rate: 3.079262108211873e-05}
+- {source: NEA, dest: CEU, start_time: 33.9, end_time: 33.875, rate: 3.0593812091245504e-05}
+- {source: NEA, dest: CEU, start_time: 33.875, end_time: 33.85, rate: 3.03952437095649e-05}
+- {source: NEA, dest: CEU, start_time: 33.85, end_time: 33.825, rate: 3.019692642693829e-05}
+- {source: NEA, dest: CEU, start_time: 33.825, end_time: 33.800000000000004, rate: 2.9998870665874494e-05}
+- {source: NEA, dest: CEU, start_time: 33.800000000000004, end_time: 33.775, rate: 2.9801086780538696e-05}
+- {source: NEA, dest: CEU, start_time: 33.775, end_time: 33.75, rate: 2.9603585055782616e-05}
+- {source: NEA, dest: CEU, start_time: 33.75, end_time: 33.725, rate: 2.94063757061769e-05}
+- {source: NEA, dest: CEU, start_time: 33.725, end_time: 33.7, rate: 2.920946887506752e-05}
+- {source: NEA, dest: CEU, start_time: 33.7, end_time: 33.675000000000004, rate: 2.9012874633630708e-05}
+- {source: NEA, dest: CEU, start_time: 33.675000000000004, end_time: 33.65, rate: 2.8816602979962917e-05}
+- {source: NEA, dest: CEU, start_time: 33.65, end_time: 33.625, rate: 2.8620663838162036e-05}
+- {source: NEA, dest: CEU, start_time: 33.625, end_time: 33.6, rate: 2.8425067057434102e-05}
+- {source: NEA, dest: CEU, start_time: 33.6, end_time: 33.575, rate: 2.8229822411217835e-05}
+- {source: NEA, dest: CEU, start_time: 33.575, end_time: 33.550000000000004, rate: 2.8034939596311027e-05}
+- {source: NEA, dest: CEU, start_time: 33.550000000000004, end_time: 33.525, rate: 2.7840428232020066e-05}
+- {source: NEA, dest: CEU, start_time: 33.525, end_time: 33.5, rate: 2.764629785932049e-05}
+- {source: NEA, dest: CEU, start_time: 33.5, end_time: 33.475, rate: 2.745255794003269e-05}
+- {source: NEA, dest: CEU, start_time: 33.475, end_time: 33.45, rate: 2.7259217856015235e-05}
+- {source: NEA, dest: CEU, start_time: 33.45, end_time: 33.425000000000004, rate: 2.7066286908361904e-05}
+- {source: NEA, dest: CEU, start_time: 33.425000000000004, end_time: 33.4, rate: 2.6873774316628226e-05}
+- {source: NEA, dest: CEU, start_time: 33.4, end_time: 33.375, rate: 2.6681689218061923e-05}
+- {source: NEA, dest: CEU, start_time: 33.375, end_time: 33.35, rate: 2.6490040666851436e-05}
+- {source: NEA, dest: CEU, start_time: 33.35, end_time: 33.325, rate: 2.6298837633393194e-05}
+- {source: NEA, dest: CEU, start_time: 33.325, end_time: 33.300000000000004, rate: 2.610808900356494e-05}
+- {source: NEA, dest: CEU, start_time: 33.300000000000004, end_time: 33.275, rate: 2.5917803578025528e-05}
+- {source: NEA, dest: CEU, start_time: 33.275, end_time: 33.25, rate: 2.5727990071520996e-05}
+- {source: NEA, dest: CEU, start_time: 33.25, end_time: 33.225, rate: 2.5538657112211143e-05}
+- {source: NEA, dest: CEU, start_time: 33.225, end_time: 33.2, rate: 2.5349813241005097e-05}
+- {source: NEA, dest: CEU, start_time: 33.2, end_time: 33.175000000000004, rate: 2.5161466910923162e-05}
+- {source: NEA, dest: CEU, start_time: 33.175000000000004, end_time: 33.15, rate: 2.4973626486464153e-05}
+- {source: NEA, dest: CEU, start_time: 33.15, end_time: 33.125, rate: 2.4786300242991283e-05}
+- {source: NEA, dest: CEU, start_time: 33.125, end_time: 33.1, rate: 2.4599496366137333e-05}
+- {source: NEA, dest: CEU, start_time: 33.1, end_time: 33.075, rate: 2.4413222951222e-05}
+- {source: NEA, dest: CEU, start_time: 33.075, end_time: 33.050000000000004, rate: 2.4227488002682294e-05}
+- {source: NEA, dest: CEU, start_time: 33.050000000000004, end_time: 33.025, rate: 2.4042299433527304e-05}
+- {source: NEA, dest: CEU, start_time: 33.025, end_time: 33.0, rate: 2.385766506480175e-05}
+- {source: NEA, dest: CEU, start_time: 33.0, end_time: 32.975, rate: 2.367359262506704e-05}
+- {source: NEA, dest: CEU, start_time: 32.975, end_time: 32.95, rate: 2.349008974989708e-05}
+- {source: NEA, dest: CEU, start_time: 32.95, end_time: 32.925000000000004, rate: 2.3307163981398053e-05}
+- {source: NEA, dest: CEU, start_time: 32.925000000000004, end_time: 32.9, rate: 2.3124822767729717e-05}
+- {source: NEA, dest: CEU, start_time: 32.9, end_time: 32.875, rate: 2.294307346266071e-05}
+- {source: NEA, dest: CEU, start_time: 32.875, end_time: 32.85, rate: 2.2761923325120257e-05}
+- {source: NEA, dest: CEU, start_time: 32.85, end_time: 32.825, rate: 2.2581379518783848e-05}
+- {source: NEA, dest: CEU, start_time: 32.825, end_time: 32.800000000000004, rate: 2.2401449111665847e-05}
+- {source: NEA, dest: CEU, start_time: 32.800000000000004, end_time: 32.775, rate: 2.2222139075726567e-05}
+- {source: NEA, dest: CEU, start_time: 32.775, end_time: 32.75, rate: 2.204345628650451e-05}
+- {source: NEA, dest: CEU, start_time: 32.75, end_time: 32.725, rate: 2.1865407522755275e-05}
+- {source: NEA, dest: CEU, start_time: 32.725, end_time: 32.7, rate: 2.168799946611003e-05}
+- {source: NEA, dest: CEU, start_time: 32.7, end_time: 32.675000000000004, rate: 2.1511238700755235e-05}
+- {source: NEA, dest: CEU, start_time: 32.675000000000004, end_time: 32.65, rate: 2.1335131713121063e-05}
+- {source: NEA, dest: CEU, start_time: 32.65, end_time: 32.625, rate: 2.1159684891591183e-05}
+- {source: NEA, dest: CEU, start_time: 32.625, end_time: 32.6, rate: 2.0984904526222702e-05}
+- {source: NEA, dest: CEU, start_time: 32.6, end_time: 32.575, rate: 2.081079680849382e-05}
+- {source: NEA, dest: CEU, start_time: 32.575, end_time: 32.550000000000004, rate: 2.063736783105512e-05}
+- {source: NEA, dest: CEU, start_time: 32.550000000000004, end_time: 32.525, rate: 2.04646235875014e-05}
+- {source: NEA, dest: CEU, start_time: 32.525, end_time: 32.5, rate: 2.029256997216781e-05}
+- {source: NEA, dest: CEU, start_time: 32.5, end_time: 32.475, rate: 2.0121212779925365e-05}
+- {source: NEA, dest: CEU, start_time: 32.475, end_time: 32.45, rate: 1.9950557706011158e-05}
+- {source: NEA, dest: CEU, start_time: 32.45, end_time: 32.425000000000004, rate: 1.978061034586029e-05}
+- {source: NEA, dest: CEU, start_time: 32.425000000000004, end_time: 32.4, rate: 1.961137619496137e-05}
+- {source: NEA, dest: CEU, start_time: 32.4, end_time: 32.375, rate: 1.944286064872588e-05}
+- {source: NEA, dest: CEU, start_time: 32.375, end_time: 32.35, rate: 1.9275069002374582e-05}
+- {source: NEA, dest: CEU, start_time: 32.35, end_time: 32.325, rate: 1.9108006450837837e-05}
+- {source: NEA, dest: CEU, start_time: 32.325, end_time: 32.300000000000004, rate: 1.8941678088672855e-05}
+- {source: NEA, dest: CEU, start_time: 32.300000000000004, end_time: 32.275, rate: 1.877608891000022e-05}
+- {source: NEA, dest: CEU, start_time: 32.275, end_time: 32.25, rate: 1.861124380844861e-05}
+- {source: NEA, dest: CEU, start_time: 32.25, end_time: 32.225, rate: 1.8447147577121325e-05}
+- {source: NEA, dest: CEU, start_time: 32.225, end_time: 32.2, rate: 1.828380490858108e-05}
+- {source: NEA, dest: CEU, start_time: 32.2, end_time: 32.175000000000004, rate: 1.8121220394838936e-05}
+- {source: NEA, dest: CEU, start_time: 32.175000000000004, end_time: 32.15, rate: 1.7959398527371957e-05}
+- {source: NEA, dest: CEU, start_time: 32.15, end_time: 32.125, rate: 1.7798343697149552e-05}
+- {source: NEA, dest: CEU, start_time: 32.125, end_time: 32.1, rate: 1.7638060194672864e-05}
+- {source: NEA, dest: CEU, start_time: 32.1, end_time: 32.075, rate: 1.747855221003958e-05}
+- {source: NEA, dest: CEU, start_time: 32.075, end_time: 32.050000000000004, rate: 1.731982383300857e-05}
+- {source: NEA, dest: CEU, start_time: 32.050000000000004, end_time: 32.025, rate: 1.7161879053097712e-05}
+- {source: NEA, dest: CEU, start_time: 32.025, end_time: 32.0, rate: 1.7004721759682394e-05}
+- {source: NEA, dest: CEU, start_time: 32.0, end_time: 31.975, rate: 1.6848355742113673e-05}
+- {source: NEA, dest: CEU, start_time: 31.975, end_time: 31.950000000000003, rate: 1.6692784689856697e-05}
+- {source: NEA, dest: CEU, start_time: 31.950000000000003, end_time: 31.925, rate: 1.6538012192635248e-05}
+- {source: NEA, dest: CEU, start_time: 31.925, end_time: 31.900000000000002, rate: 1.6384041740597884e-05}
+- {source: NEA, dest: CEU, start_time: 31.900000000000002, end_time: 31.875, rate: 1.623087672449212e-05}
+- {source: NEA, dest: CEU, start_time: 31.875, end_time: 31.85, rate: 1.607852043586255e-05}
+- {source: NEA, dest: CEU, start_time: 31.85, end_time: 31.825000000000003, rate: 1.5926976067254615e-05}
+- {source: NEA, dest: CEU, start_time: 31.825000000000003, end_time: 31.8, rate: 1.5776246712434664e-05}
+- {source: NEA, dest: CEU, start_time: 31.8, end_time: 31.775000000000002, rate: 1.56263353666306e-05}
+- {source: NEA, dest: CEU, start_time: 31.775000000000002, end_time: 31.75, rate: 1.5477244926777205e-05}
+- {source: NEA, dest: CEU, start_time: 31.75, end_time: 31.725, rate: 1.5328978191783128e-05}
+- {source: NEA, dest: CEU, start_time: 31.725, end_time: 31.700000000000003, rate: 1.5181537862803876e-05}
+- {source: NEA, dest: CEU, start_time: 31.700000000000003, end_time: 31.675, rate: 1.5034926543539989e-05}
+- {source: NEA, dest: CEU, start_time: 31.675, end_time: 31.650000000000002, rate: 1.4889146740538372e-05}
+- {source: NEA, dest: CEU, start_time: 31.650000000000002, end_time: 31.625, rate: 1.4744200863509915e-05}
+- {source: NEA, dest: CEU, start_time: 31.625, end_time: 31.6, rate: 1.4600091225665178e-05}
+- {source: NEA, dest: CEU, start_time: 31.6, end_time: 31.575000000000003, rate: 1.4456820044057407e-05}
+- {source: NEA, dest: CEU, start_time: 31.575000000000003, end_time: 31.55, rate: 1.4314389439940517e-05}
+- {source: NEA, dest: CEU, start_time: 31.55, end_time: 31.525000000000002, rate: 1.4172801439143325e-05}
+- {source: NEA, dest: CEU, start_time: 31.525000000000002, end_time: 31.5, rate: 1.403205797245219e-05}
+- {source: NEA, dest: CEU, start_time: 31.5, end_time: 31.475, rate: 1.3892160876008041e-05}
+- {source: NEA, dest: CEU, start_time: 31.475, end_time: 31.450000000000003, rate: 1.3753111891716072e-05}
+- {source: NEA, dest: CEU, start_time: 31.450000000000003, end_time: 31.425, rate: 1.3614912667670216e-05}
+- {source: NEA, dest: CEU, start_time: 31.425, end_time: 31.400000000000002, rate: 1.3477564758583706e-05}
+- {source: NEA, dest: CEU, start_time: 31.400000000000002, end_time: 31.375, rate: 1.3341069626239993e-05}
+- {source: NEA, dest: CEU, start_time: 31.375, end_time: 31.35, rate: 1.320542863994831e-05}
+- {source: NEA, dest: CEU, start_time: 31.35, end_time: 31.325000000000003, rate: 1.3070643077014681e-05}
+- {source: NEA, dest: CEU, start_time: 31.325000000000003, end_time: 31.3, rate: 1.293671412322751e-05}
+- {source: NEA, dest: CEU, start_time: 31.3, end_time: 31.275000000000002, rate: 1.2803642873344405e-05}
+- {source: NEA, dest: CEU, start_time: 31.275000000000002, end_time: 31.25, rate: 1.2671430331604841e-05}
+- {source: NEA, dest: CEU, start_time: 31.25, end_time: 31.225, rate: 1.2540077412242967e-05}
+- {source: NEA, dest: CEU, start_time: 31.225, end_time: 31.200000000000003, rate: 1.2409584940013789e-05}
+- {source: NEA, dest: CEU, start_time: 31.200000000000003, end_time: 31.175, rate: 1.2279953650734943e-05}
+- {source: NEA, dest: CEU, start_time: 31.175, end_time: 31.150000000000002, rate: 1.2151184191832111e-05}
+- {source: NEA, dest: CEU, start_time: 31.150000000000002, end_time: 31.125, rate: 1.202327712290275e-05}
+- {source: NEA, dest: CEU, start_time: 31.125, end_time: 31.1, rate: 1.1896232916282269e-05}
+- {source: NEA, dest: CEU, start_time: 31.1, end_time: 31.075000000000003, rate: 1.1770051957627033e-05}
+- {source: NEA, dest: CEU, start_time: 31.075000000000003, end_time: 31.05, rate: 1.164473454650335e-05}
+- {source: NEA, dest: CEU, start_time: 31.05, end_time: 31.025000000000002, rate: 1.1520280896989393e-05}
+- {source: NEA, dest: CEU, start_time: 31.025000000000002, end_time: 31.0, rate: 1.1396691138282876e-05}
+- {source: NEA, dest: CEU, start_time: 31.0, end_time: 30.975, rate: 1.1273965315322011e-05}
+- {source: NEA, dest: CEU, start_time: 30.975, end_time: 30.950000000000003, rate: 1.1152103389415094e-05}
+- {source: NEA, dest: CEU, start_time: 30.950000000000003, end_time: 30.925, rate: 1.1031105238877732e-05}
+- {source: NEA, dest: CEU, start_time: 30.925, end_time: 30.900000000000002, rate: 1.0910970659678848e-05}
+- {source: NEA, dest: CEU, start_time: 30.900000000000002, end_time: 30.875, rate: 1.079169936609993e-05}
+- {source: NEA, dest: CEU, start_time: 30.875, end_time: 30.85, rate: 1.067329099139665e-05}
+- {source: NEA, dest: CEU, start_time: 30.85, end_time: 30.825000000000003, rate: 1.055574508847254e-05}
+- {source: NEA, dest: CEU, start_time: 30.825000000000003, end_time: 30.8, rate: 1.0439061130561778e-05}
+- {source: NEA, dest: CEU, start_time: 30.8, end_time: 30.775000000000002, rate: 1.0323238511918592e-05}
+- {source: NEA, dest: CEU, start_time: 30.775000000000002, end_time: 30.75, rate: 1.020827654851258e-05}
+- {source: NEA, dest: CEU, start_time: 30.75, end_time: 30.725, rate: 1.0094174478736245e-05}
+- {source: NEA, dest: CEU, start_time: 30.725, end_time: 30.700000000000003, rate: 9.980931464117119e-06}
+- {source: NEA, dest: CEU, start_time: 30.700000000000003, end_time: 30.675, rate: 9.868546590036757e-06}
+- {source: NEA, dest: CEU, start_time: 30.675, end_time: 30.650000000000002, rate: 9.75701886646091e-06}
+- {source: NEA, dest: CEU, start_time: 30.650000000000002, end_time: 30.625, rate: 9.64634722866966e-06}
+- {source: NEA, dest: CEU, start_time: 30.625, end_time: 30.6, rate: 9.536530538002522e-06}
+- {source: NEA, dest: CEU, start_time: 30.6, end_time: 30.575000000000003, rate: 9.427567582604602e-06}
+- {source: NEA, dest: CEU, start_time: 30.575000000000003, end_time: 30.55, rate: 9.319457078179788e-06}
+- {source: NEA, dest: CEU, start_time: 30.55, end_time: 30.525000000000002, rate: 9.212197668752678e-06}
+- {source: NEA, dest: CEU, start_time: 30.525000000000002, end_time: 30.5, rate: 9.10578792743464e-06}
+- {source: NEA, dest: CEU, start_time: 30.5, end_time: 30.475, rate: 9.000226357196313e-06}
+- {source: NEA, dest: CEU, start_time: 30.475, end_time: 30.450000000000003, rate: 8.89551139164528e-06}
+- {source: NEA, dest: CEU, start_time: 30.450000000000003, end_time: 30.425, rate: 8.791641395809007e-06}
+- {source: NEA, dest: CEU, start_time: 30.425, end_time: 30.400000000000002, rate: 8.68861466692563e-06}
+- {source: NEA, dest: CEU, start_time: 30.400000000000002, end_time: 30.375, rate: 8.586429435235551e-06}
+- {source: NEA, dest: CEU, start_time: 30.375, end_time: 30.35, rate: 8.485083864781521e-06}
+- {source: NEA, dest: CEU, start_time: 30.35, end_time: 30.325000000000003, rate: 8.384576054212162e-06}
+- {source: NEA, dest: CEU, start_time: 30.325000000000003, end_time: 30.3, rate: 8.28490403759031e-06}
+- {source: NEA, dest: CEU, start_time: 30.3, end_time: 30.275000000000002, rate: 8.18606578520355e-06}
+- {source: NEA, dest: CEU, start_time: 30.275000000000002, end_time: 30.25, rate: 8.088059204383252e-06}
+- {source: NEA, dest: CEU, start_time: 30.25, end_time: 30.225, rate: 7.990882140324176e-06}
+- {source: NEA, dest: CEU, start_time: 30.225, end_time: 30.200000000000003, rate: 7.894532376907069e-06}
+- {source: NEA, dest: CEU, start_time: 30.200000000000003, end_time: 30.175, rate: 7.799007637529838e-06}
+- {source: NEA, dest: CEU, start_time: 30.175, end_time: 30.150000000000002, rate: 7.704305585935763e-06}
+- {source: NEA, dest: CEU, start_time: 30.150000000000002, end_time: 30.125, rate: 7.610423827049717e-06}
+- {source: NEA, dest: CEU, start_time: 30.125, end_time: 30.1, rate: 7.5173599078153325e-06}
+- {source: NEA, dest: CEU, start_time: 30.1, end_time: 30.075000000000003, rate: 7.425111318034009e-06}
+- {source: NEA, dest: CEU, start_time: 30.075000000000003, end_time: 30.05, rate: 7.333675491210198e-06}
+- {source: NEA, dest: CEU, start_time: 30.05, end_time: 30.025000000000002, rate: 7.243049805394873e-06}
+- {source: NEA, dest: CEU, start_time: 30.025000000000002, end_time: 30.0, rate: 7.153231584033463e-06}
+- {source: NEA, dest: CEU, start_time: 30.0, end_time: 29.975, rate: 7.064218096816459e-06}
+- {source: NEA, dest: CEU, start_time: 29.975, end_time: 29.950000000000003, rate: 6.976006560530891e-06}
+- {source: NEA, dest: CEU, start_time: 29.950000000000003, end_time: 29.925, rate: 6.888594139912162e-06}
+- {source: NEA, dest: CEU, start_time: 29.925, end_time: 29.900000000000002, rate: 6.801977948501222e-06}
+- {source: NEA, dest: CEU, start_time: 29.900000000000002, end_time: 29.875, rate: 6.716155049499122e-06}
+- {source: NEA, dest: CEU, start_time: 29.875, end_time: 29.85, rate: 6.6311224566247495e-06}
+- {source: NEA, dest: CEU, start_time: 29.85, end_time: 29.825000000000003, rate: 6.546877134973562e-06}
+- {source: NEA, dest: CEU, start_time: 29.825000000000003, end_time: 29.8, rate: 6.46341600187691e-06}
+- {source: NEA, dest: CEU, start_time: 29.8, end_time: 29.775000000000002, rate: 6.3807359277611075e-06}
+- {source: NEA, dest: CEU, start_time: 29.775000000000002, end_time: 29.75, rate: 6.29883373700845e-06}
+- {source: NEA, dest: CEU, start_time: 29.75, end_time: 29.725, rate: 6.21770620881688e-06}
+- {source: NEA, dest: CEU, start_time: 29.725, end_time: 29.700000000000003, rate: 6.137350078062109e-06}
+- {source: NEA, dest: CEU, start_time: 29.700000000000003, end_time: 29.675, rate: 6.057762036156286e-06}
+- {source: NEA, dest: CEU, start_time: 29.675, end_time: 29.650000000000002, rate: 5.9789387319101755e-06}
+- {source: NEA, dest: CEU, start_time: 29.650000000000002, end_time: 29.625, rate: 5.90087677239141e-06}
+- {source: NEA, dest: CEU, start_time: 29.625, end_time: 29.6, rate: 5.823572723785138e-06}
+- {source: NEA, dest: CEU, start_time: 29.6, end_time: 29.575000000000003, rate: 5.747023112251862e-06}
+- {source: NEA, dest: CEU, start_time: 29.575000000000003, end_time: 29.55, rate: 5.671224424785392e-06}
+- {source: NEA, dest: CEU, start_time: 29.55, end_time: 29.525000000000002, rate: 5.59617311006908e-06}
+- {source: NEA, dest: CEU, start_time: 29.525000000000002, end_time: 29.5, rate: 5.5218655793319185e-06}
+- {source: NEA, dest: CEU, start_time: 29.5, end_time: 29.475, rate: 5.448298207201208e-06}
+- {source: NEA, dest: CEU, start_time: 29.475, end_time: 29.450000000000003, rate: 5.375467332555854e-06}
+- {source: NEA, dest: CEU, start_time: 29.450000000000003, end_time: 29.425, rate: 5.303369259376845e-06}
+- {source: NEA, dest: CEU, start_time: 29.425, end_time: 29.400000000000002, rate: 5.232000257595554e-06}
+- {source: NEA, dest: CEU, start_time: 29.400000000000002, end_time: 29.375, rate: 5.161356563940338e-06}
+- {source: NEA, dest: CEU, start_time: 29.375, end_time: 29.35, rate: 5.0914343827822346e-06}
+- {source: NEA, dest: CEU, start_time: 29.35, end_time: 29.325000000000003, rate: 5.022229886975108e-06}
+- {source: NEA, dest: CEU, start_time: 29.325000000000003, end_time: 29.3, rate: 4.953739218696529e-06}
+- {source: NEA, dest: CEU, start_time: 29.3, end_time: 29.275000000000002, rate: 4.8859584902842595e-06}
+- {source: NEA, dest: CEU, start_time: 29.275000000000002, end_time: 29.25, rate: 4.818883785071065e-06}
+- {source: NEA, dest: CEU, start_time: 29.25, end_time: 29.225, rate: 4.752511158214384e-06}
+- {source: NEA, dest: CEU, start_time: 29.225, end_time: 29.200000000000003, rate: 4.6868366375263585e-06}
+- {source: NEA, dest: CEU, start_time: 29.200000000000003, end_time: 29.175, rate: 4.621856224296949e-06}
+- {source: NEA, dest: CEU, start_time: 29.175, end_time: 29.150000000000002, rate: 4.5575658941164e-06}
+- {source: NEA, dest: CEU, start_time: 29.150000000000002, end_time: 29.125, rate: 4.493961597692605e-06}
+- {source: NEA, dest: CEU, start_time: 29.125, end_time: 29.1, rate: 4.431039261666383e-06}
+- {source: NEA, dest: CEU, start_time: 29.1, end_time: 29.075000000000003, rate: 4.368794789420542e-06}
+- {source: NEA, dest: CEU, start_time: 29.075000000000003, end_time: 29.05, rate: 4.307224061887604e-06}
+- {source: NEA, dest: CEU, start_time: 29.05, end_time: 29.025000000000002, rate: 4.246322938351956e-06}
+- {source: NEA, dest: CEU, start_time: 29.025000000000002, end_time: 29.0, rate: 4.186087257248339e-06}
+- {source: NEA, dest: CEU, start_time: 29.0, end_time: 28.975, rate: 4.126512836955794e-06}
+- {source: NEA, dest: CEU, start_time: 28.975, end_time: 28.950000000000003, rate: 4.0675954765867515e-06}
+- {source: NEA, dest: CEU, start_time: 28.950000000000003, end_time: 28.925, rate: 4.00933095677321e-06}
+- {source: NEA, dest: CEU, start_time: 28.925, end_time: 28.900000000000002, rate: 3.951715040446593e-06}
+- {source: NEA, dest: CEU, start_time: 28.900000000000002, end_time: 28.875, rate: 3.8947434736131085e-06}
+- {source: NEA, dest: CEU, start_time: 28.875, end_time: 28.85, rate: 3.8384119861250776e-06}
+- {source: NEA, dest: CEU, start_time: 28.85, end_time: 28.825000000000003, rate: 3.782716292445517e-06}
+- {source: NEA, dest: CEU, start_time: 28.825000000000003, end_time: 28.8, rate: 3.7276520924101136e-06}
+- {source: NEA, dest: CEU, start_time: 28.8, end_time: 28.775000000000002, rate: 3.673215071981654e-06}
+- {source: NEA, dest: CEU, start_time: 28.775000000000002, end_time: 28.75, rate: 3.6194009039999266e-06}
+- {source: NEA, dest: CEU, start_time: 28.75, end_time: 28.725, rate: 3.566205248926883e-06}
+- {source: NEA, dest: CEU, start_time: 28.725, end_time: 28.700000000000003, rate: 3.5136237555850092e-06}
+- {source: NEA, dest: CEU, start_time: 28.700000000000003, end_time: 28.675, rate: 3.4616520618905885e-06}
+- {source: NEA, dest: CEU, start_time: 28.675, end_time: 28.650000000000002, rate: 3.410285795582003e-06}
+- {source: NEA, dest: CEU, start_time: 28.650000000000002, end_time: 28.625, rate: 3.3595205749404036e-06}
+- {source: NEA, dest: CEU, start_time: 28.625, end_time: 28.6, rate: 3.309352009506424e-06}
+- {source: NEA, dest: CEU, start_time: 28.6, end_time: 28.575000000000003, rate: 3.2597757007887377e-06}
+- {source: NEA, dest: CEU, start_time: 28.575000000000003, end_time: 28.55, rate: 3.210787242969071e-06}
+- {source: NEA, dest: CEU, start_time: 28.55, end_time: 28.525000000000002, rate: 3.162382223598276e-06}
+- {source: NEA, dest: CEU, start_time: 28.525000000000002, end_time: 28.5, rate: 3.114556224288357e-06}
+- {source: NEA, dest: CEU, start_time: 28.5, end_time: 28.475, rate: 3.067304821396214e-06}
+- {source: NEA, dest: CEU, start_time: 28.475, end_time: 28.450000000000003, rate: 3.020623586703157e-06}
+- {source: NEA, dest: CEU, start_time: 28.450000000000003, end_time: 28.425, rate: 2.974508088085172e-06}
+- {source: NEA, dest: CEU, start_time: 28.425, end_time: 28.400000000000002, rate: 2.9289538901790217e-06}
+- {source: NEA, dest: CEU, start_time: 28.400000000000002, end_time: 28.375, rate: 2.883956555040122e-06}
+- {source: NEA, dest: CEU, start_time: 28.375, end_time: 28.35, rate: 2.839511642794586e-06}
+- {source: NEA, dest: CEU, start_time: 28.35, end_time: 28.325000000000003, rate: 2.795614712283474e-06}
+- {source: NEA, dest: CEU, start_time: 28.325000000000003, end_time: 28.3, rate: 2.752261321701294e-06}
+- {source: NEA, dest: CEU, start_time: 28.3, end_time: 28.275000000000002, rate: 2.7094470292265064e-06}
+- {source: NEA, dest: CEU, start_time: 28.275000000000002, end_time: 28.25, rate: 2.667167393645743e-06}
+- {source: NEA, dest: CEU, start_time: 28.25, end_time: 28.225, rate: 2.6254179749701806e-06}
+- {source: NEA, dest: CEU, start_time: 28.225, end_time: 28.200000000000003, rate: 2.5841943350462997e-06}
+- {source: NEA, dest: CEU, start_time: 28.200000000000003, end_time: 28.175, rate: 2.543492038157209e-06}
+- {source: NEA, dest: CEU, start_time: 28.175, end_time: 28.150000000000002, rate: 2.503306651618468e-06}
+- {source: NEA, dest: CEU, start_time: 28.150000000000002, end_time: 28.125, rate: 2.4636337463663784e-06}
+- {source: NEA, dest: CEU, start_time: 28.125, end_time: 28.1, rate: 2.4244688975382233e-06}
+- {source: NEA, dest: CEU, start_time: 28.1, end_time: 28.075000000000003, rate: 2.385807685045567e-06}
+- {source: NEA, dest: CEU, start_time: 28.075000000000003, end_time: 28.05, rate: 2.347645694140076e-06}
+- {source: NEA, dest: CEU, start_time: 28.05, end_time: 28.025000000000002, rate: 2.3099785159721956e-06}
+- {source: NEA, dest: CEU, start_time: 28.025000000000002, end_time: 28.0, rate: 2.2728017481417214e-06}
+- {source: NEA, dest: CEU, start_time: 28.0, end_time: 27.975, rate: 2.236110995241049e-06}
+- {source: NEA, dest: CEU, start_time: 27.975, end_time: 27.950000000000003, rate: 2.1999018693911007e-06}
+- {source: NEA, dest: CEU, start_time: 27.950000000000003, end_time: 27.925, rate: 2.1641699907695173e-06}
+- {source: NEA, dest: CEU, start_time: 27.925, end_time: 27.900000000000002, rate: 2.128910988130769e-06}
+- {source: NEA, dest: CEU, start_time: 27.900000000000002, end_time: 27.875, rate: 2.094120499319126e-06}
+- {source: NEA, dest: CEU, start_time: 27.875, end_time: 27.85, rate: 2.0597941717739195e-06}
+- {source: NEA, dest: CEU, start_time: 27.85, end_time: 27.825000000000003, rate: 2.025927663026728e-06}
+- {source: NEA, dest: CEU, start_time: 27.825000000000003, end_time: 27.8, rate: 1.992516641191252e-06}
+- {source: NEA, dest: CEU, start_time: 27.8, end_time: 27.775000000000002, rate: 1.95955678544485e-06}
+- {source: NEA, dest: CEU, start_time: 27.775000000000002, end_time: 27.75, rate: 1.927043786502781e-06}
+- {source: NEA, dest: CEU, start_time: 27.75, end_time: 27.725, rate: 1.8949733470847563e-06}
+- {source: NEA, dest: CEU, start_time: 27.725, end_time: 27.700000000000003, rate: 1.8633411823731935e-06}
+- {source: NEA, dest: CEU, start_time: 27.700000000000003, end_time: 27.675, rate: 1.832143020463793e-06}
+- {source: NEA, dest: CEU, start_time: 27.675, end_time: 27.650000000000002, rate: 1.8013746028089226e-06}
+- {source: NEA, dest: CEU, start_time: 27.650000000000002, end_time: 27.625, rate: 1.7710316846520212e-06}
+- {source: NEA, dest: CEU, start_time: 27.625, end_time: 27.6, rate: 1.7411100354552296e-06}
+- {source: NEA, dest: CEU, start_time: 27.6, end_time: 27.575000000000003, rate: 1.7116054393186584e-06}
+- {source: NEA, dest: CEU, start_time: 27.575000000000003, end_time: 27.55, rate: 1.6825136953917926e-06}
+- {source: NEA, dest: CEU, start_time: 27.55, end_time: 27.525000000000002, rate: 1.6538306182774514e-06}
+- {source: NEA, dest: CEU, start_time: 27.525000000000002, end_time: 27.5, rate: 1.6255520384272498e-06}
+- {source: NEA, dest: CEU, start_time: 27.5, end_time: 27.475, rate: 1.5976738025300542e-06}
+- {source: NEA, dest: CEU, start_time: 27.475, end_time: 27.450000000000003, rate: 1.5701917738920004e-06}
+- {source: NEA, dest: CEU, start_time: 27.450000000000003, end_time: 27.425, rate: 1.5431018328087273e-06}
+- {source: NEA, dest: CEU, start_time: 27.425, end_time: 27.400000000000002, rate: 1.5163998769303966e-06}
+- {source: NEA, dest: CEU, start_time: 27.400000000000002, end_time: 27.375, rate: 1.490081821618128e-06}
+- {source: NEA, dest: CEU, start_time: 27.375, end_time: 27.35, rate: 1.4641436002932069e-06}
+- {source: NEA, dest: CEU, start_time: 27.35, end_time: 27.325000000000003, rate: 1.4385811647784471e-06}
+- {source: NEA, dest: CEU, start_time: 27.325000000000003, end_time: 27.3, rate: 1.4133904856315308e-06}
+- {source: NEA, dest: CEU, start_time: 27.3, end_time: 27.275000000000002, rate: 1.3885675524711798e-06}
+- {source: NEA, dest: CEU, start_time: 27.275000000000002, end_time: 27.25, rate: 1.3641083742948618e-06}
+- {source: NEA, dest: CEU, start_time: 27.25, end_time: 27.225, rate: 1.3400089797896818e-06}
+- {source: NEA, dest: CEU, start_time: 27.225, end_time: 27.200000000000003, rate: 1.3162654176349507e-06}
+- {source: NEA, dest: CEU, start_time: 27.200000000000003, end_time: 27.175, rate: 1.2928737567976128e-06}
+- {source: NEA, dest: CEU, start_time: 27.175, end_time: 27.150000000000002, rate: 1.2698300868194874e-06}
+- {source: NEA, dest: CEU, start_time: 27.150000000000002, end_time: 27.125, rate: 1.247130518097813e-06}
+- {source: NEA, dest: CEU, start_time: 27.125, end_time: 27.1, rate: 1.2247711821574856e-06}
+- {source: NEA, dest: CEU, start_time: 27.1, end_time: 27.075000000000003, rate: 1.202748231916012e-06}
+- {source: NEA, dest: CEU, start_time: 27.075000000000003, end_time: 27.05, rate: 1.181057841941455e-06}
+- {source: NEA, dest: CEU, start_time: 27.05, end_time: 27.025000000000002, rate: 1.1596962087022304e-06}
+- {source: NEA, dest: CEU, start_time: 27.025000000000002, end_time: 27.0, rate: 1.1386595508101432e-06}
+- {source: NEA, dest: CEU, start_time: 27.0, end_time: 26.975, rate: 1.117944109255517e-06}
+- {source: NEA, dest: CEU, start_time: 26.975, end_time: 26.950000000000003, rate: 1.0975461476356492e-06}
+- {source: NEA, dest: CEU, start_time: 26.950000000000003, end_time: 26.925, rate: 1.0774619523754824e-06}
+- {source: NEA, dest: CEU, start_time: 26.925, end_time: 26.900000000000002, rate: 1.0576878329412905e-06}
+- {source: NEA, dest: CEU, start_time: 26.900000000000002, end_time: 26.875, rate: 1.0382201220470472e-06}
+- {source: NEA, dest: CEU, start_time: 26.875, end_time: 26.85, rate: 1.0190551758539113e-06}
+- {source: NEA, dest: CEU, start_time: 26.85, end_time: 26.825000000000003, rate: 1.0001893741624526e-06}
+- {source: NEA, dest: CEU, start_time: 26.825000000000003, end_time: 26.8, rate: 9.816191205978796e-07}
+- {source: NEA, dest: CEU, start_time: 26.8, end_time: 26.775000000000002, rate: 9.633408427881033e-07}
+- {source: NEA, dest: CEU, start_time: 26.775000000000002, end_time: 26.75, rate: 9.453509925354291e-07}
+- {source: NEA, dest: CEU, start_time: 26.75, end_time: 26.725, rate: 9.276460459805985e-07}
+- {source: NEA, dest: CEU, start_time: 26.725, end_time: 26.700000000000003, rate: 9.10222503760675e-07}
+- {source: NEA, dest: CEU, start_time: 26.700000000000003, end_time: 26.675, rate: 8.930768911598062e-07}
+- {source: NEA, dest: CEU, start_time: 26.675, end_time: 26.650000000000002, rate: 8.762057582533101e-07}
+- {source: NEA, dest: CEU, start_time: 26.650000000000002, end_time: 26.625, rate: 8.596056800452605e-07}
+- {source: NEA, dest: CEU, start_time: 26.625, end_time: 26.6, rate: 8.432732565991312e-07}
+- {source: NEA, dest: CEU, start_time: 26.6, end_time: 26.575000000000003, rate: 8.272051131624462e-07}
+- {source: NEA, dest: CEU, start_time: 26.575000000000003, end_time: 26.55, rate: 8.113979002844597e-07}
+- {source: NEA, dest: CEU, start_time: 26.55, end_time: 26.525000000000002, rate: 7.958482939275515e-07}
+- {source: NEA, dest: CEU, start_time: 26.525000000000002, end_time: 26.5, rate: 7.805529955724522e-07}
+- {source: NEA, dest: CEU, start_time: 26.5, end_time: 26.475, rate: 7.655087323168357e-07}
+- {source: NEA, dest: CEU, start_time: 26.475, end_time: 26.450000000000003, rate: 7.50712256968151e-07}
+- {source: NEA, dest: CEU, start_time: 26.450000000000003, end_time: 26.425, rate: 7.36160348129698e-07}
+- {source: NEA, dest: CEU, start_time: 26.425, end_time: 26.400000000000002, rate: 7.218498102810875e-07}
+- {source: NEA, dest: CEU, start_time: 26.400000000000002, end_time: 26.375, rate: 7.077774738524708e-07}
+- {source: NEA, dest: CEU, start_time: 26.375, end_time: 26.35, rate: 6.939401952928235e-07}
+- {source: NEA, dest: CEU, start_time: 26.35, end_time: 26.325000000000003, rate: 6.803348571322331e-07}
+- {source: NEA, dest: CEU, start_time: 26.325000000000003, end_time: 26.3, rate: 6.669583680385748e-07}
+- {source: NEA, dest: CEU, start_time: 26.3, end_time: 26.275000000000002, rate: 6.538076628681874e-07}
+- {source: NEA, dest: CEU, start_time: 26.275000000000002, end_time: 26.25, rate: 6.408797027109381e-07}
+- {source: NEA, dest: CEU, start_time: 26.25, end_time: 26.225, rate: 6.281714749297932e-07}
+- {source: NEA, dest: CEU, start_time: 26.225, end_time: 26.200000000000003, rate: 6.156799931945932e-07}
+- {source: NEA, dest: CEU, start_time: 26.200000000000003, end_time: 26.175, rate: 6.034022975104812e-07}
+- {source: NEA, dest: CEU, start_time: 26.175, end_time: 26.150000000000002, rate: 5.913354542409848e-07}
+- {source: NEA, dest: CEU, start_time: 26.150000000000002, end_time: 26.125, rate: 5.794765561255696e-07}
+- {source: NEA, dest: CEU, start_time: 26.125, end_time: 26.1, rate: 5.6782272229205e-07}
+- {source: NEA, dest: CEU, start_time: 26.1, end_time: 26.075000000000003, rate: 5.563710982638692e-07}
+- {source: NEA, dest: CEU, start_time: 26.075000000000003, end_time: 26.05, rate: 5.451188559619824e-07}
+- {source: NEA, dest: CEU, start_time: 26.05, end_time: 26.025000000000002, rate: 5.340631937020816e-07}
+- {source: NEA, dest: CEU, start_time: 26.025000000000002, end_time: 26.0, rate: 5.232013361864649e-07}
+- {source: NEA, dest: CEU, start_time: 26.0, end_time: 25.975, rate: 5.125305344912616e-07}
+- {source: NEA, dest: CEU, start_time: 25.975, end_time: 25.950000000000003, rate: 5.020480660487235e-07}
+- {source: NEA, dest: CEU, start_time: 25.950000000000003, end_time: 25.925, rate: 4.917512346248111e-07}
+- {source: NEA, dest: CEU, start_time: 25.925, end_time: 25.900000000000002, rate: 4.816373702920503e-07}
+- {source: NEA, dest: CEU, start_time: 25.900000000000002, end_time: 25.875, rate: 4.717038293978039e-07}
+- {source: NEA, dest: CEU, start_time: 25.875, end_time: 25.85, rate: 4.6194799452807677e-07}
+- {source: NEA, dest: CEU, start_time: 25.85, end_time: 25.825000000000003, rate: 4.523672744667508e-07}
+- {source: NEA, dest: CEU, start_time: 25.825000000000003, end_time: 25.8, rate: 4.4295910415057056e-07}
+- {source: NEA, dest: CEU, start_time: 25.8, end_time: 25.775000000000002, rate: 4.3372094461979e-07}
+- {source: NEA, dest: CEU, start_time: 25.775000000000002, end_time: 25.75, rate: 4.2465028296454844e-07}
+- {source: NEA, dest: CEU, start_time: 25.75, end_time: 25.725, rate: 4.1574463226714425e-07}
+- {source: NEA, dest: CEU, start_time: 25.725, end_time: 25.700000000000003, rate: 4.0700153154018015e-07}
+- {source: NEA, dest: CEU, start_time: 25.700000000000003, end_time: 25.675, rate: 3.9841854566091737e-07}
+- {source: NEA, dest: CEU, start_time: 25.675, end_time: 25.650000000000002, rate: 3.89993265301395e-07}
+- {source: NEA, dest: CEU, start_time: 25.650000000000002, end_time: 25.625, rate: 3.817233068549039e-07}
+- {source: NEA, dest: CEU, start_time: 25.625, end_time: 25.6, rate: 3.7360631235873575e-07}
+- {source: NEA, dest: CEU, start_time: 25.6, end_time: 25.575000000000003, rate: 3.6563994941313165e-07}
+- {source: NEA, dest: CEU, start_time: 25.575000000000003, end_time: 25.55, rate: 3.5782191109662365e-07}
+- {source: NEA, dest: CEU, start_time: 25.55, end_time: 25.525000000000002, rate: 3.5014991587786326e-07}
+- {source: NEA, dest: CEU, start_time: 25.525000000000002, end_time: 25.5, rate: 3.426217075240787e-07}
+- {source: NEA, dest: CEU, start_time: 25.5, end_time: 25.475, rate: 3.352350550059454e-07}
+- {source: NEA, dest: CEU, start_time: 25.475, end_time: 25.450000000000003, rate: 3.279877523993376e-07}
+- {source: NEA, dest: CEU, start_time: 25.450000000000003, end_time: 25.425, rate: 3.208776187837261e-07}
+- {source: NEA, dest: CEU, start_time: 25.425, end_time: 25.400000000000002, rate: 3.1390249813743817e-07}
+- {source: NEA, dest: CEU, start_time: 25.400000000000002, end_time: 25.375, rate: 3.0706025922991236e-07}
+- {source: NEA, dest: CEU, start_time: 25.375, end_time: 25.35, rate: 3.003487955107622e-07}

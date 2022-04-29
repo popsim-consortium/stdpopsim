@@ -1,0 +1,53 @@
+description: '4 population out of Africa
+
+  Demographic model for a four population out-of-Africa history, taken from Jouganous
+  et al. (2017). Parameter values were taken from table 4 in the main text. This model
+  was fit based on joint allele frequecy spectrum (AFS) data from 1000 Genomes exomes
+  from the YRI, CEU, CHB, and JPT poulation samples. The demography follows the previous
+  three- populations out-of-Africa models with an additional population split in Asia
+  leading to the Japanese (JPT) population. Parameter values were estimated with the
+  program Moments assuming a mutation rate of 1.44e-8 and a generation time of 29
+  years.'
+time_units: years
+generation_time: 29
+doi: ['Jouganous et al., 2017: https://doi.org/10.1534/genetics.117.200493']
+metadata: {mutation_rate: 1.44e-08}
+demes:
+- name: YRI
+  description: 1000 Genomes YRI (Yoruba)
+  epochs:
+  - {end_time: 356990, start_size: 11293}
+  - {end_time: 0, start_size: 23721.0}
+- name: CEU
+  description: 1000 Genomes CEU (Utah Residents (CEPH) with Northern and Western European
+    Ancestry
+  start_time: 118987
+  ancestors: [YRI]
+  epochs:
+  - {end_time: 45994, start_size: 2831}
+  - {end_time: 0, start_size: 2512.0, end_size: 31774.9819368847}
+- name: CHB
+  description: 1000 Genomes CHB (Han Chinese in Beijing, China)
+  start_time: 45994
+  ancestors: [CEU]
+  epochs:
+  - {end_time: 0, start_size: 1019.0000000000001, end_size: 62955.098763058246}
+- name: JPT
+  description: 1000 Genomes JPT (Japanese in Tokyo, Japan)
+  start_time: 8990
+  ancestors: [CHB]
+  epochs:
+  - {end_time: 0, start_size: 4384.0, end_size: 239119.05109482087}
+migrations:
+- demes: [YRI, CEU]
+  rate: 0.000168
+  end_time: 45994.0
+- demes: [YRI, CEU]
+  rate: 1.14e-05
+  start_time: 45994.0
+- demes: [YRI, CHB]
+  rate: 5.6e-06
+- demes: [CEU, CHB]
+  rate: 4.75e-05
+- demes: [CHB, JPT]
+  rate: 3.3e-05

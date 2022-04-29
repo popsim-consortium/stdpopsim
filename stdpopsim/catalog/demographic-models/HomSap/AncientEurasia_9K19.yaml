@@ -1,0 +1,91 @@
+description: 'Multi-population model of ancient Eurasia
+
+  This is the best-fitting model of a history of multiple ancient and present-day
+  human populations sampled across Eurasia over the past 120,000 years. The fitting
+  was performed using momi2 (Kamm et al. 2019), which uses the multi-population site-frequency
+  spectrum as input data. The model includes a ghost admixture event (from unsampled
+  basal Eurasians into early European farmers), and two admixture events where the
+  source is approximately well-known (from Neanderthals into Non-Africans and from
+  Western European hunter-gatherers into modern Sardinians. There are three present-day
+  populations: Sardinians, Han Chinese and African Mbuti. Additionally, there are
+  several ancient samples obtained from fossils dated at different times in the past:
+  the Altai Neanderthal (Prufer et al. 2014), a Mesolithic hunter- gatherer (Lazaridis
+  et al. 2014), a Neolithic early European sample (Lazaridis et al. 2014), and two
+  Palaeolithic modern humans from Siberia - MA1 (Raghavan et al. 2014) and  Ust''Ishim
+  (Fu et al. 2014). All the ancient samples are represented by a single diploid genome.'
+time_units: years
+generation_time: 25
+doi: ['Kamm et al., 2019: https://doi.org/10.1080/01621459.2019.1635482']
+metadata: {mutation_rate: 1.22e-08}
+demes:
+- name: Loschbour
+  description: Western hunter-gatherer (WHG)
+  epochs:
+  - {end_time: 696000.0, start_size: 18200}
+  - {end_time: 95800.0, start_size: 29100.0}
+  - {end_time: 50400.0, start_size: 2340.0}
+  - {end_time: 0, start_size: 1920.0}
+- name: Neanderthal
+  description: Altai Neanderthal from Siberia
+  start_time: 696000.0
+  ancestors: [Loschbour]
+  epochs:
+  - {end_time: 95800.0, start_size: 18200}
+  - {end_time: 50000.0, start_size: 18200.000000000007, end_size: 86.9}
+  - {end_time: 0, start_size: 86.9}
+- name: Mbuti
+  description: Present-day African Mbuti
+  start_time: 95800.0
+  ancestors: [Loschbour]
+  epochs:
+  - {end_time: 0, start_size: 17300}
+- name: BasalEurasian
+  description: Basal Eurasians
+  start_time: 79800.0
+  ancestors: [Loschbour]
+  epochs:
+  - {end_time: 0, start_size: 1920}
+- name: UstIshim
+  description: early Palaeolithic Ust'-Ishim
+  start_time: 51500.0
+  ancestors: [Loschbour]
+  epochs:
+  - {end_time: 0, start_size: 1920}
+- name: Han
+  description: Present-day Han Chinese
+  start_time: 50400.0
+  ancestors: [Loschbour]
+  epochs:
+  - {end_time: 0, start_size: 6300}
+- name: MA1
+  description: Upper Palaeolithic MAl'ta culture
+  start_time: 44900.0
+  ancestors: [Loschbour]
+  epochs:
+  - {end_time: 0, start_size: 1920}
+- name: LBK
+  description: Early European farmer (EEF)
+  start_time: 37700.0
+  ancestors: [Loschbour]
+  epochs:
+  - {end_time: 7690.000000000001, start_size: 12000}
+  - {end_time: 0, start_size: 75.7}
+- name: Sardinian
+  description: Present-day Sardinian
+  start_time: 7690.000000000001
+  ancestors: [LBK]
+  epochs:
+  - {end_time: 0, start_size: 15000}
+pulses:
+- sources: [Neanderthal]
+  dest: Loschbour
+  time: 56800.0
+  proportions: [0.0296]
+- sources: [BasalEurasian]
+  dest: LBK
+  time: 33700.0
+  proportions: [0.0936]
+- sources: [Loschbour]
+  dest: Sardinian
+  time: 1230.0
+  proportions: [0.0317]

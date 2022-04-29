@@ -1,0 +1,63 @@
+description: 'Three population out-of-Africa with archaic admixture
+
+  The three population out-of-African model popularized by Gutenkunst et al. (2009)
+  and augmented by archaic contributions to both Eurasian and African populations.
+  Two archaic populations split early in human history, before the African expansion,
+  and contribute to Eurasian populations (putative Neanderthal branch) and to the
+  African branch (a deep diverging branch within Africa). Admixture is modeled as
+  symmetric migration between the archaic and modern human branches, with contribution
+  ending at a given time in the past.'
+time_units: years
+generation_time: 29
+doi: ['Ragsdale and Gravel, 2019: https://doi.org/10.1371/journal.pgen.1008204']
+demes:
+- name: YRI
+  description: 1000 Genomes YRI (Yoruba)
+  epochs:
+  - {end_time: 300000.0, start_size: 3600}
+  - {end_time: 0, start_size: 13900.0}
+- name: Neanderthal
+  description: Putative Neanderthals
+  start_time: 559000.0
+  ancestors: [YRI]
+  epochs:
+  - {end_time: 0, start_size: 3600}
+- name: ArchaicAFR
+  description: Putative Archaic Africans
+  start_time: 499000.0
+  ancestors: [YRI]
+  epochs:
+  - {end_time: 0, start_size: 3600}
+- name: CEU
+  description: 1000 Genomes CEU (Utah Residents (CEPH) with Northern and Western European
+    Ancestry
+  start_time: 60699.99999999999
+  ancestors: [YRI]
+  epochs:
+  - {end_time: 36000.0, start_size: 880}
+  - {end_time: 0, start_size: 2300.0, end_size: 10855.080951853866}
+- name: CHB
+  description: 1000 Genomes CHB (Han Chinese in Beijing, China)
+  start_time: 36000.0
+  ancestors: [CEU]
+  epochs:
+  - {end_time: 0, start_size: 650.0, end_size: 65834.77001122756}
+migrations:
+- demes: [YRI, ArchaicAFR]
+  rate: 1.98e-05
+  start_time: 124999.99999999999
+  end_time: 18700.0
+- demes: [YRI, CEU]
+  rate: 0.000522
+  end_time: 36000.0
+- demes: [CEU, Neanderthal]
+  rate: 8.25e-06
+  end_time: 18700.0
+- demes: [Neanderthal, CHB]
+  rate: 8.25e-06
+  end_time: 18700.0
+- demes: [YRI, CEU]
+  rate: 2.48e-05
+  start_time: 36000.0
+- demes: [CEU, CHB]
+  rate: 0.000113
