@@ -172,7 +172,6 @@ class DemographicModel:
             m = re.match(r"(?P<author>.*), (?P<year>\d\d\d\d): (?P<doi>.*)", cite)
             if m is None:
                 raise ValueError(f"Couldn't match 'author, year: doi' to {cite}")
-            d = m.groupdict()
             citations.append(
                 stdpopsim.Citation(
                     reasons={stdpopsim.CiteReason.DEM_MODEL}, **m.groupdict()
