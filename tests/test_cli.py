@@ -868,7 +868,10 @@ class TestDryRun:
             path = pathlib.Path(tmpdir)
             with open(path / "stderr", "w+") as stderr:
                 filename = path / "output.trees"
-                cmd = f"{sys.executable} -m stdpopsim HomSap -D -L 1000 -o {filename} 2"
+                cmd = (
+                    f"{sys.executable} -W ignore -m stdpopsim "
+                    "HomSap -D -L 1000 -o {filename} 2"
+                )
                 subprocess.run(cmd, stderr=stderr, shell=True, check=True)
                 assert stderr.tell() > 0
             assert not os.path.isfile(filename)
@@ -879,8 +882,8 @@ class TestDryRun:
             with open(path / "stderr", "w+") as stderr:
                 filename = path / "output.trees"
                 cmd = (
-                    f"{sys.executable} -m stdpopsim -q HomSap -D -L 1000 "
-                    f"-o {filename} 2"
+                    f"{sys.executable} -W ignore -m stdpopsim "
+                    f"-q HomSap -D -L 1000 -o {filename} 2"
                 )
                 subprocess.run(cmd, stderr=stderr, shell=True, check=True)
                 assert stderr.tell() == 0
