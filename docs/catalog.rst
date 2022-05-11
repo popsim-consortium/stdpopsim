@@ -40,9 +40,17 @@ page to learn about the process for adding new items to the catalog.
 Then, if you feel ready, make an issue on our
 `GitHub page <https://github.com/popgensims/stdpopsim/issues>`_.
 
+.. speciescatalog:: AedAeg
+
+.. speciescatalog:: AnaPla
+
+.. speciescatalog:: AnoCar
+
 .. speciescatalog:: AraTha
 
 .. speciescatalog:: CanFam
+
+.. speciescatalog:: ChlRei
 
 .. speciescatalog:: DroMel
 
