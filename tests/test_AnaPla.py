@@ -35,9 +35,7 @@ class TestGenomeData(test_species.GenomeTestBase):
 
     genome = stdpopsim.get_species("AnaPla").genome
 
-    # @pytest.mark.skip("Recombination rate QC not done yet")
-
-    # total map lengths fo chromosomes 1-18 taken from from Huang et al 2006
+    # total map lengths for chromosomes 1-18 taken from from Huang et al 2006
     # Table 1. See: https://academic.oup.com/view-large/280279985
     # The average rec rate for chroms 1-18 is this map length
     # divided by the physical length of the chromosome
