@@ -923,8 +923,9 @@ or the pull request, may be used for review discussion.
 To begin reviewing (i.e., QC'ing) a species, you should state your intention on the
 QC issue (so we don't duplicate effort) and start a pull request to fill out the code.
 During the process of QC, other developers fill in the tests that are disabled
-in the `tests/test_{species_name}.py` file. For instance, a test for an
-unreviewed species might look like this:
+in the `tests/test_{species_name}.py` file by looking at the original papers
+(not the implementation!) and filling in what they see to be the appropriate
+values. For instance, a test for an unreviewed species might look like this:
 
 .. code-block:: python
 
@@ -953,6 +954,14 @@ tests file to the values loaded from stdpopsim (and error if they differ).
 Filling out all these missing values in the tests file should get the species
 entirely QC'ed. When it's done, we'll merge the PR and the species will be official!
 
+Sometimes it's not clear which values to use (e.g., perhaps there are different
+mutation rates estimated from two different groups of samples); in such cases
+the original author should leave comments in the code explaining the choice,
+and a note in the QC issue. If the values that the reviewer finds still do not
+agree with the ones the original author found, they (and others) should discuss
+on github about the best values to enter; once consensus is reached these can
+be fixed up to agree in the QC pull request (i.e., you don't need to start
+another pull request to change the values in the catalog itself).
 
 ********************
 Adding a genetic map
