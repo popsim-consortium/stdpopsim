@@ -831,13 +831,27 @@ genomes housed on Ensembl can be found `here <https://metazoa.ensembl.org/specie
 
 This will generate new files inside `catalog/{species_id}/`:
 
-* genome_data.py
-* species.py
-* __init__.py
+* `genome_data.py`
+* `species.py`
+* `__init__.py`
 
-The genome_data.py file contains the physical map of the genome; the `maintenance` utility sucks down a whole lot of useful information for free. This genome_data.py essentially puts together a data dictionary which has slots for the assembly accession number, the assembly name, and a dict representing the chromosome names and their associated lengths. If synonyns are defined (e.g., chr2L for 2L) then those are given in the list that follows. There is no reason to edit this file-- we are good here.
+as well as stubbing out tests in `tests/test_{species_id}.py`.
 
-Next, the species.py file will need to be edited with the species-specific information and corresponding citations. Inside this file are commented instructions for ech section. Either chromosome-specific or genome-wide recombination rates and mutations rates can be used at this stage; the citations attached to these rates will be filled in inside the code block beginning with `_genome`. For example, below is the _genome code block for `A. thaliana` with citations included:
+The `genome_data.py` file contains the physical map of the genome; the
+`maintenance` utility sucks down a whole lot of useful information for free.
+This file essentially puts together a data dictionary which has slots for the
+assembly accession number, the assembly name, and a dict representing the
+chromosome names and their associated lengths. If synonyms are defined (e.g.,
+chr2L for 2L) then those are given in the list that follows. You double-check
+the values, but probably there is no reason to edit this file.
+
+Next, the `species.py` file will need to be edited with the species-specific
+information and corresponding citations. Inside this file are commented
+instructions for each section. Either chromosome-specific or genome-wide
+recombination rates and mutations rates can be used at this stage; the
+citations attached to these rates should be filled in inside the code block
+beginning with `_genome`. For example, below is the _genome code block for
+*A. thaliana* with citations included:
 
 .. code-block:: python
 
@@ -868,38 +882,82 @@ Next, the species.py file will need to be edited with the species-specific infor
     )
 
 
-Generation time and population size, along with relevent citations, are filled in inside the code block beginning with `_species`. It may be useful to look at the existing species.py files inside the catalog/ directory for reference.
+Generation time and population size, along with relevent citations, are filled
+in inside the code block beginning with `_species`. It may be useful to look at
+the existing species.py files inside the catalog/ directory for reference.
 
-Once these fields have been entered, you should be able to load and simulate the newly added species using `stdpopsim`.
+Once these fields have been entered, you should be able to load and simulate
+the newly added species using `stdpopsim`.
 
------------------------------------
-Tests for new species
------------------------------------
-
-Basic sanity tests for the new species will be completed through QC over in the `tests/test_{species_id}.py` file, which was also created by the add-species utility. To run the tests in stdpopsim we use the pytest module.
+However, the species still needs to be checked by someone else, i.e, QC'ed.
+The maintenance script has also created a minimal set of tests in the file
+`tests/test_{species_id}.py`. These tests should *not* be filled out by the
+person who adds the species, but rather by someone else, as part of the
+review process. However, some tests are already present,
+and you can run them as follows:
 
 .. code-block:: shell
 
    python -m pytest tests/test_AnoGam.py
 
-This test checks for things related to missing information and formatting. For example, it wants the citation year to be of type `int` rather than `str` (i.e. no quotes).
+This will check for things related to missing information and formatting. For
+example, it checks that the citation year is of type `int` rather than `str`
+(i.e., no quotes).
+
+At some point during adding a species, you should start a pull request with your
+changes. It does not have to be finished, since it's much easier for others to
+help if they can see your code.
 
 ----------------------
 Species review process
 ----------------------
-Once you are satisfied that the species can be simulated via the CLI, submit a pull
-request with your changes. The species definition will go through a review process.
-This process includes not only a code review, but also includes a QC process to double
-check parameters and citations are appropriate.  To initiate the QC process, open a
+
+Once everything works, we will merge your pull request, and the species will be
+in stdpopsim, but still needs to go through a review process, in which someone else
+checks parameters and citations as appropriate.  To initiate this process, open a
 new `issue <https://github.com/popsim-consortium/stdpopsim/issues/new/choose>`__
 using the 'Species QC issue template'. One or more volunteers will check items off
 the checklist, until all items have been completed satisfactorily. The QC issue,
-or the pull request, may be used for review discussion. The new species will be
-merged once the checklist is completed.
+or the pull request, may be used for review discussion.
+
+To begin reviewing (i.e., QC'ing) a species, you should state your intention on the
+QC issue (so we don't duplicate effort) and start a pull request to fill out the code.
+During the process of QC, other developers fill in the tests that are disabled
+in the `tests/test_{species_name}.py` file. For instance, a test for an
+unreviewed species might look like this:
+
+.. code-block:: python
+
+    @pytest.mark.skip("Recombination rate QC not done yet")
+    @pytest.mark.parametrize(["name", "rate"], {}.items())
+    def test_recombination_rate(self, name, rate):
+        assert rate == pytest.approx(self.genome.get_chromosome(name).recombination_rate)
+
+Looking at `tests/test_AedAeg.py`, we see this:
+
+.. code-block:: python
+
+    @pytest.mark.parametrize(
+        ["name", "rate"],
+        {"1": 0.306e-8, "2": 0.249e-8, "3": 0.291e-8, "MT": 0.0}.items(),
+    )
+    def test_recombination_rate(self, name, rate):
+        assert rate == pytest.approx(self.genome.get_chromosome(name).recombination_rate)
+
+The `@pytest.mark.skip` line has been deleted (because we should no longer skip
+this test), and the dictionary (`{}`) in the `@pytest.mark.parameterize` line
+has been filled out with key: value pairs that give the names and (mean) rates of
+each chromosome. When we run tests (and, we can run only the *Aedes aegypti* tests
+with `python -m pytest tests/test_AedAeg.py`), this will compare the values in the
+tests file to the values loaded from stdpopsim (and error if they differ).
+Filling out all these missing values in the tests file should get the species
+entirely QC'ed. When it's done, we'll merge the PR and the species will be official!
+
 
 ********************
 Adding a genetic map
 ********************
+
 Some species have sub-chromosomal recombination maps available. They can be added to
 `stdpopsim` by creating a new `GeneticMap` object and providing a formatted file
 detailing recombination rates to a designated `stdpopsim` maintainer who then uploads
@@ -1151,9 +1209,10 @@ to check locally how well your tests are covering your code by asking
 
     $ pytest --cov-report html --cov=stdpopsim tests/
 
-this will output of directory of html files for you to browse test coverage
+this will output a directory of html files for you to browse test coverage
 for every file in `stdpopsim` in a reasonably straightfoward graphical
-way. You'll be looking for lines of code that are highlighted yellow or red
+way. To see them, direct your web browser to the `htmlcov/index.html` file.
+You'll be looking for lines of code that are highlighted yellow or red
 indicated that tests do not currently cover that bit of code.
 
 
