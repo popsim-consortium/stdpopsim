@@ -1114,14 +1114,14 @@ def GladsteinAshkSubstructure():
 
     # Population sizes from supp tab 3
     N_ANC = 7300
-    N_YRI = 10 ** 4.26
-    N_CEU = 10 ** 4.52
-    N_CHB = 10 ** 3.61
-    N_WA = 10 ** 3.82
-    N_EA = 10 ** 6.29
-    N_Ag = 10 ** 3.04
-    N_J = 10 ** 5.55
-    N_M = 10 ** 5.64
+    N_YRI = 10**4.26
+    N_CEU = 10**4.52
+    N_CHB = 10**3.61
+    N_WA = 10**3.82
+    N_EA = 10**6.29
+    N_Ag = 10**3.04
+    N_J = 10**5.55
+    N_M = 10**5.64
 
     # Migration rate from CEU to ASHK ancestral pop
     m = 0.17
