@@ -1287,13 +1287,13 @@ def JouganousOOA2017():
     m_EU_AS = 4.75e-5
     m_CH_JP = 3.3e-5
     T_AF_y = 357e3
-    T_AF_g = T_AF_y / 29
+    T_AF_g = int(T_AF_y / 29)
     T_B_y = 119e3
-    T_B_g = T_B_y / 29
+    T_B_g = int(T_B_y / 29)
     T_EU_AS_y = 46e3
-    T_EU_AS_g = T_EU_AS_y / 29
+    T_EU_AS_g = int(T_EU_AS_y / 29)
     T_CH_JP_y = 9e3
-    T_CH_JP_g = T_CH_JP_y / 29
+    T_CH_JP_g = int(T_CH_JP_y / 29)
 
     N_curr_CEU = N_EU0 * math.exp(T_EU_AS_g * r_EU)
     N_curr_CHB = N_AS0 * math.exp(T_EU_AS_g * r_AS)
@@ -1321,8 +1321,20 @@ def JouganousOOA2017():
     de.set_symmetric_migration_rate(['CEU', 'CHB'], m_EU_AS)
     de.set_symmetric_migration_rate(['CHB', 'JPT'], m_CH_JP)
 
-    de.add_population_split(time=T_CH_JP_g, derived=['JPT'], ancestral='CHB')
-    de.add_population_split(time=T_EU_AS_g, derived=['CHB'], ancestral='CEU')
+    de.add_mass_migration(time=T_CH_JP_g, source='JPT', dest='CHB',
+                          proportion=1)
+    de.add_symmetric_migration_rate_change(time=T_CH_JP_g,
+                                           populations=['CHB', 'JPT'],
+                                           rate=0)
+    de.add_mass_migration(time=T_EU_AS_g, source='CHB', dest='CEU',
+                          proportion=1)
+    de.add_symmetric_migration_rate_change(time=T_EU_AS_g,
+                                           populations=['CEU', 'CHB'],
+                                           rate=0)
+    de.add_symmetric_migration_rate_change(time=T_EU_AS_g,
+                                           populations=['YRI', 'CHB'],
+                                           rate=0)
+
     de.add_population_parameters_change(time=T_EU_AS_g,
                                         initial_size=N_B,
                                         growth_rate=0,
@@ -1330,7 +1342,10 @@ def JouganousOOA2017():
     de.add_symmetric_migration_rate_change(time=T_EU_AS_g,
                                            populations=['CEU', 'YRI'],
                                            rate=m_AF_B)
-    de.add_population_split(time=T_B_g, derived=['CEU'], ancestral='YRI')
+    de.add_mass_migration(time=T_B_g, source='CEU', dest='YRI', proportion=1)
+    de.add_symmetric_migration_rate_change(time=T_B_g,
+                                           populations=['CEU', 'YRI'],
+                                           rate=0)
     de.add_population_parameters_change(time=T_AF_g,
                                         initial_size=N_A,
                                         population='YRI')
