@@ -1258,6 +1258,102 @@ def ZigZag():
 _species.get_demographic_model("Zigzag_1S14").register_qc(ZigZag())
 
 
+def JouganousOOA2017():
+    """
+    Four population OOA model from Jouganous et al. 2017, fit to the
+    SFS using moments. The populations are YRI, CEU, CHB, and JPT.
+    The model is shown in Figure 3 and the parameters are taken from
+    table 4.
+    The model includes population splits, directional migration and
+    exponential growth in the various populations. The model was fit
+    using data from 20 samples from each population and assumes a
+    mutation rate of 1.44e-8 per generation and a generation time
+    of 29 years.
+    """
+    id = "QC-OutOfAfrica_4J17"
+
+    N_A = 11293
+    N_AF = 23721
+    N_B = 2831
+    N_EU0 = 2512
+    r_EU = 0.0016
+    N_AS0 = 1019
+    r_AS = 0.0026
+    N_JP0 = 4384
+    r_JP = 0.0129
+    m_AF_B = 16.8e-5
+    m_AF_EU = 1.14e-5
+    m_AF_AS = 0.56e-5
+    m_EU_AS = 4.75e-5
+    m_CH_JP = 3.3e-5
+    T_AF_y = 357e3
+    T_AF_g = int(T_AF_y / 29)
+    T_B_y = 119e3
+    T_B_g = int(T_B_y / 29)
+    T_EU_AS_y = 46e3
+    T_EU_AS_g = int(T_EU_AS_y / 29)
+    T_CH_JP_y = 9e3
+    T_CH_JP_g = int(T_CH_JP_y / 29)
+
+    N_curr_CEU = N_EU0 * math.exp(T_EU_AS_g * r_EU)
+    N_curr_CHB = N_AS0 * math.exp(T_EU_AS_g * r_AS)
+    N_curr_JPT = N_JP0 * math.exp(T_CH_JP_g * r_JP)
+
+    de = msprime.Demography()
+    de.add_population(name="YRI", initial_size=N_AF, initially_active=True)
+    de.add_population(
+        name="CEU", initial_size=N_curr_CEU, growth_rate=r_EU, initially_active=True
+    )
+    de.add_population(
+        name="CHB", initial_size=N_curr_CHB, growth_rate=r_AS, initially_active=True
+    )
+    de.add_population(
+        name="JPT", initial_size=N_curr_JPT, growth_rate=r_JP, initially_active=True
+    )
+
+    de.set_symmetric_migration_rate(["YRI", "CEU"], m_AF_EU)
+    de.set_symmetric_migration_rate(["YRI", "CHB"], m_AF_AS)
+    de.set_symmetric_migration_rate(["CEU", "CHB"], m_EU_AS)
+    de.set_symmetric_migration_rate(["CHB", "JPT"], m_CH_JP)
+
+    de.add_mass_migration(time=T_CH_JP_g, source="JPT", dest="CHB", proportion=1)
+    de.add_symmetric_migration_rate_change(
+        time=T_CH_JP_g, populations=["CHB", "JPT"], rate=0
+    )
+    de.add_mass_migration(time=T_EU_AS_g, source="CHB", dest="CEU", proportion=1)
+    de.add_symmetric_migration_rate_change(
+        time=T_EU_AS_g, populations=["CEU", "CHB"], rate=0
+    )
+    de.add_symmetric_migration_rate_change(
+        time=T_EU_AS_g, populations=["YRI", "CHB"], rate=0
+    )
+
+    de.add_population_parameters_change(
+        time=T_EU_AS_g, initial_size=N_B, growth_rate=0, population="CEU"
+    )
+    de.add_symmetric_migration_rate_change(
+        time=T_EU_AS_g, populations=["CEU", "YRI"], rate=m_AF_B
+    )
+    de.add_mass_migration(time=T_B_g, source="CEU", dest="YRI", proportion=1)
+    de.add_symmetric_migration_rate_change(
+        time=T_B_g, populations=["CEU", "YRI"], rate=0
+    )
+    de.add_population_parameters_change(time=T_AF_g, initial_size=N_A, population="YRI")
+
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=id,
+        long_description=id,
+        generation_time=29,
+        model=de,
+        mutation_rate=1.44e-8,
+        population_id_map=None,
+    )
+
+
+_species.get_demographic_model("OutOfAfrica_4J17").register_qc(JouganousOOA2017())
+
+
 def Boyko2008():
     """
     African-American two-epoch instantaneous growth model from Boyko et al
