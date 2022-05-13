@@ -1114,14 +1114,14 @@ def GladsteinAshkSubstructure():
 
     # Population sizes from supp tab 3
     N_ANC = 7300
-    N_YRI = 10**4.26
-    N_CEU = 10**4.52
-    N_CHB = 10**3.61
-    N_WA = 10**3.82
-    N_EA = 10**6.29
-    N_Ag = 10**3.04
-    N_J = 10**5.55
-    N_M = 10**5.64
+    N_YRI = 10 ** 4.26
+    N_CEU = 10 ** 4.52
+    N_CHB = 10 ** 3.61
+    N_WA = 10 ** 3.82
+    N_EA = 10 ** 6.29
+    N_Ag = 10 ** 3.04
+    N_J = 10 ** 5.55
+    N_M = 10 ** 5.64
 
     # Migration rate from CEU to ASHK ancestral pop
     m = 0.17
@@ -1270,7 +1270,7 @@ def JouganousOOA2017():
     mutation rate of 1.44e-8 per generation and a generation time
     of 29 years.
     """
-    id = 'QC-OutOfAfrica_4J17'
+    id = "QC-OutOfAfrica_4J17"
 
     N_A = 11293
     N_AF = 23721
@@ -1300,55 +1300,45 @@ def JouganousOOA2017():
     N_curr_JPT = N_JP0 * math.exp(T_CH_JP_g * r_JP)
 
     de = msprime.Demography()
-    de.add_population(name='YRI',
-                      initial_size=N_AF,
-                      initially_active=True)
-    de.add_population(name='CEU',
-                      initial_size=N_curr_CEU,
-                      growth_rate=r_EU,
-                      initially_active=True)
-    de.add_population(name='CHB',
-                      initial_size=N_curr_CHB,
-                      growth_rate=r_AS,
-                      initially_active=True)
-    de.add_population(name='JPT',
-                      initial_size=N_curr_JPT,
-                      growth_rate=r_JP,
-                      initially_active=True)
+    de.add_population(name="YRI", initial_size=N_AF, initially_active=True)
+    de.add_population(
+        name="CEU", initial_size=N_curr_CEU, growth_rate=r_EU, initially_active=True
+    )
+    de.add_population(
+        name="CHB", initial_size=N_curr_CHB, growth_rate=r_AS, initially_active=True
+    )
+    de.add_population(
+        name="JPT", initial_size=N_curr_JPT, growth_rate=r_JP, initially_active=True
+    )
 
-    de.set_symmetric_migration_rate(['YRI', 'CEU'], m_AF_EU)
-    de.set_symmetric_migration_rate(['YRI', 'CHB'], m_AF_AS)
-    de.set_symmetric_migration_rate(['CEU', 'CHB'], m_EU_AS)
-    de.set_symmetric_migration_rate(['CHB', 'JPT'], m_CH_JP)
+    de.set_symmetric_migration_rate(["YRI", "CEU"], m_AF_EU)
+    de.set_symmetric_migration_rate(["YRI", "CHB"], m_AF_AS)
+    de.set_symmetric_migration_rate(["CEU", "CHB"], m_EU_AS)
+    de.set_symmetric_migration_rate(["CHB", "JPT"], m_CH_JP)
 
-    de.add_mass_migration(time=T_CH_JP_g, source='JPT', dest='CHB',
-                          proportion=1)
-    de.add_symmetric_migration_rate_change(time=T_CH_JP_g,
-                                           populations=['CHB', 'JPT'],
-                                           rate=0)
-    de.add_mass_migration(time=T_EU_AS_g, source='CHB', dest='CEU',
-                          proportion=1)
-    de.add_symmetric_migration_rate_change(time=T_EU_AS_g,
-                                           populations=['CEU', 'CHB'],
-                                           rate=0)
-    de.add_symmetric_migration_rate_change(time=T_EU_AS_g,
-                                           populations=['YRI', 'CHB'],
-                                           rate=0)
+    de.add_mass_migration(time=T_CH_JP_g, source="JPT", dest="CHB", proportion=1)
+    de.add_symmetric_migration_rate_change(
+        time=T_CH_JP_g, populations=["CHB", "JPT"], rate=0
+    )
+    de.add_mass_migration(time=T_EU_AS_g, source="CHB", dest="CEU", proportion=1)
+    de.add_symmetric_migration_rate_change(
+        time=T_EU_AS_g, populations=["CEU", "CHB"], rate=0
+    )
+    de.add_symmetric_migration_rate_change(
+        time=T_EU_AS_g, populations=["YRI", "CHB"], rate=0
+    )
 
-    de.add_population_parameters_change(time=T_EU_AS_g,
-                                        initial_size=N_B,
-                                        growth_rate=0,
-                                        population='CEU')
-    de.add_symmetric_migration_rate_change(time=T_EU_AS_g,
-                                           populations=['CEU', 'YRI'],
-                                           rate=m_AF_B)
-    de.add_mass_migration(time=T_B_g, source='CEU', dest='YRI', proportion=1)
-    de.add_symmetric_migration_rate_change(time=T_B_g,
-                                           populations=['CEU', 'YRI'],
-                                           rate=0)
-    de.add_population_parameters_change(time=T_AF_g,
-                                        initial_size=N_A,
-                                        population='YRI')
+    de.add_population_parameters_change(
+        time=T_EU_AS_g, initial_size=N_B, growth_rate=0, population="CEU"
+    )
+    de.add_symmetric_migration_rate_change(
+        time=T_EU_AS_g, populations=["CEU", "YRI"], rate=m_AF_B
+    )
+    de.add_mass_migration(time=T_B_g, source="CEU", dest="YRI", proportion=1)
+    de.add_symmetric_migration_rate_change(
+        time=T_B_g, populations=["CEU", "YRI"], rate=0
+    )
+    de.add_population_parameters_change(time=T_AF_g, initial_size=N_A, population="YRI")
 
     return stdpopsim.DemographicModel(
         id=id,
@@ -1361,7 +1351,7 @@ def JouganousOOA2017():
     )
 
 
-_species.get_demographic_model('OutOfAfrica_4J17').register_qc(JouganousOOA2017())
+_species.get_demographic_model("OutOfAfrica_4J17").register_qc(JouganousOOA2017())
 
 
 def Boyko2008():
