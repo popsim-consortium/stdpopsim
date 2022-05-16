@@ -18,7 +18,10 @@ _gm = stdpopsim.GeneticMap(
         first recombination breakpoint observed in the RIAILs.
         The genetic map corresponds to the assembly ce11 (GCA_000002985.3).
         """,
-    url="http://sesame.uoregon.edu/~ateterina/rockman2009_maps.tgz",
+    url=(
+        "https://stdpopsim.s3.us-west-2.amazonaws.com/genetic_maps/"
+        "CaeEle/rockman2009_maps.tgz"
+    ),
     sha256="ef0efa0aec3aa8fcd9800830d83d80bb2525788cf7b28105b7292072fedad8fb",
     file_pattern="genetic_map/C.elegans.Rockman.Kruglyak.2009.{id}.hapmap.txt",
     citations=[
