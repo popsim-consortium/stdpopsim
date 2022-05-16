@@ -2,6 +2,8 @@ import stdpopsim
 
 from . import genome_data
 
+# Average genome-wide recombination rate of 3.11 cM/Mb.
+# From the abstract and the beginning of the Results section.
 _recombination_rate = {
     "1": 3.11e-08,
     "2": 3.11e-08,
@@ -28,6 +30,8 @@ _recombination_rate = {
     "MT": 0,
 }
 
+# From the PSMC results.
+# Intermediate value between the from Materials and Methods.
 _overall_rate = 3.7e-8
 _mutation_rate = {
     "1": _overall_rate,
@@ -69,13 +73,13 @@ _genome = stdpopsim.Genome.from_data(
         stdpopsim.Citation(
             author="Roesti et al.",
             year=2013,
-            doi="https://10.1111/mec.12322",
+            doi="https://doi.org/10.1111/mec.12322",
             reasons={stdpopsim.CiteReason.REC_RATE},
         ),
         stdpopsim.Citation(
             author="Liu et al.",
             year=2016,
-            doi="https://10.1111/mec.13827",
+            doi="https://doi.org/10.1111/mec.13827",
             reasons={stdpopsim.CiteReason.MUT_RATE},
         ),
     ],
@@ -87,13 +91,13 @@ _species = stdpopsim.Species(
     name="Gasterosteus aculeatus",
     common_name="Three-spined stickleback",
     genome=_genome,
-    generation_time=1,
-    population_size=1e4,
+    generation_time=2,  # PSMC description at the Materials and Methods.
+    population_size=1e4,  # From PSMC results.
     citations=[
         stdpopsim.Citation(
             author="Liu et al.",
             year=2016,
-            doi="https://10.1111/mec.13827",
+            doi="https://doi.org/10.1111/mec.13827",
             reasons={stdpopsim.CiteReason.POP_SIZE, stdpopsim.CiteReason.GEN_TIME},
         ),
     ],
