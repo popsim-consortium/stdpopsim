@@ -62,7 +62,7 @@ for name, data in genome_data.data["chromosomes"].items():
             id=name,
             length=data["length"],
             synonyms=data["synonyms"],
-            mutation_rate=5.7 * 10e-9,
+            mutation_rate=5.7e-9,
             recombination_rate=_recombination_rate[name],
         )
     )
