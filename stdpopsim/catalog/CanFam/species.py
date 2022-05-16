@@ -64,10 +64,10 @@ _SkoglundEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1016/j.cub.2015.04.019",
 )
 
-_FranzEtAl = stdpopsim.Citation(
+_FrantzEtAl = stdpopsim.Citation(
     # Genomic and archaeological evidence suggest a dual origin of
     # domestic dogs.
-    author="Franz et al.",
+    author="Frantz et al.",
     year=2016,
     doi="https://doi.org/10.1126/science.aaf3161",
 )
@@ -97,7 +97,7 @@ _genome = stdpopsim.Genome(
     assembly_accession=genome_data.data["assembly_accession"],
     citations=[
         _SkoglundEtAl.because(stdpopsim.CiteReason.MUT_RATE),
-        _FranzEtAl.because(stdpopsim.CiteReason.MUT_RATE),
+        _FrantzEtAl.because(stdpopsim.CiteReason.MUT_RATE),
         _CampbellEtAl.because(stdpopsim.CiteReason.REC_RATE),
         _LindbladTohEtAl.because(stdpopsim.CiteReason.ASSEMBLY),
     ],
