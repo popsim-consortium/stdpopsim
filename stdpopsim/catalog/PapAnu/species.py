@@ -2,8 +2,10 @@ import stdpopsim
 
 from . import genome_data
 
-# recombination rates for autosomes are obtained from
+# Recombination rates for autosomes are obtained from
 # Wall et. al. 2022 GBE
+# The autosomes recombination rates were computed as simple averages
+# across all windows.
 # Recombination for X chromosome has not been estimated
 # and is assigned the mean value of other chromosomes
 _recombination_rate = {
