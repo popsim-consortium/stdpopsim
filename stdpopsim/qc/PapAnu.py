@@ -14,7 +14,7 @@ def WallOnePopPapio():
     # This is a demographic model demographic model produced by SMC++
     # generation time of 11 years and a mutation rate of 5.7e-9 per bp per gen
     generation_time = 11
-    mutation_rate = 5.7 * 10e-9
+    mutation_rate = 5.7e-9
 
     # the time and population sizes are on Sup. Fig2
     # the exact values were provided by the authours
