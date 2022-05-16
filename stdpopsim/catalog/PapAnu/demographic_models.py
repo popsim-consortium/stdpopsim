@@ -65,7 +65,7 @@ def _pap_anu():
         # citations for generation time and mutation rate can be
         # found in species.py
         generation_time=11,
-        mutation_rate=5.7 * 10e-9,
+        mutation_rate=5.7e-9,
         demographic_events=demographic_events,
         population_configurations=[
             msprime.PopulationConfiguration(
