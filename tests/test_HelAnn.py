@@ -21,40 +21,37 @@ class TestSpeciesData(test_species.SpeciesTestBase):
     # independently referring to the citations provided in the
     # species definition, filling in the appropriate values
     # and deleting the pytest "skip" annotations.
-    @pytest.mark.skip("Population size QC not done yet")
     def test_qc_population_size(self):
-        assert self.species.population_size == -1
+        assert self.species.population_size == 673968
 
-    @pytest.mark.skip("Generation time QC not done yet")
     def test_qc_generation_time(self):
-        assert self.species.generation_time == -1
+        assert self.species.generation_time == 1
 
 
 class TestGenomeData(test_species.GenomeTestBase):
 
     genome = stdpopsim.get_species("HelAnn").genome
 
-    @pytest.mark.skip("Recombination rate QC not done yet")
     @pytest.mark.parametrize(
         ["name", "rate"],
         {
-            "1": -1,
-            "2": -1,
-            "3": -1,
-            "4": -1,
-            "5": -1,
-            "6": -1,
-            "7": -1,
-            "8": -1,
-            "9": -1,
-            "10": -1,
-            "11": -1,
-            "12": -1,
-            "13": -1,
-            "14": -1,
-            "15": -1,
-            "16": -1,
-            "17": -1,
+            "1": 0.4e-8,
+            "2": 0.4e-8,
+            "3": 0.4e-8,
+            "4": 0.4e-8,
+            "5": 0.4e-8,
+            "6": 0.4e-8,
+            "7": 0.4e-8,
+            "8": 0.4e-8,
+            "9": 0.4e-8,
+            "10": 0.4e-8,
+            "11": 0.4e-8,
+            "12": 0.4e-8,
+            "13": 0.4e-8,
+            "14": 0.4e-8,
+            "15": 0.4e-8,
+            "16": 0.4e-8,
+            "17": 0.4e-8,
         }.items(),
     )
     def test_recombination_rate(self, name, rate):
@@ -62,27 +59,26 @@ class TestGenomeData(test_species.GenomeTestBase):
             self.genome.get_chromosome(name).recombination_rate
         )
 
-    @pytest.mark.skip("Mutation rate QC not done yet")
     @pytest.mark.parametrize(
         ["name", "rate"],
         {
-            "1": -1,
-            "2": -1,
-            "3": -1,
-            "4": -1,
-            "5": -1,
-            "6": -1,
-            "7": -1,
-            "8": -1,
-            "9": -1,
-            "10": -1,
-            "11": -1,
-            "12": -1,
-            "13": -1,
-            "14": -1,
-            "15": -1,
-            "16": -1,
-            "17": -1,
+            "1": 6.1e-9,
+            "2": 6.1e-9,
+            "3": 6.1e-9,
+            "4": 6.1e-9,
+            "5": 6.1e-9,
+            "6": 6.1e-9,
+            "7": 6.1e-9,
+            "8": 6.1e-9,
+            "9": 6.1e-9,
+            "10": 6.1e-9,
+            "11": 6.1e-9,
+            "12": 6.1e-9,
+            "13": 6.1e-9,
+            "14": 6.1e-9,
+            "15": 6.1e-9,
+            "16": 6.1e-9,
+            "17": 6.1e-9,
         }.items(),
     )
     def test_mutation_rate(self, name, rate):
