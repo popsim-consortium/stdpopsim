@@ -71,12 +71,11 @@ def _ooa_nea_extended_pulse():
         """
         tm = (migration_stop - migration_start) / 2 + migration_start
         k = 1 / ((migration_stop - migration_start) / (4 * tm)) ** 2
-        m = [stats.gamma.pdf(x=range(split_time + 1), a=k, loc=0, scale=tm / k)]
+        m = stats.gamma.pdf(x=range(split_time + 1), a=k, loc=0, scale=tm / k)
 
         """
         Scaling the distribution by the total migration rate.
         """
-        m = m[0]
         m[abs(m) < migration_cutoff] = 0
         m_scaled = m * total_migration_rate / sum(m)
 
@@ -86,7 +85,7 @@ def _ooa_nea_extended_pulse():
         for x in range(split_time + 1):
 
             """
-            Writing gene flow events which are inside the set time boarders and
+            Writing gene flow events which are inside the set time borders and
             over the set migration cutoff. They will be included in the m(t)
             distribution.
             """
@@ -115,22 +114,23 @@ def _ooa_nea_extended_pulse():
 
         return extended_pulse
 
-    generation_time = 25 / 1000
+    generation_time = 29
+    mutation_rate = 2e-8
     """Setting population sizes"""
     n_Hy = 10000
     n_Hc = 10000
     n_N = 10000
 
     """Setting population splits"""
-    t_NH = int(290 / generation_time)
-    t_Hy_Hc = int(73.950 / generation_time)
+    t_NH = int(290000 / generation_time)
+    t_Hy_Hc = int(73950 / generation_time)
 
     """Setting the total, unidirectional migration rate from NEA to EUR"""
     m_NHc = 0.03
 
     """Setting start and stop of the extended admixture pulse"""
-    tm_NHc_start = int(30 / generation_time)
-    tm_NHc_stop = int(50 / generation_time)
+    tm_NHc_start = int(30000 / generation_time)
+    tm_NHc_stop = int(53200 / generation_time)
 
     """Split time CEU"""
     Split_Time_non_Africans = msprime.MassMigration(
@@ -152,6 +152,7 @@ def _ooa_nea_extended_pulse():
         dest=2,
         migration_cutoff=1e-5,
     )
+
     """Absolute start end end of admixture"""
     Neandertal_Gene_Flow_absolute_start = msprime.MigrationRateChange(
         time=int(extended_GF.time.head(1) - 1), rate=0
@@ -179,12 +180,8 @@ def _ooa_nea_extended_pulse():
     demographic_events.sort(key=lambda x: x.time)
 
     populations = [
-        stdpopsim.Population(id="YRI", description="1000 Genomes YRI (Yorubans)"),
-        stdpopsim.Population(
-            id="CEU",
-            description="1000 Genomes CEU (Utah Residents \
-            (CEPH) with Northern and Western European Ancestry",
-        ),
+        _yri_population,
+        _ceu_population,
         stdpopsim.Population(id="NEA", description="Neandertals"),
     ]
 
@@ -198,12 +195,6 @@ def _ooa_nea_extended_pulse():
         msprime.PopulationConfiguration(
             initial_size=n_N, metadata=populations[2].asdict()
         ),
-    ]
-
-    migration_matrix = [
-        [0, 0, 0],
-        [0, 0, 0],
-        [0, 0, 0],
     ]
 
     citations = [
@@ -221,7 +212,8 @@ def _ooa_nea_extended_pulse():
         Neandertal admixture into Europeans",
         long_description="""
         Demographic model of an extended admixture pulse from Neandertals into
-        Europenas taken from Iasi et al. (2021).
+        Europeans taken from Iasi et al. (2021), specifically the simple model
+        of Supplementary Figure 1a with a gamma-shaped pulse.
         This model simulates 3 populations: Africans, Europeans and Neandertals
         with an Out-of-Africa event. The population sizes are constant
         with an unidirectional admixture from Neandertals into Europeans after
@@ -233,7 +225,7 @@ def _ooa_nea_extended_pulse():
         citations=citations,
         generation_time=generation_time,
         population_configurations=population_configurations,
-        migration_matrix=migration_matrix,
+        mutation_rate=mutation_rate,
         demographic_events=demographic_events,
     )
 
