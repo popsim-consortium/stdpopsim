@@ -21,67 +21,65 @@ class TestSpeciesData(test_species.SpeciesTestBase):
     # independently referring to the citations provided in the
     # species definition, filling in the appropriate values
     # and deleting the pytest "skip" annotations.
-    @pytest.mark.skip("Population size QC not done yet")
     def test_qc_population_size(self):
-        assert self.species.population_size == -1
+        assert self.species.population_size == 2e05
 
-    @pytest.mark.skip("Generation time QC not done yet")
     def test_qc_generation_time(self):
-        assert self.species.generation_time == -1
+        assert self.species.generation_time == 2
 
 
 class TestGenomeData(test_species.GenomeTestBase):
 
     genome = stdpopsim.get_species("ApiMel").genome
 
-    @pytest.mark.skip("Recombination rate QC not done yet")
     @pytest.mark.parametrize(
         ["name", "rate"],
         {
-            "CM009931.2": -1,
-            "CM009932.2": -1,
-            "CM009933.2": -1,
-            "CM009934.2": -1,
-            "CM009935.2": -1,
-            "CM009936.2": -1,
-            "CM009937.2": -1,
-            "CM009938.2": -1,
-            "CM009939.2": -1,
-            "CM009940.2": -1,
-            "CM009941.2": -1,
-            "CM009942.2": -1,
-            "CM009943.2": -1,
-            "CM009944.2": -1,
-            "CM009945.2": -1,
-            "CM009946.2": -1,
-            "CM009947.2": -1,
+            "CM009931.2": 23.9e-8,
+            "CM009932.2": 24.6e-8,
+            "CM009933.2": 24.1e-8,
+            "CM009934.2": 27.6e-8,
+            "CM009935.2": 21.4e-8,
+            "CM009936.2": 21.2e-8,
+            "CM009937.2": 23.4e-8,
+            "CM009938.2": 20.9e-8,
+            "CM009939.2": 24.6e-8,
+            "CM009940.2": 24.8e-8,
+            "CM009941.2": 20.3e-8,
+            "CM009942.2": 21.2e-8,
+            "CM009943.2": 23.4e-8,
+            "CM009944.2": 24.6e-8,
+            "CM009945.2": 22.1e-8,
+            "CM009946.2": 22.8e-8,
+            "CM009947.2": 0,
         }.items(),
     )
     def test_recombination_rate(self, name, rate):
-        assert pytest.approx(rate, self.genome.get_chromosome(name).recombination_rate)
+        assert rate == pytest.approx(
+            self.genome.get_chromosome(name).recombination_rate
+        )
 
-    @pytest.mark.skip("Mutation rate QC not done yet")
     @pytest.mark.parametrize(
         ["name", "rate"],
         {
-            "CM009931.2": -1,
-            "CM009932.2": -1,
-            "CM009933.2": -1,
-            "CM009934.2": -1,
-            "CM009935.2": -1,
-            "CM009936.2": -1,
-            "CM009937.2": -1,
-            "CM009938.2": -1,
-            "CM009939.2": -1,
-            "CM009940.2": -1,
-            "CM009941.2": -1,
-            "CM009942.2": -1,
-            "CM009943.2": -1,
-            "CM009944.2": -1,
-            "CM009945.2": -1,
-            "CM009946.2": -1,
-            "CM009947.2": -1,
+            "CM009931.2": 3.4e-9,
+            "CM009932.2": 3.4e-9,
+            "CM009933.2": 3.4e-9,
+            "CM009934.2": 3.4e-9,
+            "CM009935.2": 3.4e-9,
+            "CM009936.2": 3.4e-9,
+            "CM009937.2": 3.4e-9,
+            "CM009938.2": 3.4e-9,
+            "CM009939.2": 3.4e-9,
+            "CM009940.2": 3.4e-9,
+            "CM009941.2": 3.4e-9,
+            "CM009942.2": 3.4e-9,
+            "CM009943.2": 3.4e-9,
+            "CM009944.2": 3.4e-9,
+            "CM009945.2": 3.4e-9,
+            "CM009946.2": 3.4e-9,
+            "CM009947.2": 3.4e-9,
         }.items(),
     )
     def test_mutation_rate(self, name, rate):
-        assert pytest.approx(rate, self.genome.get_chromosome(name).mutation_rate)
+        assert rate == pytest.approx(self.genome.get_chromosome(name).mutation_rate)
