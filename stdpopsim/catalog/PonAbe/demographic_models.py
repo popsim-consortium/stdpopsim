@@ -39,7 +39,9 @@ def _orangutan():
     # time of split
     T_split_years = 403149
     # get split time in units of generations
-    generation_time = _species.generation_time
+    # generation time used by Locke et al. without further citation
+    generation_time = 20
+    # mutation rate used by Locke et al. without further citation
     mutation_rate = 2e-8
 
     T_split = T_split_years / generation_time
