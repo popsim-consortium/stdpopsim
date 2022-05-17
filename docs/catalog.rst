@@ -54,11 +54,21 @@ Then, if you feel ready, make an issue on our
 
 .. speciescatalog:: DroMel
 
+.. speciescatalog:: DroSec
+
 .. speciescatalog:: EscCol
+
+.. speciescatalog:: GasAcu
+
+.. speciescatalog:: HelAnn
+
+.. speciescatalog:: HelMel
 
 .. speciescatalog:: HomSap
 
 .. speciescatalog:: PonAbe
+
+.. speciescatalog:: StrAga
 
 
 Generic models
