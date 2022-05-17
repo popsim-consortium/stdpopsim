@@ -16,31 +16,39 @@ _ComeronEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.REC_RATE},
 )
 
+# Legrand et al. used the mutation rate from this paper.
+_WallEtAl = stdpopsim.Citation(
+    doi="https://doi.org/10.1093/genetics/162.1.203",
+    year=2002,
+    author="Wall et al.",
+    reasons={
+        stdpopsim.CiteReason.MUT_RATE,
+    },
+)
+
 _LegrandEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1534/genetics.108.092080",
     year=2009,
     author="Legrand et al.",
     reasons={
         stdpopsim.CiteReason.GEN_TIME,
-        stdpopsim.CiteReason.MUT_RATE,
         stdpopsim.CiteReason.POP_SIZE,
     },
 )
 
-# Mean chromosomal rates, calculated by taking the
-# average of all rates in the
-# "ComeronCrossoverV2_dm6" genetic map, weighted by
-# their respective interval lengths.
-# Chromosome 4 isn't in this map, so the average of
-# 2L, 2R, 3L and 3R weighted by their respective
-# chromosome lengths was used instead.
+# Mean recombination rates, calculated by averaging across
+# the crosses the values of each chromosome's genetic map lengths.
+# These values were then divided by
+# the chromosome size in Mbp (values represent cM/Mbp).
+# The recombinatio rate of chromosome 4 was set to 0 as in
+# https://petrov.stanford.edu/cgi-bin/recombination-rates_updateR5.pl
 _recombination_rate = {
-    "2L": 2.40462600791e-08,
-    "2R": 2.23458641776e-08,
-    "3L": 1.79660308862e-08,
-    "3R": 1.71642045777e-08,
-    "4": 2.00579550709e-08,
-    "X": 2.89650687913e-08,
+    "2L": 2.28e-8,
+    "2R": 2.51e-8,
+    "3L": 1.88e-8,
+    "3R": 1.91e-8,
+    "4": 0,
+    "X": 2.85e-8,
 }
 
 # Mutation rate is set to that used by
@@ -65,11 +73,7 @@ _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
-    citations=[
-        _ChakrabortyEtAl,
-        _ComeronEtAl,
-        _LegrandEtAl,
-    ],
+    citations=[_ChakrabortyEtAl, _ComeronEtAl, _WallEtAl],
 )
 stdpopsim.utils.append_common_synonyms(_genome)
 
