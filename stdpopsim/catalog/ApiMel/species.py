@@ -9,6 +9,7 @@ _BeyeEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.REC_RATE},
 )
 
+# From Table 2.
 _recombination_rate = {
     "CM009931.2": 23.9e-8,
     "CM009932.2": 24.6e-8,
@@ -39,12 +40,14 @@ _YangEtAl = stdpopsim.Citation(
 
 _LiuEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1093/molbev/msw226",
-    year=2016,
+    year=2017,
     author="Liu et al.",
     reasons={stdpopsim.CiteReason.MUT_RATE},
 )
 
-_overall_mutation_rate = 3.4 * 10e-9
+# From Table 1 in Liu et al. 2017
+# The table cites Yang et al. 2015
+_overall_mutation_rate = 3.4e-9
 _mutation_rate = {
     "CM009931.2": _overall_mutation_rate,
     "CM009932.2": _overall_mutation_rate,
@@ -120,6 +123,7 @@ _NelsonEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.GEN_TIME},
 )
 
+# Estimated Ne for the European population.
 _WallbergEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1038/ng.3077",
     year=2014,
