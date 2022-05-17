@@ -245,10 +245,6 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
     def test_one_chrom_from_each_map(self):
         for gm in stdpopsim.all_genetic_maps():
             species = gm.species
-            if gm.id in ("NaterPA_PonAbe2", "NaterPP_PonAbe2"):
-                # XXX: these maps are currently broken:
-                #   ValueError: The last entry in the 'rate' column must be zero
-                continue
             # Just load the first chromosome in the list.
             # There's no requirement that any given chromosome is actually
             # in the map, and we don't have a direct way to check
