@@ -21,6 +21,8 @@ jobs:
         python: [3.7, "3.10"]
     env:
       CONDA_ENV_NAME: stdpopsim
+      OS: ${{ matrix.os }}
+      PYTHON: ${{ matrix.python }}
 
     steps:
       - name: cancel previous runs
@@ -83,5 +85,17 @@ jobs:
 
       - name: run test suite
         run: |
-          pytest -n0 --cov=stdpopsim --cov-branch tests
-          coverage report -m
+          python -m pytest \
+            -n 0 \
+            -v \
+            --cov=stdpopsim \
+            --cov-branch \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            tests
+
+      - name: upload coverage report to codecov
+        uses: codecov/codecov-action@v3
+        with:
+          fail_ci_if_error: true
+          env_vars: OS,PYTHON
