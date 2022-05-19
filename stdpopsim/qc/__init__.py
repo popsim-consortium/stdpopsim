@@ -4,3 +4,4 @@ from . import HomSap  # NOQA
 from . import PonAbe  # NOQA
 from . import AnaPla  # NOQA
 from . import PapAnu  # NOQA
+from . import BosTau  # NOQA
