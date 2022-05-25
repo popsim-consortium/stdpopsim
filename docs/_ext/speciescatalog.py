@@ -428,6 +428,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         os.makedirs(f"parameter_images/{species.id}/", exist_ok=True)
         img_name = f"parameter_images/{species.id}/{mid}.png"
         plt.savefig(img_name, dpi=150)
+        plt.close()
         section = nodes.image(uri=img_name)
         return section
 
