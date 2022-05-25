@@ -499,4 +499,6 @@ def _GAS_sp():
     )
 
 
-_species.add_demographic_model(_GAS_sp())
+# TODO: fix this up - there's no parameter table and also all the times above
+# are listed twice
+# _species.add_demographic_model(_GAS_sp())
