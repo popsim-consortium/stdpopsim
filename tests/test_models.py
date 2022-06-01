@@ -7,6 +7,7 @@ import copy
 import csv
 import pathlib
 import os
+import fractions
 
 import numpy as np
 import msprime
@@ -384,7 +385,12 @@ class TestMutationRates:
                         mutation_rate = None
                         for param_data in param_list:
                             if param_data[0].startswith("Generation time"):
-                                generation_time = float(param_data[1])
+                                try:
+                                    generation_time = float(param_data[1])
+                                except ValueError:
+                                    generation_time = float(
+                                        fractions.Fraction(param_data[1])
+                                    )
                             if param_data[0].startswith("Mutation rate"):
                                 mutation_rate = float(param_data[1])
                     assert model.mutation_rate == mutation_rate

@@ -55,18 +55,44 @@ _Cutter2006 = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.POP_SIZE},
 )
 
-# Mean chromosomal rates, calculated from the Rockman and Kruglyak 2009 map.
-# !!! The recombination rate is multiplied by 0.001 because the outcrosssing rate is 0.1%
+_SivasundarAndHey2003 = stdpopsim.Citation(
+    doi="https://doi.org/10.1093/genetics/163.1.147",
+    year=2003,
+    author="Sivasundar & Hey",
+    reasons={stdpopsim.CiteReason.POP_SIZE},
+)
+
+_SivasundarAndHey2005 = stdpopsim.Citation(
+    doi="https://doi.org/10.1016/j.cub.2005.08.034",
+    year=2005,
+    author="Sivasundar & Hey",
+    reasons={stdpopsim.CiteReason.POP_SIZE},
+)
+
+# Mean chromosomal rates, calculated from the
+# Rockman and Kruglyak 2009 map. !!! The recombination
+# rate is multiplied by 0.001 because the outcrosssing
+# rate is 0.1%
 _recombination_rate_data = {
-    "I": 3.330038e-11,
-    "II": 3.999342e-11,
-    "III": 4.484974e-11,
-    "IV": 2.417689e-11,
-    "V": 2.722476e-11,
-    "X": 3.447911e-11,
+    "I": 3.1216265402124167e-11,
+    "II": 3.529290802315087e-11,
+    "III": 3.906598767640363e-11,
+    "IV": 2.712098077556377e-11,
+    "V": 2.4705737572511805e-11,
+    "X": 2.9472374817864404e-11,
     "MtDNA": 0,
 }
 
+genomic_dna_mu = 1.84e-9
+_mutation_rate_data = {
+    "I": genomic_dna_mu,
+    "II": genomic_dna_mu,
+    "III": genomic_dna_mu,
+    "IV": genomic_dna_mu,
+    "V": genomic_dna_mu,
+    "X": genomic_dna_mu,
+    "MtDNA": 1.05e-7,
+}
 
 _chromosomes = []
 for name, data in genome_data.data["chromosomes"].items():
@@ -75,13 +101,14 @@ for name, data in genome_data.data["chromosomes"].items():
             id=name,
             length=data["length"],
             synonyms=data["synonyms"],
-            mutation_rate=1.84e-9,  # _Konrad et al. de-nove mutation rate,
-            # it's not uniform and it's much better to use a mutation map.
+            mutation_rate=_mutation_rate_data[name],
+            # _Konrad et al. de-nove mutation rate,
+            # it's not uniform and it's much better to use
+            # a mutation map.
             # mutation_rate=_mutation_rate_data[name],
             recombination_rate=_recombination_rate_data[name],
         )
     )
-
 
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
@@ -97,13 +124,16 @@ _genome = stdpopsim.Genome(
 
 _species = stdpopsim.Species(
     id="CaeEle",
-    ensembl_id="",
+    ensembl_id="caenorhabditis_elegans",
     name="Caenorhabditis elegans",
     common_name="C. elegans",
     genome=_genome,
-    generation_time=0.01,  # the generation time in the lab ~150
-    # generation per year (0.00666), it should be less in the wild
-    population_size=10000,
+    generation_time=0.01,  # One of the estimates reported
+    # by the paper is ~150 generations per year (0.00666).
+    # We settled on 0.01, because generations are expected
+    # to be fewer in nature due to dauer larvae stage.
+    population_size=10000,  # Lots of estimates available,
+    # they are all over the place. Settling on 10,000.
     #    selfing_rate,=0.999,
     citations=[
         _FrezalAndFelix2015.because(stdpopsim.CiteReason.GEN_TIME),

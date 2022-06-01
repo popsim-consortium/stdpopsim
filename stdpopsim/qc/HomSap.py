@@ -1565,3 +1565,157 @@ def Iasi2021():
 _species.get_demographic_model(
     "OutOfAfricaExtendedNeandertalAdmixturePulse_3I21"
 ).register_qc(Iasi2021())
+
+
+# Currently this is not in use, but we kept it here in case we need it when the
+# catalog is updated to use demes.
+_ancient_europe_demes_str = """
+time_units: generations
+
+demes:
+  - name: OOA
+    epochs:
+      - start_size: 5000
+        end_time: 1500
+  - name: NE
+    ancestors: [OOA]
+    epochs:
+      - start_size: 5000
+        end_time: 600
+  - name: WA
+    ancestors: [OOA]
+    epochs:
+      - start_size: 5000
+        end_time: 800
+  - name: CHG
+    ancestors: [WA]
+    epochs:
+      - start_size: 10000
+        end_time: 180
+  - name: ANA
+    ancestors: [WA]
+    epochs:
+      - start_size: 50000
+        end_time: 200
+  - name: WHG
+    ancestors: [NE]
+    epochs:
+      - start_size: 10000
+        end_time: 200
+  - name: EHG
+    ancestors: [NE]
+    epochs:
+      - start_size: 10000
+        end_time: 180
+  - name: YAM
+    ancestors: [EHG, CHG]
+    proportions: [0.5, 0.5]
+    start_time: 180
+    epochs:
+      - start_size: 5000
+        end_time: 140
+  - name: NEO
+    ancestors: [WHG, ANA]
+    proportions: [0.25, 0.75]
+    start_time: 200
+    epochs:
+      - start_size: 50000
+        end_time: 140
+  - name: Bronze
+    ancestors: [YAM, NEO]
+    proportions: [0.5, 0.5]
+    start_time: 140
+    epochs:
+      - start_size: 50000
+        end_size: 592450737.709282
+        end_time: 0
+"""
+
+
+def PearsonAncientEurope():
+    """
+    Demographic history of ancient Europe from Allentoft et al. 2022. It
+    describes population splits and migration pulses for four main branches
+    in Fig. S3i.1 in Supplementary Information (Part I) found at
+    https://www.biorxiv.org/content/10.1101/2022.05.04.490594v2.supplementary-material
+    The branches are colored (black, red, yellow and purple).
+    """
+    id = "QC-AncientEurope_4A21"
+    r_EU = 0.067  # TODO: not sure where this came from
+    demog = msprime.Demography()
+    # TODO: not clear from the picture that the OOA pop started with 5000 people
+    demog.add_population(
+        name="OOA", description="Out of Africa population", initial_size=5_000
+    )
+    demog.add_population(
+        name="NE", description="Northern Europeans", initial_size=5_000
+    )
+    demog.add_population(name="WA", description="West Asians", initial_size=5_000)
+    demog.add_population_split(time=1_500, derived=["NE", "WA"], ancestral="OOA")
+    demog.add_population(
+        name="CHG",
+        description="Caucus Hunter-gatherers",
+        initial_size=10_000,
+        default_sampling_time=300,
+    )
+    demog.add_population(
+        name="ANA",
+        description="Anatolian Farmers",
+        initial_size=50_000,
+        default_sampling_time=260,
+    )
+    demog.add_population_split(time=800, derived=["ANA", "CHG"], ancestral="WA")
+    demog.add_population(
+        name="WHG",
+        description="Western hunter-gatherers",
+        initial_size=10_000,
+        default_sampling_time=250,
+    )
+    demog.add_population(
+        name="EHG",
+        description="Eastern hunter-gatherers",
+        initial_size=10_000,
+        default_sampling_time=250,
+    )
+    demog.add_population_split(time=600, derived=["EHG", "WHG"], ancestral="NE")
+    demog.add_population(
+        name="YAM",
+        description="Yamnayans",
+        initial_size=5_000,
+        default_sampling_time=160,
+    )
+    demog.add_population(
+        name="NEO",
+        description="Neolithic farmers",
+        initial_size=50_000,
+        default_sampling_time=180,
+    )
+    demog.add_admixture(
+        time=200, ancestral=["WHG", "ANA"], proportions=[0.25, 0.75], derived="NEO"
+    )
+    demog.add_admixture(
+        time=180, ancestral=["EHG", "CHG"], proportions=[0.5, 0.5], derived="YAM"
+    )
+    demog.add_population(
+        name="Bronze",
+        description="Bronze age",
+        initial_size=592450737.7092822,
+        growth_rate=r_EU,
+        default_sampling_time=135,
+    )
+    demog.add_admixture(
+        time=140, ancestral=["YAM", "NEO"], proportions=[0.5, 0.5], derived="Bronze"
+    )
+    demog.sort_events()
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=id,
+        long_description=id,
+        generation_time=29,  # TODO: not clear where this came from,
+        # but it is not necessary, given the times are in generations already
+        model=demog,
+        mutation_rate=1.25e-8,
+    )
+
+
+_species.get_demographic_model("AncientEurope_4A21").register_qc(PearsonAncientEurope())
