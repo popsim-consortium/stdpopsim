@@ -17,16 +17,9 @@ class TestSpeciesData(test_species.SpeciesTestBase):
     def test_common_name(self):
         assert self.species.common_name == "Mallard"
 
-    # QC Tests. These tests are performed by another contributor
-    # independently referring to the citations provided in the
-    # species definition, filling in the appropriate values
-    # and deleting the pytest "skip" annotations.
-
-    # @pytest.mark.skip("Population size QC not done yet")
     def test_qc_population_size(self):
         assert self.species.population_size == 156000
 
-    # @pytest.mark.skip("Generation time QC not done yet")
     def test_qc_generation_time(self):
         assert self.species.generation_time == 4
 
@@ -120,7 +113,6 @@ class TestGenomeData(test_species.GenomeTestBase):
             self.genome.get_chromosome(name).recombination_rate, 0.01
         )
 
-    # @pytest.mark.skip("Mutation rate QC not done yet")
     _genome_mutation_rate = 4.83e-9
 
     @pytest.mark.parametrize(

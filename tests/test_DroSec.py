@@ -17,11 +17,6 @@ class TestSpeciesData(test_species.SpeciesTestBase):
     def test_common_name(self):
         assert self.species.common_name == "Drosophila sechellia"
 
-    # QC Tests. These tests are performed by another contributor
-    # independently referring to the citations provided in the
-    # species definition, filling in the appropriate values
-    # and deleting the pytest "skip" annotations.
-    @pytest.mark.skip("Population size QC not done yet")
     def test_qc_population_size(self):
         assert self.species.population_size == 1e5
 

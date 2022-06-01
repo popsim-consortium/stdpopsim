@@ -46,7 +46,15 @@ Then, if you feel ready, make an issue on our
 
 .. speciescatalog:: AnoCar
 
+.. speciescatalog:: AnoGam
+
+.. speciescatalog:: ApiMel
+
 .. speciescatalog:: AraTha
+
+.. speciescatalog:: BosTau
+
+.. speciescatalog:: CaeEle
 
 .. speciescatalog:: CanFam
 
@@ -65,6 +73,8 @@ Then, if you feel ready, make an issue on our
 .. speciescatalog:: HelMel
 
 .. speciescatalog:: HomSap
+
+.. speciescatalog:: PapAnu
 
 .. speciescatalog:: PonAbe
 

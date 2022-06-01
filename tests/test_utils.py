@@ -216,9 +216,9 @@ class TestDownload:
                 input_filename.resolve().as_uri(),  # local file
                 "http://example.com/nonexistant",  # remote file
             ):
-                with pytest.raises(OSError):
+                with pytest.raises(OSError, match="nonexistant"):
                     utils.download(url, output_filename)
-                assert not (output_filename.exists())
+                assert not output_filename.exists()
 
 
 class TestSha256:

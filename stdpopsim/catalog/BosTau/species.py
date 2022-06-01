@@ -11,6 +11,13 @@ _RosenEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
 
+_HoweEtAl = stdpopsim.Citation(
+    author="Howe et al.",
+    year=2020,
+    doi="https://doi.org/10.1093/nar/gkaa942",
+    reasons={stdpopsim.CiteReason.ASSEMBLY},
+)
+
 # Frequency of mosaicism points towards mutation-prone early cleavage
 # cell divisions in cattle.
 _HarlandEtAl = stdpopsim.Citation(
@@ -73,7 +80,7 @@ for name, data in genome_data.data["chromosomes"].items():
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
     citations=[
-        _RosenEtAl,
+        _HoweEtAl,
         _HarlandEtAl,
         _MaEtAl,
     ],
@@ -87,7 +94,7 @@ _species = stdpopsim.Species(
     common_name="Cattle",
     genome=_genome,
     generation_time=5,
-    population_size=90,  # most recent Ne in _MacLeodEtAl
+    population_size=62000,  # ancestral Ne in _MacLeodEtAl
     citations=[_MacLeodEtAl],
 )
 

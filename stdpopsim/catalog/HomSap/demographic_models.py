@@ -1820,13 +1820,24 @@ def _ancient_europe():
     from each population.
     """
     populations = [
+        stdpopsim.Population(id="OOA", description="Basal/OOA", sampling_time=None),
         stdpopsim.Population(
-            id="Pop0",
-            description="1000GenomesEUR/BronzeAge/Neolithic/Anatolian/WestAsian/Basal",
+            id="NE", description="Northern European", sampling_time=None
         ),
-        stdpopsim.Population(id="Pop1", description="Yamnaya/CHG"),
-        stdpopsim.Population(id="Pop2", description="WHG/NorthernEuropean"),
-        stdpopsim.Population(id="Pop3", description="EHG"),
+        stdpopsim.Population(id="WA", description="West Asian", sampling_time=None),
+        stdpopsim.Population(
+            id="CHG", description="Caucasus Hunter-gathers", sampling_time=300
+        ),
+        stdpopsim.Population(id="ANA", description="Anatolian", sampling_time=260),
+        stdpopsim.Population(
+            id="WHG", description="Western Hunter-gathers", sampling_time=250
+        ),
+        stdpopsim.Population(
+            id="EHG", description="Eastern Hunter-gathers", sampling_time=250
+        ),
+        stdpopsim.Population(id="YAM", description="Yamnaya", sampling_time=160),
+        stdpopsim.Population(id="NEO", description="Neolithic", sampling_time=180),
+        stdpopsim.Population(id="Bronze", description="Bronze Age", sampling_time=135),
     ]
     citations = [
         stdpopsim.Citation(
@@ -1841,95 +1852,121 @@ def _ancient_europe():
     mutation_rate = 1.25e-8
 
     # initial population sizes:
-    N_bronze = 50000
-    N_Yam = 5000
-    N_whg = 10000
-    N_ehg = 10000
-    N_neo = 50000
-    N_chg = 10000
+    N_Bronze = 50000
+    N_YAM = 5000
+    N_WHG = 10000
+    N_EHG = 10000
+    N_ANA = 50000
+    N_NEO = 50000
+    N_CHG = 10000
     N_NE = 5000  # Ancestor of WHG and EHG
     N_WA = 5000  # Ancestor of CHG and Anatolian farmers
+    N_OOA = 5000
 
     # Time of events
-    T_bronze = 140
-    T_Yam = 180
-    T_neo = 200
-    T_near_east = 800
-    T_europe = 600
-    T_basal = 1500
+    T_Bronze = 140
+    T_YAM = 180
+    T_NEO = 200
+    T_Near_East = 800
+    T_Europe = 600
+    T_Basal = 1500
 
     # Growth rate and initial population size for present day from bronze age
+    # Growth rate is not listed in the paper, but from the author (@AliPearson)
     r_EU = 0.067
-    N_present = N_bronze / math.exp(-r_EU * T_bronze)
+    N_Present = N_Bronze / math.exp(-r_EU * T_Bronze)
 
-    population_configurations = [
-        msprime.PopulationConfiguration(
-            initial_size=N_present, growth_rate=r_EU, metadata=populations[0].asdict()
-        ),
-        msprime.PopulationConfiguration(
-            initial_size=N_Yam, metadata=populations[1].asdict()
-        ),
-        msprime.PopulationConfiguration(
-            initial_size=N_whg, metadata=populations[2].asdict()
-        ),
-        msprime.PopulationConfiguration(
-            initial_size=N_ehg, metadata=populations[3].asdict()
-        ),
-    ]
+    # Create msprime demography object
+    de = msprime.Demography()
 
-    Bronze_formation = [
-        msprime.MassMigration(time=T_bronze, source=0, dest=1, proportion=0.5),
-        msprime.PopulationParametersChange(
-            time=T_bronze, initial_size=N_neo, growth_rate=0, population=0
-        ),
-    ]
-
-    Yam_formation = [
-        msprime.MassMigration(time=T_Yam, source=1, dest=3, proportion=0.5),
-        msprime.PopulationParametersChange(
-            time=T_Yam, initial_size=N_chg, population=1
-        ),
-    ]
-
-    European_neolithic = [
-        msprime.MassMigration(time=T_neo, source=0, dest=2, proportion=1.0 / 4.0)
-    ]
-
-    HG_split = [
-        msprime.MassMigration(time=T_europe, source=3, dest=2, proportion=1),
-        msprime.PopulationParametersChange(
-            time=T_europe, initial_size=N_NE, population=2
-        ),
-    ]
-
-    Near_east_split = [
-        msprime.MassMigration(time=T_near_east, source=1, dest=0, proportion=1),
-        msprime.PopulationParametersChange(
-            time=T_near_east, initial_size=N_WA, population=0
-        ),
-    ]
-
-    Basal_split = [msprime.MassMigration(time=T_basal, source=2, dest=0, proportion=1)]
-
-    demographic_events = (
-        Bronze_formation
-        + Yam_formation
-        + European_neolithic
-        + HG_split
-        + Near_east_split
-        + Basal_split
+    # Create populations
+    de.add_population(
+        initial_size=N_OOA,
+        name="OOA",
+        description=populations[0].description,
+        default_sampling_time=populations[0].sampling_time,
     )
+    de.add_population(
+        initial_size=N_NE,
+        name="NE",
+        description=populations[1].description,
+        default_sampling_time=populations[1].sampling_time,
+    )
+    de.add_population(
+        initial_size=N_WA,
+        name="WA",
+        description=populations[2].description,
+        default_sampling_time=populations[2].sampling_time,
+    )
+    de.add_population(
+        initial_size=N_CHG,
+        name="CHG",
+        description=populations[3].description,
+        default_sampling_time=populations[3].sampling_time,
+    )
+    de.add_population(
+        initial_size=N_ANA,
+        name="ANA",
+        description=populations[4].description,
+        default_sampling_time=populations[4].sampling_time,
+    )
+    de.add_population(
+        initial_size=N_WHG,
+        name="WHG",
+        description=populations[5].description,
+        default_sampling_time=populations[5].sampling_time,
+    )
+    de.add_population(
+        initial_size=N_EHG,
+        name="EHG",
+        description=populations[6].description,
+        default_sampling_time=populations[6].sampling_time,
+    )
+    de.add_population(
+        initial_size=N_YAM,
+        name="YAM",
+        description=populations[7].description,
+        default_sampling_time=populations[7].sampling_time,
+    )
+
+    de.add_population(
+        initial_size=N_NEO,
+        name="NEO",
+        description=populations[8].description,
+        default_sampling_time=populations[8].sampling_time,
+    )
+    de.add_population(
+        initial_size=N_Present,
+        growth_rate=r_EU,
+        name="Bronze",
+        description=populations[9].description,
+        default_sampling_time=populations[9].sampling_time,
+    )
+
+    de.add_admixture(
+        time=T_Bronze,
+        derived="Bronze",
+        ancestral=["YAM", "NEO"],
+        proportions=[0.5, 0.5],
+    )
+    de.add_admixture(
+        time=T_YAM, derived="YAM", ancestral=["EHG", "CHG"], proportions=[0.5, 0.5]
+    )
+    de.add_admixture(
+        time=T_NEO, derived="NEO", ancestral=["WHG", "ANA"], proportions=[0.25, 0.75]
+    )
+    de.add_population_split(time=T_Europe, derived=["WHG", "EHG"], ancestral="NE")
+    de.add_population_split(time=T_Near_East, derived=["CHG", "ANA"], ancestral="WA")
+    de.add_population_split(time=T_Basal, derived=["NE", "WA"], ancestral="OOA")
 
     return stdpopsim.DemographicModel(
         id=id,
         description=description,
         long_description=long_description,
-        populations=populations,
+        model=de,
         citations=citations,
         generation_time=generation_time,
         mutation_rate=mutation_rate,
-        population_configurations=population_configurations,
-        demographic_events=demographic_events,
     )
 
 
