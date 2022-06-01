@@ -77,10 +77,14 @@ def download(url, filename):
     """
     Download url to the specified local file.
     """
-    # TODO: what is a sensible timeout here?
-    with urllib.request.urlopen(url, timeout=30) as f_in:
-        with open(filename, "wb") as f_out:
-            shutil.copyfileobj(f_in, f_out)
+    try:
+        with urllib.request.urlopen(url, timeout=30) as f_in:
+            with open(filename, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+    except urllib.error.HTTPError as e:
+        # Amend the error message to include the url.
+        e.msg += f": {url}"
+        raise e
 
 
 def sha256(filename):
