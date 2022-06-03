@@ -45,6 +45,24 @@ class MutationType(object):
     convert_to_substitution = attr.ib(default=True, type=bool)
 
     def __attrs_post_init__(self):
+        if not isinstance(self.dominance_coeff, (float, int)):
+            raise ValueError("dominance_coeff must be a number.")
+
+        if not isinstance(self.distribution_type, str):
+            raise ValueError("distribution_type must be str.")
+
+        if not isinstance(self.distribution_args, list):
+            raise ValueError("distribution_args must be list.")
+
+        for i in range(len(self.distribution_args)):
+            if not isinstance(self.distribution_args[i], (float, int)):
+                raise ValueError(f"distribution_args[{i}] is not a number.")
+            if not np.isfinite(self.distribution_args[i]):
+                raise ValueError(f"distribution_args[{i}] is an invalid parameter.")
+
+        if not isinstance(self.convert_to_substitution, bool):
+            raise ValueError("convert_to_substitution must be bool.")
+
         if not np.isfinite(self.dominance_coeff):
             raise ValueError(f"Invalid dominance coefficient {self.dominance_coeff}.")
 
@@ -52,11 +70,9 @@ class MutationType(object):
         # distribution_args here, and add unit tests.
         if self.distribution_type == "f":
             # Fixed-value selection coefficent.
-            if len(self.distribution_args) != 1 or not np.isfinite(
-                self.distribution_args[0]
-            ):
+            if len(self.distribution_args) != 1:
                 raise ValueError(
-                    "Fixed-value mutation types (distribution_type='f')"
+                    "Fixed-value mutation types (distribution_type='f') "
                     "take a single selection-coefficient parameter."
                 )
         elif self.distribution_type == "g":
@@ -64,21 +80,17 @@ class MutationType(object):
             # parameterisation. A negative value for the mean is permitted,
             # and indicates a reflection of the horizontal axis.
             # See Eidos documentation for rgamma().
-            if (
-                len(self.distribution_args) != 2
-                or self.distribution_args[1] <= 0
-                or not np.all(np.isfinite(self.distribution_args))
-            ):
+            if len(self.distribution_args) != 2:
                 raise ValueError(
                     "Gamma-distributed sel. coefs. (distribution_type='g') "
-                    "use a (mean, shape) parameterisation, requiring shape > 0."
+                    "use a (mean, shape) parameterisation."
                 )
+            if self.distribution_args[1] <= 0:
+                raise ValueError("The shape parameter must be positive.")
         elif self.distribution_type == "e":
             # An exponentially-distributed fitness effect (mean).
             # See Eidos documentation for rexp().
-            if len(self.distribution_args) != 1 or not np.isfinite(
-                self.distribution_args[0]
-            ):
+            if len(self.distribution_args) != 1:
                 raise ValueError(
                     "Exponentially-distributed sel. coefs. (distribution_type='e') "
                     "use a (mean) parameterisation."
@@ -86,40 +98,35 @@ class MutationType(object):
         elif self.distribution_type == "n":
             # An normally-distributed fitness effect (mean, standard deviation).
             # See Eidos documentation for rnorm().
-            if (
-                len(self.distribution_args) != 2
-                or self.distribution_args[1] <= 0
-                or not np.all(np.isfinite(self.distribution_args))
-            ):
+            if len(self.distribution_args) != 2:
                 raise ValueError(
                     "Normally-distributed sel. coefs. (distribution_type='n') "
-                    "use a (mean, sd) parameterisation, requiring sd > 0."
+                    "use a (mean, sd) parameterisation."
                 )
+            if self.distribution_args[1] < 0:
+                raise ValueError("The sd parameter must be nonnegative.")
         elif self.distribution_type == "w":
             # A Weibull-distributed fitness effect (scale, shape).
             # See Eidos documentation for rweibull().
-            if (
-                len(self.distribution_args) != 2
-                or self.distribution_args[0] <= 0
-                or self.distribution_args[1] <= 0
-                or not np.all(np.isfinite(self.distribution_args))
-            ):
+            if len(self.distribution_args) != 2:
                 raise ValueError(
                     "Weibull-distributed sel. coef. (distribution_type='w') "
-                    "use a (scale, shape) parameterisation, requiring parameters > 0."
+                    "use a (scale, shape) parameterisation."
                 )
+            if self.distribution_args[0] <= 0:
+                raise ValueError("The scale parameter must be positive.")
+            if self.distribution_args[1] <= 0:
+                raise ValueError("The shape parameter must be positive.")
         elif self.distribution_type == "l":
             # An lognormally-distributed fitness effect (meanlog, sdlog).
             # See Eidos documentation for rlnorm().
-            if (
-                len(self.distribution_args) != 2
-                or self.distribution_args[1] <= 0
-                or not np.all(np.isfinite(self.distribution_args))
-            ):
+            if len(self.distribution_args) != 2:
                 raise ValueError(
                     "Lognormally-distributed sel. coefs. (distribution_type='l') "
                     "use a (meanlog, sdlog) parameterisation, requiring sdlog > 0."
                 )
+            if self.distribution_args[1] < 0:
+                raise ValueError("The sdlog parameter must be nonnegative.")
             self.distribution_type = "s"
             # dealing with lognormal distribution
             # (adding instead of multiplying the mean):
@@ -128,7 +135,7 @@ class MutationType(object):
             self.distribution_args = [f"return rlnorm(1, {logmean} + log(Q), {logsd});"]
         else:
             raise ValueError(
-                f"{self.distribution_type} is not a supported distribution type"
+                f"{self.distribution_type} is not a supported distribution type."
             )
 
         # The index(s) of the param in the distribution_args list that should be
@@ -169,7 +176,7 @@ class DFE:
     and ``proportions`` should be nonnegative numbers summing to 1.
 
     :ivar ~.mutation_types: A list of :class:`.MutationType` objects associated
-        with the DFE.
+        with the DFE. Defaults to an empty list.
     :vartype ~.mutation_types: list
     :ivar ~.proportions: A list of the proportions of new mutations that
         fall in to each of the mutation types (must sum to 1).
@@ -193,20 +200,27 @@ class DFE:
     id = attr.ib()
     description = attr.ib()
     long_description = attr.ib()
-    mutation_types = attr.ib(default=attr.Factory(list))
-    proportions = attr.ib(default=attr.Factory(list))
-    citations = attr.ib(default=attr.Factory(list))
+    mutation_types = attr.ib(default=None)
+    proportions = attr.ib(default=None)
+    citations = attr.ib(default=None)
+    qc_dfe = attr.ib(default=None)
 
     def __attrs_post_init__(self):
         self.citations = [] if self.citations is None else self.citations
-        if self.proportions == [] and len(self.mutation_types) == 1:
+        self.mutation_types = [] if self.mutation_types is None else self.mutation_types
+        if self.proportions is None and len(self.mutation_types) == 0:
+            self.proportions = []
+        elif self.proportions is None:
+            # will error below if this doesn't make sense
             self.proportions = [1]
 
-        if not (
-            isinstance(self.proportions, collections.abc.Collection)
-            and isinstance(self.mutation_types, collections.abc.Collection)
-            and len(self.proportions) == len(self.mutation_types)
-        ):
+        if not (isinstance(self.proportions, (collections.abc.Sequence, np.ndarray))):
+            raise ValueError("proportions must be a list or numpy array.")
+
+        if not (isinstance(self.mutation_types, list)):
+            raise ValueError("mutation_types must be a list.")
+
+        if not (len(self.proportions) == len(self.mutation_types)):
             raise ValueError(
                 "proportions and mutation_types must be lists of the same length."
             )
@@ -214,9 +228,11 @@ class DFE:
         for p in self.proportions:
             if not isinstance(p, (float, int)) or p < 0:
                 raise ValueError("proportions must be nonnegative numbers.")
-        sum_p = sum(self.proportions)
-        if not np.isclose(sum_p, 1):
-            raise ValueError("proportions must sum 1.0.")
+
+        if len(self.proportions) > 0:
+            sum_p = sum(self.proportions)
+            if not np.isclose(sum_p, 1):
+                raise ValueError("proportions must sum to 1.0.")
 
         for m in self.mutation_types:
             if not isinstance(m, MutationType):
@@ -242,6 +258,16 @@ class DFE:
             f"║  citations        = {[cite.doi for cite in self.citations]}\n"
         )
         return s
+
+    def register_qc(self, qc_dfe):
+        """
+        Register a QC model implementation for this DFE.
+        """
+        if not isinstance(qc_dfe, self.__class__):
+            raise ValueError(f"Cannot register non-DFE '{qc_dfe}' as QC DFE.")
+        if self.qc_dfe is not None:
+            raise ValueError(f"QC DFE already registered for {self.id}.")
+        self.qc_dfe = qc_dfe
 
 
 def neutral_dfe(convert_to_substitution=True):
