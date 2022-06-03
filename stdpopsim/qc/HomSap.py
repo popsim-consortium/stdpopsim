@@ -1719,3 +1719,28 @@ def PearsonAncientEurope():
 
 
 _species.get_demographic_model("AncientEurope_4A21").register_qc(PearsonAncientEurope())
+
+
+def Huber2017():
+    """
+    Gamma DFE from Huber et al. 2017 PNAS.
+    """
+
+    id = "Huber2017_gamma_dfe"
+    neutral = stdpopsim.MutationType()
+    negative = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="g",  # gamma distribution
+        distribution_args=[-0.014, 0.19],
+    )
+
+    return stdpopsim.DFE(
+        id=id,
+        description=id,
+        long_description=id,
+        mutation_types=[neutral, negative],
+        proportions=[0.3, 0.7],
+    )
+
+
+_species.get_dfe("Gamma_H17").register_qc(Huber2017())

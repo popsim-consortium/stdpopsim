@@ -115,4 +115,6 @@ def _RagsdaleDFE():
     )
 
 
-_species.add_dfe(_RagsdaleDFE())
+# This DFE is NOT correct due to a bug/deficiency: the log-normal implementation
+# does not allow negative values.
+# _species.add_dfe(_RagsdaleDFE())
