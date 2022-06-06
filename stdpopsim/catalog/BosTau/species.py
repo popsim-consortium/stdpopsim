@@ -81,6 +81,7 @@ _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
     citations=[
         _HoweEtAl,
+        _RosenEtAl,
         _HarlandEtAl,
         _MaEtAl,
     ],
