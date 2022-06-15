@@ -41,12 +41,12 @@ class TestGenome(test_species.GenomeTestBase):
 
     @pytest.mark.skip("Recombination rate QC not done yet")
     @pytest.mark.parametrize("chr_id", [chrom.id for chrom in genome.chromosomes])
-    def test_recombination_rate(self, chr_id, rate = 1.2e-8):
+    def test_recombination_rate(self, chr_id, rate=1.2e-8):
         assert rate == pytest.approx(
             self.genome.get_chromosome(chr_id).recombination_rate
         )
 
     @pytest.mark.skip("Mutation rate QC not done yet")
     @pytest.mark.parametrize("chr_id", [chrom.id for chrom in genome.chromosomes])
-    def test_mutation_rate(self, chr_id, rate = 1.6e-8):
+    def test_mutation_rate(self, chr_id, rate=1.6e-8):
         assert rate == pytest.approx(self.genome.get_chromosome(chr_id).mutation_rate)
