@@ -60,7 +60,7 @@ _species = stdpopsim.Species(
     name="Pan troglodytes",
     common_name="Chimpanzee",
     genome=_genome,
-    generation_time=25.0,
+    generation_time=24.6,
     population_size=16781,
     citations=[
         _langergraber2012.because(stdpopsim.CiteReason.GEN_TIME),
