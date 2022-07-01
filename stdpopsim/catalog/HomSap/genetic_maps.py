@@ -36,6 +36,29 @@ _species.add_genetic_map(_gm)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
+    id="HapMapII_GRCh38",
+    description="HapMap Phase II lifted over to GRCh37 then lifted over to GRCh38",
+    long_description="""
+        This genetic map is from the Phase II Hapmap project
+        and based on 3.1 million genotyped SNPs
+        from 270 individuals across four populations (YRI, CEU, CHB and JPT).
+        Genome wide recombination rates were estimated using LDHat.
+        This version is lifted over to GRCh38 using liftover from the HapMap Phase II
+        map previously lifted over to GRCh37.
+        """,
+    url=(
+        "https://stdpopsim.s3.us-west-2.amazonaws.com/genetic_maps/"
+        "HomSap/HapMapII_GRCh37_liftedOverTo_Hg38.tar.gz"
+    ),
+    sha256="b12e7e4b1ec766b347311e7ab5292cd4ce6aac77a3281b630adf4efe6fcaf85a",
+    file_pattern="genetic_map_Hg38_chr{id}.txt",
+    citations=[_hapmap2007.because(stdpopsim.CiteReason.GEN_MAP)],
+)
+_species.add_genetic_map(_gm)
+
+
+_gm = stdpopsim.GeneticMap(
+    species=_species,
     id="DeCodeSexAveraged_GRCh36",
     description="Sex averaged map from deCode family study",
     long_description="""
@@ -62,6 +85,40 @@ _gm = stdpopsim.GeneticMap(
     ],
 )
 _species.add_genetic_map(_gm)
+
+
+_gm = stdpopsim.GeneticMap(
+    species=_species,
+    id="DeCodeSexAveraged_GRCh38",
+    description="Sex averaged map from deCode family study",
+    long_description="""
+        This genetic map is from the deCode study of recombination
+        events in 15,257 parent-offspring pairs from Iceland.
+        289,658 phased autosomal SNPs were used to call recombinations
+        within these families, and recombination rates computed from the
+        density of these events. This is the combined male and female
+        (sex averaged) map. See
+        https://www.decode.com/addendum/ for more details.
+        This map is further lifted over from the original GRCh36 to
+        GRCh38 using liftover.
+        """,
+    url=(
+        "https://stdpopsim.s3.us-west-2.amazonaws.com/genetic_maps/"
+        "HomSap/DeCodeSexAveraged_GRCh36_liftedOverTo_Hg38.tar.gz"
+    ),
+    sha256="7a2aa1c9b7525535cbfdfde3f2bebac6264d71f64bb4518bce257a308d63c427",
+    file_pattern="genetic_map_Hg38_chr{id}.txt",
+    citations=[
+        stdpopsim.Citation(
+            year=2010,
+            author="Kong et al",
+            doi="https://doi.org/10.1038/nature09525",
+            reasons={stdpopsim.CiteReason.GEN_MAP},
+        )
+    ],
+)
+_species.add_genetic_map(_gm)
+
 
 # 26 populations in 1000 Genomes
 for pop, sha256 in zip(
