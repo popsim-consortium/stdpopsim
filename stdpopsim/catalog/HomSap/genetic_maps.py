@@ -36,6 +36,36 @@ _species.add_genetic_map(_gm)
 
 _gm = stdpopsim.GeneticMap(
     species=_species,
+    id="HapMapII_GRCh38",
+    description="HapMap Phase II lifted over to GRCh37 then lifted over to GRCh38",
+    long_description="""
+        This genetic map is from the Phase II Hapmap project
+        and based on 3.1 million genotyped SNPs
+        from 270 individuals across four populations (YRI, CEU, CHB and JPT).
+        Genome wide recombination rates were estimated using LDHat.
+        This version is lifted over to GRCh38 using liftover from the HapMap Phase II
+        map previously lifted over to GRCh37.
+        Liftover was performed using the liftOver_catalog.py script from
+        stdpopsim/maintainance. Exact command used is as follows:
+        `python <path_to_stdpopsim>/stdpopsim/maintenance/liftOver_catalog.py
+        --species HomSap --map HapMapII_GRCh37
+        --chainFile <path_to_chainfiles>/chainfiles/hg19ToHg38.over.chain.gz
+        --validationChain <path_to_chainfiles>/chainfiles/hg38ToHg19.over.chain.gz
+        --winLen 1000 --useAdjacentAvg --retainIntermediates --gapThresh 1000000`
+        """,
+    url=(
+        "https://stdpopsim.s3.us-west-2.amazonaws.com/genetic_maps/"
+        "HomSap/HapMapII_GRCh38.tar.gz"
+    ),
+    sha256="497512ed1c0f8a40e9aa13696049a9f8c3cb062e898921cfd7d85ce9d14c4baa",
+    file_pattern="genetic_map_Hg38_chr{id}.txt",
+    citations=[_hapmap2007.because(stdpopsim.CiteReason.GEN_MAP)],
+)
+_species.add_genetic_map(_gm)
+
+
+_gm = stdpopsim.GeneticMap(
+    species=_species,
     id="DeCodeSexAveraged_GRCh36",
     description="Sex averaged map from deCode family study",
     long_description="""
@@ -62,6 +92,48 @@ _gm = stdpopsim.GeneticMap(
     ],
 )
 _species.add_genetic_map(_gm)
+
+
+_gm = stdpopsim.GeneticMap(
+    species=_species,
+    id="DeCodeSexAveraged_GRCh38",
+    description="Sex averaged map from deCode family study",
+    long_description="""
+        This genetic map is from the deCode study of recombination
+        events in 15,257 parent-offspring pairs from Iceland.
+        289,658 phased autosomal SNPs were used to call recombinations
+        within these families, and recombination rates computed from the
+        density of these events. This is the combined male and female
+        (sex averaged) map. See
+        https://www.decode.com/addendum/ for more details.
+        This map is further lifted over from the original GRCh36 to
+        GRCh38 using liftover.
+        Liftover was performed using the liftOver_catalog.py script from
+        stdpopsim/maintainance. Exact command used is as follows:
+        `python <path_to_stdpopsim>/stdpopsim/maintenance/liftOver_catalog.py
+        --species HomSap --map DeCodeSexAveraged_GRCh36
+        --chainFile <path_to_chainfiles>/chainfiles/hg18ToHg38.over.chain.gz
+        --winLen 1000 --useAdjacentAvg --retainIntermediates --gapThresh 1000000`
+        Validation chain file does not exist for liftover between these two
+        assemblies hence validation was performed manually separately.
+        """,
+    url=(
+        "https://stdpopsim.s3.us-west-2.amazonaws.com/genetic_maps/"
+        "HomSap/DeCodeSexAveraged_GRCh38.tar.gz"
+    ),
+    sha256="431feece641a720021b1834b97867cbc9842617a11aff6cdd4138af4ac910459",
+    file_pattern="genetic_map_Hg38_chr{id}.txt",
+    citations=[
+        stdpopsim.Citation(
+            year=2010,
+            author="Kong et al",
+            doi="https://doi.org/10.1038/nature09525",
+            reasons={stdpopsim.CiteReason.GEN_MAP},
+        )
+    ],
+)
+_species.add_genetic_map(_gm)
+
 
 # 26 populations in 1000 Genomes
 for pop, sha256 in zip(
