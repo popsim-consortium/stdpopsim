@@ -948,10 +948,45 @@ def slim_makescript(
     condition_on_allele_frequency = []
     op_id = stdpopsim.ext.ConditionOnAlleleFrequency.op_id
     slim_mutation_ids = []
-    for x in _dfe_to_mtypes(contig).values():
-        slim_mutation_ids.extend([u[0] for u in x])
+    slim_mutation_dfe = []
+    for i, x in _dfe_to_mtypes(contig).items():
+      slim_mutation_ids.extend([u[0] for u in x])
+      slim_mutation_dfe.extend([i for u in x])
     for ee in extended_events:
+        if hasattr(ee, "mutation_id"):
+            mut_id = getattr(ee, "mutation_id")
+            cls_name = ee.__class__.__name__
+            mtype_idx = [
+                j for j,i in enumerate(slim_mutation_dfe) 
+                if contig.dfe_list[i].id == mut_id
+            ]
+            n_mtypes = len(mtype_idx)
+            # TODO: are these checks too restrictive? For example, these will
+            # prevent using DrawMutation with an arbitrary MutationType in an 
+            # arbitary DFE.
+            if n_mtypes != 1:
+                raise ValueError(
+                    f"{cls_name} event with mutation_id '{mut_id}' must "
+                    f"map to a single MutationType instance on {contig}, "
+                    f"but has {n_mtypes} associated MutationType instances."
+                )
+            else:
+                mtype_idx = mtype_idx[0]
+                setattr(ee, "mutation_type_id", slim_mutation_ids[mtype_idx])
+                dfe_idx = slim_mutation_dfe[mtype_idx]
+                dfe_intervals = contig.interval_list[dfe_idx]
+                if dfe_intervals.shape[0] > 0:
+                    raise ValueError(
+                        f"{cls_name} event with mutation_id '{mut_id}' is "
+                        f"a single site mutation, but is associated with "
+                        f"interval(s) {dfe_intervals}."
+                    )
+
         if hasattr(ee, "mutation_type_id"):
+            # TODO: this is a bit redundant now that ee.mutation_type 
+            # replaces ee.mutation_type_id in the API, but should
+            # allow setattr(ee, "mutation_type_id", <int>) to work for
+            # arbitrary DFEs, if ee.mutation_type is None.
             mt_id = getattr(ee, "mutation_type_id")
             cls_name = ee.__class__.__name__
             if mt_id not in slim_mutation_ids:
@@ -959,6 +994,7 @@ def slim_makescript(
                     f"Invalid {cls_name} event with mutation type id "
                     f"{mt_id} on {contig} with valid IDs {slim_mutation_ids}."
                 )
+
         if hasattr(ee, "start_time") and hasattr(ee, "end_time"):
             # Now that GenerationAfter times have been accounted for, we can
             # properly catch invalid start/end times.
