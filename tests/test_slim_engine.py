@@ -1446,7 +1446,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             long_description="test test test",
         )
         contig.add_dfe(
-            intervals=np.empty((0,2), dtype='int'), 
+            intervals=np.empty((0, 2), dtype="int"),
             DFE=dfe,
         )
         engine = stdpopsim.get_engine("slim")
@@ -1478,6 +1478,48 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
                 contig=contig,
                 samples=self.samples,
                 extended_events=extended_events,
+                dry_run=True,
+            )
+
+    def test_mutation_has_interval(self):
+        extended_events = [
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                mutation_id="test",
+                population_id=0,
+                coordinate=100,
+            ),
+        ]
+        contig = get_test_contig()
+        contig.add_single_site_mutation_type(id="test")
+        contig.interval_list[1] = np.array([[99, 101]], dtype="int")
+        engine = stdpopsim.get_engine("slim")
+        with pytest.raises(ValueError):
+            engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+                extended_events=extended_events,
+                dry_run=True,
+            )
+
+    def test_mutation_with_oor_mutation_type_id(self):
+        draw_mut = stdpopsim.ext.DrawMutation(
+            time=self.T_mut,
+            mutation_id="test",
+            population_id=0,
+            coordinate=100,
+        )
+        delattr(draw_mut, "mutation_id")
+        setattr(draw_mut, "mutation_type_id", -1)
+        contig = get_test_contig()
+        engine = stdpopsim.get_engine("slim")
+        with pytest.raises(ValueError):
+            engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+                extended_events=[draw_mut],
                 dry_run=True,
             )
 
@@ -1827,6 +1869,7 @@ class TestFixedSelectionCoefficient(PiecewiseConstantSizeMixin):
         mutation_list = mut.metadata["mutation_list"]
         assert len(mutation_list) == 1
         assert mutation_list[0]["selection_coeff"] == scaling_factor * 0.1
+
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestChangeMutationFitness(PiecewiseConstantSizeMixin):

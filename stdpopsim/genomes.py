@@ -386,7 +386,9 @@ class Contig:
         self.dfe_list.append(DFE)
         self.interval_list.append(intervals)
 
-    def add_single_site_mutation_type(self, id, selection_coeff=0.0, dominance_coeff=1.0):
+    def add_single_site_mutation_type(
+        self, id, selection_coeff=0.0, dominance_coeff=1.0
+    ):
         """
         Adds a DFE representing a mutation at a single site, contain a single
         :class:`MutationType` with the provided parameters. The string ID of
@@ -394,43 +396,47 @@ class Contig:
         simulation engine.
 
         For instance, to simulate a selective sweep,
-        ```
-        contig.add_single_site_mutation_type(
-            id = "sweep_variant", 
-            selection_coef=0.1,
-        )
-        extended_events = [
-    	    stdpopsim.ext.DrawMutation(
-    	        time=mutation_time,
-    	        mutation_id="sweep_variant",
-    	        population_id=0,
-    	        coordinate=mutation_coordinate,
-    	        save=True,
-    	    ),
-    	    stdpopsim.ext.ConditionOnAlleleFrequency(
-    	        start_time=stdpopsim.ext.GenerationAfter(mutation_time),
-    	        end_time=0,
-    	        mutation_id="sweep_variant",
-    	        population_id=0,
-    	        op=">",
-    	        allele_frequency=0.0,
-    	    )
-        ]
-        engine = stdpopsim.get_engine("slim")
-        ts_sweep = engine.simulate(...,
-            extended_events=extended_events,
-        )
-        ```
+
+        .. code-block:: python
+
+            contig.add_single_site_mutation_type(
+                id="sweep_variant",
+                selection_coef=0.1,
+            )
+            extended_events = [
+                stdpopsim.ext.DrawMutation(
+                    time=mutation_time,
+                    mutation_id="sweep_variant",
+                    population_id=0,
+                    coordinate=mutation_coordinate,
+                    save=True,
+                ),
+                stdpopsim.ext.ConditionOnAlleleFrequency(
+                    start_time=stdpopsim.ext.GenerationAfter(mutation_time),
+                    end_time=0,
+                    mutation_id="sweep_variant",
+                    population_id=0,
+                    op=">",
+                    allele_frequency=0.0,
+                ),
+            ]
+            engine = stdpopsim.get_engine("slim")
+            ts_sweep = engine.simulate(
+                ...,
+                extended_events=extended_events,
+            )
 
         :param str id: A unique identifier for the DFE representing the mutation.
-        :param float selection_coeff: The selection coefficient of the mutation, see :class:`MutationType`.
-        :param float dominance_coeff: The dominance coefficient of the mutation, see :class:`MutationType`.
+        :param float selection_coeff: The selection coefficient of the mutation,
+            see :class:`MutationType` for details.
+        :param float dominance_coeff: The dominance coefficient of the mutation,
+            see :class:`MutationType` for details.
         """
         mut_type = stdpopsim.MutationType(
-                distribution_type="f",
-                dominance_coeff=dominance_coeff,
-                distribution_args=[selection_coeff],
-                convert_to_substitution=False,
+            distribution_type="f",
+            dominance_coeff=dominance_coeff,
+            distribution_args=[selection_coeff],
+            convert_to_substitution=False,
         )
         dfe = stdpopsim.DFE(
             id=id,
@@ -440,7 +446,7 @@ class Contig:
             long_description="Added by 'Contig.add_single_site_mutation_type'",
         )
         self.add_dfe(
-            intervals=np.empty((0,2), dtype='int'), 
+            intervals=np.empty((0, 2), dtype="int"),
             DFE=dfe,
         )
 
