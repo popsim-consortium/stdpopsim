@@ -950,19 +950,20 @@ def slim_makescript(
     slim_mutation_ids = []
     slim_mutation_dfe = []
     for i, x in _dfe_to_mtypes(contig).items():
-      slim_mutation_ids.extend([u[0] for u in x])
-      slim_mutation_dfe.extend([i for u in x])
+        slim_mutation_ids.extend([u[0] for u in x])
+        slim_mutation_dfe.extend([i for u in x])
     for ee in extended_events:
         if hasattr(ee, "mutation_id"):
             mut_id = getattr(ee, "mutation_id")
             cls_name = ee.__class__.__name__
             mtype_idx = [
-                j for j,i in enumerate(slim_mutation_dfe) 
+                j
+                for j, i in enumerate(slim_mutation_dfe)
                 if contig.dfe_list[i].id == mut_id
             ]
             n_mtypes = len(mtype_idx)
             # TODO: are these checks too restrictive? For example, these will
-            # prevent using DrawMutation with an arbitrary MutationType in an 
+            # prevent using DrawMutation with an arbitrary MutationType in an
             # arbitary DFE.
             if n_mtypes != 1:
                 raise ValueError(
@@ -983,7 +984,7 @@ def slim_makescript(
                     )
 
         if hasattr(ee, "mutation_type_id"):
-            # TODO: this is a bit redundant now that ee.mutation_type 
+            # TODO: this is a bit redundant now that ee.mutation_type
             # replaces ee.mutation_type_id in the API, but should
             # allow setattr(ee, "mutation_type_id", <int>) to work for
             # arbitrary DFEs, if ee.mutation_type is None.
