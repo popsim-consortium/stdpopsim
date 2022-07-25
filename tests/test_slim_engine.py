@@ -891,14 +891,15 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         "e": ([0.1],),
         "n": ([-0.1, 0.2],),
         "w": ([0.1, 0.4],),
-        "l": ([-0.1, 0.2],),
+        "lp": ([-5, 0.2],),
+        "ln": ([-5, 0.2],),
     }
-    example_mut_types = [stdpopsim.MutationType()] + [
-        stdpopsim.MutationType(distribution_type=t, distribution_args=p)
+    example_mut_types = [("f", stdpopsim.MutationType())] + [
+        (t, stdpopsim.MutationType(distribution_type=t, distribution_args=p))
         for t, params in mut_params.items()
         for p in params
     ]
-    assert len(example_mut_types) == 9
+    assert len(example_mut_types) == 10
 
     def get_example_dfes(self):
         # this is in a function because scoping is weird
@@ -908,14 +909,14 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                 id="simple",
                 description="just one mut type",
                 long_description="🐺 🦊 🐕 🦝 🦮 🐩",
-                mutation_types=[self.example_mut_types[4]],
+                mutation_types=[self.example_mut_types[4][1]],
             ),
             stdpopsim.DFE(
                 id="less_simple",
                 description="two mutation types",
                 long_description="🦕 🦖 🐳 🐋 🐬 🦭🐠 🐡 🦈 🐙",
                 proportions=[0.5, 0.5],
-                mutation_types=self.example_mut_types[2:4],
+                mutation_types=[m for _, m in self.example_mut_types[2:4]],
             ),
             stdpopsim.DFE(
                 id="everything",
@@ -927,14 +928,16 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                     / (len(self.example_mut_types) * (len(self.example_mut_types) - 1))
                     for j in range(len(self.example_mut_types))
                 ],
-                mutation_types=self.example_mut_types,
+                mutation_types=[m for _, m in self.example_mut_types],
             ),
         ]
         return example_dfes
 
     def test_slim_simulates_dfes(self):
         contig = get_test_contig()
-        contig.mutation_rate = 10 * contig.mutation_rate
+        # make theta = 40
+        contig.mutation_rate = 10 / (1000 * contig.recombination_map.sequence_length)
+        print(contig.mutation_rate)
         dfes = [
             stdpopsim.DFE(
                 id=str(j),
@@ -942,7 +945,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                 long_description=f"mut_{j}",
                 mutation_types=[mt],
             )
-            for j, mt in enumerate(self.example_mut_types)
+            for j, (_, mt) in enumerate(self.example_mut_types)
         ]
         n = len(dfes)
         breaks = np.linspace(0, contig.length, n + 1)
@@ -954,16 +957,17 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             demographic_model=self.model,
             contig=contig,
             samples=self.samples,
-            seed=123,
+            seed=124,
             verbosity=3,
         )
-        for j, mt in enumerate(self.example_mut_types):
+        for j, (t, mt) in enumerate(self.example_mut_types):
             sites = np.where(
                 np.logical_and(
                     ts.tables.sites.position >= breaks[j],
                     ts.tables.sites.position < breaks[j + 1],
                 )
             )[0]
+            print(mt)
             assert len(sites) > 0
             for k in sites:
                 s = ts.site(k)
@@ -971,6 +975,10 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                     for md in mut.metadata["mutation_list"]:
                         if not mt.is_neutral:
                             assert md["selection_coeff"] != 0
+                    if t == "lp":
+                        assert md["selection_coeff"] > 0
+                    elif t == "ln":
+                        assert md["selection_coeff"] < 0
 
     def slim_metadata_key0(self, metadata, key):
         # Everything in SLiM is a vector, so you can't just put a singleton
@@ -1172,14 +1180,14 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             description="the first one",
             long_description="hello world",
             proportions=[1.0],
-            mutation_types=[self.example_mut_types[5]],
+            mutation_types=[self.example_mut_types[5][1]],
         )
         dfe1 = stdpopsim.DFE(
             id="dfe",
             description="the second one",
             long_description="I'm different but have the same name! =( =(",
             proportions=[0.2, 0.8],
-            mutation_types=self.example_mut_types[7:9],
+            mutation_types=[m for _, m in self.example_mut_types[7:9]],
         )
         contig.add_dfe(np.array([[0, 0.5 * L]], dtype="int"), dfe0)
         contig.add_dfe(np.array([[0.2 * L, 0.4 * L]], dtype="int"), dfe0)
@@ -1207,7 +1215,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             mutation_types=[
                 stdpopsim.MutationType(),
                 stdpopsim.MutationType(
-                    distribution_type="l", distribution_args=[0.01, 0.2]
+                    distribution_type="lp", distribution_args=[0.01, 0.2]
                 ),
             ],
             proportions=[0.5, 0.5],

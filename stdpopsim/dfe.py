@@ -23,7 +23,13 @@ class MutationType(object):
     - ``g``: gamma, two parameters (mean, shape)
     - ``n``: normal, two parameters (mean, SD)
     - ``w``: Weibull, two parameters (scale, shape)
-    - ``l``: logNormal, two parameters (mean and sd on log scale; see rlnorm)
+    - ``lp``: positive logNormal, two parameters (mean and sd on log scale; see rlnorm)
+    - ``ln``: negative logNormal, two parameters (mean and sd on log scale; see rlnorm)
+
+    Type "lp" is always positive, and type "ln" is always negative: both use
+    the same log-normal distribution, but "ln" is multiplied by -1.  For
+    exponential and gamma, a negative mean can be provided, obtaining always
+    negative values.
 
     :ivar distribution_type: A one-letter abbreviation for the distribution of
         fitness effects that each new mutation of this type draws from (see below).
@@ -117,22 +123,26 @@ class MutationType(object):
                 raise ValueError("The scale parameter must be positive.")
             if self.distribution_args[1] <= 0:
                 raise ValueError("The shape parameter must be positive.")
-        elif self.distribution_type == "l":
-            # An lognormally-distributed fitness effect (meanlog, sdlog).
+        elif self.distribution_type in ("lp", "ln"):
+            # A lognormally-distributed fitness effect (meanlog, sdlog),
+            # either positive or negative.
             # See Eidos documentation for rlnorm().
             if len(self.distribution_args) != 2:
                 raise ValueError(
-                    "Lognormally-distributed sel. coefs. (distribution_type='l') "
+                    "Lognormally-distributed sel. coefs. (distribution_type='lp'/'ln') "
                     "use a (meanlog, sdlog) parameterisation, requiring sdlog > 0."
                 )
             if self.distribution_args[1] < 0:
                 raise ValueError("The sdlog parameter must be nonnegative.")
-            self.distribution_type = "s"
             # dealing with lognormal distribution
             # (adding instead of multiplying the mean):
             logmean = self.distribution_args[0]
             logsd = self.distribution_args[1]
-            self.distribution_args = [f"return rlnorm(1, {logmean} + log(Q), {logsd});"]
+            sign = "" if self.distribution_type == "lp" else "-1 *"
+            self.distribution_args = [
+                f"return {sign}rlnorm(1, {logmean} + log(Q), {logsd});"
+            ]
+            self.distribution_type = "s"
         else:
             raise ValueError(
                 f"{self.distribution_type} is not a supported distribution type."

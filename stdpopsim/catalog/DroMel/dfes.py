@@ -89,6 +89,9 @@ def _RagsdaleDFE():
     # selection strengths
     S_positive = 39.9
     s_positive = S_positive / 2 / Ne
+    # TODO: these are *not* scale and shape parameters:
+    # the arguments to lognorm are meanlog and sdlog.
+    # Rename these after checking!
     scale_negative = 5.42 / 2 / Ne
     shape_negative = 3.36
     h = 0.5
@@ -96,8 +99,8 @@ def _RagsdaleDFE():
     synonymous = stdpopsim.MutationType()
     negative = stdpopsim.MutationType(
         dominance_coeff=h,
-        distribution_type="l",  # log-normal distribution
-        distribution_args=[-scale_negative, shape_negative],
+        distribution_type="ln",  # negative log-normal distribution
+        distribution_args=[scale_negative, shape_negative],
     )
     positive = stdpopsim.MutationType(
         dominance_coeff=h,
@@ -115,6 +118,4 @@ def _RagsdaleDFE():
     )
 
 
-# This DFE is NOT correct due to a bug/deficiency: the log-normal implementation
-# does not allow negative values.
-# _species.add_dfe(_RagsdaleDFE())
+_species.add_dfe(_RagsdaleDFE())
