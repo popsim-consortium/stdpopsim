@@ -30,7 +30,8 @@ class TestCreateMutationType:
             "e": ([1], [0]),
             "g": ([0.014, 0.19], [0]),
             "n": ([0.5, 1], [0, 1]),
-            "l": ([0.5, 1], []),
+            "ln": ([0.5, 1], []),
+            "lp": ([0.5, 1], []),
         }
         for t in mut_params:
             print(f"{t}\t{mut_params[t]}")
@@ -157,19 +158,22 @@ class TestCreateMutationType:
             )
 
         # Lognormally-distributed selection coefficients
-        with pytest.raises(ValueError, match="use a .meanlog, sdlog. parameterisation"):
-            dfe.MutationType(
-                distribution_type="l",
-                distribution_args=[1, 2, 3, 4],
-            )
+        for dt in ["lp", "ln"]:
+            with pytest.raises(
+                ValueError, match="use a .meanlog, sdlog. parameterisation"
+            ):
+                dfe.MutationType(
+                    distribution_type=dt,
+                    distribution_args=[1, 2, 3, 4],
+                )
 
-        with pytest.raises(
-            ValueError, match="The sdlog parameter must be nonnegative."
-        ):
-            dfe.MutationType(
-                distribution_type="l",
-                distribution_args=[1, -2],
-            )
+            with pytest.raises(
+                ValueError, match="The sdlog parameter must be nonnegative."
+            ):
+                dfe.MutationType(
+                    distribution_type=dt,
+                    distribution_args=[1, -2],
+                )
 
     def test_mutation_type_is_neutral(self):
         mt = dfe.MutationType()
@@ -200,12 +204,13 @@ class TestCreateMutationType:
             "e": ([0.1], [10], [5000], [0]),
             "n": ([-0.1, 0.2], [0.1, 0.1], [50, 50]),
             "w": ([0.1, 0.2], [0.1, 0.1], [50, 50]),
-            "l": ([-0.1, 0.2], [0.1, 0.1], [50, 50]),
+            "lp": ([-0.1, 0.2], [0.1, 0.1], [50, 50]),
+            "ln": ([-0.1, 0.2], [0.1, 0.1], [50, 50]),
         }
         for t in mut_params:
             for p in mut_params[t]:
                 mt = dfe.MutationType(distribution_type=t, distribution_args=p)
-                if t == "l":
+                if t in ("lp", "ln"):
                     assert mt.distribution_type == "s"
                 else:
                     assert mt.distribution_type == t
@@ -220,7 +225,8 @@ class TestCreateMutationType:
             "e": ([], [0, 1], [0.1, 0.4, 0.5], [np.inf]),
             "n": ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [0.3, np.inf]),
             "w": ([], [-0.1, 1], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [np.inf, 2.3]),
-            "l": ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [0.1, np.inf]),
+            "lp": ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [0.1, np.inf]),
+            "ln": ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [0.1, np.inf]),
         }
         for t in bad_mut_params:
             for p in bad_mut_params[t]:
@@ -662,7 +668,7 @@ class DFETestMixin:
         samples = model.get_samples(2)
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
-            model, contig, samples, slim_scaling_factor=10, slim_burn_in=10
+            model, contig, samples, slim_scaling_factor=10, slim_burn_in=10, seed=42
         )
 
         mut_info = {}
