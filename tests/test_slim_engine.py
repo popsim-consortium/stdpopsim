@@ -800,7 +800,12 @@ class PiecewiseConstantSizeMixin(object):
     samples = model.get_samples(100)
     contig = get_test_contig()
     mut_id = "mut"
-    contig.add_single_site(id=mut_id, coordinate=100)
+    contig.add_single_site(
+        id=mut_id,
+        coordinate=100,
+        description="🧬",
+        long_description="👽",
+    )
 
     def allele_frequency(self, ts):
         """
