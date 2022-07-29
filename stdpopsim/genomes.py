@@ -386,35 +386,40 @@ class Contig:
         self.dfe_list.append(DFE)
         self.interval_list.append(intervals)
 
-    def add_single_site_mutation_type(
-        self, id, selection_coeff=0.0, dominance_coeff=1.0
+    def add_single_site(
+        self,
+        id,
+        coordinate,
+        selection_coeff=0.0,
+        dominance_coeff=0.5,
+        description=None,
+        long_description=None,
     ):
         """
-        Adds a DFE representing a mutation at a single site, contain a single
-        :class:`MutationType` with the provided parameters. The string ID of
-        the mutation may be referenced by extended events passed to the
-        simulation engine.
+        Adds a model of a single site mutation at the provided coordinate.
+        The string label of the single site may be referenced by extended
+        events passed to the simulation engine.
 
         For instance, to simulate a selective sweep,
 
         .. code-block:: python
 
-            contig.add_single_site_mutation_type(
+            contig.add_single_site(
                 id="sweep_variant",
-                selection_coef=0.1,
+                selection_coeff=0.1,
+                coordinate=mutation_coordinate,
             )
             extended_events = [
                 stdpopsim.ext.DrawMutation(
                     time=mutation_time,
-                    mutation_id="sweep_variant",
+                    single_site_id="sweep_variant",
                     population_id=0,
-                    coordinate=mutation_coordinate,
                     save=True,
                 ),
                 stdpopsim.ext.ConditionOnAlleleFrequency(
                     start_time=stdpopsim.ext.GenerationAfter(mutation_time),
                     end_time=0,
-                    mutation_id="sweep_variant",
+                    single_site_id="sweep_variant",
                     population_id=0,
                     op=">",
                     allele_frequency=0.0,
@@ -426,12 +431,23 @@ class Contig:
                 extended_events=extended_events,
             )
 
-        :param str id: A unique identifier for the DFE representing the mutation.
+        :param str id: A unique identifier for the single site.
+        :param int coordinate: The coordinate of the site on the contig.
         :param float selection_coeff: The selection coefficient of the mutation,
             see :class:`MutationType` for details.
         :param float dominance_coeff: The dominance coefficient of the mutation,
             see :class:`MutationType` for details.
+        :param str description: A short description of the single site mutation
+            model as it would be used in written text, e.g., "Strong selective
+            sweep".
+        :param str long_description: A concise, but detailed, summary of the
+            single site mutation model.
         """
+        if description is None:
+            description = "Single site mutation"
+        if long_description is None:
+            long_description = "Added by Contig.add_single_site"
+
         mut_type = stdpopsim.MutationType(
             distribution_type="f",
             dominance_coeff=dominance_coeff,
@@ -442,11 +458,11 @@ class Contig:
             id=id,
             mutation_types=[mut_type],
             proportions=[1.0],
-            description="Single site mutation",
-            long_description="Added by 'Contig.add_single_site_mutation_type'",
+            description=description,
+            long_description=long_description,
         )
         self.add_dfe(
-            intervals=np.empty((0, 2), dtype="int"),
+            intervals=np.array([[coordinate, coordinate + 1]], dtype="int"),
             DFE=dfe,
         )
 

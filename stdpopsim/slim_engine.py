@@ -953,8 +953,8 @@ def slim_makescript(
         slim_mutation_ids.extend([u[0] for u in x])
         slim_mutation_dfe.extend([i for u in x])
     for ee in extended_events:
-        if hasattr(ee, "mutation_id"):
-            mut_id = getattr(ee, "mutation_id")
+        if hasattr(ee, "single_site_id"):
+            mut_id = getattr(ee, "single_site_id")
             cls_name = ee.__class__.__name__
             mtype_idx = [
                 j
@@ -962,38 +962,41 @@ def slim_makescript(
                 if contig.dfe_list[i].id == mut_id
             ]
             n_mtypes = len(mtype_idx)
-            # TODO: are these checks too restrictive? For example, these will
-            # prevent using DrawMutation with an arbitrary MutationType in an
-            # arbitary DFE.
             if n_mtypes != 1:
                 raise ValueError(
-                    f"{cls_name} event with mutation_id '{mut_id}' must "
-                    f"map to a single MutationType instance on {contig}, "
-                    f"but has {n_mtypes} associated MutationType instances."
+                    f"The single site mutation id '{mut_id}' associated with the "
+                    f"{cls_name} event must be unique, but there are {n_mtypes} "
+                    f"other mutation types with the same id on {contig}. "
                 )
-            else:
-                mtype_idx = mtype_idx[0]
-                setattr(ee, "mutation_type_id", slim_mutation_ids[mtype_idx])
-                dfe_idx = slim_mutation_dfe[mtype_idx]
-                dfe_intervals = contig.interval_list[dfe_idx]
-                if dfe_intervals.shape[0] > 0:
-                    raise ValueError(
-                        f"{cls_name} event with mutation_id '{mut_id}' is "
-                        f"a single site mutation, but is associated with "
-                        f"interval(s) {dfe_intervals}."
-                    )
-
-        if hasattr(ee, "mutation_type_id"):
-            # TODO: this is a bit redundant now that ee.mutation_type
-            # replaces ee.mutation_type_id in the API, but should
-            # allow setattr(ee, "mutation_type_id", <int>) to work for
-            # arbitrary DFEs, if ee.mutation_type is None.
-            mt_id = getattr(ee, "mutation_type_id")
-            cls_name = ee.__class__.__name__
-            if mt_id not in slim_mutation_ids:
+            mtype_idx = mtype_idx[0]
+            setattr(ee, "mutation_type_id", slim_mutation_ids[mtype_idx])
+            dfe_idx = slim_mutation_dfe[mtype_idx]
+            dfe_intervals = contig.interval_list[dfe_idx]
+            if dfe_intervals.shape[0] == 0:
                 raise ValueError(
-                    f"Invalid {cls_name} event with mutation type id "
-                    f"{mt_id} on {contig} with valid IDs {slim_mutation_ids}."
+                    f"The single site id '{mut_id}' associated with the {cls_name} "
+                    f"event has no coordinate: it may have been removed by the addition "
+                    f"of an overlapping DFE or single site."
+                )
+            if dfe_intervals.shape[0] > 1:
+                raise ValueError(
+                    f"The single site id '{mut_id}' associated with the {cls_name} "
+                    f"event refers to a DFE with multiple intervals, {dfe_intervals}."
+                )
+            if dfe_intervals[0, 1] - dfe_intervals[0, 0] != 1:
+                raise ValueError(
+                    f"The single site id '{mut_id}' associated with the {cls_name} "
+                    f"event refers to a DFE that spans multiple sites, {dfe_intervals}."
+                )
+            setattr(ee, "coordinate", dfe_intervals[0, 1])
+            assert len(contig.dfe_list[dfe_idx].mutation_types) == 1
+            mt = contig.dfe_list[dfe_idx].mutation_types[0]
+            if not mt.distribution_type == "f":
+                raise ValueError(
+                    f"The single site id '{mut_id}' associated with the "
+                    f"{cls_name} event refers to a mutation type with fitness "
+                    f"distribution '{mt.distribution_type}', instead of a "
+                    f"fixed fitness coefficient ('f')."
                 )
 
         if hasattr(ee, "start_time") and hasattr(ee, "end_time"):
