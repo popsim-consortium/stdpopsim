@@ -1393,7 +1393,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
                     population_id=0,
                 ),
             ]
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match="must be unique"):
                 engine.simulate(
                     demographic_model=self.model,
                     contig=self.contig,
@@ -1414,7 +1414,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         contig.add_single_site(id=self.mut_id, coordinate=100)
         contig.dfe_list[1].mutation_types = []
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="must be unique"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=contig,
