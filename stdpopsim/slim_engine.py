@@ -964,9 +964,10 @@ def slim_makescript(
             n_mtypes = len(mtype_idx)
             if n_mtypes != 1:
                 raise ValueError(
-                    f"The single site mutation id '{mut_id}' associated with the "
-                    f"{cls_name} event must be unique, but there are {n_mtypes} "
-                    f"other mutation types with the same id on {contig}. "
+                    f"The single site mutation type with id '{mut_id}' "
+                    f"referenced by {cls_name} must exist and be uniquely "
+                    f"labelled, but there are {n_mtypes} other mutation types "
+                    f"with this id on {contig}. "
                 )
             mtype_idx = mtype_idx[0]
             setattr(ee, "mutation_type_id", slim_mutation_ids[mtype_idx])
