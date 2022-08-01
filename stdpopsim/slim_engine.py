@@ -975,29 +975,29 @@ def slim_makescript(
             dfe_intervals = contig.interval_list[dfe_idx]
             if dfe_intervals.shape[0] == 0:
                 raise ValueError(
-                    f"The single site id '{mut_id}' associated with the {cls_name} "
-                    f"event has no coordinate: it may have been removed by the addition "
-                    f"of an overlapping DFE or single site."
+                    f"The single site id '{mut_id}' referenced by {cls_name} "
+                    f"has no coordinate: it may have been removed by the addition "
+                    f"of an overlapping DFE or a single site with an "
+                    f"identical coordinate."
                 )
-            if dfe_intervals.shape[0] > 1:
+            if (
+                dfe_intervals.shape[0] > 1
+                or dfe_intervals[0, 1] - dfe_intervals[0, 0] != 1
+            ):
                 raise ValueError(
-                    f"The single site id '{mut_id}' associated with the {cls_name} "
-                    f"event refers to a DFE with multiple intervals, {dfe_intervals}."
+                    f"The id '{mut_id}' referenced by {cls_name} "
+                    f"refers to a DFE with intervals {dfe_intervals}, "
+                    f"not to a single site."
                 )
-            if dfe_intervals[0, 1] - dfe_intervals[0, 0] != 1:
-                raise ValueError(
-                    f"The single site id '{mut_id}' associated with the {cls_name} "
-                    f"event refers to a DFE that spans multiple sites, {dfe_intervals}."
-                )
-            setattr(ee, "coordinate", dfe_intervals[0, 1])
+            setattr(ee, "coordinate", dfe_intervals[0, 0])
             assert len(contig.dfe_list[dfe_idx].mutation_types) == 1
             mt = contig.dfe_list[dfe_idx].mutation_types[0]
             if not mt.distribution_type == "f":
                 raise ValueError(
-                    f"The single site id '{mut_id}' associated with the "
-                    f"{cls_name} event refers to a mutation type with fitness "
-                    f"distribution '{mt.distribution_type}', instead of a "
-                    f"fixed fitness coefficient ('f')."
+                    f"The single site id '{mut_id}' referenced by "
+                    f"{cls_name} has a mutation type with fitness "
+                    f"distribution '{mt.distribution_type}', instead "
+                    f"of a fixed fitness coefficient."
                 )
 
         if hasattr(ee, "start_time") and hasattr(ee, "end_time"):

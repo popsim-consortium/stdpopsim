@@ -1393,7 +1393,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
                     population_id=0,
                 ),
             ]
-            with pytest.raises(ValueError, match="must be unique"):
+            with pytest.raises(ValueError, match="must exist and be uniquely labelled"):
                 engine.simulate(
                     demographic_model=self.model,
                     contig=self.contig,
@@ -1414,7 +1414,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         contig.add_single_site(id=self.mut_id, coordinate=100)
         contig.dfe_list[1].mutation_types = []
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError, match="must be unique"):
+        with pytest.raises(ValueError, match="must exist and be uniquely labelled"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=contig,
@@ -1450,7 +1450,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             DFE=dfe,
         )
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError, match="must be unique"):
+        with pytest.raises(ValueError, match="must exist and be uniquely labelled"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=contig,
@@ -1477,7 +1477,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         )
         contig.dfe_list[1].mutation_types[0] = mt
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError, match="fixed fitness coefficient"):
+        with pytest.raises(ValueError, match="instead of a fixed fitness coefficient"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=contig,
@@ -1513,7 +1513,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             DFE=dfe,
         )
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError, match="DFE with multiple intervals"):
+        with pytest.raises(ValueError, match="refers to a DFE with intervals"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=contig,
@@ -1549,7 +1549,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             DFE=dfe,
         )
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError, match="spans multiple sites"):
+        with pytest.raises(ValueError, match="refers to a DFE with intervals"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=contig,
@@ -1570,7 +1570,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         contig.add_single_site(id="test", coordinate=100)
         contig.add_single_site(id="test", coordinate=110)
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError, match="must be unique"):
+        with pytest.raises(ValueError, match="must exist and be uniquely labelled"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=contig,

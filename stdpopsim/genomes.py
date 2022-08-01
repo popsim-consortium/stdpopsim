@@ -462,7 +462,7 @@ class Contig:
             long_description=long_description,
         )
         self.add_dfe(
-            intervals=np.array([[coordinate - 1, coordinate]], dtype="int"),
+            intervals=np.array([[coordinate, coordinate + 1]], dtype="int"),
             DFE=dfe,
         )
 
