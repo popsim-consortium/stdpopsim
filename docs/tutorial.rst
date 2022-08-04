@@ -1224,10 +1224,12 @@ of at least 0.8 by the end. Next, we'll walk through the steps required to do th
     this conditioning works by re-running the simulation until the condition is
     achieved, a nearly impossible condition will result in very long run times.
 
-First, we need to add a single site mutation in the middle of the contig.
-This represents a mutation of a single base pair, with associated fitness and
-dominance coefficients.  The single site mutation must have a unique string ID
-so that we can refer to it later.
+To set things up, we need to first add the site at which the selected mutation
+will occur.  This is like adding a DFE, except to a single site -- we're saying
+that there is a potential mutation at a particular site with defined fitness
+consequences. So that we can refer to the single site later, we give it a
+unique string ID. Here, we'll add the site in the middle of the contig, with ID
+"hard sweep".
 
 .. code-block:: python
 
@@ -1242,10 +1244,11 @@ so that we can refer to it later.
 
 .. note::
 
-    Note that single site mutations are internally stored as DFEs, and DFEs
-    cannot overlap. As a consequence, if a DFE is added to the contig over an
-    interval that contains an existing single site mutation, the latter will be
-    "overwritten" and an error will be raised by the simulation engine.
+    Note that single site mutations are internally stored as DFEs, and more
+    than one DFE cannot apply to the same segment of genome. As a consequence,
+    if another DFE is added to the contig over an interval that already
+    contains a single site mutation, the single site mutation will be
+    "overwritten" and an error will be raised in simulation.
 
 Next, we will set up the "extended events" which will modify the demography.
 The first extended event is the origination of the selected mutation, which
@@ -1261,7 +1264,6 @@ that the simulation can restart from that point if the mutation is lost.
             time=T_mut,
             single_site_id=mut_id,
             population_id=0,
-            save=True,
         )
     ]
 

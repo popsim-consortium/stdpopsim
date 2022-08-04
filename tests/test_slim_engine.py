@@ -1383,13 +1383,13 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             dry_run=True,
         )
 
-    def test_invalid_mutation_id(self):
+    def test_invalid_single_site_id(self):
         engine = stdpopsim.get_engine("slim")
-        for mut_id in ["deleterious", "sweep"]:
+        for single_site_id in ["deleterious", "sweep"]:
             extended_events = [
                 stdpopsim.ext.DrawMutation(
                     time=self.T_mut,
-                    single_site_id=mut_id,
+                    single_site_id=single_site_id,
                     population_id=0,
                 ),
             ]
@@ -1414,7 +1414,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         contig.add_single_site(id=self.mut_id, coordinate=100)
         contig.dfe_list[1].mutation_types = []
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError, match="must exist and be uniquely labelled"):
+        with pytest.raises(ValueError, match="must contain a single mutation type"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=contig,
@@ -1450,7 +1450,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             DFE=dfe,
         )
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError, match="must exist and be uniquely labelled"):
+        with pytest.raises(ValueError, match="must contain a single mutation type"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=contig,
@@ -1887,7 +1887,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
             ),
         ]
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="No drawn mutation"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=self.contig,
@@ -1974,7 +1974,7 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                 # Condition on AF > 0, to restore() immediately if the
                 # allele is lost.
                 stdpopsim.ext.ConditionOnAlleleFrequency(
-                    start_time=0,
+                    start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
                     end_time=0,
                     single_site_id=self.mut_id,
                     population_id=0,
@@ -2016,7 +2016,7 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
             ),
         ]
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="No drawn mutation"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=self.contig,

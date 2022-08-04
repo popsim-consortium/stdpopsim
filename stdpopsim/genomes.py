@@ -405,21 +405,21 @@ class Contig:
         .. code-block:: python
 
             contig.add_single_site(
-                id="sweep_variant",
+                id="hard_sweep",
                 selection_coeff=0.1,
                 coordinate=mutation_coordinate,
             )
             extended_events = [
                 stdpopsim.ext.DrawMutation(
                     time=mutation_time,
-                    single_site_id="sweep_variant",
+                    single_site_id="hard_sweep",
                     population_id=0,
                     save=True,
                 ),
                 stdpopsim.ext.ConditionOnAlleleFrequency(
                     start_time=stdpopsim.ext.GenerationAfter(mutation_time),
                     end_time=0,
-                    single_site_id="sweep_variant",
+                    single_site_id="hard_sweep",
                     population_id=0,
                     op=">",
                     allele_frequency=0.0,
@@ -440,8 +440,7 @@ class Contig:
         :param str description: A short description of the single site mutation
             model as it would be used in written text, e.g., "Strong selective
             sweep".
-        :param str long_description: A concise, but detailed, summary of the
-            single site mutation model.
+        :param str long_description: If necessary, a more detailed summary.
         """
         if description is None:
             description = "Single site mutation"
