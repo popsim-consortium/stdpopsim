@@ -2,9 +2,15 @@
 Common infrastructure for specifying demographic models.
 """
 import copy
+import re
+import pathlib
 import textwrap
 
+
+import demes
 import msprime
+
+import stdpopsim
 
 
 class Population:
@@ -155,6 +161,31 @@ class DemographicModel:
             f"║{self.model}"
         )
         return s
+
+    @classmethod
+    def from_yaml(cls, filename):
+        graph = demes.load(filename)
+        model = msprime.Demography.from_demes(graph)
+        description, long_description = graph.description.split("\n", maxsplit=1)
+        citations = []
+        for cite in graph.doi:
+            m = re.match(r"(?P<author>.*), (?P<year>\d\d\d\d): (?P<doi>.*)", cite)
+            if m is None:
+                raise ValueError(f"Couldn't match 'author, year: doi' to {cite}")
+            citations.append(
+                stdpopsim.Citation(
+                    reasons={stdpopsim.CiteReason.DEM_MODEL}, **m.groupdict()
+                )
+            )
+        return cls(
+            id=pathlib.Path(filename).stem,
+            description=description,
+            long_description=long_description,
+            model=model,
+            citations=citations,
+            generation_time=graph.generation_time,
+            mutation_rate=graph.metadata.get("mutation_rate"),
+        )
 
     @property
     def populations(self):

@@ -25,7 +25,7 @@ from . import ext  # NOQA
 
 # We import catalog here, but the internal functions
 # defined are not part of the external API.
-from .catalog import *  # NOQA
+from . import catalog  # NOQA
 
 from . import qc  # NOQA
 

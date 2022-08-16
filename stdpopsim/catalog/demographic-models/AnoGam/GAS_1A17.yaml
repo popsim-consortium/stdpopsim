@@ -1,0 +1,125 @@
+description: 'Stairwayplot estimates of N(t) for Gabon sample
+
+  These estimates were done as part of the Ag1000G 2017 Consortium paper. Stairwayplot
+  was run with the addition of a misorientation parameter using SFS information from
+  each population.'
+time_units: generations
+generation_time: 1
+doi: ['Ag1000G Consortium, 2017: https://doi.org/10.1038/nature24995']
+metadata: {mutation_rate: 3.5e-09}
+demes:
+- name: GAS
+  description: Gabon gabiae population
+  epochs:
+  - {end_time: 18029.2683, start_size: 409527.12801416}
+  - {end_time: 11260.2248, start_size: 409527.12801416}
+  - {end_time: 10834.1379, start_size: 77334.77862527}
+  - {end_time: 9946.68728, start_size: 322144.56539297}
+  - {end_time: 7169.74182, start_size: 1680052.006021}
+  - {end_time: 6481.15044, start_size: 624896.67937685}
+  - {end_time: 6063.7642, start_size: 530289.21416049}
+  - {end_time: 5742.77111, start_size: 543762.2932594}
+  - {end_time: 4868.7804, start_size: 1903551.76041575}
+  - {end_time: 4144.16552, start_size: 1972764.03439268}
+  - {end_time: 3543.66638, start_size: 1998160.88128216}
+  - {end_time: 3043.25043, start_size: 1998160.88128216}
+  - {end_time: 2619.82155, start_size: 1998160.88128216}
+  - {end_time: 2256.73855, start_size: 1998953.44050118}
+  - {end_time: 1942.06662, start_size: 1998953.44050118}
+  - {end_time: 1667.62718, start_size: 1992430.35210815}
+  - {end_time: 1425.80467, start_size: 1989715.58702617}
+  - {end_time: 1211.87638, start_size: 1980227.21562606}
+  - {end_time: 1145.45402, start_size: 687172.58638815}
+  - {end_time: 1085.9595, start_size: 683889.43627665}
+  - {end_time: 1032.13113, start_size: 683889.43627665}
+  - {end_time: 983.196252, start_size: 683889.43627665}
+  - {end_time: 938.516578, start_size: 683889.43627665}
+  - {end_time: 897.519058, start_size: 684576.59330447}
+  - {end_time: 859.801339, start_size: 684576.59330447}
+  - {end_time: 824.963147, start_size: 685005.95081601}
+  - {end_time: 792.661043, start_size: 685951.34145025}
+  - {end_time: 762.657505, start_size: 686150.90910499}
+  - {end_time: 734.719738, start_size: 686235.36369922}
+  - {end_time: 708.609246, start_size: 687162.86783629}
+  - {end_time: 684.129309, start_size: 688681.83478372}
+  - {end_time: 661.129552, start_size: 690176.6983718}
+  - {end_time: 639.454764, start_size: 692379.41939462}
+  - {end_time: 619.04502, start_size: 692716.93526192}
+  - {end_time: 599.781759, start_size: 693429.24269629}
+  - {end_time: 581.588679, start_size: 693429.24269629}
+  - {end_time: 564.379009, start_size: 693429.24269629}
+  - {end_time: 548.045759, start_size: 694677.60526595}
+  - {end_time: 532.550112, start_size: 694677.60526595}
+  - {end_time: 517.829247, start_size: 694677.60526595}
+  - {end_time: 503.826473, start_size: 694677.60526595}
+  - {end_time: 490.490498, start_size: 694677.60526595}
+  - {end_time: 477.774801, start_size: 694677.60526595}
+  - {end_time: 465.620388, start_size: 695633.55941906}
+  - {end_time: 454.00617, start_size: 695633.55941906}
+  - {end_time: 442.896919, start_size: 695633.55941906}
+  - {end_time: 432.260401, start_size: 695633.55941906}
+  - {end_time: 422.067072, start_size: 695633.55941906}
+  - {end_time: 412.289797, start_size: 695633.55941906}
+  - {end_time: 402.903613, start_size: 695633.55941906}
+  - {end_time: 393.885515, start_size: 695633.55941906}
+  - {end_time: 385.214266, start_size: 695633.55941906}
+  - {end_time: 376.870235, start_size: 695633.55941906}
+  - {end_time: 368.835241, start_size: 695633.55941906}
+  - {end_time: 361.09243, start_size: 695633.55941906}
+  - {end_time: 353.626147, start_size: 695633.55941906}
+  - {end_time: 346.421839, start_size: 695633.55941906}
+  - {end_time: 339.465956, start_size: 695633.55941906}
+  - {end_time: 332.745865, start_size: 695633.55941906}
+  - {end_time: 326.24479, start_size: 696167.64460966}
+  - {end_time: 319.955507, start_size: 696317.93467906}
+  - {end_time: 313.86024, start_size: 697332.03584512}
+  - {end_time: 307.951917, start_size: 698106.79217618}
+  - {end_time: 302.218199, start_size: 699330.14877435}
+  - {end_time: 296.632655, start_size: 702884.83678823}
+  - {end_time: 291.187697, start_size: 706605.83914068}
+  - {end_time: 285.888999, start_size: 708782.9061541}
+  - {end_time: 280.730912, start_size: 710882.47527273}
+  - {end_time: 275.664382, start_size: 719107.79112942}
+  - {end_time: 270.57382, start_size: 743769.25832605}
+  - {end_time: 258.403062, start_size: 1829782.22978925}
+  - {end_time: 243.883726, start_size: 2245241.1128414}
+  - {end_time: 228.659684, start_size: 2420531.19687943}
+  - {end_time: 213.010501, start_size: 2557240.92209016}
+  - {end_time: 196.88442, start_size: 2707367.42825967}
+  - {end_time: 181.06966, start_size: 2726859.95574373}
+  - {end_time: 165.081438, start_size: 2830283.03259496}
+  - {end_time: 149.486416, start_size: 2833326.90480091}
+  - {end_time: 134.317538, start_size: 2827486.59107239}
+  - {end_time: 119.778311, start_size: 2779609.28386339}
+  - {end_time: 105.86718, start_size: 2726859.95574373}
+  - {end_time: 93.3624771, start_size: 2512451.15337624}
+  - {end_time: 83.3883683, start_size: 2053484.48904133}
+  - {end_time: 80.0932536, start_size: 694949.57011815}
+  - {end_time: 76.9788992, start_size: 672653.84034255}
+  - {end_time: 74.0546632, start_size: 646628.97921259}
+  - {end_time: 71.3468519, start_size: 612860.29930411}
+  - {end_time: 68.7139222, start_size: 609770.71698915}
+  - {end_time: 66.15229, start_size: 606896.78477367}
+  - {end_time: 63.6475829, start_size: 606896.78477367}
+  - {end_time: 61.1979243, start_size: 606896.78477367}
+  - {end_time: 58.8015192, start_size: 606896.78477367}
+  - {end_time: 56.4566497, start_size: 606896.78477367}
+  - {end_time: 54.161671, start_size: 606896.78477367}
+  - {end_time: 51.9150077, start_size: 606896.78477367}
+  - {end_time: 49.7151498, start_size: 606896.78477367}
+  - {end_time: 47.5606499, start_size: 606896.78477367}
+  - {end_time: 45.4501193, start_size: 606896.78477367}
+  - {end_time: 43.3822257, start_size: 606896.78477367}
+  - {end_time: 41.35569, start_size: 606896.78477367}
+  - {end_time: 39.3692837, start_size: 606896.78477367}
+  - {end_time: 37.4218265, start_size: 606896.78477367}
+  - {end_time: 35.503141, start_size: 609770.71698915}
+  - {end_time: 33.6213534, start_size: 609770.71698915}
+  - {end_time: 31.7590591, start_size: 615171.6634657}
+  - {end_time: 29.9059882, start_size: 623896.55036331}
+  - {end_time: 28.0715527, start_size: 629386.55333025}
+  - {end_time: 26.2194838, start_size: 647425.87204344}
+  - {end_time: 24.3957877, start_size: 649423.64089016}
+  - {end_time: 17.7815418, start_size: 2398970.46335773}
+  - {end_time: 10.8221472, start_size: 2570469.78880419}
+  - {end_time: 0, start_size: 4069863.0}

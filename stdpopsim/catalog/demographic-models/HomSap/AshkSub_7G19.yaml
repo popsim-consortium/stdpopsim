@@ -1,0 +1,72 @@
+description: 'Ashkenazi Jewish with substructure and European admixture
+
+  This was the best fit model of Ashkenazi Jewish demographic history from Gladstein
+  and Hammer 2019, shown in Figure 1, labeled "Substructure Model". Model choice and
+  parameter estimation were performed with Approximate Bayesian Computation. Parameter
+  values are based on the mode from ABC found in Table S3 of Gladstein and Hammer
+  2019. In this model, the ancestors of Europeans and Middle Eastern populations diverge.
+  Non-Ashkenazi Jewish populations then diverge from the Middle Eastern population.
+  The Ashkenazi Jews then diverge from the other Jewish populations and experience
+  a substantial reduction in population size and a single pulse of gene flow from
+  Europeans (corresponding to their arrival in Europe). After the gene flow from Europeans
+  to the Ashkenazi Jews, the Ashkenazi Jews split into two groups, the Western and
+  Eastern. Finally, the Western Ashkenazi Jews experience moderate instantaneous population
+  size increase, and the Eastern experience a massive population size increase. In
+  addition to the demographic model Gladstein and Hammer 2019 also incorporated an
+  SNP array ascertainment scheme into the simulation. This demographic model does
+  not include the SNP array ascertainment scheme. It should be noted that Gladstein
+  and Hammer 2019 simulated with a mutation rate of 2.5e-8.'
+time_units: generations
+generation_time: 1
+doi: ['Gladstein and Hammer, 2019: https://doi.org/10.1093/molbev/msz047']
+metadata: {mutation_rate: 2.5e-08}
+demes:
+- name: YRI
+  description: 1000 Genomes YRI (Yoruba)
+  epochs:
+  - {end_time: 8800, start_size: 7300}
+  - {end_time: 0, start_size: 18197.008586099826}
+- name: CHB
+  description: 1000 Genomes CHB (Han Chinese in Beijing, China)
+  start_time: 2105
+  ancestors: [YRI]
+  epochs:
+  - {end_time: 0, start_size: 4073.802778041126}
+- name: CEU
+  description: 1000 Genomes CEU (Utah Residents (CEPH) with Northern and Western European
+    Ancestry
+  start_time: 850
+  ancestors: [CHB]
+  epochs:
+  - {end_time: 0, start_size: 33113.112148259075}
+- name: ME
+  description: Middle Eastern
+  start_time: 481
+  ancestors: [CEU]
+  epochs:
+  - {end_time: 0, start_size: 436515.8322401656}
+- name: J
+  description: non-Ashkenazi Jewish
+  start_time: 211
+  ancestors: [ME]
+  epochs:
+  - {end_time: 0, start_size: 354813.3892335753}
+- name: WAJ
+  description: Western Ashkenazi Jewish
+  start_time: 29
+  ancestors: [J]
+  epochs:
+  - {end_time: 13, start_size: 1096.4781961431852}
+  - {end_time: 0, start_size: 6606.934480075957}
+- name: EAJ
+  description: Eastern Ashkenazi Jewish
+  start_time: 14
+  ancestors: [WAJ]
+  epochs:
+  - {end_time: 13, start_size: 1096.4781961431852}
+  - {end_time: 0, start_size: 1949844.5997580455}
+pulses:
+- sources: [CEU]
+  dest: WAJ
+  time: 28
+  proportions: [0.17]

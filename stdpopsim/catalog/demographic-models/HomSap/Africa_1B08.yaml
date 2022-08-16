@@ -1,0 +1,18 @@
+description: 'African-americans population
+
+  African-American two-epoch instantaneous growth model from Boyko et al 2008, fit
+  to the synonymous SFS for the 11 of 15 African Americans showing the least European
+  ancestry, using coalescent simulations with recombination with the maximum likelihood
+  method of Williamson et al 2005; times were calibrated assuming 3e5 generations
+  since human-chimp divergence and fitting the number of synonymous human-chimp differences.
+  Mutation and recombination rates were assumed to be the same (1.8e-8).'
+time_units: generations
+generation_time: 1
+doi: ['Boyko et al., 2008: https://doi.org/10.1371/journal.pgen.1000083']
+metadata: {mutation_rate: 1.8e-08}
+demes:
+- name: African_Americans
+  description: African-Americans from Boyko et al 2008
+  epochs:
+  - {end_time: 6809, start_size: 7778}
+  - {end_time: 0, start_size: 25636.0}

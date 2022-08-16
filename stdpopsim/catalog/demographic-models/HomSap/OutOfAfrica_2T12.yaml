@@ -1,0 +1,34 @@
+description: 'Two population out-of-Africa
+
+  The model is derived from the Tennessen et al. analysis of the jSFS from European
+  Americans and African Americans. It describes the ancestral human population in
+  Africa, the out of Africa event, and two distinct periods of subsequent European
+  population growth over the past 23kya. Model parameters are taken from Fig. S5 in
+  Fu et al.'
+time_units: years
+generation_time: 25
+doi: ['Tennessen et al., 2012: https://doi.org/10.1126/science.1219240', 'Fu et al.,
+    2013: https://doi.org/10.1038/nature11690']
+metadata: {mutation_rate: 2.36e-08}
+demes:
+- name: AFR
+  description: African Americans
+  epochs:
+  - {end_time: 148000.0, start_size: 7310}
+  - {end_time: 5115.0, start_size: 14474.0}
+  - {end_time: 0, start_size: 14474.0, end_size: 432124.58438330283}
+- name: EUR
+  description: European Americans
+  start_time: 51000.0
+  ancestors: [AFR]
+  epochs:
+  - {end_time: 23000.0, start_size: 1861}
+  - {end_time: 5115.0, start_size: 1032.0, end_size: 9279.212349452768}
+  - {end_time: 0, start_size: 9279.212349452768, end_size: 501436.3434585535}
+migrations:
+- demes: [AFR, EUR]
+  rate: 0.00015
+  end_time: 23000.0
+- demes: [AFR, EUR]
+  rate: 2.5e-05
+  start_time: 23000.0

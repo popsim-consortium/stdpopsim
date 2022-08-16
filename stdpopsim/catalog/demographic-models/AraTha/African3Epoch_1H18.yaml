@@ -1,0 +1,17 @@
+description: 'South Middle Atlas African three epoch model
+
+  Model estimated from site frequency spectrum of synonymous SNPs from African (South
+  Middle Atlas) samples using Williamson et al. 2005 methodology. Values come from
+  supplementary table 1 of Huber et al 2018. Sizes change from N_A -> N_2 -> N_3 and
+  t_2 is the time of the second epoch and t_3 is the time of the 3rd epoch.'
+time_units: generations
+generation_time: 1
+doi: ['Huber et al., 2018: https://doi.org/10.1038/s41467-018-05281-7']
+metadata: {mutation_rate: 7e-09}
+demes:
+- name: SouthMiddleAtlas
+  description: Arabidopsis Thaliana South Middle Atlas population
+  epochs:
+  - {end_time: 21954, start_size: 161744}
+  - {end_time: 14534, start_size: 24076.0}
+  - {end_time: 0, start_size: 203077.0}
