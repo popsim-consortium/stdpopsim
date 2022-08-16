@@ -318,6 +318,8 @@ _slim_main = """
                     g_start+" > g_end="+g_end);
             }
 
+            // Save the state conditional on the allele frequency.
+            // If the condition isn't met, we restore.
             if (save) {
                 // Save the state conditional on the allele frequency.
                 // If the condition isn't met, we restore.
@@ -947,75 +949,108 @@ def slim_makescript(
     fitness_callbacks = []
     condition_on_allele_frequency = []
     op_id = stdpopsim.ext.ConditionOnAlleleFrequency.op_id
-    slim_mutation_ids = []
-    for x in _dfe_to_mtypes(contig).values():
-        slim_mutation_ids.extend([u[0] for u in x])
+    slim_mutation_ids = _dfe_to_mtypes(contig)
+    drawn_single_site_ids = set()
+    referenced_single_site_ids = set()
     for ee in extended_events:
-        if hasattr(ee, "mutation_type_id"):
-            mt_id = getattr(ee, "mutation_type_id")
+        mutation_type_id = None
+        coordinate = None
+        if hasattr(ee, "single_site_id"):
             cls_name = ee.__class__.__name__
-            if mt_id not in slim_mutation_ids:
+            dfe_index = [
+                i for i, x in enumerate(contig.dfe_list) if x.id == ee.single_site_id
+            ]
+            if len(dfe_index) != 1:
                 raise ValueError(
-                    f"Invalid {cls_name} event with mutation type id "
-                    f"{mt_id} on {contig} with valid IDs {slim_mutation_ids}."
+                    f"The single site with id '{ee.single_site_id}' "
+                    f"referenced by {cls_name} must exist and be uniquely "
+                    f"labelled, but there are {len(dfe_index)} DFEs "
+                    f"with this id on {contig}. "
                 )
+            dfe_index = dfe_index[0]
+            if len(slim_mutation_ids[dfe_index]) != 1:
+                raise ValueError(
+                    f"The single site with id '{ee.single_site_id}' referenced "
+                    f"by {cls_name} must contain a single mutation type, but "
+                    f"has {len(slim_mutation_ids[dfe_index])} mutation "
+                    f"types."
+                )
+            dfe_intervals = contig.interval_list[dfe_index]
+            if dfe_intervals.shape[0] == 0:
+                raise ValueError(
+                    f"The single site id '{ee.single_site_id}' referenced by "
+                    f"{cls_name} has no coordinate: it may have been removed "
+                    f"by the addition of an overlapping DFE after the single "
+                    f"site was added to the contig."
+                )
+            if (
+                dfe_intervals.shape[0] > 1
+                or dfe_intervals[0, 1] - dfe_intervals[0, 0] != 1
+            ):
+                raise ValueError(
+                    f"The id '{ee.single_site_id}' referenced by {cls_name} "
+                    f"refers to a DFE with intervals {dfe_intervals}, not "
+                    f"to a single site."
+                )
+            mt_id, mt = slim_mutation_ids[dfe_index][0]
+            if not mt.distribution_type == "f":
+                raise ValueError(
+                    f"The single site id '{ee.single_site_id}' referenced by "
+                    f"{cls_name} has a mutation type with fitness "
+                    f"distribution '{mt.distribution_type}', instead of a "
+                    f"fixed fitness coefficient."
+                )
+            coordinate = dfe_intervals[0, 0]
+            mutation_type_id = mt_id
         if hasattr(ee, "start_time") and hasattr(ee, "end_time"):
             # Now that GenerationAfter times have been accounted for, we can
             # properly catch invalid start/end times.
-            start_time = getattr(ee, "start_time")
-            end_time = getattr(ee, "end_time")
-            stdpopsim.ext.validate_time_range(start_time, end_time)
+            stdpopsim.ext.validate_time_range(ee.start_time, ee.end_time)
 
+        # Append attributes to lists per event type
         if isinstance(ee, stdpopsim.ext.DrawMutation):
-            # TODO: warning if mutation type id points to a neutral mut.
-            time = ee.time * demographic_model.generation_time
-            save = 1 if ee.save else 0
             drawn_mutations.append(
-                (time, ee.mutation_type_id, ee.population_id, ee.coordinate, save)
+                (
+                    ee.time * demographic_model.generation_time,
+                    mutation_type_id,
+                    ee.population_id,
+                    coordinate,
+                    int(ee.save),
+                )
             )
+            drawn_single_site_ids.add(ee.single_site_id)
         elif isinstance(ee, stdpopsim.ext.ChangeMutationFitness):
-            start_time = ee.start_time * demographic_model.generation_time
-            end_time = ee.end_time * demographic_model.generation_time
             fitness_callbacks.append(
                 (
-                    start_time,
-                    end_time,
-                    ee.mutation_type_id,
+                    ee.start_time * demographic_model.generation_time,
+                    ee.end_time * demographic_model.generation_time,
+                    mutation_type_id,
                     ee.population_id,
                     ee.selection_coeff,
                     ee.dominance_coeff,
                 )
             )
+            referenced_single_site_ids.add(ee.single_site_id)
         elif isinstance(ee, stdpopsim.ext.ConditionOnAlleleFrequency):
-            start_time = ee.start_time * demographic_model.generation_time
-            end_time = ee.end_time * demographic_model.generation_time
-            save = 1 if ee.save else 0
             condition_on_allele_frequency.append(
                 (
-                    start_time,
-                    end_time,
-                    ee.mutation_type_id,
+                    ee.start_time * demographic_model.generation_time,
+                    ee.end_time * demographic_model.generation_time,
+                    mutation_type_id,
                     ee.population_id,
                     op_id(ee.op),
                     ee.allele_frequency,
-                    save,
+                    int(ee.save),
                 )
             )
+            referenced_single_site_ids.add(ee.single_site_id)
         else:
             raise ValueError(f"Unknown extended event type {type(ee)}")
 
     # Check that drawn mutations exist for extended events that need them.
-    drawn_mut_type_ids = {mt_id for _, mt_id, _, _, _ in drawn_mutations}
-    for ee in extended_events:
-        if isinstance(ee, stdpopsim.ext.ChangeMutationFitness) or isinstance(
-            ee, stdpopsim.ext.ConditionOnAlleleFrequency
-        ):
-            if ee.mutation_type_id not in drawn_mut_type_ids:
-                cls_name = ee.__class__.__name__
-                raise ValueError(
-                    f"Invalid {cls_name} event. No drawn mutation for "
-                    f"mutation type id {ee.mutation_type_id}"
-                )
+    for single_site_id in referenced_single_site_ids:
+        if single_site_id not in drawn_single_site_ids:
+            raise ValueError(f"No drawn mutation for single site id {single_site_id}.")
 
     printsc = functools.partial(print, file=script_file)
 

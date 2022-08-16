@@ -76,9 +76,8 @@ class DrawMutation(ExtendedEvent):
     """
 
     time = attr.ib(type=float)
-    mutation_type_id = attr.ib(type=int)
+    single_site_id = attr.ib(type=str)
     population_id = attr.ib(type=int)
-    coordinate = attr.ib(type=int)
     save = attr.ib(type=bool, default=False)
 
     def __attrs_post_init__(self):
@@ -100,7 +99,7 @@ class ChangeMutationFitness(ExtendedEvent):
 
     start_time = attr.ib(type=float)
     end_time = attr.ib(type=float)
-    mutation_type_id = attr.ib(type=int)
+    single_site_id = attr.ib(type=str)
     population_id = attr.ib(type=int)
     selection_coeff = attr.ib(type=float)
     dominance_coeff = attr.ib(type=float)
@@ -127,7 +126,7 @@ class ConditionOnAlleleFrequency(ExtendedEvent):
 
     start_time = attr.ib(type=float)
     end_time = attr.ib(type=float)
-    mutation_type_id = attr.ib(type=int)
+    single_site_id = attr.ib(type=str)
     population_id = attr.ib(type=int)
     op = attr.ib(type=str, default=None)
     allele_frequency = attr.ib(type=float, default=None)
