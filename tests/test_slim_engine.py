@@ -79,7 +79,7 @@ class TestAPI:
             samples=samples,
             slim_script=True,
         )
-        assert "sim.registerLateEvent" in out
+        assert "community.registerLateEvent" in out
 
         model = species.get_demographic_model("AncientEurasia_9K19")
         samples = model.get_samples(10, 20, 30, 40, 50, 60, 70)
@@ -90,7 +90,7 @@ class TestAPI:
             samples=samples,
             slim_script=True,
         )
-        assert "sim.registerLateEvent" in out
+        assert "community.registerLateEvent" in out
 
         model = species.get_demographic_model("AmericanAdmixture_4B11")
         samples = model.get_samples(10, 10, 10)
@@ -101,7 +101,7 @@ class TestAPI:
             samples=samples,
             slim_script=True,
         )
-        assert "sim.registerLateEvent" in out
+        assert "community.registerLateEvent" in out
 
     @pytest.mark.filterwarnings("ignore:Recombination map has length:UserWarning")
     def test_recombination_map(self):
@@ -245,15 +245,15 @@ class TestCLI:
 
     def test_script_generation(self):
         out, _ = self.docmd("--slim-script HomSap")
-        assert "sim.registerLateEvent" in out
+        assert "community.registerLateEvent" in out
 
         # msprime.MassMigration demographic events, with proportion<1.0
         # low level migration
         out, _ = self.docmd("--slim-script HomSap -d AncientEurasia_9K19")
-        assert "sim.registerLateEvent" in out
+        assert "community.registerLateEvent" in out
         # simultaneous mass migrations, with proportions summing to 1.0
         out, _ = self.docmd("--slim-script HomSap -d AmericanAdmixture_4B11")
-        assert "sim.registerLateEvent" in out
+        assert "community.registerLateEvent" in out
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")
@@ -1346,7 +1346,7 @@ class TestLogfile(PiecewiseConstantSizeMixin):
         with open(logfile, "r") as f:
             header = f.readline().strip().split(",")
             data = np.loadtxt(f, delimiter=",")
-        assert header[0] == "generation"
+        assert header[0] == "tick"
         assert header[1][:8] == "fitness_"
         assert header[2][:8] == "fitness_"
         # neutral model, should have no fitness variation

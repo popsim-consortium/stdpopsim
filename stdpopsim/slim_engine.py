@@ -7,7 +7,7 @@ described in the SLiM reference manual. In our generated SLiM script, all the
 demographic model parameters are defined in multi-dimensional arrays at the
 top of the script, in the `initialize()` block. These arrays define the event
 generations, and event blocks are subsequently constructed programmatically
-using `sim.registerLateEvent()`, rather than writing out the blocks verbatim.
+using `community.registerLateEvent()`, rather than writing out the blocks verbatim.
 This design is intended to permit modification of demographic parameters in
 the generated SLiM script, without needing to directly convert event times in
 the past into forwards-time generations.
@@ -107,7 +107,7 @@ function (void)warn(string$ s) {
 
 function (void)dbg(string$ s, [integer$ debug_level = 2]) {
     if (verbosity >= debug_level) {
-        catn(sim.generation + ": " + s);
+        catn(community.tick + ": " + s);
     }
 }
 """
@@ -116,13 +116,13 @@ function (void)dbg(string$ s, [integer$ debug_level = 2]) {
 _slim_functions = """
 
 // Check that sizes aren't dangerously low or zero (e.g. due to scaling).
-function (void)check_size(integer$ pop, integer$ size, integer$ g) {
+function (void)check_size(integer$ pop, integer$ size, integer$ t) {
     if (size == 0) {
         err("The population size of p"+pop+" ("+pop_names[pop]+") is zero " +
-            "at generation "+g+".");
+            "at tick "+t+".");
     } else if (size < 50) {
         warn("p"+pop+" ("+pop_names[pop]+") has only "+size+" individuals " +
-             "alive at generation "+g+".");
+             "alive at tick "+t+".");
     }
 }
 
@@ -192,41 +192,41 @@ function (void)save(void) {
 
 // Restore the simulation state.
 function (void)restore(void) {
-    g_restore = sim.generation;
+    g_restore = community.tick;
     n_restores = 1 + sim.getValue("n_restores");
     sim.setValue("n_restores", n_restores);
     n_saves = sim.getValue("n_saves");
     if (n_saves == 0) {
-        err("restore() in generation "+g_restore+", but nothing is saved.");
+        err("restore() in tick "+g_restore+", but nothing is saved.");
     }
     sim.readFromPopulationFile(trees_file);
-    dbg("restore() "+n_restores+" from generation "+g_restore+", returning "+
+    dbg("restore() "+n_restores+" from tick "+g_restore+", returning "+
         "to state at save() "+n_saves);
 
     /*
-     * The generation counter sim.generation has now been reset to the
+     * The tick counter community.tick has now been reset to the
      * value it had when save() was called. There are two issues relating
      * to event scheduling which must now be dealt with.
      *
-     * 1. There may be additional late events for the generation in which
+     * 1. There may be additional late events for the tick in which
      * restore() was called, and they are still scheduled to run.
      * So we deactivate all script blocks to avoid unexpected problems.
      * They will be automatically reactivated at the start of the next
-     * generation (see SLiM manual section 23.10).
+     * tick (see SLiM manual section 23.10).
      */
-    sim.scriptBlocks.active = F;
+    community.allScriptBlocks.active = F;
 
     /*
-     * 2. The late events below were run in the save() generation,
+     * 2. The late events below were run in the save() tick,
      * but after the save() call. We execute these again here, because
-     * the next late events to run will be for sim.generation + 1.
+     * the next late events to run will be for community.tick + 1.
      * Note that the save() event is indistinguishable from the other
-     * late events in this generation, so we set a flag `restore_function`
+     * late events in this tick, so we set a flag `restore_function`
      * to signal the save() function not to save again.
      */
-    g = sim.generation;
+    g = community.tick;
     sim.setValue("restore_function", T);
-    for (sb in sim.scriptBlocks) {
+    for (sb in community.allScriptBlocks) {
         if (sb.type == "late" & g >= sb.start & g <= sb.end) {
             self = sb;
             executeLambda(sb.source);
@@ -239,7 +239,7 @@ function (void)restore(void) {
 
 
 _slim_main = """
-1 {
+1 early() {
     // save/restore bookkeeping
     sim.setValue("n_restores", 0);
     sim.setValue("n_saves", 0);
@@ -252,7 +252,7 @@ _slim_main = """
     // Initial populations.
     for (i in 0:(num_populations-1)) {
         if (N[0,i] > 0) {
-            check_size(i, N[0,i], sim.generation);
+            check_size(i, N[0,i], community.tick);
             dbg("p = sim.addSubpop("+i+", "+N[0,i]+");");
             p = sim.addSubpop(i, N[0,i]);
             dbg("p.name = '"+pop_names[i]+"';");
@@ -261,7 +261,7 @@ _slim_main = """
     }
 
     if (length(sim.subpopulations) == 0) {
-        err("No populations with non-zero size in generation 1.");
+        err("No populations with non-zero size in tick 1.");
     }
 
     // Initial migration rates.
@@ -279,10 +279,10 @@ _slim_main = """
         }
     }
 
-    // The end of the burn-in is the starting generation, and corresponds to
-    // time T_start. All remaining events are relative to this generation.
+    // The end of the burn-in is the starting tick, and corresponds to
+    // time T_start. All remaining events are relative to this tick.
     N_max = max(N[0,0:(num_populations-1)]);
-    G_start = sim.generation + asInteger(round(burn_in * N_max));
+    G_start = community.tick + asInteger(round(burn_in * N_max));
     T_start = max(_T);
     G = G_start + gdiff(T_start, _T);
     G_end = max(G);
@@ -300,7 +300,7 @@ _slim_main = """
             }
             g = G_start + gdiff(T_start, drawn_mutations[0,i]);
             // Unconditionally save the state before the mutation is drawn.
-            sim.registerLateEvent(NULL, "{save();}", g, g);
+            community.registerLateEvent(NULL, "{save();}", g, g);
         }
     }
     if (length(condition_on_allele_frequency) > 0) {
@@ -323,7 +323,7 @@ _slim_main = """
             if (save) {
                 // Save the state conditional on the allele frequency.
                 // If the condition isn't met, we restore.
-                sim.registerLateEvent(NULL,
+                community.registerLateEvent(NULL,
                     "{if (af(m"+mut_type+", p"+pop_id+") "+op+" "+af+")" +
                     " save(); else restore();}",
                     g_start, g_start);
@@ -331,7 +331,7 @@ _slim_main = """
             }
 
             if (g_start <= g_end) {
-                sim.registerLateEvent(NULL,
+                community.registerLateEvent(NULL,
                     "{if (!(af(m"+mut_type+", p"+pop_id+") "+op+" "+af+"))" +
                     " restore();}",
                     g_start, g_end);
@@ -347,7 +347,7 @@ _slim_main = """
             size = asInteger(subpopulation_splits[2,i] / Q);
             oldpop = subpopulation_splits[3,i];
             check_size(newpop, size, g);
-            sim.registerLateEvent(NULL,
+            community.registerLateEvent(NULL,
                 "{dbg(self.source); " +
                 "p = sim.addSubpopSplit("+newpop+","+size+","+oldpop+"); " +
                 "p.name = '"+pop_names[newpop]+"';}",
@@ -364,7 +364,7 @@ _slim_main = """
                 // care of by sim.addSubpop() or sim.addSubpopSplit().
                 if (N[i,j] != N[i-1,j] & N[i-1,j] != 0) {
                     check_size(j, N[i,j], g);
-                    sim.registerLateEvent(NULL,
+                    community.registerLateEvent(NULL,
                         "{dbg(self.source); " +
                         "p"+j+".setSubpopulationSize("+N[i,j]+");}",
                         g, g);
@@ -375,7 +375,7 @@ _slim_main = """
                     if (i == num_epochs-1) {
                         growth_phase_end = G[i];
                     } else {
-                        // We already registered a size change at generation G[i].
+                        // We already registered a size change at tick G[i].
                         growth_phase_end = G[i] - 1;
                     }
 
@@ -392,10 +392,10 @@ _slim_main = """
 
                     N0 = N[i,j];
                     r = Q * growth_rates[i,j];
-                    sim.registerLateEvent(NULL,
+                    community.registerLateEvent(NULL,
                         "{" +
                             "dbg(self.source); " +
-                            "gx=sim.generation-"+g+"; " +
+                            "gx=community.tick-"+g+"; " +
                             "size=asInteger(round("+N0+"*exp("+r+"*gx))); " +
                             "p"+j+".setSubpopulationSize(size);" +
                         "}",
@@ -419,7 +419,7 @@ _slim_main = """
                         next;
                     }
                     g = G[i-1];
-                    sim.registerLateEvent(NULL,
+                    community.registerLateEvent(NULL,
                         "{dbg(self.source); " +
                         "p"+j+".setMigrationRates("+k+", "+m+");}",
                         g, g);
@@ -435,11 +435,11 @@ _slim_main = """
             dest = asInteger(admixture_pulses[1,i]);
             src = asInteger(admixture_pulses[2,i]);
             rate = admixture_pulses[3,i];
-            sim.registerLateEvent(NULL,
+            community.registerLateEvent(NULL,
                 "{dbg(self.source); " +
                 "p"+dest+".setMigrationRates("+src+", "+rate+");}",
                 g, g);
-            sim.registerLateEvent(NULL,
+            community.registerLateEvent(NULL,
                 "{dbg(self.source); " +
                 "p"+dest+".setMigrationRates("+src+", 0);}",
                 g+1, g+1);
@@ -453,7 +453,7 @@ _slim_main = """
             mut_type = asInteger(drawn_mutations[1,i]);
             pop_id = asInteger(drawn_mutations[2,i]);
             coordinate = asInteger(drawn_mutations[3,i]);
-            sim.registerLateEvent(NULL,
+            community.registerLateEvent(NULL,
                 "{dbg(self.source); " +
                 "add_mut(m"+mut_type+", p"+pop_id+", "+coordinate+");}",
                 g, g);
@@ -475,11 +475,11 @@ _slim_main = """
                     g_start+" > g_end="+g_end);
             }
 
-            sim.registerLateEvent(NULL,
+            community.registerLateEvent(NULL,
                 "{dbg('s="+selection_coeff+", h="+dominance_coeff+
                 " for m"+mut_type+" in p"+pop_id+"');}",
                 g_start, g_start);
-            sim.registerLateEvent(NULL,
+            community.registerLateEvent(NULL,
                 "{dbg('s, h defaults for m"+mut_type+" in p"+pop_id+"');}",
                 g_end, g_end);
             /* We explicitly format() here to prevent integral-valued floats
@@ -487,7 +487,7 @@ _slim_main = """
              * (this triggers a type error when the fitness callback runs). */
             f_hom = format("%e", 1 + selection_coeff);
             f_het = format("%e", 1 + selection_coeff * dominance_coeff);
-            sim.registerFitnessCallback(NULL,
+            sim.registerMutationEffectCallback(NULL,
                 "{if (homozygous) return "+f_hom+"; else return "+f_het+";}",
                 mut_type, pop_id, g_start, g_end);
         }
@@ -503,20 +503,22 @@ _slim_main = """
         N_g = pop_size_at(G, pop, g);
         if (n > N_g) {
             err("Request to sample "+n+" individuals from p"+pop+
-                " ("+pop_names[pop]+") at generation "+g+", but only "+
+                " ("+pop_names[pop]+") at tick "+g+", but only "+
                 N_g+" individuals will be alive.");
         }
 
-        sim.registerLateEvent(NULL,
-            "{dbg(self.source); " +
-            "inds=p"+pop+".sampleIndividuals("+n+"); " +
-            "sim.treeSeqRememberIndividuals(inds);}",
-            g, g);
+        if (n > 0) {
+            community.registerLateEvent(NULL,
+                "{dbg(self.source); " +
+                "inds=p"+pop+".sampleIndividuals("+n+"); " +
+                "sim.treeSeqRememberIndividuals(inds);}",
+                g, g);
+        }
     }
 
-    sim.registerLateEvent(NULL, "{dbg(self.source); end();}", G_end, G_end);
+    community.registerLateEvent(NULL, "{dbg(self.source); end();}", G_end, G_end);
 
-    if (G_start > sim.generation) {
+    if (G_start > community.tick) {
         dbg("Starting burn-in...");
     }
 
@@ -533,8 +535,8 @@ _slim_logfile = """
 // Fitness values are only available in early(),
 // so logging happens in that stage.
 1 early () {
-    defineConstant("log", sim.createLogFile("$logfile", logInterval=NULL));
-    log.addGeneration();
+    defineConstant("log", community.createLogFile("$logfile", logInterval=NULL));
+    log.addTick();
     for (pop in sim.subpopulations.id) {
         log.addMeanSDColumns(
             "fitness_p" + pop,
@@ -544,7 +546,7 @@ _slim_logfile = """
 }
 
 1: early() {
-    if (sim.generation % $loginterval == 1)
+    if (community.tick % $loginterval == 1)
         log.logRow();
 }
 """
@@ -576,7 +578,7 @@ _slim_debug_output = """
     // this is for development purposes, and the format of this output
     // is subject to change or may even be removed!
     if (verbosity >= 3) {
-        new = (sim.mutations.originGeneration == sim.generation);
+        new = (sim.mutations.originTick == community.tick);
         for (mut in sim.mutations[new]) {
             dbg(paste(c("dbg_selection_coeff:",
                         mut.selectionCoeff,
@@ -590,7 +592,7 @@ _slim_debug_output = """
 // Save genomic element type information in tree sequence metadata
 // This is for development purposes, and the format of this metadata
 // is subject to change or may even be removed!
-1 {
+1 early() {
     if (verbosity >= 3) {
         // recombination map
         metadata.setValue(
@@ -850,7 +852,7 @@ def slim_makescript(
     else:
         extended_events = copy.deepcopy(extended_events)
 
-    # Reassign event times according to integral SLiM generations.
+    # Reassign event times according to integral SLiM ticks.
     # This collapses the time deltas used in HomSap/AmericanAdmixture_4B11,
     # and calculates times for GenerationAfter objects.
     def fix_time(event):
@@ -932,7 +934,7 @@ def slim_makescript(
                         (f"_T[{i}]", lm.source, f"_N[{i+1},{lm.source}]", lm.dest)
                     )
 
-                    # Zero out the population size for generations before this
+                    # Zero out the population size for ticks before this
                     # epoch, to avoid simulating invididuals that contribute no
                     # genealogy.
                     N[lm.source, 0 : (i + 1)] = 0
@@ -1434,8 +1436,7 @@ class _SLiMEngine(stdpopsim.Engine):
         :param slim_burn_in: Length of the burn-in phase, in units of N
             generations.
         :type slim_burn_in: float
-        :param dry_run: If True, run the first generation setup and then end the
-            simulation.
+        :param dry_run: If True, run the setup and then end the simulation.
         :type dry_run: bool
         :param logfile: Name of file to write a log of summary statistics
             (currently, only mean and SD of fitness values per population).
@@ -1608,7 +1609,7 @@ class _SLiMEngine(stdpopsim.Engine):
         for table in (tables.nodes, tables.migrations, tables.mutations):
             table.time *= slim_scaling_factor
         metadata = tables.metadata
-        metadata["SLiM"]["generation"] *= slim_scaling_factor
+        metadata["SLiM"]["tick"] *= slim_scaling_factor
         # Finding what slim id to use in recap DFE
         max_id = -1
         for dfe in metadata["stdpopsim"]["DFEs"]:
@@ -1690,7 +1691,7 @@ class _SLiMEngine(stdpopsim.Engine):
                     start_time = None
                     end_time = None
                     if dfe["id"] == "recapitation":
-                        start_time = metadata["SLiM"]["generation"]
+                        start_time = metadata["SLiM"]["tick"]
                         msp_rate_map = _get_msp_rate_map(
                             np.array([0, contig.length]),
                             np.array([True]),
@@ -1700,7 +1701,7 @@ class _SLiMEngine(stdpopsim.Engine):
                         msp_rate_map = _get_msp_rate_map(
                             breaks, dfe_labels == i, prop * contig.mutation_rate
                         )
-                        end_time = metadata["SLiM"]["generation"]
+                        end_time = metadata["SLiM"]["tick"]
                     ts = msprime.sim_mutations(
                         ts,
                         rate=msp_rate_map,
