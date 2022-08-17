@@ -117,7 +117,7 @@ def download_process_annotations():
                         continue
                     intervals = gff_recarray_to_stdpopsim_intervals(chrom_exons)
                     # double check that the intervals can be used in stdpopsim
-                    stdpopsim.utils.check_intervals_validity(intervals)
+                    stdpopsim.utils._check_intervals_validity(intervals)
                     out_file = os.path.join(
                         spc_name_path, an.file_pattern.format(id=chrom_id)
                     )

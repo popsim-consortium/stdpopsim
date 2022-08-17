@@ -203,6 +203,31 @@ class TestGetChromosomeAnnotationsDroMel(tests.CacheReadingTest):
                 self.an.get_chromosome_annotations(bad_chrom)
 
 
+class TestGetChromosomeAnnotationsAraTha(tests.CacheReadingTest):
+    """
+    Tests if we get chromosome level annotations
+    using the ara GFF.
+    """
+
+    @classmethod
+    def setup_class(cls):
+        species = stdpopsim.get_species("AraTha")
+        cls.an = species.get_annotations("araport_11_exons")
+
+    def test_known_chromosome(self):
+        cm = self.an.get_chromosome_annotations("2")
+        assert isinstance(cm, np.ndarray)
+
+    def test_known_chromosome_prefix(self):
+        cm = self.an.get_chromosome_annotations("2")
+        assert isinstance(cm, np.ndarray)
+
+    def test_unknown_chromosome(self):
+        for bad_chrom in ["", "ABDEFG", None]:
+            with pytest.raises(ValueError):
+                self.an.get_chromosome_annotations(bad_chrom)
+
+
 class TestIntervalMerge:
     """
     Tests for the Annotation stuff.
