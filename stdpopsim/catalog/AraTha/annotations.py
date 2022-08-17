@@ -5,7 +5,7 @@ _species = stdpopsim.get_species("AraTha")
 _an = stdpopsim.Annotation(
     species=_species,
     id="araport_11_exons",
-    description="Ensembl Havana exon annotations on GRCh38",
+    description="Araport11 exon annotations on TAIR10",
     url=(
         "http://ftp.ensemblgenomes.org/pub/plants/release-54/"
         "gff3/arabidopsis_thaliana/Arabidopsis_thaliana.TAIR10.54.gff3.gz"
@@ -34,7 +34,7 @@ _species.add_annotations(_an)
 _an2 = stdpopsim.Annotation(
     species=_species,
     id="araport_11_CDS",
-    description="Ensembl Havana exon annotations on GRCh38",
+    description="Araport11 exon annotations on TAIR10",
     url=(
         "http://ftp.ensemblgenomes.org/pub/plants/release-54/"
         "gff3/arabidopsis_thaliana/Arabidopsis_thaliana.TAIR10.54.gff3.gz"

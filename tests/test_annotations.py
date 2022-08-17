@@ -219,7 +219,7 @@ class TestGetChromosomeAnnotationsAraTha(tests.CacheReadingTest):
         assert isinstance(cm, np.ndarray)
 
     def test_known_chromosome_prefix(self):
-        cm = self.an.get_chromosome_annotations("2")
+        cm = self.an.get_chromosome_annotations("chr2")
         assert isinstance(cm, np.ndarray)
 
     def test_unknown_chromosome(self):
