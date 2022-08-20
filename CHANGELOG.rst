@@ -1,3 +1,152 @@
+-------------------------
+[0.2.0-beta] - 2022-XX-XX
+-------------------------
+
+TODO release note summary here
+
+**Bug fixes**:
+
+TODO
+
+**New species**:
+
+TODO check against #1230
+https://github.com/popsim-consortium/stdpopsim/issues/1230
+
+- Aedes aegypti (:user:`manolofperez`, :pr:`871`).
+  QC'd by :user:`petrelharp`, :pr:`893`.
+
+- Anas platyrhynchos (:user:`petrelharp`, :pr:`826`).
+  QC'd by :user:`igronau`, :pr:`1070`.
+
+- Anolis carolinensis (:user:`vcaudill`, :pr:`874`).
+  QC'd by :user:`andrewkern`, :pr:`896`.
+
+- Anopheles gambiae (:user:`andrewkern`, :pr:`856`).
+  QC'd by :user:`petrelharp`, :pr:`906`.
+
+- Apis mellifera (:user:`janaobsteter`, :pr:`1025`).
+  QC'd by :user:`manolofperez`, :pr:`1268`.
+
+- Bos taurus (:user:`grahamgower`, :pr:`600`).
+  QC'd by :user:`gtsambos`, :pr:`1269`.
+
+- Caenorhabditis elegans (:user:`attrna`, :pr:`910`).
+  QC'd by :user:`chriscrsmith`, :pr:`1265`.
+
+- Chlamydomonas reinhardtii (:user:`aays`, :pr:`863`).
+  QC'd by :user:`izabelcavassim`, :pr:`1067`.
+
+- Drosophila sechellia (:user:`jradrion`, :pr:`872`).
+  QC'd by :user:`vitorpavinato`, :pr:`1264`.
+
+- Gasterosteus aculeatus (:user:`vitorpavinato`, :pr:`1105`).
+  QC'd by :user:`manolofperez`, :pr:`1253`.
+
+- Helianthus annuus (:user:`chriscrsmith`, :pr:`1218`).
+  QC'd by :user:`xin-huang`, :pr:`1250`.
+
+- Heliconius melpomene (:user:`percyfal`, :pr:`870`).
+  QC'd by :user:`noscode`, :pr:`1165`.
+
+- Pan troglodytes (:user:`xin-huang`, :pr:`1215`).
+  QC'd by :user:`janaobsteter`, :pr:`1291`.
+
+- Papio anubis (:user:`saurabhbelsare`, :pr:`1216`).
+  QC'd by :user:`mufernando`, :pr:`1263`.
+
+- Streptococcus agalactiae (:user:`jeanrjc`, :pr:`854`).
+  QC'd by :user:`vitorpavinato`, :pr:`1251`.
+
+**New models**:
+
+- AnaPla/MallardBlackDuck_2L19 (:user:`petrelharp`, :pr:`883`).
+  QC'd by :user:`igronau`, :pr:`1021`.
+
+- AnoGam/GabonAg1000G_1A17 (:user:`andrewkern`, :pr:`856`).
+  QC'd by :user:`petrelharp`, :pr:`1279`.
+
+- BosTau/HolsteinFriesian_1M13 (:user:`grahamgower`, :pr:`600`).
+  QC'd by :user:`igronau`, :pr:`1272`.
+
+- HomSap/OutOfAfricaExtendedNeandertalAdmixturePulse_3I21
+  (:user:`leonardolasi`, :pr:`1066`).
+  QC'd by :user:`awohns`, :pr:`1259`.
+
+- HomSap/OutOfAfrica_4J17 (:user:`rwaples`, :pr:`726`).
+  QC'd by :user:`jeffspence`, :pr:`1246`.
+
+- HomSap/Africa_1B08 (:user:`izabelcavassim`, :pr:`993`).
+  QC'd by :user:`petrelharp`, :pr:`995`.
+
+- HomSap/AncientEurope_4A21 (:user:`alipearson`, :pr:`941`).
+  QC'd by :user:`mufernando`, :pr:`1256`.
+
+- PapAnu/SinglePopSMCpp_1W22 (:user:`saurabhbelsare`, :pr:`1216`).
+  QC'd by :user:`attrna`, :pr:`1261`.
+
+**New genetic maps**:
+
+- CaeEle/RockmanRIAIL_ce11 (:user:`attrna`, :pr:`910`).
+
+- DroMel/ComeronCrossoverV2_dm6 liftover (:user:`grahamgower`, :pr:`592`).
+
+- HomSap/HapMapII_GRCh38 liftover (:user:`saurabhbelsare`, :pr:`1301`).
+
+- HomSap/DeCodeSexAveraged_GRCh38 liftover (:user:`saurabhbelsare`, :pr:`XXX`).
+
+- HomSap/PyrhoXXX_GRCh38 (:user:`jeffspence`, :pr:`572` and :pr:`575`),
+  for XXX in ACB, ASW, BEB, CDX, CEU, CHB, CHS, CLM, ESN, FIN, GBR, GIH, GWD,
+  IBS, ITU, JPT, KHV, LWK, MSL, MXL, PEL, PJL, PUR, STU, TSI, and YRI.
+
+**New features**:
+
+TODO preliminary list, look over PRs
+- Simulation
+  - gene conversion (#1106, needs docs?)
+  - DFEs (#462, #588, #584)
+  - sweeps/trajectory conditioning (#462, others)
+- Infrastructure
+  - Annotation class (#560)
+  - DFE class (#1002)
+  - MutationType class
+- Catalog development
+  - automate species addition (#790)
+  - assembly liftover (#574)
+
+**New annotations**:
+
+- AraTha/araport_11 (:user:`XXX`, :pr:`XXX`).
+  QC'd by :user:`XXX`, :pr:`XXX`.
+
+- DroMel/FlyBase_BDGP6.32.51 (:user:`XXX`, :pr:`XXX`).
+  QC'd by :user:`XXX`, :pr:`XXX`.
+
+- HomSap/ensembl_havana_104 (:user:`XXX`, :pr:`XXX`).
+  QC'd by :user:`XXX`, :pr:`XXX`.
+
+**New DFEs**:
+
+- DroMel/Gamma_H17 (:user:`XXX`, :pr:`XXX`).
+  QC'd by :user:`XXX`, :pr:`XXX`.
+
+- DroMel/LognormalPlusPositive_R16 (:user:`XXX`, :pr:`XXX`).
+  QC'd by :user:`XXX`, :pr:`XXX`.
+
+- HomSap/Gamma_K17 (:user:`XXX`, :pr:`XXX`).
+  QC'd by :user:`XXX`, :pr:`XXX`.
+
+- HomSap/Gamma_H17 (:user:`XXX`, :pr:`XXX`).
+  QC'd by :user:`XXX`, :pr:`XXX`.
+
+**Additions to CLI**:
+
+TODO
+
+**Additions to documentation**:
+
+TODO
+
 --------------------
 [0.1.2] - 2020-05-29
 --------------------
