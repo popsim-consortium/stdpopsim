@@ -74,6 +74,8 @@ Then, if you feel ready, make an issue on our
 
 .. speciescatalog:: HomSap
 
+.. speciescatalog:: PanTro
+
 .. speciescatalog:: PapAnu
 
 .. speciescatalog:: PonAbe
