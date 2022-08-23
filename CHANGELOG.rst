@@ -2,16 +2,18 @@
 [0.2.0-beta] - 2022-XX-XX
 -------------------------
 
-TODO release note summary here
+Preliminary version of major feature release, incorporating support for
+selection as well as many new species and models.
 
 **Bug fixes**:
 
-TODO
+- Parameters in the HomSap/Zigzag_1S14 model now match those in Schiffels &
+  Durbin (2014) (:user:`grahamgower`, :pr:`750`).
+
+- Recombination rate for DroMel chr4 changed to 0
+  (:user:`izabelcavassim`, pr:`1092`).
 
 **New species**:
-
-TODO check against #1230
-https://github.com/popsim-consortium/stdpopsim/issues/1230
 
 - Aedes aegypti (:user:`manolofperez`, :pr:`871`).
   QC'd by :user:`petrelharp`, :pr:`893`.
@@ -93,7 +95,7 @@ https://github.com/popsim-consortium/stdpopsim/issues/1230
 
 - HomSap/HapMapII_GRCh38 liftover (:user:`saurabhbelsare`, :pr:`1301`).
 
-- HomSap/DeCodeSexAveraged_GRCh38 liftover (:user:`saurabhbelsare`, :pr:`XXX`).
+- HomSap/DeCodeSexAveraged_GRCh38 liftover (:user:`saurabhbelsare`, :pr:`1301`).
 
 - HomSap/PyrhoXXX_GRCh38 (:user:`jeffspence`, :pr:`572` and :pr:`575`),
   for XXX in ACB, ASW, BEB, CDX, CEU, CHB, CHS, CLM, ESN, FIN, GBR, GIH, GWD,
@@ -101,51 +103,103 @@ https://github.com/popsim-consortium/stdpopsim/issues/1230
 
 **New features**:
 
-TODO preliminary list, look over PRs
-- Simulation
-  - gene conversion (#1106, needs docs?)
-  - DFEs (#462, #588, #584)
-  - sweeps/trajectory conditioning (#462, others)
-- Infrastructure
-  - Annotation class (#560)
-  - DFE class (#1002)
-  - MutationType class
-- Catalog development
-  - automate species addition (#790)
-  - assembly liftover (#574)
+- Distributions of fitness effects ("DFEs") defined over genomic intervals
+  (:user:`mufernando`, :pr:`644`; :user:`izabelcavassim`, :pr:`1002`;
+  plus numerous others).
 
-**New annotations**:
+- DFE simulation via SLiM
+  (:user:`mufernando`, :pr:`930`; plus numerous others).
 
-- AraTha/araport_11 (:user:`XXX`, :pr:`XXX`).
-  QC'd by :user:`XXX`, :pr:`XXX`.
+- Metadata for tree sequences produced by SLiM
+  (:user:`mufernando`, :pr:`1152`).
 
-- DroMel/FlyBase_BDGP6.32.51 (:user:`XXX`, :pr:`XXX`).
-  QC'd by :user:`XXX`, :pr:`XXX`.
+- Per-generation fitness statistics for SLiM simulations
+  (:user:`petrelharp`, :pr:`1200`).
 
-- HomSap/ensembl_havana_104 (:user:`XXX`, :pr:`XXX`).
-  QC'd by :user:`XXX`, :pr:`XXX`.
+- Selective sweep simulation and allele frequency conditioning via SLiM
+  (:user:`grahamgower`, :pr:`462`).
 
-**New DFEs**:
+- Gene conversion simulation via msprime
+  (:user:`fbaumdicker`, :pr:`1106`).
 
-- DroMel/Gamma_H17 (:user:`XXX`, :pr:`XXX`).
-  QC'd by :user:`XXX`, :pr:`XXX`.
+- Genome annotation tracks
+  (:user:`andrewkern`, :pr:`560` and :pr:`960`).
 
-- DroMel/LognormalPlusPositive_R16 (:user:`XXX`, :pr:`XXX`).
-  QC'd by :user:`XXX`, :pr:`XXX`.
+- Masking intervals in simulated data
+  (:user:`apragsdale`, :pr:`664`).
 
-- HomSap/Gamma_K17 (:user:`XXX`, :pr:`XXX`).
-  QC'd by :user:`XXX`, :pr:`XXX`.
+- Method to get generic contig of arbitrary length for a species
+  (:user:`apragsdale`, :pr:`664`).
 
-- HomSap/Gamma_H17 (:user:`XXX`, :pr:`XXX`).
-  QC'd by :user:`XXX`, :pr:`XXX`.
+- Pass keyworded arguments from simulation engine to msprime
+  (:user:`awohns`, :pr:`736`).
+
+- Use msprime 1.0 for simulation from msprime engine
+  (:user:`jeromekelleher`, :pr:`764`).
+
+- Use SLiM 4.0 for simulation from SLiM engine
+  (:user:`petrelharp`, :pr:`1326`).
+
+- Mutation rates can be stored in catalog models
+  (:user:`apragsdale`, :pr:`839`).
+
+- Various improvements and fixes to the documentation and error messaging.
+
+**Catalog maintenance infrastructure**:
+
+- Quality control infrastructure for DFEs
+  (:user:`xin-huang`, :pr:`1292`).
+
+- Pull species information from NCBI
+  (:user:`andrewkern`, :pr:`875`).
+
+- Automated species addition to catalog
+  (:user:`jeromekelleher`, :pr:`790`).
+
+- Github issue template for requesting addition of species
+  (:user:`petrelharp`, :pr:`772`).
+
+- Tools for assembly liftover
+  (:user:`jradrion`, :pr:`574`).
+
+- Pull genome data from Ensembl
+  (:user:`jeromekelleher`, :pr:`563`).
 
 **Additions to CLI**:
 
-TODO
+- Arguments `--dfe`, `--dfe-interval`, `--dfe-bed-file`, `--help-dfe`
+  for specifying DFEs (:user:`izabelcavassim`, :pr:`1052`).
 
-**Additions to documentation**:
+- Arguments `--help-annotations`, `--dfe-annotation` for associating annotation
+  tracks with DFEs (:user:`andrewkern`, :pr:`1117`).
 
-TODO
+- Argument `--length` for simulating from a generic contig
+  (:user:`apragsdale`, :pr:`664`).
+
+- Arguments `--inclusion-mask`, `--exclusion-mask` for masking simulated sequences
+  (:user:`apragsdale`, :pr:`664`).
+
+**New annotations**:
+
+- AraTha/araport_11 (:user:`andrewkern`, :pr:`1327`).
+
+- DroMel/FlyBase_BDGP6.32.51 (:user:`andrewkern`, :pr:`1042`).
+
+- HomSap/ensembl_havana_104 (:user:`andrewkern`, :pr:`960`).
+
+**New DFEs**:
+
+- DroMel/Gamma_H17 (:user:`izabelcavassim`, :pr:`1046`).
+
+- DroMel/LognormalPlusPositive_R16 (:user:`apragsdale`, :pr:`1178`).
+
+- HomSap/Gamma_K17 (:user:`izabelcavassim`, :pr:`1002`).
+
+- HomSap/Gamma_H17 (:user:`chriscrsmith`, :pr:`1099`).
+
+**Breaking changes**:
+
+- Removed `GeneticMap` class from public API (:user:`jeromekelleher`, :pr:`713`).
 
 --------------------
 [0.1.2] - 2020-05-29
