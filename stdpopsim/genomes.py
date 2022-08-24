@@ -508,7 +508,6 @@ class Contig:
                     time=mutation_time,
                     single_site_id="hard_sweep",
                     population_id=0,
-                    save=True,
                 ),
                 stdpopsim.ext.ConditionOnAlleleFrequency(
                     start_time=stdpopsim.ext.GenerationAfter(mutation_time),

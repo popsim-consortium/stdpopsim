@@ -1253,8 +1253,7 @@ unique string ID. Here, we'll add the site in the middle of the contig, with ID
 Next, we will set up the "extended events" which will modify the demography.
 The first extended event is the origination of the selected mutation, which
 will occur in a random individual from the first population (id 0), 1000
-generations ago.  We specify ``save=True`` to ``stdpopsim.ext.DrawMutation`` so
-that the simulation can restart from that point if the mutation is lost.
+generations ago.
 
 .. code-block:: python
 
