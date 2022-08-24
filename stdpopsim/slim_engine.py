@@ -51,6 +51,7 @@ import random
 import textwrap
 import logging
 import warnings
+import collections
 
 import stdpopsim
 import numpy as np
@@ -210,11 +211,12 @@ function (void)restore(void) {
      *
      * 1. There may be additional late events for the tick in which
      * restore() was called, and they are still scheduled to run.
-     * So we deactivate all script blocks to avoid unexpected problems.
-     * They will be automatically reactivated at the start of the next
-     * tick (see SLiM manual section 23.10).
+     * So we deactivate all script blocks in the "late" cycle to avoid
+     * unexpected problems. They will be automatically reactivated at the
+     * start of the next tick.
      */
-    community.allScriptBlocks.active = F;
+    sb = community.allScriptBlocks;
+    sb[sb.type == "late"].active = F;
 
     /*
      * 2. The late events below were run in the save() tick,
@@ -468,21 +470,36 @@ _slim_main = """
                     g_start+" > g_end="+g_end);
             }
 
-            community.registerLateEvent(NULL,
-                "{dbg('s="+selection_coeff+", h="+dominance_coeff+
-                " for m"+mut_type+" in p"+pop_id+"');}",
-                g_start, g_start);
-            community.registerLateEvent(NULL,
-                "{dbg('s, h defaults for m"+mut_type+" in p"+pop_id+"');}",
-                g_end, g_end);
             /* We explicitly format() here to prevent integral-valued floats
              * from getting converted to integers during string interpolation
              * (this triggers a type error when the fitness callback runs). */
             f_hom = format("%e", 1 + selection_coeff);
             f_het = format("%e", 1 + selection_coeff * dominance_coeff);
-            sim.registerMutationEffectCallback(NULL,
-                "{if (homozygous) return "+f_hom+"; else return "+f_het+";}",
-                mut_type, pop_id, g_start, g_end);
+
+            /* "All populations" is encoded by a negative value of pop_id. */
+            if (pop_id < 0) {
+                community.registerLateEvent(NULL,
+                    "{dbg('s="+selection_coeff+", h="+dominance_coeff+
+                    " for m"+mut_type+" globally');}",
+                    g_start, g_start);
+                community.registerLateEvent(NULL,
+                    "{dbg('s, h defaults for m"+mut_type+" globally');}",
+                    g_end, g_end);
+                sim.registerMutationEffectCallback(NULL,
+                    "{if (homozygous) return "+f_hom+"; else return "+f_het+";}",
+                    mut_type, NULL, g_start, g_end);
+            } else {
+                community.registerLateEvent(NULL,
+                    "{dbg('s="+selection_coeff+", h="+dominance_coeff+
+                    " for m"+mut_type+" in p"+pop_id+"');}",
+                    g_start, g_start);
+                community.registerLateEvent(NULL,
+                    "{dbg('s, h defaults for m"+mut_type+" in p"+pop_id+"');}",
+                    g_end, g_end);
+                sim.registerMutationEffectCallback(NULL,
+                    "{if (homozygous) return "+f_hom+"; else return "+f_het+";}",
+                    mut_type, pop_id, g_start, g_end);
+            }
         }
     }
 
@@ -530,6 +547,7 @@ _slim_logfile = """
 1 early () {
     defineConstant("log", community.createLogFile("$logfile", logInterval=NULL));
     log.addTick();
+    log.precision = 12;
     for (pop in sim.subpopulations.id) {
         log.addMeanSDColumns(
             "fitness_p" + pop,
@@ -539,7 +557,7 @@ _slim_logfile = """
 }
 
 1: early() {
-    if (community.tick % $loginterval == 1)
+    if ((community.tick - 1) % $loginterval == 0)
         log.logRow();
 }
 """
@@ -945,13 +963,17 @@ def slim_makescript(
     condition_on_allele_frequency = []
     op_id = stdpopsim.ext.ConditionOnAlleleFrequency.op_id
     slim_mutation_ids = _dfe_to_mtypes(contig)
-    drawn_single_site_ids = set()
+    drawn_single_site_ids = collections.defaultdict(int)
     referenced_single_site_ids = set()
+    population_name_to_index = {
+        x.name: i for i, x in enumerate(demographic_model.populations)
+    }
     for ee in extended_events:
+        cls_name = ee.__class__.__name__
         mutation_type_id = None
+        population_id = None
         coordinate = None
         if hasattr(ee, "single_site_id"):
-            cls_name = ee.__class__.__name__
             dfe_index = [
                 i for i, x in enumerate(contig.dfe_list) if x.id == ee.single_site_id
             ]
@@ -1001,38 +1023,54 @@ def slim_makescript(
             # Now that GenerationAfter times have been accounted for, we can
             # properly catch invalid start/end times.
             stdpopsim.ext.validate_time_range(ee.start_time, ee.end_time)
+        if hasattr(ee, "population"):
+            # Convert population name to integer index. "-1" is used to encode
+            # all populations (currently only valid for ChangeMutationFitness).
+            if ee.population is None:
+                population_id = -1
+            elif ee.population not in population_name_to_index.keys():
+                raise ValueError(
+                    f"The population {ee.population} referenced by "
+                    f"{cls_name} is not in demographic model "
+                    f"{demographic_model.id}, with defined populations "
+                    f"{population_name_to_index.keys()}."
+                )
+            else:
+                population_id = population_name_to_index[ee.population]
 
         # Append attributes to lists per event type
         if isinstance(ee, stdpopsim.ext.DrawMutation):
+            assert population_id >= 0
             drawn_mutations.append(
                 (
                     ee.time * demographic_model.generation_time,
                     mutation_type_id,
-                    ee.population_id,
+                    population_id,
                     coordinate,
                     0,  # flag to save state in mutation generation
                 )
             )
-            drawn_single_site_ids.add(ee.single_site_id)
+            drawn_single_site_ids[ee.single_site_id] += 1
         elif isinstance(ee, stdpopsim.ext.ChangeMutationFitness):
             fitness_callbacks.append(
                 (
                     ee.start_time * demographic_model.generation_time,
                     ee.end_time * demographic_model.generation_time,
                     mutation_type_id,
-                    ee.population_id,
+                    population_id,
                     ee.selection_coeff,
                     ee.dominance_coeff,
                 )
             )
             referenced_single_site_ids.add(ee.single_site_id)
         elif isinstance(ee, stdpopsim.ext.ConditionOnAlleleFrequency):
+            assert population_id >= 0
             condition_on_allele_frequency.append(
                 (
                     ee.start_time * demographic_model.generation_time,
                     ee.end_time * demographic_model.generation_time,
                     mutation_type_id,
-                    ee.population_id,
+                    population_id,
                     op_id(ee.op),
                     ee.allele_frequency,
                 )
@@ -1041,11 +1079,20 @@ def slim_makescript(
         else:
             raise ValueError(f"Unknown extended event type {type(ee)}")
 
+    # Check that there exists only one drawn mutation per single site.
+    for single_site_id, n_drawn_mutations in drawn_single_site_ids.items():
+        if n_drawn_mutations > 1:
+            raise ValueError(
+                f"The single site {single_site_id} has {n_drawn_mutations} "
+                f"mutations, but a maximum of one mutation is allowed per "
+                f"single site."
+            )
+
     # Check that drawn mutations exist for extended events that need them.
     for single_site_id in referenced_single_site_ids:
-        if single_site_id not in drawn_single_site_ids:
+        if single_site_id not in drawn_single_site_ids.keys():
             raise ValueError(
-                f"An extended event requires a mutation at single site id "
+                f"An extended event requires a mutation at single site "
                 f"{single_site_id}, but no mutation is drawn at this site."
             )
 
@@ -1420,6 +1467,9 @@ class _SLiMEngine(stdpopsim.Engine):
 
         :param seed: The seed for the random number generator.
         :type seed: int
+        :param extended_events: A list of :class:`ext.ExtendedEvents` to be
+            passed to SLiM, e.g. produced by :func:`ext.selective_sweep()`.
+        :type extended_events: list
         :param slim_path: The full path to the slim executable, or the name of
             a command in the current PATH.
         :type slim_path: str
@@ -1519,7 +1569,7 @@ class _SLiMEngine(stdpopsim.Engine):
         ts = _add_dfes_to_metadata(ts, contig)
         if _recap_and_rescale:
             ts = self._recap_and_rescale(
-                ts, seed, recap_epoch, contig, slim_scaling_factor
+                ts, seed, recap_epoch, contig, slim_scaling_factor, extended_events
             )
 
         if contig.inclusion_mask is not None:
@@ -1598,7 +1648,9 @@ class _SLiMEngine(stdpopsim.Engine):
         )
         return ts.simplify(samples=list(nodes), filter_populations=False)
 
-    def _recap_and_rescale(self, ts, seed, recap_epoch, contig, slim_scaling_factor):
+    def _recap_and_rescale(
+        self, ts, seed, recap_epoch, contig, slim_scaling_factor, extended_events=None
+    ):
         """
         Apply post-SLiM transformations to ``ts``. This rescales node times,
         does recapitation, simplification, and adds neutral mutations.
@@ -1610,6 +1662,17 @@ class _SLiMEngine(stdpopsim.Engine):
             table.time *= slim_scaling_factor
         metadata = tables.metadata
         metadata["SLiM"]["tick"] *= slim_scaling_factor
+        # If a single site DFE is referenced by an extended event, mark the DFE
+        # as non-neutral so that mutations aren't simulated over it.
+        if extended_events is not None:
+            single_sites = set()
+            for ee in extended_events:
+                assert hasattr(ee, "single_site_id")
+                single_sites.add(ee.single_site_id)
+            for dfe in metadata["stdpopsim"]["DFEs"]:
+                if dfe["id"] in single_sites:
+                    assert len(dfe["mutation_types"]) == 1
+                    dfe["mutation_types"][0]["is_neutral"] = False
         # Finding what slim id to use in recap DFE
         max_id = -1
         for dfe in metadata["stdpopsim"]["DFEs"]:
@@ -1762,7 +1825,9 @@ class _SLiMEngine(stdpopsim.Engine):
                 slim_rate_map,
             )
 
-        ts = self._recap_and_rescale(ts, seed, recap_epoch, contig, slim_scaling_factor)
+        ts = self._recap_and_rescale(
+            ts, seed, recap_epoch, contig, slim_scaling_factor, extended_events
+        )
         return ts
 
 

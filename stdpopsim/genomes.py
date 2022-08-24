@@ -484,52 +484,38 @@ class Contig:
         self,
         id,
         coordinate,
-        selection_coeff=0.0,
-        dominance_coeff=0.5,
         description=None,
         long_description=None,
     ):
         """
-        Adds a model of a single site mutation at the provided coordinate.
+        Adds a single site mutation class at the provided coordinate.
         The string label of the single site may be referenced by extended
         events passed to the simulation engine.
 
-        For instance, to simulate a selective sweep,
+        For instance, to simulate a selective sweep in population `pop_0`
+        starting at 1000 generations in the past:
 
         .. code-block:: python
 
             contig.add_single_site(
                 id="hard_sweep",
-                selection_coeff=0.1,
                 coordinate=mutation_coordinate,
             )
-            extended_events = [
-                stdpopsim.ext.DrawMutation(
-                    time=mutation_time,
-                    single_site_id="hard_sweep",
-                    population_id=0,
-                ),
-                stdpopsim.ext.ConditionOnAlleleFrequency(
-                    start_time=stdpopsim.ext.GenerationAfter(mutation_time),
-                    end_time=0,
-                    single_site_id="hard_sweep",
-                    population_id=0,
-                    op=">",
-                    allele_frequency=0.0,
-                ),
-            ]
+            extended_events = ext.selective_sweep(
+                mutation_generation_ago=1000,
+                selection_coeff=0.1,
+                population="pop_0",
+            )
             engine = stdpopsim.get_engine("slim")
             ts_sweep = engine.simulate(
                 ...,
                 extended_events=extended_events,
             )
 
+        See :func:`ext.selective_sweep` for more details on the sweep model.
+
         :param str id: A unique identifier for the single site.
         :param int coordinate: The coordinate of the site on the contig.
-        :param float selection_coeff: The selection coefficient of the mutation,
-            see :class:`MutationType` for details.
-        :param float dominance_coeff: The dominance coefficient of the mutation,
-            see :class:`MutationType` for details.
         :param str description: A short description of the single site mutation
             model as it would be used in written text, e.g., "Strong selective
             sweep".
@@ -542,10 +528,11 @@ class Contig:
 
         mut_type = stdpopsim.MutationType(
             distribution_type="f",
-            dominance_coeff=dominance_coeff,
-            distribution_args=[selection_coeff],
+            dominance_coeff=0.5,
+            distribution_args=[0.0],
             convert_to_substitution=False,
         )
+
         dfe = stdpopsim.DFE(
             id=id,
             mutation_types=[mut_type],

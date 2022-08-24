@@ -9,6 +9,7 @@ import math
 from unittest import mock
 import numpy as np
 from numpy.testing import assert_array_equal
+import collections
 
 import pytest
 import tskit
@@ -1363,7 +1364,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
                 single_site_id=self.mut_id,
-                population_id=0,
+                population="pop_0",
             ),
         ]
         engine = stdpopsim.get_engine("slim")
@@ -1375,20 +1376,20 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             dry_run=True,
         )
 
-    def test_draw_multiple_mutations(self):
+    def test_draw_mutations_at_different_sites(self):
         contig = get_test_contig()
         contig.add_single_site(id="recent", coordinate=100)
         contig.add_single_site(id="older", coordinate=101)
         extended_events = [
             stdpopsim.ext.DrawMutation(
-                time=int(self.T_mut / 2),
+                time=self.T_mut // 2,
                 single_site_id="recent",
-                population_id=0,
+                population="pop_0",
             ),
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
                 single_site_id="older",
-                population_id=0,
+                population="pop_0",
             ),
         ]
         engine = stdpopsim.get_engine("slim")
@@ -1399,6 +1400,31 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             extended_events=extended_events,
             dry_run=True,
         )
+
+    def test_draw_multiple_mutations_at_same_site(self):
+        contig = get_test_contig()
+        contig.add_single_site(id="mutant", coordinate=100)
+        extended_events = [
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut // 2,
+                single_site_id="mutant",
+                population="pop_0",
+            ),
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                single_site_id="mutant",
+                population="pop_0",
+            ),
+        ]
+        engine = stdpopsim.get_engine("slim")
+        with pytest.raises(ValueError, match="maximum of one mutation is allowed"):
+            engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+                extended_events=extended_events,
+                dry_run=True,
+            )
 
     def test_invalid_single_site_id(self):
         engine = stdpopsim.get_engine("slim")
@@ -1407,7 +1433,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
                 stdpopsim.ext.DrawMutation(
                     time=self.T_mut,
                     single_site_id=single_site_id,
-                    population_id=0,
+                    population="pop_0",
                 ),
             ]
             with pytest.raises(ValueError, match="must exist and be uniquely labelled"):
@@ -1424,7 +1450,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
                 single_site_id=self.mut_id,
-                population_id=0,
+                population="pop_0",
             ),
         ]
         contig = get_test_contig()
@@ -1445,7 +1471,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
-                population_id=0,
+                population="pop_0",
             ),
         ]
         contig = get_test_contig()
@@ -1481,7 +1507,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
-                population_id=0,
+                population="pop_0",
             ),
         ]
         contig = get_test_contig()
@@ -1508,7 +1534,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
-                population_id=0,
+                population="pop_0",
             ),
         ]
         contig = get_test_contig()
@@ -1544,7 +1570,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
-                population_id=0,
+                population="pop_0",
             ),
         ]
         contig = get_test_contig()
@@ -1580,7 +1606,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
-                population_id=0,
+                population="pop_0",
             ),
         ]
         contig = get_test_contig()
@@ -1601,7 +1627,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
-                population_id=0,
+                population="pop_0",
             ),
         ]
         contig = get_test_contig()
@@ -1623,14 +1649,14 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
                 stdpopsim.ext.DrawMutation(
                     time=time,
                     single_site_id="irrelevant",
-                    population_id=0,
+                    population="pop_0",
                 )
         for time in (0, -1):
             with pytest.raises(ValueError):
                 stdpopsim.ext.DrawMutation(
                     time=stdpopsim.ext.GenerationAfter(time),
                     single_site_id="irrelevant",
-                    population_id=0,
+                    population="pop_0",
                 )
 
 
@@ -1646,13 +1672,13 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
-                population_id=0,
+                population="pop_0",
             ),
             stdpopsim.ext.ConditionOnAlleleFrequency(
                 start_time=0,
                 end_time=0,
                 single_site_id="test",
-                population_id=0,
+                population="pop_0",
                 op=">",
                 allele_frequency=0,
             ),
@@ -1678,13 +1704,13 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
-                population_id=0,
+                population="pop_0",
             ),
             stdpopsim.ext.ConditionOnAlleleFrequency(
                 start_time=0,
                 end_time=0,
                 single_site_id="test",
-                population_id=0,
+                population="pop_0",
                 op="<=",
                 allele_frequency=0,
             ),
@@ -1711,14 +1737,14 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
                 stdpopsim.ext.DrawMutation(
                     time=self.T_mut,
                     single_site_id="test",
-                    population_id=0,
+                    population="pop_0",
                 ),
                 # Condition on desired AF at end of simulation.
                 stdpopsim.ext.ConditionOnAlleleFrequency(
                     start_time=0,
                     end_time=0,
                     single_site_id="test",
-                    population_id=0,
+                    population="pop_0",
                     op=">=",
                     allele_frequency=af_threshold,
                 ),
@@ -1759,7 +1785,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
                     start_time=0,
                     end_time=0,
                     single_site_id="irrelevant",
-                    population_id=0,
+                    population="pop_0",
                     op=op,
                     allele_frequency=af,
                 )
@@ -1771,7 +1797,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
                     start_time=start_time,
                     end_time=end_time,
                     single_site_id="irrelevant",
-                    population_id=0,
+                    population="pop_0",
                     op=">",
                     allele_frequency=0,
                 )
@@ -1794,13 +1820,13 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
                     stdpopsim.ext.DrawMutation(
                         time=self.T_mut,
                         single_site_id=self.mut_id,
-                        population_id=0,
+                        population="pop_0",
                     ),
                     stdpopsim.ext.ConditionOnAlleleFrequency(
                         start_time=stdpopsim.ext.GenerationAfter(start_time),
                         end_time=end_time,
                         single_site_id=self.mut_id,
-                        population_id=0,
+                        population="pop_0",
                         op=">",
                         allele_frequency=0,
                     ),
@@ -1828,7 +1854,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
                 start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
                 end_time=0,
                 single_site_id=self.mut_id,
-                population_id=0,
+                population="pop_0",
                 op=">",
                 allele_frequency=0,
             ),
@@ -1842,51 +1868,6 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
                 extended_events=extended_events,
                 dry_run=True,
             )
-
-
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
-class TestFixedSelectionCoefficient(PiecewiseConstantSizeMixin):
-    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_drawn_mutation_has_correct_selection_coeff(self):
-        engine = stdpopsim.get_engine("slim")
-        contig = get_test_contig()
-        mut_id = "sweep"
-        contig.add_single_site(
-            id=mut_id,
-            coordinate=100,
-            selection_coeff=0.1,
-            dominance_coeff=0.5,
-        )
-        extended_events = [
-            stdpopsim.ext.DrawMutation(
-                time=self.T_mut,
-                single_site_id=mut_id,
-                population_id=0,
-            ),
-            stdpopsim.ext.ConditionOnAlleleFrequency(
-                start_time=0,
-                end_time=0,
-                single_site_id=mut_id,
-                population_id=0,
-                op=">",
-                allele_frequency=0,
-            ),
-        ]
-        scaling_factor = 10
-        ts = engine.simulate(
-            demographic_model=self.model,
-            contig=contig,
-            samples=self.samples,
-            extended_events=extended_events,
-            slim_scaling_factor=scaling_factor,
-            slim_burn_in=0.1,
-            _recap_and_rescale=False,
-        )
-        assert ts.num_mutations == 1
-        mut = next(ts.mutations())
-        mutation_list = mut.metadata["mutation_list"]
-        assert len(mutation_list) == 1
-        assert mutation_list[0]["selection_coeff"] == scaling_factor * 0.1
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
@@ -1906,13 +1887,13 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                 stdpopsim.ext.DrawMutation(
                     time=self.T_mut,
                     single_site_id=self.mut_id,
-                    population_id=0,
+                    population="pop_0",
                 ),
                 stdpopsim.ext.ChangeMutationFitness(
                     start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
                     end_time=0,
                     single_site_id=self.mut_id,
-                    population_id=0,
+                    population="pop_0",
                     selection_coeff=0.1,
                     dominance_coeff=0.5,
                 ),
@@ -1922,7 +1903,7 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                     start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
                     end_time=0,
                     single_site_id=self.mut_id,
-                    population_id=0,
+                    population="pop_0",
                     op=">",
                     allele_frequency=0,
                 ),
@@ -1931,7 +1912,7 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                     start_time=0,
                     end_time=0,
                     single_site_id=self.mut_id,
-                    population_id=0,
+                    population="pop_0",
                     op=">=",
                     allele_frequency=af_threshold,
                 ),
@@ -1949,13 +1930,38 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
             assert ts.num_mutations == 1
             assert self.allele_frequency(ts) >= af_threshold
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_referenced_single_site_is_nonneutral(self):
+        engine = stdpopsim.get_engine("slim")
+        contig = get_test_contig()
+        contig.add_single_site("one", coordinate=100)
+        contig.add_single_site("two", coordinate=101)
+        extended_events = [
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                single_site_id="one",
+                population="pop_0",
+            ),
+        ]
+        ts = engine.simulate(
+            demographic_model=self.model,
+            contig=contig,
+            samples=self.samples,
+            extended_events=extended_events,
+        )
+        referenced_dfe = ts.metadata["stdpopsim"]["DFEs"][1]
+        assert referenced_dfe["id"] == "one"
+        assert referenced_dfe["mutation_types"][0]["is_neutral"] is False
+        unreferenced_dfe = ts.metadata["stdpopsim"]["DFEs"][2]
+        assert unreferenced_dfe["id"] == "two"
+        assert unreferenced_dfe["mutation_types"][0]["is_neutral"] is True
+
     def test_no_drawn_mutation(self):
         extended_events = [
             stdpopsim.ext.ChangeMutationFitness(
                 start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
                 end_time=0,
                 single_site_id=self.mut_id,
-                population_id=0,
                 selection_coeff=0.1,
                 dominance_coeff=0.5,
             ),
@@ -1977,9 +1983,31 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                     start_time=start_time,
                     end_time=end_time,
                     single_site_id="irrelevant",
-                    population_id=0,
+                    population="pop_0",
                     selection_coeff=0.1,
                     dominance_coeff=0.5,
+                )
+
+    def test_population_name(self):
+        engine = stdpopsim.get_engine("slim")
+        for pop in ["not present", 0]:
+            extended_events = [
+                stdpopsim.ext.ChangeMutationFitness(
+                    start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
+                    end_time=0,
+                    single_site_id=self.mut_id,
+                    population=pop,
+                    selection_coeff=0.1,
+                    dominance_coeff=0.5,
+                ),
+            ]
+            with pytest.raises(ValueError, match="is not in demographic model"):
+                engine.simulate(
+                    demographic_model=self.model,
+                    contig=self.contig,
+                    samples=self.samples,
+                    extended_events=extended_events,
+                    dry_run=True,
                 )
 
     def test_bad_GenerationAfter_times(self):
@@ -2000,13 +2028,13 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                     stdpopsim.ext.DrawMutation(
                         time=self.T_mut,
                         single_site_id=self.mut_id,
-                        population_id=0,
+                        population="pop_0",
                     ),
                     stdpopsim.ext.ChangeMutationFitness(
                         start_time=stdpopsim.ext.GenerationAfter(start_time),
                         end_time=end_time,
                         single_site_id=self.mut_id,
-                        population_id=0,
+                        population="pop_0",
                         selection_coeff=0.1,
                         dominance_coeff=0.5,
                     ),
@@ -2038,3 +2066,449 @@ class TestExtendedEvents(PiecewiseConstantSizeMixin):
                     extended_events=[bad_ee],
                     dry_run=True,
                 )
+
+
+@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
+class TestSelectiveSweep(PiecewiseConstantSizeMixin):
+    @staticmethod
+    def _get_island_model(Ne=1000, migration_rate=0.01):
+        model = msprime.Demography()
+        model.add_population(initial_size=Ne, name="pop0")
+        model.add_population(initial_size=Ne, name="pop1")
+        model.set_migration_rate(source="pop0", dest="pop1", rate=migration_rate)
+        model.set_migration_rate(source="pop1", dest="pop0", rate=migration_rate)
+        return stdpopsim.DemographicModel(
+            id="🏝️",
+            description="island model",
+            long_description="for sweep tests",
+            model=model,
+            generation_time=1,
+        )
+
+    @staticmethod
+    def _fitness_per_generation(
+        logfile, start_generation_ago, end_generation_ago, pop=0
+    ):
+        # NB: Be careful of rounding error in log with weak selection
+        assert start_generation_ago >= end_generation_ago
+
+        # Pull out average fitness for every generation in a specified time
+        # interval from the fitness logfile. Columns are:
+        #   "tick", "fitness_p0_mean", "fitness_p0_sd"
+        # This test will break if the logfile format changes.
+        log = np.genfromtxt(logfile, delimiter=",", names=True)
+        tick = log["tick"].astype(int)
+
+        # Because of save-restore during rejection sampling, the log may
+        # contain multiple trajectories; keep the one that passed (last
+        # fitness value for a given generation).
+        accepted_trajectory = {
+            i: x for i, x in zip(tick, log["fitness_p" + str(pop) + "_mean"])
+        }
+        generation = np.array(sorted(accepted_trajectory))
+        mean_fitness = np.array([accepted_trajectory[i] for i in generation])
+        generation = np.max(generation) - generation
+
+        # Generations in which trajectory was rejected
+        rejected = [tick[i + 1] <= tick[i] for i in range(len(tick) - 1)] + [False]
+        rejections_by_generation = collections.Counter(np.max(tick) - tick[rejected])
+
+        # Check that logging interval hits sweep boundaries exactly.  Fitness
+        # is calculated in the early() block; so in the logfile, mean fitness
+        # refers to the fitness of the generation **previous** to the tick.
+        start_generation_ago = max(start_generation_ago - 1, 0)
+        end_generation_ago = max(end_generation_ago - 1, 0)
+        in_sweep = np.logical_and(
+            generation <= start_generation_ago,
+            generation >= end_generation_ago,
+        )
+        assert np.max(generation[in_sweep]) == start_generation_ago
+        assert np.min(generation[in_sweep]) == end_generation_ago
+        assert np.sum(in_sweep) == start_generation_ago - end_generation_ago + 1
+
+        return (
+            mean_fitness[in_sweep],
+            mean_fitness[~in_sweep],
+            rejections_by_generation,
+        )
+
+    @pytest.mark.usefixtures("tmp_path")
+    def test_sweep(self, tmp_path):
+        mutation_generation_ago = 1000
+        for start_generation_ago in [
+            mutation_generation_ago // 2,
+            mutation_generation_ago,
+        ]:
+            for end_generation_ago in [0, mutation_generation_ago // 4]:
+                logfile = tmp_path / "sweep.logfile"
+                engine = stdpopsim.get_engine("slim")
+                contig = get_test_contig()
+                locus_id = "sweep"
+                contig.add_single_site(
+                    id=locus_id,
+                    coordinate=100,
+                )
+                extended_events = stdpopsim.ext.selective_sweep(
+                    single_site_id=locus_id,
+                    population="pop_0",
+                    mutation_generation_ago=mutation_generation_ago,
+                    start_generation_ago=start_generation_ago,
+                    end_generation_ago=end_generation_ago,
+                    selection_coeff=0.1,
+                )
+                engine.simulate(
+                    demographic_model=self.model,
+                    contig=contig,
+                    samples=self.samples,
+                    extended_events=extended_events,
+                    slim_burn_in=1,
+                    logfile=logfile,
+                    logfile_interval=1,
+                )
+                in_sweep, outside_sweep, _ = self._fitness_per_generation(
+                    logfile=logfile,
+                    start_generation_ago=start_generation_ago,
+                    end_generation_ago=end_generation_ago,
+                    pop=0,
+                )
+                assert np.all(in_sweep > 1)
+                assert np.all(outside_sweep == 1)
+
+    @pytest.mark.usefixtures("tmp_path")
+    def test_sweep_meets_min_freq_at_start(self, tmp_path):
+        mutation_generation_ago = 10
+        start_generation_ago = 8
+        s = 0.01
+        # condition on a difficult-to-reach frequency, i.e.
+        min_freq = 3 * (mutation_generation_ago - start_generation_ago) / (2 * self.N0)
+        logfile = tmp_path / "sweep_start_af.logfile"
+        engine = stdpopsim.get_engine("slim")
+        contig = get_test_contig()
+        locus_id = "sweep"
+        contig.add_single_site(
+            id=locus_id,
+            coordinate=100,
+        )
+        extended_events = stdpopsim.ext.selective_sweep(
+            single_site_id=locus_id,
+            population="pop_0",
+            mutation_generation_ago=mutation_generation_ago,
+            start_generation_ago=start_generation_ago,
+            min_freq_at_start=min_freq,
+            selection_coeff=s,
+            dominance_coeff=0.5,
+        )
+        while True:
+            engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+                extended_events=extended_events,
+                slim_burn_in=1,
+                logfile=logfile,
+                logfile_interval=1,
+            )
+            in_sweep, outside_sweep, rejections = self._fitness_per_generation(
+                logfile=logfile,
+                start_generation_ago=start_generation_ago,
+                end_generation_ago=0,
+                pop=0,
+            )
+            # ensure that rejections are occuring in the generation of the AF
+            # condition
+            if start_generation_ago in rejections.keys():
+                break
+        assert np.all(outside_sweep == 1.0)
+        assert in_sweep[0] >= s * min_freq + 1
+
+    @pytest.mark.usefixtures("tmp_path")
+    def test_sweep_meets_min_freq_at_end(self, tmp_path):
+        mutation_generation_ago = 10
+        end_generation_ago = 8
+        s = 0.01
+        # condition on a difficult-to-reach frequency, i.e.
+        min_freq = 3 * (mutation_generation_ago - end_generation_ago) / (2 * self.N0)
+        logfile = tmp_path / "sweep_end_af.logfile"
+        engine = stdpopsim.get_engine("slim")
+        contig = get_test_contig()
+        locus_id = "sweep"
+        contig.add_single_site(
+            id=locus_id,
+            coordinate=100,
+        )
+        extended_events = stdpopsim.ext.selective_sweep(
+            single_site_id=locus_id,
+            population="pop_0",
+            mutation_generation_ago=mutation_generation_ago,
+            end_generation_ago=end_generation_ago,
+            min_freq_at_end=min_freq,
+            selection_coeff=s,
+            dominance_coeff=0.5,
+        )
+        while True:
+            engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+                extended_events=extended_events,
+                slim_burn_in=1,
+                logfile=logfile,
+                logfile_interval=1,
+            )
+            in_sweep, outside_sweep, rejections = self._fitness_per_generation(
+                logfile=logfile,
+                start_generation_ago=mutation_generation_ago,
+                end_generation_ago=end_generation_ago,
+                pop=0,
+            )
+            # ensure that rejections are occuring in the generation of the AF
+            # condition
+            if end_generation_ago in rejections.keys():
+                break
+        assert np.all(outside_sweep == 1.0)
+        assert in_sweep[-1] >= s * min_freq + 1
+
+    def test_sweep_with_negative_selection_coeff(self):
+        with pytest.raises(ValueError, match="coefficient must be"):
+            stdpopsim.ext.selective_sweep(
+                single_site_id="irrelevant",
+                population="irrelevant",
+                mutation_generation_ago=1000,
+                selection_coeff=-0.1,
+            )
+
+    def test_sweep_with_bad_AF_conditions(self):
+        for start_freq, end_freq in zip([-0.1, 0.1], [0.1, -0.1]):
+            with pytest.raises(ValueError, match="of the sweep must be in"):
+                stdpopsim.ext.selective_sweep(
+                    single_site_id="irrelevant",
+                    population="irrelevant",
+                    mutation_generation_ago=1000,
+                    selection_coeff=0.1,
+                    start_generation_ago=100,
+                    min_freq_at_start=start_freq,
+                    min_freq_at_end=end_freq,
+                )
+        with pytest.raises(
+            ValueError, match="coincides with the introduction of the mutation"
+        ):
+            stdpopsim.ext.selective_sweep(
+                single_site_id="irrelevant",
+                population="irrelevant",
+                mutation_generation_ago=1000,
+                start_generation_ago=1000,
+                selection_coeff=0.1,
+                min_freq_at_start=0.1,
+            )
+
+    @pytest.mark.usefixtures("tmp_path")
+    def test_global_sweep(self, tmp_path):
+        mutation_generation_ago = 100
+        start_generation_ago = 50
+        end_generation_ago = 30
+        logfile = tmp_path / "sweep_not_restricted.logfile"
+        engine = stdpopsim.get_engine("slim")
+        model = self._get_island_model()
+        contig = get_test_contig()
+        locus_id = "sweep"
+        contig.add_single_site(
+            id=locus_id,
+            coordinate=100,
+        )
+        extended_events = stdpopsim.ext.selective_sweep(
+            single_site_id=locus_id,
+            population="pop1",
+            mutation_generation_ago=mutation_generation_ago,
+            start_generation_ago=start_generation_ago,
+            end_generation_ago=end_generation_ago,
+            selection_coeff=1000.0,  # so that mutation stays in non-source pop
+            globally_adaptive=True,
+        )
+        while True:
+            # The while loop is to avoid rare stochastic failure due to
+            # mutation never migrating into the non-source population
+            engine.simulate(
+                demographic_model=model,
+                contig=contig,
+                samples=self.samples,
+                extended_events=extended_events,
+                slim_burn_in=1,
+                logfile=logfile,
+                logfile_interval=1,
+            )
+            p0_in_sweep, p0_outside_sweep, _ = self._fitness_per_generation(
+                logfile=logfile,
+                start_generation_ago=start_generation_ago,
+                end_generation_ago=end_generation_ago,
+                pop=0,
+            )
+            # Mutation is in non-source pop at start of sweep
+            if p0_in_sweep[0] > 1:
+                break
+        p1_in_sweep, p1_outside_sweep, _ = self._fitness_per_generation(
+            logfile=logfile,
+            start_generation_ago=start_generation_ago,
+            end_generation_ago=end_generation_ago,
+            pop=1,
+        )
+        assert np.all(p0_in_sweep > 1)
+        assert np.all(p0_outside_sweep == 1)
+        assert np.all(p1_in_sweep > 1)
+        assert np.all(p1_outside_sweep == 1)
+
+    @pytest.mark.usefixtures("tmp_path")
+    def test_local_sweep(self, tmp_path):
+        mutation_generation_ago = 100
+        start_generation_ago = 50
+        end_generation_ago = 30
+        logfile = tmp_path / "sweep_restricted.logfile"
+        engine = stdpopsim.get_engine("slim")
+        model = self._get_island_model()
+        contig = get_test_contig()
+        locus_id = "sweep"
+        contig.add_single_site(
+            id=locus_id,
+            coordinate=100,
+        )
+        extended_events = stdpopsim.ext.selective_sweep(
+            single_site_id=locus_id,
+            population="pop1",
+            mutation_generation_ago=mutation_generation_ago,
+            start_generation_ago=start_generation_ago,
+            end_generation_ago=end_generation_ago,
+            selection_coeff=0.1,
+            globally_adaptive=False,
+        )
+        engine.simulate(
+            demographic_model=model,
+            contig=contig,
+            samples=self.samples,
+            extended_events=extended_events,
+            slim_burn_in=1,
+            logfile=logfile,
+            logfile_interval=1,
+        )
+        p0_in_sweep, p0_outside_sweep, _ = self._fitness_per_generation(
+            logfile=logfile,
+            start_generation_ago=start_generation_ago,
+            end_generation_ago=end_generation_ago,
+            pop=0,
+        )
+        p1_in_sweep, p1_outside_sweep, _ = self._fitness_per_generation(
+            logfile=logfile,
+            start_generation_ago=start_generation_ago,
+            end_generation_ago=end_generation_ago,
+            pop=1,
+        )
+        assert np.all(p0_in_sweep == 1)
+        assert np.all(p0_outside_sweep == 1)
+        assert np.all(p1_in_sweep > 1)
+        assert np.all(p1_outside_sweep == 1)
+
+    @pytest.mark.usefixtures("tmp_path")
+    def test_sweeps_at_multiple_sites(self, tmp_path):
+        logfile = tmp_path / "sweep_multi.logfile"
+        engine = stdpopsim.get_engine("slim")
+        contig = get_test_contig()
+        model = self._get_island_model()
+        mutation_generation_ago = 100
+        ids = ["sweep1", "sweep2"]
+        coords = [100, contig.length - 100]
+        start_generation_agos = [mutation_generation_ago, mutation_generation_ago // 2]
+        end_generation_agos = [0, 0]
+        pop_ids = ["pop0", "pop1"]
+        extended_events = []
+        for locus_id, coord, start_generation_ago, end_generation_ago, pop in zip(
+            ids, coords, start_generation_agos, end_generation_agos, pop_ids
+        ):
+            contig.add_single_site(
+                id=locus_id,
+                coordinate=coord,
+            )
+            extended_events += stdpopsim.ext.selective_sweep(
+                single_site_id=locus_id,
+                population=pop,
+                mutation_generation_ago=mutation_generation_ago,
+                start_generation_ago=start_generation_ago,
+                end_generation_ago=end_generation_ago,
+                selection_coeff=1.0,
+                globally_adaptive=False,
+            )
+        engine.simulate(
+            demographic_model=model,
+            contig=contig,
+            samples=self.samples,
+            extended_events=extended_events,
+            slim_burn_in=1,
+            logfile=logfile,
+            logfile_interval=1,
+        )
+        for i, _ in enumerate(pop_ids):
+            in_sweep, outside_sweep, _ = self._fitness_per_generation(
+                logfile=logfile,
+                start_generation_ago=start_generation_agos[i],
+                end_generation_ago=end_generation_agos[i],
+                pop=i,
+            )
+            assert np.all(in_sweep > 1)
+            assert np.all(outside_sweep == 1)
+
+    @pytest.mark.usefixtures("tmp_path")
+    def test_sweep_with_background_selection(self, tmp_path):
+        logfile = tmp_path / "sweep_bgs.logfile"
+        engine = stdpopsim.get_engine("slim")
+        model = self._get_island_model()
+        contig = get_test_contig()
+        contig.add_dfe(
+            intervals=np.array([[0, contig.length // 2]], dtype="int"),
+            DFE=stdpopsim.DFE(
+                id="BGS",
+                description="deleterious",
+                long_description="mutations",
+                mutation_types=[
+                    stdpopsim.MutationType(
+                        distribution_type="e",
+                        distribution_args=[-0.01],
+                    )
+                ],
+            ),
+        )
+        locus_id = "sweep"
+        mutation_generation_ago = 1000
+        contig.add_single_site(
+            id=locus_id,
+            coordinate=100,
+        )
+        extended_events = stdpopsim.ext.selective_sweep(
+            single_site_id=locus_id,
+            population="pop1",
+            mutation_generation_ago=mutation_generation_ago,
+            selection_coeff=100.0,
+            globally_adaptive=False,
+        )
+        engine.simulate(
+            demographic_model=model,
+            contig=contig,
+            samples=self.samples,
+            extended_events=extended_events,
+            slim_burn_in=1,
+            logfile=logfile,
+            logfile_interval=1,
+        )
+        p0_in_sweep, p0_outside_sweep, _ = self._fitness_per_generation(
+            logfile=logfile,
+            start_generation_ago=mutation_generation_ago,
+            end_generation_ago=0,
+            pop=0,
+        )
+        p1_in_sweep, p1_outside_sweep, _ = self._fitness_per_generation(
+            logfile=logfile,
+            start_generation_ago=mutation_generation_ago,
+            end_generation_ago=0,
+            pop=1,
+        )
+        # Population 0 = BGS only; Population 1 = BGS + sweep
+        assert np.all(p0_in_sweep <= 1)
+        assert np.all(p0_outside_sweep <= 1)
+        assert np.all(p1_in_sweep > 1)
+        assert np.all(p1_outside_sweep <= 1)
