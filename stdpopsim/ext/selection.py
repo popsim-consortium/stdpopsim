@@ -63,9 +63,6 @@ class DrawMutation(ExtendedEvent):
     Draw a new mutation with the given mutation type in the given population
     at the given genomic coordinate. The mutation will be added to one randomly
     chosen chromosome in the given population.
-    If save=True, the simulation state is saved before the mutation is
-    introduced, to facilitate the save/restore mechanism used for allele
-    frequency conditioning.
 
     FIXME: Drawing multiple mutations using the same mutation type causes
            erroneous allele frequency calculation in the SLiM code!
@@ -78,7 +75,6 @@ class DrawMutation(ExtendedEvent):
     time = attr.ib(type=float)
     single_site_id = attr.ib(type=str)
     population_id = attr.ib(type=int)
-    save = attr.ib(type=bool, default=False)
 
     def __attrs_post_init__(self):
         validate_time(self.time)
@@ -116,8 +112,6 @@ class ConditionOnAlleleFrequency(ExtendedEvent):
     Condition on the allele frequency of a drawn mutation with the given
     mutation type in the given population. The mutation need not have been
     drawn in the population being conditioned upon.
-    If save=True, the simulation state will be saved if the condition is
-    met at start_time.
 
     This uses a save/restore mechanism in the SLiM code to do rejection
     sampling on a simulation (when the condition is not met) without throwing
@@ -130,7 +124,6 @@ class ConditionOnAlleleFrequency(ExtendedEvent):
     population_id = attr.ib(type=int)
     op = attr.ib(type=str, default=None)
     allele_frequency = attr.ib(type=float, default=None)
-    save = attr.ib(type=bool, default=False)
 
     op_types = ("<", "<=", ">", ">=")
 

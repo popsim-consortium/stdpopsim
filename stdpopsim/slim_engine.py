@@ -293,14 +293,21 @@ _slim_main = """
 
     // Save/restore events. These should come before all other events.
     if (length(drawn_mutations) > 0) {
+        n_checkpoints = 0;
         for (i in 0:(ncol(drawn_mutations)-1)) {
             save = drawn_mutations[4,i] == 1;
-            if (!save) {
-                next;
+            if (save) {
+                // Saving the state at more than one timepoint can can cause
+                // incorrect conditioning in the rejection samples.
+                if (n_checkpoints > 0) {
+                    err("Attempt to save state at more than one checkpoint");
+                }
+                n_checkpoints = n_checkpoints + 1;
+
+                // Unconditionally save the state before the mutation is drawn.
+                g = G_start + gdiff(T_start, drawn_mutations[0,i]);
+                community.registerLateEvent(NULL, "{save();}", g, g);
             }
-            g = G_start + gdiff(T_start, drawn_mutations[0,i]);
-            // Unconditionally save the state before the mutation is drawn.
-            community.registerLateEvent(NULL, "{save();}", g, g);
         }
     }
     if (length(condition_on_allele_frequency) > 0) {
@@ -311,31 +318,17 @@ _slim_main = """
             pop_id = asInteger(condition_on_allele_frequency[3,i]);
             op = op_types[asInteger(drop(condition_on_allele_frequency[4,i]))];
             af = condition_on_allele_frequency[5,i];
-            save = condition_on_allele_frequency[6,i] == 1;
 
             if (g_start > g_end) {
                 err("Attempt to register AF conditioning callback with g_start="+
                     g_start+" > g_end="+g_end);
             }
 
-            // Save the state conditional on the allele frequency.
-            // If the condition isn't met, we restore.
-            if (save) {
-                // Save the state conditional on the allele frequency.
-                // If the condition isn't met, we restore.
-                community.registerLateEvent(NULL,
-                    "{if (af(m"+mut_type+", p"+pop_id+") "+op+" "+af+")" +
-                    " save(); else restore();}",
-                    g_start, g_start);
-                g_start = g_start + 1;
-            }
-
-            if (g_start <= g_end) {
-                community.registerLateEvent(NULL,
-                    "{if (!(af(m"+mut_type+", p"+pop_id+") "+op+" "+af+"))" +
-                    " restore();}",
-                    g_start, g_end);
-            }
+            // Restore state if AF condition not met.
+            community.registerLateEvent(NULL,
+                "{if (!(af(m"+mut_type+", p"+pop_id+") "+op+" "+af+"))" +
+                " restore();}",
+                g_start, g_end);
         }
     }
 
@@ -1017,7 +1010,7 @@ def slim_makescript(
                     mutation_type_id,
                     ee.population_id,
                     coordinate,
-                    int(ee.save),
+                    0,  # flag to save state in mutation generation
                 )
             )
             drawn_single_site_ids.add(ee.single_site_id)
@@ -1042,7 +1035,6 @@ def slim_makescript(
                     ee.population_id,
                     op_id(ee.op),
                     ee.allele_frequency,
-                    int(ee.save),
                 )
             )
             referenced_single_site_ids.add(ee.single_site_id)
@@ -1052,7 +1044,15 @@ def slim_makescript(
     # Check that drawn mutations exist for extended events that need them.
     for single_site_id in referenced_single_site_ids:
         if single_site_id not in drawn_single_site_ids:
-            raise ValueError(f"No drawn mutation for single site id {single_site_id}.")
+            raise ValueError(
+                f"An extended event requires a mutation at single site id "
+                f"{single_site_id}, but no mutation is drawn at this site."
+            )
+
+    # Set "save state" flag for the oldest drawn mutation
+    drawn_mutations = sorted(drawn_mutations, key=lambda x: x[0], reverse=True)
+    if len(drawn_mutations) > 0:
+        drawn_mutations[0] = drawn_mutations[0][:-1] + (1,)
 
     printsc = functools.partial(print, file=script_file)
 
@@ -1306,7 +1306,7 @@ def slim_makescript(
         + matrix2str(
             condition_on_allele_frequency,
             col_comment="start_time, end_time, mut_type, pop_id, "
-            "op, allele_frequency, save",
+            "op, allele_frequency",
         )
         + ");"
     )
