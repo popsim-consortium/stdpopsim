@@ -1834,7 +1834,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
             ),
         ]
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError, match="No drawn mutation"):
+        with pytest.raises(ValueError, match="no mutation is drawn at this site"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=self.contig,
@@ -1961,7 +1961,7 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
             ),
         ]
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError, match="No drawn mutation"):
+        with pytest.raises(ValueError, match="no mutation is drawn at this site"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=self.contig,

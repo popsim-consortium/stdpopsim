@@ -296,20 +296,18 @@ _slim_main = """
         n_checkpoints = 0;
         for (i in 0:(ncol(drawn_mutations)-1)) {
             save = drawn_mutations[4,i] == 1;
-            if (!save) {
-                next;
-            }
+            if (save) {
+                // Saving the state at more than one timepoint can can cause
+                // incorrect conditioning in the rejection samples.
+                if (n_checkpoints > 0) {
+                    err("Attempt to save state at more than one checkpoint");
+                }
+                n_checkpoints = n_checkpoints + 1;
 
-            // Saving the state at more than one timepoint can can cause
-            // incorrect conditioning in the rejection samples.
-            if (n_checkpoints > 0) {
-                err("Attempt to save state at more than one checkpoint");
+                // Unconditionally save the state before the mutation is drawn.
+                g = G_start + gdiff(T_start, drawn_mutations[0,i]);
+                community.registerLateEvent(NULL, "{save();}", g, g);
             }
-            n_checkpoints = n_checkpoints + 1;
-
-            // Unconditionally save the state before the mutation is drawn.
-            g = G_start + gdiff(T_start, drawn_mutations[0,i]);
-            community.registerLateEvent(NULL, "{save();}", g, g);
         }
     }
     if (length(condition_on_allele_frequency) > 0) {
@@ -1047,7 +1045,8 @@ def slim_makescript(
     for single_site_id in referenced_single_site_ids:
         if single_site_id not in drawn_single_site_ids:
             raise ValueError(
-                f"No drawn mutation exists for single site id {single_site_id}."
+                f"An extended event requires a mutation at single site id "
+                f"{single_site_id}, but no mutation is drawn at this site."
             )
 
     # Set "save state" flag for the oldest drawn mutation
