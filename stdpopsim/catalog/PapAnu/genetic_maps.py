@@ -16,7 +16,7 @@ _gm = stdpopsim.GeneticMap(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/"
         "PapAnu/papio_anubis_genetic_map.tar.gz"
     ),
-    sha256="",
+    sha256="63f06ce4071508dee8ad130944b95f80d45ead5c53c162f939b745f150a6fdd2",
     file_pattern="Pyrho_PAnubis1.0_chr{id}.txt",
     citations=[
         stdpopsim.Citation(
