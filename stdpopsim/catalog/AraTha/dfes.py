@@ -13,17 +13,23 @@ def _HuberDFE():
     id = "Gamma_H18"
     description = "Deleterious Gamma DFE"
     long_description = """
-    Return neutral and negative MutationType()s representing an Arabidopsis DFE.
-    From Huber et al. (2018), https://doi.org/10.1038/s41467-018-05281-7.
-    Gamma parameters are based on the additive-only model for A. thaliana described in
-    Supplementary Table 4.
+    Return negative (no neutral, in this case) MutationType()s
+    representing an Arabidopsis DFE. From Huber et al. (2018).
+    Gamma parameters are based on Supplementary Table 4,
+    the genome-wide, additive-only model for A. LYRATA- due to
+    challenges with simulating with selfing for A. thaliana.
+    The Supplementary Table 4 DFEs are not noted to contain
+    any neutral mutations (in contrast, Supplementary Table 3
+    notes neutral proportions for two other DFEs), and in the
+    main text including neutral mutations seems like a
+    supplementary analysis rather than the main strategy.
     """
     citations = [
         stdpopsim.Citation(
             author="Huber et al.",
             year=2018,
             doi="https://doi.org/10.1038/s41467-018-05281-7",
-            reasons="to be defined",  # include the dfe_model reason
+            reasons=stdpopsim.CiteReason.DFE,
         )
     ]
     neutral = stdpopsim.MutationType()
