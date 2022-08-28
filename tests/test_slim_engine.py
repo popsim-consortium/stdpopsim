@@ -3,7 +3,6 @@ Tests for SLiM simulation engine.
 """
 import os
 import io
-import sys
 import tempfile
 import math
 from unittest import mock
@@ -21,7 +20,6 @@ import stdpopsim
 import stdpopsim.cli
 from .test_cli import capture_output
 
-IS_WINDOWS = sys.platform.startswith("win")
 slim_path = os.environ.get("SLIM", "slim")
 
 
@@ -33,7 +31,6 @@ def count_mut_types(ts):
     return [num_neutral, abs(len(selection_coeffs) - num_neutral)]
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestAPI:
     def test_bad_params(self):
         engine = stdpopsim.get_engine("slim")
@@ -404,7 +401,6 @@ class TestAPI:
             assert all([x.isnumeric() for x in alleles])
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestCLI:
     def docmd(self, _cmd):
         cmd = (f"-q -e slim --slim-burn-in 0 {_cmd} -l 0.001 -c chr1 -s 1234").split()
@@ -734,7 +730,6 @@ class TestCLI:
             os.environ["SLIM"] = saved_slim_env
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestWarningsAndErrors:
     """
     Checks that warning messages are printed when appropriate.
@@ -1019,23 +1014,6 @@ class TestWarningsAndErrors:
             )
 
 
-class TestSlimAvailable:
-    """
-    Checks whether SLiM is available or not on platforms that support it.
-    """
-
-    def test_parser_has_options(self):
-        parser = stdpopsim.cli.stdpopsim_cli_parser()
-        with mock.patch("sys.exit", autospec=True):
-            _, stderr = capture_output(parser.parse_args, ["--help"])
-            # On windows we should have no "slim" options
-            assert IS_WINDOWS == ("slim" not in stderr)
-
-    def test_engine_available(self):
-        all_engines = [engine.id for engine in stdpopsim.all_engines()]
-        assert IS_WINDOWS == ("slim" not in all_engines)
-
-
 def get_test_contig(
     spp="HomSap", chrom="chr22", length_multiplier=0.001, left=None, right=None
 ):
@@ -1081,7 +1059,6 @@ class PiecewiseConstantSizeMixin(object):
         return af
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestRecombinationMap(PiecewiseConstantSizeMixin):
     def verify_recombination_map(self, contig, ts):
         Q = ts.metadata["SLiM"]["user_metadata"]["Q"]
@@ -1147,7 +1124,6 @@ class TestRecombinationMap(PiecewiseConstantSizeMixin):
         assert list(ts.breakpoints()) == [0.0, midpoint, contig.length]
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
 
     mut_params = {
@@ -1631,7 +1607,6 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         assert int(ts.sequence_length) == right - left
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestLogfile(PiecewiseConstantSizeMixin):
     # tmp_path is a pytest fixture
     def test_logfile(self, tmp_path):
@@ -1655,7 +1630,6 @@ class TestLogfile(PiecewiseConstantSizeMixin):
         assert np.all(data[:, 2] == 0.0)
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestDrawMutation(PiecewiseConstantSizeMixin):
     def test_draw_mutation(self):
         contig = get_test_contig()
@@ -1960,7 +1934,6 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
                 )
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_drawn_mutation_not_lost(self):
@@ -2170,7 +2143,6 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
             )
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
     # Testing stdpopsim.ext.ChangeMutationFitness is challenging, because
     # the side-effects are not deterministic. But if we condition on fixation
@@ -2348,7 +2320,6 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                 )
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestExtendedEvents(PiecewiseConstantSizeMixin):
     def test_bad_extended_events(self):
         engine = stdpopsim.get_engine("slim")
@@ -2368,7 +2339,6 @@ class TestExtendedEvents(PiecewiseConstantSizeMixin):
                 )
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestSelectiveSweep(PiecewiseConstantSizeMixin):
     @staticmethod
     def _get_island_model(Ne=1000, migration_rate=0.01):
@@ -2814,7 +2784,6 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
         assert np.all(p1_outside_sweep <= 1)
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestSelectionCoeffFromMutation:
 
     species = stdpopsim.get_species("HomSap")
@@ -2888,7 +2857,6 @@ class TestSelectionCoeffFromMutation:
             stdpopsim.ext.selection_coeff_from_mutation(ts, "bar")
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestPloidy:
     """
     Test that population sizes used in SLiM engine are scaled correctly
