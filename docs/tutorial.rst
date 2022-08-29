@@ -1224,65 +1224,55 @@ of at least 0.8 by the end. Next, we'll walk through the steps required to do th
     this conditioning works by re-running the simulation until the condition is
     achieved, a nearly impossible condition will result in very long run times.
 
-First, we need to define the mutation type for the selected mutation.
-So we can refer to it later, we need its "mutation type ID". This is just
-the index of the new mutation type in the contig's list of mutation types.
+To set things up, we need to first add the site at which the selected mutation
+will occur.  This is like adding a DFE, except to a single site -- we're saying
+that there is a potential mutation at a particular site with defined fitness
+consequences. So that we can refer to the single site later, we give it a
+unique string ID. Here, we'll add the site in the middle of the contig, with ID
+"hard sweep".
 
 .. code-block:: python
 
-    mt = stdpopsim.MutationType(
-        distribution_type="f",
-        dominance_coeff=1.0,
-        distribution_args=[0.5],
-        convert_to_substitution=False,
+    mut_id = "hard sweep"
+    coordinate = round(contig.recombination_map.sequence_length / 2)
+    contig.add_single_site(
+        id=mut_id,
+        coordinate=coordinate,
+        fitness_coeff=0.1,
+        dominance_coeff=0.5,
     )
-    dfe = stdpopsim.DFE(
-        id="new_mutation",
-        mutation_types=[mt],
-        proportions=[1.0],
-        description="added mutation",
-        long_description="mutation type to be added",
-    )
-    contig.add_dfe(
-        intervals=np.empty((0, 2), dtype="int"),
-        DFE=dfe,
-    )
-    for mt_info in contig.mutation_types():
-        if mt_info["dfe_id"] == dfe.id:
-            break
 
-    mut_id = mt_info["id"]
+.. note::
+
+    Note that single site mutations are internally stored as DFEs, and more
+    than one DFE cannot apply to the same segment of genome. As a consequence,
+    if another DFE is added to the contig over an interval that already
+    contains a single site mutation, the single site mutation will be
+    "overwritten" and an error will be raised in simulation.
 
 Next, we will set up the "extended events" which will modify the demography.
-The first extended event is placing of the selected mutation,
-which will occur in a random individual from the first population (id 0),
-in the middle of the contig, 1000 generations ago.
-We specify ``save=True`` to ``stdpopsim.ext.DrawMutation``
-so that the simulation can restart from that point if the mutation is lost.
+The first extended event is the origination of the selected mutation, which
+will occur in a random individual from the first population (id 0), 1000
+generations ago.
 
 .. code-block:: python
 
-    coordinate = round(contig.recombination_map.sequence_length / 2)
     T_mut = 1000
     extended_events = [
         stdpopsim.ext.DrawMutation(
             time=T_mut,
-            mutation_type_id=mut_id,
+            single_site_id=mut_id,
             population_id=0,
-            coordinate=coordinate,
-            save=True,
         )
     ]
 
-Next, we condition on the mutation not being lost.
-Since in the next step we condition on the mutation being at 80% frequency at
-the end, this is redundant, but it allows the simulation to immediately restart
-from any generation in which the mutation is lost, rather than waiting until the end.
-Note that this conditioning must start one
-generation after the mutation is placed, for which we use
-``stdpopsim.ext.GenerationAfter(T_mut)``.
-We cannot simply specify ``T_mut - 1`` if rescaling is present,
-otherwise the conditioning would start
+Next, we condition on the mutation not being lost.  Since in the next step we
+condition on the mutation being at 80% frequency at the end, this is redundant,
+but it allows the simulation to immediately restart from any generation in
+which the mutation is lost, rather than waiting until the end.  Note that this
+conditioning must start one generation after the mutation is placed, for which
+we use ``stdpopsim.ext.GenerationAfter(T_mut)``.  We cannot simply specify
+``T_mut - 1`` if rescaling is present, otherwise the conditioning would start
 at the same generation when the mutation is placed.
 
 .. code-block:: python
@@ -1291,7 +1281,7 @@ at the same generation when the mutation is placed.
         stdpopsim.ext.ConditionOnAlleleFrequency(
             start_time=stdpopsim.ext.GenerationAfter(T_mut),
             end_time=0,
-            mutation_type_id=mut_id,
+            single_site_id=mut_id,
             population_id=0,
             op=">",
             allele_frequency=0.0,
@@ -1307,7 +1297,7 @@ Finally, we condition on the mutation being above 80% at the end of the simulati
         stdpopsim.ext.ConditionOnAlleleFrequency(
             start_time=0,
             end_time=0,
-            mutation_type_id=mut_id,
+            single_site_id=mut_id,
             population_id=0,
             op=">=",
             allele_frequency=0.8,

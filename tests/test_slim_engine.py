@@ -79,7 +79,7 @@ class TestAPI:
             samples=samples,
             slim_script=True,
         )
-        assert "sim.registerLateEvent" in out
+        assert "community.registerLateEvent" in out
 
         model = species.get_demographic_model("AncientEurasia_9K19")
         samples = model.get_samples(10, 20, 30, 40, 50, 60, 70)
@@ -90,7 +90,7 @@ class TestAPI:
             samples=samples,
             slim_script=True,
         )
-        assert "sim.registerLateEvent" in out
+        assert "community.registerLateEvent" in out
 
         model = species.get_demographic_model("AmericanAdmixture_4B11")
         samples = model.get_samples(10, 10, 10)
@@ -101,7 +101,7 @@ class TestAPI:
             samples=samples,
             slim_script=True,
         )
-        assert "sim.registerLateEvent" in out
+        assert "community.registerLateEvent" in out
 
     @pytest.mark.filterwarnings("ignore:Recombination map has length:UserWarning")
     def test_recombination_map(self):
@@ -245,15 +245,15 @@ class TestCLI:
 
     def test_script_generation(self):
         out, _ = self.docmd("--slim-script HomSap")
-        assert "sim.registerLateEvent" in out
+        assert "community.registerLateEvent" in out
 
         # msprime.MassMigration demographic events, with proportion<1.0
         # low level migration
         out, _ = self.docmd("--slim-script HomSap -d AncientEurasia_9K19")
-        assert "sim.registerLateEvent" in out
+        assert "community.registerLateEvent" in out
         # simultaneous mass migrations, with proportions summing to 1.0
         out, _ = self.docmd("--slim-script HomSap -d AmericanAdmixture_4B11")
-        assert "sim.registerLateEvent" in out
+        assert "community.registerLateEvent" in out
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")
@@ -799,7 +799,13 @@ class PiecewiseConstantSizeMixin(object):
     model.generation_time = 1
     samples = model.get_samples(100)
     contig = get_test_contig()
-    mut_id = 0
+    mut_id = "mut"
+    contig.add_single_site(
+        id=mut_id,
+        coordinate=100,
+        description="🧬",
+        long_description="👽",
+    )
 
     def allele_frequency(self, ts):
         """
@@ -1340,7 +1346,7 @@ class TestLogfile(PiecewiseConstantSizeMixin):
         with open(logfile, "r") as f:
             header = f.readline().strip().split(",")
             data = np.loadtxt(f, delimiter=",")
-        assert header[0] == "generation"
+        assert header[0] == "tick"
         assert header[1][:8] == "fitness_"
         assert header[2][:8] == "fitness_"
         # neutral model, should have no fitness variation
@@ -1350,55 +1356,61 @@ class TestLogfile(PiecewiseConstantSizeMixin):
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestDrawMutation(PiecewiseConstantSizeMixin):
-    def test_draw_mutation_save(self):
+    def test_draw_mutation(self):
+        contig = get_test_contig()
+        contig.add_single_site(id=self.mut_id, coordinate=100)
         extended_events = [
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
-                mutation_type_id=self.mut_id,
+                single_site_id=self.mut_id,
                 population_id=0,
-                coordinate=100,
-                save=True,
             ),
         ]
         engine = stdpopsim.get_engine("slim")
         engine.simulate(
             demographic_model=self.model,
-            contig=self.contig,
+            contig=contig,
             samples=self.samples,
             extended_events=extended_events,
             dry_run=True,
         )
 
-    def test_draw_mutation_no_save(self):
+    def test_draw_multiple_mutations(self):
+        contig = get_test_contig()
+        contig.add_single_site(id="recent", coordinate=100)
+        contig.add_single_site(id="older", coordinate=101)
         extended_events = [
             stdpopsim.ext.DrawMutation(
-                time=self.T_mut,
-                mutation_type_id=self.mut_id,
+                time=int(self.T_mut / 2),
+                single_site_id="recent",
                 population_id=0,
-                coordinate=100,
+            ),
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                single_site_id="older",
+                population_id=0,
             ),
         ]
         engine = stdpopsim.get_engine("slim")
         engine.simulate(
             demographic_model=self.model,
-            contig=self.contig,
+            contig=contig,
             samples=self.samples,
             extended_events=extended_events,
             dry_run=True,
         )
 
-    def test_invalid_mutation_type_id(self):
+    def test_invalid_single_site_id(self):
         engine = stdpopsim.get_engine("slim")
-        for mut_type_id in [-1, 10]:
+        for single_site_id in ["deleterious", "sweep"]:
             extended_events = [
                 stdpopsim.ext.DrawMutation(
                     time=self.T_mut,
-                    mutation_type_id=mut_type_id,
+                    single_site_id=single_site_id,
                     population_id=0,
-                    coordinate=100,
                 ),
             ]
-            with pytest.raises(ValueError):
+            with pytest.raises(ValueError, match="must exist and be uniquely labelled"):
                 engine.simulate(
                     demographic_model=self.model,
                     contig=self.contig,
@@ -1411,15 +1423,192 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         extended_events = [
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
-                mutation_type_id=self.mut_id,
+                single_site_id=self.mut_id,
                 population_id=0,
-                coordinate=100,
             ),
         ]
         contig = get_test_contig()
-        contig.dfe_list[0].mutation_types = []
+        contig.add_single_site(id=self.mut_id, coordinate=100)
+        contig.dfe_list[1].mutation_types = []
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="must contain a single mutation type"):
+            engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+                extended_events=extended_events,
+                dry_run=True,
+            )
+
+    def test_multiple_mutation_types_defined(self):
+        extended_events = [
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                single_site_id="test",
+                population_id=0,
+            ),
+        ]
+        contig = get_test_contig()
+        mt = stdpopsim.MutationType(
+            distribution_type="f",
+            dominance_coeff=1.0,
+            distribution_args=[0.0],
+            convert_to_substitution=False,
+        )
+        dfe = stdpopsim.DFE(
+            id="test",
+            mutation_types=[mt, mt],
+            proportions=[0.5, 0.5],
+            description="test test",
+            long_description="test test test",
+        )
+        contig.add_dfe(
+            intervals=np.array([[100, 101]], dtype="int"),
+            DFE=dfe,
+        )
+        engine = stdpopsim.get_engine("slim")
+        with pytest.raises(ValueError, match="must contain a single mutation type"):
+            engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+                extended_events=extended_events,
+                dry_run=True,
+            )
+
+    def test_fitness_distribution_not_fixed(self):
+        extended_events = [
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                single_site_id="test",
+                population_id=0,
+            ),
+        ]
+        contig = get_test_contig()
+        contig.add_single_site(id="test", coordinate=100)
+        mt = stdpopsim.MutationType(
+            distribution_type="g",
+            dominance_coeff=1.0,
+            distribution_args=[1.0, 2.0],
+            convert_to_substitution=False,
+        )
+        contig.dfe_list[1].mutation_types[0] = mt
+        engine = stdpopsim.get_engine("slim")
+        with pytest.raises(ValueError, match="instead of a fixed fitness coefficient"):
+            engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+                extended_events=extended_events,
+                dry_run=True,
+            )
+
+    def test_multiple_intervals(self):
+        extended_events = [
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                single_site_id="test",
+                population_id=0,
+            ),
+        ]
+        contig = get_test_contig()
+        mt = stdpopsim.MutationType(
+            distribution_type="f",
+            dominance_coeff=1.0,
+            distribution_args=[0.0],
+            convert_to_substitution=False,
+        )
+        dfe = stdpopsim.DFE(
+            id="test",
+            mutation_types=[mt],
+            proportions=[1.0],
+            description="test test",
+            long_description="test test test",
+        )
+        contig.add_dfe(
+            intervals=np.array([[100, 101], [103, 104]], dtype="int"),
+            DFE=dfe,
+        )
+        engine = stdpopsim.get_engine("slim")
+        with pytest.raises(ValueError, match="refers to a DFE with intervals"):
+            engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+                extended_events=extended_events,
+                dry_run=True,
+            )
+
+    def test_interval_too_large(self):
+        extended_events = [
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                single_site_id="test",
+                population_id=0,
+            ),
+        ]
+        contig = get_test_contig()
+        mt = stdpopsim.MutationType(
+            distribution_type="f",
+            dominance_coeff=1.0,
+            distribution_args=[0.0],
+            convert_to_substitution=False,
+        )
+        dfe = stdpopsim.DFE(
+            id="test",
+            mutation_types=[mt],
+            proportions=[1.0],
+            description="test test",
+            long_description="test test test",
+        )
+        contig.add_dfe(
+            intervals=np.array([[100, 102]], dtype="int"),
+            DFE=dfe,
+        )
+        engine = stdpopsim.get_engine("slim")
+        with pytest.raises(ValueError, match="refers to a DFE with intervals"):
+            engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+                extended_events=extended_events,
+                dry_run=True,
+            )
+
+    def test_duplicate_mutation_ids(self):
+        extended_events = [
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                single_site_id="test",
+                population_id=0,
+            ),
+        ]
+        contig = get_test_contig()
+        contig.add_single_site(id="test", coordinate=100)
+        contig.add_single_site(id="test", coordinate=110)
+        engine = stdpopsim.get_engine("slim")
+        with pytest.raises(ValueError, match="must exist and be uniquely labelled"):
+            engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+                extended_events=extended_events,
+                dry_run=True,
+            )
+
+    def test_mutation_has_no_interval(self):
+        extended_events = [
+            stdpopsim.ext.DrawMutation(
+                time=self.T_mut,
+                single_site_id="test",
+                population_id=0,
+            ),
+        ]
+        contig = get_test_contig()
+        contig.add_single_site(id="test", coordinate=100)
+        contig.add_single_site(id="overlapping", coordinate=100)
+        engine = stdpopsim.get_engine("slim")
+        with pytest.raises(ValueError, match="has no coordinate"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=contig,
@@ -1432,86 +1621,37 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         for time in (-1,):
             with pytest.raises(ValueError):
                 stdpopsim.ext.DrawMutation(
-                    time=time, mutation_type_id=0, population_id=0, coordinate=0
+                    time=time,
+                    single_site_id="irrelevant",
+                    population_id=0,
                 )
         for time in (0, -1):
             with pytest.raises(ValueError):
                 stdpopsim.ext.DrawMutation(
                     time=stdpopsim.ext.GenerationAfter(time),
-                    mutation_type_id=0,
+                    single_site_id="irrelevant",
                     population_id=0,
-                    coordinate=0,
                 )
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
-    def test_save_point_creation(self):
-        extended_events = [
-            stdpopsim.ext.DrawMutation(
-                time=self.T_mut,
-                mutation_type_id=self.mut_id,
-                population_id=0,
-                coordinate=100,
-                save=True,
-            ),
-            stdpopsim.ext.ConditionOnAlleleFrequency(
-                start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
-                end_time=0,
-                mutation_type_id=self.mut_id,
-                population_id=0,
-                op=">",
-                allele_frequency=0,
-                save=True,
-            ),
-            stdpopsim.ext.ConditionOnAlleleFrequency(
-                start_time=self.T_mut // 2,
-                end_time=self.T_mut // 2,
-                mutation_type_id=self.mut_id,
-                population_id=0,
-                op=">",
-                allele_frequency=0,
-                save=True,
-            ),
-        ]
-        engine = stdpopsim.get_engine("slim")
-        engine.simulate(
-            demographic_model=self.model,
-            contig=self.contig,
-            samples=self.samples,
-            extended_events=extended_events,
-            dry_run=True,
-        )
-
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_drawn_mutation_not_lost(self):
         engine = stdpopsim.get_engine("slim")
-        ct = self.contig
+        ct = get_test_contig()
         ct.mutation_rate = 0.0
-        mt = [
-            stdpopsim.MutationType(convert_to_substitution=True),
-            stdpopsim.MutationType(convert_to_substitution=True),
-        ]
-        test_d = stdpopsim.DFE(
-            id="test",
-            description="test",
-            long_description="test test",
-            proportions=[0.5, 0.5],
-            mutation_types=mt,
-        )
-        ct.dfe_list[0] = test_d
+        ct.add_single_site(id="test", coordinate=100)
         extended_events = [
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
-                mutation_type_id=self.mut_id,
+                single_site_id="test",
                 population_id=0,
-                coordinate=100,
-                save=True,
             ),
             stdpopsim.ext.ConditionOnAlleleFrequency(
                 start_time=0,
                 end_time=0,
-                mutation_type_id=self.mut_id,
+                single_site_id="test",
                 population_id=0,
                 op=">",
                 allele_frequency=0,
@@ -1531,32 +1671,19 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_drawn_mutation_is_lost(self):
         engine = stdpopsim.get_engine("slim")
-        ct = self.contig
+        ct = get_test_contig()
         ct.mutation_rate = 0.0
-        mt = [
-            stdpopsim.MutationType(convert_to_substitution=True),
-            stdpopsim.MutationType(convert_to_substitution=True),
-        ]
-        test_d = stdpopsim.DFE(
-            id="test",
-            description="test",
-            long_description="test test",
-            proportions=[0.5, 0.5],
-            mutation_types=mt,
-        )
-        ct.dfe_list[0] = test_d
+        ct.add_single_site(id="test", coordinate=100)
         extended_events = [
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
-                mutation_type_id=self.mut_id,
+                single_site_id="test",
                 population_id=0,
-                coordinate=100,
-                save=True,
             ),
             stdpopsim.ext.ConditionOnAlleleFrequency(
                 start_time=0,
                 end_time=0,
-                mutation_type_id=self.mut_id,
+                single_site_id="test",
                 population_id=0,
                 op="<=",
                 allele_frequency=0,
@@ -1576,34 +1703,21 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_drawn_mutation_meets_AF_threshold(self):
         engine = stdpopsim.get_engine("slim")
-        ct = self.contig
+        ct = get_test_contig()
         ct.mutation_rate = 0.0
-        mt = [
-            stdpopsim.MutationType(convert_to_substitution=True),
-            stdpopsim.MutationType(convert_to_substitution=True),
-        ]
-        test_d = stdpopsim.DFE(
-            id="test",
-            description="test",
-            long_description="test test",
-            proportions=[0, 1],
-            mutation_types=mt,
-        )
-        ct.dfe_list[0] = test_d
+        ct.add_single_site(id="test", coordinate=100)
         for af_threshold, seed in zip((0.01, 0.1, 0.2), (1, 2, 3)):
             extended_events = [
                 stdpopsim.ext.DrawMutation(
                     time=self.T_mut,
-                    mutation_type_id=self.mut_id,
+                    single_site_id="test",
                     population_id=0,
-                    coordinate=100,
-                    save=True,
                 ),
                 # Condition on desired AF at end of simulation.
                 stdpopsim.ext.ConditionOnAlleleFrequency(
                     start_time=0,
                     end_time=0,
-                    mutation_type_id=self.mut_id,
+                    single_site_id="test",
                     population_id=0,
                     op=">=",
                     allele_frequency=af_threshold,
@@ -1644,7 +1758,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
                 stdpopsim.ext.ConditionOnAlleleFrequency(
                     start_time=0,
                     end_time=0,
-                    mutation_type_id=self.mut_id,
+                    single_site_id="irrelevant",
                     population_id=0,
                     op=op,
                     allele_frequency=af,
@@ -1656,7 +1770,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
                 stdpopsim.ext.ConditionOnAlleleFrequency(
                     start_time=start_time,
                     end_time=end_time,
-                    mutation_type_id=0,
+                    single_site_id="irrelevant",
                     population_id=0,
                     op=">",
                     allele_frequency=0,
@@ -1679,15 +1793,13 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
                 extended_events = [
                     stdpopsim.ext.DrawMutation(
                         time=self.T_mut,
-                        mutation_type_id=self.mut_id,
+                        single_site_id=self.mut_id,
                         population_id=0,
-                        coordinate=100,
-                        save=True,
                     ),
                     stdpopsim.ext.ConditionOnAlleleFrequency(
                         start_time=stdpopsim.ext.GenerationAfter(start_time),
                         end_time=end_time,
-                        mutation_type_id=self.mut_id,
+                        single_site_id=self.mut_id,
                         population_id=0,
                         op=">",
                         allele_frequency=0,
@@ -1710,50 +1822,19 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
             with pytest.raises(ValueError):
                 id = stdpopsim.ext.ConditionOnAlleleFrequency.op_id(op)
 
-    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_conditioning_without_save(self):
-        extended_events = [
-            stdpopsim.ext.DrawMutation(
-                time=self.T_mut,
-                mutation_type_id=0,
-                population_id=0,
-                coordinate=100,
-            ),
-            stdpopsim.ext.ConditionOnAlleleFrequency(
-                start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
-                end_time=0,
-                mutation_type_id=self.mut_id,
-                population_id=0,
-                op=">=",
-                allele_frequency=1,
-            ),
-        ]
-        engine = stdpopsim.get_engine("slim")
-        with pytest.raises(stdpopsim.SLiMException):
-            # TODO: get this to fail using dry_run=True
-            engine.simulate(
-                demographic_model=self.model,
-                contig=self.contig,
-                samples=self.samples,
-                extended_events=extended_events,
-                slim_scaling_factor=10,
-                slim_burn_in=0.1,
-            )
-
     def test_no_drawn_mutation(self):
         extended_events = [
             stdpopsim.ext.ConditionOnAlleleFrequency(
                 start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
                 end_time=0,
-                mutation_type_id=self.mut_id,
+                single_site_id=self.mut_id,
                 population_id=0,
                 op=">",
                 allele_frequency=0,
-                save=True,
             ),
         ]
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="no mutation is drawn at this site"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=self.contig,
@@ -1768,30 +1849,24 @@ class TestFixedSelectionCoefficient(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_drawn_mutation_has_correct_selection_coeff(self):
         engine = stdpopsim.get_engine("slim")
-        contig = self.contig
-        contig.dfe_list[0].mutation_types = [
-            stdpopsim.MutationType(),
-            stdpopsim.MutationType(
-                distribution_type="f",
-                dominance_coeff=0.5,
-                distribution_args=[0.1],
-                convert_to_substitution=False,
-            ),
-        ]
-        mut_id = 1
-        contig.dfe_list[0].proportions = [0, 0]
+        contig = get_test_contig()
+        mut_id = "sweep"
+        contig.add_single_site(
+            id=mut_id,
+            coordinate=100,
+            selection_coeff=0.1,
+            dominance_coeff=0.5,
+        )
         extended_events = [
             stdpopsim.ext.DrawMutation(
                 time=self.T_mut,
-                mutation_type_id=mut_id,
+                single_site_id=mut_id,
                 population_id=0,
-                coordinate=100,
-                save=True,
             ),
             stdpopsim.ext.ConditionOnAlleleFrequency(
                 start_time=0,
                 end_time=0,
-                mutation_type_id=mut_id,
+                single_site_id=mut_id,
                 population_id=0,
                 op=">",
                 allele_frequency=0,
@@ -1824,22 +1899,19 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
     # So if this test takes more than a few seconds to run, that's a good
     # indication that selection is not acting.
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    @pytest.mark.skip("can't get this to complete?")
     def test_positive_mutation_meets_AF_threshold(self):
         engine = stdpopsim.get_engine("slim")
         for af_threshold, seed in zip((0.5, 1), (1, 2)):
             extended_events = [
                 stdpopsim.ext.DrawMutation(
                     time=self.T_mut,
-                    mutation_type_id=1,
+                    single_site_id=self.mut_id,
                     population_id=0,
-                    coordinate=100,
-                    save=True,
                 ),
                 stdpopsim.ext.ChangeMutationFitness(
                     start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
                     end_time=0,
-                    mutation_type_id=1,
+                    single_site_id=self.mut_id,
                     population_id=0,
                     selection_coeff=0.1,
                     dominance_coeff=0.5,
@@ -1847,9 +1919,9 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                 # Condition on AF > 0, to restore() immediately if the
                 # allele is lost.
                 stdpopsim.ext.ConditionOnAlleleFrequency(
-                    start_time=0,
+                    start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
                     end_time=0,
-                    mutation_type_id=1,
+                    single_site_id=self.mut_id,
                     population_id=0,
                     op=">",
                     allele_frequency=0,
@@ -1858,23 +1930,15 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                 stdpopsim.ext.ConditionOnAlleleFrequency(
                     start_time=0,
                     end_time=0,
-                    mutation_type_id=1,
+                    single_site_id=self.mut_id,
                     population_id=0,
                     op=">=",
                     allele_frequency=af_threshold,
                 ),
             ]
-            mt = [stdpopsim.MutationType(), stdpopsim.MutationType()]
-            ct = self.contig
-            # turn off slim mutations for neutral muts
-            ct.dfe_list[0].proportions = [0, 0]
-            # manually add conditional class
-            ct.dfe_list[0].mutation_types = mt
-            print(ct.dfe_list)
-            print(ct.mutation_types())
             ts = engine.simulate(
                 demographic_model=self.model,
-                contig=ct,
+                contig=self.contig,
                 samples=self.samples,
                 extended_events=extended_events,
                 slim_scaling_factor=10,
@@ -1890,14 +1954,14 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
             stdpopsim.ext.ChangeMutationFitness(
                 start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
                 end_time=0,
-                mutation_type_id=self.mut_id,
+                single_site_id=self.mut_id,
                 population_id=0,
                 selection_coeff=0.1,
                 dominance_coeff=0.5,
             ),
         ]
         engine = stdpopsim.get_engine("slim")
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="no mutation is drawn at this site"):
             engine.simulate(
                 demographic_model=self.model,
                 contig=self.contig,
@@ -1912,7 +1976,7 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                 stdpopsim.ext.ChangeMutationFitness(
                     start_time=start_time,
                     end_time=end_time,
-                    mutation_type_id=0,
+                    single_site_id="irrelevant",
                     population_id=0,
                     selection_coeff=0.1,
                     dominance_coeff=0.5,
@@ -1935,15 +1999,13 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                 extended_events = [
                     stdpopsim.ext.DrawMutation(
                         time=self.T_mut,
-                        mutation_type_id=self.mut_id,
+                        single_site_id=self.mut_id,
                         population_id=0,
-                        coordinate=100,
-                        save=True,
                     ),
                     stdpopsim.ext.ChangeMutationFitness(
                         start_time=stdpopsim.ext.GenerationAfter(start_time),
                         end_time=end_time,
-                        mutation_type_id=self.mut_id,
+                        single_site_id=self.mut_id,
                         population_id=0,
                         selection_coeff=0.1,
                         dominance_coeff=0.5,

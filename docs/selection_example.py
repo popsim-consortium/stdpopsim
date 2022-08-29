@@ -72,14 +72,12 @@ def adaptive_introgression(seed):
             mutation_type_id=mut_id,
             population_id=pop["DenA"],
             coordinate=coordinate,
-            # Save state before the mutation is introduced.
-            save=True,
         ),
         # Because the drawn mutation is neutral at the time of introduction,
         # it's likely to be lost due to drift. To avoid this, we condition on
         # the mutation having AF > 0 in DenA. If this condition is false at any
         # time between start_time and end_time, the simulation will be
-        # restored to the most recent save point.
+        # returned to the point where the mutation was introduced.
         # Conditioning should start one generation after T_mut (not at T_mut!),
         # to avoid checking for the mutation before SLiM can introduce it.
         stdpopsim.ext.ConditionOnAlleleFrequency(
@@ -102,8 +100,6 @@ def adaptive_introgression(seed):
             population_id=pop["Den1"],
             op=">",
             allele_frequency=0,
-            # Update save point at start_time (if the condition is met).
-            save=True,
         ),
         # The Den1 lineage has migrants entering the Papaun lineage at T_mig,
         # so condition on AF > 0 in Papuans.
@@ -114,10 +110,6 @@ def adaptive_introgression(seed):
             population_id=pop["Papuan"],
             op=">",
             allele_frequency=0,
-            # Update save point at start_time (if the condition is met).
-            # If the Den1 migrants didn't carry the mutation, we will
-            # instead restore to the previous save point.
-            save=True,
         ),
         # The mutation is positively selected in Papuans at T_sel.
         # Note that this will have no effect, unless/until a mutation with the
