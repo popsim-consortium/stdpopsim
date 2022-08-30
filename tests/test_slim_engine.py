@@ -942,7 +942,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
     def test_slim_simulates_dfes(self):
         contig = get_test_contig()
         # make theta = 40
-        contig.mutation_rate = 10 / (1000 * contig.recombination_map.sequence_length)
+        contig.mutation_rate = 20 / (1000 * contig.recombination_map.sequence_length)
         print(contig.mutation_rate)
         dfes = [
             stdpopsim.DFE(
