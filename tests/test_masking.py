@@ -1,7 +1,6 @@
 """
 Tests for the genetic maps management.
 """
-import os
 import sys
 
 import numpy as np
@@ -14,18 +13,19 @@ IS_WINDOWS = sys.platform.startswith("win")
 
 
 class TestMasking:
-    def test_load_intervals(self):
+    @pytest.mark.usefixtures("tmp_path")
+    def test_load_intervals(self, tmp_path):
         intervals_in = {
             "chr1": [(10, 10000)],
             "chr22": [(100, 1000), (2000, 5000), (6000, 9000)],
         }
-        with open("temp_file.bed", "w+") as fout:
+        bedfile = str(tmp_path / "temp_file.bed")
+        with open(bedfile, "w+") as fout:
             for c, i in intervals_in.items():
                 for (l, r) in i:
                     fout.write(f"{c}\t{l}\t{r}\n")
-        intervals_chr1 = stdpopsim.utils.read_bed("temp_file.bed", "chr1")
-        intervals_chr22 = stdpopsim.utils.read_bed("temp_file.bed", "chr22")
-        os.remove("temp_file.bed")
+        intervals_chr1 = stdpopsim.utils.read_bed(bedfile, "chr1")
+        intervals_chr22 = stdpopsim.utils.read_bed(bedfile, "chr22")
         for interval in intervals_chr1:
             assert tuple(interval) in intervals_in["chr1"]
         for interval in intervals_chr22:
@@ -35,13 +35,13 @@ class TestMasking:
 
     def test_length_interval_invalid(self):
         species = stdpopsim.get_species("HomSap")
-        with pytest.raises(ValueError):
-            contig = species.get_contig(
+        with pytest.raises(ValueError, match="Cannot use length multiplier"):
+            species.get_contig(
                 "chr22", length_multiplier=0.1, inclusion_mask="test.bed"
             )
-            print(contig.recombination_map.get_sequence_length())
 
-    def test_read_bed(self):
+    @pytest.mark.usefixtures("tmp_path")
+    def test_read_bed(self, tmp_path):
         def intervals_to_keep_test_func(mask_fpath, chrom):
             intervals = []
             with open(mask_fpath, "r") as fin:
@@ -52,13 +52,13 @@ class TestMasking:
             return intervals
 
         intervals_in = {"chr1": [(0, 10), (100, 1000), (2000, 5000), (6000, 10000)]}
-        with open("temp_file.bed", "w+") as fout:
+        bedfile = str(tmp_path / "temp_file.bed")
+        with open(bedfile, "w+") as fout:
             for c, i in intervals_in.items():
                 for (l, r) in i:
                     fout.write(f"{c}\t{l}\t{r}\n")
-        intervals_test = intervals_to_keep_test_func("temp_file.bed", "chr1")
-        intervals_utils = stdpopsim.utils.read_bed("temp_file.bed", "chr1")
-        os.remove("temp_file.bed")
+        intervals_test = intervals_to_keep_test_func(bedfile, "chr1")
+        intervals_utils = stdpopsim.utils.read_bed(bedfile, "chr1")
         for i1, i2 in zip(intervals_utils, intervals_test):
             assert i1[0] == i2[0]
             assert i1[1] == i2[1]
@@ -81,20 +81,21 @@ class TestMasking:
                 "chr22", exclusion_mask=[(0, 16.5e6)], inclusion_mask=[(16.5e6, 50e6)]
             )
 
-    def test_read_masks_from_bed(self):
+    @pytest.mark.usefixtures("tmp_path")
+    def test_read_masks_from_bed(self, tmp_path):
         intervals_in = {"chr1": [(0, 10), (100, 1000), (2000, 5000), (6000, 10000)]}
-        with open("temp_file.bed", "w+") as fout:
+        bedfile = str(tmp_path / "temp_file.bed")
+        with open(bedfile, "w+") as fout:
             for c, i in intervals_in.items():
                 for (l, r) in i:
                     fout.write(f"{c}\t{l}\t{r}\n")
         species = stdpopsim.get_species("HomSap")
-        contig = species.get_contig("chr1", inclusion_mask="temp_file.bed")
+        contig = species.get_contig("chr1", inclusion_mask=bedfile)
         assert contig.exclusion_mask is None
         assert len(contig.inclusion_mask) == 4
-        contig = species.get_contig("chr1", exclusion_mask="temp_file.bed")
+        contig = species.get_contig("chr1", exclusion_mask=bedfile)
         assert contig.inclusion_mask is None
         assert contig.exclusion_mask[1][0] == 100
-        os.remove("temp_file.bed")
 
     def test_mask_tree_sequence(self):
         intervals = np.array([[0, 10], [100, 200], [500, 1000]])

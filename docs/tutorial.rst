@@ -337,8 +337,30 @@ To simulate, however, only a small chunk of contig with selection––as in a s
 
 The DFE defined by Gamma_K17 will be incorporated only in positions between 1000 and 100000.
 
+Finally, for the sake of efficiency it might be desirable to simulate a region
+of a chromosome rather than the entire chromosome. Regions are specified via
+``--left`` and ``--right``:
+
+.. code-block:: console
+
+    $ stdpopsim -e slim --slim-scaling-factor 10 HomSap \
+        -c chr22 --dfe Gamma_K17 -o foo.ts -d OutOfAfrica_2T12 \
+        --dfe-interval 200000,300000 --left 150000 --right 350000 2 4
+
+This will simulate a 200 Kb contig that uses the genetic map from coordinates
+150000 to 350000 along `chr22`; with a DFE applied between coordinates 200000
+and 300000. Note that the coordinate system used for ``--dfe-interval`` is that
+of the original chromosome: relative to the **start of the contig**, the DFE
+spans from coordinate 50000 to 150000.
+
 See also the python API to incorporate `selection <https://popsim-consortium.github.io/stdpopsim-docs/latest/tutorial.html#incorporating-selection>`__.
 
+.. warning::
+
+    Simulating a region under selection is **not** the same as simulating a
+    chromosome under selection and clipping to the region. This is because
+    selected mutations outside of the region can influence ancestry within
+    the region, due to linkage.
 
 Debugging output from SLiM
 ==========================
@@ -1177,6 +1199,26 @@ but nonetheless there is lower diversity in exons than outside of them:
     # and outside of exons it is 0.211 differences per Kb.
 
 
+For the sake of efficiency, we might want to simulate a particular region
+rather than the entire annotated chromosome. This can be done by supplying
+`left` and `right` to :meth:`Species.get_contig`. For example, to simulate the
+region of chromosome 20 spanning from 30 Mb to 40 Mb (containing roughly 300
+identified genes):
+
+.. code-block:: python
+
+    contig_region = species.get_contig("chr20", left=30e6, right=40e6)
+    contig_region.add_dfe(intervals=exon_intervals, DFE=dfe)
+
+The annotation (as well as any supplied masks) will be automatically clipped to
+the region of interest.
+
+.. warning::
+
+    Simulating a region under selection is **not** the same as simulating a
+    chromosome under selection and clipping to the region. This is because
+    selected mutations outside of the region can influence ancestry within
+    the region, due to linkage.
 
 .. _sec_tute_selective_sweep:
 

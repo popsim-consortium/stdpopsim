@@ -556,8 +556,22 @@ def add_simulate_species_parser(parser, species):
         "--length-multiplier",
         default=1,
         type=float,
-        help="Simulate a sequence of length l times the named chromosome's length, "
+        help="Simulate a sequence of length l times the named chromosome's length "
         "using the named chromosome's mutation and recombination rates.",
+    )
+    species_parser.add_argument(
+        "--left",
+        default=None,
+        type=float,
+        help="The leftmost coordinate (inclusive) of the contig on the named "
+        "chromosome. Defaults to 0 (the beginning of the chromosome).",
+    )
+    species_parser.add_argument(
+        "--right",
+        default=None,
+        type=float,
+        help="The rightmost coordinate (exclusive) of the contig on the named "
+        "chromosome. Defaults to the length of the chromosome.",
     )
     species_parser.add_argument(
         "-s",
@@ -602,11 +616,11 @@ def add_simulate_species_parser(parser, species):
     )
     interval_help = (
         "Specify the interval where selection (given a DFE) is simulated. "
-        "Anything outside of the interval is simulated as neutral "
+        "Anything outside of the interval is simulated as neutral. "
         "If no interval is specified, "
-        "selection is simulated across the entire region (contig). "
-        "Interval (for now) is writen as 'left,right' (separated by a comma, "
-        "with no space, for instance: --dfe-interval 1000,2000"
+        "selection is simulated across the entire contig. "
+        "The interval is written as 'start,end' (separated by a comma, "
+        "with no space, for instance: --dfe-interval 1000,2000. "
         # say something here about multiple dfes?
     )
     species_parser.add_argument(
@@ -618,7 +632,7 @@ def add_simulate_species_parser(parser, species):
     )
     bed_help = (
         "A bed file specifing the intervals where selection (given a DFE) is simulated. "
-        "Non-overlaping intervals belonging to the same chromosome are required. "
+        "Non-overlapping intervals belonging to the same chromosome are required. "
         "If no interval is specified, "
         "selection is simulated across the entire contig. "
         "See also --dfe-interval and --dfe-annotation."
@@ -709,6 +723,8 @@ def add_simulate_species_parser(parser, species):
             inclusion_mask=args.inclusion_mask,
             exclusion_mask=args.exclusion_mask,
             mutation_rate=model.mutation_rate,
+            left=args.left,
+            right=args.right,
         )
         engine = stdpopsim.get_engine(args.engine)
         logger.info(
@@ -765,9 +781,8 @@ def add_simulate_species_parser(parser, species):
                 intervals_summary_str = f"[{left}, {right})"
             if intervals_summary_str is None:
                 # case where no intervals specified but we have a DFE
-                intervals = np.array(
-                    [[0, int(contig.recombination_map.sequence_length)]]
-                )
+                _, left, right = contig.original_coordinates
+                intervals = np.array([[left, right]])
                 intervals_summary_str = f"[{intervals[0][0]}, {intervals[0][1]})"
 
             dfe = species.get_dfe(args.dfe)
@@ -861,7 +876,9 @@ def write_simulation_summary(
             f"using mutation rate from species contig ({contig.mutation_rate})"
         )
     contig_len = contig.recombination_map.sequence_length
+    contig_origin = contig.origin
     dry_run_text += "Contig Description:\n"
+    dry_run_text += f"{indent}Contig origin: {contig_origin}\n"
     dry_run_text += f"{indent}Contig length: {contig_len}\n"
     dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"
     dry_run_text += f"{indent}Mean mutation rate: {mut_rate}\n"

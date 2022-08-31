@@ -9,6 +9,7 @@ import shutil
 import tarfile
 import contextlib
 import numpy as np
+import warnings
 
 
 def is_valid_demographic_model_id(model_id):
@@ -249,3 +250,21 @@ def mask_intervals(intervals, mask):
             left = max(next_left, next_right)
     out = np.array(out, dtype=intervals.dtype).reshape((len(out), 2))
     return out
+
+
+def clip_and_shift_intervals(intervals, left, right):
+    """
+    Intersect each interval in ``intervals`` with ``[left, right]``.
+    ``intervals`` should be a numpy array with two columns that are the
+    beginning and end coordinates, respectively. The coordinates are then
+    shifted such that ``left`` becomes 0.
+    """
+    assert 0 <= left < right
+    intervals = np.array(intervals).astype(int)
+    _check_intervals_validity(intervals)
+    out_of_bounds = np.logical_or(intervals[:, 1] <= left, intervals[:, 0] >= right)
+    intervals = np.clip(intervals[~out_of_bounds], left, right)
+    if intervals.shape[0] == 0:
+        warnings.warn(f"No intervals remain after clipping to [{left}, {right}]")
+    intervals -= left
+    return intervals

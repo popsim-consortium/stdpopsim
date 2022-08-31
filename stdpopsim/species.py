@@ -175,6 +175,8 @@ class Species:
         gene_conversion_length=None,
         inclusion_mask=None,
         exclusion_mask=None,
+        left=None,
+        right=None,
     ):
         """
         Returns a :class:`.Contig` instance describing a section of genome that
@@ -223,6 +225,12 @@ class Species:
             length of genome sequence for this contig. For a generic contig, mutation
             and recombination rates are equal to the genome-wide average across all
             autosomal chromosomes.
+        :param float left: The left coordinate (inclusive) of the region to
+            keep on the chromosome. Defaults to 0.  Genetic maps and masks are
+            clipped to this boundary.
+        :param float right: The right coordinate (exclusive) of the region to
+            keep on the chromosome. Defaults to the length of the chromosome.
+            Genetic maps and masks are clipped to this boundary.
         :rtype: :class:`.Contig`
         :return: A :class:`.Contig` describing the section of the genome.
         """
@@ -238,6 +246,8 @@ class Species:
             gene_conversion_length=gene_conversion_length,
             inclusion_mask=inclusion_mask,
             exclusion_mask=exclusion_mask,
+            left=left,
+            right=right,
         )
 
     def get_demographic_model(self, id):
