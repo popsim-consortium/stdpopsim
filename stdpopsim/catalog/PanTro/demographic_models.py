@@ -22,11 +22,11 @@ def _bonobo_ghost():
     description = "Ghost admixture into bonobos"
     long_description = """
         Demographic model of ghost admixture into bonobos from
-        Kuhlwilm et al. (2019) Supplementary Table S2.2 column I
-        and Table S3. This model simulates four populations:
+        Kuhlwilm et al. (2019) Supplementary Table S3 row 7.
+        This model simulates four populations:
         western chimpanzees, central chimpanzees, bonobos,
         and a extinct ghost lineage. The ghost admixture event is
-        modelled as a 2% pulse from the ghost lineage to bonobos.
+        modelled as a 1.7% pulse from the ghost lineage to bonobos.
         Migration events among western chimpanzees, central chimpanzees,
         and bonobos are modelled as single generation pulses.
         Populatio size changes are also modelled.
@@ -49,35 +49,37 @@ def _bonobo_ghost():
     generation_time = 25
     mutation_rate = 1.2e-8
 
-    N_western = 9200
-    N_central = 65900
-    N_bonobo = 29100
+    N_western = 10100
+    N_central = 73000
+    N_bonobo = 33500
     N_ghost = 10000
 
-    N_anc_western = 8000
-    N_anc_central = 24900
-    N_anc_bonobo = 3700
-    N_anc_chimp = 10200
-    N_anc_chimp_bonobo = 11600
+    N_anc_western = 11000
+    N_anc_central = 103100
+    N_anc_bonobo1 = 3900
+    N_anc_bonobo2 = 11100
+    N_anc_chimp = 10100
+    N_anc_chimp_bonobo = 14200
     N_anc = 10000
 
-    m_western_central = 0.015
-    m_central_western = 0.005
-    m_bonobo_central = 0.001
-    m_central_bonobo = 0.00125
-    m_bonobo_ghost = 0.02
+    m_western_central = 0.014375
+    m_central_western = 0.022425
+    m_bonobo_central = 0.005425
+    m_central_bonobo = 0.003625
+    m_bonobo_ghost = 0.017
     m_bonobo_anc_chimp = 1e-7
 
-    T_ghost_split = 3500 * 1000 / generation_time
+    T_ghost_split = 3301 * 1000 / generation_time
     T_bonobo_split = 1990 * 1000 / generation_time
     T_bonobo_anc_chimp_migration_start = 1500 * 1000 / generation_time
     T_bonobo_anc_chimp_migration_stop = 1200 * 1000 / generation_time
     T_western_split = 700 * 1000 / generation_time
     T_bonobo_ghost_admixture = 500 * 1000 / generation_time
     T_bonobo_central_admixture = 155.05 * 1000 / generation_time
-    T_western_central_admixture = 100.1 * 1000 / generation_time
-    T_bonobo_resize = 308 * 1000 / generation_time
-    T_central_resize = 379 * 1000 / generation_time
+    T_western_central_admixture = 100.075 * 1000 / generation_time
+    T_bonobo_resize1 = 308 * 1000 / generation_time
+    T_bonobo_resize2 = 1987.5 * 1000 / generation_time
+    T_central_resize = 378 * 1000 / generation_time
     T_western_resize = 261 * 1000 / generation_time
 
     population_configurations = [
@@ -132,8 +134,8 @@ def _bonobo_ghost():
             population_id=0,
         ),
         msprime.PopulationParametersChange(
-            time=T_bonobo_resize,
-            initial_size=N_anc_bonobo,
+            time=T_bonobo_resize1,
+            initial_size=N_anc_bonobo1,
             growth_rate=0.0,
             population_id=2,
         ),
@@ -180,6 +182,12 @@ def _bonobo_ghost():
             time=T_bonobo_anc_chimp_migration_start,
             rate=0,
             matrix_index=(2, 1),
+        ),
+        msprime.PopulationParametersChange(
+            time=T_bonobo_resize2,
+            initial_size=N_anc_bonobo2,
+            growth_rate=0.0,
+            population_id=1,
         ),
         msprime.MassMigration(
             time=T_bonobo_split,
