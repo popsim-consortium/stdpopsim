@@ -187,7 +187,7 @@ def _bonobo_ghost():
             time=T_bonobo_resize2,
             initial_size=N_anc_bonobo2,
             growth_rate=0.0,
-            population_id=1,
+            population_id=2,
         ),
         msprime.MassMigration(
             time=T_bonobo_split,
