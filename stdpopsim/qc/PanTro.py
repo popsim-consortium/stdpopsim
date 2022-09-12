@@ -91,12 +91,6 @@ def KuhlwilmPan():
             initial_size=Ne_ghost, metadata=populations[3].asdict()
           ),
         ],
-        migration_matrix=[
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-            [0, 0, 0, 0],
-        ],
         demographic_events=[
             msprime.MassMigration(
                 time=T_chimp_ex,
