@@ -230,7 +230,7 @@ def KuhlwilmPan():
                 growth_rate=0.0,
                 population_id=1,
             ),
-          ],
+         ],
     )
 
 
