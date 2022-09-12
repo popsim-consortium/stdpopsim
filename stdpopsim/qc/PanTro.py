@@ -113,12 +113,12 @@ def KuhlwilmPan():
             msprime.MigrationRateChange(
                 time=T_chimp_ex_stop,
                 rate=0,
-                matrix_index=(1, 2),
+                matrix_index=(0, 1),
             ),
             msprime.MigrationRateChange(
                 time=T_chimp_ex_stop,
                 rate=0,
-                matrix_index=(2, 1),
+                matrix_index=(1, 0),
             ),
 
             msprime.MassMigration(
@@ -136,12 +136,12 @@ def KuhlwilmPan():
             msprime.MigrationRateChange(
                 time=T_bon_ex_stop,
                 rate=0,
-                matrix_index=(3, 2),
+                matrix_index=(2, 1),
             ),
             msprime.MigrationRateChange(
                 time=T_bon_ex_stop,
                 rate=0,
-                matrix_index=(2, 3),
+                matrix_index=(1, 2),
             ),
             msprime.PopulationParametersChange(
                 time=T_west_re,
@@ -170,7 +170,7 @@ def KuhlwilmPan():
             msprime.MigrationRateChange(
                 time=T_ghost_ex_stop,
                 rate=0,
-                matrix_index=(4, 3),
+                matrix_index=(3, 2),
             ),
             msprime.MassMigration(
                 time=T_ChimpAnc,
@@ -199,12 +199,12 @@ def KuhlwilmPan():
             msprime.MigrationRateChange(
                 time=T_Anc_ex_stop,
                 rate=0,
-                matrix_index=(3, 2),
+                matrix_index=(2, 1),
             ),
             msprime.MigrationRateChange(
                 time=T_Anc_ex_stop,
                 rate=0,
-                matrix_index=(2, 3),
+                matrix_index=(1, 2),
             ),
             msprime.PopulationParametersChange(
                 time=T_BonAnc_re,
