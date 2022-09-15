@@ -122,8 +122,10 @@ class GeneticMap:
             rates = np.append(recomb_map.rate, 0)
             recomb_map = msprime.RateMap(position=positions, rate=rates)
         elif map_length > chrom.length:
+            # TODO: consider making this an error, and deprecating genetic maps
+            # that do not match the assembly.
             warnings.warn(
                 f"Recombination map has length {map_length}, which is longer than"
-                f" chromosome length {chrom.length}. The former will be used."
+                f" chromosome length {chrom.length}. The latter will be used."
             )
         return recomb_map

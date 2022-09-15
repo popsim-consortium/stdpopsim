@@ -22,3 +22,7 @@ class SLiMOddSampleWarning(UserWarning):
 
 class UnspecifiedSLiMWarning(UserWarning):
     pass
+
+
+class EmptyIntervalsWarning(UserWarning):
+    pass

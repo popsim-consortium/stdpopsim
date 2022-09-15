@@ -303,6 +303,7 @@ class TestGetContig:
         with pytest.raises(ValueError, match="without setting gene conversion rate"):
             # cannot specify custom gene conversion length without gene conversion rate
             self.species.get_contig("chr1", gene_conversion_length=1)
+        # TODO: invalid interval
 
     def test_use_species_gene_conversion(self):
         contig = self.species.get_contig("chr22", use_species_gene_conversion=True)
@@ -355,3 +356,4 @@ class TestGetContig:
         else:
             assert contig.gene_conversion_rate == np.average(gcs, weights=Ls)
             assert contig.gene_conversion_length == np.average(gcls, weights=Ls)
+        # TODO: origin
