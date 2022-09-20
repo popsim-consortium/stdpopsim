@@ -22,6 +22,12 @@ _blattner_et_al = stdpopsim.Citation(
     doi="https://doi.org/10.1126/science.277.5331.1453",
 )
 
+_didelot_et_al = stdpopsim.Citation(
+    author="Didelot et al.",
+    year=2012,
+    doi="https://doi.org/10.1186/1471-2164-13-256",
+)
+
 _chromosomes = []
 for name, data in genome_data.data["chromosomes"].items():
     _chromosomes.append(
@@ -33,12 +39,9 @@ for name, data in genome_data.data["chromosomes"].items():
             # from synonymous substitutions over 40,000 generations.
             mutation_rate=8.9e-11,
             recombination_rate=8.9e-11,
-            gene_conversion_length=345,
+            gene_conversion_length=542,
         )
     )
-
-# mean_conversion_rate=8.9e-11 # not implemented yet!
-# mean_conversion_length=542 # not implemented yet!
 
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
@@ -46,8 +49,11 @@ _genome = stdpopsim.Genome(
     assembly_name=genome_data.data["assembly_name"],
     assembly_accession=genome_data.data["assembly_accession"],
     citations=[
-        _wielgoss_et_al.because(stdpopsim.CiteReason.MUT_RATE),
+        _wielgoss_et_al.because(
+            {stdpopsim.CiteReason.MUT_RATE, stdpopsim.CiteReason.GENE_CONVERSION}
+        ),
         _blattner_et_al.because(stdpopsim.CiteReason.ASSEMBLY),
+        _didelot_et_al.because(stdpopsim.CiteReason.GENE_CONVERSION),
     ],
 )
 stdpopsim.utils.append_common_synonyms(_genome)
