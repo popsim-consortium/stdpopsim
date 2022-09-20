@@ -143,3 +143,13 @@ class TestBehaviour:
         contig.add_dfe(intervals=np.array([[0, 50]]), DFE=dfes[0])
         engine = stdpopsim.get_engine("msprime")
         engine.simulate(model, contig, samples, seed=1)
+
+    def test_gene_conversion(self):
+        species = stdpopsim.get_species("DroMel")
+        model = species.get_demographic_model("African3Epoch_1S16")
+        samples = model.get_samples(10)
+        contig = species.get_contig(length=1000, use_species_gene_conversion=True)
+        assert contig.gene_conversion_fraction > 0
+        assert contig.gene_conversion_length > 0
+        engine = stdpopsim.get_engine("msprime")
+        engine.simulate(model, contig, samples, seed=1)

@@ -572,6 +572,31 @@ class SpeciesCatalogDirective(SphinxDirective):
         # genomes:
         genome_section = nodes.section(ids=[f"sec_catalog_{species.id}_genome"])
         genome_section += nodes.title(text="Genome")
+        if species.genome.bacterial_recombination is True:
+            genome_section += self.make_field_list(
+                [
+                    (
+                        "Bacterial recombination with tract length range",
+                        species.genome.range_gene_conversion_lengths,
+                        None,
+                    )
+                ]
+            )
+        elif species.genome.mean_gene_conversion_fraction > 0:
+            genome_section += self.make_field_list(
+                [
+                    (
+                        "Mean gene conversion fraction",
+                        species.genome.mean_gene_conversion_fraction,
+                        None,
+                    ),
+                    (
+                        "Range gene conversion lengths",
+                        species.genome.range_gene_conversion_lengths,
+                        None,
+                    ),
+                ]
+            )
         genome_section += self.chromosomes_table(species)
         genome_section += nodes.paragraph(
             text="Mutation and recombination rates "

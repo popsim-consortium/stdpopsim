@@ -21,9 +21,13 @@ class Genome:
 
     :ivar chromosomes: A list of :class:`.Chromosome` objects.
     :vartype chromosomes: list
+    :ivar bacterial_recombination: Whether recombination is via horizontal gene
+        transfer (if this is True) or via crossover and possibly gene
+        conversion (if this is False). Default: False.
+    :vartype bacterial_recombination: bool
     :ivar citations: A list of :class:`.Citation` objects
         providing the source for the genome assembly,
-        mutation rate, recombination rate, and gene conversion rate estimates.
+        mutation rate, recombination rate, and gene conversion estimates.
     :vartype citations: list
     :ivar length: The total length of the genome.
     :vartype length: int
@@ -34,10 +38,20 @@ class Genome:
     chromosomes = attr.ib(factory=list)
     assembly_name = attr.ib(default=None, kw_only=True)
     assembly_accession = attr.ib(default=None, kw_only=True)
+    bacterial_recombination = attr.ib(type=bool, default=False, kw_only=True)
     citations = attr.ib(factory=list, kw_only=True)
 
     @staticmethod
-    def from_data(genome_data, *, recombination_rate, mutation_rate, citations):
+    def from_data(
+        genome_data,
+        *,
+        recombination_rate,
+        mutation_rate,
+        citations,
+        bacterial_recombination=False,
+        gene_conversion_fraction=None,
+        gene_conversion_length=None,
+    ):
         """
         Construct a Genome object from the specified dictionary of
         genome information from Ensembl, recombination_rate and
@@ -48,6 +62,12 @@ class Genome:
         chr_names = set(genome_data["chromosomes"].keys())
         assert set(recombination_rate.keys()) == chr_names
         assert set(mutation_rate.keys()) == chr_names
+        if gene_conversion_fraction is None:
+            gene_conversion_fraction = {k: None for k in chr_names}
+        assert set(gene_conversion_fraction.keys()) == chr_names
+        if gene_conversion_length is None:
+            gene_conversion_length = {k: None for k in chr_names}
+        assert set(gene_conversion_length.keys()) == chr_names
         chromosomes = []
         for name, data in genome_data["chromosomes"].items():
             chromosomes.append(
@@ -57,12 +77,15 @@ class Genome:
                     synonyms=data["synonyms"],
                     mutation_rate=mutation_rate[name],
                     recombination_rate=recombination_rate[name],
+                    gene_conversion_fraction=gene_conversion_fraction[name],
+                    gene_conversion_length=gene_conversion_length[name],
                 )
             )
         return Genome(
             chromosomes=chromosomes,
             assembly_name=genome_data["assembly_name"],
             assembly_accession=genome_data["assembly_accession"],
+            bacterial_recombination=bacterial_recombination,
             citations=citations,
         )
 
@@ -94,21 +117,25 @@ class Genome:
         raise ValueError("Chromosome not found")
 
     @property
-    def mean_gene_conversion_rate(self):
+    def mean_gene_conversion_fraction(self):
         """
-        The length-weighted mean gene conversion rate across all chromosomes.
+        The genetic length-weighted mean gene conversion fraction across all
+        chromosomes.
         """
-        length = self.length
-        mean_gene_conversion_rate = 0
-        for chrom in self.chromosomes:
-            normalized_weight = chrom.length / length
-            if chrom.gene_conversion_rate is None:
-                rate = 0.0
-            else:
-                rate = chrom.gene_conversion_rate
-            cont = rate * normalized_weight
-            mean_gene_conversion_rate += cont
-        return mean_gene_conversion_rate
+        if self.bacterial_recombination is True:
+            return 0.0
+        else:
+            total_length = 0
+            total_gc_fraction = 0
+            for chrom in self.chromosomes:
+                length = chrom.length * chrom.recombination_rate
+                total_length += length
+                if chrom.gene_conversion_fraction is None:
+                    frac = 0.0
+                else:
+                    frac = chrom.gene_conversion_fraction
+                total_gc_fraction += frac * length
+            return total_gc_fraction / total_length
 
     @property
     def range_gene_conversion_lengths(self):
@@ -125,6 +152,7 @@ class Genome:
     def mean_recombination_rate(self):
         """
         The length-weighted mean recombination rate across all chromosomes.
+        (Note that this is the rate of crossovers, not all double-stranded breaks.)
         """
         length = self.length
         mean_recombination_rate = 0
@@ -151,15 +179,18 @@ class Genome:
 @attr.s
 class Chromosome:
     """
-    Class representing a single chromosome for a species.
+    Class representing a single chromosome for a species. Note that although
+    the recombination rate for a Chromosome is the rate of crossovers,
+    the recombination map for a Contig gives the rate of both crossovers
+    and gene conversion, so will differ if the gene conversion fraction is nonzero.
 
     :ivar str ~.id: The string identifier for the chromosome.
     :ivar int length: The length of the chromosome.
     :ivar float mutation_rate: The mutation rate used when simulating this
         chromosome.
-    :ivar float recombination_rate: The recombination rate used when simulating
+    :ivar float recombination_rate: The rate of crossovers used when simulating
         this chromosome (if not using a genetic map).
-    :ivar float gene_conversion_rate: The gene conversion rate used when
+    :ivar float gene_conversion_fraction: The gene conversion fraction used when
         simulating this chromosome.
     :ivar float gene_conversion_length: The mean tract length of gene
         conversion events used when simulating this chromosome.
@@ -171,7 +202,7 @@ class Chromosome:
     id = attr.ib(type=str, kw_only=True)
     length = attr.ib(kw_only=True)
     recombination_rate = attr.ib(type=float, kw_only=True)
-    gene_conversion_rate = attr.ib(default=None, type=float, kw_only=True)
+    gene_conversion_fraction = attr.ib(default=None, type=float, kw_only=True)
     gene_conversion_length = attr.ib(default=None, type=float, kw_only=True)
     mutation_rate = attr.ib(type=float, kw_only=True)
     synonyms = attr.ib(factory=list, kw_only=True)
@@ -194,14 +225,27 @@ class Contig:
 
     :ivar mutation_rate: The rate of mutation per base per generation.
     :vartype mutation_rate: float
-    :ivar gene_conversion_rate: The rate of gene conversion initiation per base per
-        generation.
-    :vartype gene_conversion_rate: float
-    :ivar gene_conversion_length: The mean tract length of gene conversions.
-    :vartype gene_conversion_length: float
-    :ivar recombination_map: The recombination map for the region. See the
-        :class:`msprime.RateMap` for details.
+    :ivar recombination_map: The recombination map for the region, that gives
+        the rates of double-stranded breaks. Note that if gene conversion
+        fraction is nonzero, then this map can have a larger rate than the
+        corresponding chromosome's recombination rate, since the chromosome's
+        rate describes only crossovers. A :class:`msprime.RateMap` object.
     :vartype recombination_map: msprime.RateMap
+    :ivar bacterial_recombination: Whether the model of recombination is
+        by horizontal gene transfer or not (default is False, i.e.,
+        recombination is by crossovers and possibly gene conversion).
+    :ivar gene_conversion_fraction: The fraction of recombinations that resolve
+        as gene conversion events. The recombination map gives the rates of
+        *both* crossovers and gene conversions, with a fraction of gene
+        conversions given by this value. Defaults to None, i.e., no gene
+        conversion. Must be None or between 0 and 1. Must be None if
+        bacterial_recombination is True.
+    :vartype gene_conversion_fraction: float
+    :ivar gene_conversion_length: The mean tract length of gene conversions (if
+        bacterial_recombination is False), or horizontally tranferred segments (if
+        it is True). Must be present, and above 1 if either gene_conversion_fraction
+        is given or bacterial_recombination is True.
+    :vartype gene_conversion_length: float
     :ivar mask_intervals: Intervals to keep in simulated tree sequence, as a list
         of (left_position, right_position), such that intervals are non-overlapping
         and in ascending order. Should have shape Nx2, where N is the number of
@@ -223,10 +267,11 @@ class Contig:
     :vartype original_coordinates: tuple
 
     .. note::
-        To run stdpopsim simulations with alternative, user-specified mutation
-        or recombination rates, a new contig can be created based on an existing
-        one. For instance, the following will create a ``new_contig`` that,
-        when simulated, will have double the mutation rate of the ``old_contig``:
+        To run stdpopsim simulations with alternative, user-specified mutation,
+        recombination, or gene conversion rates, a new contig can be created
+        based on an existing one. For instance, the following will create a
+        ``new_contig`` that, when simulated, will have double the mutation rate
+        of the ``old_contig``:
 
         .. code-block:: python
 
@@ -239,7 +284,8 @@ class Contig:
 
     recombination_map = attr.ib()
     mutation_rate = attr.ib(type=float)
-    gene_conversion_rate = attr.ib(default=None, type=float, kw_only=True)
+    bacterial_recombination = attr.ib(default=False, type=bool, kw_only=True)
+    gene_conversion_fraction = attr.ib(default=None, type=float, kw_only=True)
     gene_conversion_length = attr.ib(default=None, type=float, kw_only=True)
     genetic_map = attr.ib(default=None)
     inclusion_mask = attr.ib(default=None)
@@ -263,14 +309,45 @@ class Contig:
         length,
         mutation_rate=0,
         recombination_rate=0,
-        gene_conversion_rate=None,
+        bacterial_recombination=False,
+        gene_conversion_fraction=None,
         gene_conversion_length=None,
     ):
+        if bacterial_recombination:
+            if gene_conversion_fraction is not None:
+                raise ValueError(
+                    "Cannot set gene conversion fraction for bacterial recombination."
+                )
+            if gene_conversion_length is None:
+                raise ValueError(
+                    "Must set gene conversion length for bacterial recombination."
+                )
+        else:
+            if gene_conversion_fraction is not None:
+                if gene_conversion_length is None:
+                    raise ValueError(
+                        "Cannot set gene conversion fraction without setting "
+                        "gene conversion length"
+                    )
+            if gene_conversion_length is not None:
+                if gene_conversion_fraction is None:
+                    raise ValueError(
+                        "Cannot set gene conversion length without setting "
+                        "gene conversion fraction"
+                    )
+        if (gene_conversion_fraction is not None) and (
+            gene_conversion_fraction < 0 or gene_conversion_fraction > 1
+        ):
+            raise ValueError("Gene conversion fraction must be between 0 and 1.")
+        if (gene_conversion_length is not None) and (gene_conversion_length < 1):
+            # values of even 0 are OK for SLiM but not msprime
+            raise ValueError("Gene conversion length must be greater than 1.")
         recomb_map = msprime.RateMap.uniform(length, recombination_rate)
         return Contig(
             recombination_map=recomb_map,
             mutation_rate=mutation_rate,
-            gene_conversion_rate=gene_conversion_rate,
+            bacterial_recombination=bacterial_recombination,
+            gene_conversion_fraction=gene_conversion_fraction,
             gene_conversion_length=gene_conversion_length,
         )
 
@@ -284,8 +361,6 @@ class Contig:
         length=None,
         mutation_rate=None,
         use_species_gene_conversion=False,
-        gene_conversion_rate=None,
-        gene_conversion_length=None,
         inclusion_mask=None,
         exclusion_mask=None,
         left=None,
@@ -304,24 +379,15 @@ class Contig:
                     "https://github.com/popsim-consortium/stdpopsim/issues/406"
                 )
             )
-        if use_species_gene_conversion is True:
-            if gene_conversion_rate is not None or gene_conversion_length is not None:
-                raise ValueError(
-                    "Cannot use species gene conversion rates "
-                    "and set gene conversion rate or length"
-                )
-        if gene_conversion_rate is not None:
-            if gene_conversion_length is None:
-                raise ValueError(
-                    "Cannot set gene conversion rate without setting "
-                    "gene conversion length"
-                )
-        if gene_conversion_length is not None:
-            if gene_conversion_rate is None:
-                raise ValueError(
-                    "Cannot set gene conversion length without setting "
-                    "gene conversion rate"
-                )
+        if (
+            species.genome.bacterial_recombination is True
+            and use_species_gene_conversion is True
+        ):
+            raise ValueError(
+                "Cannot use species gene conversion with bacterial recombination."
+            )
+        gene_conversion_fraction = None
+        gene_conversion_length = None
         if chromosome is None:
             if left is not None or right is not None:
                 raise ValueError(
@@ -338,34 +404,45 @@ class Contig:
             L_tot = 0
             r_tot = 0
             u_tot = 0
-            gc_tot = 0
+            gcf_tot = 0
             gcl_tot = 0
             for chrom_data in species.genome.chromosomes:
                 if chrom_data.id.lower() not in non_autosomal_lower:
                     L_tot += chrom_data.length
                     r_tot += chrom_data.length * chrom_data.recombination_rate
                     u_tot += chrom_data.length * chrom_data.mutation_rate
-                    if chrom_data.gene_conversion_rate is None:
-                        local_gc_rate = 0
-                    else:
-                        local_gc_rate = chrom_data.gene_conversion_rate
-                        gcl_tot += chrom_data.length * chrom_data.gene_conversion_length
-                    gc_tot += chrom_data.length * local_gc_rate
+                    if chrom_data.gene_conversion_fraction is not None:
+                        gcf_tot += (
+                            chrom_data.length
+                            * chrom_data.recombination_rate
+                            * chrom_data.gene_conversion_fraction
+                        )
+                    if chrom_data.gene_conversion_length is not None:
+                        gcl_tot += (
+                            chrom_data.length
+                            * chrom_data.recombination_rate
+                            * chrom_data.gene_conversion_length
+                        )
             if mutation_rate is None:
                 mutation_rate = u_tot / L_tot
             r = r_tot / L_tot
             if use_species_gene_conversion is True:
-                if gc_tot > 0 and gcl_tot > 0:
-                    gene_conversion_rate = gc_tot / L_tot
-                    gene_conversion_length = gcl_tot / L_tot
+                if gcf_tot > 0:
+                    gene_conversion_fraction = gcf_tot / r_tot
+                    gene_conversion_length = gcl_tot / r_tot
+                    r /= 1 - gene_conversion_fraction
+            if species.genome.bacterial_recombination is True:
+                gene_conversion_length = gcl_tot / r_tot
             contig = Contig.basic_contig(
                 length=length,
                 mutation_rate=mutation_rate,
                 recombination_rate=r,
-                gene_conversion_rate=gene_conversion_rate,
+                bacterial_recombination=species.genome.bacterial_recombination,
+                gene_conversion_fraction=gene_conversion_fraction,
                 gene_conversion_length=gene_conversion_length,
             )
         else:
+            # Named contig:
             if length is not None:
                 raise ValueError("Cannot specify sequence length for named contig")
             if inclusion_mask is not None and exclusion_mask is not None:
@@ -447,15 +524,27 @@ class Contig:
             if mutation_rate is None:
                 mutation_rate = chrom.mutation_rate
 
-            if use_species_gene_conversion is True:
-                gene_conversion_rate = chrom.gene_conversion_rate
+            if species.genome.bacterial_recombination is True:
                 gene_conversion_length = chrom.gene_conversion_length
+
+            if use_species_gene_conversion is True:
+                gene_conversion_fraction = chrom.gene_conversion_fraction
+                gene_conversion_length = chrom.gene_conversion_length
+                if (
+                    gene_conversion_fraction is not None
+                    and gene_conversion_fraction > 0
+                ):
+                    recomb_map = msprime.RateMap(
+                        position=recomb_map.position,
+                        rate=recomb_map.rate / (1 - gene_conversion_fraction),
+                    )
 
             contig = stdpopsim.Contig(
                 recombination_map=recomb_map,
                 mutation_rate=mutation_rate,
                 genetic_map=gm,
-                gene_conversion_rate=gene_conversion_rate,
+                bacterial_recombination=species.genome.bacterial_recombination,
+                gene_conversion_fraction=gene_conversion_fraction,
                 gene_conversion_length=gene_conversion_length,
                 inclusion_mask=inclusion_intervals,
                 exclusion_mask=exclusion_intervals,
@@ -694,14 +783,16 @@ class Contig:
         gmap = "None" if self.genetic_map is None else self.genetic_map.id
         s = (
             "Contig(length={:.2G}, recombination_rate={:.2G}, "
-            "mutation_rate={:.2G}, gene_conversion_rate={}, "
-            "gene_conversion_length{}, genetic_map={}, origin={}, "
-            "dfe_list={}, interval_list={})"
+            "mutation_rate={:.2G}, bacterial_recombination={}, "
+            "gene_conversion_fraction={}, gene_conversion_length={}, "
+            "genetic_map={}, origin={}, dfe_list={}, "
+            "interval_list={})"
         ).format(
             self.length,
             self.recombination_map.mean_rate,
             self.mutation_rate,
-            self.gene_conversion_rate,
+            self.bacterial_recombination,
+            self.gene_conversion_fraction,
             self.gene_conversion_length,
             gmap,
             self.origin,

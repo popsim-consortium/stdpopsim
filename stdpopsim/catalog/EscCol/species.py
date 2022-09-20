@@ -32,8 +32,7 @@ for name, data in genome_data.data["chromosomes"].items():
             # Wielgoss et al. (2011) calculated for strain REL606,
             # from synonymous substitutions over 40,000 generations.
             mutation_rate=8.9e-11,
-            recombination_rate=0.0,
-            gene_conversion_rate=8.9e-11,
+            recombination_rate=8.9e-11,
             gene_conversion_length=345,
         )
     )
@@ -43,6 +42,7 @@ for name, data in genome_data.data["chromosomes"].items():
 
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
+    bacterial_recombination=True,
     assembly_name=genome_data.data["assembly_name"],
     assembly_accession=genome_data.data["assembly_accession"],
     citations=[

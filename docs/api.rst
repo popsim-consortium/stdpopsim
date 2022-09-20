@@ -78,6 +78,73 @@ Demographic Models
 .. autoclass:: stdpopsim.Population()
     :members:
 
+
+.. _sec_api_gene_conversion:
+
+*******************************************
+Gene conversion and bacterial recombination
+*******************************************
+
+Some species have estimates of the process of gene conversion.
+However, by default gene conversion does *not* happen, because
+(unfortunately) it can make simulations take much longer,
+and result in much bigger files.
+This is because the rate of gene conversion is usually much higher than
+the rate of crossing-over, so enabling gene conversion effectively
+increases the rate of recombination, which can have a strong effect on runtimes.
+To enable gene conversion for a species that has estimates,
+pass the `use_species_gene_conversion=True` argument to
+:meth:`Engine.simulate`.
+
+Gene conversion attributes are visible through the `gene_conversion_fraction`
+and `gene_conversion_length` properties of the species' `genome`.
+The "gene conversion fraction" gives the (average) fraction of
+double-stranded breaks that resolve as gene conversion
+(a.k.a non-crossover) events,
+and the "gene conversion length" is the mean length of the gene conversion tracts.
+So, if the rate of crossing over (which is often referred to as
+"recombination rate") is `r` and the gene conversion fraction is `f`,
+then the *total* rate of double-stranded breaks is `r / (1-f)`,
+and the gene conversion rate is `r * f / (1-f)`.
+
+A consequence of this is that
+the `recombination_map` attribute of a :class:`Contig` is the rate of
+double-stranded break initiation, not the rate of crossovers. The terminology
+conflicts somewhat with the `recombination_rate` property of
+a :class:`Chromosome`, which specifies the rate of crossovers. So, creating
+a contig with `use_species_gene_conversion=True` will result in a Contig
+with larger "recombination rates" than otherwise, because these rates
+include gene conversion as well as crossing over:
+
+.. code-block:: python
+
+    species = stdpopsim.get_species("DroMel")
+    contig = species.get_contig("2L")
+    contig.recombination_map.mean_rate
+    # 2.40462600791e-08
+    contig = species.get_contig("2L", use_species_gene_conversion=True)
+    contig.recombination_map.mean_rate
+    # 1.414485887005882e-07
+
+
+Different engines implement gene conversion in different ways: at the time
+of writing, msprime only allows a *constant* rate of gene conversion,
+while SLiM only allows gene conversion to be a fixed fraction of double-stranded
+break events. So, in SLiM we use the recombination map for the local
+rate of double-stranded breaks along the genome, while in msprime
+we specify a constant rate of gene conversion so that the average total number
+is the same as we would get from SLiM.
+
+In principle, **bacterial recombination** is a completely different issue,
+since bacterial recombination is by horizontal transfer of genomic segments.
+However, bacterial recombination is at present implemented using the engine's
+gene conversion mechanisms. So, bacterial species have the `bacterial_recombination`
+flag set, and need `gene_conversion_length` to be defined. (It could also be called horizontal
+transfer or homologous recombination segment length, but that would add another
+option.) For such species, gene conversion does not happen, so `gene_conversion_fraction`
+must not be set, and the "recombination rate" is the rate of bacterial recombination.
+
+
 .. _sec_api_dfes:
 
 ******************

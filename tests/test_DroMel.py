@@ -29,8 +29,10 @@ class TestGenome(test_species.GenomeTestBase):
     def test_non_recombining_chrs(self, chr_id):
         chrom = self.genome.get_chromosome(chr_id)
         assert chrom.recombination_rate == 0
+        assert chrom.gene_conversion_fraction == 0
 
     @pytest.mark.parametrize("chr_id", ["2L", "2R", "3L", "3R", "X"])
     def test_recombining_chrs(self, chr_id):
         chrom = self.genome.get_chromosome(chr_id)
         assert chrom.recombination_rate > 0
+        assert chrom.gene_conversion_fraction > 0

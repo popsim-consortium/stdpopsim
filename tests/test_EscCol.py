@@ -1,5 +1,5 @@
 """
-Tests for the e. coli data definitions.
+Tests for the EscCol data definitions.
 """
 import stdpopsim
 from tests import test_species
@@ -19,7 +19,7 @@ class TestSpecies(test_species.SpeciesTestBase):
 
 class TestGenome(test_species.GenomeTestBase):
     """
-    Tests for the e_coli genome.
+    Tests for the EscCol genome.
     """
 
     genome = stdpopsim.get_species("EscCol").genome
@@ -30,8 +30,11 @@ class TestGenome(test_species.GenomeTestBase):
     def test_mutation_rate(self):
         assert self.genome.get_chromosome("Chromosome").mutation_rate == 8.9e-11
 
-    def test_gene_conversion_rate(self):
-        assert self.genome.get_chromosome("Chromosome").gene_conversion_rate == 8.9e-11
+    def test_recombination_rate(self):
+        assert self.genome.get_chromosome("Chromosome").recombination_rate == 8.9e-11
 
     def test_gene_conversion_length(self):
         assert self.genome.get_chromosome("Chromosome").gene_conversion_length == 345
+
+    def test_bacterial_recombination(self):
+        assert self.genome.bacterial_recombination is True

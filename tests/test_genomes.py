@@ -3,7 +3,7 @@ Tests for classes that hold information about genomic region to be simulated.
 """
 import numpy as np
 import pytest
-import copy
+import msprime
 import stdpopsim
 
 
@@ -28,8 +28,53 @@ class TestContig(object):
 
     def test_default_gc(self):
         contig = stdpopsim.Contig.basic_contig(length=42)
-        assert contig.gene_conversion_rate is None
+        assert contig.gene_conversion_fraction is None
         assert contig.gene_conversion_length is None
+        assert contig.bacterial_recombination is False
+
+    def test_gc_errors(self):
+        # should not error
+        contig = stdpopsim.Contig.basic_contig(
+            length=100, bacterial_recombination=True, gene_conversion_length=14
+        )
+        assert contig.bacterial_recombination is True
+        contig = stdpopsim.Contig.basic_contig(
+            length=100, gene_conversion_fraction=1.0, gene_conversion_length=14
+        )
+        assert contig.gene_conversion_fraction == 1.0
+        assert contig.gene_conversion_length == 14
+        # can't set gc fraction for bacterial recomb
+        with pytest.raises(ValueError, match="Cannot set.*bacterial recomb"):
+            _ = stdpopsim.Contig.basic_contig(
+                length=100,
+                bacterial_recombination=True,
+                gene_conversion_fraction=0.4,
+                gene_conversion_length=20,
+            )
+        # must set gc length for bacterial recomb
+        with pytest.raises(ValueError, match="Must set.*bacterial recomb"):
+            _ = stdpopsim.Contig.basic_contig(length=100, bacterial_recombination=True)
+        # must set gc length and fraction together otherwise
+        with pytest.raises(ValueError, match="without setting"):
+            _ = stdpopsim.Contig.basic_contig(length=100, gene_conversion_fraction=0.4)
+        with pytest.raises(ValueError, match="without setting"):
+            _ = stdpopsim.Contig.basic_contig(length=100, gene_conversion_length=14)
+        # gc_frac must be between 0 and 1 (inclusive)
+        for bad_frac in [-0.1, 1.1]:
+            with pytest.raises(ValueError, match="must be between 0 and 1"):
+                _ = stdpopsim.Contig.basic_contig(
+                    length=100,
+                    gene_conversion_fraction=bad_frac,
+                    gene_conversion_length=14,
+                )
+        # gc_length must be at least 1
+        for bad_len in [-0.1, -10]:
+            with pytest.raises(ValueError, match="must be greater than 1"):
+                _ = stdpopsim.Contig.basic_contig(
+                    length=100,
+                    gene_conversion_fraction=0.8,
+                    gene_conversion_length=bad_len,
+                )
 
     def test_default_dfe(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
@@ -323,38 +368,75 @@ class TestContig(object):
 
 
 class TestGeneConversion(object):
-    species = stdpopsim.get_species("EscCol")
+    def test_mean_gene_conversion(self):
+        dro_mel = stdpopsim.get_species("DroMel")
+        contig = dro_mel.get_contig(length=1000, use_species_gene_conversion=False)
+        assert contig.gene_conversion_fraction is None
+        assert contig.gene_conversion_length is None
+        contig = dro_mel.get_contig(length=1000, use_species_gene_conversion=True)
+        mean_gc = dro_mel.genome.mean_gene_conversion_fraction
+        assert np.isclose(mean_gc, contig.gene_conversion_fraction)
+
+    def test_no_mean_gene_conversion(self):
+        # this will need to be changed if we add GC rates to AnaPla
+        ana_pla = stdpopsim.get_species("AnaPla")
+        contig = ana_pla.get_contig(length=1000, use_species_gene_conversion=True)
+        mean_gc = ana_pla.genome.mean_gene_conversion_fraction
+        assert mean_gc == 0.0
+        assert contig.gene_conversion_fraction is None
 
     def test_modifiying_gene_conversion(self):
-        genome = self.species.get_contig(
-            chromosome="Chromosome", gene_conversion_rate=0.1, gene_conversion_length=1
-        )
-        assert genome.gene_conversion_rate == 0.1
-        assert genome.gene_conversion_length == 1
+        esc_col = stdpopsim.get_species("EscCol")
+        assert esc_col.genome.mean_gene_conversion_fraction == 0
+        contig = esc_col.get_contig(chromosome="Chromosome")
+        assert contig.bacterial_recombination is True
+        assert contig.gene_conversion_fraction is None
+        assert contig.gene_conversion_length > 0
 
-    def test_use_species_gene_conversion(self):
-        genome = self.species.get_contig(
-            chromosome="Chromosome", use_species_gene_conversion=True
-        )
-        assert genome.gene_conversion_rate == 8.9e-11
-        assert genome.gene_conversion_length == 345
+        rm = msprime.RateMap(position=[0.0, contig.length], rate=[0.1])
+        contig.recombination_map = rm
+        contig.gene_conversion_length = 1
+        assert contig.recombination_map == rm
+        assert contig.gene_conversion_length == 1
 
-    def test_unnamed_contig_with_gc(self):
-        genome = self.species.get_contig(
-            length=42, gene_conversion_rate=0.1, gene_conversion_length=1
-        )
-        assert genome.gene_conversion_rate == 0.1
-        assert genome.gene_conversion_length == 1
-
-    def test_use_species_gene_conversion_unnamed_contig(self):
-        genome = self.species.get_contig(length=42, use_species_gene_conversion=True)
-        assert genome.gene_conversion_rate == 8.9e-11
-        assert genome.gene_conversion_length == 345
+    def test_use_species_gene_conversion_errors(self):
+        esc_col = stdpopsim.get_species("EscCol")
+        with pytest.raises(ValueError, match="with bacterial recombination"):
+            _ = esc_col.get_contig(
+                chromosome="Chromosome", use_species_gene_conversion=True
+            )
 
     def test_use_species_gene_conversion_unnamed_contig_undefined_gc(self):
-        mod_species = copy.deepcopy(self.species)
-        mod_species.genome.get_chromosome("Chromosome").gene_conversion_rate = None
-        mod_species.genome.get_chromosome("Chromosome").gene_conversion_length = None
-        genome = mod_species.get_contig(length=42, use_species_gene_conversion=True)
-        assert genome.gene_conversion_rate is None
-        assert genome.gene_conversion_length is None
+        species = stdpopsim.get_species("AnaPla")
+        contig = species.get_contig("1")
+        assert contig.gene_conversion_fraction is None
+        assert contig.gene_conversion_length is None
+        assert contig.bacterial_recombination is False
+        contig = species.get_contig(length=42, use_species_gene_conversion=True)
+        assert contig.gene_conversion_fraction is None
+        assert contig.gene_conversion_length is None
+        assert contig.bacterial_recombination is False
+
+    def test_get_species_contig_rates(self):
+        species = stdpopsim.get_species("AnaPla")
+        chrom = species.genome.chromosomes[0]
+        gc_frac = 0.7
+        gc_len = 123
+        # this is *not* the recommended workflow; just doing it for testing
+        # see test_modifiying_gene_conversion for the recommended way to modify it
+        chrom.gene_conversion_fraction = gc_frac
+        chrom.gene_conversion_length = gc_len
+        assert species.genome.chromosomes[0].gene_conversion_fraction == gc_frac
+        assert species.genome.chromosomes[0].gene_conversion_length == gc_len
+        # without use_species_gene_conversion
+        contig = species.get_contig(chrom.id)
+        assert contig.gene_conversion_fraction is None
+        assert contig.gene_conversion_length is None
+        assert contig.recombination_map.mean_rate == chrom.recombination_rate
+        # now, with use_species_gene_conversion
+        contig = species.get_contig(chrom.id, use_species_gene_conversion=True)
+        assert contig.gene_conversion_fraction == gc_frac
+        assert contig.gene_conversion_length == gc_len
+        assert np.isclose(
+            contig.recombination_map.mean_rate, chrom.recombination_rate / (1 - gc_frac)
+        )

@@ -33,6 +33,7 @@ _ComeronEtAl = stdpopsim.Citation(
     author="Comeron et al",
     doi="https://doi.org/10.1371/journal.pgen.1002905",
     year=2012,
+    reasons={stdpopsim.CiteReason.REC_RATE, stdpopsim.CiteReason.GENE_CONVERSION},
 )
 
 # Mean chromosomal rates, calculated by taking the
@@ -42,7 +43,7 @@ _ComeronEtAl = stdpopsim.Citation(
 # Chromosome 4 isn't in this map, so the average of
 # 2L, 2R, 3L and 3R weighted by their respective
 # chromosome lengths was used instead.
-_recombination_rate_data = {
+_recombination_rate = {
     "2L": 2.40462600791e-08,
     "2R": 2.23458641776e-08,
     "3L": 1.79660308862e-08,
@@ -54,27 +55,52 @@ _recombination_rate_data = {
 }
 
 
-_chromosomes = []
-for name, data in genome_data.data["chromosomes"].items():
-    _chromosomes.append(
-        stdpopsim.Chromosome(
-            id=name,
-            length=data["length"],
-            synonyms=data["synonyms"],
-            mutation_rate=5.49e-9,  # _SchriderEtAl de novo mutation rate
-            recombination_rate=_recombination_rate_data[name],
-        )
-    )
+# Comeron et al:
+# - GC avg track length = 518bp
+# - 83% of DSBs are resolved as Gene Conversions
+# - avg rate of GC is 1.25E-07 / bp / female meiosis
+# (not sure if the latter estimate agrees)
 
-_genome = stdpopsim.Genome(
-    chromosomes=_chromosomes,
-    assembly_name=genome_data.data["assembly_name"],
-    assembly_accession=genome_data.data["assembly_accession"],
+_gene_conversion_fraction = {
+    "2L": 0.83,
+    "2R": 0.83,
+    "3L": 0.83,
+    "3R": 0.83,
+    "4": 0,
+    "X": 0.83,
+    "Y": 0,
+    "mitochondrion_genome": 0,
+}
+
+_gene_conversion_length = {c: 518 for c in genome_data.data["chromosomes"]}
+
+_mutation_rate = {c: 5.49e-9 for c in genome_data.data["chromosomes"]}
+
+# _chromosomes = []
+# for name, data in genome_data.data["chromosomes"].items():
+#     _chromosomes.append(
+#         stdpopsim.Chromosome(
+#             id=name,
+#             length=data["length"],
+#             synonyms=data["synonyms"],
+#             mutation_rate=5.49e-9,  # _SchriderEtAl de novo mutation rate
+#             recombination_rate=_recombination_rate_data[name],
+#             gene_conversion_fraction=_gene_conversion_fraction_data[name],
+#             gene_conversion_length=_gene_conversion_length,
+#         )
+#     )
+
+_genome = stdpopsim.Genome.from_data(
+    genome_data.data,
+    recombination_rate=_recombination_rate,
+    mutation_rate=_mutation_rate,
+    gene_conversion_fraction=_gene_conversion_fraction,
+    gene_conversion_length=_gene_conversion_length,
     citations=[
         _SchriderEtAl.because(stdpopsim.CiteReason.MUT_RATE),
         _DosSantosEtAl,
         _HoskinsEtAl,
-        _ComeronEtAl.because(stdpopsim.CiteReason.REC_RATE),
+        _ComeronEtAl,
     ],
 )
 stdpopsim.utils.append_common_synonyms(_genome)

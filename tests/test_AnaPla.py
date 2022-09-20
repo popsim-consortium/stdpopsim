@@ -163,3 +163,6 @@ class TestGenomeData(test_species.GenomeTestBase):
     )
     def test_mutation_rate(self, name, rate):
         assert rate == pytest.approx(self.genome.get_chromosome(name).mutation_rate)
+
+    def test_bacterial_recombination(self):
+        assert self.genome.bacterial_recombination is False
