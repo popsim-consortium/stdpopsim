@@ -4,8 +4,8 @@ queue_rules:
       - base=main
       - check-success=build-deploy-docs
       - check-success=pre-commit
-      - check-success=tests (ubuntu-18.04, 3.7)
-      - check-success=tests (ubuntu-18.04, 3.10)
+      - check-success=tests (ubuntu-20.04, 3.7)
+      - check-success=tests (ubuntu-20.04, 3.10)
       - check-success=tests (macos-10.15, 3.7)
       - check-success=tests (macos-10.15, 3.10)
       - check-success=tests (windows-latest, 3.7)
@@ -21,8 +21,8 @@ pull_request_rules:
       - label=dependencies
       - check-success=build-deploy-docs
       - check-success=pre-commit
-      - check-success=tests (ubuntu-18.04, 3.7)
-      - check-success=tests (ubuntu-18.04, 3.10)
+      - check-success=tests (ubuntu-20.04, 3.7)
+      - check-success=tests (ubuntu-20.04, 3.10)
       - check-success=tests (macos-10.15, 3.7)
       - check-success=tests (macos-10.15, 3.10)
       - check-success=tests (windows-latest, 3.7)
