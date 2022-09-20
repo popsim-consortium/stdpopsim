@@ -34,7 +34,7 @@ class TestGenome(test_species.GenomeTestBase):
         assert self.genome.get_chromosome("Chromosome").recombination_rate == 8.9e-11
 
     def test_gene_conversion_length(self):
-        assert self.genome.get_chromosome("Chromosome").gene_conversion_length == 345
+        assert self.genome.get_chromosome("Chromosome").gene_conversion_length == 542
 
     def test_bacterial_recombination(self):
         assert self.genome.bacterial_recombination is True
