@@ -1022,11 +1022,18 @@ class TestNoQCWarning:
         )
 
 
-@pytest.mark.parametrize(
-    "species_id", [species.id for species in stdpopsim.all_species()]
-)
+@pytest.mark.parametrize("species_id", [s.id for s in stdpopsim.all_species()])
 def test_species_simulation(species_id):
-    cmd = f"-q {species_id} -L 1 --seed 1234 10"
+    # L must be longer than any mean gene conversion tract length;
+    # since gene conversion length is quite long for a few species
+    # we can't run with L=1000 for all species, so (confusingly) adjust
+    # for those long-GC species here
+    L = 1000
+    species = stdpopsim.get_species(species_id)
+    for chrom in species.genome.chromosomes:
+        if chrom.gene_conversion_length is not None:
+            L = max(L, chrom.gene_conversion_length + 100)
+    cmd = f"-q {species_id} -L {L} --seed 1234 10"
     # Just check to see if the simulation runs
     with mock.patch("sys.stdout", autospec=True) as stdout:
         stdout.buffer = open(os.devnull, "wb")

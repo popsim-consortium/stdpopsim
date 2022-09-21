@@ -20,6 +20,7 @@ class CiteReason:
     GEN_TIME = "generation time"
     MUT_RATE = "mutation rate"
     REC_RATE = "recombination rate"
+    GENE_CONVERSION = "gene conversion parameters"
     ASSEMBLY = "genome assembly"
     ANNOTATION = "genome annotation"
     DFE = "distribution of fitness effects"

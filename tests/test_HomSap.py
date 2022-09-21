@@ -37,3 +37,6 @@ class TestGenome(test_species.GenomeTestBase):
         assert chrom.recombination_rate == pytest.approx(
             contig.recombination_map.mean_rate, rel=1e-6
         )
+
+    def test_bacterial_recombination(self):
+        assert self.genome.bacterial_recombination is False

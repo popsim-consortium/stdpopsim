@@ -1231,7 +1231,7 @@ the region of interest.
     is preliminary, and subject to change!
 
 You may be interested in simulating and tracking a single mutation. To illustrate
-this scenario, let's simulate a selective sweep until it reaches an abitrary
+this scenario, let's simulate a selective sweep until it reaches an arbitrary
 allele frequency.
 
 First, let's define a contig and a demographic model; here, we are simulating a
@@ -1254,34 +1254,21 @@ We must also decide the time the mutation will be added, when selection will
 start and at what frequency we want our selected mutation to be at the end of
 the simulation.
 
-Let's assume the mutation appeared 1000 generations ago, it has a positive
-effect on fitness (s=0.5). Also, we want the mutation to have reached a frequency
-of at least 0.8 by the end. Next, we'll walk through the steps required to do this:
-
-.. note::
-
-    Note that because we are doing a forward-in-time simulation, you should be
-    careful with your conditioning. For example, even a strongly selected mutation
-    would not be able to reach 80% frequency in just a few generations. Since
-    this conditioning works by re-running the simulation until the condition is
-    achieved, a nearly impossible condition will result in very long run times.
-
-To set things up, we need to first add the site at which the selected mutation
-will occur.  This is like adding a DFE, except to a single site -- we're saying
-that there is a potential mutation at a particular site with defined fitness
-consequences. So that we can refer to the single site later, we give it a
-unique string ID. Here, we'll add the site in the middle of the contig, with ID
-"hard sweep".
+First, we need to add the site at which the selected mutation will occur.  This
+is like adding a DFE, except to a single site -- we're saying that there is a
+potential mutation at a particular site with defined fitness consequences. So
+that we can refer to the single site later, we give it a unique string ID.
+Here, we'll add the site in the middle of the contig with ID "hard sweep",
+so named because we will imagine this beneficial mutation originates at
+frequency :math:`1 / 2N`.
 
 .. code-block:: python
 
-    mut_id = "hard sweep"
+    locus_id = "hard sweep"
     coordinate = round(contig.recombination_map.sequence_length / 2)
     contig.add_single_site(
-        id=mut_id,
+        id=locus_id,
         coordinate=coordinate,
-        fitness_coeff=0.1,
-        dominance_coeff=0.5,
     )
 
 .. note::
@@ -1293,62 +1280,34 @@ unique string ID. Here, we'll add the site in the middle of the contig, with ID
     "overwritten" and an error will be raised in simulation.
 
 Next, we will set up the "extended events" which will modify the demography.
-The first extended event is the origination of the selected mutation, which
-will occur in a random individual from the first population (id 0), 1000
-generations ago.
+This is done through :func:`stdpopsim.ext.selective_sweep`, which represents a
+general model for a mutation that is beneficial within a single population.  We
+specify that the mutation should originate 1000 generations ago in a random
+individual from the first population (named "pop_0" by default); that the
+selection coefficient for the mutation should be 0.5; and that the frequency of
+the mutation in the present day (e.g. at the end of the sweep) should be
+greater than 0.8.
 
 .. code-block:: python
 
-    T_mut = 1000
-    extended_events = [
-        stdpopsim.ext.DrawMutation(
-            time=T_mut,
-            single_site_id=mut_id,
-            population_id=0,
-        )
-    ]
-
-Next, we condition on the mutation not being lost.  Since in the next step we
-condition on the mutation being at 80% frequency at the end, this is redundant,
-but it allows the simulation to immediately restart from any generation in
-which the mutation is lost, rather than waiting until the end.  Note that this
-conditioning must start one generation after the mutation is placed, for which
-we use ``stdpopsim.ext.GenerationAfter(T_mut)``.  We cannot simply specify
-``T_mut - 1`` if rescaling is present, otherwise the conditioning would start
-at the same generation when the mutation is placed.
-
-.. code-block:: python
-
-    extended_events.append(
-        stdpopsim.ext.ConditionOnAlleleFrequency(
-            start_time=stdpopsim.ext.GenerationAfter(T_mut),
-            end_time=0,
-            single_site_id=mut_id,
-            population_id=0,
-            op=">",
-            allele_frequency=0.0,
-        )
+    extended_events = stdpopsim.ext.selective_sweep(
+        single_site_id=locus_id,
+        population="pop_0",
+        selection_coeff=0.5,
+        mutation_generation_ago=1000,
+        min_freq_at_end=0.8,
     )
 
-Finally, we condition on the mutation being above 80% at the end of the simulation.
-(The "end" is at time 0, since "time" is in generations before the end of the simulation.)
+.. note::
 
-.. code-block:: python
+    Note that because we are doing a forward-in-time simulation, you should be
+    careful with your conditioning. For example, even a strongly selected mutation
+    would not be able to reach 80% frequency in just a few generations. Since
+    this conditioning works by re-running the simulation until the condition is
+    achieved, a nearly impossible condition will result in very long run times.
 
-    extended_events.append(
-        stdpopsim.ext.ConditionOnAlleleFrequency(
-            start_time=0,
-            end_time=0,
-            single_site_id=mut_id,
-            population_id=0,
-            op=">=",
-            allele_frequency=0.8,
-        )
-    )
-
-Now we can simulate, using SLiM of course.
-For comparison, we will run the same simulation
-without selection - i.e., without the "extended events":
+Now we can simulate, using SLiM of course.  For comparison, we will run the
+same simulation without selection - i.e., without the "extended events":
 
 .. code-block:: python
 

@@ -42,7 +42,8 @@ def irradiate(contig, x=20):
     """
     return stdpopsim.Contig(
         recombination_map=contig.recombination_map,
-        gene_conversion_rate=contig.gene_conversion_rate,
+        bacterial_recombination=contig.bacterial_recombination,
+        gene_conversion_fraction=contig.gene_conversion_fraction,
         gene_conversion_length=contig.gene_conversion_length,
         mutation_rate=x * contig.mutation_rate,
         genetic_map=contig.genetic_map,

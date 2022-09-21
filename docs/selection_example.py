@@ -4,6 +4,10 @@ import stdpopsim
 
 logger = logging.getLogger(__name__)
 
+# TODO: This example has been updated to reflect changes in the extended events
+# API (see PRs #1306 and #1341) but it should be run and checked for
+# correctness at some point
+
 
 def adaptive_introgression(seed):
     """
@@ -20,13 +24,6 @@ def adaptive_introgression(seed):
     samples = model.get_samples(
         100, 0, 0, 100, 2, 2  # YRI, CEU, CHB, Papuan, DenA, NeaA
     )
-
-    # One mutation type, which we'll use for the positively selected mutation.
-    # Neutral mutations will be added by the SLiM engine as usual, after the
-    # SLiM phase of the simulation has completed.
-    positive = stdpopsim.MutationType(convert_to_substitution=False)
-    mutation_types = [positive]
-    mut_id = len(mutation_types) - 1
 
     # We need some demographic model parameters to set bounds on the timing
     # of random variables and extended_events (below).
@@ -55,9 +52,9 @@ def adaptive_introgression(seed):
     logger.info(f"Parameters: T_mut={T_mut:.3f}, T_sel={T_sel:.3f}, s={s:.3g}")
 
     # Place the drawn mutation in the middle of the contig.
+    locus_id = "introgressed_locus"
     coordinate = round(contig.recombination_map.sequence_length / 2)
-
-    pop = {p.name: i for i, p in enumerate(model.populations)}
+    contig.add_single_site(id=locus_id, coordinate=coordinate)
 
     # Thinking forwards in time, we define a number of extended events that
     # correspond to drawing the mutation, conditioning on the new allele not
@@ -69,9 +66,8 @@ def adaptive_introgression(seed):
         # Draw mutation in DenA.
         stdpopsim.ext.DrawMutation(
             time=T_mut,
-            mutation_type_id=mut_id,
-            population_id=pop["DenA"],
-            coordinate=coordinate,
+            single_site_id=locus_id,
+            population="DenA",
         ),
         # Because the drawn mutation is neutral at the time of introduction,
         # it's likely to be lost due to drift. To avoid this, we condition on
@@ -86,8 +82,8 @@ def adaptive_introgression(seed):
             #       which will give an error due to "start_time < end_time".
             start_time=stdpopsim.ext.GenerationAfter(T_mut),
             end_time=T_Den_split,
-            mutation_type_id=mut_id,
-            population_id=pop["DenA"],
+            single_site_id=locus_id,
+            population="DenA",
             op=">",
             allele_frequency=0,
         ),
@@ -96,8 +92,8 @@ def adaptive_introgression(seed):
         stdpopsim.ext.ConditionOnAlleleFrequency(
             start_time=stdpopsim.ext.GenerationAfter(T_Den_split),
             end_time=T_mig,
-            mutation_type_id=mut_id,
-            population_id=pop["Den1"],
+            single_site_id=locus_id,
+            population="Den1",
             op=">",
             allele_frequency=0,
         ),
@@ -106,8 +102,8 @@ def adaptive_introgression(seed):
         stdpopsim.ext.ConditionOnAlleleFrequency(
             start_time=stdpopsim.ext.GenerationAfter(T_mig),
             end_time=0,
-            mutation_type_id=mut_id,
-            population_id=pop["Papuan"],
+            single_site_id=locus_id,
+            population="Papuan",
             op=">",
             allele_frequency=0,
         ),
@@ -117,8 +113,8 @@ def adaptive_introgression(seed):
         stdpopsim.ext.ChangeMutationFitness(
             start_time=T_sel,
             end_time=0,
-            mutation_type_id=mut_id,
-            population_id=pop["Papuan"],
+            single_site_id=locus_id,
+            population="Papuan",
             selection_coeff=s,
             dominance_coeff=0.5,
         ),
@@ -126,8 +122,8 @@ def adaptive_introgression(seed):
         stdpopsim.ext.ConditionOnAlleleFrequency(
             start_time=0,
             end_time=0,
-            mutation_type_id=mut_id,
-            population_id=pop["Papuan"],
+            single_site_id=locus_id,
+            population="Papuan",
             op=">",
             allele_frequency=0.05,
         ),

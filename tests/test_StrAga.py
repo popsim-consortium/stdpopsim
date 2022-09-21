@@ -31,7 +31,7 @@ class TestGenomeData(test_species.GenomeTestBase):
     @pytest.mark.parametrize(
         ["name", "rate"],
         {
-            "1": 0,
+            "1": 1.53e-10,
         }.items(),
     )
     def test_recombination_rate(self, name, rate):
