@@ -16,9 +16,6 @@ _DaCunha_et_al = stdpopsim.Citation(
 # mu =  0.56/(1e6*365)
 _mutation_rate = {"1": 1.53e-9}
 
-# no cross-over recombination in bacteria
-_recombination_rate = {"1": 0}
-
 # gene conversion rate (HGT rate):
 # hard to estimate precisely. What is often estimated is the r/m or rho/theta ratio.
 # in Oliveira et. al, PNAS, 2016, they estimate those rates on coregenome
@@ -35,7 +32,7 @@ _recombination_rate = {"1": 0}
 # that is already not recombining a lot.
 # Overall, as most of the estimation might be conservatives one can use a relative
 # rate rho/theta = 10%.
-# _gene_conversion_rate = {"1": _mutation_rate/10}
+_recombination_rate = {c: _mutation_rate[c] / 10 for c in _mutation_rate}
 
 # Mean gene conversion  tract length
 # In Brochet et al., 2008, PNAS, they estimate the size of transferred DNA experimentally
@@ -46,7 +43,7 @@ _recombination_rate = {"1": 0}
 # discussed in more detail in response to a reviewer, that can be seen there :
 # https://evolbiol.peercommunityin.org/articles/rec?id=356
 #      > Revision round #3 > Author's reply (pdf).
-# _mean_gene_conversion_tract_length = 120000
+_gene_conversion_length = {"1": 120000}
 
 
 _genome = stdpopsim.Genome.from_data(
@@ -57,6 +54,8 @@ _genome = stdpopsim.Genome.from_data(
         _DaCunha_et_al.because(stdpopsim.CiteReason.ASSEMBLY),
         _DaCunha_et_al.because(stdpopsim.CiteReason.MUT_RATE),
     ],
+    bacterial_recombination=True,
+    gene_conversion_length=_gene_conversion_length,
 )
 stdpopsim.utils.append_common_synonyms(_genome)
 

@@ -248,13 +248,22 @@ def get_species_help(species_id):
     species_text += (
         f"Recombination rate: {species.genome.mean_recombination_rate:.4g}\n"
     )
-    species_text += (
-        f"Gene conversion rate: {species.genome.mean_gene_conversion_rate:.4g}\n"
-    )
-    species_text += (
-        f"Gene conversion tract length: "
-        f"{species.genome.range_gene_conversion_lengths}\n"
-    )
+    if species.genome.bacterial_recombination is True:
+        species_text += (
+            f"Bacterial recombination with tract length: "
+            f"{species.genome.range_gene_conversion_lengths}\n"
+        )
+    # TODO: there is no way to enable GC on the CLI
+    # elif ((species.genome.mean_gene_conversion_fraction is not None) and
+    #     (species.genome.mean_gene_conversion_fraction > 0.0)):
+    #     species_text += (
+    #         f"Gene conversion fraction: "
+    #         f"{species.genome.mean_gene_conversion_fraction:.4g}\n"
+    #     )
+    #     species_text += (
+    #         f"Gene conversion tract length: "
+    #         f"{species.genome.range_gene_conversion_lengths}\n"
+    #     )
 
     return species_text
 
@@ -883,6 +892,11 @@ def write_simulation_summary(
     dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"
     dry_run_text += f"{indent}Mean mutation rate: {mut_rate}\n"
     dry_run_text += f"{indent}Genetic map: {gmap}\n"
+    if contig.bacterial_recombination is True:
+        dry_run_text += (
+            f"{indent}Bacterial recombination "
+            f"with tract length {contig.gene_conversion_length}\n"
+        )
     if dfe is not None:
         dry_run_text += f"{indent}DFE: {dfe}\n"
         dry_run_text += f"{indent}DFE applied to: {dfe_interval}\n"

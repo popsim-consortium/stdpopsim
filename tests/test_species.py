@@ -94,10 +94,9 @@ class TestSpecies:
             with pytest.raises(ValueError):
                 species.get_annotations(name)
 
-    @pytest.mark.xfail  # HomSap annotation not currently available
     def test_add_duplicate_annotation(self):
         species = stdpopsim.get_species("HomSap")
-        an = species.get_annotations("Ensembl_GRCh38_gff3")
+        an = species.annotations[0]
         with pytest.raises(ValueError):
             species.add_annotations(an)
 
@@ -154,11 +153,27 @@ class SpeciesTestBase:
     def test_default_gc(self):
         for chrom in self.species.genome.chromosomes:
             contig = self.species.get_contig(chrom.id)
-            assert contig.gene_conversion_rate is None
-            assert contig.gene_conversion_length is None
-            contig = self.species.get_contig(chrom.id, use_species_gene_conversion=True)
-            assert chrom.gene_conversion_rate == contig.gene_conversion_rate
-            assert chrom.gene_conversion_length == contig.gene_conversion_length
+            assert contig.gene_conversion_fraction is None
+            assert (
+                contig.bacterial_recombination
+                == self.species.genome.bacterial_recombination
+            )
+            if contig.bacterial_recombination is True:
+                assert chrom.gene_conversion_length == contig.gene_conversion_length
+            else:
+                assert contig.gene_conversion_length is None
+            if self.species.genome.bacterial_recombination is False:
+                contig = self.species.get_contig(
+                    chrom.id, use_species_gene_conversion=True
+                )
+                assert chrom.gene_conversion_fraction == contig.gene_conversion_fraction
+                assert chrom.gene_conversion_length == contig.gene_conversion_length
+                assert contig.bacterial_recombination is False
+            else:
+                with pytest.raises(ValueError, match="with bacterial recombination"):
+                    contig = self.species.get_contig(
+                        chrom.id, use_species_gene_conversion=True
+                    )
 
 
 class GenomeTestBase:
@@ -290,30 +305,16 @@ class TestGetContig:
             self.species.get_contig(
                 "chr22", exclusion_mask=[(0, 100)], length_multiplier=0.1
             )
-        with pytest.raises(
-            ValueError, match="Cannot use species gene conversion rates"
-        ):
-            # cannot specify use_species_gene_conversion and custom gc rate
-            self.species.get_contig(
-                "chr1", use_species_gene_conversion=True, gene_conversion_rate=0.1
-            )
-        with pytest.raises(ValueError, match="without setting gene conversion length"):
-            # cannot specify custom gene conversion rate without gene conversion length
-            self.species.get_contig("chr1", gene_conversion_rate=0.1)
-        with pytest.raises(ValueError, match="without setting gene conversion rate"):
-            # cannot specify custom gene conversion length without gene conversion rate
-            self.species.get_contig("chr1", gene_conversion_length=1)
-        # TODO: invalid interval
 
     def test_use_species_gene_conversion(self):
         contig = self.species.get_contig("chr22", use_species_gene_conversion=True)
-        if self.species.genome.get_chromosome("chr22").gene_conversion_rate is None:
-            assert contig.gene_conversion_rate is None
+        if self.species.genome.get_chromosome("chr22").gene_conversion_fraction is None:
+            assert contig.gene_conversion_fraction is None
             assert contig.gene_conversion_length is None
         else:
             assert (
-                contig.gene_conversion_rate
-                == self.species.genome.get_chromosome("chr22").gene_conversion_rate
+                contig.gene_conversion_fraction
+                == self.species.genome.get_chromosome("chr22").gene_conversion_fraction
             )
             assert (
                 contig.gene_conversion_length
@@ -322,38 +323,67 @@ class TestGetContig:
 
     def test_generic_contig(self):
         L = 1e6
-        contig = self.species.get_contig(length=L, use_species_gene_conversion=True)
-        assert contig.recombination_map.sequence_length == L
+        for usgc in [True, False]:
+            contig = self.species.get_contig(length=L, use_species_gene_conversion=usgc)
+            assert contig.recombination_map.sequence_length == L
 
-        chrom_ids = np.arange(1, 23).astype("str")
-        Ls = [c.length for c in self.species.genome.chromosomes if c.id in chrom_ids]
-        rs = [
-            c.recombination_rate
-            for c in self.species.genome.chromosomes
-            if c.id in chrom_ids
-        ]
-        us = [
-            c.mutation_rate
-            for c in self.species.genome.chromosomes
-            if c.id in chrom_ids
-        ]
-        gcs = [
-            c.gene_conversion_rate if c.gene_conversion_rate is not None else 0
-            for c in self.species.genome.chromosomes
-            if c.id in chrom_ids
-        ]
-        gcls = [
-            c.gene_conversion_length if c.gene_conversion_length is not None else 0
-            for c in self.species.genome.chromosomes
-            if c.id in chrom_ids
-        ]
-
-        assert contig.mutation_rate == np.average(us, weights=Ls)
-        assert contig.recombination_map.mean_rate == np.average(rs, weights=Ls)
-        if np.average(gcs, weights=Ls) == 0 or np.average(gcls, weights=Ls) == 0:
-            assert contig.gene_conversion_rate is None
-            assert contig.gene_conversion_length is None
-        else:
-            assert contig.gene_conversion_rate == np.average(gcs, weights=Ls)
-            assert contig.gene_conversion_length == np.average(gcls, weights=Ls)
+            chrom_ids = np.arange(1, 23).astype("str")
+            Ls = np.array(
+                [c.length for c in self.species.genome.chromosomes if c.id in chrom_ids]
+            )
+            rs = np.array(
+                [
+                    c.recombination_rate
+                    for c in self.species.genome.chromosomes
+                    if c.id in chrom_ids
+                ]
+            )
+            us = np.array(
+                [
+                    c.mutation_rate
+                    for c in self.species.genome.chromosomes
+                    if c.id in chrom_ids
+                ]
+            )
+            gcs = np.array(
+                [
+                    c.gene_conversion_fraction
+                    if c.gene_conversion_fraction is not None
+                    else 0
+                    for c in self.species.genome.chromosomes
+                    if c.id in chrom_ids
+                ]
+            )
+            gcls = np.array(
+                [
+                    c.gene_conversion_length
+                    if c.gene_conversion_length is not None
+                    else 0
+                    for c in self.species.genome.chromosomes
+                    if c.id in chrom_ids
+                ]
+            )
+            assert contig.mutation_rate == np.average(us, weights=Ls)
+            if usgc:
+                assert contig.recombination_map.mean_rate == np.average(
+                    rs, weights=Ls
+                ) / (1 - np.average(gcs, weights=Ls * rs))
+            else:
+                assert contig.recombination_map.mean_rate == np.average(rs, weights=Ls)
+            if (
+                np.average(gcs, weights=Ls) == 0
+                or np.average(gcls, weights=Ls) == 0
+                or not usgc
+            ):
+                assert contig.gene_conversion_fraction is None
+                assert contig.gene_conversion_length is None
+            else:
+                assert contig.gene_conversion_fraction is not None
+                assert np.isclose(
+                    contig.gene_conversion_fraction, np.average(gcs, weights=Ls * rs)
+                )
+                assert contig.gene_conversion_length is not None
+                assert np.isclose(
+                    contig.gene_conversion_length, np.average(gcls, weights=Ls * rs)
+                )
         # TODO: origin

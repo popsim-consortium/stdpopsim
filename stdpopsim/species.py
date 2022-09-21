@@ -171,8 +171,6 @@ class Species:
         length=None,
         mutation_rate=None,
         use_species_gene_conversion=False,
-        gene_conversion_rate=None,
-        gene_conversion_length=None,
         inclusion_mask=None,
         exclusion_mask=None,
         left=None,
@@ -202,17 +200,8 @@ class Species:
             the mutation rate defaults to the rate specified by species chromosomes.
         :param bool use_species_gene_conversion: If set to True the parameters for gene
             conversion of the species chromosome are used if available. For "generic"
-            contigs the gene conversion rate is given by the (mean) rate specified by
-            species chromosomes and the gene conversion length defaults to the mean
-            length specified by species chromosomes.
-        :param float gene_conversion_rate: The per-base gene conversion rate. Can only
-            be set together with gene_conversion_length and if
-            use_species_gene_conversion is False; If none is given, and
-            use_species_gene_conversion is True the gene conversion rate specified by
-            species chromosomes is used. If none and use_species_gene_conversion is
-            False gene conversion is disabled.
-        :param float gene_conversion_length: The mean gene conversion length.
-            May only be provided if gene_conversion_rate is also specified.
+            contigs the gene conversion fraction and length are given by the mean
+            values across all chromosomes.
         :param inclusion_mask: If specified, simulated genomes are subset to only
             inlude regions given by the mask. The mask can be specified by the
             path and file name of a bed file or as a list or array of intervals
@@ -242,8 +231,6 @@ class Species:
             length=length,
             mutation_rate=mutation_rate,
             use_species_gene_conversion=use_species_gene_conversion,
-            gene_conversion_rate=gene_conversion_rate,
-            gene_conversion_length=gene_conversion_length,
             inclusion_mask=inclusion_mask,
             exclusion_mask=exclusion_mask,
             left=left,

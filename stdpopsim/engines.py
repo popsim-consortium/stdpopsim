@@ -251,10 +251,30 @@ class _MsprimeEngine(Engine):
         rng = np.random.default_rng(seed)
         seeds = rng.integers(1, 2**31 - 1, size=2)
 
+        # if bacterial_recombination=True then "recombination_rate"
+        # is implemented by msprime as gene conversion rate
+        # (which must be constant)
+        recombination_map = contig.recombination_map
+        gc_rate = None
+        gc_frac = contig.gene_conversion_fraction
+        if contig.bacterial_recombination:
+            gc_rate = contig.recombination_map.mean_rate
+            recombination_map = msprime.RateMap(
+                position=[0.0, contig.length], rate=[0.0]
+            )
+        elif (gc_frac is not None) and (gc_frac > 0.0):
+            # the recombination map is a map of double-stranded breaks,
+            # so we need to separate out GC from crossovers
+            gc_rate = contig.recombination_map.mean_rate * gc_frac / (1 - gc_frac)
+            recombination_map = msprime.RateMap(
+                position=recombination_map.position,
+                rate=recombination_map.rate * (1 - gc_frac),
+            )
+
         ts = msprime.sim_ancestry(
             samples=samples,
-            recombination_rate=contig.recombination_map,
-            gene_conversion_rate=contig.gene_conversion_rate,
+            recombination_rate=recombination_map,
+            gene_conversion_rate=gc_rate,
             gene_conversion_tract_length=contig.gene_conversion_length,
             demography=demographic_model.model,
             ploidy=2,
