@@ -1123,13 +1123,14 @@ Adding a DFE model
 ******************
 
 `stdpopsim` supports distribution of fitness effects (DFE) models from the
-literature. To add a new DFE model to the catalog, you will need to:
+literature. See :ref:`sec_simulating_sel`. To add a new DFE model to
+the catalog, you will need to:
 
-    1. `Fork the repository and create a branch`_
+    1. `Fork the repository and create a branch`_ (as for demographic models)
 
     2. `Write the DFE function in the catalog source code`_
 
-    3. `Submit a Pull Request on GitHub`_
+    3. `Submit a Pull Request on GitHub`_ (as for demographic models)
 
     4. `Open a QC issue`_
 
@@ -1174,9 +1175,6 @@ Now, you can define your new DFE function following this format:
         long_description = """
         FILL ME
         """
-        populations = [
-            stdpopsim.Population(id="FILL ME", description="FILL ME"),
-        ]
         citations = [
             stdpopsim.Citation(
                 author="FILL ME",
@@ -1190,7 +1188,7 @@ Now, you can define your new DFE function following this format:
         neutral = stdpopsim.MutationType()  # Neutral mutation type by default
         negative = stdpopsim.MutationType(
             dominance_coeff=0.5,
-            distribution_type="l",  # fixed selection coefficient
+            distribution_type="f",  # fixed selection coefficient
             distribution_args=[-0.01],  # selection coefficient
         )
         positive = stdpopsim.MutationType(
@@ -1216,11 +1214,14 @@ Now, you can define your new DFE function following this format:
 
     _species.add_dfe(_dfe_func_name())
 
+See the detailed documentation of :class:`stdpopsim.DFE`
+and :class:`stdpopsim.MutationType`.
+
 ---------------------------------------------------
 Open a QC issue
 ---------------------------------------------------
 
-Open a new issue requesting for a quality control check on your newly implemented
+Open a new issue requesting a quality control check on your newly implemented
 DFE model. You should structure the issue as follows:
 
     1. **PR for new model:**
@@ -1233,6 +1234,7 @@ DFE model. You should structure the issue as follows:
 
     5. **QC'er requests:**
 
+The QC process or DFEs follows that of demographic models (see `Demographic model review process`_).
 
 ****************
 Coding standards

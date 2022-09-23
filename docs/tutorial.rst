@@ -276,6 +276,8 @@ See the SLiM manual and/or
 `Urrichio & Hernandez (2014) <https://www.genetics.org/content/197/1/221.short>`__
 for more discussion.
 
+.. _sec_simulating_sel:
+
 Simulating genomes with selection
 ---------------------------------
 
