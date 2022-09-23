@@ -42,6 +42,25 @@ _recombination_rate = {
     "MT": 0,
 }
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "1": _species_ploidy,
+    "2": _species_ploidy,
+    "3": _species_ploidy,
+    "4": _species_ploidy,
+    "5": _species_ploidy,
+    "6": _species_ploidy,
+    "LGa": _species_ploidy,
+    "LGb": _species_ploidy,
+    "LGc": _species_ploidy,
+    "LGd": _species_ploidy,
+    "LGf": _species_ploidy,
+    "LGg": _species_ploidy,
+    "LGh": _species_ploidy,
+    "MT": 1,
+}
+
 # Mutation rate
 _overall_rate = 2.1e-10
 
@@ -66,6 +85,7 @@ _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
+    ploidy=_ploidy,
     citations=[_BourgeoisEtAl],
 )
 stdpopsim.utils.append_common_synonyms(_genome)
@@ -84,6 +104,7 @@ _species = stdpopsim.Species(
     # poulation size caculated from theta caculations
     # theta = 4Neu, theta from table 1
     # Ne averaged across the 5 populations from BourgeoisEtAl
+    ploidy=_species_ploidy,
     citations=[_LovernEtAl, _BourgeoisEtAl],
 )
 

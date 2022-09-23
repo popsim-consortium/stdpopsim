@@ -148,6 +148,51 @@ _recombination_rate = {
     "40": _default_recombination_rate,
 }
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "1": _species_ploidy,
+    "2": _species_ploidy,
+    "3": _species_ploidy,
+    "4": _species_ploidy,
+    "5": _species_ploidy,
+    "6": _species_ploidy,
+    "7": _species_ploidy,
+    "8": _species_ploidy,
+    "9": _species_ploidy,
+    "10": _species_ploidy,
+    "11": _species_ploidy,
+    "12": _species_ploidy,
+    "13": _species_ploidy,
+    "14": _species_ploidy,
+    "15": _species_ploidy,
+    "16": _species_ploidy,
+    "17": _species_ploidy,
+    "18": _species_ploidy,
+    "19": _species_ploidy,
+    "20": _species_ploidy,
+    "21": _species_ploidy,
+    "22": _species_ploidy,
+    "23": _species_ploidy,
+    "24": _species_ploidy,
+    "25": _species_ploidy,
+    "26": _species_ploidy,
+    "27": _species_ploidy,
+    "28": _species_ploidy,
+    "29": _species_ploidy,
+    "30": _species_ploidy,
+    "Z": _species_ploidy,
+    "31": _species_ploidy,
+    "32": _species_ploidy,
+    "33": _species_ploidy,
+    "34": _species_ploidy,
+    "35": _species_ploidy,
+    "36": _species_ploidy,
+    "37": _species_ploidy,
+    "38": _species_ploidy,
+    "39": _species_ploidy,
+    "40": _species_ploidy,
+}
 
 # value used in Lavretsky et al 2020, as obtained for nuclear genes in other
 # ducks by Peters, Zhuravlev, Fefelov, Humphries, & Omland, 2008
@@ -203,6 +248,7 @@ _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
+    ploidy=_ploidy,
     citations=[
         _LavretskyEtAl2019,
         _HuangEtAl2006,
@@ -237,6 +283,7 @@ _species = stdpopsim.Species(
     # choosing Ne based on theta = 4 Ne u from Guo et al 2021
     # theta = 0.003 (Figure 1), u as above (the paper uses a rate from chicken)
     population_size=156000,
+    ploidy=_species_ploidy,
     citations=[
         _LavretskyEtAl2020,
         _GuoEtAl2020,

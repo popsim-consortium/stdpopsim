@@ -1363,24 +1363,28 @@ def slim_makescript(
     sampling_episodes = []
     for sample_set in samples:
         pop = demographic_model.model[sample_set.population]
-        # We're currently sampling genomes, and set the ploidy to 1 to make
-        # sure it all fits together. This is probably confusing though and
-        # maybe we should change it.
-        assert sample_set.ploidy == 1
-        # SLiM can only sample individuals, which we assume are diploid.
         count = sample_set.num_samples
         time = 0 if sample_set.time is None else sample_set.time
         time = round(time * demographic_model.generation_time)
-        n_inds = (count + 1) // 2
-        if count % 2 != 0:
-            gen = time / demographic_model.generation_time
-            warnings.warn(
-                stdpopsim.SLiMOddSampleWarning(
-                    f"SLiM simulates diploid individuals, so {n_inds} "
-                    f"individuals will be sampled for the {count} haploids "
-                    f"requested from population {pop.name} at time {gen}. "
-                    "See #464."
+        if sample_set.ploidy == 1:
+            # SLiM can only sample individuals, which we assume are diploid.
+            n_inds = (count + 1) // 2
+            if count % 2 != 0:
+                gen = time / demographic_model.generation_time
+                warnings.warn(
+                    stdpopsim.SLiMOddSampleWarning(
+                        f"SLiM simulates diploid individuals, so {n_inds} "
+                        f"individuals will be sampled for the {count} haploids "
+                        f"requested from population {pop.name} at time {gen}. "
+                        "See #464."
+                    )
                 )
+        elif sample_set.ploidy == 2:
+            n_inds = count
+        else:
+            raise ValueError(
+                "Sample ploidy other than 1 or 2 is not currently supported in "
+                "the SLiM engine."
             )
         sampling_episodes.append((pop.id, n_inds, time))
 
@@ -1512,6 +1516,18 @@ class _SLiMEngine(stdpopsim.Engine):
                 )
             )
 
+        # handle deprecated samples=[msprime.SampleSet] input
+        if isinstance(samples, dict):
+            sample_sets = demographic_model.get_sample_sets(
+                samples, ploidy=contig.ploidy
+            )
+        elif all([isinstance(x, msprime.SampleSet) for x in samples]):
+            sample_sets = samples
+        else:
+            raise ValueError(
+                "Samples must be a dict of the form {population_name:num_samples}."
+            )
+
         # figuring out mutations in SLiM and neutral mutations to be added
         # by msprime later
         slim_rate_map = get_slim_mutation_rate_map(contig)
@@ -1539,7 +1555,7 @@ class _SLiMEngine(stdpopsim.Engine):
                 ts_file.name,
                 demographic_model,
                 contig,
-                samples,
+                sample_sets,
                 extended_events,
                 slim_scaling_factor,
                 slim_burn_in,
@@ -1812,13 +1828,25 @@ class _SLiMEngine(stdpopsim.Engine):
         """
         slim_rate_map = get_slim_mutation_rate_map(contig)
 
+        # handle deprecated samples=[msprime.SampleSet] input
+        if isinstance(samples, dict):
+            sample_sets = demographic_model.get_sample_sets(
+                samples, ploidy=contig.ploidy
+            )
+        elif all([isinstance(x, msprime.SampleSet) for x in samples]):
+            sample_sets = samples
+        else:
+            raise ValueError(
+                "Samples must be a dict of the form {population_name:num_samples}."
+            )
+
         with open(os.devnull, "w") as script_file:
             recap_epoch = slim_makescript(
                 script_file,
                 "unused.trees",
                 demographic_model,
                 contig,
-                samples,
+                sample_sets,
                 extended_events,
                 slim_scaling_factor,
                 1,

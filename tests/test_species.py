@@ -150,6 +150,7 @@ class SpeciesTestBase:
     def test_population_size_defined(self):
         assert self.species.population_size > 0
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.NonAutosomalWarning")
     def test_default_gc(self):
         for chrom in self.species.genome.chromosomes:
             contig = self.species.get_contig(chrom.id)
@@ -174,6 +175,14 @@ class SpeciesTestBase:
                     contig = self.species.get_contig(
                         chrom.id, use_species_gene_conversion=True
                     )
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.NonAutosomalWarning")
+    def test_default_ploidy(self):
+        for chrom in self.species.genome.chromosomes:
+            contig = self.species.get_contig(chrom.id)
+            assert contig.ploidy is not None
+        contig = self.species.get_contig(length=1000)
+        assert contig.ploidy == self.species.ploidy
 
 
 class GenomeTestBase:

@@ -28,6 +28,8 @@ _didelot_et_al = stdpopsim.Citation(
     doi="https://doi.org/10.1186/1471-2164-13-256",
 )
 
+_species_ploidy = 1
+
 _chromosomes = []
 for name, data in genome_data.data["chromosomes"].items():
     _chromosomes.append(
@@ -38,6 +40,7 @@ for name, data in genome_data.data["chromosomes"].items():
             # Wielgoss et al. (2011) calculated for strain REL606,
             # from synonymous substitutions over 40,000 generations.
             mutation_rate=8.9e-11,
+            ploidy=_species_ploidy,
             recombination_rate=8.9e-11,
             gene_conversion_length=542,
         )
@@ -72,6 +75,7 @@ _species = stdpopsim.Species(
     # Hartl et al. calculated Ne for "natural isolates of E. coli",
     # assuming mu=5e-10 (from Drake 1991).
     population_size=1.8e8,
+    ploidy=_species_ploidy,
     citations=[
         _sezonov_et_al.because(stdpopsim.CiteReason.GEN_TIME),
         _hartl_et_al.because(stdpopsim.CiteReason.POP_SIZE),

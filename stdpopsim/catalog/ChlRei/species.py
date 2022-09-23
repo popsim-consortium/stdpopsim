@@ -30,6 +30,28 @@ _recombination_rate = {
     "17": 1.83e-10,
 }
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 1
+_ploidy = {
+    "1": _species_ploidy,
+    "2": _species_ploidy,
+    "3": _species_ploidy,
+    "4": _species_ploidy,
+    "5": _species_ploidy,
+    "6": _species_ploidy,
+    "7": _species_ploidy,
+    "8": _species_ploidy,
+    "9": _species_ploidy,
+    "10": _species_ploidy,
+    "11": _species_ploidy,
+    "12": _species_ploidy,
+    "13": _species_ploidy,
+    "14": _species_ploidy,
+    "15": _species_ploidy,
+    "16": _species_ploidy,
+    "17": _species_ploidy,
+}
+
 _mutation_rate = {
     "1": 9.74e-10,
     "2": 8.62e-10,
@@ -54,6 +76,7 @@ _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
+    ploidy=_ploidy,
     citations=[
         stdpopsim.Citation(
             author="Merchant et al",
@@ -85,6 +108,7 @@ _species = stdpopsim.Species(
     genome=_genome,
     generation_time=1 / 876,
     population_size=1.4 * 1e-7,
+    ploidy=_species_ploidy,
     citations=[
         stdpopsim.Citation(
             author="Ness et al.",

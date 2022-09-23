@@ -85,7 +85,7 @@ class Engine:
             and recombination rate(s).
         :type contig: :class:`.Contig`
         :param samples: The samples to be obtained from the simulation.
-        :type samples: list of :class:`msprime.simulations.Sample`
+        :type samples: dict containing number of individuals per population
         :param seed: The seed for the random number generator.
         :type seed: int
         :param dry_run: If True, the simulation engine will return None without
@@ -244,6 +244,18 @@ class _MsprimeEngine(Engine):
                 "but you are using the msprime engine"
             )
 
+        # handle deprecated samples=[msprime.SampleSet] input
+        if isinstance(samples, dict):
+            sample_sets = demographic_model.get_sample_sets(
+                samples, ploidy=contig.ploidy
+            )
+        elif all([isinstance(x, msprime.SampleSet) for x in samples]):
+            sample_sets = samples
+        else:
+            raise ValueError(
+                "Samples must be a dict of the form {population_name:num_samples}."
+            )
+
         # TODO: remove this after a release or two. See #745.
         self._warn_zigzag(demographic_model)
         self._warn_mutation_rate_mismatch(contig, demographic_model)
@@ -272,12 +284,12 @@ class _MsprimeEngine(Engine):
             )
 
         ts = msprime.sim_ancestry(
-            samples=samples,
+            samples=sample_sets,
             recombination_rate=recombination_map,
             gene_conversion_rate=gc_rate,
             gene_conversion_tract_length=contig.gene_conversion_length,
             demography=demographic_model.model,
-            ploidy=2,
+            ploidy=contig.ploidy,
             random_seed=seeds[0],
             model=model,
             end_time=0 if dry_run else None,

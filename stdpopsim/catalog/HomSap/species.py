@@ -33,6 +33,36 @@ _recombination_rate_data = {
     "MT": 0.0,
 }
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "1": _species_ploidy,
+    "2": _species_ploidy,
+    "3": _species_ploidy,
+    "4": _species_ploidy,
+    "5": _species_ploidy,
+    "6": _species_ploidy,
+    "7": _species_ploidy,
+    "8": _species_ploidy,
+    "9": _species_ploidy,
+    "10": _species_ploidy,
+    "11": _species_ploidy,
+    "12": _species_ploidy,
+    "13": _species_ploidy,
+    "14": _species_ploidy,
+    "15": _species_ploidy,
+    "16": _species_ploidy,
+    "17": _species_ploidy,
+    "18": _species_ploidy,
+    "19": _species_ploidy,
+    "20": _species_ploidy,
+    "21": _species_ploidy,
+    "22": _species_ploidy,
+    "X": _species_ploidy,
+    "Y": 1,
+    "MT": 1,
+}
+
 _genome2001 = stdpopsim.Citation(
     doi="http://dx.doi.org/10.1038/35057062",
     year=2001,
@@ -76,6 +106,7 @@ for name, data in genome_data.data["chromosomes"].items():
             synonyms=data["synonyms"],
             mutation_rate=1.29e-8,
             recombination_rate=_recombination_rate_data[name],
+            ploidy=_ploidy[name],
         )
     )
 
@@ -99,6 +130,7 @@ _species = stdpopsim.Species(
     genome=_genome,
     generation_time=30,
     population_size=10**4,
+    ploidy=_species_ploidy,
     citations=[
         _tremblay2000.because(stdpopsim.CiteReason.GEN_TIME),
         _takahata1993.because(stdpopsim.CiteReason.POP_SIZE),

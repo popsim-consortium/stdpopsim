@@ -166,3 +166,7 @@ class TestGenomeData(test_species.GenomeTestBase):
 
     def test_bacterial_recombination(self):
         assert self.genome.bacterial_recombination is False
+
+    @pytest.mark.parametrize("chrom", [chrom for chrom in genome.chromosomes])
+    def test_chromosome_ploidy(self, chrom):
+        assert chrom.ploidy == 2

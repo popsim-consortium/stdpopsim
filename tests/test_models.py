@@ -39,13 +39,12 @@ class DemographicModelTestMixin:
             length=100, mutation_rate=self.model.mutation_rate
         )
         # Generate vector with 2 samples for each pop with sampling enabled
-        sample_count = []
+        samples = {}
         for p in self.model.populations:
             if p.allow_samples:
-                sample_count.append(2)
+                samples[p.name] = 2
             else:
-                sample_count.append(0)
-        samples = self.model.get_samples(*sample_count)
+                samples[p.name] = 0
         engine = stdpopsim.get_default_engine()
         ts = engine.simulate(self.model, contig, samples)
         assert ts.num_populations == self.model.num_populations
@@ -277,9 +276,9 @@ class TestIsolationWithMigration:
 class TestPopulationSampling:
     def make_model(self):
         # Create populations to test on
-        _pop1 = stdpopsim.Population("pop0", "Test pop. 0")
-        _pop2 = stdpopsim.Population("pop1", "Test pop. 1", sampling_time=10)
-        _pop3 = stdpopsim.Population("pop2", "Test pop. 2", sampling_time=None)
+        _pop1 = stdpopsim.Population("pop_0", "Test pop. 0")
+        _pop2 = stdpopsim.Population("pop_1", "Test pop. 1", sampling_time=10)
+        _pop3 = stdpopsim.Population("pop_2", "Test pop. 2", sampling_time=None)
 
         # Create an model to hold populations
         base_mod = models.DemographicModel(
@@ -299,15 +298,49 @@ class TestPopulationSampling:
         base_mod = self.make_model()
         assert base_mod.num_sampling_populations == 2
 
-    def test_get_samples(self):
+    def test_get_sample_sets(self):
+        base_mod = self.make_model()
+        test_samples = base_mod.get_sample_sets({"pop_0": 2, "pop_1": 1}, ploidy=1)
+        assert len(test_samples) == 2
+        assert sum([ss.num_samples for ss in test_samples]) == 3
+
+        # Check for error when prohibited sampling asked for
+        with pytest.raises(ValueError, match="non-sampling population"):
+            base_mod.get_sample_sets({"pop_0": 2, "pop_1": 2, "pop_2": 1}, ploidy=1)
+        # OK if prohibited population has 0 requested samples
+        base_mod.get_sample_sets({"pop_0": 2, "pop_1": 2, "pop_2": 0}, ploidy=1)
+        # Check for error with nonexistant population
+        with pytest.raises(ValueError, match="is not one of the populations"):
+            base_mod.get_sample_sets(
+                {"pop_0": 2, "pop_1": 2, "nonexistant": 1}, ploidy=1
+            )
+        # Get the population corresponding to each sample
+        sample_populations = [i.population for i in test_samples]
+        # Check sample populations
+        assert sample_populations == [0, 1]
+        # Test sampling times
+        sample_times = [i.time for i in test_samples]
+        assert sample_times == [0, 10]
+        # Check that output is ordered by population index despite dict
+        # insertion order
+        test_samples = base_mod.get_sample_sets({"pop_1": 2, "pop_0": 2}, ploidy=1)
+        sample_populations = [i.population for i in test_samples]
+        assert sample_populations == [0, 1]
+
+    @pytest.mark.filterwarnings("ignore::DeprecationWarning")
+    def test_deprecated_get_samples(self):
         base_mod = self.make_model()
         test_samples = base_mod.get_samples(2, 1)
         assert len(test_samples) == 2
         assert sum([ss.num_samples for ss in test_samples]) == 3
 
+        # Check that deprecation warning is raised
+        with pytest.warns(DeprecationWarning):
+            base_mod.get_samples(2, 1)
         # Check for error when prohibited sampling asked for
         with pytest.raises(ValueError):
             base_mod.get_samples(2, 2, 1)
+        test_samples = base_mod.get_samples(2, 1, 0)
         # Get the population corresponding to each sample
         sample_populations = [i.population for i in test_samples]
         # Check sample populations
@@ -331,7 +364,7 @@ class TestZigZagWarning:
         species = stdpopsim.get_species("HomSap")
         model = species.get_demographic_model("Zigzag_1S14")
         contig = species.get_contig("chr22")
-        samples = model.get_samples(10)
+        samples = {"generic": 5}
         for engine in stdpopsim.all_engines():
             with pytest.warns(UserWarning, match="Zigzag_1S14 model.*sizes 5x lower"):
                 engine.simulate(model, contig, samples, dry_run=True)
@@ -342,7 +375,7 @@ class TestMutationRates:
         species = stdpopsim.get_species("HomSap")
         model = copy.deepcopy(species.get_demographic_model("OutOfAfrica_3G09"))
         contig = species.get_contig("chr22")
-        samples = model.get_samples(10, 10, 10)
+        samples = {"YRI": 5, "CEU": 5, "CHB": 5}
         for engine in stdpopsim.all_engines():
             with pytest.warns(
                 UserWarning, match="model has mutation rate.*but this simulation used"
@@ -364,7 +397,7 @@ class TestMutationRates:
         contig = species.get_contig(length=100, mutation_rate=model.mutation_rate)
         assert model.mutation_rate == contig.mutation_rate
 
-        samples = model.get_samples(10, 10, 10)
+        samples = {"YRI": 5, "CEU": 5, "CHB": 5}
         for engine in stdpopsim.all_engines():
             engine.simulate(model, contig, samples, dry_run=True)
 

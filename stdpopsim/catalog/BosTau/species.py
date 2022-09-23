@@ -64,6 +64,42 @@ _recombination_rate_data = collections.defaultdict(
 # Set some exceptions for non-recombining chrs.
 _recombination_rate_data["MT"] = 0
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "1": _species_ploidy,
+    "2": _species_ploidy,
+    "3": _species_ploidy,
+    "4": _species_ploidy,
+    "5": _species_ploidy,
+    "6": _species_ploidy,
+    "7": _species_ploidy,
+    "8": _species_ploidy,
+    "9": _species_ploidy,
+    "10": _species_ploidy,
+    "11": _species_ploidy,
+    "12": _species_ploidy,
+    "13": _species_ploidy,
+    "14": _species_ploidy,
+    "15": _species_ploidy,
+    "16": _species_ploidy,
+    "17": _species_ploidy,
+    "18": _species_ploidy,
+    "19": _species_ploidy,
+    "20": _species_ploidy,
+    "21": _species_ploidy,
+    "22": _species_ploidy,
+    "23": _species_ploidy,
+    "24": _species_ploidy,
+    "25": _species_ploidy,
+    "26": _species_ploidy,
+    "27": _species_ploidy,
+    "28": _species_ploidy,
+    "29": _species_ploidy,
+    "X": _species_ploidy,
+    "MT": 1,
+}
+
 _chromosomes = []
 for name, data in genome_data.data["chromosomes"].items():
     _chromosomes.append(
@@ -74,6 +110,7 @@ for name, data in genome_data.data["chromosomes"].items():
             # Harland et al. (2017), sex-averaged estimate per bp per generation.
             mutation_rate=1.2e-8,
             recombination_rate=_recombination_rate_data[name],
+            ploidy=_ploidy[name],
         )
     )
 
@@ -96,6 +133,7 @@ _species = stdpopsim.Species(
     genome=_genome,
     generation_time=5,
     population_size=62000,  # ancestral Ne in _MacLeodEtAl
+    ploidy=_species_ploidy,
     citations=[_MacLeodEtAl],
 )
 

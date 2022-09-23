@@ -56,6 +56,16 @@ _recombination_rate = {
     "Mt": 0,
 }
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "2L": _species_ploidy,
+    "2R": _species_ploidy,
+    "3L": _species_ploidy,
+    "3R": _species_ploidy,
+    "X": _species_ploidy,
+    "Mt": 1,
+}
 
 # the rate for DroMel as inferred by Keightley et al 2009,
 # which was used for the stairwayplot demographic inference
@@ -73,6 +83,7 @@ _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
+    ploidy=_ploidy,
     citations=[
         _SharakhovaEtAl,
         _Ag1000G,
@@ -92,6 +103,7 @@ _species = stdpopsim.Species(
     generation_time=1 / 11,
     # based on theta = 4 Ne u in Gabon population, rounded
     population_size=1e6,
+    ploidy=_species_ploidy,
     citations=[_Ag1000G],
 )
 

@@ -47,6 +47,7 @@ class Genome:
         *,
         recombination_rate,
         mutation_rate,
+        ploidy,
         citations,
         bacterial_recombination=False,
         gene_conversion_fraction=None,
@@ -54,14 +55,15 @@ class Genome:
     ):
         """
         Construct a Genome object from the specified dictionary of
-        genome information from Ensembl, recombination_rate and
-        mutation_rate dictionaries.
+        genome information from Ensembl, recombination_rate,
+        mutation_rate, and ploidy dictionaries.
 
         This method is for internal use only.
         """
         chr_names = set(genome_data["chromosomes"].keys())
         assert set(recombination_rate.keys()) == chr_names
         assert set(mutation_rate.keys()) == chr_names
+        assert set(ploidy.keys()) == chr_names
         if gene_conversion_fraction is None:
             gene_conversion_fraction = {k: None for k in chr_names}
         assert set(gene_conversion_fraction.keys()) == chr_names
@@ -77,6 +79,7 @@ class Genome:
                     synonyms=data["synonyms"],
                     mutation_rate=mutation_rate[name],
                     recombination_rate=recombination_rate[name],
+                    ploidy=ploidy[name],
                     gene_conversion_fraction=gene_conversion_fraction[name],
                     gene_conversion_length=gene_conversion_length[name],
                 )
@@ -197,11 +200,13 @@ class Chromosome:
     :ivar synonyms: List of synonyms that may be used when requesting this
         chromosome by ID, e.g. from the command line interface.
     :vartype synonyms: list of str
+    :ivar int ploidy: The ploidy used when simulating this chromosome.
     """
 
     id = attr.ib(type=str, kw_only=True)
     length = attr.ib(kw_only=True)
     recombination_rate = attr.ib(type=float, kw_only=True)
+    ploidy = attr.ib(default=None, type=int, kw_only=True)
     gene_conversion_fraction = attr.ib(default=None, type=float, kw_only=True)
     gene_conversion_length = attr.ib(default=None, type=float, kw_only=True)
     mutation_rate = attr.ib(type=float, kw_only=True)
@@ -225,6 +230,8 @@ class Contig:
 
     :ivar mutation_rate: The rate of mutation per base per generation.
     :vartype mutation_rate: float
+    :ivar ploidy: The ploidy of the contig. Defaults to 2 (diploid).
+    :vartype ploidy: int
     :ivar recombination_map: The recombination map for the region, that gives
         the rates of double-stranded breaks. Note that if gene conversion
         fraction is nonzero, then this map can have a larger rate than the
@@ -284,6 +291,7 @@ class Contig:
 
     recombination_map = attr.ib()
     mutation_rate = attr.ib(type=float)
+    ploidy = attr.ib(default=2, type=int, kw_only=True)
     bacterial_recombination = attr.ib(default=False, type=bool, kw_only=True)
     gene_conversion_fraction = attr.ib(default=None, type=float, kw_only=True)
     gene_conversion_length = attr.ib(default=None, type=float, kw_only=True)
@@ -309,6 +317,7 @@ class Contig:
         length,
         mutation_rate=0,
         recombination_rate=0,
+        ploidy=2,
         bacterial_recombination=False,
         gene_conversion_fraction=None,
         gene_conversion_length=None,
@@ -349,6 +358,7 @@ class Contig:
             bacterial_recombination=bacterial_recombination,
             gene_conversion_fraction=gene_conversion_fraction,
             gene_conversion_length=gene_conversion_length,
+            ploidy=ploidy,
         )
 
     @staticmethod
@@ -440,6 +450,7 @@ class Contig:
                 bacterial_recombination=species.genome.bacterial_recombination,
                 gene_conversion_fraction=gene_conversion_fraction,
                 gene_conversion_length=gene_conversion_length,
+                ploidy=species.ploidy,
             )
         else:
             # Named contig:
@@ -539,6 +550,8 @@ class Contig:
                         rate=recomb_map.rate / (1 - gene_conversion_fraction),
                     )
 
+            ploidy = species.ploidy if chrom.ploidy is None else chrom.ploidy
+
             contig = stdpopsim.Contig(
                 recombination_map=recomb_map,
                 mutation_rate=mutation_rate,
@@ -549,6 +562,7 @@ class Contig:
                 inclusion_mask=inclusion_intervals,
                 exclusion_mask=exclusion_intervals,
                 original_coordinates=(chromosome, left, right),
+                ploidy=ploidy,
             )
 
         return contig

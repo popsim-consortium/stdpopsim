@@ -5,6 +5,11 @@ import copy
 import textwrap
 
 import msprime
+import warnings
+
+# DeprecationWarning is filtered by default. The following ensures that these
+# warnings are visible to the user.
+warnings.simplefilter("always", DeprecationWarning)
 
 
 class Population:
@@ -180,23 +185,80 @@ class DemographicModel:
             raise ValueError(f"QC model already registered for {self.id}.")
         self.qc_model = qc_model
 
+    def get_sample_sets(self, individuals_per_population, ploidy=2):
+        """
+        Returns a list of `msprime.SampleSet` objects, using the number of
+        individuals sampled from each population as specified in
+        `individuals_per_population`.  For instance,
+        ``model.get_sample_sets({"pop_0":5, "pop_1":5}`` would return sample
+        sets encompassing 10 individuals, equally split between populations
+        named "pop_0" and "pop_1".  Omitted populations are assumed to have
+        zero samples.
+
+        :param dict individuals_per_population: A dict of the form
+            `{population_name:number_of_samples}` giving sample counts per
+            population.
+        :param int ploidy: The ploidy of the samples.
+
+        .. note: This interface is intended for internal use only.
+        """
+
+        sample_sets = []
+        pop_map = {pop.name: pop for pop in self.populations}
+        pop_idx = {pop.name: i for i, pop in enumerate(self.populations)}
+        for name, num_samples in individuals_per_population.items():
+            if name not in pop_map:
+                raise ValueError(
+                    f"Population {name} is not one of the populations "
+                    f"{list(pop_map.keys())} defined for model {self.id}"
+                )
+            pop = pop_map[name]
+            if pop.allow_samples:
+                sample_sets.append(
+                    msprime.SampleSet(
+                        num_samples=num_samples,
+                        population=pop_idx[name],
+                        time=pop.default_sampling_time,
+                        ploidy=ploidy,
+                    )
+                )
+            elif num_samples > 0:
+                raise ValueError(
+                    f"Individuals requested from non-sampling population {name}"
+                )
+        sample_sets = sorted(sample_sets, key=lambda x: x.population)
+        return sample_sets
+
     def get_samples(self, *args):
         """
-        Returns a list of msprime.Sample objects, with the number of samples
-        from each population determined by the positional arguments.
-        For instance, ``model.get_samples(2, 5, 7)`` would return a list of 14 samples,
-        two of which are from the model's first population (i.e., with population ID
-        ``model.populations[0].id``), five are from the model's second population,
-        and seven are from the model's third population.
-        The number of of arguments must be less than or equal to the number of
-        "sampling" populations, ``model.num_sampling_populations``;
-        if the number of arguments is less than the number of sampling populations,
-        then remaining numbers are treated as zero.
+        Returns a list of `msprime.SampleSet` objects, with the number of
+        haploids from each population determined by the positional arguments.
+        For instance, ``model.get_samples(2, 5, 7)`` would return a list with
+        sample sets encompassing 14 samples, two of which are from the model's
+        first population (i.e., with population ID ``model.populations[0].id``),
+        five are from the model's second population, and seven are from the
+        model's third population.  The number of of arguments must be less than
+        or equal to the number of "sampling" populations,
+        ``model.num_sampling_populations``; if the number of arguments is less
+        than the number of sampling populations, then remaining numbers are
+        treated as zero.
 
-        .. todo:: This documentation is broken. We're now returning msprime
-            SampleSet objects.
+        .. note: This interface is deprecated. Instead, a dict containing the
+            number of individuals per population should be directly provided to
+            :meth:`Engine.simulate`.
         """
+
+        warnings.warn(
+            "The use of `DemographicModel.get_samples` (Python API) and "
+            "positional sample counts (CLI) is deprecated. Instead, supply a "
+            "{population_name:num_samples} dict to "
+            "`Engine.simulate(samples=...)` (Python API); or use the syntax "
+            "`stdpopsim SpeciesName population_name:num_samples` (CLI).",
+            DeprecationWarning,
+        )
+
         samples = []
+
         for pop_index, n in enumerate(args):
             if self.populations[pop_index].allow_samples:
                 samples.append(
@@ -204,12 +266,13 @@ class DemographicModel:
                         num_samples=n,
                         population=pop_index,
                         time=self.populations[pop_index].default_sampling_time,
-                        ploidy=1,  # Avoid breaking too much at once.
+                        ploidy=1,
                     )
                 )
             elif n > 0:
+                pop_name = self.populations[pop_index].name
                 raise ValueError(
-                    "Samples requested from non-sampling population {pop_index}"
+                    f"Samples requested from non-sampling population {pop_name}"
                 )
         return samples
 

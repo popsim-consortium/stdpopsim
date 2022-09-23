@@ -573,13 +573,14 @@ class TestCreateDFE:
         contig = stdpopsim.Contig.basic_contig(
             length=10000,
             mutation_rate=1e-6,
+            ploidy=2,
         )
         contig.add_dfe(
             intervals=np.array([[0, contig.length / 2]], dtype="int"),
             DFE=d,
         )
         model = stdpopsim.PiecewiseConstantSize(1000)
-        samples = model.get_samples(2)
+        samples = {"pop_0": 1}
         engine = stdpopsim.get_engine("msprime")
         with pytest.raises(ValueError, match="but you are using .* msprime"):
             _ = engine.simulate(
@@ -657,6 +658,7 @@ class DFETestMixin:
         contig = stdpopsim.Contig.basic_contig(
             length=1_000_000,
             mutation_rate=1e-8,  # Ne=1e3 and length=1e6 so theta=40
+            ploidy=2,
         )
         contig.clear_dfes()
         contig.add_dfe(
@@ -665,7 +667,7 @@ class DFETestMixin:
         )
 
         model = stdpopsim.PiecewiseConstantSize(1000)
-        samples = model.get_samples(2)
+        samples = {"pop_0": 1}
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
             model, contig, samples, slim_scaling_factor=10, slim_burn_in=10, seed=42

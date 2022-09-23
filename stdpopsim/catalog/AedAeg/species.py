@@ -5,6 +5,15 @@ from . import genome_data
 # These are in Table 1 of Juneja et al:
 _recombination_rate = {"1": 0.306e-8, "2": 0.249e-8, "3": 0.291e-8, "MT": 0}
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "1": _species_ploidy,
+    "2": _species_ploidy,
+    "3": _species_ploidy,
+    "MT": 1,
+}
+
 _JunejaEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1371/journal.pntd.0002652",
     year=2014,
@@ -56,6 +65,7 @@ _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
+    ploidy=_ploidy,
     citations=[
         _NeneEtAl,
         _JunejaEtAl,
@@ -72,6 +82,7 @@ _species = stdpopsim.Species(
     common_name="Yellow fever mosquito",
     genome=_genome,
     generation_time=1 / 15,
+    ploidy=_species_ploidy,
     # the estimated population size today the modern Senegal forest population
     population_size=1e6,
     citations=[_CrawfordEtAl],

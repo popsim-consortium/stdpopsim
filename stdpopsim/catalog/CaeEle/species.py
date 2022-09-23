@@ -94,6 +94,18 @@ _mutation_rate_data = {
     "MtDNA": 1.05e-7,
 }
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "I": _species_ploidy,
+    "II": _species_ploidy,
+    "III": _species_ploidy,
+    "IV": _species_ploidy,
+    "V": _species_ploidy,
+    "X": _species_ploidy,
+    "MtDNA": 1,
+}
+
 _chromosomes = []
 for name, data in genome_data.data["chromosomes"].items():
     _chromosomes.append(
@@ -107,6 +119,7 @@ for name, data in genome_data.data["chromosomes"].items():
             # a mutation map.
             # mutation_rate=_mutation_rate_data[name],
             recombination_rate=_recombination_rate_data[name],
+            ploidy=_ploidy[name],
         )
     )
 
@@ -135,6 +148,7 @@ _species = stdpopsim.Species(
     population_size=10000,  # Lots of estimates available,
     # they are all over the place. Settling on 10,000.
     #    selfing_rate,=0.999,
+    ploidy=_species_ploidy,
     citations=[
         _FrezalAndFelix2015.because(stdpopsim.CiteReason.GEN_TIME),
         _BarriereAndFelix2005.because(stdpopsim.CiteReason.POP_SIZE),

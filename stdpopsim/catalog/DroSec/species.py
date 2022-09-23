@@ -66,6 +66,17 @@ _mutation_rate = {
     "4": _overall_rate,
 }
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "2L": _species_ploidy,
+    "2R": _species_ploidy,
+    "3L": _species_ploidy,
+    "3R": _species_ploidy,
+    "X": _species_ploidy,
+    "4": _species_ploidy,
+}
+
 # We could not auto-pull the genome data from ensemble
 # so instead we used the most up-to-date assembly
 # currently available from NCBI.
@@ -73,6 +84,7 @@ _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
+    ploidy=_ploidy,
     citations=[_ChakrabortyEtAl, _ComeronEtAl, _WallEtAl],
 )
 stdpopsim.utils.append_common_synonyms(_genome)
@@ -89,6 +101,7 @@ _species = stdpopsim.Species(
     genome=_genome,
     generation_time=0.05,
     population_size=100000,
+    ploidy=_species_ploidy,
     citations=[_LegrandEtAl],
 )
 

@@ -36,3 +36,10 @@ class TestGenome(test_species.GenomeTestBase):
         chrom = self.genome.get_chromosome(chr_id)
         assert chrom.recombination_rate > 0
         assert chrom.gene_conversion_fraction > 0
+
+    @pytest.mark.parametrize("chrom", [chrom for chrom in genome.chromosomes])
+    def test_chromosome_ploidy(self, chrom):
+        if chrom.id in ["mitochondrion_genome", "Y"]:
+            assert chrom.ploidy == 1
+        else:
+            assert chrom.ploidy == 2
