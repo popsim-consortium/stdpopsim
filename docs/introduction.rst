@@ -51,6 +51,10 @@ there cooperatively. If you are interested in joining us please read our
 `code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/main/CODE_OF_CONDUCT.md>`_.
 A particular goal of this project is to build a diverse and supportive community,
 and so we especially encourage individuals from underrepresented groups in popgen to join.
+A primary goal of PopSim Consortium is to be inclusive to the largest number of contributors,
+with the most varied and diverse backgrounds possible. As such, we are committed to providing a
+friendly, safe and welcoming environment for all, regardless of gender, sexual orientation, ability,
+ethnicity, socioeconomic status, and religion (or lack thereof).
 Being a member of the Consortium can provide a valuable avenue for career development, through
 building networks, contributing to papers and code, as well as through learning programing standards
 and best practices.
