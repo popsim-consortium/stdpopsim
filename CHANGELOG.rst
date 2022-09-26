@@ -1,9 +1,9 @@
--------------------------
-[0.2.0-beta] - 2022-XX-XX
--------------------------
+--------------------
+[0.2.0] - 2022-XX-XX
+--------------------
 
-Preliminary version of major feature release, incorporating support for
-selection as well as many new species and models.
+Major feature release, incorporating support for simulating selection as well
+as many new species and models.
 
 **Bug fixes**:
 
@@ -11,7 +11,10 @@ selection as well as many new species and models.
   Durbin (2014) (:user:`grahamgower`, :pr:`750`).
 
 - Recombination rate for DroMel chr4 changed to 0
-  (:user:`izabelcavassim`, pr:`1092`).
+  (:user:`izabelcavassim`, :pr:`1092`).
+
+- Per-chromosome recombination rates for HomSap were incorrectly calculated
+  (:user:`nspope`, :pr:`1345`).
 
 **New species**:
 
@@ -84,6 +87,9 @@ selection as well as many new species and models.
 - HomSap/AncientEurope_4A21 (:user:`alipearson`, :pr:`941`).
   QC'd by :user:`mufernando`, :pr:`1256`.
 
+- PanTro/BonoboGhost_4K19 (:user:`xin-huang`, :pr:`1215`).
+  QC'd by :user:`kuhlwilm`, :pr:`1370`.
+
 - PapAnu/SinglePopSMCpp_1W22 (:user:`saurabhbelsare`, :pr:`1216`).
   QC'd by :user:`attrna`, :pr:`1261`.
 
@@ -101,6 +107,8 @@ selection as well as many new species and models.
   for XXX in ACB, ASW, BEB, CDX, CEU, CHB, CHS, CLM, ESN, FIN, GBR, GIH, GWD,
   IBS, ITU, JPT, KHV, LWK, MSL, MXL, PEL, PJL, PUR, STU, TSI, and YRI.
 
+- PapAnu/Pyrho_PAnubis1_0 (:user:`saurabhbelsare`, :pr:`1216`)
+
 **New features**:
 
 - Distributions of fitness effects ("DFEs") defined over genomic intervals
@@ -117,10 +125,10 @@ selection as well as many new species and models.
   (:user:`petrelharp`, :pr:`1200`).
 
 - Selective sweep simulation and allele frequency conditioning via SLiM
-  (:user:`grahamgower`, :pr:`462`).
+  (:user:`grahamgower`, :pr:`462`; :user:`nspope`, :pr:`1341`).
 
-- Gene conversion simulation via msprime
-  (:user:`fbaumdicker`, :pr:`1106`).
+- Gene conversion simulation via msprime and SLiM
+  (:user:`fbaumdicker`, :pr:`1106`; :user:`petrelharp`, :pr:`1355`).
 
 - Genome annotation tracks
   (:user:`andrewkern`, :pr:`560` and :pr:`960`).
@@ -130,6 +138,9 @@ selection as well as many new species and models.
 
 - Method to get generic contig of arbitrary length for a species
   (:user:`apragsdale`, :pr:`664`).
+
+- Method to get contig from a segment of a named chromosome
+  (:user:`nspope`, :pr:`1348`).
 
 - Pass keyworded arguments from simulation engine to msprime
   (:user:`awohns`, :pr:`736`).
