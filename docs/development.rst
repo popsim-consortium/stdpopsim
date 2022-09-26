@@ -1122,8 +1122,119 @@ to him until directed).
 Adding a DFE model
 ******************
 
-TODO: WRITE ME
+`stdpopsim` supports distribution of fitness effects (DFE) models from the
+literature. See :ref:`sec_simulating_sel`. To add a new DFE model to
+the catalog, you will need to:
 
+    1. `Fork the repository and create a branch`_ (as for demographic models)
+
+    2. `Write the DFE function in the catalog source code`_
+
+    3. `Submit a Pull Request on GitHub`_ (as for demographic models)
+
+    4. `Open a QC issue`_
+
+---------------------------------------------------
+Write the DFE function in the catalog source code
+---------------------------------------------------
+
+In the ``stdpopsim`` catalog source code (found in ``stdpopsim/catalog/``),
+each species has a module that defines all of the necessary functions to run
+simulations for that species, including the DFE models. For example, if you
+were to write a new DFE model for `AraTha`, then within ``stdpopsim/catalog/AraTha``
+you should find a file named ``dfes.py`` with the following header:
+
+.. code-block:: python
+
+    import stdpopsim
+
+    _species = stdpopsim.get_species("AraTha")
+
+    ###########################################################
+    #
+    # DFEs
+    #
+    ###########################################################
+
+If ``dfes.py`` does not exist for your species, then you can create it
+(after adjusting the species name) and you will need to import it in your species
+definition. If `AraTha` were your species of interest then you would edit
+``stdpopsim/catalog/AraTha/__init__.py`` to add an import statement such as:
+
+.. code-block:: python
+
+    from . import dfes  # noqa: F401
+
+Now, you can define your new DFE function following this format:
+
+.. code-block:: python
+
+    def _dfe_func_name():
+        id = "FILL ME"
+        description = "FILL ME"
+        long_description = """
+        FILL ME
+        """
+        citations = [
+            stdpopsim.Citation(
+                author="FILL ME",
+                year="FILL ME",
+                doi="FILL ME",
+                reasons={stdpopsim.CiteReason.DFE},
+            )
+        ]
+
+        # Mutation Types based on the published DFE model, for example:
+        neutral = stdpopsim.MutationType()  # Neutral mutation type by default
+        negative = stdpopsim.MutationType(
+            dominance_coeff=0.5,
+            distribution_type="f",  # fixed selection coefficient
+            distribution_args=[-0.01],  # selection coefficient
+        )
+        positive = stdpopsim.MutationType(
+            dominance_coeff=0.5,
+            distribution_type="f",
+            distribution_args=[0.01],
+        )
+        # Defining some example proportions of each mutation type
+        p_neutral = 0.7
+        p_negative = 0.299
+        p_positive = 1 - p_neutral - p_negative
+
+        # Example return statement for this example DFE with three mutation types.
+        return stdpopsim.DFE(
+            id=id,
+            description=description,
+            long_description=long_description,
+            mutation_types=[neutral, negative, positive],
+            proportions=[p_neutral, p_negative, p_positive],
+            citations=citations,
+        )
+
+
+    _species.add_dfe(_dfe_func_name())
+
+See the detailed documentation of :class:`stdpopsim.DFE`
+and :class:`stdpopsim.MutationType`.
+
+---------------------------------------------------
+Open a QC issue
+---------------------------------------------------
+
+Open a new issue requesting a quality control check on your newly implemented
+DFE model. You should structure the issue as follows:
+
+    1. **PR for new model:**
+
+    2. **Original paper:**
+
+    3. **Parameter values:**
+
+    4. **Potential issues:**
+
+    5. **QC'er requests:**
+
+The QC process or DFEs follows that of demographic models (see `Demographic model review process`_).
 
 ****************
 Coding standards
