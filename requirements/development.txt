@@ -18,7 +18,7 @@ attrs
 appdirs
 humanize
 pre-commit
-pyslim>=0.600
+pyslim>=1.0
 pandas
 numpy
 scikit-allel

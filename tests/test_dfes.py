@@ -679,10 +679,11 @@ class DFETestMixin:
             for j, md in zip(
                 mut.derived_state.split(","), mut.metadata["mutation_list"]
             ):
+                uid = f"{mut.id}_{j}"
                 if md["selection_coeff"] != 0.0:
                     nonneutral[mut.id] = True
-                if j not in mut_info:
-                    mut_info[int(j)] = md
+                if uid not in mut_info:
+                    mut_info[uid] = md
 
         num_nonneutral = sum(nonneutral)
         nonneutral_positions = ts.tables.sites.position[

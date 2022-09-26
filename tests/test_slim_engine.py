@@ -27,8 +27,9 @@ def count_mut_types(ts):
     mut_info = {}
     for mut in ts.mutations():
         for j, md in zip(mut.derived_state.split(","), mut.metadata["mutation_list"]):
-            if j not in mut_info:
-                mut_info[int(j)] = md
+            uid = f"{str(mut.id)}_{j}"
+            if uid not in mut_info:
+                mut_info[uid] = md
     num_neutral = sum([mut_info[j]["selection_coeff"] == 0.0 for j in mut_info])
     return [num_neutral, abs(len(mut_info) - num_neutral)]
 
@@ -280,6 +281,51 @@ class TestAPI:
         ):
             engine._assert_min_version("3.5", engine.slim_path())
             engine._assert_min_version("3.6", None)
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_allele_codes(self):
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("AraTha")
+        contig = species.get_contig("5", left=0, right=100000)
+        contig.add_dfe(
+            intervals=[[0, contig.length // 2]],
+            DFE=stdpopsim.DFE(
+                id="test",
+                description="test",
+                long_description="test",
+                mutation_types=[
+                    stdpopsim.MutationType(
+                        distribution_type="n",
+                        distribution_args=[0, 0.01],
+                    )
+                ],
+            ),
+        )
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        samples = {"pop_0": 5}
+        # nucleotides
+        ts = engine.simulate(
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            slim_scaling_factor=10,
+            slim_burn_in=0,
+        )
+        for mut in ts.mutations():
+            alleles = mut.derived_state.split(",")
+            assert all([x in "AGCT" for x in alleles])
+        # slim mutation ids
+        ts = engine.simulate(
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            keep_mutation_ids_as_alleles=True,
+            slim_scaling_factor=10,
+            slim_burn_in=0,
+        )
+        for mut in ts.mutations():
+            alleles = mut.derived_state.split(",")
+            assert all([x.isnumeric() for x in alleles])
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
@@ -559,6 +605,14 @@ class TestCLI:
             "--dfe-annotation ensembl_havana_104_exons"
         ).split()
         with pytest.raises(SystemExit, match="A DFE bed file and a DFE annotation"):
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+
+        # keep mutation ids as alleles without slim engine
+        cmd = (
+            f"-q -e msprime HomSap -c chr22 -s 1234 -l 0.01 -o {fname} "
+            f"-d OutOfAfrica_3G09 --keep-mutation-ids-as-alleles YRI:5"
+        ).split()
+        with pytest.raises(SystemExit, match="only applies to the SLiM engine"):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
     @mock.patch("stdpopsim.slim_engine._SLiMEngine.get_version", return_value="64.64")
