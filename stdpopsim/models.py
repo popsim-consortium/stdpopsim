@@ -6,10 +6,7 @@ import textwrap
 
 import msprime
 import warnings
-
-# DeprecationWarning is filtered by default. The following ensures that these
-# warnings are visible to the user.
-warnings.simplefilter("always", DeprecationWarning)
+import stdpopsim
 
 
 class Population:
@@ -249,12 +246,13 @@ class DemographicModel:
         """
 
         warnings.warn(
-            "The use of `DemographicModel.get_samples` (Python API) and "
-            "positional sample counts (CLI) is deprecated. Instead, supply a "
-            "{population_name:num_samples} dict to "
-            "`Engine.simulate(samples=...)` (Python API); or use the syntax "
-            "`stdpopsim SpeciesName population_name:num_samples` (CLI).",
-            DeprecationWarning,
+            stdpopsim.DeprecatedFeatureWarning(
+                "The use of `DemographicModel.get_samples` (Python API) and "
+                "positional sample counts (CLI) is deprecated. Instead, supply a "
+                "{population_name:num_samples} dict to "
+                "`Engine.simulate(samples=...)` (Python API); or use the syntax "
+                "`stdpopsim SpeciesName population_name:num_samples` (CLI)."
+            )
         )
 
         samples = []

@@ -327,7 +327,7 @@ class TestPopulationSampling:
         sample_populations = [i.population for i in test_samples]
         assert sample_populations == [0, 1]
 
-    @pytest.mark.filterwarnings("ignore::DeprecationWarning")
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_deprecated_get_samples(self):
         base_mod = self.make_model()
         test_samples = base_mod.get_samples(2, 1)
@@ -335,7 +335,7 @@ class TestPopulationSampling:
         assert sum([ss.num_samples for ss in test_samples]) == 3
 
         # Check that deprecation warning is raised
-        with pytest.warns(DeprecationWarning):
+        with pytest.warns(stdpopsim.DeprecatedFeatureWarning):
             base_mod.get_samples(2, 1)
         # Check for error when prohibited sampling asked for
         with pytest.raises(ValueError):

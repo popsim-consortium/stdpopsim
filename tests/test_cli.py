@@ -1056,7 +1056,7 @@ class TestSampleCountParser:
         for i in range(len(num_samples)):
             assert len(ts.samples(population=i)) == num_samples[i]
 
-    @pytest.mark.filterwarnings("ignore::DeprecationWarning")
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_deprecated_positional_samples(self):
         cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 5"
         self.verify(cmd, num_samples=[5, 0, 0])

@@ -198,7 +198,7 @@ class TestAPI:
             assert all(tree.num_roots == 1 for tree in ts.trees())
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    @pytest.mark.filterwarnings("ignore::DeprecationWarning")
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     @pytest.mark.filterwarnings(
         "ignore:.*model has mutation rate.*but this simulation used.*"
     )

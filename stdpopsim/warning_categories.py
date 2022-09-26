@@ -26,3 +26,7 @@ class UnspecifiedSLiMWarning(UserWarning):
 
 class EmptyIntervalsWarning(UserWarning):
     pass
+
+
+class DeprecatedFeatureWarning(UserWarning):
+    pass
