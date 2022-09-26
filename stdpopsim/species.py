@@ -125,6 +125,8 @@ class Species:
         model uses the generation time that was used in the original
         publication(s).
     :vartype generation_time: float
+    :ivar ploidy: The ploidy of the organism.
+    :vartype ploidy: int
     :ivar population_size: The current best estimate for the population
         size of this species. Note that individual demographic
         models in the catalog may or may not use this estimate: each
@@ -151,6 +153,7 @@ class Species:
     common_name = attr.ib(type=str, kw_only=True)
     genome = attr.ib(type=int, kw_only=True)
     generation_time = attr.ib(default=0, kw_only=True)
+    ploidy = attr.ib(default=2, type=int, kw_only=True)
     population_size = attr.ib(default=0, kw_only=True)
     demographic_models = attr.ib(factory=list, kw_only=True)
     dfes = attr.ib(factory=list, kw_only=True)

@@ -40,7 +40,7 @@ class TestAPI:
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("chr1")
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
-        samples = model.get_samples(10)
+        samples = {"pop_0": 5}
 
         for scaling_factor in (0, -1, -1e-6):
             with pytest.raises(ValueError):
@@ -62,6 +62,41 @@ class TestAPI:
                     dry_run=True,
                 )
 
+    def test_bad_samples(self):
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("chr1")
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        samples = [1, 2, ["foo"]]
+        with pytest.raises(ValueError, match="Samples must be a dict"):
+            engine.simulate(
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                dry_run=True,
+            )
+        with pytest.raises(ValueError, match="Samples must be a dict"):
+            engine.recap_and_rescale(
+                ts=None,
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+            )
+        samples = [
+            msprime.SampleSet(
+                num_samples=2,
+                population=0,
+                ploidy=3,
+            )
+        ]
+        with pytest.raises(ValueError, match="Sample ploidy other than 1 or 2"):
+            engine.simulate(
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                dry_run=True,
+            )
+
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings(
         "ignore:.*model has mutation rate.*but this simulation used.*"
@@ -72,7 +107,7 @@ class TestAPI:
         contig = species.get_contig("chr1")
 
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
-        samples = model.get_samples(10)
+        samples = {"pop_0": 5}
         out, _ = capture_output(
             engine.simulate,
             demographic_model=model,
@@ -83,7 +118,15 @@ class TestAPI:
         assert "community.registerLateEvent" in out
 
         model = species.get_demographic_model("AncientEurasia_9K19")
-        samples = model.get_samples(10, 20, 30, 40, 50, 60, 70)
+        samples = {
+            "Mbuti": 5,
+            "LBK": 10,
+            "Sardinian": 15,
+            "Loschbour": 20,
+            "MA1": 25,
+            "Han": 30,
+            "UstIshim": 35,
+        }
         out, _ = capture_output(
             engine.simulate,
             demographic_model=model,
@@ -94,7 +137,7 @@ class TestAPI:
         assert "community.registerLateEvent" in out
 
         model = species.get_demographic_model("AmericanAdmixture_4B11")
-        samples = model.get_samples(10, 10, 10)
+        samples = {"AFR": 10, "EUR": 10, "ASIA": 10}
         out, _ = capture_output(
             engine.simulate,
             demographic_model=model,
@@ -110,7 +153,7 @@ class TestAPI:
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("chr1", genetic_map="HapMapII_GRCh37")
         model = stdpopsim.PiecewiseConstantSize(100)
-        samples = model.get_samples(10)
+        samples = {"pop_0": 5}
         engine.simulate(
             demographic_model=model,
             contig=contig,
@@ -124,7 +167,7 @@ class TestAPI:
         species = stdpopsim.get_species("AraTha")
         contig = species.get_contig("5", length_multiplier=0.001)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
-        samples = model.get_samples(10)
+        samples = {"pop_0": 5}
         ts = engine.simulate(
             demographic_model=model,
             contig=contig,
@@ -141,7 +184,7 @@ class TestAPI:
         species = stdpopsim.get_species("AraTha")
         contig = species.get_contig("5", length_multiplier=0.001)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
-        samples = model.get_samples(10)
+        samples = {"pop_0": 5}
         for v in [0, 1, 2, 3]:
             ts = engine.simulate(
                 demographic_model=model,
@@ -155,6 +198,7 @@ class TestAPI:
             assert all(tree.num_roots == 1 for tree in ts.trees())
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     @pytest.mark.filterwarnings(
         "ignore:.*model has mutation rate.*but this simulation used.*"
     )
@@ -162,63 +206,65 @@ class TestAPI:
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
         model = species.get_demographic_model("OutOfAfrica_3G09")
-        samples = model.get_samples(10, 10, 10)
-        for proportion, seed in zip((0, 1), (1234, 2345)):
-            contig = species.get_contig("chr22", length_multiplier=0.001)
-            # need selected mutations so that SLiM produces some
-            contig.add_dfe(
-                intervals=np.array([[0, contig.length / 2]], dtype="int"),
-                DFE=stdpopsim.DFE(
-                    id="test",
-                    description="test",
-                    long_description="test",
-                    mutation_types=[
-                        stdpopsim.MutationType(
-                            distribution_type="n",
-                            distribution_args=[0, 0.01],
-                        )
-                    ],
-                ),
-            )
-            if proportion:
-                extended_events = None
-            else:
-                extended_events = []
-            ts1 = engine.simulate(
-                demographic_model=model,
-                contig=contig,
-                samples=samples,
-                extended_events=extended_events,
-                slim_scaling_factor=10,
-                slim_burn_in=0,
-                seed=seed,
-            )
-            ts2_headless = engine.simulate(
-                demographic_model=model,
-                contig=contig,
-                samples=samples,
-                extended_events=extended_events,
-                slim_scaling_factor=10,
-                slim_burn_in=0,
-                seed=seed,
-                _recap_and_rescale=False,
-            )
-            ts2 = engine.recap_and_rescale(
-                ts2_headless,
-                demographic_model=model,
-                contig=contig,
-                samples=samples,
-                extended_events=extended_events,
-                slim_scaling_factor=10,
-                seed=seed,
-            )
+        samples_deprecated = model.get_samples(10, 10, 10)
+        samples_dict = {"YRI": 5, "CEU": 5, "CHB": 5}
+        for samples in [samples_deprecated, samples_dict]:
+            for proportion, seed in zip((0, 1), (1234, 2345)):
+                contig = species.get_contig("chr22", length_multiplier=0.001)
+                # need selected mutations so that SLiM produces some
+                contig.add_dfe(
+                    intervals=np.array([[0, contig.length / 2]], dtype="int"),
+                    DFE=stdpopsim.DFE(
+                        id="test",
+                        description="test",
+                        long_description="test",
+                        mutation_types=[
+                            stdpopsim.MutationType(
+                                distribution_type="n",
+                                distribution_args=[0, 0.01],
+                            )
+                        ],
+                    ),
+                )
+                if proportion:
+                    extended_events = None
+                else:
+                    extended_events = []
+                ts1 = engine.simulate(
+                    demographic_model=model,
+                    contig=contig,
+                    samples=samples,
+                    extended_events=extended_events,
+                    slim_scaling_factor=10,
+                    slim_burn_in=0,
+                    seed=seed,
+                )
+                ts2_headless = engine.simulate(
+                    demographic_model=model,
+                    contig=contig,
+                    samples=samples,
+                    extended_events=extended_events,
+                    slim_scaling_factor=10,
+                    slim_burn_in=0,
+                    seed=seed,
+                    _recap_and_rescale=False,
+                )
+                ts2 = engine.recap_and_rescale(
+                    ts2_headless,
+                    demographic_model=model,
+                    contig=contig,
+                    samples=samples,
+                    extended_events=extended_events,
+                    slim_scaling_factor=10,
+                    seed=seed,
+                )
 
-            tables1 = ts1.dump_tables()
-            tables2 = ts2.dump_tables()
+                tables1 = ts1.dump_tables()
+                tables2 = ts2.dump_tables()
 
-            assert tables1.nodes == tables2.nodes
-            assert tables1.edges == tables2.edges
-            assert tables1.mutations == tables2.mutations
+                assert tables1.nodes == tables2.nodes
+                assert tables1.edges == tables2.edges
+                assert tables1.mutations == tables2.mutations
 
     def test_assert_min_version(self):
         engine = stdpopsim.get_engine("slim")
@@ -239,21 +285,19 @@ class TestAPI:
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestCLI:
     def docmd(self, _cmd):
-        cmd = (
-            f"-q -e slim --slim-burn-in 0 {_cmd} -l 0.001 -c chr1 -s 1234 10"
-        ).split()
+        cmd = (f"-q -e slim --slim-burn-in 0 {_cmd} -l 0.001 -c chr1 -s 1234").split()
         return capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
     def test_script_generation(self):
-        out, _ = self.docmd("--slim-script HomSap")
+        out, _ = self.docmd("--slim-script HomSap pop_0:5")
         assert "community.registerLateEvent" in out
 
         # msprime.MassMigration demographic events, with proportion<1.0
         # low level migration
-        out, _ = self.docmd("--slim-script HomSap -d AncientEurasia_9K19")
+        out, _ = self.docmd("--slim-script HomSap -d AncientEurasia_9K19 Mbuti:5")
         assert "community.registerLateEvent" in out
         # simultaneous mass migrations, with proportions summing to 1.0
-        out, _ = self.docmd("--slim-script HomSap -d AmericanAdmixture_4B11")
+        out, _ = self.docmd("--slim-script HomSap -d AmericanAdmixture_4B11 AFR:5")
         assert "community.registerLateEvent" in out
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
@@ -263,7 +307,8 @@ class TestCLI:
         slim_path = os.environ.get("SLIM", "slim")
         with tempfile.NamedTemporaryFile(mode="w") as f:
             self.docmd(
-                f"--slim-scaling-factor 20 --slim-path {slim_path} HomSap -o {f.name}"
+                f"--slim-scaling-factor 20 --slim-path {slim_path} HomSap "
+                f"pop_0:5 -o {f.name}"
             )
             ts = tskit.load(f.name)
         assert ts.num_samples == 10
@@ -275,7 +320,7 @@ class TestCLI:
             os.environ["SLIM"] = saved_slim_env
 
         with tempfile.NamedTemporaryFile(mode="w") as f:
-            self.docmd(f"--slim-scaling-factor 20 HomSap -o {f.name}")
+            self.docmd(f"--slim-scaling-factor 20 HomSap pop_0:5 -o {f.name}")
             ts = tskit.load(f.name)
         assert ts.num_samples == 10
 
@@ -284,7 +329,7 @@ class TestCLI:
             cmd = (
                 "-q -e slim --slim-scaling-factor 20 --slim-burn-in 0 "
                 f"HomSap -o {f.name} -l 0.001 -c chr1 -s 1234 "
-                "-d OutOfAfrica_3G09 0 0 8"
+                "-d OutOfAfrica_3G09 YRI:0 CEU:0 CHB:4"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
@@ -307,7 +352,8 @@ class TestCLI:
         with tempfile.NamedTemporaryFile(mode="w") as f:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l 0.02 -o {f.name} --dfe Gamma_K17 -s 24 10"
+                f"HomSap -c chr22 -l 0.02 -o {f.name} --dfe Gamma_K17 -s 24 "
+                f"pop_0:5"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
@@ -319,7 +365,7 @@ class TestCLI:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
                 f"HomSap -c chr22 -l 0.01 -o {f.name} --dfe Gamma_K17 -s 984 "
-                f"--dfe-interval 1000,100000 10"
+                f"--dfe-interval 1000,100000 pop_0:5"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
@@ -333,7 +379,7 @@ class TestCLI:
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
                 f"HomSap -c chr22 -l 0.01 -o {f.name} "
                 "-d OutOfAfrica_3G09 --dfe Gamma_K17 -s 148 "
-                "--dfe-interval 1000,100000 10"
+                "--dfe-interval 1000,100000 YRI:5"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
@@ -345,7 +391,7 @@ class TestCLI:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
                 f"HomSap -c chr22 -o {f.name} --dfe Gamma_K17 -s 913 "
-                "--dfe-annotation ensembl_havana_104_CDS 10"
+                "--dfe-annotation ensembl_havana_104_CDS pop_0:5"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
@@ -366,7 +412,7 @@ class TestCLI:
         cmd = (
             f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
             f"HomSap -c chr22 -s 1234 -l 0.01 -o {fname} --dfe Gamma_K17 -s 183 "
-            f"--dfe-bed-file {tmp_path / 'ex.bed'} 10"
+            f"--dfe-bed-file {tmp_path / 'ex.bed'} pop_0:5"
         ).split()
         capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         ts = tskit.load(fname)
@@ -380,7 +426,7 @@ class TestCLI:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
                 f"HomSap -c chr22 --left {left} --right {right} -o {f.name} "
-                f"--dfe Gamma_K17 -s 24 10"
+                f"--dfe Gamma_K17 -s 24 pop_0:5"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
@@ -397,7 +443,8 @@ class TestCLI:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
                 f"HomSap -c chr22 --left {left} --right {right} -o {f.name} "
-                f"--dfe Gamma_K17 -s 984 --dfe-interval {dfe_left},{dfe_right} 10"
+                f"--dfe Gamma_K17 -s 984 --dfe-interval {dfe_left},{dfe_right} "
+                f"pop_0:5"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
@@ -420,7 +467,8 @@ class TestCLI:
         cmd = (
             f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
             f"HomSap -c chr22 -s 1234 --left {left} --right {right} -o {fname} "
-            f"--dfe Gamma_K17 -s 183 --dfe-bed-file {tmp_path / 'ex.bed'} 10"
+            f"--dfe Gamma_K17 -s 183 --dfe-bed-file {tmp_path / 'ex.bed'} "
+            f"pop_0:5"
         ).split()
         capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         ts = tskit.load(fname)
@@ -435,7 +483,8 @@ class TestCLI:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
                 f"HomSap -c chr22 --left {left} --right {right} -o {f.name} "
-                f"--dfe Gamma_K17 -s 913 --dfe-annotation ensembl_havana_104_CDS 10"
+                f"--dfe Gamma_K17 -s 913 --dfe-annotation ensembl_havana_104_CDS "
+                f"pop_0:5"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
@@ -457,25 +506,25 @@ class TestCLI:
         base_cmd = (
             f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
             f"HomSap -c chr22 -s 1234 -l 0.01 -o {fname} "
-            "-d OutOfAfrica_3G09 "
+            f"-d OutOfAfrica_3G09 YRI:5 "
         )
 
         # Intervals but no DFE
-        cmd = (base_cmd + "--dfe-interval 1000,100000 10").split()
+        cmd = (base_cmd + "--dfe-interval 1000,100000").split()
         with pytest.raises(
             SystemExit, match="interval has been assigned " "without a DFE"
         ):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
         # Annotation but no DFE
-        cmd = (base_cmd + "--dfe-annotation ensembl_havana_104_exons 10").split()
+        cmd = (base_cmd + "--dfe-annotation ensembl_havana_104_exons").split()
         with pytest.raises(
             SystemExit, match="A DFE annotation has been assigned without a DFE."
         ):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
         # bed file but no DFE
-        cmd = (base_cmd + f"--dfe-bed-file {tmp_path / 'ex.bed'} 10").split()
+        cmd = (base_cmd + f"--dfe-bed-file {tmp_path / 'ex.bed'}").split()
         with pytest.raises(
             SystemExit, match="A DFE bed file has been assigned without a DFE."
         ):
@@ -485,7 +534,7 @@ class TestCLI:
         cmd = (
             base_cmd + "--dfe Gamma_K17 "
             "--dfe-interval 999,1000 "
-            "--dfe-annotation ensembl_havana_104_exons 10"
+            "--dfe-annotation ensembl_havana_104_exons"
         ).split()
         with pytest.raises(
             SystemExit, match="A DFE annotation and a DFE interval have been"
@@ -496,7 +545,7 @@ class TestCLI:
         cmd = (
             base_cmd + "--dfe Gamma_K17 "
             "--dfe-interval 999,1000 "
-            f"--dfe-bed-file {tmp_path / 'ex.bed'} 10"
+            f"--dfe-bed-file {tmp_path / 'ex.bed'}"
         ).split()
         with pytest.raises(
             SystemExit, match="A DFE bed file and a DFE interval have been"
@@ -507,7 +556,7 @@ class TestCLI:
         cmd = (
             base_cmd + "--dfe Gamma_K17 "
             f"--dfe-bed-file {tmp_path / 'ex.bed'} "
-            "--dfe-annotation ensembl_havana_104_exons 10"
+            "--dfe-annotation ensembl_havana_104_exons"
         ).split()
         with pytest.raises(SystemExit, match="A DFE bed file and a DFE annotation"):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
@@ -523,12 +572,12 @@ class TestCLI:
             proc.stdout = io.StringIO()
             proc.stderr = io.StringIO()
             with tempfile.NamedTemporaryFile(mode="w") as f:
-                self.docmd(f"HomSap --dry-run -o {f.name}")
+                self.docmd(f"HomSap pop_0:5 --dry-run -o {f.name}")
         mocked_popen.assert_called_once()
         slim_path = os.environ.get("SLIM", "slim")
         assert slim_path in mocked_popen.call_args[0][0]
         with tempfile.NamedTemporaryFile(mode="w") as f:
-            self.docmd(f"HomSap --dry-run -o {f.name}")
+            self.docmd(f"HomSap pop_0:5 --dry-run -o {f.name}")
             assert os.stat(f.name).st_size == 0
 
     def test_bad_slim_environ_var(self):
@@ -536,7 +585,7 @@ class TestCLI:
 
         os.environ["SLIM"] = "nonexistent"
         with pytest.raises(FileNotFoundError):
-            self.docmd("HomSap")
+            self.docmd("HomSap pop_0:5")
 
         if saved_slim_env is None:
             del os.environ["SLIM"]
@@ -547,7 +596,7 @@ class TestCLI:
         saved_slim_env = os.environ.get("SLIM")
 
         with pytest.raises(FileNotFoundError):
-            self.docmd("--slim-path nonexistent HomSap")
+            self.docmd("--slim-path nonexistent HomSap pop_0:5")
 
         if saved_slim_env is None:
             del os.environ["SLIM"]
@@ -561,10 +610,16 @@ class TestWarningsAndErrors:
     Checks that warning messages are printed when appropriate.
     """
 
-    def triplet(self):
+    def triplet_diploid(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("chr22", length_multiplier=0.001)
+        return engine, species, contig
+
+    def triplet_haploid(self):
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("EscCol")
+        contig = species.get_contig("Chromosome", length_multiplier=0.001)
         return engine, species, contig
 
     @pytest.mark.filterwarnings("error::stdpopsim.SLiMOddSampleWarning")
@@ -572,9 +627,9 @@ class TestWarningsAndErrors:
         "ignore:.*model has mutation rate.*but this simulation used.*"
     )
     def test_no_odd_sample_warning_for_even_samples(self):
-        engine, species, contig = self.triplet()
-        model = species.get_demographic_model("OutOfAfrica_2T12")
-        samples = model.get_samples(4, 6)
+        engine, species, contig = self.triplet_haploid()
+        model = stdpopsim.PiecewiseConstantSize(100)
+        samples = {"pop_0": 4}
         engine.simulate(
             demographic_model=model,
             contig=contig,
@@ -583,9 +638,9 @@ class TestWarningsAndErrors:
         )
 
     def test_odd_sample_warning(self):
-        engine, species, contig = self.triplet()
+        engine, species, contig = self.triplet_haploid()
         model = stdpopsim.PiecewiseConstantSize(100)
-        samples = model.get_samples(5)
+        samples = {"pop_0": 5}
         with pytest.warns(stdpopsim.SLiMOddSampleWarning):
             engine.simulate(
                 demographic_model=model,
@@ -594,8 +649,8 @@ class TestWarningsAndErrors:
                 dry_run=True,
             )
 
-        model = species.get_demographic_model("OutOfAfrica_2T12")
-        samples = model.get_samples(2, 5)
+        model = stdpopsim.IsolationWithMigration(100, 100, 100, 100, 0.1, 0.1)
+        samples = {"pop1": 2, "pop2": 5}
         with pytest.warns(stdpopsim.SLiMOddSampleWarning):
             engine.simulate(
                 demographic_model=model,
@@ -606,9 +661,9 @@ class TestWarningsAndErrors:
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_bad_population_size_addSubPop_warning(self):
-        engine, species, contig = self.triplet()
+        engine, species, contig = self.triplet_diploid()
         model = stdpopsim.PiecewiseConstantSize(100)
-        samples = model.get_samples(2)
+        samples = {"pop_0": 1}
 
         with pytest.warns(
             stdpopsim.UnspecifiedSLiMWarning, match="has only.*individuals alive"
@@ -623,9 +678,9 @@ class TestWarningsAndErrors:
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_no_populations_in_generation1_error(self):
-        engine, species, contig = self.triplet()
+        engine, species, contig = self.triplet_diploid()
         model = stdpopsim.PiecewiseConstantSize(100)
-        samples = model.get_samples(2)
+        samples = {"pop_0": 1}
 
         with pytest.raises(stdpopsim.SLiMException):
             engine.simulate(
@@ -638,11 +693,11 @@ class TestWarningsAndErrors:
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_bad_population_size_addSubpopSplit_warning(self):
-        engine, species, contig = self.triplet()
+        engine, species, contig = self.triplet_diploid()
         model = stdpopsim.IsolationWithMigration(
             NA=1000, N1=100, N2=1000, T=1000, M12=0, M21=0
         )
-        samples = model.get_samples(2)
+        samples = {"pop1": 1}
         with pytest.warns(
             stdpopsim.UnspecifiedSLiMWarning, match="has only.*individuals alive"
         ):
@@ -657,11 +712,11 @@ class TestWarningsAndErrors:
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")
     def test_bad_population_size_addSubpopSplit_error(self):
-        engine, species, contig = self.triplet()
+        engine, species, contig = self.triplet_diploid()
         model = stdpopsim.IsolationWithMigration(
             NA=1000, N1=100, N2=1000, T=1000, M12=0, M21=0
         )
-        samples = model.get_samples(2)
+        samples = {"pop1": 1}
         with pytest.raises(stdpopsim.SLiMException):
             engine.simulate(
                 demographic_model=model,
@@ -673,9 +728,9 @@ class TestWarningsAndErrors:
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_bad_population_size_setSubpopulationSize_warning(self):
-        engine, species, contig = self.triplet()
+        engine, species, contig = self.triplet_diploid()
         model = stdpopsim.PiecewiseConstantSize(100, (1000, 1000))
-        samples = model.get_samples(2)
+        samples = {"pop_0": 1}
         with pytest.warns(
             stdpopsim.UnspecifiedSLiMWarning, match="has only.*individuals alive"
         ):
@@ -690,9 +745,9 @@ class TestWarningsAndErrors:
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")
     def test_bad_population_size_setSubpopulationSize_error(self):
-        engine, species, contig = self.triplet()
+        engine, species, contig = self.triplet_diploid()
         model = stdpopsim.PiecewiseConstantSize(100, (1000, 1000))
-        samples = model.get_samples(2)
+        samples = {"pop_0": 1}
         with pytest.raises(stdpopsim.SLiMException):
             engine.simulate(
                 demographic_model=model,
@@ -704,9 +759,9 @@ class TestWarningsAndErrors:
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_sample_size_too_big_error(self):
-        engine, species, contig = self.triplet()
+        engine, species, contig = self.triplet_diploid()
         model = stdpopsim.PiecewiseConstantSize(1000)
-        samples = model.get_samples(300)
+        samples = {"pop_0": 150}
 
         with pytest.raises(stdpopsim.SLiMException):
             engine.simulate(
@@ -723,18 +778,18 @@ class TestWarningsAndErrors:
         Used for testing that growth rates are handled appropriately.
         """
         r = math.log(N0 / N1) / T
-        pop0 = stdpopsim.models.Population(id="pop0", description="")
+        pop_0 = stdpopsim.models.Population(id="pop_0", description="")
         return stdpopsim.DemographicModel(
             id="exp_decline",
             description="exp_decline",
             long_description="exp_decline",
-            populations=[pop0],
+            populations=[pop_0],
             generation_time=1,
             population_configurations=[
                 msprime.PopulationConfiguration(
                     initial_size=N0,
                     growth_rate=r,
-                    metadata=pop0.asdict(),
+                    metadata=pop_0.asdict(),
                 )
             ],
             demographic_events=[
@@ -746,9 +801,9 @@ class TestWarningsAndErrors:
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_bad_population_size_exp_decline_warning(self):
-        engine, species, contig = self.triplet()
+        engine, species, contig = self.triplet_diploid()
         model = self.exp_decline()
-        samples = model.get_samples(2)
+        samples = {"pop_0": 1}
         with pytest.warns(
             stdpopsim.UnspecifiedSLiMWarning, match="has only.*individuals alive"
         ):
@@ -763,9 +818,9 @@ class TestWarningsAndErrors:
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")
     def test_bad_population_size_exp_decline_error(self):
-        engine, species, contig = self.triplet()
+        engine, species, contig = self.triplet_diploid()
         model = self.exp_decline()
-        samples = model.get_samples(2)
+        samples = {"pop_0": 1}
         with pytest.raises(stdpopsim.SLiMException):
             engine.simulate(
                 demographic_model=model,
@@ -778,9 +833,9 @@ class TestWarningsAndErrors:
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")
     def test_sample_size_too_big_exp_decline_error(self):
-        engine, species, contig = self.triplet()
+        engine, species, contig = self.triplet_diploid()
         model = self.exp_decline()
-        samples = model.get_samples(30)
+        samples = {"pop_0": 15}
 
         with pytest.raises(stdpopsim.SLiMException):
             engine.simulate(
@@ -793,9 +848,9 @@ class TestWarningsAndErrors:
 
     @pytest.mark.filterwarnings("error::stdpopsim.SLiMScalingFactorWarning")
     def test_no_warning_when_not_scaling(self):
-        engine, species, contig = self.triplet()
+        engine, species, contig = self.triplet_diploid()
         model = stdpopsim.PiecewiseConstantSize(10000)
-        samples = model.get_samples(100)
+        samples = {"pop_0": 50}
         engine.simulate(
             demographic_model=model,
             contig=contig,
@@ -821,9 +876,9 @@ class TestWarningsAndErrors:
 
     @pytest.mark.parametrize("scaling_factor", [2, 4.3])
     def test_warning_when_scaling(self, scaling_factor):
-        engine, species, contig = self.triplet()
+        engine, species, contig = self.triplet_diploid()
         model = stdpopsim.PiecewiseConstantSize(10000)
-        samples = model.get_samples(100)
+        samples = {"pop_0": 50}
         with pytest.warns(stdpopsim.SLiMScalingFactorWarning):
             engine.simulate(
                 demographic_model=model,
@@ -872,7 +927,7 @@ class PiecewiseConstantSizeMixin(object):
     T_mut = 300  # introduce a mutation at this generation
     model = stdpopsim.PiecewiseConstantSize(N0, (T, N1))
     model.generation_time = 1
-    samples = model.get_samples(100)
+    samples = {"pop_0": 50}
     contig = get_test_contig()
     mut_id = "mut"
     contig.add_single_site(
@@ -928,7 +983,7 @@ class TestRecombinationMap(PiecewiseConstantSizeMixin):
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("chr1", genetic_map="HapMapII_GRCh38")
         model = stdpopsim.PiecewiseConstantSize(100)
-        samples = model.get_samples(10)
+        samples = {"pop_0": 5}
         ts = engine.simulate(
             demographic_model=model,
             contig=contig,
@@ -950,7 +1005,7 @@ class TestRecombinationMap(PiecewiseConstantSizeMixin):
             rate=np.array([0.0, 0.1, 0.0]),
         )
         model = stdpopsim.PiecewiseConstantSize(100)
-        samples = model.get_samples(10)
+        samples = {"pop_0": 5}
         ts = engine.simulate(
             demographic_model=model,
             contig=contig,
@@ -2188,10 +2243,10 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
     @staticmethod
     def _get_island_model(Ne=1000, migration_rate=0.01):
         model = msprime.Demography()
-        model.add_population(initial_size=Ne, name="pop0")
-        model.add_population(initial_size=Ne, name="pop1")
-        model.set_migration_rate(source="pop0", dest="pop1", rate=migration_rate)
-        model.set_migration_rate(source="pop1", dest="pop0", rate=migration_rate)
+        model.add_population(initial_size=Ne, name="pop_0")
+        model.add_population(initial_size=Ne, name="pop_1")
+        model.set_migration_rate(source="pop_0", dest="pop_1", rate=migration_rate)
+        model.set_migration_rate(source="pop_1", dest="pop_0", rate=migration_rate)
         return stdpopsim.DemographicModel(
             id="🏝️",
             description="island model",
@@ -2432,7 +2487,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
         )
         extended_events = stdpopsim.ext.selective_sweep(
             single_site_id=locus_id,
-            population="pop1",
+            population="pop_1",
             mutation_generation_ago=mutation_generation_ago,
             start_generation_ago=start_generation_ago,
             end_generation_ago=end_generation_ago,
@@ -2487,7 +2542,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
         )
         extended_events = stdpopsim.ext.selective_sweep(
             single_site_id=locus_id,
-            population="pop1",
+            population="pop_1",
             mutation_generation_ago=mutation_generation_ago,
             start_generation_ago=start_generation_ago,
             end_generation_ago=end_generation_ago,
@@ -2531,7 +2586,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
         coords = [100, contig.length - 100]
         start_generation_agos = [mutation_generation_ago, mutation_generation_ago // 2]
         end_generation_agos = [0, 0]
-        pop_ids = ["pop0", "pop1"]
+        pop_ids = ["pop_0", "pop_1"]
         extended_events = []
         for locus_id, coord, start_generation_ago, end_generation_ago, pop in zip(
             ids, coords, start_generation_agos, end_generation_agos, pop_ids
@@ -2596,7 +2651,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
         )
         extended_events = stdpopsim.ext.selective_sweep(
             single_site_id=locus_id,
-            population="pop1",
+            population="pop_1",
             mutation_generation_ago=mutation_generation_ago,
             selection_coeff=100.0,
             globally_adaptive=False,

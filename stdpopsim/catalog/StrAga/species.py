@@ -16,6 +16,10 @@ _DaCunha_et_al = stdpopsim.Citation(
 # mu =  0.56/(1e6*365)
 _mutation_rate = {"1": 1.53e-9}
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 1
+_ploidy = {"1": _species_ploidy}
+
 # gene conversion rate (HGT rate):
 # hard to estimate precisely. What is often estimated is the r/m or rho/theta ratio.
 # in Oliveira et. al, PNAS, 2016, they estimate those rates on coregenome
@@ -50,6 +54,7 @@ _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
+    ploidy=_ploidy,
     citations=[
         _DaCunha_et_al.because(stdpopsim.CiteReason.ASSEMBLY),
         _DaCunha_et_al.because(stdpopsim.CiteReason.MUT_RATE),
@@ -94,6 +99,7 @@ _species = stdpopsim.Species(
     genome=_genome,
     generation_time=1 / 365,  # year / generations
     population_size=140000,
+    ploidy=_species_ploidy,
     citations=[
         _DaCunha_et_al.because(stdpopsim.CiteReason.POP_SIZE),
         stdpopsim.Citation(

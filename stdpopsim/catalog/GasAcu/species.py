@@ -30,6 +30,34 @@ _recombination_rate = {
     "MT": 0,
 }
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "1": _species_ploidy,
+    "2": _species_ploidy,
+    "3": _species_ploidy,
+    "4": _species_ploidy,
+    "5": _species_ploidy,
+    "6": _species_ploidy,
+    "7": _species_ploidy,
+    "8": _species_ploidy,
+    "9": _species_ploidy,
+    "10": _species_ploidy,
+    "11": _species_ploidy,
+    "12": _species_ploidy,
+    "13": _species_ploidy,
+    "14": _species_ploidy,
+    "15": _species_ploidy,
+    "16": _species_ploidy,
+    "17": _species_ploidy,
+    "18": _species_ploidy,
+    "19": _species_ploidy,
+    "20": _species_ploidy,
+    "21": _species_ploidy,
+    "Y": 1,
+    "MT": 1,
+}
+
 # From the PSMC results.
 # Intermediate value between the from Materials and Methods.
 _overall_rate = 3.7e-8
@@ -63,6 +91,7 @@ _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
+    ploidy=_ploidy,
     citations=[
         stdpopsim.Citation(
             author="Peichel et al.",
@@ -93,6 +122,7 @@ _species = stdpopsim.Species(
     genome=_genome,
     generation_time=2,  # PSMC description at the Materials and Methods.
     population_size=1e4,  # From PSMC results.
+    ploidy=_species_ploidy,
     citations=[
         stdpopsim.Citation(
             author="Liu et al.",

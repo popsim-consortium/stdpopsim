@@ -48,6 +48,51 @@ _recombination_rate_data = {
     "MT": 0,
 }
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "1": _species_ploidy,
+    "2": _species_ploidy,
+    "3": _species_ploidy,
+    "4": _species_ploidy,
+    "5": _species_ploidy,
+    "6": _species_ploidy,
+    "7": _species_ploidy,
+    "8": _species_ploidy,
+    "9": _species_ploidy,
+    "10": _species_ploidy,
+    "11": _species_ploidy,
+    "12": _species_ploidy,
+    "13": _species_ploidy,
+    "14": _species_ploidy,
+    "15": _species_ploidy,
+    "16": _species_ploidy,
+    "17": _species_ploidy,
+    "18": _species_ploidy,
+    "19": _species_ploidy,
+    "20": _species_ploidy,
+    "21": _species_ploidy,
+    "22": _species_ploidy,
+    "23": _species_ploidy,
+    "24": _species_ploidy,
+    "25": _species_ploidy,
+    "26": _species_ploidy,
+    "27": _species_ploidy,
+    "28": _species_ploidy,
+    "29": _species_ploidy,
+    "30": _species_ploidy,
+    "31": _species_ploidy,
+    "32": _species_ploidy,
+    "33": _species_ploidy,
+    "34": _species_ploidy,
+    "35": _species_ploidy,
+    "36": _species_ploidy,
+    "37": _species_ploidy,
+    "38": _species_ploidy,
+    "X": _species_ploidy,
+    "MT": 1,
+}
+
 _LindbladTohEtAl = stdpopsim.Citation(
     # Genome sequence, comparative analysis and haplotype structure of the
     # domestic dog.
@@ -88,6 +133,7 @@ for name, data in genome_data.data["chromosomes"].items():
             synonyms=data["synonyms"],
             mutation_rate=4e-9,  # based on non-CpG sites only
             recombination_rate=_recombination_rate_data[name],
+            ploidy=_ploidy[name],
         )
     )
 
@@ -112,6 +158,7 @@ _species = stdpopsim.Species(
     genome=_genome,
     population_size=13000,  # ancestral dog size
     generation_time=3,
+    ploidy=_species_ploidy,
     citations=[
         # Everyone uses 3 years for generation time because everyone else uses it.
         # It's likely higher, at least in wolves:

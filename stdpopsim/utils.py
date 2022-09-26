@@ -268,3 +268,43 @@ def clip_and_shift_intervals(intervals, left, right):
         warnings.warn(f"No intervals remain after clipping to [{left}, {right}]")
     intervals -= left
     return intervals
+
+
+def parse_population_sample_pairs(pop_sample_pairs):
+    """
+    Parse a list of strings of the form "population_name:integer" into dict
+    {population_name:integer}.
+
+    TODO: For back-compatibility, return a list of integers if the
+    "population_name:" part is missing for all strings. This is deprecated and
+    could eventually be removed.
+    """
+
+    named_counts = re.compile("^([^:]+):([0-9]+)$")
+    positional_counts = re.compile("^([0-9]+)$")
+    samples = [named_counts.match(x) for x in pop_sample_pairs]
+    samples_deprecated = [positional_counts.match(x) for x in pop_sample_pairs]
+    if all([x is not None for x in samples]):
+        samples_dict = {}
+        for match in samples:
+            pop, count = match.groups()
+            if pop in samples_dict.keys():
+                raise ValueError(
+                    f"The number of samples is specified more than once for "
+                    f"population {pop}."
+                )
+            assert count.isnumeric()
+            samples_dict[pop] = int(count)
+        return samples_dict
+    elif all([x is not None for x in samples_deprecated]):
+        samples_list = []
+        for match in samples_deprecated:
+            (count,) = match.groups()
+            assert count.isnumeric()
+            samples_list.append(int(count))
+        return samples_list
+    else:
+        raise ValueError(
+            "Sample specification must be in the form "
+            "<population_name:number_of_samples>"
+        )

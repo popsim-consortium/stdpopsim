@@ -8,6 +8,18 @@ _recombination_rate_data = {str(j): _mean_recombination_rate for j in range(1, 6
 _recombination_rate_data["Mt"] = 0
 _recombination_rate_data["Pt"] = 0  # JK Is this correct??
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "1": _species_ploidy,
+    "2": _species_ploidy,
+    "3": _species_ploidy,
+    "4": _species_ploidy,
+    "5": _species_ploidy,
+    "6": _species_ploidy,
+    "Mt": 1,
+    "Pt": 1,
+}
 
 # mutation rate from Ossowski 2010 Science
 # recombination value from Huber et al 2014 MBE
@@ -21,6 +33,7 @@ for name, data in genome_data.data["chromosomes"].items():
             synonyms=data["synonyms"],
             mutation_rate=7e-9,
             recombination_rate=_recombination_rate_data[name],
+            ploidy=_ploidy[name],
         )
     )
 
@@ -59,6 +72,7 @@ _species = stdpopsim.Species(
     genome=_genome,
     generation_time=1.0,
     population_size=10**4,
+    ploidy=_species_ploidy,
     citations=[
         stdpopsim.Citation(
             doi="https://doi.org/10.1890/0012-9658(2002)083[1006:GTINSO]2.0.CO;2",

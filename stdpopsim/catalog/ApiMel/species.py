@@ -30,6 +30,30 @@ _recombination_rate = {
     "CM009947.2": 0,
 }
 
+# TODO: This species is haplodiploid, but machinery is not in place to simulate
+# haplodiploidy.
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "CM009931.2": _species_ploidy,
+    "CM009932.2": _species_ploidy,
+    "CM009933.2": _species_ploidy,
+    "CM009934.2": _species_ploidy,
+    "CM009935.2": _species_ploidy,
+    "CM009936.2": _species_ploidy,
+    "CM009937.2": _species_ploidy,
+    "CM009938.2": _species_ploidy,
+    "CM009939.2": _species_ploidy,
+    "CM009940.2": _species_ploidy,
+    "CM009941.2": _species_ploidy,
+    "CM009942.2": _species_ploidy,
+    "CM009943.2": _species_ploidy,
+    "CM009944.2": _species_ploidy,
+    "CM009945.2": _species_ploidy,
+    "CM009946.2": _species_ploidy,
+    "CM009947.2": 1,  # Mt
+}
+
 
 _YangEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1038/nature14649",
@@ -79,6 +103,7 @@ _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
+    ploidy=_ploidy,
     citations=[
         _YangEtAl,
         _BeyeEtAl,
@@ -139,6 +164,7 @@ _species = stdpopsim.Species(
     genome=_genome,
     generation_time=2,
     population_size=2e05,
+    ploidy=_species_ploidy,
     citations=[
         _WallbergEtAl,
         _NelsonEtAl,

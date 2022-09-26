@@ -688,9 +688,10 @@ def add_simulate_species_parser(parser, species):
         ),
     )
 
+    # TODO docstring needs updating for name-number pair format
     species_parser.add_argument(
         "samples",
-        type=int,
+        type=str,
         nargs="+",
         help=(
             "The number of samples to draw from each population. At least "
@@ -723,7 +724,14 @@ def add_simulate_species_parser(parser, species):
                 f"Cannot sample from more than {model.num_sampling_populations} "
                 "populations"
             )
-        samples = model.get_samples(*args.samples)
+
+        samples = stdpopsim.utils.parse_population_sample_pairs(args.samples)
+        if isinstance(samples, list):
+            # FIXME: for back-compatibility with deprecated positional sample counts
+            samples = model.get_samples(*samples)
+        else:
+            assert isinstance(samples, dict)
+
         contig = species.get_contig(
             args.chromosome,
             genetic_map=args.genetic_map,
@@ -863,7 +871,13 @@ def write_simulation_summary(
     # Get information about the number of samples
     dry_run_text += f"{indent}Population: number_samples (sampling_time_generations):\n"
     sample_counts = [0] * model.num_sampling_populations
-    for s in samples:
+    if isinstance(samples, dict):
+        sample_sets = model.get_sample_sets(samples, ploidy=contig.ploidy)
+    else:
+        # TODO: For back-compatibility with deprecated positional sample
+        # counts. Eventually remove.
+        sample_sets = samples
+    for s in sample_sets:
         sample_counts[s.population] += s.num_samples
     for p in range(0, model.num_sampling_populations):
         pop_name = model.populations[p].id
@@ -886,9 +900,11 @@ def write_simulation_summary(
         )
     contig_len = contig.recombination_map.sequence_length
     contig_origin = contig.origin
+    contig_ploidy = contig.ploidy
     dry_run_text += "Contig Description:\n"
     dry_run_text += f"{indent}Contig origin: {contig_origin}\n"
     dry_run_text += f"{indent}Contig length: {contig_len}\n"
+    dry_run_text += f"{indent}Contig ploidy: {contig_ploidy}\n"
     dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"
     dry_run_text += f"{indent}Mean mutation rate: {mut_rate}\n"
     dry_run_text += f"{indent}Genetic map: {gmap}\n"

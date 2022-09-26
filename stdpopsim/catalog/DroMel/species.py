@@ -54,6 +54,18 @@ _recombination_rate = {
     "mitochondrion_genome": 0,
 }
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "2L": _species_ploidy,
+    "2R": _species_ploidy,
+    "3L": _species_ploidy,
+    "3R": _species_ploidy,
+    "4": _species_ploidy,
+    "X": _species_ploidy,
+    "Y": 1,
+    "mitochondrion_genome": 1,
+}
 
 # Comeron et al:
 # - GC avg track length = 518bp
@@ -85,6 +97,7 @@ _mutation_rate = {c: 5.49e-9 for c in genome_data.data["chromosomes"]}
 #             synonyms=data["synonyms"],
 #             mutation_rate=5.49e-9,  # _SchriderEtAl de novo mutation rate
 #             recombination_rate=_recombination_rate_data[name],
+#             ploidy=_ploidy[name],
 #             gene_conversion_fraction=_gene_conversion_fraction_data[name],
 #             gene_conversion_length=_gene_conversion_length,
 #         )
@@ -94,6 +107,7 @@ _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
+    ploidy=_ploidy,
     gene_conversion_fraction=_gene_conversion_fraction,
     gene_conversion_length=_gene_conversion_length,
     citations=[
@@ -116,6 +130,7 @@ _species = stdpopsim.Species(
     # Li and Stephan in a two-epoch model of African populations.
     # N_A0 is given as 8.603e6, and N_A1 (used here) is 5 times smaller.
     population_size=1720600,
+    ploidy=_species_ploidy,
     citations=[_LiAndStephan],
 )
 

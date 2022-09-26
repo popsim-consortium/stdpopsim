@@ -79,3 +79,8 @@ class TestGenomeData(test_species.GenomeTestBase):
     )
     def test_mutation_rate(self, name, rate):
         assert rate == pytest.approx(self.genome.get_chromosome(name).mutation_rate)
+
+    @pytest.mark.parametrize("chrom", [chrom for chrom in genome.chromosomes])
+    @pytest.mark.filterwarnings("ignore::stdpopsim.NonAutosomalWarning")
+    def test_chromosome_ploidy(self, chrom):
+        assert chrom.ploidy == 2

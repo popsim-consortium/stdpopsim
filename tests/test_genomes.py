@@ -366,6 +366,10 @@ class TestContig(object):
                     right=interval[1],
                 )
 
+    def test_basic_contig_is_diploid(self):
+        contig = stdpopsim.Contig.basic_contig(length=1000)
+        assert contig.ploidy == 2
+
 
 class TestGeneConversion(object):
     def test_mean_gene_conversion(self):

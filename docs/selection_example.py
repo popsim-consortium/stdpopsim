@@ -21,9 +21,7 @@ def adaptive_introgression(seed):
     species = stdpopsim.get_species("HomSap")
     model = species.get_demographic_model("PapuansOutOfAfrica_10J19")
     contig = species.get_contig("chr1", length_multiplier=0.001)
-    samples = model.get_samples(
-        100, 0, 0, 100, 2, 2  # YRI, CEU, CHB, Papuan, DenA, NeaA
-    )
+    samples = {"YRI": 50, "Papuan": 50, "DenA": 1, "NeaA": 1}
 
     # We need some demographic model parameters to set bounds on the timing
     # of random variables and extended_events (below).

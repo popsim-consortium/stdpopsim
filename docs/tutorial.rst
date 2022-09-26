@@ -73,21 +73,23 @@ different output which shows options for performing the simulation itself and
 the species default parameters. This includes selecting the demographic model,
 chromosome, recombination map, and number of samples.
 
-The most basic simulation we can run is to simulate two (haploid) genomes
-- i.e., two samples -
+The most basic simulation we can run is to simulate a diploid genome
+- i.e., a single individual -
 using the species' defaults as seen in the species help (``stdpopsim HomSap --help``).
-These defaults include constant size population, a uniform recombination map based
+These defaults include constant size population named ``pop_0``, a uniform recombination map based
 on the average recombination rate (either genome-wide or within a chromosome, if
 specified), and the mutation rate shown above.
 To save time we will specify that the simulation use
 chromosome 22, using the ``-c`` option. We also specify that the resulting
 tree-sequence formatted output should be written to the file ``foo.ts`` with the
 ``-o`` option. For more information on how to use tree-sequence files see
-`tskit <https://tskit.dev/tskit/docs/stable/introduction.html>`__.
+`tskit <https://tskit.dev/tskit/docs/stable/introduction.html>`__. Finally, we
+specify that a single (diploid) sample should be simulated for population
+``pop_0`` using the syntax ``<population_name>:<number_of_samples>``.
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -c chr22 -o foo.ts 2
+    $ stdpopsim HomSap -c chr22 -o foo.ts pop_0:1
 
 .. warning:: It's important to remember to either redirect the output of ``stdpopsim``
                 to file or to use the ``-o/--output`` option. If you do not, the
@@ -108,8 +110,8 @@ the two population out-of-Africa :ref:`model <sec_catalog_homsap_models_outofafr
 from `Tennesen et al. (2012) <https://doi.org/10.1126/science.1219240>`_ .
 By looking at the model help we find that the name for this model is
 ``OutOfAfrica_2T12`` and that we can specify it using
-the ``--demographic-model`` or ``-d`` option. We choose to draw two samples from the
-"African American" population and three samples from the "European American" population.
+the ``--demographic-model`` or ``-d`` option. We choose to draw two diploid sample from the
+``AFR`` ("African American") population and three diploids from the ``EUR`` ("European American") population.
 To increase simulation speed we can also choose to simulate a sequence that is
 a fraction of the length of the specified chromosome using the ``-l`` option
 (e.g. 5%). This is just specifying a sequence length, not actually selecting
@@ -118,14 +120,11 @@ other than a uniform recombination map. The command now looks like this:
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -c chr22 -l 0.05 -o foo.ts -d OutOfAfrica_2T12 2 3
+    $ stdpopsim HomSap -c chr22 -l 0.05 -o foo.ts -d OutOfAfrica_2T12 AFR:2 EUR:3
 
-Note that the number of samples from each population are simply specified
-as two numbers at the end of the command. There must be *two* numbers because the
-model has two populations that we can sample from
-The order of those numbers is the same as the order
-specified in the model documentation. In this case, ``2 3`` means
-we are simulating two African American samples and three European American samples.
+Note that the number of samples from each population are simply specified as
+``<population_name>:<number_of_samples>`` at the end of the command. Omitted
+populations will have no samples in the resulting tree sequence.
 
 .. note::
     Many demographic models were inferred or calibrated using a mutation rate that
@@ -150,14 +149,14 @@ the ``-l`` option. (NOTE: this may a minute or so to run).
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -g HapMapII_GRCh37 -c chr22 -o foo.ts -d OutOfAfrica_2T12 2 3
+    $ stdpopsim HomSap -g HapMapII_GRCh37 -c chr22 -o foo.ts -d OutOfAfrica_2T12 AFR:2 EUR:3
 
 For reproducibility we can also choose set the seed for the simulator using the
 ``-s`` flag.
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -s 1046 -g HapMapII_GRCh37 -c chr22 -o foo.ts -d OutOfAfrica_2T12 2 3
+    $ stdpopsim HomSap -s 1046 -g HapMapII_GRCh37 -c chr22 -o foo.ts -d OutOfAfrica_2T12 AFR:2 EUR:3
 
 On running these commands, the CLI also outputs the relevant citations for both
 the simulator used and the resources used for simulation scenario.
@@ -180,15 +179,15 @@ with the ``tskit vcf`` command:
    $ tskit vcf foo.ts > foo.vcf
 
 For this small example (only five samples), the file sizes are similar,
-but the tree sequence is slightly larger
+but the tree sequence is slightly larger than the VCF
 (it does carry a good bit more information about the trees, after all).
-However, if we up the sample sizes to 2000 and 3000
+However, if we up the sample sizes to 1000 and 1500
 (the simulation is still pretty quick)
 the tree sequence is twenty-three times smaller:
 
 .. code-block:: console
 
-   $ stdpopsim HomSap -s 1046 -g HapMapII_GRCh37 -c chr22 -o foo.ts -d OutOfAfrica_2T12 2000 3000
+   $ stdpopsim HomSap -s 1046 -g HapMapII_GRCh37 -c chr22 -o foo.ts -d OutOfAfrica_2T12 AFR:1000 EUR:1500
    $ tskit vcf foo.ts > foo.vcf
    $ ls -lth foo.*
    -rw-r--r-- 1 peter peter 3139M Apr  3 10:40 foo.vcf
@@ -229,11 +228,8 @@ we would just run:
 
 .. code-block:: console
 
-    $ stdpopsim -e slim HomSap -c chr22 -l 0.05 -o foo.ts -d OutOfAfrica_2T12 2 4
+    $ stdpopsim -e slim HomSap -c chr22 -l 0.05 -o foo.ts -d OutOfAfrica_2T12 AFR:1 EUR:2
 
-Here we've changed the sample sizes to be even:
-SLiM simulates diploid individuals, but sample sizes are in numbers of chromosomes,
-so if you ask for an odd number, it will be rounded up to an even number.
 **But:** this simulation can take quite a while to run,
 so before you try that command out, **read on!**
 
@@ -255,7 +251,7 @@ Unlike the previous command, this one should run very fast:
 .. code-block:: console
 
     $ stdpopsim -e slim --slim-scaling-factor 10 HomSap \
-    $    -c chr22 -l 0.05 -o foo.ts -d OutOfAfrica_2T12 2 4
+    $    -c chr22 -l 0.05 -o foo.ts -d OutOfAfrica_2T12 AFR:1 EUR:2
 
 (Indeed, this example runs in less than a minute,
 but without setting the scaling factor, leaving at its default of 1.0,
@@ -294,7 +290,7 @@ To add it the example above we can type as follows:
 .. code-block:: console
 
     $ stdpopsim -e slim --slim-scaling-factor 10 HomSap \
-        -c chr22 -l 0.05 --dfe Gamma_K17 -o foo.ts -d OutOfAfrica_2T12 2 4
+        -c chr22 -l 0.05 --dfe Gamma_K17 -o foo.ts -d OutOfAfrica_2T12 AFR:1 EUR:2
 
 This example will simulate selection following the proportion of sites described in `Gamma_K17 <https://popsim-consortium.github.io/stdpopsim-docs/main/catalog.html#sec_catalog_homsap_dfes_gamma_k17>`_
 
@@ -305,7 +301,7 @@ and specifying a CDS annotation:
 
     $ stdpopsim -e slim --slim-scaling-factor 20 HomSap \
          -c chr22 --dfe Gamma_K17 -o foo.ts -d OutOfAfrica_2T12 \
-         --dfe-annotation ensembl_havana_104_CDS 2 4
+         --dfe-annotation ensembl_havana_104_CDS AFR:1 EUR:2
 
 
 If instead of an annotation file one has a bed file (ex.bed) like the one below:
@@ -323,7 +319,7 @@ then it is possible to simulate selection in all intervals provided by the bed f
 
     $ stdpopsim -e slim --slim-scaling-factor 10 HomSap \
          -c chr22 -l 0.05 --dfe Gamma_K17 -o foo.ts -d OutOfAfrica_2T12 \
-         --dfe-bed-file ex.bed 2 4
+         --dfe-bed-file ex.bed AFR:1 EUR:2
 
 The examples above (using the flags ``--dfe-annotation``, to use a named annotation, or ``--dfe-bed-file`` to include a bed file)
 incorporate selection on the specified segments of genome.
@@ -335,7 +331,7 @@ To simulate, however, only a small chunk of contig with selection––as in a s
 
     $ stdpopsim -e slim --slim-scaling-factor 10 HomSap \
         -c chr22 -l 0.05 --dfe Gamma_K17 -o foo.ts -d OutOfAfrica_2T12 \
-        --dfe-interval 1000,100000 2 4
+        --dfe-interval 1000,100000 AFR:1 EUR:2
 
 The DFE defined by Gamma_K17 will be incorporated only in positions between 1000 and 100000.
 
@@ -347,7 +343,7 @@ of a chromosome rather than the entire chromosome. Regions are specified via
 
     $ stdpopsim -e slim --slim-scaling-factor 10 HomSap \
         -c chr22 --dfe Gamma_K17 -o foo.ts -d OutOfAfrica_2T12 \
-        --dfe-interval 200000,300000 --left 150000 --right 350000 2 4
+        --dfe-interval 200000,300000 --left 150000 --right 350000 AFR:1 EUR:2
 
 This will simulate a 200 Kb contig that uses the genetic map from coordinates
 150000 to 350000 along `chr22`; with a DFE applied between coordinates 200000
@@ -382,7 +378,7 @@ using SLiM with a (very large!) scaling factor of 1000, we could run
 .. code-block:: console
 
    $ stdpopsim -e slim --slim-scaling-factor 1000 DroMel\
-   $     -c chr2L -l 0.05 -o foo.ts -d African3Epoch_1S16 100
+   $     -c chr2L -l 0.05 -o foo.ts -d African3Epoch_1S16 AFR:50
 
 The scaling factor of 1000 makes this model run very quickly,
 but should also make you *very* nervous.
@@ -398,7 +394,7 @@ which can be turned off with ``--quiet``:
 .. code-block:: console
 
    $ stdpopsim -v -e slim --slim-scaling-factor 1000 DroMel \
-   $     -c chr2L -l 0.05 -o foo.ts -d African3Epoch_1S16 100 --quiet
+   $     -c chr2L -l 0.05 -o foo.ts -d African3Epoch_1S16 AFR:50 --quiet
 
 Trimming down the output somewhat, we get:
 
@@ -418,8 +414,7 @@ This tells us that after rescaling by a factor of 1000,
 the population sizes in the three epochs are 652, 145, and 544 individuals,
 respectively.
 No wonder it runs so quickly!
-At the end, fifty (diploid) individuals are sampled,
-to get us our requested 100 genomes.
+At the end, fifty (diploid) individuals are sampled.
 These numbers are not obviously completely wrong,
 as would be for instance if we had population sizes of 1 or 2 individuals.
 However, extensive testing would need to be done to find out
@@ -540,19 +535,19 @@ Choose a sampling scheme and simulate
 
 The final ingredient we need before simulating
 is a specification of the number of samples from each population.
-We'll simulate 10 samples each from YRI and CHB, and zero from CEU,
+We'll simulate 5 diploids each from YRI and CHB, and zero from CEU,
 using ``msprime`` as the simulation engine:
 
 .. code-block:: python
 
-   samples = model.get_samples(10, 0, 10)
+   samples = {"YRI": 5, "CHB": 5, "CEU": 0}
    engine = stdpopsim.get_engine("msprime")
    ts = engine.simulate(model, contig, samples)
    print(ts.num_sites)
    # 88063
 
 And that's it! It's that easy! We now have a tree sequence
-describing the history and genotypes of 20 genomes,
+describing the history and genotypes of 20 haploid genomes,
 between which there are 88,063 variant sites.
 (We didn't set the random seed, though, so you'll get a somewhat
 different number.)
@@ -648,15 +643,15 @@ mutation rate, as no mutation rate was provided when defining the contig.
 Choose a sampling scheme, and simulate
 --------------------------------------
 
-Next, we set the number of samples and set the simulation engine.
-In this case we will simulate genomes of 10 samples
-using the simulation engine `msprime`.
-But, you can go crazy with the sample size!
-`msprime` is great at simulating large samples!
+Next, we set the number of samples and set the simulation engine.  In this case
+we will simulate genomes of 5 diploids using the simulation engine `msprime`
+(note that the generic `PiecewiseConstantSize` model has a single population
+named `pop_0`).  But, you can go crazy with the sample size!  `msprime` is
+great at simulating large samples!
 
 .. code-block:: python
 
-    samples = model.get_samples(10)
+    samples = {"pop_0": 5}
     engine = stdpopsim.get_engine("msprime")
 
 Finally, we simulate the model with the contig length and number of samples we
@@ -748,15 +743,13 @@ Here is a simple example.
 Choose the species, contig, and recombination map
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-First, let's set up a simulation of 10% of human chromosome 22
-with a flat recombination map,
-drawing 200 samples from the Tennesen et al (2012) model of African history,
-``Africa_1T12``.
-Since SLiM must simulate the entire population,
-sample size does not affect the run time of the simulation,
-only the size of the output tree sequence
-(and, since the tree sequence format scales well with sample size,
-it doesn't affect this very much either).
+First, let's set up a simulation of 10% of human chromosome 22 with a flat
+recombination map, drawing 100 diploids from the Tennesen et al (2012) model of
+African history, ``Africa_1T12`` (which has a single population named `AFR`).
+Since SLiM must simulate the entire population, sample size does not affect the
+run time of the simulation, only the size of the output tree sequence (and,
+since the tree sequence format scales well with sample size, it doesn't affect
+this very much either).
 
 
 .. code-block:: python
@@ -769,7 +762,7 @@ it doesn't affect this very much either).
        "chr22", length_multiplier=0.1, mutation_rate=model.mutation_rate
    )
    # default is a flat genetic map with average rate across chr22
-   samples = model.get_samples(200)
+   samples = {"AFR": 100}
 
 
 Choose the simulation engine
@@ -850,7 +843,7 @@ then we'd run the SLiM simulation starting at 5,920 + 731 = 6,651 generations ag
 and anything *longer ago* than that would be simulated
 with a msprime coalescent simulation.
 
-To simulate 200 samples of all of human chromosome 22 in this way,
+To simulate 100 diploid samples of all of human chromosome 22 in this way,
 with the ``HapMapII_GRCh37`` genetic map,
 we'd do the following
 (again setting ``slim_scaling_factor`` to keep this example reasonably-sized):
@@ -860,7 +853,7 @@ we'd do the following
    contig = species.get_contig(
        "chr22", genetic_map="HapMapII_GRCh37", mutation_rate=model.mutation_rate
    )
-   samples = model.get_samples(200)
+   samples = {"AFR": 100}
    engine = stdpopsim.get_engine("slim")
    ts = engine.simulate(model, contig, samples, slim_burn_in=0.1, slim_scaling_factor=10)
 
@@ -1021,7 +1014,7 @@ specifying which set of *intervals* it will apply to:
     contig.add_dfe(intervals=np.array([[0, int(contig.length)]]), DFE=dfe)
 
     model = species.get_demographic_model("OutOfAfrica_3G09")
-    samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
+    samples = {"YRI": 50, "CEU": 50, "CHB": 50}
 
 Now, we can simulate as usual:
 
@@ -1078,7 +1071,7 @@ are removed from the intervals associated with previous DFEs.
     dfe = species.get_dfe("Gamma_K17")
     contig = species.get_contig(length=30000)
     model = species.get_demographic_model("OutOfAfrica_3G09")
-    samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
+    samples = {"YRI": 50, "CEU": 50, "CHB": 50}
 
     gene_interval = np.array([[10000, 20000]])
     contig.add_dfe(intervals=gene_interval, DFE=dfe)
@@ -1161,7 +1154,7 @@ and use this in :meth:`.Contig.add_dfe`:
     dfe = species.get_dfe("Gamma_K17")
     contig = species.get_contig("chr20")
     model = species.get_demographic_model("OutOfAfrica_3G09")
-    samples = model.get_samples(100, 100, 100)  # YRI, CEU, CHB
+    samples = {"YRI": 50, "CEU": 50, "CHB": 50}
 
     exons = species.get_annotations("ensembl_havana_104_exons")
     exon_intervals = exons.get_chromosome_annotations("chr20").astype("int")
@@ -1247,7 +1240,7 @@ which we will insert later.
 
     species = stdpopsim.get_species("DroMel")
     model = stdpopsim.PiecewiseConstantSize(100000)
-    samples = model.get_samples(100)
+    samples = {"pop_0": 50}
     contig = species.get_contig("2L", length_multiplier=0.01)
 
 Next, we need to set things up to add a selected mutation to a randomly chosen
@@ -1590,11 +1583,13 @@ and that rates of migration since the split between the populations are both zer
         NA=5000, N1=4000, N2=1000, T=1000, M12=0, M21=0
     )
 
-We'll simulate 10 chromosomes from each of the populations using the ``msprime`` engine.
+We'll simulate 5 diploids from each of the populations using the
+``msprime`` engine (the populations in this generic model are named
+``pop1`` and ``pop2``).
 
 .. code-block:: python
 
-    samples = model.get_samples(10, 10)
+    samples = {"pop1": 5, "pop2": 5}
     engine = stdpopsim.get_engine("msprime")
 
 Finally, we'll run a simulation using the objects we've created and store the outputted

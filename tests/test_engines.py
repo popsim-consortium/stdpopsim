@@ -66,7 +66,7 @@ class TestBehaviour:
         good_kwargs = dict(
             demographic_model=model,
             contig=species.get_contig("chr1"),
-            samples=model.get_samples(10, 10, 10),
+            samples={"YRI": 5, "CHB": 5, "CEU": 5},
             dry_run=True,
         )
         bad_kwargs = good_kwargs.copy().update(nonexistent_param=None)
@@ -87,7 +87,7 @@ class TestBehaviour:
         species = stdpopsim.get_species("HomSap")
         model = species.get_demographic_model("AshkSub_7G19")
         contig = species.get_contig("chr22", length_multiplier=0.01)
-        samples = model.get_samples(10)
+        samples = {"YRI": 5}
         engine = stdpopsim.get_engine("msprime")
         sim_arg = engine.simulate(
             model, contig, samples, record_full_arg=True, random_seed=1
@@ -98,7 +98,7 @@ class TestBehaviour:
         species = stdpopsim.get_species("HomSap")
         model = species.get_demographic_model("AshkSub_7G19")
         contig = species.get_contig("chr22", length_multiplier=0.01)
-        samples = model.get_samples(10)
+        samples = {"YRI": 5}
         engine = stdpopsim.get_engine("msprime")
         with pytest.raises(ValueError):
             engine.simulate(model, contig, samples, seed=1, random_seed=1)
@@ -109,7 +109,7 @@ class TestBehaviour:
     def test_non_neutral_contig(self):
         species = stdpopsim.get_species("HomSap")
         model = species.get_demographic_model("AshkSub_7G19")
-        samples = model.get_samples(10)
+        samples = {"YRI": 5}
         contig = stdpopsim.Contig.basic_contig(length=100)
         contig.clear_dfes()
         props = [1]
@@ -147,9 +147,22 @@ class TestBehaviour:
     def test_gene_conversion(self):
         species = stdpopsim.get_species("DroMel")
         model = species.get_demographic_model("African3Epoch_1S16")
-        samples = model.get_samples(10)
+        samples = {"AFR": 5}
         contig = species.get_contig(length=1000, use_species_gene_conversion=True)
         assert contig.gene_conversion_fraction > 0
         assert contig.gene_conversion_length > 0
         engine = stdpopsim.get_engine("msprime")
         engine.simulate(model, contig, samples, seed=1)
+
+    def test_msprime_bad_samples(self):
+        engine = stdpopsim.get_engine("msprime")
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("chr1")
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        samples = [1, 2, ["foo"]]
+        with pytest.raises(ValueError, match="Samples must be a dict"):
+            engine.simulate(
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+            )

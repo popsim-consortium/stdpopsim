@@ -1,4 +1,5 @@
 import stdpopsim
+import pytest
 from tests import test_species
 
 
@@ -20,3 +21,10 @@ class TestGenome(test_species.GenomeTestBase):
     def test_basic_attributes(self):
         # 5 autosomes + Mt + Pt
         assert len(self.genome.chromosomes) == 7
+
+    @pytest.mark.parametrize("chrom", [chrom for chrom in genome.chromosomes])
+    def test_chromosome_ploidy(self, chrom):
+        if chrom.id in ["Mt", "Pt"]:
+            assert chrom.ploidy == 1
+        else:
+            assert chrom.ploidy == 2

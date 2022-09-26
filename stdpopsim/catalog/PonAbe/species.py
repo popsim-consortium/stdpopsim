@@ -35,6 +35,36 @@ _recombination_rate_data = {
     "MT": 0,
 }
 
+# Generic and chromosome-specific ploidy
+_species_ploidy = 2
+_ploidy = {
+    "1": _species_ploidy,
+    "2A": _species_ploidy,
+    "2B": _species_ploidy,
+    "3": _species_ploidy,
+    "4": _species_ploidy,
+    "5": _species_ploidy,
+    "6": _species_ploidy,
+    "7": _species_ploidy,
+    "8": _species_ploidy,
+    "9": _species_ploidy,
+    "10": _species_ploidy,
+    "11": _species_ploidy,
+    "12": _species_ploidy,
+    "13": _species_ploidy,
+    "14": _species_ploidy,
+    "15": _species_ploidy,
+    "16": _species_ploidy,
+    "17": _species_ploidy,
+    "18": _species_ploidy,
+    "19": _species_ploidy,
+    "20": _species_ploidy,
+    "21": _species_ploidy,
+    "22": _species_ploidy,
+    "X": _species_ploidy,
+    "MT": 1,
+}
+
 # High-resolution comparative analysis of great ape genomes
 _kronenberg2018 = stdpopsim.Citation(
     author="Kronenberg et al.",
@@ -80,6 +110,7 @@ for name, data in genome_data.data["chromosomes"].items():
             # assumption that it's similar to humans and chimps.
             mutation_rate=1.5e-8,
             recombination_rate=_recombination_rate_data[name],
+            ploidy=_ploidy[name],
         )
     )
 
@@ -101,6 +132,7 @@ _species = stdpopsim.Species(
     generation_time=25,
     # Locke et al. inferred ancestral Ne
     population_size=1.79e4,
+    ploidy=_species_ploidy,
     citations=[_locke2011, _wich2008],
 )
 
