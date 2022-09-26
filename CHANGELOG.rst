@@ -16,6 +16,15 @@ as many new species and models.
 - Per-chromosome recombination rates for HomSap were incorrectly calculated
   (:user:`nspope`, :pr:`1345`).
 
+**Breaking changes**:
+
+- Removed `GeneticMap` class from public API (:user:`jeromekelleher`, :pr:`713`).
+
+- Samples are now specified via population/individual pairs, using
+  species/chromosome ploidy.  The old API for specifying haploid samples via
+  population index has been retained, but is deprecated and will be
+  removed at some point (:user:`nspope`, :pr:`1361`).
+
 **New species**:
 
 - Aedes aegypti (:user:`manolofperez`, :pr:`871`).
@@ -154,6 +163,9 @@ as many new species and models.
 - Mutation rates can be stored in catalog models
   (:user:`apragsdale`, :pr:`839`).
 
+- Ploidy is a species and chromosome attribute
+  (:user:`nspope`, :pr:`1361`).
+
 - Various improvements and fixes to the documentation and error messaging.
 
 **Catalog maintenance infrastructure**:
@@ -207,10 +219,6 @@ as many new species and models.
 - HomSap/Gamma_K17 (:user:`izabelcavassim`, :pr:`1002`).
 
 - HomSap/Gamma_H17 (:user:`chriscrsmith`, :pr:`1099`).
-
-**Breaking changes**:
-
-- Removed `GeneticMap` class from public API (:user:`jeromekelleher`, :pr:`713`).
 
 --------------------
 [0.1.2] - 2020-05-29
