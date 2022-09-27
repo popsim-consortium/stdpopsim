@@ -168,6 +168,26 @@ as many new species and models.
 
 - Various improvements and fixes to the documentation and error messaging.
 
+**Additions to CLI**:
+
+- Arguments `--dfe`, `--dfe-interval`, `--dfe-bed-file`, `--help-dfe`
+  for specifying DFEs (:user:`izabelcavassim`, :pr:`1052`).
+
+- Arguments `--help-annotations`, `--dfe-annotation` for associating annotation
+  tracks with DFEs (:user:`andrewkern`, :pr:`1117`).
+
+- Argument `--length` for simulating from a generic contig
+  (:user:`apragsdale`, :pr:`664`).
+
+- Arguments `--inclusion-mask`, `--exclusion-mask` for masking simulated sequences
+  (:user:`apragsdale`, :pr:`664`).
+
+- Arguments `--left` and `--right` for simulating an interval on a named chromosome
+  (:user:`nspope`, :pr:`1348`)
+
+#TODO: gene conversion?
+#TODO: jc mutations?
+
 **Catalog maintenance infrastructure**:
 
 - Quality control infrastructure for DFEs
@@ -187,20 +207,6 @@ as many new species and models.
 
 - Pull genome data from Ensembl
   (:user:`jeromekelleher`, :pr:`563`).
-
-**Additions to CLI**:
-
-- Arguments `--dfe`, `--dfe-interval`, `--dfe-bed-file`, `--help-dfe`
-  for specifying DFEs (:user:`izabelcavassim`, :pr:`1052`).
-
-- Arguments `--help-annotations`, `--dfe-annotation` for associating annotation
-  tracks with DFEs (:user:`andrewkern`, :pr:`1117`).
-
-- Argument `--length` for simulating from a generic contig
-  (:user:`apragsdale`, :pr:`664`).
-
-- Arguments `--inclusion-mask`, `--exclusion-mask` for masking simulated sequences
-  (:user:`apragsdale`, :pr:`664`).
 
 **New annotations**:
 
