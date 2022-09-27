@@ -185,9 +185,6 @@ as many new species and models.
 - Arguments `--left` and `--right` for simulating an interval on a named chromosome
   (:user:`nspope`, :pr:`1348`)
 
-#TODO: gene conversion?
-#TODO: jc mutations?
-
 **Catalog maintenance infrastructure**:
 
 - Quality control infrastructure for DFEs
