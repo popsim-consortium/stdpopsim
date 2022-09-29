@@ -26,10 +26,9 @@ slim_path = os.environ.get("SLIM", "slim")
 def count_mut_types(ts):
     mut_info = {}
     for mut in ts.mutations():
-        for j, md in zip(mut.derived_state.split(","), mut.metadata["mutation_list"]):
-            uid = f"{str(mut.id)}_{j}"
-            if uid not in mut_info:
-                mut_info[uid] = md
+        for j, md in enumerate(mut.metadata["mutation_list"]):
+            uid = f"{mut.id}_{j}"
+            mut_info[uid] = md
     num_neutral = sum([mut_info[j]["selection_coeff"] == 0.0 for j in mut_info])
     return [num_neutral, abs(len(mut_info) - num_neutral)]
 
@@ -282,6 +281,30 @@ class TestAPI:
             engine._assert_min_version("3.5", engine.slim_path())
             engine._assert_min_version("3.6", None)
 
+    def test_stacked_mutations(self):
+        # Verify that `count_mut_types` works with stacked mutations, after
+        # these have been converted to nucleotides. When it's possible to set
+        # the stacking policy to "l" in SLiMMutationModel, this test will break
+        # and can be removed.
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig(length=10)
+        model = stdpopsim.PiecewiseConstantSize(100)
+        samples = {"pop_0": 5}
+        contig.mutation_rate = 1e-2
+        while True:
+            ts = engine.simulate(
+                demographic_model=model,
+                contig=contig,
+                samples=samples,
+                slim_burn_in=0,
+                keep_mutation_ids_as_alleles=False,
+            )
+            is_stacked = [len(m.metadata["mutation_list"]) > 1 for m in ts.mutations()]
+            if any(is_stacked):
+                break
+        count_mut_types(ts)
+
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_allele_codes(self):
         engine = stdpopsim.get_engine("slim")
@@ -312,9 +335,8 @@ class TestAPI:
             slim_burn_in=0,
         )
         for mut in ts.mutations():
-            alleles = mut.derived_state.split(",")
-            assert all([x in "AGCT" for x in alleles])
-        # slim mutation ids
+            assert mut.derived_state in "ACGT"
+        # slim mutation ids (may be stacked)
         ts = engine.simulate(
             demographic_model=model,
             contig=contig,

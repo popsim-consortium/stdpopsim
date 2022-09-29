@@ -1197,6 +1197,12 @@ def slim_makescript(
             if not m.convert_to_substitution:
                 # T is the default for WF simulations.
                 printsc(f"    m{mid}.convertToSubstitution = F;")
+            # TODO: when msprime.SLiMMutationModel supports stacking policy,
+            # set policy such that there's at most a single mutation per-site
+            # and individual
+            # printsc(f"    m{mid}.mutationStackGroup = 0;")
+            # printsc(f"    m{mid}.mutationStackPolicy = 'l';")
+        mut_types = ", ".join([str(mt) for mt in mut_type_list])
         mut_types = ", ".join([str(mt) for mt in mut_type_list])
         # We will assign a proportion of 0.0 to mutation types that are neutral
         # unless all the mutation types in a DFE are neutral. In such case,
@@ -1787,6 +1793,7 @@ class _SLiMEngine(stdpopsim.Engine):
                     # 'selection_coef' key in the mutation metadata (e.g. the
                     # mutation metadata structure will be consistent across the
                     # tree sequence).
+                    # TODO: set stacking policy to "l" when supported
                     model = msprime.SLiMMutationModel(
                         type=mt["slim_mutation_type_id"],
                         next_id=_get_next_id(ts),
