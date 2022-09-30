@@ -27,3 +27,4 @@ biopython
 demes==0.2.0
 demesdraw==0.2.0
 boto3
+kastore

@@ -23,3 +23,4 @@ zarr==2.11.3
 biopython==1.79
 demes==0.2.2
 demesdraw==0.3.1
+kastore==0.3.2
