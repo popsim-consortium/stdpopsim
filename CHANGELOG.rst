@@ -166,6 +166,9 @@ as many new species and models.
 - Ploidy is a species and chromosome attribute
   (:user:`nspope`, :pr:`1361`).
 
+- Mutations from SLiM simulations converted to nucleotides
+  (:user:`nspope`, :pr:`1356`).
+
 - Various improvements and fixes to the documentation and error messaging.
 
 **Additions to CLI**:
@@ -184,6 +187,9 @@ as many new species and models.
 
 - Arguments `--left` and `--right` for simulating an interval on a named chromosome
   (:user:`nspope`, :pr:`1348`)
+
+- Arguments `--keep-mutation-ids-as-alleles` retains SLiM mutation IDs as
+  alleles instead of converting to nucleotides.
 
 **Catalog maintenance infrastructure**:
 
