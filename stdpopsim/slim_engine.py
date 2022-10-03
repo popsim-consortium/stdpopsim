@@ -1197,6 +1197,12 @@ def slim_makescript(
             if not m.convert_to_substitution:
                 # T is the default for WF simulations.
                 printsc(f"    m{mid}.convertToSubstitution = F;")
+            # TODO: when msprime.SLiMMutationModel supports stacking policy,
+            # set policy such that there's at most a single mutation per-site
+            # and individual
+            # printsc(f"    m{mid}.mutationStackGroup = 0;")
+            # printsc(f"    m{mid}.mutationStackPolicy = 'l';")
+        mut_types = ", ".join([str(mt) for mt in mut_type_list])
         mut_types = ", ".join([str(mt) for mt in mut_type_list])
         # We will assign a proportion of 0.0 to mutation types that are neutral
         # unless all the mutation types in a DFE are neutral. In such case,
@@ -1462,6 +1468,7 @@ class _SLiMEngine(stdpopsim.Engine):
         verbosity=None,
         logfile=None,
         logfile_interval=100,
+        keep_mutation_ids_as_alleles=False,
         _recap_and_rescale=True,
     ):
         """
@@ -1496,6 +1503,10 @@ class _SLiMEngine(stdpopsim.Engine):
             (currently, only mean and SD of fitness values per population).
             Defaults to None, meaning "do not log".
         :param logfile_interval: How often to write to the log file, in generations.
+        :param keep_mutation_ids_as_alleles: If true, alleles will be coded by integer
+            mutation ids (assigned by SLiM) rather than by randomly-generated
+            nucleotides.
+        :type keep_mutation_ids_as_alleles: bool
         """
 
         if slim_scaling_factor <= 0:
@@ -1585,7 +1596,13 @@ class _SLiMEngine(stdpopsim.Engine):
         ts = _add_dfes_to_metadata(ts, contig)
         if _recap_and_rescale:
             ts = self._recap_and_rescale(
-                ts, seed, recap_epoch, contig, slim_scaling_factor, extended_events
+                ts,
+                seed,
+                recap_epoch,
+                contig,
+                slim_scaling_factor,
+                keep_mutation_ids_as_alleles,
+                extended_events,
             )
 
         if contig.inclusion_mask is not None:
@@ -1665,11 +1682,19 @@ class _SLiMEngine(stdpopsim.Engine):
         return ts.simplify(samples=list(nodes), filter_populations=False)
 
     def _recap_and_rescale(
-        self, ts, seed, recap_epoch, contig, slim_scaling_factor, extended_events=None
+        self,
+        ts,
+        seed,
+        recap_epoch,
+        contig,
+        slim_scaling_factor,
+        keep_mutation_ids_as_alleles,
+        extended_events=None,
     ):
         """
         Apply post-SLiM transformations to ``ts``. This rescales node times,
-        does recapitation, simplification, and adds neutral mutations.
+        does recapitation, simplification, adds neutral mutations, and converts
+        alleles to nucleotides.
         """
         # Times come from SLiM generation numbers, which may have been
         # divided by a scaling factor for computational tractability.
@@ -1763,10 +1788,18 @@ class _SLiMEngine(stdpopsim.Engine):
                         rates[is_this_dfe] = rate
                         return msprime.RateMap(position=breaks, rate=rates)
 
-                    # Add mutations to recapitated part of trees.
+                    # Use msprime.SLiMMutationModel rather than msprime.JC69
+                    # for neutral DFEs.  This ensures that there will be a
+                    # 'selection_coef' key in the mutation metadata (e.g. the
+                    # mutation metadata structure will be consistent across the
+                    # tree sequence).
+                    # TODO: set stacking policy to "l" when supported
                     model = msprime.SLiMMutationModel(
-                        type=mt["slim_mutation_type_id"], next_id=_get_next_id(ts)
+                        type=mt["slim_mutation_type_id"],
+                        next_id=_get_next_id(ts),
                     )
+
+                    # Add mutations to recapitated part of trees.
                     start_time = None
                     end_time = None
                     if dfe["id"] == "recapitation":
@@ -1790,6 +1823,16 @@ class _SLiMEngine(stdpopsim.Engine):
                         keep=True,
                         random_seed=mut_seed,
                     )
+
+        if not keep_mutation_ids_as_alleles:
+            nuc_seed = rng.randrange(1, 2**32)
+            ts = pyslim.convert_alleles(
+                pyslim.generate_nucleotides(
+                    ts,
+                    seed=nuc_seed,
+                )
+            )
+
         return ts
 
     def recap_and_rescale(
@@ -1801,6 +1844,7 @@ class _SLiMEngine(stdpopsim.Engine):
         extended_events=None,
         slim_scaling_factor=1.0,
         seed=None,
+        keep_mutation_ids_as_alleles=False,
         **kwargs,
     ):
         """
@@ -1854,7 +1898,13 @@ class _SLiMEngine(stdpopsim.Engine):
             )
 
         ts = self._recap_and_rescale(
-            ts, seed, recap_epoch, contig, slim_scaling_factor, extended_events
+            ts,
+            seed,
+            recap_epoch,
+            contig,
+            slim_scaling_factor,
+            keep_mutation_ids_as_alleles,
+            extended_events,
         )
         return ts
 

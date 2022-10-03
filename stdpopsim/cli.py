@@ -593,6 +593,14 @@ def add_simulate_species_parser(parser, species):
             "For msprime, seeds must be > 0 and < 2^32."
         ),
     )
+    species_parser.add_argument(
+        "--keep-mutation-ids-as-alleles",
+        action="store_true",
+        help=(
+            "If set, mutations in SLiM simulations will have alleles coded as "
+            "numeric ids rather than random nucleotides."
+        ),
+    )
 
     model_help = (
         "Specify a simulation model. If no model is specified, a single population "
@@ -724,10 +732,16 @@ def add_simulate_species_parser(parser, species):
                 f"Cannot sample from more than {model.num_sampling_populations} "
                 "populations"
             )
+        if args.keep_mutation_ids_as_alleles and args.engine != "slim":
+            exit(
+                "Option --keep-mutation-ids-as-alleles only applies to the SLiM "
+                "engine."
+            )
 
         samples = stdpopsim.utils.parse_population_sample_pairs(args.samples)
         if isinstance(samples, list):
-            # FIXME: for back-compatibility with deprecated positional sample counts
+            # TODO: For back-compatibility with deprecated positional sample
+            # counts, eventually remove
             samples = model.get_samples(*samples)
         else:
             assert isinstance(samples, dict)
