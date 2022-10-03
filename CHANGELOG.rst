@@ -13,8 +13,8 @@ as many new species and models.
 - Recombination rate for DroMel chr4 changed to 0
   (:user:`izabelcavassim`, :pr:`1092`).
 
-- Per-chromosome recombination rates for HomSap were incorrectly calculated
-  (:user:`nspope`, :pr:`1345`).
+- Per-chromosome mean recombination rates for HomSap were incorrectly
+  calculated (:user:`nspope`, :pr:`1345`).
 
 **Breaking changes**:
 
@@ -173,6 +173,12 @@ as many new species and models.
 
 **Additions to CLI**:
 
+- Sample specification has switched from positional and haploid (e.g.
+  `stdpopsim HomSap -d OutOfAfrica_3G09 6 0 10`) to named with ploidy
+  (`stdpopsim HomSap -d OutOfAfrica_3G09 YRI=3 CEU=0 CHB=5`). The old,
+  positional specification is still supported but will raise a deprecation
+  warning.
+
 - Arguments `--dfe`, `--dfe-interval`, `--dfe-bed-file`, `--help-dfe`
   for specifying DFEs (:user:`izabelcavassim`, :pr:`1052`).
 
@@ -188,8 +194,8 @@ as many new species and models.
 - Arguments `--left` and `--right` for simulating an interval on a named chromosome
   (:user:`nspope`, :pr:`1348`)
 
-- Arguments `--keep-mutation-ids-as-alleles` retains SLiM mutation IDs as
-  alleles instead of converting to nucleotides.
+- Argument `--keep-mutation-ids-as-alleles` retains SLiM mutation IDs for
+  allele codes instead of converting these to nucleotides.
 
 **Catalog maintenance infrastructure**:
 
