@@ -174,10 +174,10 @@ as many new species and models.
 **Additions to CLI**:
 
 - Sample specification has switched from positional and haploid (e.g.
-  `stdpopsim HomSap -d OutOfAfrica_3G09 6 0 10`) to named with ploidy
-  (`stdpopsim HomSap -d OutOfAfrica_3G09 YRI=3 CEU=0 CHB=5`). The old,
-  positional specification is still supported but will raise a deprecation
-  warning.
+  `stdpopsim HomSap -d OutOfAfrica_3G09 6 0 10`) to named with species-specific
+  ploidy (equivalent to `stdpopsim HomSap -d OutOfAfrica_3G09 YRI:3 CEU:0
+  CHB:5`). Positional sample specification is still supported but will raise a
+  deprecation warning.
 
 - Arguments `--dfe`, `--dfe-interval`, `--dfe-bed-file`, `--help-dfe`
   for specifying DFEs (:user:`izabelcavassim`, :pr:`1052`).
