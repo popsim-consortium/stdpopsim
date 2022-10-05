@@ -67,8 +67,8 @@ def all_species():
     """
     Returns an iterator over all species in the catalog.
     """
-    for species in registered_species.values():
-        yield species
+    for species in sorted(registered_species.keys()):
+        yield registered_species[species]
 
 
 def all_genetic_maps():

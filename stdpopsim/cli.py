@@ -126,7 +126,7 @@ def get_models_help(species_id, model_id):
     species = stdpopsim.get_species(species_id)
     if model_id is None:
         models_text = f"\nAll simulation models for {species.name}\n\n"
-        models = [model.id for model in species.demographic_models]
+        models = sorted([model.id for model in species.demographic_models])
     else:
         models = [model_id]
         models_text = "\nModel description\n\n"
@@ -145,7 +145,7 @@ def get_models_help(species_id, model_id):
         for population in model.populations:
             if population.allow_samples:
                 models_text += indent * 2
-                models_text += f"{population.id}: {population.description}\n"
+                models_text += f"{population.name}: {population.description}\n"
         models_text += "\n"
 
     return models_text
@@ -171,7 +171,7 @@ def get_genetic_maps_help(species_id, genetic_map_id):
     species = stdpopsim.get_species(species_id)
     if genetic_map_id is None:
         maps_text = f"\nAll genetic maps for {species.name}\n\n"
-        maps = [genetic_map.id for genetic_map in species.genetic_maps]
+        maps = sorted([genetic_map.id for genetic_map in species.genetic_maps])
     else:
         maps = [genetic_map_id]
         maps_text = "\nGenetic map description\n\n"
@@ -207,7 +207,7 @@ def get_dfes_help(species_id, dfe_id):
     species = stdpopsim.get_species(species_id)
     if dfe_id is None:
         dfes_text = f"\nAll DFEs for {species.name}\n\n"
-        dfes = [dfe.id for dfe in species.dfes]
+        dfes = sorted([dfe.id for dfe in species.dfes])
     else:
         dfes = [dfe_id]
         dfes_text = "\nDFE description\n\n"
@@ -288,7 +288,7 @@ def get_annotations_help(species_id, annotation_id):
     species = stdpopsim.get_species(species_id)
     if annotation_id is None:
         annotation_text = f"\nAll annotations for {species.name}\n\n"
-        annotations = [annotation.id for annotation in species.annotations]
+        annotations = sorted([annotation.id for annotation in species.annotations])
     else:
         annotations = [annotation_id]
         annotation_text = "\nAnnotation  description\n\n"
@@ -894,7 +894,7 @@ def write_simulation_summary(
     for s in sample_sets:
         sample_counts[s.population] += s.num_samples
     for p in range(0, model.num_sampling_populations):
-        pop_name = model.populations[p].id
+        pop_name = model.populations[p].name
         sample_time = model.populations[p].default_sampling_time
         dry_run_text += f"{indent * 2}{pop_name}: "
         dry_run_text += f"{sample_counts[p]} ({sample_time})\n"
