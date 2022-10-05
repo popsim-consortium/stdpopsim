@@ -358,8 +358,8 @@ class TestContig(object):
     def test_chromosome_segment_exceeds_length(self):
         chr_id = "chr22"
         species = stdpopsim.get_species("HomSap")
-        for interval in [[50e6, 80e6], [80e6, 100e6]]:
-            with pytest.raises(ValueError, match="falls outside chromosome"):
+        for interval in [[50e6, 80e6], [80e6, 100e6], [-1, 10e6]]:
+            with pytest.raises(ValueError, match="the length of"):
                 species.get_contig(
                     chromosome=chr_id,
                     left=interval[0],
