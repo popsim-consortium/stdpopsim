@@ -8,7 +8,7 @@ There are two main ways of accessing the resources of the ``stdpopsim`` package
 that will be detailed in this tutorial. The first is via the command line
 interface (CLI). This is useful if you want to do a straightforward run of the
 models in the ``stdpopsim`` :ref:`catalog <sec_catalog>`. The other way to
-access the ``stdpopsim`` resources is via the python API. This is a bit more
+access the ``stdpopsim`` resources is via the Python API. This is a bit more
 complicated, but allows for more advanced tasks. This tutorial will walk
 through both ways of using the ``stdpopsim`` package as well as a few examples
 of producing and processing output.
@@ -31,14 +31,14 @@ and the demographic model determines how many populations can be sampled from.
 Currently, the two choices of simulation engine are ``msprime`` and ``SLiM``,
 and incorporating selection into simulations is only possible using the ``SLiM`` engine.
 Below are examples of making these choices in various contexts,
-using both CLI and python interfaces.
+using both CLI and Python interfaces.
 
 
 .. _sec_cli_tute:
 
-***********************************************************
-Running ``stdpopsim`` with the command-line interface (CLI)
-***********************************************************
+*******************************************************
+Running stdpopsim with the command-line interface (CLI)
+*******************************************************
 
 In order to use the ``stdpopsim`` CLI the ``stdpopsim`` package must be
 installed (see :ref:`Installation <sec_installation>`). The CLI provides access
@@ -111,11 +111,11 @@ using the ``--help-models`` flag (here, truncated for space):
     :ellipsis: 30
 
 This gives all of the possible demographic models we could simulate. We choose
-the two population out-of-Africa :ref:`model <sec_catalog_homsap_models_outofafrica_2t12>`
+the :ref:`two-population out-of-Africa model <sec_catalog_homsap_models_outofafrica_2t12>`
 from `Tennesen et al. (2012) <https://doi.org/10.1126/science.1219240>`_ .
-By looking at the model help we find that the name for this model is
+By looking at the output from ``--help-models`` we find that the name for this model is
 ``OutOfAfrica_2T12`` and that we can specify it using
-the ``--demographic-model`` or ``-d`` option.
+the ``--demographic-model``/``-d`` option.
 We choose to draw two diploid sample from the ``AFR`` ("African American") population,
 and three diploids from the ``EUR`` ("European American") population.
 To increase simulation speed we can also choose to simulate a subset of the chromosome
@@ -150,7 +150,7 @@ realistic. We can look up the available recombination maps using the
 
 In this case we choose the
 :ref:`sec_catalog_homsap_genetic_maps_hapmapii_grch38` map and simulate the entire chromosome
-(as the ``HapMapII_GRCh37`` map is deprecated and does not match the genome assembly).
+(as the :ref:`sec_catalog_homsap_genetic_maps_hapmapii_grch37` map is deprecated and does not match the genome assembly).
 
 .. code-block:: console
 
@@ -161,7 +161,8 @@ For reproducibility we can also choose set the seed for the simulator using the
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -s 1046 -g HapMapII_GRCh38 -c chr22 -o foo.ts -d OutOfAfrica_2T12 AFR:2 EUR:3
+    $ stdpopsim HomSap -s 1046 -g HapMapII_GRCh38 -c chr22 -o foo.ts \
+    $    -d OutOfAfrica_2T12 AFR:2 EUR:3
 
 On running these commands, the CLI also outputs the relevant citations for both
 the simulator used and the resources used for simulation scenario.
@@ -192,7 +193,8 @@ the tree sequence is fifty-two times smaller:
 
 .. code-block:: console
 
-   $ stdpopsim HomSap -s 1046 -g HapMapII_GRCh38 -c chr22 -o foo.ts -d OutOfAfrica_2T12 AFR:1000 EUR:1500
+   $ stdpopsim HomSap -s 1046 -g HapMapII_GRCh38 -c chr22 -o foo.ts \
+   $    -d OutOfAfrica_2T12 AFR:1000 EUR:1500
    $ tskit vcf foo.ts > foo.vcf
    $ ls -lth foo.*
    -rw-rw-r-- 1 natep natep 8.6G Oct  4 12:03 foo.vcf
@@ -324,7 +326,7 @@ If instead of an bundled annotation, one has a bed file (e.g. `ex.bed`) like the
     chr1  30002430  30003000
 
 then a DFE may be applied to all intervals in the bed file by using the option
-``--dfe-bed-file``, for example:
+``--dfe-bed-file``:
 
 .. code-block:: console
 
@@ -354,7 +356,7 @@ intervals are clipped to the contig endpoints. For example, the third interval i
     selected mutations outside of the region can influence ancestry within
     the region, due to linkage.
 
-See also the python API to incorporate `selection <https://popsim-consortium.github.io/stdpopsim-docs/latest/tutorial.html#incorporating-selection>`__.
+See also the Python API to incorporate `selection <https://popsim-consortium.github.io/stdpopsim-docs/latest/tutorial.html#incorporating-selection>`__.
 
 Debugging output from SLiM
 ==========================
@@ -388,35 +390,31 @@ every time a demographic event occurs
 .. code-block:: console
 
    $ stdpopsim -vv -e slim --slim-scaling-factor 1000 DroMel -c chr2L \
-   $    --right 1000000 -o foo.ts -d African3Epoch_1S16 AFR:50 | \
-   $    grep "^DEBUG:"
-
-Trimming down the output somewhat, we get:
-
-.. code-block:: console
-
-  DEBUG: Making flat contig of length 1000000 from 2L
-  DEBUG: // Initial random seed:
-  DEBUG: 2214454132353
-  DEBUG:
-  DEBUG: // RunInitializeCallbacks():
-  DEBUG: initializeMutationType(0, 0.5, "f", 0);
-  DEBUG: initializeGenomicElementType(0, m0, 1);
-  DEBUG: initializeGenomicElement(g0, 0, 999999);
-  DEBUG: initializeMutationRate(0, 999999);
-  DEBUG: initializeTreeSeq();
-  DEBUG: initializeRecombinationRate(2.40457e-05, 999999);
-  DEBUG:
-  DEBUG: // Starting run at tick <start>:
-  DEBUG: 1
-  DEBUG:
-  DEBUG: 1: p = sim.addSubpop(0, 652);
-  DEBUG: 1: p.name = 'AFR';
-  DEBUG: 1: Starting burn-in...
-  DEBUG: 6521: {p0.setSubpopulationSize(145);}
-  DEBUG: 8521: {p0.setSubpopulationSize(544);}
-  DEBUG: 8721: {inds=p0.sampleIndividuals(50); sim.treeSeqRememberIndividuals(inds);}
-  DEBUG: 8721: {end();}
+   $    --right 1000000 -o foo.ts -d African3Epoch_1S16 AFR:50 \
+   $    | grep "^DEBUG:"
+   DEBUG: Making flat contig of length 1000000 from 2L
+   DEBUG: // Initial random seed:
+   DEBUG: 2214454132353
+   DEBUG:
+   DEBUG: // RunInitializeCallbacks():
+   DEBUG: initializeMutationType(0, 0.5, "f", 0);
+   DEBUG: initializeGenomicElementType(0, m0, 1);
+   DEBUG: initializeGenomicElement(g0, 0, 999999);
+   DEBUG: initializeMutationRate(0, 999999);
+   DEBUG: initializeTreeSeq();
+   DEBUG: initializeRecombinationRate(2.40457e-05, 999999);
+   DEBUG:
+   DEBUG: // Starting run at tick <start>:
+   DEBUG: 1
+   DEBUG:
+   DEBUG: 1: p = sim.addSubpop(0, 652);
+   DEBUG: 1: p.name = 'AFR';
+   DEBUG: 1: Starting burn-in...
+   DEBUG: 6521: {p0.setSubpopulationSize(145);}
+   DEBUG: 8521: {p0.setSubpopulationSize(544);}
+   DEBUG: 8721: {inds=p0.sampleIndividuals(50); sim.treeSeqRememberIndividuals(inds);}
+   DEBUG: 8721: {end();}
+   ...
 
 This tells us that after rescaling by a factor of 1000,
 the population sizes in the three epochs are 652, 145, and 544 individuals,
@@ -436,8 +434,8 @@ Running stdpopsim with the Python interface (API)
 *************************************************
 
 Nearly all the functionality of ``stdpopsim`` is available through the CLI,
-but for complex situations it may be desirable to use python.
-Furthermore, downstream analysis may happen in python,
+but for complex situations it may be desirable to use Python.
+Furthermore, downstream analysis may happen in Python,
 using the `tskit <https://tskit.dev/tskit/>`__ tools for working
 with tree sequences.
 In order to use the ``stdpopsim`` API the ``stdpopsim`` package must be
@@ -485,7 +483,7 @@ demographic models are available for humans:
    # AncientEurope_4A21
 
 These models are described in detail in the :ref:`Catalog <sec_catalog>`.
-We'll look at the first model, "OutOfAfrica_3G09", from
+We'll look at the first model, ``OutOfAfrica_3G09``, from
 `Gutenkunst et al (2009) <https://doi.org/10.1371/journal.pgen.1000695>`__.
 We can check how many populations exist in this model, and what they are:
 
@@ -570,12 +568,12 @@ to make sure that we've got what we want.
 
    ts.num_samples
    # 20
+
    for k, pop in enumerate(ts.populations()):
        print(
            f"The tree sequence has {len(ts.samples(k))} samples from "
            f"population {k}, which is {pop.metadata['id']}."
        )
-
    # The tree sequence has 10 samples from population 0, which is YRI.
    # The tree sequence has 0 samples from population 1, which is CEU.
    # The tree sequence has 10 samples from population 2, which is CHB.
@@ -743,7 +741,7 @@ in the tree sequences that are produced.
 An example simulation
 ---------------------
 
-The stdpopsim tool is designed so that different simulation engines
+The ``stdpopsim`` tool is designed so that different simulation engines
 are more or less exchangeable, so that to run an equivalent
 simulation with SLiM instead of msprime only requires specifying
 SLiM as the *simulation engine*.
@@ -791,7 +789,7 @@ so that you can run it by just typing ``slim`` on the command line,
 then you will need to specify the ``slim_path`` argument to ``simulate``.)
 To get an example that runs quickly,
 we have set the *scaling factor*,
-described in more detail above (`sec_slim_scaling_factor`),
+described in more detail below (:ref:`sec_slim_scaling_factor`),
 
 Other SLiM options
 ------------------
@@ -804,7 +802,7 @@ The SLiM burn-in
 
 Another option specific to the SLiM engine is ``slim_burn_in``:
 the amount of time before the first demographic model change that SLiM begins simulating for,
-in units of N generations, where N is the population size at the first demographic model change.
+in units of :math:`N` generations, where :math:`N` is the population size at the first demographic model change.
 By default, this is set to 10, which is fairly safe.
 History before this period is simulated with an ``msprime`` coalescent simulation,
 called `"recapitation" <https://tskit.dev/pyslim/docs/latest/tutorial.html#recapitation>`__
@@ -867,9 +865,9 @@ we used above has three distinct epochs:
    # ║    └───────────────────────────────────────┘
 
 
-Since the longest-ago epoch begins at 5,920 generations ago
-with a population size of 7,310, if we set ``slim_burn_in=0.1``,
-then we'd run the SLiM simulation starting at 5,920 + 731 = 6,651 generations ago,
+Since the longest-ago epoch begins at :math:`5,920` generations ago
+with a population size of :math:`7,310`, if we set ``slim_burn_in=0.1``,
+then we'd run the SLiM simulation starting at :math:`5,920 + 731 = 6,651` generations ago,
 and anything *longer ago* than that would be simulated
 with a msprime coalescent simulation.
 
@@ -893,7 +891,7 @@ Outputting the SLiM script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 One final option that could be useful
-is that you can ask stdpopsim to output the SLiM model code directly,
+is that you can ask ``stdpopsim`` to output the SLiM model code directly,
 without actually running the model.
 You could then edit the code, to add other features not implemented in stdpopsim.
 To do this, set ``slim_script=True`` (which prints the script to stdout;
@@ -914,11 +912,11 @@ here we capture it in a file):
                slim_scaling_factor=10,
            )
 
-The resulting script is *big* - 22,250 lines -
-because it has the actual HapMapII_GRCh38 genetic map for chromosome 22
+The resulting script is *big* -- 22,250 lines --
+because it has the actual ``HapMapII_GRCh38`` genetic map for chromosome 22
 included, as text.
 To use it, you will at least want to edit it to save the tree sequence
-to a reasonable location - searching for the string ``trees_file``
+to a reasonable location -- searching for the string ``trees_file``
 you'll find that the SLiM script currently saves the output to a
 temporary file. So, for instance, after changing
 
@@ -942,9 +940,9 @@ or we could just run it on the command line:
 
 If you go this route, you need to do a few postprocessing steps
 to the tree sequence that ``stdpopsim`` usually does.
-Happily, these are made available through a single python function,
+Happily, these are made available through a single Python function,
 :func:`engine.recap_and_rescale <.slim_engine._SLiMEngine.recap_and_rescale>`.
-Back in python, we could do this by
+Back in Python, we could do this by
 
 .. code-block:: python
 
@@ -970,7 +968,7 @@ If as above we ask for 200 haploids from a population whose final size is
 1,450 individuals (after rescaling),
 then in fact the tree sequence returned by SLiM contains the entire genomes
 and genealogies of all 1,450 individuals,
-but stdpopsim throws away all the information that is extraneous
+but ``stdpopsim`` throws away all the information that is extraneous
 to the requested 100 (diploid) individuals,
 using a procedure called
 :meth:`simplification <msprime.simplify>`.
@@ -1008,11 +1006,10 @@ and what distribution of selection coefficients they will have.
 To do this, we need to
 
 - choose a distribution of fitness effects (a :class:`.DFE`),
-- choose which part(s) of the Contig to apply the DFE to
-    (e.g., by choosing an :class:`.Annotation`), and
-- add these to the :meth:`Contig <.Contig.add_dfe>`,
-    with the Annotation saying which portions of the genome the DFE
-    applies to.
+
+- choose which part(s) of the Contig to apply the DFE to (e.g., by choosing an :class:`.Annotation`), and
+
+- add these to the :meth:`Contig <.Contig.add_dfe>`, with the :class:`.Annotation` saying which portions of the genome the DFE applies to.
 
 The next three examples demonstrate how to do this.
 
@@ -1049,7 +1046,7 @@ and get one using the :meth:`.Species.get_dfe` method.
 
 
 Once we have the DFE, we can add it to the Contig,
-specifying which set of *intervals* it will apply to:
+specifying the set of ``intervals`` that it will apply to:
 
 .. code-block:: python
 
@@ -1234,7 +1231,7 @@ but nonetheless there is lower diversity in exons than outside of them:
 
 To make this example run faster, we only simulated a particular region
 rather than the entire annotated chromosome, by supplying
-`left` and `right` to :meth:`Species.get_contig`.
+``left`` and ``right`` to :meth:`Species.get_contig`.
 In this case, the annotation will be automatically clipped to
 the region of interest.
 
@@ -1247,20 +1244,16 @@ the region of interest.
 
 .. _sec_tute_selective_sweep:
 
-4.  Selective sweep
+4.  Selective sweeps
 ------------------------------------------
 
-.. warning::
-
-    The following interface for adding selective sweeps
-    is preliminary, and subject to change!
-
-You may be interested in simulating and tracking a single mutation. To illustrate
-this scenario, let's simulate a selective sweep until it reaches an arbitrary
-allele frequency.
+You may be interested in simulating and tracking a single beneficial mutation.
+To illustrate this scenario, let's simulate a selective sweep until it reaches
+an arbitrary allele frequency.
 
 First, let's define a contig and a demographic model; here, we are simulating a
-small part of chromosome 2L of ``DroMel`` with a generic constant size demography.
+small part of chromosome 2L of *Drosophila melanogaster* (``DroMel``) with a generic, 
+constant size demography.
 The contig will be fully neutral, with the exception of the sweeping mutation
 which we will insert later.
 
@@ -1332,7 +1325,7 @@ greater than 0.8.
     achieved, a nearly impossible condition will result in very long run times.
 
 Now we can simulate, using SLiM of course.  For comparison, we will run the
-same simulation without selection - i.e., without the "extended events":
+same simulation without selection -- i.e., without the "extended events":
 
 .. code-block:: python
 
@@ -1388,9 +1381,9 @@ scaling factor does not substantially distort patterns of genetic variation.
 
 .. _sec_tute_analyses:
 
-************************************
-Example analyses with ``stdpopsim``
-************************************
+*******************************
+Example analyses with stdpopsim
+*******************************
 
 .. _sec_tute_divergence:
 

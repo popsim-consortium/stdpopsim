@@ -15,7 +15,7 @@ We designed ``stdpopsim`` to make it easier for you to run reproducible, bug-fre
 simulations of genetic datasets from published demographic histories.
 Under the hood, ``stdpopsim`` relies on
 `msprime <https://tskit.dev/msprime/>`_ and
-`SLiM 3 <https://messerlab.org/slim/>`_ to generate sample datasets in the
+`SLiM 4 <https://messerlab.org/slim/>`_ to generate sample datasets in the
 `tree sequence <https://tskit.dev/learn.html#what>`_ format.
 
 
