@@ -345,9 +345,9 @@ may be used:
 
 The examples above (using ``--dfe-bed-file`` and ``--dfe-interval``)
 model selection on specified genomic intervals that **also** fall within
-the requested coordinates (10 Mb to 20 Mb on chr22). In other words, the supplied DFE
-intervals are clipped to the contig endpoints. For example, the third interval in
-`ex.bed` above will be silently omitted from the simulation.
+the region being simulated (10 Mb to 20 Mb on chr22). In other words, the supplied DFE
+intervals are clipped to the contig endpoints on the chromosome.
+For example, the third interval in `ex.bed` above will be silently omitted from the simulation.
 
 .. warning::
 
@@ -1381,6 +1381,10 @@ relative to unscaled simulations.
     :alt: Plot with nucleotide diversity along the chromosome for simulations with a without a selective sweep.
 
 |
+
+We can see that diversity is substantially reduced around the beneficial
+mutation (vertical dashed line), relative to what would be expected under
+neutrality.
 
 .. _sec_tute_analyses:
 
