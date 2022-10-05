@@ -7,7 +7,7 @@ Tutorials
 There are two main ways of accessing the resources of the ``stdpopsim`` package
 that will be detailed in this tutorial. The first is via the command line
 interface (CLI). This is useful if you want to do a straightforward run of the
-models in the ``stdpopsim`` :ref:`catalog <sec_catalog>`. The other way to
+models in the ``stdpopsim`` :ref:`Catalog <sec_catalog>`. The other way to
 access the ``stdpopsim`` resources is via the Python API. This is a bit more
 complicated, but allows for more advanced tasks. This tutorial will walk
 through both ways of using the ``stdpopsim`` package as well as a few examples
@@ -42,7 +42,7 @@ Running stdpopsim with the command-line interface (CLI)
 
 In order to use the ``stdpopsim`` CLI the ``stdpopsim`` package must be
 installed (see :ref:`Installation <sec_installation>`). The CLI provides access
-to the :ref:`catalog <sec_catalog>` of models that have already been implemented
+to the :ref:`Catalog <sec_catalog>` of models that have already been implemented
 by ``stdpopsim``.
 
 A first simulation
@@ -149,8 +149,7 @@ realistic. We can look up the available recombination maps using the
     :ellipsis: 20
 
 In this case we choose the
-:ref:`sec_catalog_homsap_genetic_maps_hapmapii_grch38` map and simulate the entire chromosome
-(as the :ref:`sec_catalog_homsap_genetic_maps_hapmapii_grch37` map is deprecated and does not match the genome assembly).
+:ref:`sec_catalog_homsap_genetic_maps_hapmapii_grch38` map and simulate the entire chromosome.
 
 .. code-block:: console
 
@@ -243,17 +242,13 @@ so before you try that command out, **read on!**
 
 .. _sec_slim_scaling_factor:
 
-The scaling factor
-------------------
+SLiM scaling factor
+-------------------
 
-However, even with only a portion of a chromosome,
-that is a pretty big simulation, due to the large number of individuals
-(unlike msprime, SLiM must actually simulate all the individuals in the population
-even just to get a few samples).
+The previous example is a pretty big simulation, even with only a portion of a chromosome, due to the large number of individuals
+(unlike msprime, SLiM must actually simulate all the individuals in the population, regardless of the number of samples).
 To make it run fast enough for a tutorial,
-we can specify a *scaling factor*,
-described in more detail below (see :ref:`sec_slim_scaling_factor`),
-using the ``--slim-scaling-factor`` option.
+we can specify a *scaling factor* (:math:`Q`) using the ``--slim-scaling-factor`` option.
 Unlike the previous command, this one should run very fast:
 
 .. code-block:: console
@@ -261,7 +256,7 @@ Unlike the previous command, this one should run very fast:
     $ stdpopsim -e slim --slim-scaling-factor 10 HomSap -c chr22 \
     $    --left 10000000 --right 20000000 -o foo.ts -d OutOfAfrica_2T12 AFR:1 EUR:2
 
-Indeed, this example runs in less than a minute, but without setting the
+This example runs in less than a minute, wheras without setting the
 scaling factor it takes the same computer upwards of 20 minutes.
 Briefly, this speedup is accomplished by reducing all of the population sizes by a "scaling factor"
 (here set to 10), and rescaling time by the same factor
@@ -301,8 +296,8 @@ To add it the example above, we can use the command:
     $    --left 10000000 --right 20000000 --dfe Gamma_K17 \
     $    -o foo.ts -d OutOfAfrica_2T12 AFR:1 EUR:2
 
-This example will simulate selection following the proportion of sites described in
-`Gamma_K17 <https://popsim-consortium.github.io/stdpopsim-docs/main/catalog.html#sec_catalog_homsap_dfes_gamma_k17>`_
+which will introduce selected and neutral mutations following the proportions described in
+`Gamma_K17 <https://popsim-consortium.github.io/stdpopsim-docs/main/catalog.html#sec_catalog_homsap_dfes_gamma_k17>`_.
 
 Instead of simulating a DFE that convers the entire contig,
 one can simulate only coding sequence (CDS) by using the flag ``--dfe-annotation``
@@ -367,7 +362,7 @@ but with some sanity checks along the way.
 Choose a species: Drosophila melanogaster
 -----------------------------------------
 
-Perusing the `Catalog <sec_catalog>`,
+Perusing the :ref:`Catalog <sec_catalog>`,
 we see that to simulate copies of chromosome arm 2L
 from *Drosophila melanogaster* individuals with the demographic model
 inferred by `Sheehan & Song (2016) <https://doi.org/10.1371/journal.pcbi.1004845>`__,
@@ -1353,11 +1348,10 @@ same simulation without selection -- i.e., without the "extended events":
 Lastly, we can directly compute nucleotide diversity in 10Kb windows for both the
 neutral and sweep simulations and plot them side by side.
 Note that the scaling factor (:math:`Q=10`) is quite large, to make the
-simulation complete in a reasonable amount of time despite the large effective
+simulation complete in a reasonable amount of time despite the large
 population size of *Drosophila melanogaster*.
 In actual applications, it would be necessary to check that this choice of
-scaling factor does not substantially distort patterns of genetic variation
-relative to unscaled simulations.
+scaling factor produces data that are similar to those from unscaled simulations (where :math:`Q=1`; see :ref:`sec_slim_scaling_factor`).
 
 .. code-block:: python
 
@@ -1428,8 +1422,7 @@ are available:
 .. command-output:: stdpopsim HomSap --help-genetic-maps
     :ellipsis: 20
 
-Let's go with ``HapMapII_GRCh38``
-(as the ``HapMapII_GRCh37`` map is deprecated and does not match the genome assembly).
+Let's go with ``HapMapII_GRCh38``.
 The next command simulates 2 diploid samples of chromosome 1 from each of the four
 populations, and saves the output to a file called ``afr-america-chr1.trees``.
 For the purposes of this tutorial, we'll also specify a random seed using the
@@ -1439,6 +1432,7 @@ dry run using the ``-D`` option.
 This will print information about the simulation to the terminal:
 
 .. command-output:: stdpopsim HomSap -c chr1 -o afr-america-chr1.trees -s 13 -g HapMapII_GRCh38 -d AmericanAdmixture_4B11 AFR:2 EUR:2 ASIA:2 ADMIX:2 -D
+    :ellipsis: 18
 
 Once we're sure, we can remove the ``-D`` flag to run the simulation
 (this took around 8 minutes to run on a laptop).
