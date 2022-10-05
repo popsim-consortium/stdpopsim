@@ -1252,7 +1252,7 @@ To illustrate this scenario, let's simulate a selective sweep until it reaches
 an arbitrary allele frequency.
 
 First, let's define a contig and a demographic model; here, we are simulating a
-small part of chromosome 2L of *Drosophila melanogaster* (``DroMel``) with a generic, 
+small part of chromosome 2L of *Drosophila melanogaster* (``DroMel``) with a generic,
 constant size demography.
 The contig will be fully neutral, with the exception of the sweeping mutation
 which we will insert later.
@@ -1356,7 +1356,8 @@ Note that the scaling factor (:math:`Q=10`) is quite large, to make the
 simulation complete in a reasonable amount of time despite the large effective
 population size of *Drosophila melanogaster*.
 In actual applications, it would be necessary to check that this choice of
-scaling factor does not substantially distort patterns of genetic variation.
+scaling factor does not substantially distort patterns of genetic variation
+relative to unscaled simulations.
 
 .. code-block:: python
 
@@ -1368,6 +1369,7 @@ scaling factor does not substantially distort patterns of genetic variation.
     sweep_pi = ts_sweep.diversity(windows=windows)
     plt.plot(neutral_pi, "b", label="neutral")
     plt.plot(sweep_pi, "r", label="sweep")
+    plt.axvline(len(neutral_pi) / 2, color="black", linestyle="dashed")
     plt.legend()
     plt.xlabel("Genomic window")
     plt.ylabel("Diversity")
@@ -1378,6 +1380,7 @@ scaling factor does not substantially distort patterns of genetic variation.
     :align: center
     :alt: Plot with nucleotide diversity along the chromosome for simulations with a without a selective sweep.
 
+|
 
 .. _sec_tute_analyses:
 
@@ -1539,30 +1542,28 @@ It relies on the ``numpy``, ``seaborn`` and ``matplotlib`` packages.
         pop0, pop1 = inds[pair]
         div_matrix[pop0, pop1] = divs[pair]
         div_matrix[pop1, pop0] = divs[pair]
-    seaborn.heatmap(div_matrix, vmin=0, vmax=0.0005, square=True)
-    ax = plt.subplot()
+
+    seaborn.heatmap(div_matrix, vmin=0, square=True)
     plt.title("Genetic divergence")
     plt.xlabel("Populations", fontweight="bold")
     plt.ylabel("Populations", fontweight="bold")
-    ax.set_xticks([0, 1, 2, 3], minor=True)
-    ax.set_xticklabels(["AFR", "EUR", "ASI", "ADM"], minor=False)
-    ax.tick_params(which="minor", length=0)
-    ax.set_yticks([0, 1, 2, 3], minor=True)
-    ax.set_yticklabels(["AFR", "EUR", "ASI", "ADM"], minor=False)
-    ax.tick_params(which="minor", length=0)
+    plt.xticks([0.5, 1.5, 2.5, 3.5], labels=["AFR", "EUR", "ASI", "ADM"])
+    plt.yticks([0.5, 1.5, 2.5, 3.5], labels=["AFR", "EUR", "ASI", "ADM"])
+    plt.show()
 
 .. image:: _static/tute-divergence.png
-    :width: 400px
+    :width: 500px
     :align: center
-    :height: 265px
     :alt: Heatmap of divergence values.
+
+|
 
 These values make sense given the model of demography we have specified:
 the highest divergence estimates were obtained when African samples (AFR) were
 compared with samples from other populations, and the lowest divergence
 estimates were obtained when Asian (ASI) samples were compared with themselves.
 However, the overwhelming sameness of the sample chromosomes is also evident:
-on average, any two sample chromosomes differ at less than 0.04% of positions,
+on average, any two sample chromosomes differ at less than 0.07% of positions,
 regardless of the populations they come from.
 
 .. _sec_tute_sfs:
@@ -1724,18 +1725,20 @@ We will scale each AFS by the number of mutated sites in the corresponding sampl
     bar_width = 0.4
     r1 = np.arange(0, 11) - 0.2
     r2 = [x + bar_width for x in r1]
-    ax = plt.subplot()
     plt.bar(x=r1, height=sfs0 / ts.num_sites, width=bar_width, label="pop0")
     plt.bar(x=r2, height=sfs1 / ts.num_sites, width=bar_width, label="pop1")
     plt.xlabel("Allele count", fontweight="bold")
     plt.ylabel("Proportion of mutated sites in sample", fontweight="bold")
-    ax.set_xticks(np.arange(0, 11))
-    ax.legend()
+    plt.xticks(np.arange(0, 11))
+    plt.legend()
     plt.show()
 
 .. image:: _static/tute-sfs.png
+    :width: 500px
     :align: center
     :alt: AFS plots.
+
+|
 
 This figure shows substantial differences in the allele frequency spectrum
 between the two populations,
