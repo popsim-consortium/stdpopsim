@@ -1438,12 +1438,10 @@ To check that we have set up the simulation correctly, we may first wish to perf
 dry run using the ``-D`` option.
 This will print information about the simulation to the terminal:
 
-.. command-output::
+.. command-output:: stdpopsim HomSap -c chr1 -o afr-america-chr1.trees -s 13 -g HapMapII_GRCh38 -d AmericanAdmixture_4B11 AFR:2 EUR:2 ASIA:2 ADMIX:2 -D
 
-    stdpopsim HomSap -c chr1 -o afr-america-chr1.trees -s 13 -g HapMapII_GRCh38 \
-       -d AmericanAdmixture_4B11 AFR:2 EUR:2 ASIA:2 ADMIX:2 -D
-
-Once we're sure, we can remove the ``-D`` flag to run the simulation. (Note: This took around 8 minutes to run on a laptop.)
+Once we're sure, we can remove the ``-D`` flag to run the simulation
+(this took around 8 minutes to run on a laptop).
 
 .. code-block:: console
 
