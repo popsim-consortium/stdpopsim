@@ -33,7 +33,7 @@ The following command simulates 2 samples from each of the three populations,
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -c chr22 -o test.trees -g HapMapII_GRCh38 \
+    $ stdpopsim -e slim HomSap -c chr22 -o test.trees -g HapMapII_GRCh38 \
     $    --dfe Gamma_K17 --dfe-annotation ensembl_havana_104_exons \
     $    -d OutOfAfrica_3G09 YRI:2 CEU:2 CHB:2
 
