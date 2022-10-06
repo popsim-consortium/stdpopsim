@@ -20,7 +20,7 @@ _ceu_population = stdpopsim.Population(
     id="CEU",
     description=(
         "1000 Genomes CEU (Utah Residents (CEPH) with Northern and "
-        "Western European Ancestry"
+        "Western European Ancestry)"
     ),
 )
 _chb_population = stdpopsim.Population(
@@ -208,8 +208,8 @@ def _ooa_nea_extended_pulse():
 
     return stdpopsim.DemographicModel(
         id="OutOfAfricaExtendedNeandertalAdmixturePulse_3I21",
-        description="Three population out-of-Africa with an extended pulse of \
-        Neandertal admixture into Europeans",
+        description="Three population out-of-Africa with an extended pulse of "
+        "Neandertal admixture into Europeans",
         long_description="""
         Demographic model of an extended admixture pulse from Neandertals into
         Europeans taken from Iasi et al. (2021), specifically the simple model
