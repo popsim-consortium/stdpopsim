@@ -17,19 +17,26 @@ It is organised around a number of choices that you'll need to make about the
 1. Which **chromosome**? (ie. which :class:`.Genome` object?)
 2. Which **genetic map**? (ie. which :class:`.GeneticMap` object?)
 3. Which **model of demographic history**? (ie. which :class:`.DemographicModel` object)
+4. Which **distribution of fitness effects** (ie. which :class:`.DFE` object) within
+5. which **annotation track**? (ie. which :class:`.Annotation` object)
 
 For instance, suppose you are interested in simulating modern human samples of
 
 1. chromosome 22, using
 2. the HapMapII genetic map, under
-3. a 3-population Out-of-Africa model.
+3. a 3-population Out-of-Africa model, with
+4. background selection acting within
+5. exons from the Ensembl Havana 104 annotations.
 
 The following command simulates 2 samples from each of the three populations,
-and saves the output to a file called ``test.trees``:
+(named YRI, CEU, and CHB) and saves the output to a file called ``test.trees``:
 
 .. code-block:: console
 
-    $ stdpopsim HomSap -c chr22 -o test.trees -g HapMapII_GRCh37 -d OutOfAfrica_3G09 2 2 2
+    $ stdpopsim HomSap -c chr22 -o test.trees -g HapMapII_GRCh38 \
+    $    --dfe Gamma_K17 --dfe-annotation ensembl_havana_104_exons \
+    $    -d OutOfAfrica_3G09 YRI:2 CEU:2 CHB:2
+
 
 (To learn more about using ``stdpopsim`` via the command-line, read our
 :ref:`tutorial <sec_cli_tute>` about it.)
