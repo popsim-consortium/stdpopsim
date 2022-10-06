@@ -1062,19 +1062,31 @@ Now, we can simulate as usual:
         seed=123,
         slim_scaling_factor=10,
         slim_burn_in=10,
+        keep_mutation_ids_as_alleles=True,
     )
 
-Let's verify that we have both neutral and deleterious mutations in the resulting simulation:
+the argument `keep_mutation_ids_as_alleles` retains the mutation ids assigned
+by SLiM rather than recoding alleles as nucleotides. This can be helpful for
+associating mutations with DFEs, but will result in non-standard allele codes
+(e.g. in VCF output).
+
+Let's verify that we have both neutral and deleterious mutations in the
+resulting simulation:
 
 .. code-block:: python
 
-    mut_info = []
+    from collections import defaultdict
+
+    selection_coeffs = defaultdict(list)
     for mut in ts.mutations():
-        mut_info.extend(mut.metadata["mutation_list"])
-    num_neutral = sum([mut["selection_coeff"] == 0.0 for mut in mut_info])
+        mut_ids = mut.derived_state.split(",")
+        for id, metadata in zip(mut_ids, mut.metadata["mutation_list"]):
+            selection_coeffs[id] = metadata["selection_coeff"]
+
+    num_neutral = sum([m == 0.0 for m in selection_coeffs.values()])
     print(
         f"There are {num_neutral} neutral mutations, and "
-        f"{len(mut_info) - num_neutral} nonneutral mutations."
+        f"{len(selection_coeffs) - num_neutral} nonneutral mutations."
     )
 
     # There are 110 neutral mutations, and 167 nonneutral mutations.
@@ -1118,6 +1130,7 @@ are removed from the intervals associated with previous DFEs.
         seed=236,
         slim_scaling_factor=10,
         slim_burn_in=10,
+        keep_mutation_ids_as_alleles=True,
     )
 
 
@@ -1125,22 +1138,22 @@ We'll count up the number of neutral and deleterious mutations in the three regi
 
 .. code-block:: python
 
-    num_neutral = np.zeros(3, dtype="int")
-    num_deleterious = np.zeros(3, dtype="int")
+    from collections import defaultdict
+
+    selection_coeffs = [defaultdict(list) for _ in range(3)]
     for site in ts.sites():
         region = np.digitize(site.position, gene_interval.flatten())
         for mut in site.mutations:
-            for mut_info in mut.metadata["mutation_list"]:
-                if mut_info["selection_coeff"] == 0:
-                    num_neutral[region] += 1
-                else:
-                    num_deleterious[region] += 1
+            mut_ids = mut.derived_state.split(",")
+            for id, md in zip(mut_ids, mut.metadata["mutation_list"]):
+                selection_coeffs[region][id] = md["selection_coeff"]
 
-    for region in range(3):
+    for region, coeffs in enumerate(selection_coeffs):
+        num_neutral = sum([x == 0 for x in coeffs.values()])
         print(
             f"From {region * 10000} to {(region + 1) * 10000}: "
-            f"{num_neutral[region]} neutral mutations and "
-            f"{num_deleterious[region]} deleterious mutations."
+            f"{num_neutral} neutral mutations and "
+            f"{len(coeffs) - num_neutral} deleterious mutations."
         )
 
     # From 0 to 1000: 37 neutral mutations and 0 deleterious mutations.
