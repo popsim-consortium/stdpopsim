@@ -1897,6 +1897,7 @@ class _SLiMEngine(stdpopsim.Engine):
                 slim_rate_map,
             )
 
+        ts = _add_dfes_to_metadata(ts, contig)
         ts = self._recap_and_rescale(
             ts,
             seed,
