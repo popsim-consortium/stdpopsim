@@ -1075,9 +1075,7 @@ resulting simulation:
 
 .. code-block:: python
 
-    from collections import defaultdict
-
-    selection_coeffs = defaultdict(list)
+    selection_coeffs = {}
     for mut in ts.mutations():
         mut_ids = mut.derived_state.split(",")
         for id, metadata in zip(mut_ids, mut.metadata["mutation_list"]):
@@ -1138,9 +1136,7 @@ We'll count up the number of neutral and deleterious mutations in the three regi
 
 .. code-block:: python
 
-    from collections import defaultdict
-
-    selection_coeffs = [defaultdict(list) for _ in range(3)]
+    selection_coeffs = [{} for _ in range(3)]
     for site in ts.sites():
         region = np.digitize(site.position, gene_interval.flatten())
         for mut in site.mutations:
