@@ -959,7 +959,7 @@ Next is "recapitation",
 for which the rationale and method is described in detail in the
 `pyslim documentation <https://tskit.dev/pyslim/docs/latest/tutorial.html#recapitation>`__.
 The third (and least crucial) step is to *simplify* the tree sequence.
-If as above we ask for 200 haploids from a population whose final size is
+If as above we ask for 100 sampled individuals from a population whose final size is
 1,450 individuals (after rescaling),
 then in fact the tree sequence returned by SLiM contains the entire genomes
 and genealogies of all 1,450 individuals,
