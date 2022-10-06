@@ -299,15 +299,27 @@ class TestAPI:
         with open(scriptfile, "w") as f:
             f.write(out)
         engine._run_slim(scriptfile, seed=seed)
-        ts_slim = tskit.load(treefile)
-        engine.recap_and_rescale(
-            ts_slim,
+        ts_external = tskit.load(treefile)
+        ts_external = engine.recap_and_rescale(
+            ts_external,
             demographic_model=model,
             contig=contig,
             samples=samples,
             slim_scaling_factor=10,
             seed=seed,
         )
+        ts_internal = engine.simulate(
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            slim_scaling_factor=10,
+            seed=seed,
+        )
+        tables1 = ts_external.dump_tables()
+        tables2 = ts_internal.dump_tables()
+        assert tables1.nodes == tables2.nodes
+        assert tables1.edges == tables2.edges
+        assert tables1.mutations == tables2.mutations
 
     def test_assert_min_version(self):
         engine = stdpopsim.get_engine("slim")
