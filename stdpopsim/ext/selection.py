@@ -1,4 +1,5 @@
 import attr
+import tskit
 
 
 @attr.s
@@ -354,3 +355,32 @@ def selective_sweep(
         )
 
     return extended_events
+
+
+def selection_coeff_from_mutation(ts, mutation):
+    """
+    Extract the selection coefficient from a (possibly stacked) mutation.
+
+    :param ts: A ``tskit.TreeSequence`` containing the mutation.
+    :param mutation: A ``tskit.Mutation`` for which to extract the selection coefficient.
+    """
+
+    if not isinstance(ts, tskit.TreeSequence):
+        raise ValueError("`ts` must be a `tskit.TreeSequence` object")
+
+    if not isinstance(mutation, tskit.Mutation):
+        raise ValueError("`mutation` must be a `tskit.Mutation` object")
+
+    if not isinstance(mutation.metadata, dict):
+        return 0.0
+
+    selection_coeff = sum(
+        [m.get("selection_coeff") for m in mutation.metadata["mutation_list"]]
+    )
+    if mutation.parent != tskit.NULL:
+        parent = ts.mutation(mutation.parent)
+        selection_coeff -= sum(
+            [m.get("selection_coeff") for m in parent.metadata["mutation_list"]]
+        )
+
+    return selection_coeff

@@ -24,13 +24,11 @@ slim_path = os.environ.get("SLIM", "slim")
 
 
 def count_mut_types(ts):
-    mut_info = {}
-    for mut in ts.mutations():
-        for j, md in enumerate(mut.metadata["mutation_list"]):
-            uid = f"{mut.id}_{j}"
-            mut_info[uid] = md
-    num_neutral = sum([mut_info[j]["selection_coeff"] == 0.0 for j in mut_info])
-    return [num_neutral, abs(len(mut_info) - num_neutral)]
+    selection_coeffs = [
+        stdpopsim.ext.selection_coeff_from_mutation(ts, mut) for mut in ts.mutations()
+    ]
+    num_neutral = sum([s == 0 for s in selection_coeffs])
+    return [num_neutral, abs(len(selection_coeffs) - num_neutral)]
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
@@ -2758,3 +2756,77 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
         assert np.all(p0_outside_sweep <= 1)
         assert np.all(p1_in_sweep > 1)
         assert np.all(p1_outside_sweep <= 1)
+
+
+@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
+class TestSelectionCoeffFromMutation:
+
+    species = stdpopsim.get_species("HomSap")
+    model = stdpopsim.PiecewiseConstantSize(100)
+    samples = {"pop_0": 5}
+    dfe = stdpopsim.DFE(
+        id="test",
+        description="",
+        long_description="",
+        mutation_types=[
+            stdpopsim.MutationType(distribution_type="f", distribution_args=[-0.01]),
+            stdpopsim.MutationType(distribution_type="f", distribution_args=[0.0]),
+        ],
+        proportions=[0.5, 0.5],
+    )
+
+    def test_stacked(self):
+        engine = stdpopsim.get_engine("slim")
+        contig = self.species.get_contig(length=20, mutation_rate=1e-2)
+        contig.add_dfe(np.array([[0, contig.length // 2]]), self.dfe)
+        while True:
+            ts = engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+                slim_burn_in=10,
+            )
+            is_stacked = [len(m.metadata["mutation_list"]) > 1 for m in ts.mutations()]
+            if any(is_stacked):
+                break
+        selection_coeffs = [
+            stdpopsim.ext.selection_coeff_from_mutation(ts, m) for m in ts.mutations()
+        ]
+        assert np.all(
+            np.logical_or(
+                np.isclose(selection_coeffs, -0.01),
+                np.isclose(selection_coeffs, 0.0),
+            )
+        )
+
+    def test_msprime(self):
+        engine = stdpopsim.get_engine("msprime")
+        contig = self.species.get_contig(length=20, mutation_rate=1e-2)
+        while True:
+            ts = engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+            )
+            if ts.num_mutations > 0:
+                break
+        selection_coeffs = [
+            stdpopsim.ext.selection_coeff_from_mutation(ts, m) for m in ts.mutations()
+        ]
+        assert np.allclose(selection_coeffs, 0.0)
+
+    def test_errors(self):
+        engine = stdpopsim.get_engine("msprime")
+        contig = self.species.get_contig(length=20, mutation_rate=1e-2)
+        while True:
+            ts = engine.simulate(
+                demographic_model=self.model,
+                contig=contig,
+                samples=self.samples,
+            )
+            if ts.num_mutations > 0:
+                break
+        with pytest.raises(ValueError, match="must be a"):
+            stdpopsim.ext.selection_coeff_from_mutation("foo", next(ts.mutations()))
+        with pytest.raises(ValueError, match="must be a"):
+            stdpopsim.ext.selection_coeff_from_mutation(ts, "bar")
