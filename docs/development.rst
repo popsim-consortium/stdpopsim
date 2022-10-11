@@ -505,6 +505,357 @@ point, with diagrams, and an alternative workflow, see `the git docs
 
 .. _sec_development_demographic_model:
 
+
+********************
+Adding a new species
+********************
+
+---------------------------------------------------
+Which information do I need to have for my species?
+---------------------------------------------------
+
+In `stdpopsim`, we aim to be inclusive and facilitate adding a diverse range of species.
+That said, there are certain basic requirements we have
+for every species added to the :ref:`sec_catalog`.
+We specify these requirements below.
+If you are unsure whether your species satisfies these baseline requirements,
+but you still think it will be useful to add it to `stdpopsim`,
+then we encourage you to open an `issue <http://github.com/popgensims/stdpopsim/issues>`_
+on the GitHub repository to discuss this.
+Others researchers in the community may be able to help you fill in the missing details
+or find other solutions.
+
+Every species added to `stdpopsim` should have the following information available:
+
+1. A chromosome-level genome assembly
+2. Mutation rate (per generation)
+3. Recombination rate (per generation)
+4. A characteristic population size
+5. An average generation time
+
+The **genome assembly** should consist of a list of chromosomes or scaffolds and their lengths.
+Having a good quality assembly with complete chromosomes, or at least very long scaffolds,
+is essential for chromosome-level simulations produced by `stdpopsim`.
+Species with less complete genome builds typically do not have genetic maps
+or good estimates of recombination rates,
+making chromosome-level simulation much less useful.
+Thus, currently, `stdpopsim` only supports adding species with near-complete
+chromosome-level genome assemblies (i.e., close to one contig per chromosome).
+
+An **average mutation rate** and **average recombination rate**
+should be specified for each chromosome (per generation per bp).
+The mutation rate estimate can be based on sequence data from pedigrees, mutation accumulation studies,
+or comparative genomic analysis calibrated by fossil data (i.e., phylogenetic estimates).
+Ideally, one would want to specify a fine-scale chromosome-level **recombination map**,
+since the recombination rate is known to vary widely across chromosomes.
+If a recombination map exists for your species,
+you may specify it separately (see `Adding a genetic map`_).
+Nonetheless, you should specify a default (average) recombination rate for each chromosome.
+If there is no information on the variation of rates among chromosome,
+the average genome-wide mutation (or recombination) rate can be specified for all chromosomes.
+Finally, if your species of interest does not have direct estimates of mutation (or recombination) rates,
+you may use estimates inferred for some closely related species.
+
+The **effective population size** should represent the historical average effective population size,
+and produce simulated data that matches the average observed genetic diversity in that species.
+This will not capture features of genetic variation that are caused by recent changes in population size and the presence of population structure.
+To capture those, one should separately specify a fairly detailed demographic model for the species
+(see `Adding a new demographic model`_).
+
+The **averge generation time** is an important part of the species' natural history,
+but its value does not directly affect the simulation, since
+the `SLiM` and `msprime` simulation engines operate in time units of generations.
+Thus, the average generation time is only currently used to convert time units to years,
+which is useful when comparing among different demographic models.
+
+All values used in the species model should be based on current knowledge for a typical population
+in that species, as represented in the literature.
+Before you add your species to `stdpopsim`, see that you can collect the values
+mentioned above from the literature.
+You will later need to specify these citations in your code files
+(see `Adding and editing the required files`_).
+
+
+-----------------------------------
+Getting set up to add a new species
+-----------------------------------
+
+If this is your first time adding a species to `stdpopsim`, it's a good
+idea to take some time browsing the :ref:`sec_catalog`
+to see how existing species are typically specified and documented. If you have
+any questions or confusion about the required code, please
+don't hesitate to open an `issue <http://github.com/popgensims/stdpopsim/issues>`_.
+We're more than happy to answer any questions and help get you up and running.
+Before you add any code, be sure to have forked the `stdpopsim` repository
+and cloned it locally, following the instructions in the `GitHub Workflow`_ section.
+After you collected the relevant parameters from the literature (see list above),
+the first step is to create a new subdirectory inside the `catalog/`
+directory named for the species (see `Naming conventions`_ for more details).
+All code described below should go in this directory unless explicitly specified otherwise.
+
+-------------------------------------
+Adding and editing the required files
+-------------------------------------
+
+`stdpopsim` has an automated procedure for generating template files where you can enter
+all relevant information for your species.
+These files can be automatically initialized with data pulled down from Ensembl.
+To do this, execute the `maintenance` command with a "_" delimited Ensembl species ID.
+A partial list of the
+genomes housed on Ensembl can be found `here <https://metazoa.ensembl.org/species.html>`__.
+For example, the template files for *A. thaliana* were generated by executing this command:
+
+.. code-block:: shell
+
+    python -m maintenance add-species arabidopsis_thaliana
+
+The `maintenance` utility generates three new files inside the `catalog/{species_id}/` directory:
+
+* `__init__.py`
+* `genome_data.py`
+* `species.py`
+
+The `__init__.py` file is a wrapper script that loads all the relevant information for your species. It should be edited only when you add components to your species, such as demographic models,
+genetic maps, or DFEs.
+
+The `genome_data.py` file contains the physical map of the genome.
+The `maintenance` utility generates this file autmatically
+based on information it downloaded from Ensembl.
+Essentially, this utility sucks down a whole lot of useful information for free.
+The `genome_data.py` file contains a data dictionary which has slots for the
+assembly accession number, the assembly name,
+and a dictionary representing the chromosome names and their associated lengths.
+If synonyms are defined (e.g., chr2L for 2L) then those are given in the list that follows.
+You should double-check the downloaded values, but there is probably no reason to edit this file.
+
+The `species.py` file
+This is where you specify the mutation and recombination rates,
+effective population size, and the average generation time,
+along with all accompanying citations
+(see details in `Which information do I need to have for my species?`_).
+Inside this file are commented instructions to help you figure out where everything goes.
+Essentially, the information in this file is recorded in two main objects: `_genome` and `_species`.
+The `_genome` object contains information about the **chromosome ids** and **length**
+(taken from the  `genome_data.py` file), as well as **mutation and recombination rates**, and **ploidy**.
+
+For example, to define the `_genome` object for *A. thaliana*, we start by
+defining auxiliary objects (`_recombination_rate_data` and `_ploidy`)
+that specify the recombination rate and ploidy
+for each chromosome.
+Note that the mitochondrial and plastid genomes are associated
+with ploidy of 1 and recombination rate of 0,
+and all other chromosomes are associated with a ploidy of 2 and the
+genome-wide average recombination rate.
+
+.. code-block:: python
+
+    _mean_recombination_rate = 200 / 124000 / 2 / 1e6
+    _recombination_rate_data = {str(j): _mean_recombination_rate for j in range(1, 6)}
+    _recombination_rate_data["Mt"] = 0
+    _recombination_rate_data["Pt"] = 0
+
+    _species_ploidy = 2
+    _ploidy = {
+      "1": _species_ploidy,
+      "2": _species_ploidy,
+      "3": _species_ploidy,
+      "4": _species_ploidy,
+      "5": _species_ploidy,
+      "6": _species_ploidy,
+      "Mt": 1,
+      "Pt": 1,
+    }
+
+We then use another object (`_chromosomes`) to wrap up these
+values together with the mutation rate, which is set to the
+genome-wide average value for every chromosome:
+
+.. code-block:: python
+
+	_chromosomes = []
+	for name, data in genome_data.data["chromosomes"].items():
+	    _chromosomes.append(
+       		stdpopsim.Chromosome(
+	            id=name,
+       		    length=data["length"],
+	            synonyms=data["synonyms"],
+       		    mutation_rate=7e-9,
+	            recombination_rate=_recombination_rate_data[name],
+	            ploidy=_ploidy[name],
+       		)
+	    )
+
+Finally, the `_genome` object is defined by referencing the `_chromosomes`
+object, adding the assembly name and accession, and all the relevant citations,
+with a "reason" associated with each citation:
+
+.. code-block:: python
+
+  _genome = stdpopsim.Genome(
+      chromosomes=_chromosomes,
+      assembly_name=genome_data.data["assembly_name"],
+      assembly_accession=genome_data.data["assembly_accession"],
+      citations=[
+        stdpopsim.Citation(
+          author="Ossowski et al.",
+          year=2010,
+          doi="https://doi.org/10.1126/science.1180677",
+          reasons={stdpopsim.CiteReason.MUT_RATE},
+        ),
+        stdpopsim.Citation(
+          author="Huber et al.",
+          year=2014,
+          doi="https://doi.org/10.1093/molbev/msu247",
+          reasons={stdpopsim.CiteReason.REC_RATE},
+        ),
+        stdpopsim.Citation(
+          doi="https://doi.org/10.1093/nar/gkm965",
+          year=2007,
+          author="Swarbreck et al.",
+          reasons={stdpopsim.CiteReason.ASSEMBLY},
+        ),
+      ],
+  )
+
+The `_species` object contains the remaining information about the species,
+including the **effective population size** and **average generation time**,
+along with relevant citations.
+For example, the `_species` object for *A. thaliana* is specified as follows:
+
+.. code-block:: python
+
+    _species = stdpopsim.Species(
+        id="AraTha",
+        ensembl_id="arabidopsis_thaliana",
+        name="Arabidopsis thaliana",
+        common_name="A. thaliana",
+        genome=_genome,
+        generation_time=1.0,
+        population_size=10**4,
+        ploidy=_species_ploidy,
+        citations=[
+            stdpopsim.Citation(
+                doi="https://doi.org/10.1890/0012-9658(2002)083[1006:GTINSO]2.0.CO;2",
+                year=2002,
+                author="Donohue",
+                reasons={stdpopsim.CiteReason.GEN_TIME},
+            ),
+            stdpopsim.Citation(
+                doi="https://doi.org/10.1016/j.cell.2016.05.063",
+                year=2016,
+                author="1001GenomesConsortium",
+                reasons={stdpopsim.CiteReason.POP_SIZE},
+            ),
+        ],
+    )
+
+
+Once these two objects (`_genome` and `_species`) are specified,
+you should be able to load and simulate the newly added species using `stdpopsim`.
+
+----------------------------------------------
+Testing your species model and submitting a PR
+----------------------------------------------
+
+The `maintenance` utility that generated the three species template files
+mentioned above also generates a test file in `tests/test_{species_id}.py`.
+This file contains several basic tests that check for missing information and formatting.
+For example, it checks that the citation year is of type `int` rather than `str`
+(i.e., no quotes). The tests for *A. thaliana* are executed as follows:
+
+.. code-block:: shell
+
+   python -m pytest tests/test_AraTha.py
+
+If you examine this file closely, you will see that most of the tests are left blank.
+These tests should **not** be filled out by the person who adds the species,
+but rather by someone else, as part of the review process (see below).
+Once your code passes the basic tests implemented in the test file,
+you should submit a pull request (PR) with your changes to the catalog.
+See the `GitHub workflow`_ for more details about this process.
+The code does not have to be completely finished at this stage,
+but having it in the public repository makes it easier for
+others to help and review your code.
+
+
+----------------------
+Species review process
+----------------------
+
+Once everything works, we will merge your pull request, and the species will be
+in `stdpopsim`, and flagged for review.
+During the review process, another member of the community checks to see that the citations are appropriately set,
+and that the parameter values fit those mentioned in the citations.
+To initiate this process, the person who added the species should open a
+new `issue <https://github.com/popsim-consortium/stdpopsim/issues/new/choose>`__
+using the 'Species QC issue template'. One or more volunteers will check items off
+the checklist, until all items have been completed satisfactorily. The QC issue,
+or the pull request, may be used for review discussion.
+
+To begin reviewing a species, you should state your intention on the
+QC issue, so we don't duplicate effort.
+The review process involves adding code to the `tests/test_{species_name}.py` file
+to implement the tests that were disabled in the original version.
+Make sure to add the test code by using the standard practices outlined in the `GitHub workflow`_.
+The tests should be written by looking at the original papers cited in the
+`species.py` file, and **not the implementation!**
+For instance, a test for an unreviewed species might look like this:
+
+.. code-block:: python
+
+    @pytest.mark.skip("Recombination rate QC not done yet")
+    @pytest.mark.parametrize(["name", "rate"], {}.items())
+    def test_recombination_rate(self, name, rate):
+        assert rate == pytest.approx(self.genome.get_chromosome(name).recombination_rate)
+
+The same block of code in the test file of *Aedes aegypti*
+(`tests/test_AedAeg.py`) , which has undergone review, looks like this:
+
+
+.. code-block:: python
+
+    @pytest.mark.parametrize(
+        ["name", "rate"],
+        {"1": 0.306e-8, "2": 0.249e-8, "3": 0.291e-8, "MT": 0.0}.items(),
+    )
+    def test_recombination_rate(self, name, rate):
+        assert rate == pytest.approx(self.genome.get_chromosome(name).recombination_rate)
+
+The `@pytest.mark.skip` line has been deleted (because we should no longer skip
+this test), and the dictionary (`{}`) in the `@pytest.mark.parameterize` line
+has been filled out with key: value pairs that give the names and average recombination rate for
+each chromosome.
+After implementing all tests for *Aedes aegypti*, they are executed as follows:
+
+.. code-block:: shell
+
+   python -m pytest tests/test_AedAeg.py
+
+The tests compare the values specified in the
+test file to the values in the `species.py` and `genome_data.py` files,
+and they produce error messages if differences are found.
+Once the reviewer is confident in their tests (even if some produce error messages),
+they should submit a (QC) pull request with their test code.
+If some tests failed, the reviewer and original contributor of the species should discuss this
+in the QC issue on GitHub or in the pull request to figure out which values are correct.
+Sometimes it's not clear which values to use for a certain parameter.
+For example, there might be different mutation rates estimated from two different groups of samples
+for a given species.
+In such cases, the original contributor should leave comments in the code explaining the choice,
+and a note in the QC issue.
+If the reviewer and original contributor do not reach an agreement,
+then the discussion on GitHub should be opened to others in the community.
+Once consensus is reached, the values used in the species' code files should be
+be fixed to agree in the QC pull request. You don't need to start
+another pull request to change the values in the catalog itself.
+The review process for a given species is completed once all tests are implemented
+and produce no error messages.
+When everything is done, we'll merge the QC pull request and the species will be officially added to the `stdpopsim` catalog.
+
+
+
+
+
 ******************************
 Adding a new demographic model
 ******************************
@@ -793,175 +1144,7 @@ When developers A and B disagree on the model implementation, the process is to:
        made to the QC model they are committed to the branch where the QC PR
        originates from.
 
-********************
-Adding a new species
-********************
-To add a new species to `stdpopsim` several things are required:
 
-1. The genome definition
-2. Generation time estimate
-3. Mutation rate (per generation)
-4. Recombination rate (per generation)
-5. Characteristic population size
-
-A genetic map with local recombination rates is optional.
-
-These parameters should be based on what values might be drawn from a typical population
-as represented in the literature for that species. Consequently one or more citations for
-each value are expected and will be required for constructing the species object detailed
-below.
-
-Once you have these things the first step is to create a new subdirectory of the `catalog/`
-directory named for the species (see `Naming conventions`_ for more details). All
-code described below should go in this directory unless explicitly specified otherwise.
-
------------------------------------
-Adding/Updating a genome definition
------------------------------------
-
-`stdpopsim` has an automated procedure for generating a genome definition, which is
-accomplished by pulling data from Ensembl and saving it for parsing. To do this,
-hand the `maintenance` command line interface a "_" delimited Ensembl species ID as a
-positional argument as shown below. A partial list of the
-genomes housed on Ensembl can be found `here <https://metazoa.ensembl.org/species.html>`__.
-
-.. code-block:: shell
-
-    python -m maintenance add-species arabidopsis_thaliana
-
-This will generate new files inside `catalog/{species_id}/`:
-
-* `genome_data.py`
-* `species.py`
-* `__init__.py`
-
-as well as stubbing out tests in `tests/test_{species_id}.py`.
-
-The `genome_data.py` file contains the physical map of the genome; the
-`maintenance` utility sucks down a whole lot of useful information for free.
-This file essentially puts together a data dictionary which has slots for the
-assembly accession number, the assembly name, and a dict representing the
-chromosome names and their associated lengths. If synonyms are defined (e.g.,
-chr2L for 2L) then those are given in the list that follows. You double-check
-the values, but probably there is no reason to edit this file.
-
-Next, the `species.py` file will need to be edited with the species-specific
-information and corresponding citations. Inside this file are commented
-instructions for each section. Either chromosome-specific or genome-wide
-recombination rates and mutations rates can be used at this stage; the
-citations attached to these rates should be filled in inside the code block
-beginning with `_genome`. For example, below is the _genome code block for
-*A. thaliana* with citations included:
-
-.. code-block:: python
-
-    _genome = stdpopsim.Genome(
-        chromosomes=_chromosomes,
-        assembly_name=genome_data.data["assembly_name"],
-        assembly_accession=genome_data.data["assembly_accession"],
-        citations=[
-            stdpopsim.Citation(
-                author="Ossowski et al.",
-                year=2010,
-                doi="https://doi.org/10.1126/science.1180677",
-                reasons={stdpopsim.CiteReason.MUT_RATE},
-            ),
-            stdpopsim.Citation(
-                author="Huber et al.",
-                year=2014,
-                doi="https://doi.org/10.1093/molbev/msu247",
-                reasons={stdpopsim.CiteReason.REC_RATE},
-            ),
-            stdpopsim.Citation(
-                doi="https://doi.org/10.1093/nar/gkm965",
-                year=2007,
-                author="Swarbreck et al.",
-                reasons={stdpopsim.CiteReason.ASSEMBLY},
-            ),
-        ],
-    )
-
-
-Generation time and population size, along with relevent citations, are filled
-in inside the code block beginning with `_species`. It may be useful to look at
-the existing species.py files inside the catalog/ directory for reference.
-
-Once these fields have been entered, you should be able to load and simulate
-the newly added species using `stdpopsim`.
-
-However, the species still needs to be checked by someone else, i.e, QC'ed.
-The maintenance script has also created a minimal set of tests in the file
-`tests/test_{species_id}.py`. These tests should *not* be filled out by the
-person who adds the species, but rather by someone else, as part of the
-review process. However, some tests are already present,
-and you can run them as follows:
-
-.. code-block:: shell
-
-   python -m pytest tests/test_AnoGam.py
-
-This will check for things related to missing information and formatting. For
-example, it checks that the citation year is of type `int` rather than `str`
-(i.e., no quotes).
-
-At some point during adding a species, you should start a pull request with your
-changes. It does not have to be finished, since it's much easier for others to
-help if they can see your code.
-
-----------------------
-Species review process
-----------------------
-
-Once everything works, we will merge your pull request, and the species will be
-in stdpopsim, but still needs to go through a review process, in which someone else
-checks parameters and citations as appropriate.  To initiate this process, open a
-new `issue <https://github.com/popsim-consortium/stdpopsim/issues/new/choose>`__
-using the 'Species QC issue template'. One or more volunteers will check items off
-the checklist, until all items have been completed satisfactorily. The QC issue,
-or the pull request, may be used for review discussion.
-
-To begin reviewing (i.e., QC'ing) a species, you should state your intention on the
-QC issue (so we don't duplicate effort) and start a pull request to fill out the code.
-During the process of QC, other developers fill in the tests that are disabled
-in the `tests/test_{species_name}.py` file by looking at the original papers
-(not the implementation!) and filling in what they see to be the appropriate
-values. For instance, a test for an unreviewed species might look like this:
-
-.. code-block:: python
-
-    @pytest.mark.skip("Recombination rate QC not done yet")
-    @pytest.mark.parametrize(["name", "rate"], {}.items())
-    def test_recombination_rate(self, name, rate):
-        assert rate == pytest.approx(self.genome.get_chromosome(name).recombination_rate)
-
-Looking at `tests/test_AedAeg.py`, we see this:
-
-.. code-block:: python
-
-    @pytest.mark.parametrize(
-        ["name", "rate"],
-        {"1": 0.306e-8, "2": 0.249e-8, "3": 0.291e-8, "MT": 0.0}.items(),
-    )
-    def test_recombination_rate(self, name, rate):
-        assert rate == pytest.approx(self.genome.get_chromosome(name).recombination_rate)
-
-The `@pytest.mark.skip` line has been deleted (because we should no longer skip
-this test), and the dictionary (`{}`) in the `@pytest.mark.parameterize` line
-has been filled out with key: value pairs that give the names and (mean) rates of
-each chromosome. When we run tests (and, we can run only the *Aedes aegypti* tests
-with `python -m pytest tests/test_AedAeg.py`), this will compare the values in the
-tests file to the values loaded from stdpopsim (and error if they differ).
-Filling out all these missing values in the tests file should get the species
-entirely QC'ed. When it's done, we'll merge the PR and the species will be official!
-
-Sometimes it's not clear which values to use (e.g., perhaps there are different
-mutation rates estimated from two different groups of samples); in such cases
-the original author should leave comments in the code explaining the choice,
-and a note in the QC issue. If the values that the reviewer finds still do not
-agree with the ones the original author found, they (and others) should discuss
-on github about the best values to enter; once consensus is reached these can
-be fixed up to agree in the QC pull request (i.e., you don't need to start
-another pull request to change the values in the catalog itself).
 
 ********************
 Adding a genetic map
