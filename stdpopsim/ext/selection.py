@@ -359,7 +359,15 @@ def selective_sweep(
 
 def selection_coeff_from_mutation(ts, mutation):
     """
-    Extract the selection coefficient from a (possibly stacked) mutation.
+    Returns the selection coefficient of the given mutation.
+    
+    In nearly all cases, this will just be "the selection coefficient" and users do not need to worry about
+    the details. However: mutations produced by the SLiM engine have metadata which includes each mutation's
+    selection coefficient. However, mutations may "stack", meaning that one mutation-in-the-tree-sequence
+    may in fact represent a superposition of several SLiM-produced-mutations. This method adds up
+    all selection coefficients in the metadata of this mutation, and subtracts the sum of the selection
+    coefficients of the parent mutation, if there is one. For more information, see the SLiM manual and
+    `the pyslim manual <pyslim:sec_extracting-information-about-selected-mutations>`.
 
     :param ts: A ``tskit.TreeSequence`` containing the mutation.
     :param mutation: A ``tskit.Mutation`` for which to extract the selection coefficient.
