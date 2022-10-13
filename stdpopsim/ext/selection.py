@@ -1,4 +1,5 @@
 import attr
+import tskit
 
 
 @attr.s
@@ -354,3 +355,43 @@ def selective_sweep(
         )
 
     return extended_events
+
+
+def selection_coeff_from_mutation(ts, mutation):
+    """
+    Returns the selection coefficient of the given mutation.
+
+    In nearly all cases, this will just be "the selection coefficient" and
+    users do not need to worry about the details. However: mutations produced
+    by the SLiM engine have metadata which includes each mutation's selection
+    coefficient. However, mutations may "stack", meaning that one
+    mutation-in-the-tree-sequence may in fact represent a superposition of
+    several SLiM-produced-mutations. This method adds up all selection
+    coefficients in the metadata of this mutation, and subtracts the sum of the
+    selection coefficients of the parent mutation, if there is one. For more
+    information, see the SLiM manual and `the pyslim manual
+    <https://tskit.dev/pyslim/docs/stable/tutorial.html#extracting-information-about-selected-mutations>`__.
+
+    :param ts: A ``tskit.TreeSequence`` containing the mutation.
+    :param mutation: A ``tskit.Mutation`` for which to extract the selection coefficient.
+    """
+
+    if not isinstance(ts, tskit.TreeSequence):
+        raise ValueError("`ts` must be a `tskit.TreeSequence` object")
+
+    if not isinstance(mutation, tskit.Mutation):
+        raise ValueError("`mutation` must be a `tskit.Mutation` object")
+
+    if not isinstance(mutation.metadata, dict):
+        return 0.0
+
+    selection_coeff = sum(
+        [m.get("selection_coeff") for m in mutation.metadata["mutation_list"]]
+    )
+    if mutation.parent != tskit.NULL:
+        parent = ts.mutation(mutation.parent)
+        selection_coeff -= sum(
+            [m.get("selection_coeff") for m in parent.metadata["mutation_list"]]
+        )
+
+    return selection_coeff

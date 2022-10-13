@@ -471,8 +471,8 @@ class Contig:
                 left = round(left)
                 if not 0 <= left < chrom.length:
                     raise ValueError(
-                        f"Left coordinate {left} falls outside chromosome "
-                        f"{chrom.id} with length {chrom.length}."
+                        f"Left coordinate {left} must be greater than or equal "
+                        f"to 0 and less than the length of {chrom.id} ({chrom.length})."
                     )
             if right is None:
                 right = round(chrom.length * length_multiplier)
@@ -480,8 +480,9 @@ class Contig:
                 right = round(right)
                 if not left < right <= chrom.length:
                     raise ValueError(
-                        f"Right coordinate {right} falls outside chromosome "
-                        f"{chrom.id} with length {chrom.length}."
+                        f"Right coordinate {right} must be greater than the "
+                        f"left coordinate ({left}) and less than or equal to "
+                        f"the length of {chrom.id} ({chrom.length})."
                     )
 
             if genetic_map is None:
