@@ -552,7 +552,7 @@ with a brief discussion of possible courses of action to take when components ha
    should be specified for each chromosome (per generation per bp).
    The mutation rate estimate can be based on sequence data from pedigrees, mutation accumulation studies,
    or comparative genomic analysis calibrated by fossil data (i.e., phylogenetic estimates).
-   If there is no information on the variation of mutation rates across chromosome,
+   If there is no information on the variation of mutation rates across chromosomes,
    the average genome-wide mutation rate can be specified for all chromosomes.
    Finally, if your species of interest does not have direct estimates of mutation rates,
    we recommend using estimates for some other species (hopefully closely related).
@@ -565,12 +565,12 @@ with a brief discussion of possible courses of action to take when components ha
    you may specify it separately (see `Adding a genetic map`_).
    Nonetheless, you should specify a default (average) recombination rate for each chromosome.
    As with mutation rates, if there is no information on the variation of recombination rates
-   across chromosome, the average genome-wide recombination rate can be specified for all chromosomes.
+   across chromosomes, the average genome-wide recombination rate can be specified for all chromosomes.
    Furthermore, if your species of interest does not have direct estimates of recombination rates,
    we recommend using estimates for some other species (hopefully closely related).
 
 4. The **effective population size** should represent the historical average effective population size,
-   and produce simulated data that matches the average observed genetic diversity in that species.
+   and ideally produce simulated data that matches the average observed genetic diversity in that species.
    However, this will often not capture features of genetic variation that are caused by recent changes in population size and the presence of population structure.
    To capture those, one should also provide a demographic model (or multiple models) for the species
    (see `Adding a new demographic model`_).
