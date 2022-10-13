@@ -514,18 +514,18 @@ Adding a new species
 Which information do I need to have for my species?
 ---------------------------------------------------
 
-In `stdpopsim`, we aim to be inclusive and facilitate adding a diverse range of species.
+In ``stdpopsim``, we aim to be inclusive and facilitate adding a diverse range of species.
 That said, there are certain basic requirements we have
 for every species added to the :ref:`sec_catalog`.
 We specify these requirements below.
 If you are unsure whether your species satisfies these baseline requirements,
-but you still think it will be useful to add it to `stdpopsim`,
-then we encourage you to open an `issue <http://github.com/popgensims/stdpopsim/issues>`_
+but you still think it will be useful to add it to ``stdpopsim``,
+then we encourage you to `open an issue <http://github.com/popgensims/stdpopsim/issues/new>`_
 on the GitHub repository to discuss this.
 Others researchers in the community may be able to help you fill in the missing details
 or find other solutions.
 
-Every species added to `stdpopsim` should have the following information available:
+Every species added to ``stdpopsim`` should have the following information available:
 
 1. A chromosome-level genome assembly
 2. Mutation rate (per generation)
@@ -533,113 +533,186 @@ Every species added to `stdpopsim` should have the following information availab
 4. A characteristic population size
 5. An average generation time
 
-The **genome assembly** should consist of a list of chromosomes or scaffolds and their lengths.
-Having a good quality assembly with complete chromosomes, or at least very long scaffolds,
-is essential for chromosome-level simulations produced by `stdpopsim`.
-Species with less complete genome builds typically do not have genetic maps
-or good estimates of recombination rates,
-making chromosome-level simulation much less useful.
-Thus, currently, `stdpopsim` only supports adding species with near-complete
-chromosome-level genome assemblies (i.e., close to one contig per chromosome).
+Of course, many species do not have precise estimates of each of these
+(e.g., mutation rates are usually not known).
+So, in practice we often have to use approximate estimates.
+We provide below a set of guidelines for each of the five components,
+with a brief discussion of possible courses of action to take when components have incomplete information.
 
-An **average mutation rate** and **average recombination rate**
-should be specified for each chromosome (per generation per bp).
-The mutation rate estimate can be based on sequence data from pedigrees, mutation accumulation studies,
-or comparative genomic analysis calibrated by fossil data (i.e., phylogenetic estimates).
-Ideally, one would want to specify a fine-scale chromosome-level **recombination map**,
-since the recombination rate is known to vary widely across chromosomes.
-If a recombination map exists for your species,
-you may specify it separately (see `Adding a genetic map`_).
-Nonetheless, you should specify a default (average) recombination rate for each chromosome.
-If there is no information on the variation of rates among chromosome,
-the average genome-wide mutation (or recombination) rate can be specified for all chromosomes.
-Finally, if your species of interest does not have direct estimates of mutation (or recombination) rates,
-you may use estimates inferred for some closely related species.
+1. The **genome assembly** should consist of a list of chromosomes or scaffolds and their lengths.
+   Having a good quality assembly with complete chromosomes, or at least very long scaffolds,
+   is essential for chromosome-level simulations produced by ``stdpopsim``.
+   Species with less complete genome builds typically do not have genetic maps
+   or good estimates of recombination rates,
+   making chromosome-level simulation much less useful.
+   Thus, currently, ``stdpopsim`` only supports adding species with near-complete
+   chromosome-level genome assemblies (i.e., close to one contig per chromosome).
 
-The **effective population size** should represent the historical average effective population size,
-and produce simulated data that matches the average observed genetic diversity in that species.
-This will not capture features of genetic variation that are caused by recent changes in population size and the presence of population structure.
-To capture those, one should separately specify a fairly detailed demographic model for the species
-(see `Adding a new demographic model`_).
+2. An **average mutation rate**
+   should be specified for each chromosome (per generation per bp).
+   The mutation rate estimate can be based on sequence data from pedigrees, mutation accumulation studies,
+   or comparative genomic analysis calibrated by fossil data (i.e., phylogenetic estimates).
+   If there is no information on the variation of mutation rates across chromosome,
+   the average genome-wide mutation rate can be specified for all chromosomes.
+   Finally, if your species of interest does not have direct estimates of mutation rates,
+   we recommend using estimates for some other species (hopefully closely related).
 
-The **averge generation time** is an important part of the species' natural history,
-but its value does not directly affect the simulation, since
-the `SLiM` and `msprime` simulation engines operate in time units of generations.
-Thus, the average generation time is only currently used to convert time units to years,
-which is useful when comparing among different demographic models.
+3. An **average recombination rate**
+   should be specified for each chromosome (per generation per bp).
+   Ideally, one would want to specify a fine-scale chromosome-level **recombination map**,
+   since the recombination rate is known to vary widely across chromosomes.
+   If a recombination map exists for your species,
+   you may specify it separately (see `Adding a genetic map`_).
+   Nonetheless, you should specify a default (average) recombination rate for each chromosome.
+   As with mutation rates, if there is no information on the variation of recombination rates
+   across chromosome, the average genome-wide recombination rate can be specified for all chromosomes.
+   Furthermore, if your species of interest does not have direct estimates of recombination rates,
+   we recommend using estimates for some other species (hopefully closely related).
+
+4. The **effective population size** should represent the historical average effective population size,
+   and produce simulated data that matches the average observed genetic diversity in that species.
+   However, this will often not capture features of genetic variation that are caused by recent changes in population size and the presence of population structure.
+   To capture those, one should also provide a demographic model (or multiple models) for the species
+   (see `Adding a new demographic model`_).
+
+5. The **average generation time** is an important part of the species' natural history,
+   but its value does not directly affect the simulation, since
+   the ``SLiM`` and ``msprime`` simulation engines operate in time units of generations.
+   Thus, the average generation time is only currently used to convert time units to years,
+   which is useful when comparing among different demographic models.
 
 All values used in the species model should be based on current knowledge for a typical population
 in that species, as represented in the literature.
-Before you add your species to `stdpopsim`, see that you can collect the values
+Before you add your species to ``stdpopsim``, see that you can collect the values
 mentioned above from the literature.
 You will later need to specify these citations in your code files
 (see `Adding and editing the required files`_).
+If you are unsure whether your species of interest satisfies the base requirements above
+(such as a near-complete genome assembly), or have questions about how to set some parameters,
+feel free to `open an issue <http://github.com/popgensims/stdpopsim/issues/new>`_
+on the GitHub repository to get assistance from other members of the ``stdpopsim`` community.
 
 
 -----------------------------------
 Getting set up to add a new species
 -----------------------------------
 
-If this is your first time adding a species to `stdpopsim`, it's a good
+If this is your first time adding a species to ``stdpopsim``, it's a good
 idea to take some time browsing the :ref:`sec_catalog`
 to see how existing species are typically specified and documented. If you have
 any questions or confusion about the required code, please
-don't hesitate to open an `issue <http://github.com/popgensims/stdpopsim/issues>`_.
+don't hesitate to `open a new issue
+<https://github.com/popsim-consortium/stdpopsim/issues/new>`__.
 We're more than happy to answer any questions and help get you up and running.
-Before you add any code, be sure to have forked the `stdpopsim` repository
+Before you add any code, be sure to have forked the ``stdpopsim`` repository
 and cloned it locally, following the instructions in the `GitHub Workflow`_ section.
+
+
 After you collected the relevant parameters from the literature (see list above),
-the first step is to create a new subdirectory inside the `catalog/`
-directory named for the species (see `Naming conventions`_ for more details).
-All code described below should go in this directory unless explicitly specified otherwise.
+the first step is to create a new subdirectory devoted to the new species,
+which you should name using the six-character species identifier
+(see `Naming conventions`_ for more details).
+All code associated with simulation of this species should go into this directory,
+unless explicitly specified otherwise
+(code for documentation and testing  is written in other directories).
+For example, the simulation code for *D. melanogaster* resides in directory
+``stdpopsim/catalog/DroMel/`` in the repository.
 
--------------------------------------
-Adding and editing the required files
--------------------------------------
-
-`stdpopsim` has an automated procedure for generating template files where you can enter
+Once the species directory is set up, you may use the ``maintenance`` utility
+of ``stdpopsim`` to generate template files where you can enter
 all relevant information for your species.
-These files can be automatically initialized with data pulled down from Ensembl.
-To do this, execute the `maintenance` command with a "_" delimited Ensembl species ID.
+The ``maintenance`` utility downloads useful information on a genome build published
+in `Ensembl <https://www.ensembl.org/index.html>`__,
+and uses it to generate initial versions of the required source files.
 A partial list of the
 genomes housed on Ensembl can be found `here <https://metazoa.ensembl.org/species.html>`__.
+To use this utility, execute the ``maintenance`` command with the Ensembl species ID;
+replace spaces in the Ensembl ID with ``_`` characters.
 For example, the template files for *A. thaliana* were generated by executing this command:
 
 .. code-block:: shell
 
-    python -m maintenance add-species arabidopsis_thaliana
+    $ python -m maintenance add-species arabidopsis_thaliana
 
-The `maintenance` utility generates three new files inside the `catalog/{species_id}/` directory:
+The ``maintenance`` utility generates three new files inside the species directory
+(``stdpopsim/catalog/<SPECIES_ID>/``):
 
-* `__init__.py`
-* `genome_data.py`
-* `species.py`
+* ``__init__.py``: a  script that loads all the relevant libraries for your species.
+  It should be edited only when you add components to your species, such as demographic models,
+  genetic maps, or DFEs.
 
-The `__init__.py` file is a wrapper script that loads all the relevant information for your species. It should be edited only when you add components to your species, such as demographic models,
-genetic maps, or DFEs.
+* ``genome_data.py``: a file that contains information on the physical map of the genome.
+  This file is generated automatically by the ``maintenance`` utility with a data dictionary
+  which has slots for the assembly accession number, the assembly name,
+  and a dictionary representing the chromosome names and their associated lengths.
+  If synonyms are defined (e.g., chr2L for 2L) then those are given in the list that follows.
+  You should double-check the downloaded values, but there is probably no reason to edit this file
+  after it has been generated by the ``maintenance`` utility.
 
-The `genome_data.py` file contains the physical map of the genome.
-The `maintenance` utility generates this file autmatically
-based on information it downloaded from Ensembl.
-Essentially, this utility sucks down a whole lot of useful information for free.
-The `genome_data.py` file contains a data dictionary which has slots for the
-assembly accession number, the assembly name,
-and a dictionary representing the chromosome names and their associated lengths.
-If synonyms are defined (e.g., chr2L for 2L) then those are given in the list that follows.
-You should double-check the downloaded values, but there is probably no reason to edit this file.
+* ``species.py``: a file containing information about the species' mutation and recombination rates,
+  effective population size, and the average generation time,
+  along with all accompanying citations
+  (see details in `Which information do I need to have for my species?`_).
+  The following section provides detailed instructions on how to code information in this file,
+  including some specific examples.
 
-The `species.py` file
-This is where you specify the mutation and recombination rates,
+.. note::
+
+      The ``maintenance`` utility also generates test code for your species in
+      the file ``tests/test_<SPECIES_ID>.py``.
+      This is used later for your local tests and in the review process
+      (see `Testing your species model and submitting a PR`_
+      and `Implementing tests for the review of new species`_).
+
+.. note::
+
+    If your species of interested does not have a published genome in Ensembl,
+    you may manually create and edit the three files described above.
+    Try to follow an example from the catalog that was downloaded from Ensembl
+    to maintain a consistent format.
+
+-----------------------------
+Coding the species parameters
+-----------------------------
+
+Information about a species' mutation and recombination rates,
 effective population size, and the average generation time,
+is all summarized in the ``species.py`` file,
 along with all accompanying citations
 (see details in `Which information do I need to have for my species?`_).
-Inside this file are commented instructions to help you figure out where everything goes.
-Essentially, the information in this file is recorded in two main objects: `_genome` and `_species`.
-The `_genome` object contains information about the **chromosome ids** and **length**
-(taken from the  `genome_data.py` file), as well as **mutation and recombination rates**, and **ploidy**.
+The initial version of the file generated by the ``maintenance`` utility
+contains commented instructions to help you figure out where everything goes.
+Essentially, the information in this file is recorded in two main objects: ``_genome`` and ``_species``.
+The ``_genome`` object contains chromosome-level information, such as
+**chromosome ids**, **lengths**, **mutation and recombination rates**, and **ploidy**.
+The ``_species`` object contains the remaining information about the species,
+including its **full name**, **abbreviated name**, **id**, **effective population size**
+and **average generation time**.
+Each value specified in these two object should be accompanied by a
+``stdpopsim.Citation`` object indicating the publication from which it was derived.
+Each ``stdpopsim.Citation`` object is initialized with the following information:
 
-For example, to define the `_genome` object for *A. thaliana*, we start by
-defining auxiliary objects (`_recombination_rate_data` and `_ploidy`)
+* author (`string`): abbreviated author list in a single string,
+  such as `"1000GenomesConsortium"` or `"Huber et al."`.
+* year   (`int`): year of publication.
+* doi (`string`): a URL for the `doi.org <https://doi.org/>`__ webpage of the publication.
+* reasons (list of ``stdpopsim.CiteReason``):
+  possible reasons to include a citation in ``species.py`` are:
+
+  * ``stdpopsim.CiteReason.ASSEMBLY``
+  * ``stdpopsim.CiteReason.REC_RATE``
+  * ``stdpopsim.CiteReason.MUT_RATE``
+  * ``stdpopsim.CiteReason.POP_SIZE``
+  * ``stdpopsim.CiteReason.GEN_TIME``
+
+To demonstrate how the ``_genome`` and ``_species`` objects are set,
+we provide below a detailed example for *A. thaliana*
+(see also ``stdpopsim/catalog/AraTha/species.py``).
+
+ILAN: I NEED TO FIX AND ADJUST THIS !!!
+
+We start by
+defining auxiliary objects (``_recombination_rate_data`` and ``_ploidy``)
 that specify the recombination rate and ploidy
 for each chromosome.
 Note that the mitochondrial and plastid genomes are associated
@@ -666,9 +739,11 @@ genome-wide average recombination rate.
       "Pt": 1,
     }
 
-We then use another object (`_chromosomes`) to wrap up these
+We then use another object (``_chromosomes``) to wrap up these
 values together with the mutation rate, which is set to the
-genome-wide average value for every chromosome:
+genome-wide average value for every chromosome.
+Chromosome ids and lengths are taken from the ``data`` object defined in
+the ``genome_data.py`` file.
 
 .. code-block:: python
 
@@ -685,7 +760,7 @@ genome-wide average value for every chromosome:
        		)
 	    )
 
-Finally, the `_genome` object is defined by referencing the `_chromosomes`
+Finally, the ``_genome`` object is defined by referencing the ``_chromosomes``
 object, adding the assembly name and accession, and all the relevant citations,
 with a "reason" associated with each citation:
 
@@ -717,10 +792,10 @@ with a "reason" associated with each citation:
       ],
   )
 
-The `_species` object contains the remaining information about the species,
+The ``_species`` object contains the remaining information about the species,
 including the **effective population size** and **average generation time**,
 along with relevant citations.
-For example, the `_species` object for *A. thaliana* is specified as follows:
+For example, the ``_species`` object for *A. thaliana* is specified as follows:
 
 .. code-block:: python
 
@@ -750,56 +825,165 @@ For example, the `_species` object for *A. thaliana* is specified as follows:
     )
 
 
-Once these two objects (`_genome` and `_species`) are specified,
-you should be able to load and simulate the newly added species using `stdpopsim`.
+Once these two objects (``_genome`` and ``_species``) are specified,
+you should be able to load and simulate the newly added species using ``stdpopsim``.
 
 ----------------------------------------------
 Testing your species model and submitting a PR
 ----------------------------------------------
 
-The `maintenance` utility that generated the three species template files
-mentioned above also generates a test file in `tests/test_{species_id}.py`.
-This file contains several basic tests that check for missing information and formatting.
-For example, it checks that the citation year is of type `int` rather than `str`
-(i.e., no quotes). The tests for *A. thaliana* are executed as follows:
+The ``maintenance`` utility that generated the three species template files
+in the species directory (``stdpopsim/catalog/<SPECIES_ID>/``)
+also generates test code for the species in a separate file, ``tests/test_<SPECIES_ID>.py``.
+The tests in this file are executed as follows
+(where ``<SPECIES_ID>`` is the six-character species id):
 
 .. code-block:: shell
 
-   python -m pytest tests/test_AraTha.py
+   $ python -m pytest tests/test_<SPECIES_ID>.py
 
-If you examine this file closely, you will see that most of the tests are left blank.
-These tests should **not** be filled out by the person who adds the species,
-but rather by someone else, as part of the review process (see below).
-Once your code passes the basic tests implemented in the test file,
+The tests already implemented in this file when it is generated
+check for basic formatting and missing information.
+For example, there is a test checking that the citation year is of type `int`
+rather than `string` (e.g. 2004 and not `"2014"`).
+Other tests in this file are generated by the ``maintenance`` utility
+as blank and disabled.
+These tests should **not** be filled out by the person who writes the code in
+the ``species.py`` file,
+but rather by someone else, as part of the **review process** (see below).
+Once your code passes the basic tests implemented in the automatically generated
+version of the test file,
 you should submit a pull request (PR) with your changes to the catalog.
 See the `GitHub workflow`_ for more details about this process.
-The code does not have to be completely finished at this stage,
-but having it in the public repository makes it easier for
-others to help and review your code.
+
+At this point, most of your work is done.
+**You have officially joined the** ``stdpopsim`` **development team. Welcome!!**
+Your code still needs to undergo review by another member (or members)
+of the development team before it is fully incorporated into ``stdpopsim``.
+This will likely require additional feedback from you,
+so, stay tuned for discussion during the review process.
+
+----------------------------------------
+Overview of the stdpopsim review process
+----------------------------------------
+
+We provide here a general outline for the review process we use in ``stdpopsim``,
+including guidelines for how to settle discrepancies that are found during review
+(see Step 6 below).
+The six steps described below should be followed whenever a **new species** is added,
+or when components such as **demographic models** or **DFEs** are added to a species
+already in the catalog.
+
+1. After the original contributor submitted a PR with their new code,
+   the code is checked by one of the core maintainers of
+   ``stdpopsim`` for basic problems or style issues.
+   Once the code meets the basic standards, the maintainer merges the PR,
+   and the newly added code is considered **provisional**.
+
+2. The original contributor then opens a new **QC issue** on GitHub
+   to track the progress of the review.
+   One simple way to do this is to use one of the `template issues
+   <https://github.com/popsim-consortium/stdpopsim/issues/new/choose>`__
+   we provide.
+   For example, the ``Species QC issue template`` should be used when adding
+   a new species and the ``Model QC issue template`` should be used when adding
+   a new demographic model.
+   Simply press  `Get started` for the appropriate template,
+   and fill in the required details.
+   If you don't find an appropriate template for your purpose,
+   you should simply `open a new blank issue
+   <https://github.com/popsim-consortium/stdpopsim/issues/new>`__
+   and add the relevant details manually.
+   Make sure to include information about the primary sources (citations)
+   you used as well as other considerations you made in your code.
+   The **QC issue** contains a checklist and all the items on this list
+   should be checked off for the review process to complete.
+
+3. A different member of the ``stdpopsim`` community volunteers to review the
+   newly added demographic model.
+   If you volunteer to review a model, you should state your intention on the
+   **QC issue**, so we don't duplicate effort.
+   Typically, there will be one reviewer assigned to every **QC issue**.
+   However, sometimes multiple reviewers may wish to partition tasks between them.
+   For examples, when reviewing a new species, one reviewer may wish to test the
+   recombination rates, and another may wish to test the effective population size.
+   Some aspects of the review, such as examining citations, involve checking the
+   code of the original contributor.
+   However, most of the review involves implementing tests
+   based on the reviewer's understanding of
+   the source publications and additional documentation
+   specified by the original contributor in the **QC issue**.
+   Ideally, the code for these tests should be written by the reviewer
+   **without looking at the original contributor's code**.
+   If the reviewer is uncertain about some aspects of the implementation,
+   they can discuss this with the original contributor in the **QC issue**.
+   Different types of tests are involved when you are reviewing a **new species**
+   added to ``stdpopsim`` or when you are reviewing a **demographic model**
+   added to an existing species.
+   See the appropriate sections below for specific instructions on how to
+   implement the different tests.
+   The reviewer should write the testing code on their own fork of the repository,
+   as outlined in the `GitHub workflow`_.
+
+4. After writing the appropriate  the test code,
+   the reviewer should execute it by running the `Unit tests`_.
+   The unit tests will produce error messages if
+   inconsistencies are found between the original contributor's implementation
+   and the tests written by the reviewer.
+
+5. Once the reviewer is confident in their tests,
+   they should submit a PR with their test code.
+   The reviewer may choose to do so even if some tests fail,
+   to facilitate discussion with the original contributor (see Step 6 below).
+
+6. If the tests written by the reviewer produce error messages,
+   the differences between the implementation of the original contributor and
+   the blind tests of the reviewer need to be resolved through discussion
+   between the two of them.
+   This discussion can take place either in the **review PR** submitted in Step 5,
+   or in the **QC issue** opened in Step 2.
+   Differences between the two implementations can indicate an error,
+   but very often they are a result of different interpretations of the
+   data presented in the source publications.
+   For example, there might be different mutation rates estimated for a given species
+   from two different groups of samples.
+   The original contributor and reviewer should reach an agreement
+   as to the best (or at least a reasonable) interpretation of the published data.
+   If they cannot reach an agreement,
+   then the discussion on GitHub should be opened to others in the community.
+   It may also be useful to contact the authors of the original publication
+   to resolve some of these ambiguities.
+   After each difference is resolved, the final decision should be clearly
+   noted in the discussion on GitHub,
+   and the code should be modified accordingly.
+   This could be either the code written by the original contributor or the
+   test code written by the reviewer (or both in some cases).
+   Since at this point the **review PR** submitted in Step 5 is still open (not merged),
+   then we recommend making the code changes using additional commits in this PR.
+   In case the review process found different possible interpretations
+   of the published data,
+   the rationale behind the final (consensus) interpretation should be clearly
+   specified in comments above the relevant block of code.
+   This documentation will help future contributors in resolving
+   ambiguities in similar cases.
+
+7. Once the **review PR** submitted in Step 5 passes all unit tests,
+   it is merged, and the **QC issue** opened in Step 2 is closed.
+   **The new code is now officially added to the** ``stdpopsim`` **catalog!**
 
 
-----------------------
-Species review process
-----------------------
+------------------------------------------------
+Implementing tests for the review of new species
+------------------------------------------------
 
-Once everything works, we will merge your pull request, and the species will be
-in `stdpopsim`, and flagged for review.
-During the review process, another member of the community checks to see that the citations are appropriately set,
-and that the parameter values fit those mentioned in the citations.
-To initiate this process, the person who added the species should open a
-new `issue <https://github.com/popsim-consortium/stdpopsim/issues/new/choose>`__
-using the 'Species QC issue template'. One or more volunteers will check items off
-the checklist, until all items have been completed satisfactorily. The QC issue,
-or the pull request, may be used for review discussion.
-
-To begin reviewing a species, you should state your intention on the
-QC issue, so we don't duplicate effort.
-The review process involves adding code to the `tests/test_{species_name}.py` file
-to implement the tests that were disabled in the original version.
-Make sure to add the test code by using the standard practices outlined in the `GitHub workflow`_.
-The tests should be written by looking at the original papers cited in the
-`species.py` file, and **not the implementation!**
-For instance, a test for an unreviewed species might look like this:
+The tests associated with the review of a new species
+should be written by the reviewer in the ``tests/test_<SPECIES_ID>.py`` file
+as part of Step 3 of the review process described above.
+Recall that this file was generated by the ``maintenance`` utility, with most
+of the tests disabled.
+The reviewer should enable all the tests and implement them.
+For example, the test for the recombination rates is initialized by the
+``maintenance`` utility in the following form:
 
 .. code-block:: python
 
@@ -808,9 +992,9 @@ For instance, a test for an unreviewed species might look like this:
     def test_recombination_rate(self, name, rate):
         assert rate == pytest.approx(self.genome.get_chromosome(name).recombination_rate)
 
-The same block of code in the test file of *Aedes aegypti*
-(`tests/test_AedAeg.py`) , which has undergone review, looks like this:
-
+When writing the tests for the recombination rates, the reviewer should modify
+this code to look something like this
+(example taken from ``tests/test_AedAeg.py`` for *A. aegypti*):
 
 .. code-block:: python
 
@@ -821,330 +1005,295 @@ The same block of code in the test file of *Aedes aegypti*
     def test_recombination_rate(self, name, rate):
         assert rate == pytest.approx(self.genome.get_chromosome(name).recombination_rate)
 
-The `@pytest.mark.skip` line has been deleted (because we should no longer skip
-this test), and the dictionary (`{}`) in the `@pytest.mark.parameterize` line
-has been filled out with key: value pairs that give the names and average recombination rate for
-each chromosome.
-After implementing all tests for *Aedes aegypti*, they are executed as follows:
+The ``@pytest.mark.skip`` line has been deleted to enable this test,
+and the dictionary in the ``@pytest.mark.parameterize`` line  (code inside the ``{ }``)
+has been filled out with ``key``:``value`` pairs that give the name and average
+recombination rate for each chromosome.
+
+The tests can be executed by running the complete set of `Unit tests`_,
+or by invoking only the tests in ``tests/test_<SPECIES_ID>.py``, as follows:
 
 .. code-block:: shell
 
-   python -m pytest tests/test_AedAeg.py
+   $ python -m pytest tests/test_<SPECIES_ID>.py
 
 The tests compare the values specified in the
-test file to the values in the `species.py` and `genome_data.py` files,
+test file to the values in the ``species.py`` and ``genome_data.py`` files,
 and they produce error messages if differences are found.
-Once the reviewer is confident in their tests (even if some produce error messages),
-they should submit a (QC) pull request with their test code.
-If some tests failed, the reviewer and original contributor of the species should discuss this
-in the QC issue on GitHub or in the pull request to figure out which values are correct.
-Sometimes it's not clear which values to use for a certain parameter.
-For example, there might be different mutation rates estimated from two different groups of samples
-for a given species.
-In such cases, the original contributor should leave comments in the code explaining the choice,
-and a note in the QC issue.
-If the reviewer and original contributor do not reach an agreement,
-then the discussion on GitHub should be opened to others in the community.
-Once consensus is reached, the values used in the species' code files should be
-be fixed to agree in the QC pull request. You don't need to start
-another pull request to change the values in the catalog itself.
-The review process for a given species is completed once all tests are implemented
-and produce no error messages.
-When everything is done, we'll merge the QC pull request and the species will be officially added to the `stdpopsim` catalog.
-
-
-
-
+Differences should be resolved using the general process outlined in
+Step 6 of the `Overview of the stdpopsim review process`_.
 
 ******************************
 Adding a new demographic model
 ******************************
 
-Steps for adding a new demographic model:
-
-1. `Fork the repository and create a branch`_
-2. `Write the model function in the catalog source code`_
-3. `Write parameter table`_
-4. `Test the model locally`_
-5. `Submit a Pull Request on GitHub`_
-
-If this is your first time implementing a demographic model in `stdpopsim`, it's a good
-idea to take some time browsing the :ref:`sec_catalog`
-and species' demographic models in the
-source code to see how existing models are typically written and documented. If you have
-any questions or confusion about formatting or implementing demographic models, please
-don't hesitate to open an `issue <http://github.com/popgensims/stdpopsim/issues>`_ --
-we're more than happy to answer any questions and help get you up and running.
+A demographic model describes ancestral population sizes, split times,
+and migration rates.
+Misspecification of the model can generate unrealistic patterns of genetic
+variation that will affect downstream analyses.
+So, having at least one detailed demographic model is recommended for every species.
+A given species might have more than one demographic model,
+fit from different data or by different methods.
 
 -----------------------------------
 What models are appropriate to add?
 -----------------------------------
+Any model added to ``stdpopsim`` should be based the **published literature**
+and a clear citation to the relevant paper(s) should be provided with the model.
+The demographic model should include, at a minimum,
+a single population with a series of population sizes changes.
+Multi-population models typically include other **demographic events**,
+such as population splits and changes in the amount of gene flow between populations.
+The values of different parameters should be specified in number of individuals
+(for population sizes) and generations (for times).
+Sometimes, you will need to convert values published in the literature
+to these units by making some assumptions on the mutation rate;
+typically the same assumptions made by the study that published the demographic model.
 
-`Stdpopsim` supports any demographic model from the published literature that gives
-enough information to be able to define `msprime` demography objects. At a minimum, that
-includes population sizes and the timing of demographic events. These values need to
-either be given in "physical" units (that is, raw population sizes and time units in
-generations), or be able to be converted to physical units using, e.g., mutation rates
-used in the published study.
 
-Note that it is not necessary that the demographic model is attached to a particular
-species. `Stdpopsim` contains a collection of generic models that are widely used in
-developing and testing inference methods. If there is a generic model that does not
-currently exist in our catalog but would be useful to include, we also welcome those
-contributions. Again, you should provide a citation for a generic models, or it
-should be commonly used.
+Some demographic models can be **generic**, meaning that they may be
+applied to any species.
+The `stdpopsim` :ref:`sec_catalog` contains a collection of generic models that are widely used in
+developing and testing inference methods.
+We encourage contributors to suggest additional generic models,
+which they think can be helpful for methods development.
+Note that generic models should also be accompanied with a clear citation indicating
+their usefulness.
 
----------------------------------------
-Fork the repository and create a branch
----------------------------------------
+---------------------------------------------
+Getting set up to add a new demographic model
+---------------------------------------------
 
-Before implementing any model, be sure to have forked the `stdpopsim` repository
+If this is your first time implementing a demographic model in ``stdpopsim``, it's a good
+idea to take some time browsing the :ref:`sec_catalog`
+to see how existing demographic models are coded and documented.
+If you have any questions or confusion about formatting or implementing demographic models, please
+don't hesitate to `open a new issue <http://github.com/popgensims/stdpopsim/issues>`_.
+We're more than happy to answer any questions and help get you up and running.
+Before you add any code, be sure to have forked the ``stdpopsim`` repository
 and cloned it locally, following the instructions in the `GitHub Workflow`_ section.
-Models are first implemented and tested locally, and then submitted as a pull request
-to the `stdpopsim` repository, at which point it is verified by another developer
-before being fully supported within `stdpopsim`.
 
----------------------------------------------------
-Write the model function in the catalog source code
----------------------------------------------------
 
-In the ``stdpopsim`` catalog source code (found in ``stdpopsim/catalog/``),
-each species has a module that defines all of the necessary functions to run
-simulations for that species, including the demographic model. In each species module,
-you will see that each type of function is divided by comments, such as::
-
-    ###########################################################
-    #
-    # Demographic models
-    #
-    ###########################################################
-
-Go to the ``Demographic models`` section of the source code.
-The demographic model function should follow this format:
+All code for a species' demographic models is written in the ``demographic_models.py``
+file in that species directory ``stdpopsim/catalog/<SPECIES-ID>/``
+(where ``<SPECIES-ID>`` is the six-character identifier of the species;
+e.g., CanFam).
+If the species does not currently have any demographic model,
+then you should add this file to ``stdpopsim/catalog/<SPECIES-ID>/``,
+with the following three lines of code:
 
 .. code-block:: python
 
-    def _model_func_name():
-        id = "FILL ME"
-        description = "FILL ME"
-        long_description = """
-        FILL ME
-        """
-        populations = [
-            stdpopsim.Population(id="FILL ME", description="FILL ME"),
-        ]
-        citations = [
-            stdpopsim.Citation(
-                author="FILL ME",
-                year="FILL ME",
-                doi="FILL ME",
-                reasons={stdpopsim.CiteReason.DEM_MODEL},
-            )
-        ]
+  import msprime
+  import stdpopsim
+  _species = stdpopsim.get_species("<SPECIES_ID>")
 
-        generation_time = "FILL ME"
-        mutation_rate = "FILL ME"  # per bp per generation
+Furthermore, to ensure that the demographic model(s) are fully incorporated to the
+species' code base, you should add the following import to the ``__init__.py`` file
+in the species directory:
 
-        # parameter value definitions based on published values
+.. code-block:: python
 
-        return stdpopsim.DemographicModel(
-            id=id,
-            description=description,
-            long_description=long_description,
-            populations=populations,
-            citations=citations,
-            generation_time=generation_time,
-            mutation_rate=mutation_rate,
-            population_configurations=["FILL ME"],
-            migration_matrix=["FILL ME"],
-            demographic_events=["FILL ME"],
-        )
+  from . import demographic_models
 
+----------------------------
+Coding the demographic model
+----------------------------
+
+The demographic model should be coded in the ``demographic_models.py`` file
+by defining a specialized function, which essentially returns
+a ``stdpopsim.DemographicModel`` object initialized with the appropriate values.
+This function should then be added to the ``_species`` object using the ``add_demographic_model``
+function.
+We provide below a template block of code for these two operations:
+
+.. code-block:: python
+
+  def _model_func_name():
+    return stdpopsim.DemographicModel(
+      id                        = ...,
+      description               = ...,
+      long_description          = ...,
+      populations               = ...,
+      citations                 = ...,
+      generation_time           = ...,
+      mutation_rate             = ...,
+      population_configurations = ...,
+      migration_matrix          = ...,
+      demographic_events        = ...,
+    )
 
     _species.add_demographic_model(_model_func_name())
 
+A demographic model is thus defined using ten different attributes.
+The first seven attributes are quite straightforward:
 
-The demographic model should include the following:
+* ``id`` (`string`): A unique, short-hand identifier for this demographic model.
+  This id contains a short description written in camel case,
+  followed by an underscore, and then four characters:
+  (1) a digit character specifying the number of sampled populations;
+  (2) the first letter of the name of the first author of the publication;
+  (3-4) and two digit characters specifying the year the study was published.
+  For example, the "Out of Africa" demographic model for humans published by
+  Gutenkunst et al. (2009) has the ``id`` "OutOfAfrica_3G09".
+  See :ref:`sec_development_naming_conventions` for more details.
 
-* ``id``: A unique, short-hand identifier for this demographic model. This ``id``
-  contains a short description written in camel case, followed by an underscore, and then
-  four characters (the number of sampled populations, the first letter of the name of the
-  first author, and the year the study was published). For example, the Gutenkunst et al.
-  (2009) Out of Africa demographic model has the ``id`` "OutOfAfrica_3G09". See
-  :ref:`sec_development_naming_conventions` for more details.
-* ``description``: A brief one-line description of the demographic model.
-* ``long_description``: A longer description (say, a concise paragraph) that describes
-  the model in more detail.
+* ``description`` (`string`): A brief one-line description of the demographic model.
+
+* ``long_description`` (`string`): A more detailed textual description of the model (short paragraph).
+
 * ``populations``: A list of ``stdpopsim.Population`` objects, which have their own
   ``id`` and ``description``. For example, the Thousand Genomes Project Yoruba panel
   could be defined as ``stdpopsim.Population(id="YRI", description="1000 Genomes YRI
   (Yorubans)")``.
-* ``citations``: A list of ``stdpopsim.Citation`` objects for the appropriate citation
-  for this model. The citation object requires author, year, and doi information, and
-  a specified reason for citing this model.
-* ``generation_time``: The generation time for the species in years. If you are
-  implementing a generic model, the generation time should default to 1.
-* ``mutation_rate``: The mutation rate assumed during the inference of this demographic
-  model, per bp per generation, if a mutation rate was used. If no mutation
-  rate is associated with this demographic model, which is generally uncommon
-  but possible, depending on the inference method, the mutation rate should be
-  set to ``None``.
 
-Every demographic model has a few necessary features or attributes. First of all,
-demographic models are defined by the population sizes, migration rates, split and
-admixture times, and generation lengths given in the source publication. We often take
-the point estimates for each of the values from the best fit model (for example, the
-parameters that give the maximum likelihood fit), which are translated into
-`msprime`-formatted demographic inputs.
+* ``citations``: A list of ``stdpopsim.Citation`` objects for the publications
+  from which this model was derived.
+  The citation object requires author, year, and doi information, and
+  a specified reason for citing this model (see `Coding the species parameters`_).
+  The reason associated with demographic model citations will typically be
+  ``stdpopsim.CiteReason.DEM_MODEL``.
 
-`Msprime`-defined demographic models are specified through the
-``population_configurations``, ``migration_matrix``, and ``demographic_events``. If this
-is your first time specifying a model using `msprime`, it's worth taking some time to
-read through the `msprime`
+* ``generation_time`` (`double`): The generation time for the species in years.
+  The value of this parameter does not directly affect the simulation,
+  since the ``SLiM`` and ``msprime`` simulation engines operate in time units of generations.
+  The generation time is only currently used to convert time units to years,
+  which is useful when comparing among different demographic models.
+  If you are implementing a generic model, the generation time should default to 1.
+
+* ``mutation_rate`` (`double`): The mutation rate assumed during the inference of this demographic
+  model (per bp per generation).
+  Most demographic inference methods make some assumption about the average genome-wide
+  mutation rate.
+  These assumptions are sometimes "baked" into the methods,
+  and in other cases are just used to convert parameter values from mutation-scale
+  to physical scale (number of individuals for population size and generations for times).
+  If you are confident that inference did not make any assumption about mutation rate,
+  then set the mutation rate of the demographic model to ``None``.
+  However, note that this is quite uncommon, so you should make sure this is the case
+  before you set the mutation rate to ``None``.
+
+The final three attributes
+(``population_configurations``, ``migration_matrix``, and ``demographic_events``)
+describe the inferred demographic history that you wish to code.
+This history consists of ancestral population size changes,
+migration rates, split times, and admixture events.
+These attributes should be coded using the standard format of ``msprime``.
+If this is your first time specifying a demographic model using ``msprime``,
+then we highly recommend that you take some time to read through its
 `documentation and tutorials <https://tskit.dev/msprime/docs/stable/quickstart.html>`_.
 
+Finally, note that most published demographic models provide a range of plausible values for each
+parameter of interest.
+In your coded model, you should use some reasonable point estimate,
+such as the value associated with the the maximum likelihood fit,
+or the mean posterior (for Bayesian methods).
 
----------------------
-Write parameter table
----------------------
+------------------------------------
+Adding a parameter table to the docs
+------------------------------------
 
-The parameters used in the implementation must
-also be listed in a csv file in the ``docs/parameter_tables`` directory. This ensures
-that the documentation for this model displays the parameters.
-
-Take a look at the csv files currently in ``docs/parameter_tables`` for inspiration.
-The csv file should have the format::
+The parameters used in the implementation of the demographic model should
+also be specified in a csv file in the ``docs/parameter_tables/`` directory.
+This provides a straightforward documentation and also helps in the review
+process (see below).
+Each line in the csv file should have the format::
 
     Parameter Type (units), Value, Description
 
+You may examine csv files currently in  the ``docs/parameter_tables/`` directory
+for useful examples.
+Once you completed the csv file,
+you can check that the documentation was built properly by running
+``make`` in the ``docs/`` directory and opening the Catalog page in the
+``docs/_build/`` directory.
+See `Documentation`_ for more details.
 
-We can check that the documentation builds properly after implementation by running
-``make`` in the docs directory and opening the Catalog page from the ``docs/_build/``
-directory. See `Documentation`_ for more details.
 
 
-----------------------
-Test the model locally
-----------------------
+--------------------------------------------------
+Testing your demographic model and submitting a PR
+--------------------------------------------------
 
-Once you have written the demographic model function, you should test the model locally
-with ``stdpopsim``. Follow the development :ref:`sec_development_installation`
-instructions to install the development ``stdpopsim`` version along with the
-requirements.
-
-Now check that your new demographic model function has been imported:
+Once you have written the demographic model function in the ``demographic_models.py`` file,
+you should test it locally using the development version of ``stdpopsim``.
+First, make sure to install the development version of ``stdpopsim`` and its requirements,
+by following the :ref:`sec_development_installation` instructions.
+Then, check that your new demographic model function has been imported
+by executing the following Python code,
+where ``<SPECIES_ID>`` is the six-character species id (e.g., HomSap or AraTha):
 
 .. code-block:: python
 
-    import stdpopsim
+  import stdpopsim
 
-    species = stdpopsim.get_species("HomSap")
-    for x in species.demographic_models:
-        print(x.id)
-
-    # OutOfAfrica_3G09
-    # OutOfAfrica_2T12
-    # Africa_1T12
-    # AmericanAdmixture_4B11
-    # OutOfAfricaArchaicAdmixture_5R19
-    # Zigzag_1S14
-    # AncientEurasia_9K19
-    # PapuansOutOfAfrica_10J19
-    # AshkSub_7G19
-    # OutOfAfrica_4J17
+  species = stdpopsim.get_species("<SPECIES_ID>")
+  for x in species.demographic_models:
+    print(x.id)
 
 
-The example above lists the imported demographic models for humans.
-You should substitute ``"HomSap"`` for which ever species you added your model to.
-Your new model should be printed along with currently available demographic models.
+This prints the identifiers (``id``; see above) for all demographic models defined for the species.
+You should make sure that the identifier of your newly added model is printed.
 
 .. note::
 
-    If your demographic model does not print, after defining your model function,
-    did you include the call ``_species.add_demographic_model(_model_func_name())``,
-    where ``_model_func_name()`` is your model function name?
+    If the identifier of your demographic model is not printed,
+    make sure that you included the call ``_species.add_demographic_model(_model_func_name())``
+    for your newly defined function ``_model_func_name()``
+    in the end of the ``demographic_models.py`` file.
 
     If you are still having trouble, check the
-    `GitHub issues <https://github.com/popsim-consortium/stdpopsim/issues?q=is%3Aissue+adding+demographic+model+>`_,
-    or `open an issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`_.
+    `GitHub issues <https://github.com/popsim-consortium/stdpopsim/issues?q=is%3Aissue+adding+demographic+model+>`_
+    or `open a new issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`_ to get help from others.
 
-Next, check that you can successfully run a simulation with your new model with the
-Python API. See :ref:`sec_python_tute` for more details.
+After you confirmed that your demographic model was added to the species code,
+you should check that you can successfully simulate it with the Python API.
+See :ref:`sec_python_tute` for more details.
+Finally, once everything looks okay,
+you should submit a pull request (PR) with your changes to the code.
+See the `GitHub workflow`_ for more details about this process.
 
--------------------------------
-Submit a Pull Request on GitHub
--------------------------------
+At this point, most of your work is done.
+**You have officially joined the** ``stdpopsim`` **development team. Welcome!!**
+Your model still needs to undergo review by another member (or members)
+of the development team before it is fully incorporated into ``stdpopsim``.
+This will likely require additional feedback from you,
+so, stay tuned for discussion during the review process.
 
-Once you have implemented the demographic model locally, including
-documentation, the next step is to open a pull request with this addition.
-See the `GitHub workflow`_ for more details.
+--------------------------------------------------------
+Implementing tests for the review of a demographic model
+--------------------------------------------------------
 
----------------------------------------
-So the model is implemented. What next?
----------------------------------------
+After a contributor submits a PR with a new demographic model,
+the code undergoes seven steps of review before it
+is officially added to ``stdpopsim`` (see `Overview of the stdpopsim review process`_).
+In Step 3 of this process, the reviewer writes testing code for the newly
+added demographic model.
+This is done in file ``stdpopsim/qc/<SPECIES_ID>.py``
+(where ``<SPECIES_ID>`` is the six-character identifier of the species).
+If this is the first demographic model added for this species,
+the reviewer should create this file and add an import
+statement for the species to ``stdpopsim/qc/__init__.py``.
 
-Now at this point, most of your work is done!  The model is reviewed and
-verified following the `Demographic model review process`_ by an independent member
-of the development team, and there may be some discussion about formatting and
-to clear up any confusing bits of the demographic parameters before the model is
-fully incorporated into `stdpopsim`.
+The code written by the reviewer in ``stdpopsim/qc/<SPECIES_ID>.py``
+should define a function that returns a
+``stdpopsim.DemographicModel`` object, parallel to the function defined
+by the original contributor of the demographic model (see `Coding the demographic model`_).
+After this function is defined, it should be **registered as the QC function** of the
+original function by adding this bit of code to ``stdpopsim/qc/<SPECIES_ID>.py``:
 
-Thank you for your contribution, and welcome to the `stdpopsim` development team!
+.. code-block:: python
 
---------------------------------
-Demographic model review process
---------------------------------
+  _species.get_demographic_model(<MODEL_ID>).register_qc(
+    _your_review_function()
+  )
 
-When Developer A creates a new demographic model on their local fork they must
-follow these steps for it to be officially supported by stdpopsim:
+Where ``<MODEL_ID>`` is the string specified by the original contributor as the
+``id`` of the demographic model, and ``_your_review_function()`` is the function
+implemented by the reviewer.
 
-    1. Developer A submits a PR to add a new model to the catalog. This includes
-       full documentation (i.e., the documentation that will be
-       rendered on rtd). The code is checked for any obvious problems/style
-       issues etc by a maintainer and merged when it meets these basic
-       standards. The new catalog model is considered 'preliminary'.
-
-    2. Developer A creates an `issue
-       <https://github.com/popsim-consortium/stdpopsim/issues/new/choose>`__
-       tracking the QC for the model which includes information about the
-       primary sources used to create the model and the population indices
-       used for their msprime implementation. To create a new Model QC issue,
-       click "New issue" from the "Issues" tab on GitHub, and click "Get
-       started" to use the Model QC issue template. Follow the template to
-       include the necessary information in the issue. Developer B is then
-       assigned/volunteers to do a blind implementation of the model.
-
-    3. Developer B creates a blind implementation of the model in the
-       ``stdpopsim/qc/species_name.py`` file, remembering to register the
-       QC model implementation (see other QC models for examples).  Note that
-       if you are adding a new species you will have to add a new import to
-       ``stdpopsim/qc/__init__.py``.
-
-    4. Developer B runs the units tests to verify the equivalence of the
-       catalog and QC model implementations.
-
-    5. Developer B then creates a PR, and all being good, this PR is merged and
-       the QC issue is closed.
-
-------------------------
-Arbitration
-------------------------
-
-When developers A and B disagree on the model implementation, the process is to:
-
-    1. Try to hash out the details between them on the original issue thread
-
-    2. If this fails, contact the authors of the original publication to resolve
-       ambiguities.
-
-    3. If changes have to be made to the production model Developer A submits a
-       PR with the hotfix for the production model. Developer B then rebases
-       the branch containing their PR against the main branch to check for model
-       equality. Repeat steps 1-3 until this is achieved. If changes have to be
-       made to the QC model they are committed to the branch where the QC PR
-       originates from.
-
-
+The original demographic model and its registered QC model are compared as part of
+the ``stdpopsim`` `Unit tests`_.
 
 ********************
 Adding a genetic map
@@ -1170,8 +1319,9 @@ Once you have the recombination map files formatted, tar and gzip them into a si
 compressed archive. The gzipped tarball must be FLAT (there are no directories in the
 tarball). This file will be sent to one of the `stdpopsim` uploaders for placement in the
 AWS cloud once the new genetic map(s) are approved. Finally, you must add a `GeneticMap`
-object to the file named for your species in the `catalog` directory (the same one in
-which the genome is defined) as shown below:
+object to the file named for your species in the ``stdpopsim/catalog/<SPECIES_ID>/`` directory
+(the one that contains all the simulation code for that species,
+see `Getting set up to add a new species`_):
 
 .. code-block:: python
 
@@ -1249,7 +1399,7 @@ shorter than the ``"--gapThresh"`` is determined either by using the mean rate o
 or by using the mean rate for the entire chromosome, using options ``"--useAdjacentAvg"`` or
 ``"--useChromosomeAvg"``` respectively.
 
-Validation plots will automatically be generated in the ``"/liftOver_validation/"``
+Validation plots will automatically be generated in the ``liftOver_validation/``
 directory. Intermediate files created by the ``liftOver`` executable will be saved
 for inspection in the ``"/liftOver_intermediates/"``, only if the
 ``"--retainInermediates"`` option is used. Once the user has inspected the validation plots
@@ -1268,8 +1418,8 @@ The newly lifted over maps will be formatted in a compressed archive and
 automatically named using the assembly name from the chain file.
 This file will be sent to one of the `stdpopsim` uploaders for placement in the
 AWS cloud, once the new map is approved. Finally, you must add a `GeneticMap`
-object to the file named for your species in the `catalog` directory (the same one in
-which the genome is defined) as shown in `Adding a genetic map`_.
+object to the file named for your species in the `stdpopsim/catalog/<SPECIES_ID>/`
+directory, as shown in `Adding a genetic map`_.
 
 Again, once all this is done, submit a PR containing the code changes and wait for
 directions on whom to send the compressed archive of genetic maps to
@@ -1479,7 +1629,7 @@ which generates reports about each pull request.
 It is not practical to test the statistical properties of simulation models
 as part of unit tests.
 
-The unit test suite is in the ``tests`` directory. Tests are run using the
+The unit test suite is in the ``tests/`` directory. Tests are run using the
 `pytest <https://docs.pytest.org/en/stable/>`_ module. Use::
 
     $ python3 -m pytest
@@ -1532,10 +1682,10 @@ Documentation
 
 Documentation is written using `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
 markup and the `sphinx <http://www.sphinx-doc.org/en/master/>`_ documentation system.
-It is defined in the ``docs`` directory.
+It is defined in the ``docs/`` directory.
 
-To build the documentation type ``make`` in the ``docs`` directory. This should build
-HTML output in the ``_build/html/`` directory.
+To build the documentation type ``make`` in the ``docs/`` directory. This should build
+HTML output in the ``docs/_build/html/`` directory.
 
 .. note::
 
