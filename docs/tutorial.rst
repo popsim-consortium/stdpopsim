@@ -176,7 +176,7 @@ a compact and efficient format for storing both genealogies and genome sequence.
 Some examples of analyzing tree sequences are given
 :ref:`below <sec_tute_analyses>`.
 If desired, these can be converted to VCF on the command line if the
-`tskit <https://tskit.dev/tskit/>`__ package is installed,
+`tskit <https://tskit.dev/software/tskit.html>`__ package is installed,
 with the ``tskit vcf`` command:
 
 .. code-block:: console
@@ -212,12 +212,12 @@ but increases time required for processing:
    -rw-rw-r-- 1 natep natep 103M Oct  4 12:05 foo.vcf.gz
 
 
-Using the SLiM simulation engine
-================================
+Using the ``SLiM`` simulation engine
+====================================
 
 The default "simulation engine" -
 i.e., the program that actually does the simulating -
-is `msprime <https://tskit.dev/msprime/>`__,
+is `msprime <https://tskit.dev/software/msprime.html>`__,
 a coalescent simulator.
 However, it is also possible to swap this out for
 `SLiM <https://messerlab.org/slim/>`__,
@@ -226,9 +226,9 @@ a forwards-time, individual-based simulator.
 Specifying the engine
 ---------------------
 
-Using SLiM is as easy as passing the ``--engine/-e`` flag
-(we didn't do this above, so it used the default engine, msprime).
-For instance, to use SLiM to simulate the same chunk of chromosome 22
+Using ``SLiM`` is as easy as passing the ``--engine/-e`` flag
+(we didn't do this above, so it used the default engine, ``msprime``).
+For instance, to use ``SLiM`` to simulate the same chunk of chromosome 22
 under the ``OutOfAfrica_2T12`` model as above,
 we would just run:
 
@@ -242,11 +242,11 @@ so before you try that command out, **read on!**
 
 .. _sec_slim_scaling_factor:
 
-SLiM scaling factor
--------------------
+``SLiM`` scaling factor
+-----------------------
 
 The previous example is a pretty big simulation, even with only a portion of a chromosome, due to the large number of individuals
-(unlike msprime, SLiM must actually simulate all the individuals in the population, regardless of the number of samples).
+(unlike ``msprime``, ``SLiM`` must actually simulate all the individuals in the population, regardless of the number of samples).
 To make it run fast enough for a tutorial,
 we can specify a *scaling factor* (:math:`Q`) using the ``--slim-scaling-factor`` option.
 Unlike the previous command, this one should run very fast:
@@ -270,7 +270,7 @@ at many parameter values.
 However, the user should be aware that in principle, the results are **not** equivalent,
 possibly in subtle and hard-to-understand ways.
 This is particularly true in simulations with large amounts of selection.
-See the SLiM manual and/or
+See the `SLiM manual <https://messerlab.org/slim/>`__ and/or
 `Urrichio & Hernandez (2014) <https://www.genetics.org/content/197/1/221.short>`__
 for more discussion.
 
@@ -353,10 +353,10 @@ For example, the third interval in `ex.bed` above will be silently omitted from 
 
 See also the Python API to incorporate `selection <https://popsim-consortium.github.io/stdpopsim-docs/latest/tutorial.html#incorporating-selection>`__.
 
-Debugging output from SLiM
-==========================
+Debugging output from ``SLiM``
+==============================
 
-Next we'll look at running a different model with SLiM,
+Next we'll look at running a different model with ``SLiM``,
 but with some sanity checks along the way.
 
 Choose a species: Drosophila melanogaster
@@ -366,7 +366,7 @@ Perusing the :ref:`Catalog <sec_catalog>`,
 we see that to simulate copies of chromosome arm 2L
 from *Drosophila melanogaster* individuals with the demographic model
 inferred by `Sheehan & Song (2016) <https://doi.org/10.1371/journal.pcbi.1004845>`__,
-using SLiM with a (very extreme) scaling factor of 1000, we could run
+using ``SLiM`` with a (very extreme) scaling factor of 1000, we could run
 
 .. code-block:: console
 
@@ -376,9 +376,9 @@ using SLiM with a (very extreme) scaling factor of 1000, we could run
 The scaling factor of 1000 makes this model run very quickly,
 but should also make you **very** nervous.
 What actually *is* being simulated here?
-We can at least find out what the actual population sizes are in the SLiM simulation
+We can at least find out what the actual population sizes are in the ``SLiM`` simulation
 by asking the simulation to be more verbose.
-Prepending the ``-vv`` flag will request that SLiM print out information
+Prepending the ``-vv`` flag will request that ``SLiM`` print out information
 every time a demographic event occurs
 (helpfully, this also gives us an idea of how quickly the simulation is going):
 
@@ -431,7 +431,7 @@ Running stdpopsim with the Python interface (API)
 Nearly all the functionality of ``stdpopsim`` is available through the CLI,
 but for complex situations it may be desirable to use Python.
 Furthermore, downstream analysis may happen in Python,
-using the `tskit <https://tskit.dev/tskit/>`__ tools for working
+using the `tskit <https://tskit.dev/software/tskit.html>`__ tools for working
 with tree sequences.
 In order to use the ``stdpopsim`` API the ``stdpopsim`` package must be
 installed (see :ref:`Installation <sec_installation>`).
@@ -643,9 +643,9 @@ Choose a sampling scheme, and simulate
 --------------------------------------
 
 Next, we set the number of samples and set the simulation engine.  In this case
-we will simulate genomes of 5 diploids using the simulation engine `msprime`
+we will simulate genomes of 5 diploids using the simulation engine ``msprime``
 (note that the generic `PiecewiseConstantSize` model has a single population
-named `pop_0`).  But, you can go crazy with the sample size!  `msprime` is
+named `pop_0`).  But, you can go crazy with the sample size!  ``msprime`` is
 great at simulating large samples!
 
 .. code-block:: python
@@ -666,7 +666,7 @@ Sanity check the tree sequence output
 
 Now, we do some simple checks that our simulation worked with
 `tskit
-<https://tskit.dev/tskit/>`__.
+<https://tskit.dev/software/tskit.html>`__.
 
 .. code-block:: python
 
@@ -720,17 +720,17 @@ Taking a look at the vcf file, we see something like this:
     ...
 
 
-Using the SLiM engine
-=====================
+Using the ``SLiM`` engine
+=========================
 
 Above, we used the coalescent simulator ``msprime``
 as the simulation engine, which is in fact the default.
 However, ``stdpopsim`` also has the ability to produce
-simulations with SLiM, a forwards-time, individual-based simulator.
-Using SLiM provides us with a few more options.
+simulations with `SLiM <https://messerlab.org/slim/>`__, a forwards-time, individual-based simulator.
+Using ``SLiM`` provides us with a few more options.
 You may also want to install the
-`pyslim <https://tskit.dev/pyslim/>`__ package
-to extract the additional SLiM-specific information
+`pyslim <https://tskit.dev/pyslim/docs/stable/installation.html>`__ package
+to extract the additional ``SLiM``-specific information
 in the tree sequences that are produced.
 
 An example simulation
@@ -738,8 +738,8 @@ An example simulation
 
 The ``stdpopsim`` tool is designed so that different simulation engines
 are more or less exchangeable, so that to run an equivalent
-simulation with SLiM instead of msprime only requires specifying
-SLiM as the *simulation engine*.
+simulation with ``SLiM`` instead of ``msprime`` only requires specifying
+``SLiM`` as the *simulation engine*.
 Here is a simple example.
 
 Choose the species, contig, and recombination map
@@ -748,7 +748,7 @@ Choose the species, contig, and recombination map
 First, let's set up a simulation of 10 Mb of human chromosome 22 with a flat
 recombination map, drawing 100 diploids from the Tennesen et al (2012) model of
 African history, ``Africa_1T12`` (which has a single population named `AFR`).
-Since SLiM must simulate the entire population, sample size does not affect the
+Since ``SLiM`` must simulate the entire population, sample size does not affect the
 run time of the simulation, only the size of the output tree sequence (and,
 since the tree sequence format scales well with sample size, it doesn't affect
 this very much either).
@@ -778,7 +778,7 @@ but otherwise, things work pretty much just as before.
    engine = stdpopsim.get_engine("slim")
    ts = engine.simulate(model, contig, samples, slim_scaling_factor=10)
 
-(Note: you have to have SLiM installed for this to work,
+(Note: you have to have ``SLiM`` installed for this to work,
 and if it isn't installed in your ``PATH``,
 so that you can run it by just typing ``slim`` on the command line,
 then you will need to specify the ``slim_path`` argument to ``simulate``.)
@@ -786,21 +786,21 @@ To get an example that runs quickly,
 we have set the *scaling factor*,
 described in more detail below (:ref:`sec_slim_scaling_factor`),
 
-Other SLiM options
-------------------
+Other ``SLiM`` options
+----------------------
 
 Besides rescaling, there are a few additional options
-specific to the SLiM engine, discussed here.
+specific to the ``SLiM`` engine, discussed here.
 
-The SLiM burn-in
-^^^^^^^^^^^^^^^^
+The ``SLiM`` burn-in
+^^^^^^^^^^^^^^^^^^^^
 
-Another option specific to the SLiM engine is ``slim_burn_in``:
-the amount of time before the first demographic model change that SLiM begins simulating for,
+Another option specific to the ``SLiM`` engine is ``slim_burn_in``:
+the amount of time before the first demographic model change that ``SLiM`` begins simulating for,
 in units of :math:`N` generations, where :math:`N` is the population size at the first demographic model change.
 By default, this is set to 10, which is fairly safe.
 History before this period is simulated with an ``msprime`` coalescent simulation,
-called `"recapitation" <https://tskit.dev/pyslim/docs/latest/tutorial.html#recapitation>`__
+called `"recapitation" <https://tskit.dev/pyslim/docs/stable/tutorial.html#sec-tutorial-recapitation>`__
 because it attaches tops to any trees that have not yet coalesced.
 For instance, the ``Africa_1T12`` model
 `(Tennesen et al 2012) <https://doi.org/10.1126/science.1219240>`__
@@ -862,9 +862,9 @@ we used above has three distinct epochs:
 
 Since the longest-ago epoch begins at :math:`5,920` generations ago
 with a population size of :math:`7,310`, if we set ``slim_burn_in=0.1``,
-then we'd run the SLiM simulation starting at :math:`5,920 + 731 = 6,651` generations ago,
+then we'd run the ``SLiM`` simulation starting at :math:`5,920 + 731 = 6,651` generations ago,
 and anything *longer ago* than that would be simulated
-with a msprime coalescent simulation.
+with a ``msprime`` coalescent simulation.
 
 To simulate 100 diploid samples of all of human chromosome 22 in this way,
 with the ``HapMapII_GRCh38`` genetic map,
@@ -882,11 +882,11 @@ we'd do the following
        demography, contig, samples, slim_burn_in=0.1, slim_scaling_factor=10
    )
 
-Outputting the SLiM script
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Outputting the ``SLiM`` script
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 One final option that could be useful
-is that you can ask ``stdpopsim`` to output the SLiM model code directly,
+is that you can ask ``stdpopsim`` to output the ``SLiM`` model code directly,
 without actually running the model.
 You could then edit the code, to add other features not implemented in stdpopsim.
 To do this, set ``slim_script=True`` (which prints the script to stdout;
@@ -912,7 +912,7 @@ because it has the actual ``HapMapII_GRCh38`` genetic map for chromosome 22
 included, as text.
 To use it, you will at least want to edit it to save the tree sequence
 to a reasonable location -- searching for the string ``trees_file``
-you'll find that the SLiM script currently saves the output to a
+you'll find that the ``SLiM`` script currently saves the output to a
 temporary file. So, for instance, after changing
 
 .. code-block:: console
@@ -925,7 +925,7 @@ to
 
     defineConstant("trees_file", "foo.trees");
 
-we could then run the simulation in SLiM's GUI,
+we could then run the simulation in ``SLiM``'s GUI,
 to do more detailed investigation,
 or we could just run it on the command line:
 
@@ -957,22 +957,22 @@ The first, and most essential step, is undoing the rescaling of time
 that the ``slim_scaling_factor`` has introduced.
 Next is "recapitation",
 for which the rationale and method is described in detail in the
-`pyslim documentation <https://tskit.dev/pyslim/docs/latest/tutorial.html#recapitation>`__.
+`pyslim documentation <https://tskit.dev/pyslim/docs/stable/tutorial.html#sec-tutorial-recapitation>`__.
 The third (and least crucial) step is to *simplify* the tree sequence.
 If as above we ask for 100 sampled individuals from a population whose final size is
 1,450 individuals (after rescaling),
-then in fact the tree sequence returned by SLiM contains the entire genomes
+then in fact the tree sequence returned by ``SLiM`` contains the entire genomes
 and genealogies of all 1,450 individuals,
 but ``stdpopsim`` throws away all the information that is extraneous
 to the requested 100 (diploid) individuals,
 using a procedure called
-:meth:`simplification <msprime.simplify>`.
+`simplification <https://tskit.dev/tskit/docs/stable/python-api.html#tskit.TreeSequence.simplify>`__.
 Having the extra individuals is not as wasteful as you might think,
 because the size of the tree sequence grows very slowly with the number of samples.
 However, for many analyses you will probably want to extract samples
 of realistic size for real data.
 Again, methods to do this are discussed in the
-`pyslim documentation <https://tskit.dev/pyslim/docs/latest/tutorial.html#simplification>`__.
+`pyslim documentation <https://tskit.dev/pyslim/docs/stable/tutorial.html#simplification>`__.
 
 
 .. _sec_tute_selection:
@@ -981,7 +981,7 @@ Incorporating selection
 =======================
 
 There are two general ways to incorporate selection into a simulation:
-Currently, both ways only work using the SLiM engine.
+Currently, both ways only work using the ``SLiM`` engine.
 The first way is by specifying a
 :class:`distribution of fitness effects <.DFE>` for all new mutations
 across the genome or in some subset of it.
@@ -1318,7 +1318,7 @@ greater than 0.8.
     this conditioning works by re-running the simulation until the condition is
     achieved, a nearly impossible condition will result in very long run times.
 
-Now we can simulate, using SLiM of course.  For comparison, we will run the
+Now we can simulate, using ``SLiM`` of course.  For comparison, we will run the
 same simulation without selection -- i.e., without the "extended events":
 
 .. code-block:: python
@@ -1677,7 +1677,7 @@ but not found in that population at all (they are present because they are found
 The second, 2496, is the number of singletons, and so forth.
 The final number, 123, is the number of derived alleles in the tree sequence found in *all*
 ten samples from this population.
-Since an msprime simulation only contains information about polymorphic alleles,
+Since an ``msprime`` simulation only contains information about polymorphic alleles,
 these must be alleles fixed in this population but still polymorphic in the other.
 
 Here is the AFS for the other population:

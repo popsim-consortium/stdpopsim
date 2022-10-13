@@ -84,7 +84,7 @@ line interface. See `here
 <https://packaging.python.org/tutorials/installing-packages/#installing-to-the-user-site>`_
 for details on what this means and how to do it.
 
-We use `msprime <https://tskit.dev/msprime>`_ as the
+We use `msprime <https://tskit.dev/software/msprime.html>`_ as the
 default simulation engine, which has some system level dependencies
 and requires a functioning compiler. Please see the msprime
 `installation documentation
