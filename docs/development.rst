@@ -8,17 +8,20 @@ Development
 
 We envision at least three main types of ``stdpopsim`` developers:
 
-1. Demographic model contributors
+1. Contributors of new species, demographic models, and other features
+   (such as recombination maps, annotations, DFEs)
 2. API developers
 3. Documentation and tutorial curators
 
-`Demographic model contributors` add simulation code of published models.
-This could be your own published model or any other published model you think
-would be useful. This is the main way we envision biologists to continually add
+Contributors add simulation code for new or existing species in the catalog.
+This is the main way we envision biologists to continually add
 to the catalog of available models, and it is a great first step for new
-contributors to learn the ins and outs of ``stdpopsim`` development. See the
-sections `Adding a new demographic model`_ and
-`Demographic model review process`_ to get started.
+contributors to learn the ins and outs of ``stdpopsim`` development.
+See the appropriate sections below:
+`Adding a new species`_,
+`Adding a new demographic model`_,
+`Adding a genetic map`_, and
+`Adding a DFE model`_.
 
 `API developers` work on infrastructure development for the PopSim Consortium,
 which could include improvements and additions to the internal code base of
@@ -27,31 +30,31 @@ and new projects that align with consortium goals.
 
 `Documentation and tutorial curators` help maintain the documentation and tutorials.
 This can be as easy as pointing out confusing bits of the documentation in a
-GitHub `issue <http://github.com/popgensims/stdpopsim/issues>`_., or adding or editing
+GitHub `issue <http://github.com/popgensims/stdpopsim/issues>`__., or adding or editing
 the documentation. See the section `Documentation`_.
 
-Get into contact with the ``stdpopsim`` community by subscribing to our email list
-`serve <https://lists.uoregon.edu/mailman/listinfo/popgen_benchmark>`_
+Get into contact with the ``stdpopsim`` community by subscribing to our
+`email list serve <https://lists.uoregon.edu/mailman/listinfo/popgen_benchmark>`__
 and by creating and commenting on
-Github `issue <http://github.com/popgensims/stdpopsim/issues>`_.
+Github `issue <http://github.com/popgensims/stdpopsim/issues>`__.
 There is a lot of chatter through
-`Github <http://github.com/popgensims/stdpopsim>`_, and we’ve been building code
+`Github <http://github.com/popgensims/stdpopsim>`__, and we’ve been building code
 there cooperatively.
 If you want to help out and don't know where to start, you can look through the
 list of
 `Good first issues
 <https://github.com/popgensims/stdpopsim/issues?q=is%3Aopen+is%3Aissue+label%3A%22
-good+first+issue%22>`_
+good+first+issue%22>`__
 or
 `Help wanted issues
 <https://github.com/popgensims/stdpopsim/issues?q=is%3Aopen+is%3Aissue+label%3A%22
-help+wanted%22>`_
+help+wanted%22>`__
 
 
 To get started helping with ``stdpopsim`` development, please read the
 following sections to learn how to contribute.
 And, importantly, please have a look at our
-`code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/main/CODE_OF_CONDUCT.md>`_.
+`code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/main/CODE_OF_CONDUCT.md>`__.
 
 .. _sec_development_installation:
 
@@ -80,7 +83,7 @@ environment and then should be able to install the development requirements usin
 
 
 We do require ``msprime``, so please see the the `installation notes
-<https://tskit.dev/msprime/docs/stable/installation.html>`_ if you
+<https://tskit.dev/msprime/docs/stable/installation.html>`__ if you
 encounter problems with it.
 
 .. Note:: If you have trouble installing any of the requirements, your ``pip`` may be the wrong version.
@@ -121,16 +124,16 @@ To deactivate the virtual environment::
 GitHub workflow
 ***************
 
-    1. Make your own `fork <https://help.github.com/articles/fork-a-repo/>`_
+    1. Make your own `fork <https://help.github.com/articles/fork-a-repo/>`__
        of the ``stdpopsim`` repository on GitHub, and
-       `clone <https://help.github.com/articles/cloning-a-repository/>`_
+       `clone <https://help.github.com/articles/cloning-a-repository/>`__
        a local copy.
     2. Install the pre-commit hooks with::
 
         $ pre-commit install
 
     2. Make sure that your local repository has been configured with an
-       `upstream remote <https://help.github.com/articles/configuring-a-remote-for-a-fork/>`_.
+       `upstream remote <https://help.github.com/articles/configuring-a-remote-for-a-fork/>`__.
     3. Create a "topic branch" to work on. One reliable way to do it
        is to follow this recipe::
 
@@ -144,14 +147,14 @@ GitHub workflow
        be reviewed by some of the maintainers, who may ask you to make changes.
     5. If your topic branch has been around for a long time and has gotten
        out of date with the main repository, we might ask you to
-       `rebase <https://help.github.com/articles/about-git-rebase/>`_. Please
+       `rebase <https://help.github.com/articles/about-git-rebase/>`__. Please
        see the next section on how to rebase.
 
 -----------------
 Pre-commit checks
 -----------------
 
-On each commit a `pre-commit hook <https://pre-commit.com/>`_  will run
+On each commit a `pre-commit hook <https://pre-commit.com/>`__  will run
 that checks for violations of code style and other common problems.
 Where possible, these hooks will try to fix any problems that they find (including reformatting
 your code to conform to the required style). In this case, the commit
@@ -177,10 +180,10 @@ Rebasing is used for two basic tasks we might ask for during review:
 2. Your topic branch has lots of messy commits, which need to be cleaned up
    by "squashing".
 
-`Rebasing <https://help.github.com/articles/about-git-rebase/>`_ in git
+`Rebasing <https://help.github.com/articles/about-git-rebase/>`__ in git
 basically means changing where your branch forked off the main code
 in ``upstream/main``. A good way of visualising what's happening is to
-look at the `Network <https://github.com/popgensims/stdpopsim/network>`_ view on
+look at the `Network <https://github.com/popgensims/stdpopsim/network>`__ view on
 GitHub. This shows you all the forks and branches that GitHub knows about
 and how they relate to the main repository. Rebasing lets you change where
 your branch splits off.
@@ -224,7 +227,7 @@ we're aiming for, and git allows us to achieve it by *rewriting history* as
 much as we want within our own forks (we never rewrite history in the
 ``upstream`` repository, as this would cause problems for other developers).
 Having a clean, linear git history is a good idea for lots of reasons, not
-least of which is making `git bisect <https://git-scm.com/docs/git-bisect>`_
+least of which is making `git bisect <https://git-scm.com/docs/git-bisect>`__
 easier.
 
 One of the most useful things that we can do with rebasing is to "squash" commits
@@ -520,7 +523,7 @@ for every species added to the :ref:`sec_catalog`.
 We specify these requirements below.
 If you are unsure whether your species satisfies these baseline requirements,
 but you still think it will be useful to add it to ``stdpopsim``,
-then we encourage you to `open an issue <http://github.com/popgensims/stdpopsim/issues/new>`_
+then we encourage you to `open an issue <http://github.com/popgensims/stdpopsim/issues/new>`__
 on the GitHub repository to discuss this.
 Others researchers in the community may be able to help you fill in the missing details
 or find other solutions.
@@ -586,10 +589,10 @@ in that species, as represented in the literature.
 Before you add your species to ``stdpopsim``, see that you can collect the values
 mentioned above from the literature.
 You will later need to specify these citations in your code files
-(see `Adding and editing the required files`_).
+(see `Coding the species parameters`_).
 If you are unsure whether your species of interest satisfies the base requirements above
 (such as a near-complete genome assembly), or have questions about how to set some parameters,
-feel free to `open an issue <http://github.com/popgensims/stdpopsim/issues/new>`_
+feel free to `open an issue <http://github.com/popgensims/stdpopsim/issues/new>`__
 on the GitHub repository to get assistance from other members of the ``stdpopsim`` community.
 
 
@@ -601,8 +604,8 @@ If this is your first time adding a species to ``stdpopsim``, it's a good
 idea to take some time browsing the :ref:`sec_catalog`
 to see how existing species are typically specified and documented. If you have
 any questions or confusion about the required code, please
-don't hesitate to `open a new issue
-<https://github.com/popsim-consortium/stdpopsim/issues/new>`__.
+don't hesitate to
+`open a new issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`__.
 We're more than happy to answer any questions and help get you up and running.
 Before you add any code, be sure to have forked the ``stdpopsim`` repository
 and cloned it locally, following the instructions in the `GitHub Workflow`_ section.
@@ -709,93 +712,82 @@ To demonstrate how the ``_genome`` and ``_species`` objects are set,
 we provide below a detailed example for *A. thaliana*
 (see also ``stdpopsim/catalog/AraTha/species.py``).
 
-ILAN: I NEED TO FIX AND ADJUST THIS !!!
-
-We start by
-defining auxiliary objects (``_recombination_rate_data`` and ``_ploidy``)
-that specify the recombination rate and ploidy
-for each chromosome.
-Note that the mitochondrial and plastid genomes are associated
-with ploidy of 1 and recombination rate of 0,
-and all other chromosomes are associated with a ploidy of 2 and the
+We start by defining auxiliary objects that specify the recombination rate,
+mutation rate, and ploidy for each chromosome.
+In the case of *A. Thaliana*, these objects are defined to associate
+the mitochondrial and plastid genomes (chromsoomes `Mt` and `Pt`)
+with ploidy of 1 and recombination rate of 0.
+All other chromosomes are associated with a ploidy of 2 and the
 genome-wide average recombination rate.
+The genome-wide mutation rate is associated with all chromosomes.
 
 .. code-block:: python
 
-    _mean_recombination_rate = 200 / 124000 / 2 / 1e6
-    _recombination_rate_data = {str(j): _mean_recombination_rate for j in range(1, 6)}
-    _recombination_rate_data["Mt"] = 0
-    _recombination_rate_data["Pt"] = 0
+  # genome-wide recombination rate from Huber et al 2014 MBE
+  # associated with all recombining chromosomes
+  _rho = 200 / 1e6  # 200/Mb
+  _Ne = 124000
+  _mean_recombination_rate = _rho / (2 * _Ne)
+  _recombination_rate = {str(j): _mean_recombination_rate for j in range(1, 6)}
+  _recombination_rate["Mt"] = 0
+  _recombination_rate["Pt"] = 0  # JK Is this correct??
 
-    _species_ploidy = 2
-    _ploidy = {
-      "1": _species_ploidy,
-      "2": _species_ploidy,
-      "3": _species_ploidy,
-      "4": _species_ploidy,
-      "5": _species_ploidy,
-      "6": _species_ploidy,
-      "Mt": 1,
-      "Pt": 1,
-    }
+  # genome-wide average mutation rate from Ossowski 2010 Science
+  # associated with all chromosomes
+  _mean_mutation_rate = 7e-9
+  _mutation_rate = {str(j): _mean_mutation_rate for j in range(1, 6)}
+  _mutation_rate["Mt"] = _mean_mutation_rate
+  _mutation_rate["Pt"] = _mean_mutation_rate
 
-We then use another object (``_chromosomes``) to wrap up these
-values together with the mutation rate, which is set to the
-genome-wide average value for every chromosome.
-Chromosome ids and lengths are taken from the ``data`` object defined in
-the ``genome_data.py`` file.
+  # species ploidy and chromosome-specific ploidy
+  _species_ploidy = 2
+  _ploidy = {str(j): _species_ploidy for j in range(1, 6)}
+  _ploidy["Mt"] = 1
+  _ploidy["Pt"] = 1
 
-.. code-block:: python
 
-	_chromosomes = []
-	for name, data in genome_data.data["chromosomes"].items():
-	    _chromosomes.append(
-       		stdpopsim.Chromosome(
-	            id=name,
-       		    length=data["length"],
-	            synonyms=data["synonyms"],
-       		    mutation_rate=7e-9,
-	            recombination_rate=_recombination_rate_data[name],
-	            ploidy=_ploidy[name],
-       		)
-	    )
-
-Finally, the ``_genome`` object is defined by referencing the ``_chromosomes``
-object, adding the assembly name and accession, and all the relevant citations,
-with a "reason" associated with each citation:
+The ``_genome`` object is then defined by calling the ``stdpopsim`` function
+``stdpopsim.Genome.from_data``.
+This functions generates the genome object based on information from the
+``data`` object defined in the ``genome_data.py`` file,
+the auxiliary objects defined above,
+and a list of ``stdpopsim.Citation`` objects.
 
 .. code-block:: python
 
-  _genome = stdpopsim.Genome(
-      chromosomes=_chromosomes,
-      assembly_name=genome_data.data["assembly_name"],
-      assembly_accession=genome_data.data["assembly_accession"],
+  _genome = stdpopsim.Genome.from_data(
+      genome_data.data,
+      recombination_rate=_recombination_rate,
+      mutation_rate=_mutation_rate,
+      ploidy=_ploidy,
       citations=[
-        stdpopsim.Citation(
-          author="Ossowski et al.",
-          year=2010,
-          doi="https://doi.org/10.1126/science.1180677",
-          reasons={stdpopsim.CiteReason.MUT_RATE},
-        ),
-        stdpopsim.Citation(
-          author="Huber et al.",
-          year=2014,
-          doi="https://doi.org/10.1093/molbev/msu247",
-          reasons={stdpopsim.CiteReason.REC_RATE},
-        ),
-        stdpopsim.Citation(
-          doi="https://doi.org/10.1093/nar/gkm965",
-          year=2007,
-          author="Swarbreck et al.",
-          reasons={stdpopsim.CiteReason.ASSEMBLY},
-        ),
+          stdpopsim.Citation(
+              author="Ossowski et al.",
+              year=2010,
+              doi="https://doi.org/10.1126/science.1180677",
+              reasons={stdpopsim.CiteReason.MUT_RATE},
+          ),
+          stdpopsim.Citation(
+              author="Huber et al.",
+              year=2014,
+              doi="https://doi.org/10.1093/molbev/msu247",
+              reasons={stdpopsim.CiteReason.REC_RATE},
+          ),
+          stdpopsim.Citation(
+              doi="https://doi.org/10.1093/nar/gkm965",
+              year=2007,
+              author="Swarbreck et al.",
+              reasons={stdpopsim.CiteReason.ASSEMBLY},
+          ),
       ],
   )
 
-The ``_species`` object contains the remaining information about the species,
+
+
+The ``_species`` object contains a reference to the ``_genome`` object and
+the remaining information about the species,
 including the **effective population size** and **average generation time**,
-along with relevant citations.
-For example, the ``_species`` object for *A. thaliana* is specified as follows:
+accompanied by the appropriate ``stdpopsim.Citation`` objects.
 
 .. code-block:: python
 
@@ -806,7 +798,7 @@ For example, the ``_species`` object for *A. thaliana* is specified as follows:
         common_name="A. thaliana",
         genome=_genome,
         generation_time=1.0,
-        population_size=10**4,
+        population_size=10 ** 4,
         ploidy=_species_ploidy,
         citations=[
             stdpopsim.Citation(
@@ -1101,6 +1093,7 @@ with the following three lines of code:
 
   import msprime
   import stdpopsim
+
   _species = stdpopsim.get_species("<SPECIES_ID>")
 
 Furthermore, to ensure that the demographic model(s) are fully incorporated to the
@@ -1125,20 +1118,20 @@ We provide below a template block of code for these two operations:
 .. code-block:: python
 
   def _model_func_name():
-    return stdpopsim.DemographicModel(
-      id                        = ...,
-      description               = ...,
-      long_description          = ...,
-      populations               = ...,
-      citations                 = ...,
-      generation_time           = ...,
-      mutation_rate             = ...,
-      population_configurations = ...,
-      migration_matrix          = ...,
-      demographic_events        = ...,
-    )
+      return stdpopsim.DemographicModel(
+          id=...,
+          description=...,
+          long_description=...,
+          populations=...,
+          citations=...,
+          generation_time=...,
+          mutation_rate=...,
+          population_configurations=...,
+          migration_matrix=...,
+          demographic_events=...,
+      )
 
-    _species.add_demographic_model(_model_func_name())
+      _species.add_demographic_model(_model_func_name())
 
 A demographic model is thus defined using ten different attributes.
 The first seven attributes are quite straightforward:
@@ -1195,7 +1188,7 @@ migration rates, split times, and admixture events.
 These attributes should be coded using the standard format of ``msprime``.
 If this is your first time specifying a demographic model using ``msprime``,
 then we highly recommend that you take some time to read through its
-`documentation and tutorials <https://tskit.dev/msprime/docs/stable/quickstart.html>`_.
+`documentation and tutorials <https://tskit.dev/msprime/docs/stable/quickstart.html>`__.
 
 Finally, note that most published demographic models provide a range of plausible values for each
 parameter of interest.
@@ -1243,7 +1236,7 @@ where ``<SPECIES_ID>`` is the six-character species id (e.g., HomSap or AraTha):
 
   species = stdpopsim.get_species("<SPECIES_ID>")
   for x in species.demographic_models:
-    print(x.id)
+      print(x.id)
 
 
 This prints the identifiers (``id``; see above) for all demographic models defined for the species.
@@ -1257,8 +1250,8 @@ You should make sure that the identifier of your newly added model is printed.
     in the end of the ``demographic_models.py`` file.
 
     If you are still having trouble, check the
-    `GitHub issues <https://github.com/popsim-consortium/stdpopsim/issues?q=is%3Aissue+adding+demographic+model+>`_
-    or `open a new issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`_ to get help from others.
+    `GitHub issues <https://github.com/popsim-consortium/stdpopsim/issues?q=is%3Aissue+adding+demographic+model+>`__
+    or `open a new issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`__ to get help from others.
 
 After you confirmed that your demographic model was added to the species code,
 you should check that you can successfully simulate it with the Python API.
@@ -1298,11 +1291,9 @@ original function by adding this bit of code to ``stdpopsim/qc/<SPECIES_ID>.py``
 
 .. code-block:: python
 
-  _species.get_demographic_model(<MODEL_ID>).register_qc(
-    _your_review_function()
-  )
+  _species.get_demographic_model(_MODEL_ID_).register_qc(_your_review_function())
 
-Where ``<MODEL_ID>`` is the string specified by the original contributor as the
+Where ``_MODEL_ID_`` is the string specified by the original contributor as the
 ``id`` of the demographic model, and ``_your_review_function()`` is the function
 implemented by the reviewer.
 
@@ -1322,7 +1313,7 @@ Each chromosome should be placed in a separate file and with the chromosome id i
 file name in such a way that it can be programatically parsed out. IMPORTANT: chromosome
 ids must match those provided in the genome definition exactly! Below is an example start
 to a recombination map file (see `here
-<https://tskit.dev/msprime/docs/stable/api.html#msprime.RateMap.read_hapmap>`_
+<https://tskit.dev/msprime/docs/stable/api.html#msprime.RateMap.read_hapmap>`__
 for more details)::
 
     Chromosome Position(bp) Rate(cM/Mb) Map(cM)
@@ -1379,10 +1370,10 @@ current assembly is updated in `stdpopsim`. This process can be partially automa
 the liftOver maintenance code.
 
 First, you must download and install the ``liftOver`` executable from the
-`UCSC Genome Browser Store <https://genome-store.ucsc.edu/>`_.
+`UCSC Genome Browser Store <https://genome-store.ucsc.edu/>`__.
 Next, you must download the appropriate chain files, again from UCSC
 (see `UCSC Genome Browser downloads
-<http://hgdownload.soe.ucsc.edu/downloads.html#liftover>`_ for more details).
+<http://hgdownload.soe.ucsc.edu/downloads.html#liftover>`__ for more details).
 To validate the remapping between assemblies it is required to have chain files
 corresponding to both directions of the liftOver
 (e.g. `hg19ToHg38.over.chain.gz` and `hg38ToHg19.over.chain.gz`) as in the
@@ -1469,119 +1460,169 @@ to him until directed).
 Adding a DFE model
 ******************
 
-`stdpopsim` supports distribution of fitness effects (DFE) models from the
-literature. See :ref:`sec_simulating_sel`. To add a new DFE model to
-the catalog, you will need to:
+A distribution of fitness effects (DFE) describes
+the probability distribution of selection coefficients
+(deleterious, neutral, and beneficial)
+for mutations occurring in a certain set of genomic regions.
+This is a central component of the way that ``stdpopsim``
+incorporates natural selection in its simulations.
+See :ref:`sec_simulating_sel`.
+There are various computational methods for estimating DFEs from genomic data
+and you may use published DFEs to code a DFE model, as described below.
 
-    1. `Fork the repository and create a branch`_ (as for demographic models)
+---------------------------------------------
+Getting set up to add a new DFE model
+---------------------------------------------
 
-    2. `Write the DFE function in the catalog source code`_
+If this is your first time implementing a DFE in ``stdpopsim``, it's a good
+idea to take some time browsing the :ref:`sec_catalog`
+to see how existing DFEs are coded and documented.
+If you have any questions or confusion about formatting or implementing demographic models, please
+don't hesitate to `open a new issue <http://github.com/popgensims/stdpopsim/issues>`_.
+We're more than happy to answer any questions and help get you up and running.
+Before you add any code, be sure to have forked the ``stdpopsim`` repository
+and cloned it locally, following the instructions in the `GitHub Workflow`_ section.
 
-    3. `Submit a Pull Request on GitHub`_ (as for demographic models)
+The code for for a species' DFE models is written in the ``dfes.py``
+file in that species directory ``stdpopsim/catalog/<SPECIES-ID>/``
+(where ``<SPECIES-ID>`` is the six-character identifier of the species;
+e.g., AraTha).
+If the species does not currently have any DFE model,
+then you should add this file to ``stdpopsim/catalog/<SPECIES-ID>/``,
+with the following two lines of code:
 
-    4. `Open a QC issue`_
-
----------------------------------------------------
-Write the DFE function in the catalog source code
----------------------------------------------------
-
-In the ``stdpopsim`` catalog source code (found in ``stdpopsim/catalog/``),
-each species has a module that defines all of the necessary functions to run
-simulations for that species, including the DFE models. For example, if you
-were to write a new DFE model for `AraTha`, then within ``stdpopsim/catalog/AraTha``
-you should find a file named ``dfes.py`` with the following header:
-
-.. code-block:: python
-
-    import stdpopsim
-
-    _species = stdpopsim.get_species("AraTha")
-
-    ###########################################################
-    #
-    # DFEs
-    #
-    ###########################################################
-
-If ``dfes.py`` does not exist for your species, then you can create it
-(after adjusting the species name) and you will need to import it in your species
-definition. If `AraTha` were your species of interest then you would edit
-``stdpopsim/catalog/AraTha/__init__.py`` to add an import statement such as:
 
 .. code-block:: python
 
-    from . import dfes  # noqa: F401
+  import stdpopsim
 
-Now, you can define your new DFE function following this format:
+  _species = stdpopsim.get_species("<SPECIES_ID>")
+
+Furthermore, to ensure that the DFE model is fully incorporated to the
+species' code base, you should add the following import to the ``__init__.py`` file
+in the species directory:
+
+.. code-block:: python
+
+  from . import dfes
+
+--------------------
+Coding the DFE model
+--------------------
+
+The DFE model should be coded in the ``dfes.py`` file
+by defining a specialized function, which essentially returns
+a ``stdpopsim.DFE`` object initialized with the appropriate values.
+This function should then be added to the ``_species`` object using the ``add_dfe``
+function.
+We provide below a template block of code for these two operations:
+
+.. code-block:: python
+
+  def _dfe_func_name():
+      return stdpopsim.DFE(
+          id=...,
+          description=...,
+          long_description=...,
+          citations=...,
+          mutation_types=...,
+          proportions=...,
+      )
+
+      _species.add_dfe(_dfe_func_name())
+
+A DFE model is thus defined using six different attributes.
+The four attributes
+(``id``, ``description``, ``long_description``, and ``citations``)
+are similar to the ones used for demographic
+models (see `Coding the demographic model`_ above).
+Use ``stdpopsim.CiteReason.DFE`` for the reason of the citations
+associated with the DFE model.
+The fifth attribute (``mutation_types``) should be a list
+of ``stdpopsim.MutationType`` objects corresponding to different
+mutation types (such as negative, neutral, or positive).
+The sixth attribute (``proportions``) should be a list of
+the same length of positive numbers that sum to 1,
+describing the proportion of each mutation type.
+See the detailed documentation of :class:`stdpopsim.DFE`
+and :class:`stdpopsim.MutationType`.
+
+
+For example, the code block below demonstrates a DFE model
+with three mutation types: neutral, negative, and positive.
+In this model, negative mutations are assumed to have
+dominance coefficience of ``0.5`` and a selection
+coefficients distributed according to a Gamma distribution
+with mean ``-0.0004`` and shape ``0.27``.
+The positive mutations also have a dominance coefficience of ``0.5``,
+but they have a fixed selection coefficient of ``0.01``.
 
 .. code-block:: python
 
     def _dfe_func_name():
-        id = "FILL ME"
-        description = "FILL ME"
-        long_description = """
-        FILL ME
-        """
-        citations = [
-            stdpopsim.Citation(
-                author="FILL ME",
-                year="FILL ME",
-                doi="FILL ME",
-                reasons={stdpopsim.CiteReason.DFE},
-            )
-        ]
 
-        # Mutation Types based on the published DFE model, for example:
-        neutral = stdpopsim.MutationType()  # Neutral mutation type by default
+        # Default mutation type is neutral
+        neutral = stdpopsim.MutationType()
+        # Negative mutation type with fixed sel coeff of -0.01
         negative = stdpopsim.MutationType(
             dominance_coeff=0.5,
-            distribution_type="f",  # fixed selection coefficient
-            distribution_args=[-0.01],  # selection coefficient
+            distribution_type="g",  # gamma distributed selection coefficient
+            distribution_args=[-0.0004, 0.27],  # mean and shape of gamma distributoin
         )
         positive = stdpopsim.MutationType(
             dominance_coeff=0.5,
-            distribution_type="f",
-            distribution_args=[0.01],
+            distribution_type="f",  # fixed selection coefficient
+            distribution_args=[0.01],  # fixed value
         )
-        # Defining some example proportions of each mutation type
+
+        # The proportions of the three mutation types
         p_neutral = 0.7
         p_negative = 0.299
         p_positive = 1 - p_neutral - p_negative
 
-        # Example return statement for this example DFE with three mutation types.
         return stdpopsim.DFE(
-            id=id,
-            description=description,
-            long_description=long_description,
+            id=...,
+            description=...,
+            long_description=...,
+            citations=...,
             mutation_types=[neutral, negative, positive],
             proportions=[p_neutral, p_negative, p_positive],
-            citations=citations,
         )
 
 
     _species.add_dfe(_dfe_func_name())
 
-See the detailed documentation of :class:`stdpopsim.DFE`
-and :class:`stdpopsim.MutationType`.
 
----------------------------------------------------
-Open a QC issue
----------------------------------------------------
+-----------------------------------------
+Submitting a PR and reviewing a DFE model
+-----------------------------------------
 
-Open a new issue requesting a quality control check on your newly implemented
-DFE model. You should structure the issue as follows:
+After you finished your implementation, and specified all the
+necessary citations,
+you should submit a pull request (PR) with your changes to the code.
+See the `GitHub workflow`_ for more details about this process.
 
-    1. **PR for new model:**
+At this point, most of your work is done.
+**You have officially joined the** ``stdpopsim`` **development team. Welcome!!**
+Your DFE model still needs to undergo review by another member
+of the development team before it is fully incorporated into ``stdpopsim``.
+This will likely require additional feedback from you,
+so, stay tuned for discussion during the review process.
 
-    2. **Original paper:**
+The review process for DFE models is similar to that of
+new species or demographic models.
+See the `Overview of the stdpopsim review process`_.
+There is no template issue for a DFE model QC,
+so the **QC issue** is generated by
+`opening a new blank issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`__
+and specifying the following information in that issue:
 
-    3. **Parameter values:**
+1. **PR for new model:**
+2. **Original paper:**
+3. **Parameter values:**
+4. **Potential issues:**
+5. **QC'er requests:**
 
-    4. **Potential issues:**
-
-    5. **QC'er requests:**
-
-The QC process or DFEs follows that of demographic models (see `Demographic model review process`_).
 
 ****************
 Coding standards
@@ -1589,7 +1630,7 @@ Coding standards
 
 To ensure that the code in ``stdpopsim`` is as readable as possible
 and follows a reasonably uniform style, we require that all code follows
-the `PEP8 <https://www.python.org/dev/peps/pep-0008/>`_ style guide.
+the `PEP8 <https://www.python.org/dev/peps/pep-0008/>`__ style guide.
 Lines of code should be no more than 89 characters.
 Conformance to this style is checked as part of the Continuous Integration
 testing suite.
@@ -1634,23 +1675,23 @@ Unit tests
 **********
 
 All code added to ``stdpopsim`` should have
-`unit tests <https://en.wikipedia.org/wiki/Unit_testing>`_. These are typically
+`unit tests <https://en.wikipedia.org/wiki/Unit_testing>`__. These are typically
 simple and fast checks to ensure that the code makes basic sense (the
 entire unit test suite should not require more than a few seconds to run).
-Test coverage is checked using `CodeCov <https://codecov.io/gh/popgensims/stdpopsim>`_,
+Test coverage is checked using `CodeCov <https://codecov.io/gh/popgensims/stdpopsim>`__,
 which generates reports about each pull request.
 
 It is not practical to test the statistical properties of simulation models
 as part of unit tests.
 
 The unit test suite is in the ``tests/`` directory. Tests are run using the
-`pytest <https://docs.pytest.org/en/stable/>`_ module. Use::
+`pytest <https://docs.pytest.org/en/stable/>`__ module. Use::
 
     $ python3 -m pytest
 
 from the project root to run the full test suite. Pytest is very powerful and
 has lots of options; please see the `tskit documentation
-<https://tskit.dev/tskit/docs/stable/development.html#tests>`_ for help on
+<https://tskit.dev/tskit/docs/stable/development.html#tests>`__ for help on
 how to run pytest and some common options.
 
 It's useful to run the ``flake8`` CI tests *locally* before pushing a commit.
@@ -1694,8 +1735,8 @@ indicated that tests do not currently cover that bit of code.
 Documentation
 *************
 
-Documentation is written using `reStructuredText <http://docutils.sourceforge.net/rst.html>`_
-markup and the `sphinx <http://www.sphinx-doc.org/en/master/>`_ documentation system.
+Documentation is written using `reStructuredText <http://docutils.sourceforge.net/rst.html>`__
+markup and the `sphinx <http://www.sphinx-doc.org/en/master/>`__ documentation system.
 It is defined in the ``docs/`` directory.
 
 To build the documentation type ``make`` in the ``docs/`` directory. This should build
@@ -1721,6 +1762,6 @@ Here is a list of things to do when making a new release:
 4. Upload to PyPI: `twine upload dist/{version just tagged}.tar.gz`
 5. After the release, if everything looks OK,
    update the symlink for ``stable`` in the
-   `stdpopsim-docs <https://github.com/popsim-consortium/stdpopsim-docs>`_
+   `stdpopsim-docs <https://github.com/popsim-consortium/stdpopsim-docs>`__
    repository
 6. Check on the conda feedstock PR.
