@@ -1051,14 +1051,29 @@ to these units by making some assumptions on the mutation rate;
 typically the same assumptions made by the study that published the demographic model.
 
 
-Some demographic models can be **generic**, meaning that they may be
-applied to any species.
-The `stdpopsim` :ref:`sec_catalog` contains a collection of generic models that are widely used in
-developing and testing inference methods.
-We encourage contributors to suggest additional generic models,
+The ``stdpopsim`` :ref:`sec_catalog` also contains a collection of **generic models**
+that are not associated with a certain species and are primarily used for development
+and testing of demographic inference methods.
+Contributors may suggest additional generic models,
 which they think can be helpful for methods development.
-Note that generic models should also be accompanied with a clear citation indicating
-their usefulness.
+If you implement a generic demographic model, you should follow the guidelines
+listed below for species-specific models, with the following
+notable exceptions:
+
+1. Generic models are defined as **Python classes** at the bottom of the file
+   ``stdpopsim/models.py``.
+   If you code a generic model, you should implement the appropriate class
+   at the bottom of this file.
+   Try to follow the style used in existing generic models
+   (such as ``PiecewiseConstantSize`` and ``IsolationWithMigration``).
+
+2. The generation time associated with a generic model should be set to 1.
+
+3. The citation(s) associated with a generic model should establish its utility
+   in methods development.
+
+4. Generic models undergo standard code review by another ``stdpopsim`` contributor.
+   There is no need for the blind tests outlined below for species-specific models.
 
 ---------------------------------------------
 Getting set up to add a new demographic model
@@ -1159,7 +1174,6 @@ The first seven attributes are quite straightforward:
   since the ``SLiM`` and ``msprime`` simulation engines operate in time units of generations.
   The generation time is only currently used to convert time units to years,
   which is useful when comparing among different demographic models.
-  If you are implementing a generic model, the generation time should default to 1.
 
 * ``mutation_rate`` (`double`): The mutation rate assumed during the inference of this demographic
   model (per bp per generation).
