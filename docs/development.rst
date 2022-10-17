@@ -9,7 +9,7 @@ Development
 We envision at least three main types of ``stdpopsim`` developers:
 
 1. Contributors of new species, demographic models, and other features
-   (such as recombination maps, annotations, DFEs)
+   (such as recombination maps, annotations, DFE models)
 2. API developers
 3. Documentation and tutorial curators
 
@@ -18,10 +18,11 @@ This is the main way we envision biologists to continually add
 to the catalog of available models, and it is a great first step for new
 contributors to learn the ins and outs of ``stdpopsim`` development.
 See the appropriate sections below:
-`Adding a new species`_,
-`Adding a new demographic model`_,
-`Adding a genetic map`_, and
-`Adding a DFE model`_.
+
+* `Adding a new species`_
+* `Adding a new demographic model`_
+* `Adding a genetic map`_
+* `Adding a DFE model`_
 
 `API developers` work on infrastructure development for the PopSim Consortium,
 which could include improvements and additions to the internal code base of
@@ -573,7 +574,7 @@ with a brief discussion of possible courses of action to take when components ha
    we recommend using estimates for some other species (hopefully closely related).
 
 4. The **effective population size** should represent the historical average effective population size,
-   and ideally produce simulated data that matches the average observed genetic diversity in that species.
+   and should ideally produce simulated data that matches the average observed genetic diversity in that species.
    However, this will often not capture features of genetic variation that are caused by recent changes in population size and the presence of population structure.
    To capture those, one should also provide a demographic model (or multiple models) for the species
    (see `Adding a new demographic model`_).
@@ -582,7 +583,7 @@ with a brief discussion of possible courses of action to take when components ha
    but its value does not directly affect the simulation, since
    the ``SLiM`` and ``msprime`` simulation engines operate in time units of generations.
    Thus, the average generation time is only currently used to convert time units to years,
-   which is useful when comparing among different demographic models.
+   which is useful when comparing different demographic models.
 
 All values used in the species model should be based on current knowledge for a typical population
 in that species, as represented in the literature.
@@ -642,7 +643,7 @@ The ``maintenance`` utility generates three new files inside the species directo
 
 * ``__init__.py``: a  script that loads all the relevant libraries for your species.
   It should be edited only when you add components to your species, such as demographic models,
-  genetic maps, or DFEs.
+  genetic maps, or DFE models.
 
 * ``genome_data.py``: a file that contains information on the physical map of the genome.
   This file is generated automatically by the ``maintenance`` utility with a data dictionary
@@ -730,7 +731,7 @@ The genome-wide mutation rate is associated with all chromosomes.
   _mean_recombination_rate = _rho / (2 * _Ne)
   _recombination_rate = {str(j): _mean_recombination_rate for j in range(1, 6)}
   _recombination_rate["Mt"] = 0
-  _recombination_rate["Pt"] = 0  # JK Is this correct??
+  _recombination_rate["Pt"] = 0
 
   # genome-wide average mutation rate from Ossowski 2010 Science
   # associated with all chromosomes
@@ -817,7 +818,7 @@ accompanied by the appropriate ``stdpopsim.Citation`` objects.
     )
 
 
-Once these two objects (``_genome`` and ``_species``) are specified,
+Once these two objects (``_genome`` and ``_species``) are specified in the ``species.py`` file,
 you should be able to load and simulate the newly added species using ``stdpopsim``.
 
 ----------------------------------------------
@@ -862,8 +863,8 @@ Overview of the stdpopsim review process
 We provide here a general outline for the review process we use in ``stdpopsim``,
 including guidelines for how to settle discrepancies that are found during review
 (see Step 6 below).
-The six steps described below should be followed whenever a **new species** is added,
-or when components such as **demographic models** or **DFEs** are added to a species
+The seven steps described below should be followed whenever a **new species** is added,
+or when components such as **demographic models** are added to a species
 already in the catalog.
 
 1. After the original contributor submitted a PR with their new code,
@@ -917,7 +918,7 @@ already in the catalog.
    The reviewer should write the testing code on their own fork of the repository,
    as outlined in the `GitHub workflow`_.
 
-4. After writing the appropriate  the test code,
+4. After writing the appropriate code,
    the reviewer should execute it by running the `Unit tests`_.
    The unit tests will produce error messages if
    inconsistencies are found between the original contributor's implementation
@@ -984,9 +985,12 @@ For example, the test for the recombination rates is initialized by the
     def test_recombination_rate(self, name, rate):
         assert rate == pytest.approx(self.genome.get_chromosome(name).recombination_rate)
 
-When writing the tests for the recombination rates, the reviewer should modify
-this code to look something like this
-(example taken from ``tests/test_AedAeg.py`` for *A. aegypti*):
+When writing the tests for the recombination rates, the reviewer should first
+delete the ``@pytest.mark.skip`` line to enable the test.
+Then, they should specify inside the ``{ }`` a valid dictionary:
+a list of ``key``:``value`` with the name and average
+recombination rate for each chromosome.
+We provide an example below from *A. aegypti* (see ``tests/test_AedAeg.py``):
 
 .. code-block:: python
 
@@ -997,10 +1001,6 @@ this code to look something like this
     def test_recombination_rate(self, name, rate):
         assert rate == pytest.approx(self.genome.get_chromosome(name).recombination_rate)
 
-The ``@pytest.mark.skip`` line has been deleted to enable this test,
-and the dictionary in the ``@pytest.mark.parameterize`` line  (code inside the ``{ }``)
-has been filled out with ``key``:``value`` pairs that give the name and average
-recombination rate for each chromosome.
 
 The tests can be executed by running the complete set of `Unit tests`_,
 or by invoking only the tests in ``tests/test_<SPECIES_ID>.py``, as follows:
@@ -1036,36 +1036,22 @@ The demographic model should include, at a minimum,
 a single population with a series of population sizes changes.
 Multi-population models typically include other **demographic events**,
 such as population splits and changes in the amount of gene flow between populations.
-The values of different parameters should be specified in number of individuals
+The values of different parameters should be specified in units of "number of individuals"
 (for population sizes) and generations (for times).
 Sometimes, you will need to convert values published in the literature
 to these units by making some assumptions on the mutation rate;
 typically the same assumptions made by the study that published the demographic model.
 
 
-The ``stdpopsim`` :ref:`sec_catalog` also contains a collection of **generic models**
-that are not associated with a certain species and are primarily used for development
+The ``stdpopsim`` :ref:`sec_catalog` also contains a collection of **generic models**,
+which are not associated with a certain species and are primarily used for development
 and testing of demographic inference methods.
-Contributors may suggest additional generic models,
-which they think can be helpful for methods development.
-If you implement a generic demographic model, you should follow the guidelines
-listed below for species-specific models, with the following
-notable exceptions:
-
-1. Generic models are defined as **Python classes** at the bottom of the file
-   ``stdpopsim/models.py``.
-   If you code a generic model, you should implement the appropriate class
-   at the bottom of this file.
-   Try to follow the style used in existing generic models
-   (such as ``PiecewiseConstantSize`` and ``IsolationWithMigration``).
-
-2. The generation time associated with a generic model should be set to 1.
-
-3. The citation(s) associated with a generic model should establish its utility
-   in methods development.
-
-4. Generic models undergo standard code review by another ``stdpopsim`` contributor.
-   There is no need for the blind tests outlined below for species-specific models.
+Due to their nature, the rationale for adding such models is different,
+and they are also implemented in a slightly different way.
+If you wish to contribute a new **generic model**,
+then we suggest that you `open a new issue <http://github.com/popgensims/stdpopsim/issues>`__
+to discuss your suggestion with others in the community and decide on the best
+way to implement your suggestion.
 
 ---------------------------------------------
 Getting set up to add a new demographic model
@@ -1075,18 +1061,18 @@ If this is your first time implementing a demographic model in ``stdpopsim``, it
 idea to take some time browsing the :ref:`sec_catalog`
 to see how existing demographic models are coded and documented.
 If you have any questions or confusion about formatting or implementing demographic models, please
-don't hesitate to `open a new issue <http://github.com/popgensims/stdpopsim/issues>`_.
+don't hesitate to `open a new issue <http://github.com/popgensims/stdpopsim/issues>`__.
 We're more than happy to answer any questions and help get you up and running.
 Before you add any code, be sure to have forked the ``stdpopsim`` repository
 and cloned it locally, following the instructions in the `GitHub Workflow`_ section.
 
 
 All code for a species' demographic models is written in the ``demographic_models.py``
-file in that species directory ``stdpopsim/catalog/<SPECIES-ID>/``
-(where ``<SPECIES-ID>`` is the six-character identifier of the species;
+file in that species directory ``stdpopsim/catalog/<SPECIES_ID>/``
+(where ``<SPECIES_ID>`` is the six-character identifier of the species;
 e.g., CanFam).
 If the species does not currently have any demographic model,
-then you should add this file to ``stdpopsim/catalog/<SPECIES-ID>/``,
+then you should add this file to ``stdpopsim/catalog/<SPECIES_ID>/``,
 with the following three lines of code:
 
 .. code-block:: python
@@ -1143,7 +1129,7 @@ The first seven attributes are quite straightforward:
   (2) the first letter of the name of the first author of the publication;
   (3-4) and two digit characters specifying the year the study was published.
   For example, the "Out of Africa" demographic model for humans published by
-  Gutenkunst et al. (2009) has the ``id`` "OutOfAfrica_3G09".
+  Gutenkunst *et al.* (2009) has the ``id`` "OutOfAfrica_3G09".
   See :ref:`sec_development_naming_conventions` for more details.
 
 * ``description`` (`string`): A brief one-line description of the demographic model.
@@ -1190,21 +1176,26 @@ If this is your first time specifying a demographic model using ``msprime``,
 then we highly recommend that you take some time to read through its
 `documentation and tutorials <https://tskit.dev/msprime/docs/stable/quickstart.html>`__.
 
-Finally, note that most published demographic models provide a range of plausible values for each
-parameter of interest.
-In your coded model, you should use some reasonable point estimate,
-such as the value associated with the the maximum likelihood fit,
-or the mean posterior (for Bayesian methods).
+
+.. note::
+
+   Most published demographic models provide a range of plausible values for each
+   parameter of interest.
+   In your coded model, you should use some reasonable point estimate,
+   such as the value associated with the the maximum likelihood fit,
+   or the mean posterior (for Bayesian methods).
 
 ------------------------------------
 Adding a parameter table to the docs
 ------------------------------------
 
 The parameters used in the implementation of the demographic model should
-also be specified in a csv file in the ``docs/parameter_tables/`` directory.
+also be specified in the docs in a file  ``docs/parameter_tables/<SPECIES_ID>/<MODEL_ID>.csv``,
+where ``<SPECIES_ID>`` is the six-character species id,
+and ``<MODEL_ID>`` is the ``id`` of the demographic model.
 This provides a straightforward documentation and also helps in the review
 process (see below).
-Each line in the csv file should have the format::
+Each line in this csv file should have the format::
 
     Parameter Type (units), Value, Description
 
@@ -1476,19 +1467,19 @@ Getting set up to add a new DFE model
 
 If this is your first time implementing a DFE in ``stdpopsim``, it's a good
 idea to take some time browsing the :ref:`sec_catalog`
-to see how existing DFEs are coded and documented.
+to see how existing DFE models are coded and documented.
 If you have any questions or confusion about formatting or implementing demographic models, please
-don't hesitate to `open a new issue <http://github.com/popgensims/stdpopsim/issues>`_.
+don't hesitate to `open a new issue <http://github.com/popgensims/stdpopsim/issues>`__.
 We're more than happy to answer any questions and help get you up and running.
 Before you add any code, be sure to have forked the ``stdpopsim`` repository
 and cloned it locally, following the instructions in the `GitHub Workflow`_ section.
 
 The code for for a species' DFE models is written in the ``dfes.py``
-file in that species directory ``stdpopsim/catalog/<SPECIES-ID>/``
-(where ``<SPECIES-ID>`` is the six-character identifier of the species;
+file in that species directory ``stdpopsim/catalog/<SPECIES_ID>/``
+(where ``<SPECIES_ID>`` is the six-character identifier of the species;
 e.g., AraTha).
 If the species does not currently have any DFE model,
-then you should add this file to ``stdpopsim/catalog/<SPECIES-ID>/``,
+then you should add this file to ``stdpopsim/catalog/<SPECIES_ID>/``,
 with the following two lines of code:
 
 
@@ -1532,21 +1523,33 @@ We provide below a template block of code for these two operations:
       _species.add_dfe(_dfe_func_name())
 
 A DFE model is thus defined using six different attributes.
-The four attributes
-(``id``, ``description``, ``long_description``, and ``citations``)
-are similar to the ones used for demographic
-models (see `Coding the demographic model`_ above).
-Use ``stdpopsim.CiteReason.DFE`` for the reason of the citations
-associated with the DFE model.
-The fifth attribute (``mutation_types``) should be a list
-of ``stdpopsim.MutationType`` objects corresponding to different
-mutation types (such as negative, neutral, or positive).
-The sixth attribute (``proportions``) should be a list of
-the same length of positive numbers that sum to 1,
-describing the proportion of each mutation type.
-See the detailed documentation of :class:`stdpopsim.DFE`
-and :class:`stdpopsim.MutationType`.
 
+* ``id`` (`string`): A unique, short-hand identifier for this DFE model.
+  This id contains a short description of the distribution written in camel case,
+  (such as `"LogNormal"` or `"Gamma"`),
+  followed by an underscore, and then three characters:
+  (1) the first letter of the name of the first author of the publication;
+  (2-3) and two digit characters specifying the year the study was published.
+  For example, the DFE inferred by Kim *et al.* (2017) has ``id`` set to `"Gamma_K17"`.
+  See :ref:`sec_development_naming_conventions` for more details.
+
+* ``description`` (`string`): A brief one-line description of the demographic model.
+
+* ``long_description`` (`string`): A more detailed textual description of the model (short paragraph).
+
+* ``citations``: A list of ``stdpopsim.Citation`` objects for the publications
+  from which this model was derived.
+  The citation object requires author, year, and doi information, and
+  a specified reason for citing this model (see `Coding the species parameters`_).
+  The reason associated with demographic model citations will typically be
+  ``stdpopsim.CiteReason.DFE``.
+
+* ``mutation_types``: A list of ``stdpopsim.MutationType`` objects corresponding to different
+  mutation types (such as negative, neutral, or positive).
+  For more details, see the example below and the documentation of :class:`stdpopsim.MutationType`
+
+* ``proportions``: A list of positive numbers that sum to 1 of the same length as ``mutation_types``.
+  This list specifies the proportion of each mutation type.
 
 For example, the code block below demonstrates a DFE model
 with three mutation types: neutral, negative, and positive.
@@ -1563,12 +1566,13 @@ but they have a fixed selection coefficient of ``0.01``.
 
         # Default mutation type is neutral
         neutral = stdpopsim.MutationType()
-        # Negative mutation type with fixed sel coeff of -0.01
+        # Negative mutation type with gamma-distributed selection coefficients
         negative = stdpopsim.MutationType(
             dominance_coeff=0.5,
-            distribution_type="g",  # gamma distributed selection coefficient
-            distribution_args=[-0.0004, 0.27],  # mean and shape of gamma distributoin
+            distribution_type="g",  # gamma distribution
+            distribution_args=[-0.0004, 0.27],  # mean and shape of distributoin
         )
+        # Positive mutation type with fixed selection coefficient of 0.01
         positive = stdpopsim.MutationType(
             dominance_coeff=0.5,
             distribution_type="f",  # fixed selection coefficient
@@ -1593,12 +1597,17 @@ but they have a fixed selection coefficient of ``0.01``.
     _species.add_dfe(_dfe_func_name())
 
 
------------------------------------------
-Submitting a PR and reviewing a DFE model
------------------------------------------
+------------------------------------------
+Testing your DFE model and submitting a PR
+------------------------------------------
 
 After you finished your implementation, and specified all the
 necessary citations,
+we recommend that you run some basic local tests to see that
+the model was successfully loaded to ``stdpopsim``.
+You may follow the process outlined for `Testing your demographic model and submitting a PR`_.
+
+Once you are convinced that the model was accurately implemented and loaded to ``stdpopsim``,
 you should submit a pull request (PR) with your changes to the code.
 See the `GitHub workflow`_ for more details about this process.
 
@@ -1609,13 +1618,14 @@ of the development team before it is fully incorporated into ``stdpopsim``.
 This will likely require additional feedback from you,
 so, stay tuned for discussion during the review process.
 
-The review process for DFE models is similar to that of
-new species or demographic models.
-See the `Overview of the stdpopsim review process`_.
-There is no template issue for a DFE model QC,
-so the **QC issue** is generated by
-`opening a new blank issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`__
-and specifying the following information in that issue:
+---------------------
+Reviewing a DFE model
+---------------------
+
+The review process for DFE models is currently being developed.
+For now, we suggest that you
+`open a new blank issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`__
+and specify the following information:
 
 1. **PR for new model:**
 2. **Original paper:**
@@ -1623,6 +1633,9 @@ and specifying the following information in that issue:
 4. **Potential issues:**
 5. **QC'er requests:**
 
+A reviewer will be assigned to check your implementation and approve it.
+All discussion about the review can be conducted in the **QC issue**
+mentioned above.
 
 ****************
 Coding standards
@@ -1663,8 +1676,8 @@ is the number of populations implemented in the model (not necessarily the numbe
 from which samples are drawn). For author initial we will use a single letter, the 1st,
 until an ID collision, in which case we will include the 2nd letter, and so forth.
 
-DFEs (Distributions of Fitness Effects) are similarly named using something descriptive
-of the distribution, and information about the publication:
+DFE (Distribution of Fitness Effects) models are similarly named using a string describing
+the distribution, and information about the publication:
 ``${SomethingDescriptive}_${First_authors_last_name_first_letter}{two_digit_date}``.
 For instance, if the distribution in question is a lognormal distribution,
 then ``LogNormal`` might be the descriptive string.
