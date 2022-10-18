@@ -2,45 +2,33 @@ import stdpopsim
 from . import genome_data
 
 
-_mean_recombination_rate = 200 / 124000 / 2 / 1e6
+# genome-wide recombination rate from Huber et al 2014 MBE
+# associated with all recombining chromosomes
+_rho = 200 / 1e6  # 200/Mb
+_Ne = 124000
+_mean_recombination_rate = _rho / (2 * _Ne)
+_recombination_rate = {str(j): _mean_recombination_rate for j in range(1, 6)}
+_recombination_rate["Mt"] = 0
+_recombination_rate["Pt"] = 0  # JK Is this correct??
 
-_recombination_rate_data = {str(j): _mean_recombination_rate for j in range(1, 6)}
-_recombination_rate_data["Mt"] = 0
-_recombination_rate_data["Pt"] = 0  # JK Is this correct??
+# genome-wide average mutation rate from Ossowski 2010 Science
+# associated with all chromosomes
+_mean_mutation_rate = 7e-9
+_mutation_rate = {str(j): _mean_mutation_rate for j in range(1, 6)}
+_mutation_rate["Mt"] = _mean_mutation_rate
+_mutation_rate["Pt"] = _mean_mutation_rate
 
-# Generic and chromosome-specific ploidy
+# species ploidy and chromosome-specific ploidy
 _species_ploidy = 2
-_ploidy = {
-    "1": _species_ploidy,
-    "2": _species_ploidy,
-    "3": _species_ploidy,
-    "4": _species_ploidy,
-    "5": _species_ploidy,
-    "6": _species_ploidy,
-    "Mt": 1,
-    "Pt": 1,
-}
+_ploidy = {str(j): _species_ploidy for j in range(1, 6)}
+_ploidy["Mt"] = 1
+_ploidy["Pt"] = 1
 
-# mutation rate from Ossowski 2010 Science
-# recombination value from Huber et al 2014 MBE
-# rho=200/Mb, assume Ne=124,000, rho=2*Ne*r
-_chromosomes = []
-for name, data in genome_data.data["chromosomes"].items():
-    _chromosomes.append(
-        stdpopsim.Chromosome(
-            id=name,
-            length=data["length"],
-            synonyms=data["synonyms"],
-            mutation_rate=7e-9,
-            recombination_rate=_recombination_rate_data[name],
-            ploidy=_ploidy[name],
-        )
-    )
-
-_genome = stdpopsim.Genome(
-    chromosomes=_chromosomes,
-    assembly_name=genome_data.data["assembly_name"],
-    assembly_accession=genome_data.data["assembly_accession"],
+_genome = stdpopsim.Genome.from_data(
+    genome_data.data,
+    recombination_rate=_recombination_rate,
+    mutation_rate=_mutation_rate,
+    ploidy=_ploidy,
     citations=[
         stdpopsim.Citation(
             author="Ossowski et al.",
@@ -62,6 +50,8 @@ _genome = stdpopsim.Genome(
         ),
     ],
 )
+
+# add common chromosome synonyms to _genome object
 stdpopsim.utils.append_common_synonyms(_genome)
 
 _species = stdpopsim.Species(
