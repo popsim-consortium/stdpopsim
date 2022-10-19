@@ -1765,6 +1765,7 @@ class _SLiMEngine(stdpopsim.Engine):
             initial_state=ts,
             demography=demography,
             recombination_rate=contig.recombination_map,
+            ploidy=contig.ploidy,
             random_seed=s0,
         )
         ts = self._simplify_remembered(ts)
