@@ -900,7 +900,9 @@ def slim_makescript(
     growth_rates = np.empty(shape=(dd.num_populations, len(epochs)), dtype=float)
     for j, epoch in enumerate(epochs):
         for i, pop in enumerate(epoch.populations):
-            N[i, j] = int(pop.end_size)
+            # SLiM simulates a diploid population, so rescale population size
+            # depending on contig ploidy.
+            N[i, j] = int(pop.end_size * contig.ploidy / 2)
             growth_rates[i, j] = pop.growth_rate
 
     admixture_pulses = []
