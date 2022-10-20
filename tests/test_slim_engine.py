@@ -11,6 +11,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import collections
 import re
+import logging
 
 import pytest
 import tskit
@@ -2885,3 +2886,45 @@ class TestSelectionCoeffFromMutation:
             stdpopsim.ext.selection_coeff_from_mutation("foo", next(ts.mutations()))
         with pytest.raises(ValueError, match="must be a"):
             stdpopsim.ext.selection_coeff_from_mutation(ts, "bar")
+
+
+@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
+class TestPopulationSizePloidy:
+    """
+    Check that (diploid) population size in SLiM simulation is equivalent to
+    (possibly non-diploid) species population size, via DEBUG logging.
+    """
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    @pytest.mark.usefixtures("caplog")
+    def test_haploid_population_size(self, caplog):
+        N = 100
+        engine = stdpopsim.get_engine("slim")
+        contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=1)
+        model = stdpopsim.PiecewiseConstantSize(N)
+        with caplog.at_level(logging.DEBUG):
+            engine.simulate(model, contig, samples={"pop_0": 2}, verbosity=2)
+        log_str = " ".join([rec.getMessage() for rec in caplog.records])
+        # match: "1: p = sim.addSubpop(0, <SLiM population size>);"
+        extract_ne = re.compile(".+1: p = sim.addSubpop\\(0, ([0-9]+)\\).+")
+        match = extract_ne.match(log_str)
+        assert match is not None
+        (Nslim,) = match.groups()
+        assert int(Nslim) == int(N / 2)
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    @pytest.mark.usefixtures("caplog")
+    def test_diploid_population_size(self, caplog):
+        N = 100
+        engine = stdpopsim.get_engine("slim")
+        contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=2)
+        model = stdpopsim.PiecewiseConstantSize(N)
+        with caplog.at_level(logging.DEBUG):
+            engine.simulate(model, contig, samples={"pop_0": 2}, verbosity=2)
+        log_str = " ".join([rec.getMessage() for rec in caplog.records])
+        # match: "1: p = sim.addSubpop(0, <SLiM population size>);"
+        extract_ne = re.compile(".+1: p = sim.addSubpop\\(0, ([0-9]+)\\).+")
+        match = extract_ne.match(log_str)
+        assert match is not None
+        (Nslim,) = match.groups()
+        assert int(Nslim) == int(N)
