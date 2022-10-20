@@ -18,7 +18,10 @@ _gm = stdpopsim.GeneticMap(
         from three colonies of Apis mellifera ligustica from China. The study
         included three diploid queens, six diploid workers, and 46 haploid
         drones. The map was first lifted from the Amel_4.5 to Amel_HAv3.1
-        assembly. To convert the cross-over events to 
+        assembly. To convert the crossover events to genetic position, the
+        recombination rate was assumed stable between crossovers and the
+        genetic position was inferred from the physical positions of SNPs
+        within these crossover ranges.
         """,
     url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
@@ -30,4 +33,3 @@ _gm = stdpopsim.GeneticMap(
 )
 
 _species.add_genetic_map(_gm)
-
