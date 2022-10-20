@@ -2891,13 +2891,20 @@ class TestSelectionCoeffFromMutation:
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestPopulationSizePloidy:
     """
-    Check that (diploid) population size in SLiM simulation is equivalent to
-    (possibly non-diploid) species population size, via DEBUG logging.
+    Test that population sizes used in SLiM engine are scaled correctly
+    with regards to ploidy.
+
+    - Check that (diploid) population size used in SLiM simulation equals
+    model population size * ploidy / 2.
+
+    - Check that `recap_epoch` returned by `slim_makescript`, used to parameterize
+    recapitation with msprime, contains population size from the original model
+    (e.g. # of individuals).
     """
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.usefixtures("caplog")
-    def test_haploid_population_size(self, caplog):
+    def test_slim_population_size_haploid(self, caplog):
         N = 100
         engine = stdpopsim.get_engine("slim")
         contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=1)
@@ -2914,7 +2921,7 @@ class TestPopulationSizePloidy:
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.usefixtures("caplog")
-    def test_diploid_population_size(self, caplog):
+    def test_slim_population_size_diploid(self, caplog):
         N = 100
         engine = stdpopsim.get_engine("slim")
         contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=2)
@@ -2928,3 +2935,25 @@ class TestPopulationSizePloidy:
         assert match is not None
         (Nslim,) = match.groups()
         assert int(Nslim) == int(N)
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_recap_population_size(self):
+        N = 100
+        model = stdpopsim.PiecewiseConstantSize(N)
+        for ploidy in [1, 2]:
+            contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=ploidy)
+            sample_sets = model.get_sample_sets({"pop_0": 2}, ploidy=contig.ploidy)
+            rate_map = stdpopsim.get_slim_mutation_rate_map(contig)
+            with open(os.devnull, "w") as scriptfile:
+                recap_epoch = stdpopsim.slim_makescript(
+                    scriptfile,
+                    "unused",
+                    model,
+                    contig,
+                    sample_sets,
+                    extended_events=None,
+                    scaling_factor=1,
+                    burn_in=0,
+                    slim_rate_map=rate_map,
+                )
+            assert int(recap_epoch.populations[0].start_size) == N

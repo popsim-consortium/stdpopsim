@@ -1761,6 +1761,9 @@ class _SLiMEngine(stdpopsim.Engine):
             migration_matrix=recap_epoch.migration_matrix,
         )
 
+        # `recap_epoch` contains population sizes from the demographic model,
+        # that are the number of individuals regardless of ploidy. Thus,
+        # ploidy must be set here, as is done in `_MsprimeEngine.simulate`
         ts = msprime.sim_ancestry(
             initial_state=ts,
             demography=demography,
