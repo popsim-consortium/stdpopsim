@@ -2889,7 +2889,7 @@ class TestSelectionCoeffFromMutation:
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
-class TestPopulationSizePloidy:
+class TestPloidy:
     """
     Test that population sizes used in SLiM engine are scaled correctly
     with regards to ploidy.
@@ -2900,6 +2900,8 @@ class TestPopulationSizePloidy:
     - Check that `recap_epoch` returned by `slim_makescript`, used to parameterize
     recapitation with msprime, contains population size from the original model
     (e.g. # of individuals).
+
+    - Check that individuals in tree sequence are haploid/diploid.
     """
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
@@ -2957,3 +2959,16 @@ class TestPopulationSizePloidy:
                     slim_rate_map=rate_map,
                 )
             assert int(recap_epoch.populations[0].start_size) == N
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_individual_ploidy(self):
+        N = 100
+        model = stdpopsim.PiecewiseConstantSize(N)
+        engine = stdpopsim.get_engine("slim")
+        for ploidy in [1, 2]:
+            contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=ploidy)
+            ts = engine.simulate(model, contig, samples={"pop_0": 2})
+            assert ts.num_individuals == 2
+            assert ts.num_samples == 2 * ploidy
+            individual = ts.tables.nodes.individual
+            assert len(np.unique(individual[: ts.num_samples])) == ts.num_individuals

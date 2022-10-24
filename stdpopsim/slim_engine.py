@@ -1839,6 +1839,41 @@ class _SLiMEngine(stdpopsim.Engine):
                 )
             )
 
+        # If haploid, rebuild individual table so each sample is an individual
+        if contig.ploidy == 1:
+
+            def to_ragged(x, idx):
+                return [x[idx[i] : idx[i + 1]] for i in range(len(idx) - 1)]
+
+            tables = ts.dump_tables()
+            indiv = tables.individuals.asdict()
+            indiv["flags"] = np.repeat(indiv["flags"], 2)
+            for field in ["location", "parents", "metadata"]:
+                offset = indiv[field + "_offset"]
+                ragged = to_ragged(indiv[field], offset)
+                indiv[field] = np.array([x for x in ragged for _ in range(2)]).flatten()
+                offset_length = np.insert(np.repeat(np.diff(offset), 2), 0, 0)
+                indiv[field + "_offset"] = np.cumsum(offset_length)
+
+            tables.individuals.set_columns(
+                flags=indiv["flags"],
+                location=indiv["location"],
+                location_offset=indiv["location_offset"],
+                parents=indiv["parents"],
+                parents_offset=indiv["parents_offset"],
+                metadata=indiv["metadata"],
+                metadata_offset=indiv["metadata_offset"],
+                metadata_schema=indiv["metadata_schema"],
+            )
+
+            samples = tables.nodes.flags == tskit.NODE_IS_SAMPLE
+            tables.nodes.individual = np.where(
+                samples,
+                np.arange(tables.nodes.num_rows, dtype=np.int32),
+                tables.nodes.individual,
+            )
+            ts = tables.tree_sequence()
+
         return ts
 
     def recap_and_rescale(
