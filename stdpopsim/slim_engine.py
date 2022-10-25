@@ -901,7 +901,8 @@ def slim_makescript(
     for j, epoch in enumerate(epochs):
         for i, pop in enumerate(epoch.populations):
             # SLiM simulates a diploid population, so rescale population size
-            # depending on contig ploidy.
+            # depending on contig ploidy. If/when the SLiM simulation is
+            # converted to a haploid model, this rescaling should be removed.
             N[i, j] = int(pop.end_size * contig.ploidy / 2)
             growth_rates[i, j] = pop.growth_rate
 
@@ -1695,8 +1696,8 @@ class _SLiMEngine(stdpopsim.Engine):
     ):
         """
         Apply post-SLiM transformations to ``ts``. This rescales node times,
-        does recapitation, simplification, adds neutral mutations, and converts
-        alleles to nucleotides.
+        does recapitation, simplification, adds neutral mutations, converts
+        alleles to nucleotides, and rebuilds the individual table for haploids.
         """
         # Times come from SLiM generation numbers, which may have been
         # divided by a scaling factor for computational tractability.
@@ -1841,37 +1842,25 @@ class _SLiMEngine(stdpopsim.Engine):
 
         # If haploid, rebuild individual table so each sample is an individual
         if contig.ploidy == 1:
-
-            def to_ragged(x, idx):
-                return [x[idx[i] : idx[i + 1]] for i in range(len(idx) - 1)]
-
             tables = ts.dump_tables()
-            indiv = tables.individuals.asdict()
-            indiv["flags"] = np.repeat(indiv["flags"], 2)
-            for field in ["location", "parents", "metadata"]:
-                offset = indiv[field + "_offset"]
-                ragged = to_ragged(indiv[field], offset)
-                indiv[field] = np.array([x for x in ragged for _ in range(2)]).flatten()
-                offset_length = np.insert(np.repeat(np.diff(offset), 2), 0, 0)
-                indiv[field + "_offset"] = np.cumsum(offset_length)
-
-            tables.individuals.set_columns(
-                flags=indiv["flags"],
-                location=indiv["location"],
-                location_offset=indiv["location_offset"],
-                parents=indiv["parents"],
-                parents_offset=indiv["parents_offset"],
-                metadata=indiv["metadata"],
-                metadata_offset=indiv["metadata_offset"],
-                metadata_schema=indiv["metadata_schema"],
-            )
-
-            samples = tables.nodes.flags == tskit.NODE_IS_SAMPLE
-            tables.nodes.individual = np.where(
-                samples,
-                np.arange(tables.nodes.num_rows, dtype=np.int32),
-                tables.nodes.individual,
-            )
+            node_indiv = tables.nodes.individual
+            haploid_indiv = tskit.IndividualTable()
+            haploid_indiv.metadata_schema = tables.individuals.metadata_schema
+            for new_idx, node in enumerate(ts.samples()):
+                old_idx = node_indiv[node]
+                haploid_indiv.add_row(
+                    flags=tables.individuals[old_idx].flags,
+                    location=tables.individuals[old_idx].location,
+                    parents=tables.individuals[old_idx].parents,
+                    metadata=tables.individuals[old_idx].metadata,
+                )
+                assert (
+                    haploid_indiv[new_idx].metadata
+                    == tables.individuals[old_idx].metadata
+                )
+                node_indiv[node] = new_idx
+            tables.nodes.individual = node_indiv
+            tables.individuals.replace_with(haploid_indiv)
             ts = tables.tree_sequence()
 
         return ts
