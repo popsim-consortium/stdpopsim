@@ -24,10 +24,10 @@ _gm = stdpopsim.GeneticMap(
         within these crossover ranges.
         """,
     url=(
-        "https://stdpopsim.s3-us-west-2.amazonaws.com/"
-        "genetic_maps/ApiMel/Liu2015_liftover_maps.tar.gz"
+        "https://stdpopsim.s3.us-west-2.amazonaws.com/"
+        "genetic_maps/ApiMel/Liu2015_litfover_maps.tar.gz"
     ),
-    sha256="",
+    sha256="551a1819fb007573b6fa00a088493964dacd089a5d5863cf03b7b73eac0bd405",
     file_pattern="Liu2015_litfover_maps/Amel_HAv3.1_lifted_chr{id}.txt",
     citations=[_genetic_map_citation],
 )
