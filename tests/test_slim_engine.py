@@ -2972,3 +2972,18 @@ class TestPloidy:
             assert ts.num_samples == 2 * ploidy
             individual = ts.tables.nodes.individual
             assert len(np.unique(individual[: ts.num_samples])) == ts.num_individuals
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_haploidize_individuals(self):
+        N = 100
+        model = stdpopsim.PiecewiseConstantSize(N)
+        engine = stdpopsim.get_engine("slim")
+        contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=2)
+        ts = engine.simulate(model, contig, samples={"pop_0": 3})
+        ts_hap = stdpopsim.utils.haploidize_individuals(ts)
+        assert ts_hap.num_individuals == ts.num_individuals * 2
+        for i, j in zip(ts.samples(), ts_hap.samples()):
+            assert i == j
+            ind_i = ts.nodes_individual[i]
+            ind_j = ts_hap.nodes_individual[j]
+            assert ts.tables.individuals[ind_i] == ts_hap.tables.individuals[ind_j]

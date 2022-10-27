@@ -1842,26 +1842,7 @@ class _SLiMEngine(stdpopsim.Engine):
 
         # If haploid, rebuild individual table so each sample is an individual
         if contig.ploidy == 1:
-            tables = ts.dump_tables()
-            node_indiv = tables.nodes.individual
-            haploid_indiv = tskit.IndividualTable()
-            haploid_indiv.metadata_schema = tables.individuals.metadata_schema
-            for new_idx, node in enumerate(ts.samples()):
-                old_idx = node_indiv[node]
-                haploid_indiv.add_row(
-                    flags=tables.individuals[old_idx].flags,
-                    location=tables.individuals[old_idx].location,
-                    parents=tables.individuals[old_idx].parents,
-                    metadata=tables.individuals[old_idx].metadata,
-                )
-                assert (
-                    haploid_indiv[new_idx].metadata
-                    == tables.individuals[old_idx].metadata
-                )
-                node_indiv[node] = new_idx
-            tables.nodes.individual = node_indiv
-            tables.individuals.replace_with(haploid_indiv)
-            ts = tables.tree_sequence()
+            ts = stdpopsim.utils.haploidize_individuals(ts)
 
         return ts
 
