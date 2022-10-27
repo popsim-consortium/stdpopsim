@@ -575,6 +575,7 @@ with a brief discussion of possible courses of action to take when components ha
 
 4. The **effective population size** should represent the historical average effective population size,
    and should ideally produce simulated data that matches the average observed genetic diversity in that species.
+   Population size is defined as the number of individuals, regardless of ploidy.
    However, this will often not capture features of genetic variation that are caused by recent changes in population size and the presence of population structure.
    To capture those, one should also provide a demographic model (or multiple models) for the species
    (see `Adding a new demographic model`_).
@@ -1171,6 +1172,7 @@ The final three attributes
 describe the inferred demographic history that you wish to code.
 This history consists of ancestral population size changes,
 migration rates, split times, and admixture events.
+Note that population size is defined as the number of individuals, regardless of ploidy.
 These attributes should be coded using the standard format of ``msprime``.
 If this is your first time specifying a demographic model using ``msprime``,
 then we highly recommend that you take some time to read through its

@@ -900,7 +900,10 @@ def slim_makescript(
     growth_rates = np.empty(shape=(dd.num_populations, len(epochs)), dtype=float)
     for j, epoch in enumerate(epochs):
         for i, pop in enumerate(epoch.populations):
-            N[i, j] = int(pop.end_size)
+            # SLiM simulates a diploid population, so rescale population size
+            # depending on contig ploidy. If/when the SLiM simulation is
+            # converted to a haploid model, this rescaling should be removed.
+            N[i, j] = int(pop.end_size * contig.ploidy / 2)
             growth_rates[i, j] = pop.growth_rate
 
     admixture_pulses = []
@@ -1693,8 +1696,8 @@ class _SLiMEngine(stdpopsim.Engine):
     ):
         """
         Apply post-SLiM transformations to ``ts``. This rescales node times,
-        does recapitation, simplification, adds neutral mutations, and converts
-        alleles to nucleotides.
+        does recapitation, simplification, adds neutral mutations, converts
+        alleles to nucleotides, and rebuilds the individual table for haploids.
         """
         # Times come from SLiM generation numbers, which may have been
         # divided by a scaling factor for computational tractability.
@@ -1759,10 +1762,14 @@ class _SLiMEngine(stdpopsim.Engine):
             migration_matrix=recap_epoch.migration_matrix,
         )
 
+        # `recap_epoch` contains population sizes from the demographic model,
+        # that are the number of individuals regardless of ploidy. Thus,
+        # ploidy must be set here, as is done in `_MsprimeEngine.simulate`
         ts = msprime.sim_ancestry(
             initial_state=ts,
             demography=demography,
             recombination_rate=contig.recombination_map,
+            ploidy=contig.ploidy,
             random_seed=s0,
         )
         ts = self._simplify_remembered(ts)
@@ -1832,6 +1839,10 @@ class _SLiMEngine(stdpopsim.Engine):
                     seed=nuc_seed,
                 )
             )
+
+        # If haploid, rebuild individual table so each sample is an individual
+        if contig.ploidy == 1:
+            ts = stdpopsim.utils.haploidize_individuals(ts)
 
         return ts
 

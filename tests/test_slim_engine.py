@@ -11,6 +11,7 @@ import numpy as np
 from numpy.testing import assert_array_equal
 import collections
 import re
+import logging
 
 import pytest
 import tskit
@@ -2885,3 +2886,104 @@ class TestSelectionCoeffFromMutation:
             stdpopsim.ext.selection_coeff_from_mutation("foo", next(ts.mutations()))
         with pytest.raises(ValueError, match="must be a"):
             stdpopsim.ext.selection_coeff_from_mutation(ts, "bar")
+
+
+@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
+class TestPloidy:
+    """
+    Test that population sizes used in SLiM engine are scaled correctly
+    with regards to ploidy.
+
+    - Check that (diploid) population size used in SLiM simulation equals
+    model population size * ploidy / 2.
+
+    - Check that `recap_epoch` returned by `slim_makescript`, used to parameterize
+    recapitation with msprime, contains population size from the original model
+    (e.g. # of individuals).
+
+    - Check that individuals in tree sequence are haploid/diploid.
+    """
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    @pytest.mark.usefixtures("caplog")
+    def test_slim_population_size_haploid(self, caplog):
+        N = 100
+        engine = stdpopsim.get_engine("slim")
+        contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=1)
+        model = stdpopsim.PiecewiseConstantSize(N)
+        with caplog.at_level(logging.DEBUG):
+            engine.simulate(model, contig, samples={"pop_0": 2}, verbosity=2)
+        log_str = " ".join([rec.getMessage() for rec in caplog.records])
+        # match: "1: p = sim.addSubpop(0, <SLiM population size>);"
+        extract_ne = re.compile(".+1: p = sim.addSubpop\\(0, ([0-9]+)\\).+")
+        match = extract_ne.match(log_str)
+        assert match is not None
+        (Nslim,) = match.groups()
+        assert int(Nslim) == int(N / 2)
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    @pytest.mark.usefixtures("caplog")
+    def test_slim_population_size_diploid(self, caplog):
+        N = 100
+        engine = stdpopsim.get_engine("slim")
+        contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=2)
+        model = stdpopsim.PiecewiseConstantSize(N)
+        with caplog.at_level(logging.DEBUG):
+            engine.simulate(model, contig, samples={"pop_0": 2}, verbosity=2)
+        log_str = " ".join([rec.getMessage() for rec in caplog.records])
+        # match: "1: p = sim.addSubpop(0, <SLiM population size>);"
+        extract_ne = re.compile(".+1: p = sim.addSubpop\\(0, ([0-9]+)\\).+")
+        match = extract_ne.match(log_str)
+        assert match is not None
+        (Nslim,) = match.groups()
+        assert int(Nslim) == int(N)
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_recap_population_size(self):
+        N = 100
+        model = stdpopsim.PiecewiseConstantSize(N)
+        for ploidy in [1, 2]:
+            contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=ploidy)
+            sample_sets = model.get_sample_sets({"pop_0": 2}, ploidy=contig.ploidy)
+            rate_map = stdpopsim.get_slim_mutation_rate_map(contig)
+            with open(os.devnull, "w") as scriptfile:
+                recap_epoch = stdpopsim.slim_makescript(
+                    scriptfile,
+                    "unused",
+                    model,
+                    contig,
+                    sample_sets,
+                    extended_events=None,
+                    scaling_factor=1,
+                    burn_in=0,
+                    slim_rate_map=rate_map,
+                )
+            assert int(recap_epoch.populations[0].start_size) == N
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_individual_ploidy(self):
+        N = 100
+        model = stdpopsim.PiecewiseConstantSize(N)
+        engine = stdpopsim.get_engine("slim")
+        for ploidy in [1, 2]:
+            contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=ploidy)
+            ts = engine.simulate(model, contig, samples={"pop_0": 2})
+            assert ts.num_individuals == 2
+            assert ts.num_samples == 2 * ploidy
+            individual = ts.tables.nodes.individual
+            assert len(np.unique(individual[: ts.num_samples])) == ts.num_individuals
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_haploidize_individuals(self):
+        N = 100
+        model = stdpopsim.PiecewiseConstantSize(N)
+        engine = stdpopsim.get_engine("slim")
+        contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=2)
+        ts = engine.simulate(model, contig, samples={"pop_0": 3})
+        ts_hap = stdpopsim.utils.haploidize_individuals(ts)
+        assert ts_hap.num_individuals == ts.num_individuals * 2
+        for i, j in zip(ts.samples(), ts_hap.samples()):
+            assert i == j
+            ind_i = ts.nodes_individual[i]
+            ind_j = ts_hap.nodes_individual[j]
+            assert ts.tables.individuals[ind_i] == ts_hap.tables.individuals[ind_j]

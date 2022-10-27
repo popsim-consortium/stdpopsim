@@ -308,3 +308,22 @@ def parse_population_sample_pairs(pop_sample_pairs):
             "Sample specification must be in the form "
             "<population_name:number_of_samples>"
         )
+
+
+def haploidize_individuals(ts):
+    """
+    Rebuild IndividualsTable of tree sequence such that each individual is
+    referenced by only one sample, by duplicating individuals that are
+    referenced by multiple samples in the original tree sequence.
+    """
+    tables = ts.dump_tables()
+    old_inds = tables.individuals.copy()
+    tables.individuals.clear()
+    # Make sure we don't refer to any individuals that are not samples
+    node_indiv = np.zeros_like(ts.nodes_individual) - 1
+    for new_idx, node in enumerate(ts.samples()):
+        old_idx = ts.nodes_individual[node]
+        tables.individuals.append(old_inds[old_idx])
+        node_indiv[node] = new_idx
+    tables.nodes.individual = node_indiv
+    return tables.tree_sequence()
