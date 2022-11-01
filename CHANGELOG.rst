@@ -1,5 +1,5 @@
 --------------------
-[0.2.0] - 2022-XX-XX
+[0.2.0] - 2022-11-01
 --------------------
 
 Major feature release, incorporating support for simulating selection as well
