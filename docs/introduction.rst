@@ -110,7 +110,18 @@ Bibtex record::
     }
 
 
-M. Elise Lauterbur, Mariz Izabel A. Cavassim, Ariella L. Gladstein, Graham Gower, Nathaniel S. Pope, Georgia Tsambos, Jeffrey Adrion, Saurabh Belsare, Arjun Biddanda, Victoria Caudill, Jean Cury, Ignacio Echevarria, Benjamin C. Haller, Ahmed R. Hasan, Xin Huang, Leonardo Nicola Martin Iasi, Ekaterina Noskova, Jana Obšteter, Vitor Antonio Corrêa Pavinato, Alice Pearson, David Peede, Manolo F. Perez, Murillo F. Rodrigues, Chris C. R. Smith, Jeffrey P. Spence, Anastasia Teterina, Silas Tittes, Per Unneberg, Juan Manuel Vazquez, Ryan K. Waples, Anthony Wilder Wohns, Yan Wong, Franz Baumdicker, Reed A. Cartwright, Gregor Gorjanc, Ryan N. Gutenkunst, Jerome Kelleher, Andrew D. Kern, Aaron P. Ragsdale, Peter L. Ralph, Daniel R. Schrider, Ilan Gronau. *Expanding the stdpopsim species catalog, and lessons learned for realistic genome simulations*, bioRxiv 2022.10.29.514266; doi: https://doi.org/10.1101/2022.10.29.514266
+M. Elise Lauterbur, Mariz Izabel A. Cavassim, Ariella L. Gladstein, Graham
+Gower, Nathaniel S. Pope, Georgia Tsambos, Jeffrey Adrion, Saurabh Belsare,
+Arjun Biddanda, Victoria Caudill, Jean Cury, Ignacio Echevarria, Benjamin C.
+Haller, Ahmed R. Hasan, Xin Huang, Leonardo Nicola Martin Iasi, Ekaterina
+Noskova, Jana Obšteter, Vitor Antonio Corrêa Pavinato, Alice Pearson, David
+Peede, Manolo F. Perez, Murillo F. Rodrigues, Chris C. R. Smith, Jeffrey P.
+Spence, Anastasia Teterina, Silas Tittes, Per Unneberg, Juan Manuel Vazquez,
+Ryan K. Waples, Anthony Wilder Wohns, Yan Wong, Franz Baumdicker, Reed A.
+Cartwright, Gregor Gorjanc, Ryan N. Gutenkunst, Jerome Kelleher, Andrew D.
+Kern, Aaron P. Ragsdale, Peter L. Ralph, Daniel R. Schrider, Ilan Gronau (2022).
+*Expanding the stdpopsim species catalog, and lessons learned for realistic genome simulations*,
+bioRxiv 2022.10.29.514266; doi: https://doi.org/10.1101/2022.10.29.514266
 
 
 Bibtex record::
