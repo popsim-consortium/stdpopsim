@@ -174,28 +174,28 @@ for simulating selection via SLiM.
 **Additions to CLI**:
 
 - Sample specification has switched from positional and haploid (e.g.
-  `stdpopsim HomSap -d OutOfAfrica_3G09 6 0 10`) to named with species-specific
-  ploidy (equivalent to `stdpopsim HomSap -d OutOfAfrica_3G09 YRI:3 CEU:0
-  CHB:5`). Positional sample specification is still supported but will raise a
+  ``stdpopsim HomSap -d OutOfAfrica_3G09 6 0 10``) to named with species-specific
+  ploidy (equivalent to ``stdpopsim HomSap -d OutOfAfrica_3G09 YRI:3 CEU:0
+  CHB:5``). Positional sample specification is still supported but will raise a
   deprecation warning.
 
-- Arguments `--dfe`, `--dfe-interval`, `--dfe-bed-file`, `--help-dfe`
+- Arguments ``--dfe``, ``--dfe-interval``, ``--dfe-bed-file``, ``--help-dfe``
   for specifying DFEs (:user:`izabelcavassim`, :pr:`1052`).
 
-- Arguments `--help-annotations`, `--dfe-annotation` for associating annotation
+- Arguments ``--help-annotations``, ``--dfe-annotation`` for associating annotation
   tracks with DFEs (:user:`andrewkern`, :pr:`1117`).
 
-- Argument `--length` for simulating from a generic contig
+- Argument ``--length`` for simulating from a generic contig
   (:user:`apragsdale`, :pr:`664`).
 
-- Arguments `--inclusion-mask`, `--exclusion-mask` for masking simulated sequences
+- Arguments ``--inclusion-mask``, ``--exclusion-mask`` for masking simulated sequences
   (:user:`apragsdale`, :pr:`664`).
 
-- Arguments `--left` and `--right` for simulating an interval on a named chromosome
+- Arguments ``--left`` and ``--right`` for simulating an interval on a named chromosome
   (:user:`nspope`, :pr:`1348`)
 
-- Argument `--keep-mutation-ids-as-alleles` retains SLiM mutation IDs for
-  allele codes instead of converting these to nucleotides.
+- Argument ``--keep-mutation-ids-as-alleles`` retains SLiM mutation IDs for
+  allele codes instead of converting these to nucleotides (:user:`nspope`, :pr:`1356`).
 
 **Catalog maintenance infrastructure**:
 
