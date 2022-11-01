@@ -136,7 +136,8 @@ Bibtex record::
         year = {2022},
         doi = {10.1101/2022.10.29.514266},
         publisher = {Cold Spring Harbor Laboratory},
-        URL = {https://doi.org/10.7554/eLife.54967},
+        URL = {https://www.biorxiv.org/content/early/2022/10/31/2022.10.29.514266},
+        eprint = {https://www.biorxiv.org/content/early/2022/10/31/2022.10.29.514266.full.pdf},
         journal = {bioRxiv}
     }
 
