@@ -1,4 +1,241 @@
 --------------------
+[0.2.0] - 2022-11-01
+--------------------
+
+Major feature release adding many new species and models, as well as support
+for simulating selection via SLiM.
+
+**Bug fixes**:
+
+- Parameters in the HomSap/Zigzag_1S14 model now match those in Schiffels &
+  Durbin (2014) (:user:`grahamgower`, :pr:`750`).
+
+- Recombination rate for DroMel chr4 changed to 0
+  (:user:`izabelcavassim`, :pr:`1092`).
+
+- Per-chromosome mean recombination rates for HomSap were incorrectly
+  calculated (:user:`nspope`, :pr:`1345`).
+
+**Breaking changes**:
+
+- Removed `GeneticMap` class from public API (:user:`jeromekelleher`, :pr:`713`).
+
+- Samples are now specified via population/individual pairs, using
+  species/chromosome ploidy.  The old API for specifying haploid samples via
+  population index has been retained, but is deprecated and will be
+  removed at some point (:user:`nspope`, :pr:`1361`).
+
+**New species**:
+
+- Aedes aegypti (:user:`manolofperez`, :pr:`871`).
+  QC'd by :user:`petrelharp`, :pr:`893`.
+
+- Anas platyrhynchos (:user:`petrelharp`, :pr:`826`).
+  QC'd by :user:`igronau`, :pr:`1070`.
+
+- Anolis carolinensis (:user:`vcaudill`, :pr:`874`).
+  QC'd by :user:`andrewkern`, :pr:`896`.
+
+- Anopheles gambiae (:user:`andrewkern`, :pr:`856`).
+  QC'd by :user:`petrelharp`, :pr:`906`.
+
+- Apis mellifera (:user:`janaobsteter`, :pr:`1025`).
+  QC'd by :user:`manolofperez`, :pr:`1268`.
+
+- Bos taurus (:user:`grahamgower`, :pr:`600`).
+  QC'd by :user:`gtsambos`, :pr:`1269`.
+
+- Caenorhabditis elegans (:user:`attrna`, :pr:`910`).
+  QC'd by :user:`chriscrsmith`, :pr:`1265`.
+
+- Chlamydomonas reinhardtii (:user:`aays`, :pr:`863`).
+  QC'd by :user:`izabelcavassim`, :pr:`1067`.
+
+- Drosophila sechellia (:user:`jradrion`, :pr:`872`).
+  QC'd by :user:`vitorpavinato`, :pr:`1264`.
+
+- Gasterosteus aculeatus (:user:`vitorpavinato`, :pr:`1105`).
+  QC'd by :user:`manolofperez`, :pr:`1253`.
+
+- Helianthus annuus (:user:`chriscrsmith`, :pr:`1218`).
+  QC'd by :user:`xin-huang`, :pr:`1250`.
+
+- Heliconius melpomene (:user:`percyfal`, :pr:`870`).
+  QC'd by :user:`noscode`, :pr:`1165`.
+
+- Pan troglodytes (:user:`xin-huang`, :pr:`1215`).
+  QC'd by :user:`janaobsteter`, :pr:`1291`.
+
+- Papio anubis (:user:`saurabhbelsare`, :pr:`1216`).
+  QC'd by :user:`mufernando`, :pr:`1263`.
+
+- Streptococcus agalactiae (:user:`jeanrjc`, :pr:`854`).
+  QC'd by :user:`vitorpavinato`, :pr:`1251`.
+
+**New models**:
+
+- AnaPla/MallardBlackDuck_2L19 (:user:`petrelharp`, :pr:`883`).
+  QC'd by :user:`igronau`, :pr:`1021`.
+
+- AnoGam/GabonAg1000G_1A17 (:user:`andrewkern`, :pr:`856`).
+  QC'd by :user:`petrelharp`, :pr:`1279`.
+
+- BosTau/HolsteinFriesian_1M13 (:user:`grahamgower`, :pr:`600`).
+  QC'd by :user:`igronau`, :pr:`1272`.
+
+- HomSap/OutOfAfricaExtendedNeandertalAdmixturePulse_3I21
+  (:user:`leonardolasi`, :pr:`1066`).
+  QC'd by :user:`awohns`, :pr:`1259`.
+
+- HomSap/OutOfAfrica_4J17 (:user:`rwaples`, :pr:`726`).
+  QC'd by :user:`jeffspence`, :pr:`1246`.
+
+- HomSap/Africa_1B08 (:user:`izabelcavassim`, :pr:`993`).
+  QC'd by :user:`petrelharp`, :pr:`995`.
+
+- HomSap/AncientEurope_4A21 (:user:`alipearson`, :pr:`941`).
+  QC'd by :user:`mufernando`, :pr:`1256`.
+
+- PanTro/BonoboGhost_4K19 (:user:`xin-huang`, :pr:`1215`).
+  QC'd by :user:`kuhlwilm`, :pr:`1370`.
+
+- PapAnu/SinglePopSMCpp_1W22 (:user:`saurabhbelsare`, :pr:`1216`).
+  QC'd by :user:`attrna`, :pr:`1261`.
+
+**New genetic maps**:
+
+- CaeEle/RockmanRIAIL_ce11 (:user:`attrna`, :pr:`910`).
+
+- DroMel/ComeronCrossoverV2_dm6 liftover (:user:`grahamgower`, :pr:`592`).
+
+- HomSap/HapMapII_GRCh38 liftover (:user:`saurabhbelsare`, :pr:`1301`).
+
+- HomSap/DeCodeSexAveraged_GRCh38 liftover (:user:`saurabhbelsare`, :pr:`1301`).
+
+- HomSap/PyrhoXXX_GRCh38 (:user:`jeffspence`, :pr:`572` and :pr:`575`),
+  for XXX in ACB, ASW, BEB, CDX, CEU, CHB, CHS, CLM, ESN, FIN, GBR, GIH, GWD,
+  IBS, ITU, JPT, KHV, LWK, MSL, MXL, PEL, PJL, PUR, STU, TSI, and YRI.
+
+- PapAnu/Pyrho_PAnubis1_0 (:user:`saurabhbelsare`, :pr:`1216`)
+
+**New features**:
+
+- Distributions of fitness effects ("DFEs") defined over genomic intervals
+  (:user:`mufernando`, :pr:`644`; :user:`izabelcavassim`, :pr:`1002`;
+  plus numerous others).
+
+- DFE simulation via SLiM
+  (:user:`mufernando`, :pr:`930`; plus numerous others).
+
+- Metadata for tree sequences produced by SLiM
+  (:user:`mufernando`, :pr:`1152`).
+
+- Per-generation fitness statistics for SLiM simulations
+  (:user:`petrelharp`, :pr:`1200`).
+
+- Selective sweep simulation and allele frequency conditioning via SLiM
+  (:user:`grahamgower`, :pr:`462`; :user:`nspope`, :pr:`1341`).
+
+- Gene conversion simulation via msprime and SLiM
+  (:user:`fbaumdicker`, :pr:`1106`; :user:`petrelharp`, :pr:`1355`).
+
+- Genome annotation tracks
+  (:user:`andrewkern`, :pr:`560` and :pr:`960`).
+
+- Masking intervals in simulated data
+  (:user:`apragsdale`, :pr:`664`).
+
+- Method to get generic contig of arbitrary length for a species
+  (:user:`apragsdale`, :pr:`664`).
+
+- Method to get contig from a segment of a named chromosome
+  (:user:`nspope`, :pr:`1348`).
+
+- Pass keyworded arguments from simulation engine to msprime
+  (:user:`awohns`, :pr:`736`).
+
+- Use msprime 1.0 for simulation from msprime engine
+  (:user:`jeromekelleher`, :pr:`764`).
+
+- Use SLiM 4.0 for simulation from SLiM engine
+  (:user:`petrelharp`, :pr:`1326`).
+
+- Mutation rates can be stored in catalog models
+  (:user:`apragsdale`, :pr:`839`).
+
+- Ploidy is a species and chromosome attribute
+  (:user:`nspope`, :pr:`1361`).
+
+- Mutations from SLiM simulations converted to nucleotides
+  (:user:`nspope`, :pr:`1356`).
+
+- Various improvements and fixes to the documentation and error messaging.
+
+**Additions to CLI**:
+
+- Sample specification has switched from positional and haploid (e.g.
+  `stdpopsim HomSap -d OutOfAfrica_3G09 6 0 10`) to named with species-specific
+  ploidy (equivalent to `stdpopsim HomSap -d OutOfAfrica_3G09 YRI:3 CEU:0
+  CHB:5`). Positional sample specification is still supported but will raise a
+  deprecation warning.
+
+- Arguments `--dfe`, `--dfe-interval`, `--dfe-bed-file`, `--help-dfe`
+  for specifying DFEs (:user:`izabelcavassim`, :pr:`1052`).
+
+- Arguments `--help-annotations`, `--dfe-annotation` for associating annotation
+  tracks with DFEs (:user:`andrewkern`, :pr:`1117`).
+
+- Argument `--length` for simulating from a generic contig
+  (:user:`apragsdale`, :pr:`664`).
+
+- Arguments `--inclusion-mask`, `--exclusion-mask` for masking simulated sequences
+  (:user:`apragsdale`, :pr:`664`).
+
+- Arguments `--left` and `--right` for simulating an interval on a named chromosome
+  (:user:`nspope`, :pr:`1348`)
+
+- Argument `--keep-mutation-ids-as-alleles` retains SLiM mutation IDs for
+  allele codes instead of converting these to nucleotides.
+
+**Catalog maintenance infrastructure**:
+
+- Quality control infrastructure for DFEs
+  (:user:`xin-huang`, :pr:`1292`).
+
+- Pull species information from NCBI
+  (:user:`andrewkern`, :pr:`875`).
+
+- Automated species addition to catalog
+  (:user:`jeromekelleher`, :pr:`790`).
+
+- Github issue template for requesting addition of species
+  (:user:`petrelharp`, :pr:`772`).
+
+- Tools for assembly liftover
+  (:user:`jradrion`, :pr:`574`).
+
+- Pull genome data from Ensembl
+  (:user:`jeromekelleher`, :pr:`563`).
+
+**New annotations**:
+
+- AraTha/araport_11 (:user:`andrewkern`, :pr:`1327`).
+
+- DroMel/FlyBase_BDGP6.32.51 (:user:`andrewkern`, :pr:`1042`).
+
+- HomSap/ensembl_havana_104 (:user:`andrewkern`, :pr:`960`).
+
+**New DFEs**:
+
+- DroMel/Gamma_H17 (:user:`izabelcavassim`, :pr:`1046`).
+
+- DroMel/LognormalPlusPositive_R16 (:user:`apragsdale`, :pr:`1178`).
+
+- HomSap/Gamma_K17 (:user:`izabelcavassim`, :pr:`1002`).
+
+- HomSap/Gamma_H17 (:user:`chriscrsmith`, :pr:`1099`).
+
+--------------------
 [0.1.2] - 2020-05-29
 --------------------
 
