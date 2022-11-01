@@ -2,8 +2,8 @@
 [0.2.0] - 2022-11-01
 --------------------
 
-Major feature release, incorporating support for simulating selection as well
-as many new species and models.
+Major feature release adding many new species and models, as well as support
+for simulating selection via SLiM.
 
 **Bug fixes**:
 
