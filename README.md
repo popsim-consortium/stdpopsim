@@ -11,7 +11,6 @@ for in-development docs, see [this link](https://popsim-consortium.github.io/std
 
 Click [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/popsim-consortium/stdpopsim/main?filepath=stdpopsim_example.ipynb) to start an interactive Jupyter Notebook and start playing with `stdpopsim` now!
 
-If you use ``stdpopsim`` in your work, please cite our
-[paper](https://elifesciences.org/articles/54967).
+If you use ``stdpopsim`` in your work, please cite our papers ([original](https://elifesciences.org/articles/54967) and [followup](https://www.biorxiv.org/content/10.1101/2022.10.29.514266v1)).
 See [here](https://popsim-consortium.github.io/stdpopsim-docs/stable/introduction.html#citations)
 for full citation details.
