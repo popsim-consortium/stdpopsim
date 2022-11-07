@@ -1,15 +1,17 @@
 """
 Miscellaneous utilities.
 """
-import re
-import os
+import contextlib
 import hashlib
-import urllib.request
+import math
+import os
+import re
 import shutil
 import tarfile
-import contextlib
-import numpy as np
+import urllib.request
 import warnings
+
+import numpy as np
 
 
 def is_valid_demographic_model_id(model_id):
@@ -327,3 +329,27 @@ def haploidize_individuals(ts):
         node_indiv[node] = new_idx
     tables.nodes.individual = node_indiv
     return tables.tree_sequence()
+
+
+def gamma_pdf(x, a, loc=0, scale=1):
+    """
+    Gamma PDF with same parameterisation as scipy.stats.gamma.pdf().
+
+    Reimplemented here to avoid a runtime dependency on scipy.
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html
+    """
+    x = np.atleast_1d(x)
+    a = np.atleast_1d(a)
+    loc = np.atleast_1d(loc)
+    scale = np.atleast_1d(scale)
+
+    gamma_a = np.array([math.gamma(aj) if aj > 0 else np.nan for aj in a])
+
+    with np.errstate(divide="ignore"):
+        y = (x - loc) / scale
+        result = np.power(y, a - 1) * np.exp(-y) / (scale * gamma_a)
+
+    if result.ndim == 0:
+        return result[()]
+    else:
+        return result

@@ -8,6 +8,7 @@ import tarfile
 import tempfile
 
 import numpy as np
+import scipy.stats
 import pytest
 
 from stdpopsim import utils
@@ -516,3 +517,34 @@ class TestIntervalUtilities:
             utils.mask_intervals(intervals=np.array([[50, 10]]), mask=np.array([[]]))
         with pytest.raises(ValueError):
             utils.mask_intervals(intervals=np.array([[]]), mask=np.array([[10, 5]]))
+
+
+class TestGammaPdf:
+    def test_gamma_pdf_basic(self):
+        np.testing.assert_allclose(
+            utils.gamma_pdf(x=1, a=1), scipy.stats.gamma.pdf(x=1, a=1)
+        )
+        np.testing.assert_allclose(
+            utils.gamma_pdf(x=range(5), a=1), scipy.stats.gamma.pdf(x=range(5), a=1)
+        )
+        np.testing.assert_allclose(
+            utils.gamma_pdf(x=1, a=range(1, 5)),
+            scipy.stats.gamma.pdf(x=1, a=range(1, 5)),
+        )
+
+    @pytest.mark.parametrize(
+        "x,a,loc,scale",
+        [
+            (1, 1, 0, 1),
+            # Note that some of these values are (deliberately) invalid,
+            # which should produce NaN in the corresponding output.
+            (np.arange(5), np.linspace(0, 1, 5), 0, 1),
+            (np.arange(5), np.linspace(0, 1, 5), 1, 2),
+            (np.arange(5), np.linspace(0, 1, 5), np.arange(5), np.arange(5)),
+        ],
+    )
+    def test_gamma_pdf(self, x, a, loc, scale):
+        np.testing.assert_allclose(
+            utils.gamma_pdf(x=x, a=a, loc=loc, scale=scale),
+            scipy.stats.gamma.pdf(x=x, a=a, loc=loc, scale=scale),
+        )

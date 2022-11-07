@@ -1,7 +1,7 @@
 import math
+
 import msprime
-from scipy import stats
-import pandas as pd
+
 import stdpopsim
 
 _species = stdpopsim.get_species("HomSap")
@@ -71,7 +71,7 @@ def _ooa_nea_extended_pulse():
         """
         tm = (migration_stop - migration_start) / 2 + migration_start
         k = 1 / ((migration_stop - migration_start) / (4 * tm)) ** 2
-        m = stats.gamma.pdf(x=range(split_time + 1), a=k, loc=0, scale=tm / k)
+        m = stdpopsim.utils.gamma_pdf(x=range(split_time + 1), a=k, loc=0, scale=tm / k)
 
         """
         Scaling the distribution by the total migration rate.
@@ -89,30 +89,15 @@ def _ooa_nea_extended_pulse():
             over the set migration cutoff. They will be included in the m(t)
             distribution.
             """
-            D_extended_pulse["time"].append(x)
-            D_extended_pulse["rate"].append(m_scaled[x])
-            D_extended_pulse["source"].append(source)
-            D_extended_pulse["dest"].append(dest)
-            event_in_range.append(x)
+            rate = m_scaled[x]
+            if rate > 0:
+                D_extended_pulse["time"].append(x)
+                D_extended_pulse["rate"].append(rate)
+                D_extended_pulse["source"].append(source)
+                D_extended_pulse["dest"].append(dest)
+                event_in_range.append(x)
 
-        """
-        Setting migration rate to 0 at the end/ the start of
-        gene flow (end of gene flow backwards in time).
-        """
-
-        D_extended_pulse["time"].append((event_in_range[-1] + 1))
-        D_extended_pulse["rate"].append(0)
-        D_extended_pulse["source"].append(source)
-        D_extended_pulse["dest"].append(dest)
-        """
-        Storing all migration event in a df, sorted by time
-        """
-        extended_pulse = pd.DataFrame.from_dict(D_extended_pulse)
-        extended_pulse = extended_pulse[extended_pulse.rate != 0]
-        extended_pulse.sort_values(by=["time"], ignore_index=True)
-        extended_pulse.reset_index(inplace=True)
-
-        return extended_pulse
+        return D_extended_pulse
 
     generation_time = 29
     mutation_rate = 2e-8
@@ -155,10 +140,10 @@ def _ooa_nea_extended_pulse():
 
     """Absolute start end end of admixture"""
     Neandertal_Gene_Flow_absolute_start = msprime.MigrationRateChange(
-        time=int(extended_GF.time.head(1) - 1), rate=0
+        time=int(extended_GF["time"][0] - 1), rate=0
     )
     Neandertal_Gene_Flow_absolute_end = msprime.MigrationRateChange(
-        time=int(extended_GF.time.tail(1) + 1), rate=0
+        time=int(extended_GF["time"][-1] + 1), rate=0
     )
 
     demographic_events_without_admixture = [
@@ -170,11 +155,13 @@ def _ooa_nea_extended_pulse():
 
     demographic_events = demographic_events_without_admixture + [
         msprime.MigrationRateChange(
-            time=extended_GF.time[i],
-            rate=extended_GF.rate[i],
-            matrix_index=(extended_GF.source[i], extended_GF.dest[i]),
+            time=time,
+            rate=rate,
+            matrix_index=(source, dest),
         )
-        for i in range(extended_GF.shape[0])
+        for time, rate, source, dest in zip(
+            *(extended_GF[k] for k in ("time", "rate", "source", "dest"))
+        )
     ]
 
     demographic_events.sort(key=lambda x: x.time)
