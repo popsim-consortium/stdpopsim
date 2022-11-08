@@ -541,6 +541,7 @@ class TestGammaPdf:
             (np.arange(5), np.linspace(0, 1, 5), 0, 1),
             (np.arange(5), np.linspace(0, 1, 5), 1, 2),
             (np.arange(5), np.linspace(0, 1, 5), np.arange(5), np.arange(5)),
+            (np.eye(5), 1, 0, 1),
         ],
     )
     def test_gamma_pdf(self, x, a, loc, scale):

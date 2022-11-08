@@ -338,12 +338,12 @@ def gamma_pdf(x, a, loc=0, scale=1):
     Reimplemented here to avoid a runtime dependency on scipy.
     https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html
     """
-    x = np.atleast_1d(x)
-    a = np.atleast_1d(a)
-    loc = np.atleast_1d(loc)
-    scale = np.atleast_1d(scale)
+    x = np.array(x)
+    a = np.array(a)
+    loc = np.array(loc)
+    scale = np.array(scale)
 
-    gamma_a = np.array([math.gamma(aj) if aj > 0 else np.nan for aj in a])
+    gamma_a = np.vectorize(lambda b: math.gamma(b) if b > 0 else np.nan)(a)
 
     with np.errstate(divide="ignore"):
         y = (x - loc) / scale
