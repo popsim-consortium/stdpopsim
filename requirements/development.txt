@@ -19,10 +19,8 @@ appdirs
 humanize
 pre-commit
 pyslim>=1.0.1
-pandas
 numpy
 scikit-allel
-zarr>=2.4
 biopython
 demes==0.2.0
 demesdraw==0.2.0

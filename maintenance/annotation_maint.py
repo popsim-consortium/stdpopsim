@@ -9,7 +9,7 @@ import tarfile
 import stdpopsim
 
 logger = logging.getLogger(__name__)
-# make root directory for zarr annotations
+# make root directory for annotations
 annot_path = "annotations"
 os.makedirs(annot_path, exist_ok=True)
 
@@ -108,7 +108,7 @@ def download_process_annotations():
                     )
                 ]
                 logger.info(f"merging overlapping regions {an.id}")
-                # create zarr store and zarr root
+                # create numpy recarray for each chromosome
                 spc_name_path = os.path.join(annot_path, spc.id)
                 os.makedirs(spc_name_path, exist_ok=True)
                 for chrom_id in CHROM_IDS:
