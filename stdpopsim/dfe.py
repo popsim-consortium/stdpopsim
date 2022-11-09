@@ -273,8 +273,8 @@ class DFE:
         """
         Register a QC model implementation for this DFE.
         """
-        if not isinstance(qc_dfe, self.__class__):
-            raise ValueError(f"Cannot register non-DFE '{qc_dfe}' as QC DFE.")
+        if not callable(qc_dfe):
+            raise ValueError(f"'{qc_dfe}' must be a function returning a QC DFE.")
         if self.qc_dfe is not None:
             raise ValueError(f"QC DFE already registered for {self.id}.")
         self.qc_dfe = qc_dfe

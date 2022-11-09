@@ -50,5 +50,5 @@ def LavertskyEtAl2019TwoPop():
 
 
 _species.get_demographic_model("MallardBlackDuck_2L19").register_qc(
-    LavertskyEtAl2019TwoPop()
+    LavertskyEtAl2019TwoPop
 )

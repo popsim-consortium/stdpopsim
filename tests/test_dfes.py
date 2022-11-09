@@ -624,24 +624,20 @@ class TestRegisterQCDFE:
 
     def test_register_qc(self):
         dfe = self.make_dfe("test")
-        dfe.register_qc(dfe)
-        assert dfe.qc_dfe == dfe
+        dfe.register_qc(lambda: dfe)
+        assert dfe.qc_dfe() == dfe
 
     def test_already_registered(self):
         dfe = self.make_dfe("test")
-        dfe.register_qc(dfe)
-        with pytest.raises(ValueError) as e_info:
-            dfe.register_qc(dfe)
-        assert str(e_info.value) == "QC DFE already registered for test."
+        dfe.register_qc(lambda: self.make_dfe("test"))
+        with pytest.raises(ValueError, match="already registered"):
+            dfe.register_qc(lambda: self.make_dfe("test"))
 
     def test_bad_qc_dfe(self):
         dfe = self.make_dfe("test")
-        for not_a_dfe in [None, 15, "Zigzag_1S14"]:
-            with pytest.raises(ValueError) as e_info:
-                dfe.register_qc(not_a_dfe)
-            assert (
-                str(e_info.value) == f"Cannot register non-DFE '{not_a_dfe}' as QC DFE."
-            )
+        for not_a_dfe_func in [None, 15, "Zigzag_1S14", dfe]:
+            with pytest.raises(ValueError, match="must be a function"):
+                dfe.register_qc(not_a_dfe_func)
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
@@ -713,7 +709,7 @@ class QcdCatalogDFETestMixin(CatalogDFETestMixin):
 
     def test_mutation_types_match(self):
         mt1 = self.dfe.mutation_types
-        mt2 = self.dfe.qc_dfe.mutation_types
+        mt2 = self.dfe.qc_dfe().mutation_types
         assert len(mt1) == len(mt2)
 
         for i in range(len(mt1)):
@@ -724,7 +720,7 @@ class QcdCatalogDFETestMixin(CatalogDFETestMixin):
 
     def test_proporitions_match(self):
         p1 = self.dfe.proportions
-        p2 = self.dfe.qc_dfe.proportions
+        p2 = self.dfe.qc_dfe().proportions
         assert np.allclose(p1, p2)
 
 

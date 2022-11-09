@@ -1284,7 +1284,7 @@ original function by adding this bit of code to ``stdpopsim/qc/<SPECIES_ID>.py``
 
 .. code-block:: python
 
-  _species.get_demographic_model(_MODEL_ID_).register_qc(_your_review_function())
+  _species.get_demographic_model(_MODEL_ID_).register_qc(_your_review_function)
 
 Where ``_MODEL_ID_`` is the string specified by the original contributor as the
 ``id`` of the demographic model, and ``_your_review_function()`` is the function

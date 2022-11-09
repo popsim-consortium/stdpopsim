@@ -71,4 +71,4 @@ def McLeod2013_1Pop():
     )
 
 
-_species.get_demographic_model("HolsteinFriesian_1M13").register_qc(McLeod2013_1Pop())
+_species.get_demographic_model("HolsteinFriesian_1M13").register_qc(McLeod2013_1Pop)

@@ -64,7 +64,7 @@ def LiStephanTwoPopulation():
     )
 
 
-_species.get_demographic_model("OutOfAfrica_2L06").register_qc(LiStephanTwoPopulation())
+_species.get_demographic_model("OutOfAfrica_2L06").register_qc(LiStephanTwoPopulation)
 
 
 def SheehanSongThreeEpic():
@@ -114,4 +114,4 @@ def SheehanSongThreeEpic():
     )
 
 
-_species.get_demographic_model("African3Epoch_1S16").register_qc(SheehanSongThreeEpic())
+_species.get_demographic_model("African3Epoch_1S16").register_qc(SheehanSongThreeEpic)

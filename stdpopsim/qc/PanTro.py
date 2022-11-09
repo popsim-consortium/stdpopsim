@@ -198,4 +198,4 @@ def KuhlwilmPan():
     )
 
 
-_species.get_demographic_model("BonoboGhost_4K19").register_qc(KuhlwilmPan())
+_species.get_demographic_model("BonoboGhost_4K19").register_qc(KuhlwilmPan)
