@@ -1,6 +1,4 @@
 import math
-import pandas as pd
-from scipy import stats
 
 import msprime
 
@@ -1465,26 +1463,23 @@ def Iasi2021():
         migration rate. The function returns a dataframe of the migration rates.
         """
 
-        event_in_range = list()
-        D_extended_pulse = {"time": [], "rate": [], "source": [], "dest": []}
-
         """
         The shape and scale parameters are calculated from the input.
         """
         tm = (migration_stop - migration_start) / 2 + migration_start
         k = 1 / ((migration_stop - migration_start) / (4 * tm)) ** 2
-        m = [stats.gamma.pdf(x=range(split_time + 1), a=k, loc=0, scale=tm / k)]
+        m = stdpopsim.utils.gamma_pdf(x=range(split_time + 1), a=k, loc=0, scale=tm / k)
 
         """
         Scaling the distribution by the total migration rate.
         """
-        m = m[0]
         m[abs(m) < migration_cutoff] = 0
         m_scaled = m * total_migration_rate / sum(m)
 
         """
         Filling the table of migration rate for each generation.
         """
+        D_extended_pulse = []
         for x in range(split_time + 1):
 
             """
@@ -1492,30 +1487,13 @@ def Iasi2021():
             over the set migration cutoff. They will be included in the m(t)
             distribution.
             """
-            D_extended_pulse["time"].append(x)
-            D_extended_pulse["rate"].append(m_scaled[x])
-            D_extended_pulse["source"].append(source)
-            D_extended_pulse["dest"].append(dest)
-            event_in_range.append(x)
+            rate = m_scaled[x]
+            if rate > 0:
+                D_extended_pulse.append(
+                    dict(time=x, rate=rate, source=source, dest=dest)
+                )
 
-        """
-        Setting migration rate to 0 at the end/ the start of
-        gene flow (end of gene flow backwards in time).
-        """
-
-        D_extended_pulse["time"].append((event_in_range[-1] + 1))
-        D_extended_pulse["rate"].append(0)
-        D_extended_pulse["source"].append(source)
-        D_extended_pulse["dest"].append(dest)
-        """
-        Storing all migration event in a df, sorted by time
-        """
-        extended_pulse = pd.DataFrame.from_dict(D_extended_pulse)
-        extended_pulse = extended_pulse[extended_pulse.rate != 0]
-        extended_pulse.sort_values(by=["time"], ignore_index=True)
-        extended_pulse.reset_index(inplace=True)
-
-        return extended_pulse
+        return D_extended_pulse
 
     # Get a dataframe specifying the rates in the migration pulse
     pulse_df = extended_pulse(
@@ -1529,23 +1507,17 @@ def Iasi2021():
     )
 
     # Need to insert zero migration rates before and after the pulse
-    start = pd.DataFrame(
-        {"time": pulse_df.iloc[0]["time"] - 1, "rate": 0, "source": 1, "dest": 2},
-        index=[0],
-    )
-    end = pd.DataFrame(
-        {"time": pulse_df.iloc[-1]["time"] + 1, "rate": 0, "source": 1, "dest": 2},
-        index=[0],
-    )
-    pulse_df = pd.concat([start, pulse_df, end])
+    start = {"time": pulse_df[0]["time"] - 1, "rate": 0, "source": 1, "dest": 2}
+    end = {"time": pulse_df[-1]["time"] + 1, "rate": 0, "source": 1, "dest": 2}
+    pulse_df = [start] + pulse_df + [end]
 
     # Don't love iterating over rows here, but the DataFrame is small so works fine
-    for idx, record in pulse_df.iterrows():
+    for record in pulse_df:
         de.add_migration_rate_change(
-            time=record.time,
-            rate=record.rate,
-            source=int(record.source),
-            dest=int(record.dest),
+            time=record["time"],
+            rate=record["rate"],
+            source=record["source"],
+            dest=record["dest"],
         )
 
     # Merge CEU into YRI and NEA into YRI

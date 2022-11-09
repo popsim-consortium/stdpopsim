@@ -12,7 +12,6 @@ channels:
         - bioconda
 dependencies:
         - numpy
-        - pandas
         - msprime
         - scikit-allel
         - matplotlib
