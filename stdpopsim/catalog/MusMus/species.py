@@ -2,6 +2,7 @@ import stdpopsim
 
 from . import genome_data
 
+<<<<<<< HEAD
 # Chromosome-specific recombination rate
 _recombination_rate = {
     "1": 2.75145215530419e-09,
@@ -80,12 +81,90 @@ _mutation_rate = {
     "X": _overall_rate,
     "Y": _overall_rate,
     "MT": 3.7e-08,
+=======
+# [The following are notes for implementers and should be deleted
+#  once the recombination rates have been inserted]
+# This is the per-chromosome recombination rate, typically the mean
+# rate along the chromosome.
+# Values in this dictionary are set to -1 by default, so you have
+# to update each one. These should be derived from the most reliable
+# data and how they were obtained should be documented here.
+# The appropriate citation must be added to the list of
+# recombination_rate_citations in the Genome object.
+
+_recombination_rate = {
+    "1": -1,
+    "2": -1,
+    "3": -1,
+    "4": -1,
+    "5": -1,
+    "6": -1,
+    "7": -1,
+    "8": -1,
+    "9": -1,
+    "10": -1,
+    "11": -1,
+    "12": -1,
+    "13": -1,
+    "14": -1,
+    "15": -1,
+    "16": -1,
+    "17": -1,
+    "18": -1,
+    "19": -1,
+    "X": -1,
+    "Y": -1,
+    "MT": -1,
+}
+
+# [The following are notes for implementers and should be deleted
+#  once the mutation rates have been inserted]
+# This is the per-chromosome mutation rate, typically the mean
+# rate along the chromosome. If per chromosome rates are not available,
+# the same value should be used for each chromosome. In this case,
+# please use a variable to store this value, rather than repeating
+# the same numerical constant, e.g.
+# _mutation_rate = {
+#    1: _overall_rate,
+#    2: _overall_rate,
+#    ...
+# Values in this dictionary are set to -1 by default, so you have
+# to update each one. These should be derived from the most reliable
+# data and how they were obtained should be documented here.
+# The appropriate citation must be added to the list of
+# mutation_rate_citations in the Genome object.
+
+_mutation_rate = {
+    "1": -1,
+    "2": -1,
+    "3": -1,
+    "4": -1,
+    "5": -1,
+    "6": -1,
+    "7": -1,
+    "8": -1,
+    "9": -1,
+    "10": -1,
+    "11": -1,
+    "12": -1,
+    "13": -1,
+    "14": -1,
+    "15": -1,
+    "16": -1,
+    "17": -1,
+    "18": -1,
+    "19": -1,
+    "X": -1,
+    "Y": -1,
+    "MT": -1,
+>>>>>>> 52774ae (ran maintenance script to pull ensembl info)
 }
 
 _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
+<<<<<<< HEAD
     ploidy=_ploidy,
     citations=[
         stdpopsim.Citation(
@@ -105,6 +184,20 @@ _genome = stdpopsim.Genome.from_data(
             year=2007,
             doi="http://www.genome.org/cgi/doi/10.1101/gr.5941007",
             reasons={stdpopsim.CiteReason.MUT_RATE},
+=======
+    # [ Implementers: please insert citations for the papers you are basing
+    # the estimates for recombination and mutation rates. The assembly
+    # citation is optional and can be deleted if not needed.]
+    citations=[
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.ASSEMBLY}
+        ),
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.REC_RATE}
+        ),
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.MUT_RATE}
+>>>>>>> 52774ae (ran maintenance script to pull ensembl info)
         ),
     ],
 )
@@ -115,6 +208,7 @@ _species = stdpopsim.Species(
     name="Mus musculus",
     common_name="Mouse",
     genome=_genome,
+<<<<<<< HEAD
     generation_time=0.75,
     population_size=500000,
     citations=[
@@ -135,6 +229,21 @@ _species = stdpopsim.Species(
             year=2012,
             doi="https://doi.org/10.1093/molbev/mss105",
             reasons={stdpopsim.CiteReason.POP_SIZE},
+=======
+    # [Implementers: you must provide an estimate of the generation_time.
+    # Please also add a citation for this.]
+    generation_time=0,
+    # [Implementers: you must provide an estimate of the population size.
+    # TODO: give a definition of what this should be.
+    # Please also add a citation for this below..]
+    population_size=0,
+    citations=[
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.POP_SIZE}
+        ),
+        stdpopsim.Citation(
+            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.GEN_TIME}
+>>>>>>> 52774ae (ran maintenance script to pull ensembl info)
         ),
     ],
 )
