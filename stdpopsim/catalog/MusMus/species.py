@@ -81,8 +81,8 @@ _mutation_rate = {
 
 _genome = stdpopsim.Genome.from_data(
     genome_data.data,
-    recombination_rate=_recombination_rate,
-    mutation_rate=_mutation_rate,
+    recombination_rate=3.3e-12,
+    mutation_rate=5.7e-9,
     # [ Implementers: please insert citations for the papers you are basing
     # the estimates for recombination and mutation rates. The assembly
     # citation is optional and can be deleted if not needed.]
@@ -91,10 +91,16 @@ _genome = stdpopsim.Genome.from_data(
             author="", year=-1, doi="", reasons={stdpopsim.CiteReason.ASSEMBLY}
         ),
         stdpopsim.Citation(
-            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.REC_RATE}
+            author="Booker et al. 2017",
+            year=-1,
+            doi="",
+            reasons={stdpopsim.CiteReason.REC_RATE},
         ),
         stdpopsim.Citation(
-            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.MUT_RATE}
+            author="Milholland   B, et al.   2017",
+            year=-1,
+            doi="",
+            reasons={stdpopsim.CiteReason.MUT_RATE},
         ),
     ],
 )
@@ -107,17 +113,23 @@ _species = stdpopsim.Species(
     genome=_genome,
     # [Implementers: you must provide an estimate of the generation_time.
     # Please also add a citation for this.]
-    generation_time=0,
+    generation_time=0.2,
     # [Implementers: you must provide an estimate of the population size.
     # TODO: give a definition of what this should be.
     # Please also add a citation for this below..]
-    population_size=0,
+    population_size=420000,
     citations=[
         stdpopsim.Citation(
-            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.POP_SIZE}
+            author="Booker et al. 2021...",
+            year=-1,
+            doi="",
+            reasons={stdpopsim.CiteReason.POP_SIZE},
         ),
         stdpopsim.Citation(
-            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.GEN_TIME}
+            author="Megan Phifer-Rixey and Michael W Nachman",
+            year=-1,
+            doi="",
+            reasons={stdpopsim.CiteReason.GEN_TIME},
         ),
     ],
 )
