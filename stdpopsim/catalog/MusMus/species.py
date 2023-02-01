@@ -80,6 +80,7 @@ _mutation_rate = {
     "X": _overall_rate,
     "Y": _overall_rate,
     "MT": 3.7e-08,
+}
 
 _genome = stdpopsim.Genome.from_data(
     genome_data.data,
