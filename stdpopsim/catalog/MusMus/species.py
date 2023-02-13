@@ -5,8 +5,9 @@ from . import genome_data
 # Chromosome-specific recombination rate
 # In order to derive an estimate of recombination rate for each chromosome
 # we use information provided in Table 1 of Cox et al. (2009). Specifically,
-# we take the ratio of MGI estimate (standard) of recombination in cM/Mbp and the most distal
-# molecular marker used to derive the map and get the average recombination rate/bp. 
+# we take the ratio of MGI estimate (standard) of recombination in cM/Mbp and the most
+# distal molecular marker used to derive the map and get the average recombination
+#  rate/bp.
 
 _recombination_rate = {
     "1": 2.75145215530419e-09,
@@ -61,13 +62,17 @@ _ploidy = {
 }
 
 # Generic and chromosome-specific mutation rate
-# The provided estimate of nuclear mutation rate is derived from Uchimra et al. (2015)
-# As described in the abstract, "We estimated the base-substitution mutation rate to be 5.4 x 10−9
-# (95% confidence interval = 4.6 x 10−9–6.5 x 10−9) per nucleotide per generation in C57BL/6 laboratory mice.
-# The provided estimate of mtDNA mutation rate is derived from Goios et al. (2007). In this paper, the authors
-# say "we obtained an overall substitution rate for the mouse coding mtDNA of 3.7 × 10−8 substitutions per site per yr." 
-# This value is divided by 0.75, an approximate estimate of generations per year, in order to convert the expressed value 
-# to an estimate of mutation rate in units of generations.  
+# The provided estimate of nuclear mutation rate is
+# is derived from Uchimra et al. (2015) As described
+# in the abstract, "We estimated the base-substitution
+# mutation rate to be 5.4 x 10−9 (95% confidence interval =
+# 4.6 x 10−9–6.5 x 10−9) per nucleotide per
+# generation in C57BL/6 laboratory mice." The provided estimate of mtDNA
+# mutation rate is derived from Goios et al. (2007). In this paper, the authors
+# say "we obtained an overall substitution rate for the mouse coding mtDNA
+# of 3.7 × 10−8 substitutions per site per yr." This value is divided by 0.75,
+# an approximate estimate of generations per year, in order to convert the
+# expressed value to an estimate of mutation rate in units of generations.
 
 _overall_rate = 5.4e-09
 _mutation_rate = {
@@ -136,7 +141,7 @@ _genome = stdpopsim.Genome.from_data(
 # ~200,000 for M. m. domesticus
 # ~120,000 for M. m. musculus
 # While these values will vary by method/sample, the rank order of effective population
-# size is generally accepted. 
+# size is generally accepted.
 
 _species = stdpopsim.Species(
     id="MusMus",
