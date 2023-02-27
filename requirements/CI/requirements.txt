@@ -6,7 +6,7 @@ pytest-cov==4.0.0
 pytest-xdist==3.2.0
 setuptools-scm==7.0.5
 sphinx==4.3.2
-sphinx-argparse==0.3.1
+sphinx-argparse==0.4.0
 sphinx-issues==3.0.1
 sphinx_rtd_theme==1.2.0
 sphinxcontrib-programoutput==0.17
