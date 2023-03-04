@@ -133,9 +133,9 @@ _genome = stdpopsim.Genome.from_data(
 )
 
 
-# Estimates of generation time for M. musculus generally fall between 1 to 2 years
-# as suggested in the citations for this metric. Here the provided value is an average
-# of these two values
+# Estimates of generation time for M. musculus generally fall between 1 to 2
+# generations per year. Here the provided value is an average of these
+# two values
 
 # Estimates of effective population size for M. musculus can vary quite a lot. This
 # summary is complicated further as the specific sub-species of M. musculus are described
@@ -161,7 +161,7 @@ _species = stdpopsim.Species(
             author="Fujiwara et al.",
             year=2022,
             doi="https://doi.org/10.1093/gbe/evac068",
-            reasons={stdpopsim.CiteReason.GEN_TIME, stdpopsim.CiteReason.POP_SIZE},
+            reasons={stdpopsim.CiteReason.POP_SIZE},
         ),
         stdpopsim.Citation(
             author="Phifer-Rixey, Harr et al.",
