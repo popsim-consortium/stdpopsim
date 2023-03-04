@@ -4,10 +4,9 @@ from . import genome_data
 
 # Chromosome-specific recombination rate
 # In order to derive an estimate of recombination rate for each chromosome
-# we use information provided in Table 1 of Cox et al. (2009). Specifically,
-# we take the ratio of MGI estimate (standard) of recombination in cM/Mbp and the most
-# distal molecular marker used to derive the map and get the average recombination
-#  rate/bp.
+# we use information provided in Table 1 of Cox et al. (2009), specifically
+# the column "Chromosome average recombination", sub-column
+# "Revised Shifman" (third column from the right).
 
 _recombination_rate = {
     "1": 5.0e-09,
@@ -124,6 +123,12 @@ _genome = stdpopsim.Genome.from_data(
             doi="http://www.genome.org/cgi/doi/10.1101/gr.5941007",
             reasons={stdpopsim.CiteReason.MUT_RATE},
         ),
+        stdpopsim.Citation(
+            author="Genome Reference Consortium",
+            year=2020,
+            doi="https://www.ncbi.nlm.nih.gov/assembly/GCF_000001635.27/",
+            reasons={stdpopsim.CiteReason.ASSEMBLY},
+        ),
     ],
 )
 
@@ -169,12 +174,6 @@ _species = stdpopsim.Species(
             year=2012,
             doi="https://doi.org/10.1093/molbev/mss105",
             reasons={stdpopsim.CiteReason.POP_SIZE},
-        ),
-        stdpopsim.Citation(
-            author="Genome Reference Consortium",
-            year=2020,
-            doi="https://www.ncbi.nlm.nih.gov/assembly/GCF_000001635.27/",
-            reasons={stdpopsim.CiteReason.ASSEMBLY},
         ),
     ],
 )
