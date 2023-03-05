@@ -138,15 +138,19 @@ _genome = stdpopsim.Genome.from_data(
 # two values
 
 # Estimates of effective population size for M. musculus can vary quite a lot. This
-# summary is complicated further as the specific sub-species of M. musculus are described
-# as having different effective population sizes (though not, at least, of a different
-# order of magnitude). In the suggested citations the effective population sizes of
+# summary is complicated further as specific subspecies of M. musculus are described
+# as having different effective population sizes (see Fujiwara et al. (2022);
+# though not, at least, of a different order of magnitude).
+# In the suggested citations the effective population sizes of
 # M. musculus spp. are as follows:
 # ~500,000 for M. m. castaneus
 # ~200,000 for M. m. domesticus
 # ~120,000 for M. m. musculus
 # While these values will vary by method/sample, the rank order of effective population
-# size is generally accepted.
+# size is generally accepted. Here we assign a value of 500000 for the Ne as described
+# in Booker and Keightley (2018) which is probably most consistent with M. m. castaneus.
+# Users of stdpopsim may wish to modify this value or implement a specific demographic
+# model if they wish to simulate data for a different M. musculus subspecies.
 
 _species = stdpopsim.Species(
     id="MusMus",
@@ -161,6 +165,12 @@ _species = stdpopsim.Species(
             author="Fujiwara et al.",
             year=2022,
             doi="https://doi.org/10.1093/gbe/evac068",
+            reasons={stdpopsim.CiteReason.POP_SIZE},
+        ),
+        stdpopsim.Citation(
+            author="Booker and Keightley",
+            year=2018,
+            doi="https://doi.org/10.1093/molbev/msy188",
             reasons={stdpopsim.CiteReason.POP_SIZE},
         ),
         stdpopsim.Citation(
