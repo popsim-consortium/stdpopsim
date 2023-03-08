@@ -13,6 +13,9 @@ We envision at least three main types of ``stdpopsim`` developers:
 2. API developers
 3. Documentation and tutorial curators
 
+You can also join our slack workspace to get the most up-to-date information: `issue <popsimgroup.slack.com>`__
+The "general" channel on slack has a zoom link at the top that we use for our (every other) Tuesday meetings and coding sessions.
+
 Contributors add simulation code for new or existing species in the catalog.
 This is the main way we envision biologists to continually add
 to the catalog of available models, and it is a great first step for new
