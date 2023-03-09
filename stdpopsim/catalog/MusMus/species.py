@@ -175,13 +175,13 @@ _species = stdpopsim.Species(
             reasons={stdpopsim.CiteReason.POP_SIZE},
         ),
         stdpopsim.Citation(
-            author="Phifer-Rixey, Harr et al.",
+            author="Phifer-Rixey, et al.",
             year=2020,
             doi="https://doi.org/10.1186/s12862-020-01666-9",
             reasons={stdpopsim.CiteReason.GEN_TIME},
         ),
         stdpopsim.Citation(
-            author="Phifer-Rixey, Bonhomme, et al.",
+            author="Phifer-Rixey, et al.",
             year=2012,
             doi="https://doi.org/10.1093/molbev/mss105",
             reasons={stdpopsim.CiteReason.POP_SIZE},
