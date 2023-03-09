@@ -140,7 +140,7 @@ _genome = stdpopsim.Genome.from_data(
 
 # Estimates of effective population size for M. musculus can vary quite a lot. This
 # summary is complicated further as specific subspecies of M. musculus are described
-# as having different effective population sizes (see Fujiwara et al. (2022);
+# as having different effective population sizes (see Phifer-Rixey, et al. (2012);
 # though not, at least, of a different order of magnitude).
 # In the suggested citations the effective population sizes of
 # M. musculus spp. are as follows:
