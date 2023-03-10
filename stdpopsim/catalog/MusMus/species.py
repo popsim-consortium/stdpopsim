@@ -3,27 +3,32 @@ import stdpopsim
 from . import genome_data
 
 # Chromosome-specific recombination rate
+# In order to derive an estimate of recombination rate for each chromosome
+# we use information provided in Table 1 of Cox et al. (2009), specifically
+# the column "Chromosome average recombination", sub-column
+# "Revised Shifman" (third column from the right).
+
 _recombination_rate = {
-    "1": 2.75145215530419e-09,
-    "2": 3.31510028178352e-09,
-    "3": 3.51437699680511e-09,
-    "4": 3.56171480378189e-09,
-    "5": 3.86074685482261e-09,
-    "6": 3.43642611683849e-09,
-    "7": 3.15498882608124e-09,
-    "8": 4.33723938517729e-09,
-    "9": 4.87408610885459e-09,
-    "10": 4.28382272762676e-09,
-    "11": 5.70613409415121e-09,
-    "12": 4.32252701579385e-09,
-    "13": 5.07783234828935e-09,
-    "14": 4.19354838709677e-09,
-    "15": 5.82580833090591e-09,
-    "16": 7.61865541027489e-09,
-    "17": 6.3034188034188e-09,
-    "18": 7.13171383998217e-09,
-    "19": 1.45096731154103e-08,
-    "X": 2.72149984880556e-09,
+    "1": 5.0e-09,
+    "2": 5.7e-09,
+    "3": 5.2e-09,
+    "4": 5.6e-09,
+    "5": 5.9e-09,
+    "6": 5.3e-09,
+    "7": 5.8e-09,
+    "8": 5.8e-09,
+    "9": 6.1e-09,
+    "10": 6.1e-09,
+    "11": 7.0e-09,
+    "12": 5.3e-09,
+    "13": 5.6e-09,
+    "14": 5.3e-09,
+    "15": 5.6e-09,
+    "16": 5.9e-09,
+    "17": 6.5e-09,
+    "18": 6.6e-09,
+    "19": 9.4e-09,
+    "X": 4.8e-09,
     "Y": 0,
     "MT": 0,
 }
@@ -56,6 +61,18 @@ _ploidy = {
 }
 
 # Generic and chromosome-specific mutation rate
+# The provided estimate of nuclear mutation rate is
+# is derived from Uchimra et al. (2015) As described
+# in the abstract, "We estimated the base-substitution
+# mutation rate to be 5.4 x 10−9 (95% confidence interval =
+# 4.6 x 10−9–6.5 x 10−9) per nucleotide per
+# generation in C57BL/6 laboratory mice." The provided estimate of mtDNA
+# mutation rate is derived from Goios et al. (2007). In this paper, the authors
+# say "we obtained an overall substitution rate for the mouse coding mtDNA
+# of 3.7 × 10−8 substitutions per site per yr." This value is divided by 0.75,
+# an approximate estimate of generations per year, in order to convert the
+# expressed value to an estimate of mutation rate in units of generations.
+
 _overall_rate = 5.4e-09
 _mutation_rate = {
     "1": _overall_rate,
@@ -79,7 +96,7 @@ _mutation_rate = {
     "19": _overall_rate,
     "X": _overall_rate,
     "Y": _overall_rate,
-    "MT": 3.7e-08,
+    "MT": 4.93e-08,
 }
 
 _genome = stdpopsim.Genome.from_data(
@@ -106,8 +123,35 @@ _genome = stdpopsim.Genome.from_data(
             doi="http://www.genome.org/cgi/doi/10.1101/gr.5941007",
             reasons={stdpopsim.CiteReason.MUT_RATE},
         ),
+        stdpopsim.Citation(
+            author="Genome Reference Consortium",
+            year=2020,
+            doi="https://www.ncbi.nlm.nih.gov/assembly/GCF_000001635.27/",
+            reasons={stdpopsim.CiteReason.ASSEMBLY},
+        ),
     ],
 )
+
+
+# Estimates of generation time for M. musculus generally fall between 0.5
+# to 1 years as suggested by Phifer-Rixey, et al. (2020),
+# which cites other publications as primary sources.
+# We use a value of 0.75, which is in the center of this feasible range.
+
+# Estimates of effective population size for M. musculus can vary quite a lot. This
+# summary is complicated further as specific subspecies of M. musculus are described
+# as having different effective population sizes (see Phifer-Rixey, et al. (2012);
+# though not, at least, of a different order of magnitude).
+# In the suggested citations the effective population sizes of
+# M. musculus spp. are as follows:
+# ~500,000 for M. m. castaneus
+# ~200,000 for M. m. domesticus
+# ~120,000 for M. m. musculus
+# While these values will vary by method/sample, the rank order of effective population
+# size is generally accepted. Here we assign a value of 500000 for the Ne as described
+# in Booker and Keightley (2018) which is probably most consistent with M. m. castaneus.
+# Users of stdpopsim may wish to modify this value or implement a specific demographic
+# model if they wish to simulate data for a different M. musculus subspecies.
 
 _species = stdpopsim.Species(
     id="MusMus",
@@ -122,16 +166,22 @@ _species = stdpopsim.Species(
             author="Fujiwara et al.",
             year=2022,
             doi="https://doi.org/10.1093/gbe/evac068",
-            reasons={stdpopsim.CiteReason.GEN_TIME, stdpopsim.CiteReason.POP_SIZE},
+            reasons={stdpopsim.CiteReason.POP_SIZE},
         ),
         stdpopsim.Citation(
-            author="Phifer-Rixey, Harr et al.",
+            author="Booker and Keightley",
+            year=2018,
+            doi="https://doi.org/10.1093/molbev/msy188",
+            reasons={stdpopsim.CiteReason.POP_SIZE},
+        ),
+        stdpopsim.Citation(
+            author="Phifer-Rixey, et al.",
             year=2020,
             doi="https://doi.org/10.1186/s12862-020-01666-9",
             reasons={stdpopsim.CiteReason.GEN_TIME},
         ),
         stdpopsim.Citation(
-            author="Phifer-Rixey, Bonhomme, et al.",
+            author="Phifer-Rixey, et al.",
             year=2012,
             doi="https://doi.org/10.1093/molbev/mss105",
             reasons={stdpopsim.CiteReason.POP_SIZE},
