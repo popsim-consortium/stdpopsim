@@ -69,7 +69,7 @@ _ploidy = {
 # generation in C57BL/6 laboratory mice." The provided estimate of mtDNA
 # mutation rate is derived from Goios et al. (2007). In this paper, the authors
 # say "we obtained an overall substitution rate for the mouse coding mtDNA
-# of 3.7 × 10−8 substitutions per site per yr." This value is multiplied by 
+# of 3.7 × 10−8 substitutions per site per yr." This value is multiplied by
 # the average generation time (0.75 ypg) in order to convert the
 # expressed value to an estimate of mutation rate in units of generations.
 
@@ -96,7 +96,7 @@ _mutation_rate = {
     "19": _overall_rate,
     "X": _overall_rate,
     "Y": _overall_rate,
-    "MT": 3.7e-08*0.75,
+    "MT": 3.7e-08 * 0.75,
 }
 
 _genome = stdpopsim.Genome.from_data(
