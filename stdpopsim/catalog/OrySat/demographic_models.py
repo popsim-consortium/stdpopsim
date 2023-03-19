@@ -7,7 +7,7 @@ _species = stdpopsim.get_species("OrySat")
 _rufipogon = stdpopsim.Population(id="RUF", description="Oryza rufipogon (wild rice)")
 _indica = stdpopsim.Population(id="IND", description="Oryza sativa indica")
 _tropical_japonica = stdpopsim.Population(
-    id="TRP", description="Tropical Oryza sativa japonica"
+    id="TRJ", description="Tropical Oryza sativa japonica"
 )
 
 
@@ -30,7 +30,7 @@ def _BottMig_3C07():
             year=2007,
             doi="https://doi.org/10.1371/journal.pgen.0030163",
             reasons={stdpopsim.CiteReason.DEM_MODEL},
-        )
+        ),
     ]
 
     generation_time = 1
@@ -46,7 +46,7 @@ def _BottMig_3C07():
     T_B = 9000  # bottleneck lasted for 3000 years/generations
 
     N_rufi = 12000 / (0.04 * 2)  # ancestral population size = 150000
-    N_trp = 0.12 * 150000  # population size for tropical japonica
+    N_trj = 0.12 * 150000  # population size for tropical japonica
     N_ind = 0.27 * 150000  # population size for indica
     N_B = (
         0.0055 * 150000
@@ -55,12 +55,12 @@ def _BottMig_3C07():
     # to japonica = 0.42, to indica = 0.945, to rufipogon = 3.5
 
     # Migration rates in the form M_from_to, thinking forward in time
-    m_trp_rufi = 3.5 / N_rufi
-    m_trp_ind = 0.945 / N_ind
-    m_rufi_trp = 0.42 / N_trp
+    m_trj_rufi = 3.5 / N_rufi
+    m_trj_ind = 0.945 / N_ind
+    m_rufi_trj = 0.42 / N_trj
     m_rufi_ind = 0.945 / N_ind
     m_ind_rufi = 3.5 / N_rufi
-    m_ind_trp = 0.42 / N_trp
+    m_ind_trj = 0.42 / N_trj
 
     # This actually just translates to symmetrical
     # migration between all the populations
@@ -74,7 +74,7 @@ def _BottMig_3C07():
         generation_time=generation_time,
         mutation_rate=mutation_rate,
         # Population IDs correspond to their indexes in the population
-        # configuration array. Therefore, we have 0=RUF, 1=IND and 2=TRP
+        # configuration array. Therefore, we have 0=RUF, 1=IND and 2=TRJ
         # initially.
         population_configurations=[
             msprime.PopulationConfiguration(
@@ -84,23 +84,23 @@ def _BottMig_3C07():
                 initial_size=N_ind, metadata=populations[1].asdict()
             ),
             msprime.PopulationConfiguration(
-                initial_size=N_trp, metadata=populations[2].asdict()
+                initial_size=N_trj, metadata=populations[2].asdict()
             ),
         ],
         migration_matrix=[
-            [0, m_ind_rufi, m_trp_rufi],
-            [m_rufi_ind, 0, m_trp_ind],
-            [m_rufi_trp, m_ind_trp, 0],
+            [0, m_ind_rufi, m_trj_rufi],
+            [m_rufi_ind, 0, m_trj_ind],
+            [m_rufi_trj, m_ind_trj, 0],
         ],
         demographic_events=[
             # There is migration between all populations
             msprime.MigrationRateChange(time=0, rate=m_ind_rufi, source=0, dest=1),
-            msprime.MigrationRateChange(time=0, rate=m_ind_trp, source=2, dest=1),
-            msprime.MigrationRateChange(time=0, rate=m_trp_rufi, source=0, dest=2),
-            msprime.MigrationRateChange(time=0, rate=m_trp_ind, source=2, dest=1),
-            msprime.MigrationRateChange(time=0, rate=m_rufi_trp, source=2, dest=0),
+            msprime.MigrationRateChange(time=0, rate=m_ind_trj, source=2, dest=1),
+            msprime.MigrationRateChange(time=0, rate=m_trj_rufi, source=0, dest=2),
+            msprime.MigrationRateChange(time=0, rate=m_trj_ind, source=2, dest=1),
+            msprime.MigrationRateChange(time=0, rate=m_rufi_trj, source=2, dest=0),
             msprime.MigrationRateChange(time=0, rate=m_rufi_ind, source=1, dest=0),
-            # IND and TRP undergo independent bottlenecks at T_B
+            # IND and TRJ undergo independent bottlenecks at T_B
             msprime.PopulationParametersChange(
                 time=T_B, initial_size=N_B, population_id=1
             ),
@@ -109,7 +109,7 @@ def _BottMig_3C07():
             ),
             # Migration stops before that point
             msprime.MigrationRateChange(time=T_B, rate=0),
-            # IND and TRP both merge onto RUF at T_1
+            # IND and TRJ both merge onto RUF at T_1
             msprime.MassMigration(time=T_1, source=1, destination=0, proportion=1.0),
             msprime.MassMigration(time=T_1, source=2, destination=0, proportion=1.0),
         ],

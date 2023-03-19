@@ -108,7 +108,7 @@ _species = stdpopsim.Species(
     common_name="Rice",
     genome=_genome,
     generation_time=1,
-    population_size=118110,  # ancestral Ne in _CaicedoEtAl
+    population_size=150000,  # one of the ancestral Nes in _CaicedoEtAl
     ploidy=_species_ploidy,
     citations=[_CaicedoEtAl],
 )
