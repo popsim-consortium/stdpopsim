@@ -69,8 +69,8 @@ _ploidy = {
 # generation in C57BL/6 laboratory mice." The provided estimate of mtDNA
 # mutation rate is derived from Goios et al. (2007). In this paper, the authors
 # say "we obtained an overall substitution rate for the mouse coding mtDNA
-# of 3.7 × 10−8 substitutions per site per yr." This value is divided by 0.75,
-# an approximate estimate of generations per year, in order to convert the
+# of 3.7 × 10−8 substitutions per site per yr." This value is multiplied by
+# the average generation time (0.75 ypg) in order to convert the
 # expressed value to an estimate of mutation rate in units of generations.
 
 _overall_rate = 5.4e-09
@@ -96,7 +96,7 @@ _mutation_rate = {
     "19": _overall_rate,
     "X": _overall_rate,
     "Y": _overall_rate,
-    "MT": 4.93e-08,
+    "MT": 3.7e-08 * 0.75,
 }
 
 _genome = stdpopsim.Genome.from_data(
@@ -151,7 +151,8 @@ _genome = stdpopsim.Genome.from_data(
 # size is generally accepted. Here we assign a value of 500000 for the Ne as described
 # in Booker and Keightley (2018) which is probably most consistent with M. m. castaneus.
 # Users of stdpopsim may wish to modify this value or implement a specific demographic
-# model if they wish to simulate data for a different M. musculus subspecies.
+# model if they wish to simulate data for a different M. musculus subspecies
+# (e.g., the demographic histories inferred for each subspecies by Fujiwara et al., 2022)
 
 _species = stdpopsim.Species(
     id="MusMus",
@@ -163,18 +164,6 @@ _species = stdpopsim.Species(
     population_size=500000,
     citations=[
         stdpopsim.Citation(
-            author="Fujiwara et al.",
-            year=2022,
-            doi="https://doi.org/10.1093/gbe/evac068",
-            reasons={stdpopsim.CiteReason.POP_SIZE},
-        ),
-        stdpopsim.Citation(
-            author="Booker and Keightley",
-            year=2018,
-            doi="https://doi.org/10.1093/molbev/msy188",
-            reasons={stdpopsim.CiteReason.POP_SIZE},
-        ),
-        stdpopsim.Citation(
             author="Phifer-Rixey, et al.",
             year=2020,
             doi="https://doi.org/10.1186/s12862-020-01666-9",
@@ -184,6 +173,18 @@ _species = stdpopsim.Species(
             author="Phifer-Rixey, et al.",
             year=2012,
             doi="https://doi.org/10.1093/molbev/mss105",
+            reasons={stdpopsim.CiteReason.POP_SIZE},
+        ),
+        stdpopsim.Citation(
+            author="Booker and Keightley",
+            year=2018,
+            doi="https://doi.org/10.1093/molbev/msy188",
+            reasons={stdpopsim.CiteReason.POP_SIZE},
+        ),
+        stdpopsim.Citation(
+            author="Fujiwara et al.",
+            year=2022,
+            doi="https://doi.org/10.1093/gbe/evac068",
             reasons={stdpopsim.CiteReason.POP_SIZE},
         ),
     ],
