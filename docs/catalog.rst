@@ -81,6 +81,8 @@ Then, if you feel ready, make an issue on our
 
 .. speciescatalog:: HomSap
 
+.. speciescatalog:: MusMus
+
 .. speciescatalog:: PanTro
 
 .. speciescatalog:: PapAnu
