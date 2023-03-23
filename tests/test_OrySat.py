@@ -11,10 +11,10 @@ class TestSpeciesData(test_species.SpeciesTestBase):
         assert self.species.ensembl_id == "oryza_sativa"
 
     def test_name(self):
-        assert self.species.name == "Oryza sativa Japonica Group"
+        assert self.species.name == "Oryza sativa"
 
     def test_common_name(self):
-        assert self.species.common_name == "Oryza sativa Japonica Group"
+        assert self.species.common_name == "Asian rice"
 
     # QC Tests. These tests are performed by another contributor
     # independently referring to the citations provided in the
