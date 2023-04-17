@@ -30,8 +30,8 @@ class TestGenomeData(test_species.GenomeTestBase):
         ["name", "rate"],
         {
             "1": 8.97e-10,
-            "Mt": 8.97e-10,
-            "Pt": 8.97e-10,
+            "Mt": 0,
+            "Pt": 0,
             "2": 8.97e-10,
             "3": 8.97e-10,
             "4": 8.97e-10,
