@@ -17,7 +17,7 @@ class TestSpeciesData(test_species.SpeciesTestBase):
         assert self.species.common_name == "Asian rice"
 
     def test_qc_population_size(self):
-        assert self.species.population_size == 150000
+        assert self.species.population_size == 46875
 
     def test_qc_generation_time(self):
         assert self.species.generation_time == 1
