@@ -39,6 +39,16 @@ _HuangEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.POP_SIZE},
 )
 
+# Ne is reported for Oryza sativa japonica
+# It is calculated from pi reported in
+# Huang et al. 2012
+# Ne = 0.0006 / (4 * 3.2e-9)
+# No sensible reason to ever model the
+# demography of the japonica and indica
+# subspecies together, so using the mean
+# of japonica and indica would make less
+# sense
+
 _CaicedoEtAl = stdpopsim.Citation(
     author="Caicedo et al.",
     year=2007,
@@ -103,16 +113,6 @@ _genome = stdpopsim.Genome(
     ],
 )
 stdpopsim.utils.append_common_synonyms(_genome)
-
-# Ne is reported for Oryza sativa japonica
-# It is calculated from pi reported in
-# Huang et al. 2012
-# Ne = 0.0006 * (4 * 3.2e-9)
-# No sensible reason to ever model the
-# demography of the japonica and indica
-# subspecies together, so using the mean
-# of japonica and indica would make less
-# sense
 
 _species = stdpopsim.Species(
     id="OrySat",

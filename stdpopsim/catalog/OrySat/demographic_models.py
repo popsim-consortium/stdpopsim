@@ -34,7 +34,7 @@ def _BottMig_3C07():
     ]
 
     generation_time = 1
-    mutation_rate = 6.5e-9
+    mutation_rate = 3.2e-9
 
     # First we set out the maximum likelihood values of the various parameters
     # given in Table 2.
