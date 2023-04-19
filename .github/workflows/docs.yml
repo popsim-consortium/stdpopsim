@@ -15,7 +15,7 @@ jobs:
     # won't be valid. But to avoid confusion, we explicitly restrict the scope.
     # See https://github.com/popsim-consortium/stdpopsim/issues/662
     if: github.repository == 'popsim-consortium/stdpopsim'
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
 
