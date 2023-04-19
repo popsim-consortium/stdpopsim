@@ -1,4 +1,4 @@
-codecov==2.1.12
+codecov==2.1.13
 coverage==6.3.3
 flake8==5.0.4
 pytest==7.2.1
