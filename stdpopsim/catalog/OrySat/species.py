@@ -18,10 +18,10 @@ _DuEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
 
-_GautEtAl = stdpopsim.Citation(
-    author="Gaut et al.",
-    year=1996,
-    doi="https://doi.org/10.1073/pnas.93.19.10274",
+_YangEtAl = stdpopsim.Citation(
+    author="Yang et al.",
+    year=2015,
+    doi="https://doi.org/10.1038/nature14649",
     reasons={stdpopsim.CiteReason.MUT_RATE},
 )
 
@@ -32,15 +32,28 @@ _SiEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.REC_RATE},
 )
 
+_HuangEtAl = stdpopsim.Citation(
+    author="Huang et al.",
+    year=2012,
+    doi="https://doi.org/10.1038/nature11532",
+    reasons={stdpopsim.CiteReason.POP_SIZE},
+)
+
+# Ne is reported for Oryza sativa japonica
+# It is calculated from pi reported in
+# Huang et al. 2012
+# Ne = 0.0006 / (4 * 3.2e-9)
+# No sensible reason to ever model the
+# demography of the japonica and indica
+# subspecies together, so using the mean
+# of japonica and indica would make less
+# sense
+
 _CaicedoEtAl = stdpopsim.Citation(
     author="Caicedo et al.",
     year=2007,
     doi="https://doi.org/10.1371/journal.pgen.0030163",
-    reasons={
-        stdpopsim.CiteReason.GEN_TIME,
-        stdpopsim.CiteReason.POP_SIZE,
-        stdpopsim.CiteReason.REC_RATE,
-    },
+    reasons={stdpopsim.CiteReason.GEN_TIME, stdpopsim.CiteReason.REC_RATE},
 )
 
 # Recombination rate was calculated from sequences of rice
@@ -84,7 +97,7 @@ for name, data in genome_data.data["chromosomes"].items():
             id=name,
             length=data["length"],
             synonyms=data["synonyms"],
-            mutation_rate=6.5e-9,
+            mutation_rate=3.2e-9,
             recombination_rate=_recombination_rate_data[name],
             ploidy=_ploidy[name],
         )
@@ -95,7 +108,7 @@ _genome = stdpopsim.Genome(
     citations=[
         _KawaharaEtAl,
         _DuEtAl,
-        _GautEtAl,
+        _YangEtAl,
         _SiEtAl,
     ],
 )
@@ -108,7 +121,7 @@ _species = stdpopsim.Species(
     common_name="Asian rice",
     genome=_genome,
     generation_time=1,
-    population_size=150000,  # one of the ancestral Nes in _CaicedoEtAl
+    population_size=46875,
     ploidy=_species_ploidy,
     citations=[_CaicedoEtAl],
 )
