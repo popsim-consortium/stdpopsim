@@ -45,24 +45,25 @@ def _BottMig_3C07_qc():
 
     demographic_events = [
             # There is migration between all populations:
-            
+            # (forward in time, indexes are flipped because this is backwards)
+        
             # to rufipogon
-            # from indica to rufipogon
-            msprime.MigrationRateChange(time = 0, rate = m_rufi, source = 1, dest = 0),
+            # from indica to rufipogon 
+            msprime.MigrationRateChange(time = 0, rate = m_rufi, source = 0, dest = 1),
             # from japonica to rufipogon
-            msprime.MigrationRateChange(time = 0, rate = m_rufi, source = 2, dest = 0),
+            msprime.MigrationRateChange(time = 0, rate = m_rufi, source = 0, dest = 2),
             
             # to indica
             # from rufipogon to indica
-            msprime.MigrationRateChange(time = 0, rate = m_ind, source = 0, dest = 1),
+            msprime.MigrationRateChange(time = 0, rate = m_ind, source = 1, dest = 0),
             # from japonica to indica
-            msprime.MigrationRateChange(time = 0, rate = m_ind, source = 2, dest = 1),
+            msprime.MigrationRateChange(time = 0, rate = m_ind, source = 1, dest = 2),
             
             # to japonica
             # from rufipogon to japonica
-            msprime.MigrationRateChange(time = 0, rate = m_trj, source = 0, dest = 2),
+            msprime.MigrationRateChange(time = 0, rate = m_trj, source = 2, dest = 0),
             # from indica to japonica
-            msprime.MigrationRateChange(time = 0, rate = m_trj, source = 1, dest = 2),
+            msprime.MigrationRateChange(time = 0, rate = m_trj, source = 2, dest = 1),
             
             # Independent bottlenecks at T_B for indica and japonica
             
