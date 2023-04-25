@@ -69,5 +69,13 @@ class TestGenomeData(test_species.GenomeTestBase):
             "12": 3.2e-9,
         }.items(),
     )
+    
     def test_mutation_rate(self, name, rate):
         assert rate == pytest.approx(self.genome.get_chromosome(name).mutation_rate)
+    
+    @pytest.mark.parametrize("chrom", [chrom for chrom in genome.chromosomes]) 
+    def test_chromosome_ploidy(self, chrom): 
+        if chrom.id in ["Mt", "Pt"]: 
+            assert chrom.ploidy == 1 
+        else: 
+            assert chrom.ploidy == 2
