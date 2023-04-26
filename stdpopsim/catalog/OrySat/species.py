@@ -70,6 +70,7 @@ _recombination_rate_data = collections.defaultdict(
 )
 # Set some exceptions for non-recombining chrs.
 _recombination_rate_data["Mt"] = 0
+_recombination_rate_data["Pt"] = 0
 
 # Generic and chromosome-specific ploidy
 _species_ploidy = 2
