@@ -1,13 +1,13 @@
 import msprime
 import stdpopsim
 
-_species = stdpopsim.get_species("OrySat") 
+_species = stdpopsim.get_species("OrySat")
 
 
 def _BottMig_3C07_qc():
     id = "QC-BottMig_3C07"
 
-    # populations
+    # populations: rufipogon, indica and tropical japonica
     rufipogon = stdpopsim.Population(id="RUF", description="O. rufipogon population")
     indica = stdpopsim.Population(id="IND", description="O. sativa indica population")
     japonica = stdpopsim.Population(
