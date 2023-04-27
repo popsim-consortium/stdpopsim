@@ -7,9 +7,9 @@ def _BottMig_3C07_qc():
     id = "QC-BottMig_3C07"
     
     #populations
-    rufipogon = stdpopsim.Population(id = "RUF")
-    indica = stdpopsim.Population(id = "IND")
-    japonica = stdpopsim.Population(id = "TRJ")
+    rufipogon = stdpopsim.Population(id = "RUF", description="O. rufipogon population")
+    indica = stdpopsim.Population(id = "IND", description="O. sativa indica population")
+    japonica = stdpopsim.Population(id = "TRJ", description="O. sativa tropical japonica population")
     populations = [rufipogon, indica, japonica]
 
     # generation time of 1 year and a mutation rate of 3.2e-9 per bp per gen
