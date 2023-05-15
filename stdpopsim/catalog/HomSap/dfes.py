@@ -33,6 +33,9 @@ def _KimDFE():
     Na = 12378
     gamma_scale = 875
     gamma_shape = 0.186  # shape
+    # Extra factor of 2 in mean is to account for difference between tools
+    # in how fitness is defined
+    # (1+s for homozygote in SLiM versus 1+2s in dadi)
     gamma_mean = (-gamma_shape * gamma_scale * 2) / (2 * Na)  # expected value
     h = 0.5  # dominance coefficient
     negative = stdpopsim.MutationType(
@@ -73,7 +76,10 @@ def _HuberDFE():
     ]
     neutral = stdpopsim.MutationType()
     gamma_shape = 0.19  # shape
-    gamma_mean = -0.014  # expected value
+    # Extra factor of 2 in mean is to account for difference between tools
+    # in how fitness is defined
+    # (1+s for homozygote in SLiM versus 1+2s in dadi)
+    gamma_mean = -0.014 * 2  # expected value
     h = 0.5  # dominance coefficient
     negative = stdpopsim.MutationType(
         dominance_coeff=h,
