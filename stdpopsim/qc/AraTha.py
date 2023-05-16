@@ -206,7 +206,9 @@ def HuberThreeEpoch():
         mutation_rate=7e-9,
     )
 
+
 _species.get_demographic_model("African3Epoch_1H18").register_qc(HuberThreeEpoch())
+
 
 def Huber2018DFE():
     # From Supp Table 4, line "Genome-Wide; Only A.thaliana; Additive"
@@ -219,7 +221,7 @@ def Huber2018DFE():
         distribution_type="g",  # gamma distribution
         # extra factor of 2 is to convert dadi to SLiM
         # (1+s for homozygote in SLiM versus 1+2s in dadi)
-        distribution_args=[-2 * gamma_shape * gamma_scale, gamma_shape], # mean, shape
+        distribution_args=[-2 * gamma_shape * gamma_scale, gamma_shape],  # mean, shape
     )
 
     return stdpopsim.DFE(
@@ -229,5 +231,6 @@ def Huber2018DFE():
         mutation_types=[neutral, negative],
         proportions=[0.3, 0.7],
     )
+
 
 _species.get_dfe("Gamma_H18").register_qc(Huber2018DFE())
