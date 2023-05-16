@@ -1652,7 +1652,7 @@ Testing your DFE model and submitting a PR
 
 After you finished your implementation, and specified all the
 necessary citations,
-we recommend that you run some basic local tests to see that
+we recommend that you run some basic local checks to see that
 the model was successfully loaded to ``stdpopsim``.
 You may follow the process outlined for `Testing your demographic model and submitting a PR`_.
 
@@ -1664,15 +1664,7 @@ At this point, most of your work is done.
 **You have officially joined the** ``stdpopsim`` **development team. Welcome!!**
 Your DFE model still needs to undergo review by another member
 of the development team before it is fully incorporated into ``stdpopsim``.
-This will likely require additional feedback from you,
-so, stay tuned for discussion during the review process.
-
----------------------
-Reviewing a DFE model
----------------------
-
-The review process for DFE models is currently being developed.
-For now, we suggest that you
+To facilitate this, please
 `open a new blank issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`__
 and specify the following information:
 
@@ -1682,9 +1674,28 @@ and specify the following information:
 4. **Potential issues:**
 5. **QC'er requests:**
 
-A reviewer will be assigned to check your implementation and approve it.
-All discussion about the review can be conducted in the **QC issue**
-mentioned above.
+This will likely require additional feedback from you,
+so, stay tuned for discussion during the review process.
+
+---------------------
+Reviewing a DFE model
+---------------------
+
+The process for reviewing a DFE is essentially the same
+as for reviewing a demographic model (see `Overview of the stdpopsim review process`_).
+Briefly, you will re-implement the DFE "blind", i.e., without looking at the DFE
+implementation already added to the code.
+Then, the unit tests check whether the implementations are equivalent.
+To do this, you add your implementation to ``stdpopsim/qc/<SPECIES_ID>.py``,
+followed by a call like
+
+.. code-block:: python
+
+    _species.get_dfe(_MODEL_ID_).register_qc(_your_review_function())
+
+where ``_MODEL_ID_`` is the string specified as the ID for the original DFE,
+and ``_your_review_function()`` is the function you've added to the QC file
+that returns a DFE object.
 
 ****************
 Coding standards
