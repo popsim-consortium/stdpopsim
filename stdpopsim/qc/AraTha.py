@@ -223,13 +223,16 @@ def Huber2018DFE():
         # (1+s for homozygote in SLiM versus 1+2s in dadi)
         distribution_args=[-2 * gamma_shape * gamma_scale, gamma_shape],  # mean, shape
     )
+    # proportion of single-nuc changes that are synonymous,
+    # from counting the codon table
+    prop_neutral = 330 / 1728
 
     return stdpopsim.DFE(
         id=id,
         description=id,
         long_description=id,
         mutation_types=[neutral, negative],
-        proportions=[0.3, 0.7],
+        proportions=[prop_neutral, 1 - prop_neutral],
     )
 
 
