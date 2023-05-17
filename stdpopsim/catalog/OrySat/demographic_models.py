@@ -34,24 +34,30 @@ def _BottMig_3C07():
     ]
 
     generation_time = 1
-    mutation_rate = 3.2e-9
 
     # First we set out the maximum likelihood values of the various parameters
     # given in Table 2.
     # To rescale the parameters, Caicedo et al. assumed that rice cultivation
     # began around 12,000 years (and therefore, generations) ago
-    # T_1 × 2 x N_rufi = 12000
 
     T_1 = 12000  # time to the start of domestication
-    T_B = 9000  # bottleneck lasted for 3000 years/generations
+    T_B = 0.75 * T_1  # bottleneck lasted for 3000 years/generations
 
     N_rufi = 12000 / (0.04 * 2)  # ancestral population size = 150000
-    N_trj = 0.12 * 150000  # population size for tropical japonica
-    N_ind = 0.27 * 150000  # population size for indica
+    N_trj = 0.12 * N_rufi  # population size for tropical japonica
+    N_ind = 0.27 * N_rufi  # population size for indica
     N_B = (
-        0.0055 * 150000
+        0.0055 * N_rufi
     )  # bottleneck population size for both indica and tropical japonica
 
+
+    # theta-rufi is Watterson's estimate of theta for O. rufipogon
+    # from Table 1
+    theta_rufi = 5.42e-3
+    mutation_rate = theta_rufi / (4 * N_rufi)
+
+
+    # number of migrants coming in
     # to japonica = 0.42, to indica = 0.945, to rufipogon = 3.5
 
     # Migration rates in the form M_from_to, thinking forward in time
