@@ -478,7 +478,7 @@ def _america():
     id = "AmericanAdmixture_4B11"
     description = "American admixture"
     long_description = """
-        Demographic model for American admixture, taken from Browning et al. 2011.
+        Demographic model for American admixture, taken from Browning et al. 2018.
         This model extends the Gravel et al. (2011) model of African/European/Asian
         demographic history to simulate an admixed population with admixture
         occurring 12 generations ago. The admixed population had an initial size
