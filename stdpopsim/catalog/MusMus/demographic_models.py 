@@ -5,6 +5,7 @@ import stdpopsim
 
 _species = stdpopsim.get_species("MusMus")
 
+
 def _dom_1pop():
     # the size during the interval times[k] to times[k+1] = sizes[k]
     times = np.array(
