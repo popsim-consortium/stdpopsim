@@ -173,3 +173,171 @@ def _dom_1pop():
 
 
 _species.add_demographic_model(_dom_1pop())
+
+def _mus_1pop():
+    # the size during the interval times[k] to times[k+1] = sizes[k]
+    times = np.array(
+        [
+            0,
+            35,
+            76,
+            123,
+            177,
+            240,
+            313,
+            398,
+            495,
+            609,
+            740,
+            891,
+            1067,
+            1270,
+            1505,
+            1778,
+            2093,
+            2458,
+            2881,
+            3370,
+            3936,
+            4591,
+            5350,
+            6229,
+            7246,
+            8423,
+            9785,
+            11363,
+            13189,
+            15303,
+            17750,
+            20583,
+            23863,
+            27659,
+            32054,
+            37142,
+            43031,
+            49849,
+            57741,
+            66878,
+            77455,
+            89698,
+            103872,
+            120280,
+            139274,
+            161262,
+            186716,
+            216182,
+            250293,
+            289781,
+            335491,
+            388409,
+            449667,
+            520579,
+            602670,
+            697702,
+            807711,
+        ]
+    )
+    sizes = np.array(
+        [
+            179912,
+            179912,
+            8931,
+            8035,
+            9029,
+            9960,
+            12104,
+            16254,
+            25527,
+            42715,
+            61935,
+            68111,
+            55959,
+            36220,
+            20382,
+            11222,
+            6695,
+            4605,
+            3751,
+            3643,
+            4177,
+            5506,
+            7990,
+            12072,
+            17741,
+            23546,
+            26648,
+            25399,
+            21219,
+            16747,
+            13588,
+            12259,
+            13023,
+            16339,
+            22556,
+            30806,
+            38441,
+            42857,
+            43874,
+            43467,
+            43933,
+            47001,
+            54304,
+            67725,
+            88494,
+            116547,
+            151909,
+            194969,
+            245823,
+            302950,
+            359368,
+            400867,
+            407105,
+            407105,
+            152757,
+            152757,
+            152757,
+        ]
+    )
+
+    demographic_events = []
+    for sz, t in zip(sizes, times):
+        demographic_events.append(
+            msprime.PopulationParametersChange(time=t, initial_size=sz, population_id=0)
+        )
+
+    populations = [
+        stdpopsim.Population(
+            id="M_musculus_musculus",
+            description="Mus musculus musculus Korean population",
+        )
+    ]
+
+    return stdpopsim.DemographicModel(
+        id="M_musculus_musculus_East_Asia",
+        description="M. musculus musculus piecewise constant size",
+        long_description="""
+            This model comes from MSMC using four randomly sampled
+            individuals (KOR01,KOR02,KOR03,KOR05) from a Korean population.
+            The model is estimated with 57 time periods.
+        """,
+        populations=populations,
+        citations=[
+            stdpopsim.Citation(
+                author="Fujiwara et al.",
+                year=2022,
+                doi="https://doi.org/10.1093/gbe/evac068",
+                reasons={stdpopsim.CiteReason.DEM_MODEL},
+            )
+        ],
+        generation_time=1,
+        mutation_rate=5.7e-9,
+        demographic_events=demographic_events,
+        population_configurations=[
+            msprime.PopulationConfiguration(
+                initial_size=sizes[0], metadata=populations[0].asdict()
+            )
+        ],
+    )
+
+
+_species.add_demographic_model(_mus_1pop())
