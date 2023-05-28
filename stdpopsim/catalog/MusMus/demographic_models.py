@@ -174,6 +174,7 @@ def _dom_1pop():
 
 _species.add_demographic_model(_dom_1pop())
 
+
 def _mus_1pop():
     # the size during the interval times[k] to times[k+1] = sizes[k]
     times = np.array(
