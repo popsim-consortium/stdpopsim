@@ -1,3 +1,4 @@
+import math
 import stdpopsim
 
 _species = stdpopsim.get_species("HomSap")
@@ -96,3 +97,47 @@ def _HuberDFE():
 
 
 _species.add_dfe(_HuberDFE())
+
+
+def _HuberLogNormalDFE():
+    id = "LogNormal_H17"
+    description = "Deleterious Log-normal DFE"
+    long_description = """
+    Return neutral and negative MutationType()s representing a human DFE.
+    Huber et al. (2017), https://doi.org/10.1073/pnas.1619508114.
+    DFE parameters are based off the Full model in Table S3, Using recent
+    mutation rate estimates.
+    Log-normal distribution parameters were given as the
+    mean and standard deviation of the log.
+    """
+    citations = [
+        stdpopsim.Citation(
+            author="Huber et al.",
+            year=2017,
+            doi="https://doi.org/10.1073/pnas.1619508114",
+            reasons={stdpopsim.CiteReason.DFE},  # include the dfe_model reason
+        )
+    ]
+    neutral = stdpopsim.MutationType()
+    # The log(2) term doubles all selection coefficients, to convert
+    # from dadi convention to SLiM convention.
+    mulog = -7.37 + math.log(2)
+    sigmalog = 4.58
+    h = 0.5  # dominance coefficient
+    negative = stdpopsim.MutationType(
+        dominance_coeff=h,
+        distribution_type="ln",  # negative logNormal distribution
+        distribution_args=[mulog, sigmalog],
+    )
+
+    return stdpopsim.DFE(
+        id=id,
+        description=description,
+        long_description=long_description,
+        mutation_types=[neutral, negative],
+        proportions=[0.3, 0.7],
+        citations=citations,
+    )
+
+
+_species.add_dfe(_HuberLogNormalDFE())
