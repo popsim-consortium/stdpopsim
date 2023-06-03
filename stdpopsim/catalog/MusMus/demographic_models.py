@@ -145,7 +145,7 @@ def _dom_1pop():
     ]
 
     return stdpopsim.DemographicModel(
-        id="M_musculus_domesticus_Europe",
+        id="DomesticusEurope_1F22",
         description="M. musculus domesticus piecewise constant size",
         long_description="""
             This model comes from MSMC using four randomly sampled
