@@ -314,7 +314,7 @@ def _mus_1pop():
     ]
 
     return stdpopsim.DemographicModel(
-        id="M_musculus_musculus_East_Asia",
+        id="MusculusKorea_1F22",
         description="M. musculus musculus piecewise constant size",
         long_description="""
             This model comes from MSMC using four randomly sampled
