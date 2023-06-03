@@ -342,3 +342,172 @@ def _mus_1pop():
 
 
 _species.add_demographic_model(_mus_1pop())
+
+
+def _cas_1pop():
+    # the size during the interval times[k] to times[k+1] = sizes[k]
+    times = np.array(
+        [
+            0,
+            887,
+            1886,
+            3011,
+            4279,
+            5709,
+            7319,
+            9133,
+            11178,
+            13481,
+            16077,
+            19002,
+            22297,
+            26011,
+            30195,
+            34909,
+            40221,
+            46207,
+            52951,
+            60551,
+            69114,
+            78762,
+            89634,
+            101884,
+            115687,
+            131239,
+            148764,
+            168510,
+            190760,
+            215830,
+            244079,
+            275907,
+            311772,
+            352184,
+            397719,
+            449026,
+            506839,
+            571979,
+            645379,
+            728084,
+            821274,
+            926277,
+            1044593,
+            1177907,
+            1328123,
+            1497384,
+            1688102,
+            1903000,
+            2145140,
+            2417965,
+            2725404,
+            3071789,
+            3462105,
+            3901912,
+            4397456,
+            4955842,
+            5585000,
+        ]
+    )
+    sizes = np.array(
+        [
+            64853,
+            64853,
+            5064712,
+            938111,
+            291323,
+            141377,
+            86633,
+            60911,
+            47736,
+            41845,
+            41297,
+            45372,
+            53747,
+            66260,
+            83216,
+            105533,
+            134861,
+            173419,
+            222464,
+            279816,
+            338426,
+            388298,
+            420389,
+            429975,
+            418882,
+            394606,
+            365787,
+            338818,
+            317235,
+            302369,
+            294117,
+            291560,
+            293233,
+            297138,
+            300840,
+            301783,
+            297772,
+            287572,
+            271326,
+            250544,
+            227605,
+            205098,
+            185260,
+            169657,
+            159139,
+            154098,
+            155027,
+            163295,
+            182054,
+            217017,
+            275733,
+            360433,
+            463464,
+            463464,
+            344802,
+            344802,
+            344802,
+        ]
+    )
+
+    demographic_events = []
+    for sz, t in zip(sizes, times):
+        demographic_events.append(
+            msprime.PopulationParametersChange(time=t, initial_size=sz, population_id=0)
+        )
+
+    populations = [
+        stdpopsim.Population(
+            id="M_musculus_castaneus",
+            description="Mus musculus castaneus Indian population",
+        )
+    ]
+
+    return stdpopsim.DemographicModel(
+        id="CastaneusIndia_1F22",
+        description="M. musculus musculus piecewise constant size",
+        long_description="""
+            This model comes from MSMC using two randomly sampled
+            individuals (IND03,IND04) from a Indian population.
+            The model is estimated with 57 time periods.
+        """,
+        populations=populations,
+        citations=[
+            stdpopsim.Citation(
+                author="Fujiwara et al.",
+                year=2022,
+                doi="https://doi.org/10.1093/gbe/evac068",
+                reasons={stdpopsim.CiteReason.DEM_MODEL},
+            )
+        ],
+        generation_time=1,
+        mutation_rate=5.7e-9,
+        demographic_events=demographic_events,
+        population_configurations=[
+            msprime.PopulationConfiguration(
+                initial_size=sizes[0], metadata=populations[0].asdict()
+            )
+        ],
+    )
+
+
+_species.add_demographic_model(_cas_1pop())
