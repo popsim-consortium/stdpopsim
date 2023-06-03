@@ -150,7 +150,10 @@ def _dom_1pop():
         long_description="""
             This model comes from MSMC using four randomly sampled
             individuals (DEU01,DEU03,DEU04,DEU06) from a German population.
-            The model is estimated with 57 time periods.
+            The model is estimated with 57 time periods. Data were provided
+            directly by the first and corresponding authors of the paper,
+            Kazumichi Fujiwara and Naoki Osada, respectively. A graphical
+            depiction of the model can be found in Figure 3 of the paper.
         """,
         populations=populations,
         citations=[
@@ -319,7 +322,10 @@ def _mus_1pop():
         long_description="""
             This model comes from MSMC using four randomly sampled
             individuals (KOR01,KOR02,KOR03,KOR05) from a Korean population.
-            The model is estimated with 57 time periods.
+            The model is estimated with 57 time periods. Data were provided
+            directly by the first and corresponding authors of the paper,
+            Kazumichi Fujiwara and Naoki Osada, respectively. A graphical
+            depiction of the model can be found in Figure 3 of the paper.
         """,
         populations=populations,
         citations=[
@@ -488,7 +494,10 @@ def _cas_1pop():
         long_description="""
             This model comes from MSMC using two randomly sampled
             individuals (IND03,IND04) from a Indian population.
-            The model is estimated with 57 time periods.
+            The model is estimated with 57 time periods. Data were provided
+            directly by the first and corresponding authors of the paper,
+            Kazumichi Fujiwara and Naoki Osada, respectively. A graphical
+            depiction of the model can be found in Figure 3 of the paper.
         """,
         populations=populations,
         citations=[
