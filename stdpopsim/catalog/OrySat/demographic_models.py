@@ -50,12 +50,10 @@ def _BottMig_3C07():
         0.0055 * N_rufi
     )  # bottleneck population size for both indica and tropical japonica
 
-
     # theta-rufi is Watterson's estimate of theta for O. rufipogon
     # from Table 1
     theta_rufi = 5.42e-3
     mutation_rate = theta_rufi / (4 * N_rufi)
-
 
     # number of migrants coming in
     # to japonica = 0.42, to indica = 0.945, to rufipogon = 3.5
