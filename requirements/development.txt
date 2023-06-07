@@ -1,6 +1,5 @@
 black>=22.1.0
 blacken-docs
-codecov
 coverage
 daiquiri
 flake8
