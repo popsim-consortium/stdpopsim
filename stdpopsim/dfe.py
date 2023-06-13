@@ -23,6 +23,7 @@ class MutationType(object):
     - ``g``: gamma, two parameters (mean, shape)
     - ``n``: normal, two parameters (mean, SD)
     - ``w``: Weibull, two parameters (scale, shape)
+    - ``u``: Uniform, two parameters (min, max)
     - ``lp``: positive logNormal, two parameters (mean and sd on log scale; see rlnorm)
     - ``ln``: negative logNormal, two parameters (mean and sd on log scale; see rlnorm)
 
@@ -142,6 +143,19 @@ class MutationType(object):
             self.distribution_args = [
                 f"return {sign}rlnorm(1, {logmean} + log(Q), {logsd});"
             ]
+            self.distribution_type = "s"
+        elif self.distribution_type == "u":
+            # Uniform
+            if (
+                len(self.distribution_args) != 2
+                or self.distribution_args[0] > self.distribution_args[1]
+            ):
+                raise ValueError(
+                    "Uniformly-distributed sel. coefs. (distribution_type='u') "
+                    "use a (min, max) parameterisation, with min <= max."
+                )
+            umin, umax = self.distribution_args
+            self.distribution_args = [f"return runif(1, Q * {umin}, Q * {umax});"]
             self.distribution_type = "s"
         else:
             raise ValueError(

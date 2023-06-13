@@ -32,9 +32,9 @@ class TestCreateMutationType:
             "n": ([0.5, 1], [0, 1]),
             "ln": ([0.5, 1], []),
             "lp": ([0.5, 1], []),
+            "u": ([-0.5, 1], []),
         }
         for t in mut_params:
-            print(f"{t}\t{mut_params[t]}")
             if t == "f":
                 mt = dfe.MutationType(
                     distribution_type=t,
@@ -157,6 +157,14 @@ class TestCreateMutationType:
                 distribution_args=[1, -2],
             )
 
+        # Uniformly-distributed selection coefficients
+        for bad_args in ([0], [1, 2, 3], [3, -2]):
+            with pytest.raises(ValueError, match="use a .min, max"):
+                dfe.MutationType(
+                    distribution_type="u",
+                    distribution_args=bad_args,
+                )
+
         # Lognormally-distributed selection coefficients
         for dt in ["lp", "ln"]:
             with pytest.raises(
@@ -204,13 +212,14 @@ class TestCreateMutationType:
             "e": ([0.1], [10], [5000], [0]),
             "n": ([-0.1, 0.2], [0.1, 0.1], [50, 50]),
             "w": ([0.1, 0.2], [0.1, 0.1], [50, 50]),
+            "u": ([0.1, 0.2], [0.1, 0.1], [-5, 50]),
             "lp": ([-0.1, 0.2], [0.1, 0.1], [50, 50]),
             "ln": ([-0.1, 0.2], [0.1, 0.1], [50, 50]),
         }
         for t in mut_params:
             for p in mut_params[t]:
                 mt = dfe.MutationType(distribution_type=t, distribution_args=p)
-                if t in ("lp", "ln"):
+                if t in ("lp", "ln", "u"):
                     assert mt.distribution_type == "s"
                 else:
                     assert mt.distribution_type == t
@@ -225,6 +234,7 @@ class TestCreateMutationType:
             "e": ([], [0, 1], [0.1, 0.4, 0.5], [np.inf]),
             "n": ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [0.3, np.inf]),
             "w": ([], [-0.1, 1], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [np.inf, 2.3]),
+            "u": ([], [-0.1, -0.5], [0.1, 0.4, 0.5], [0.1], [2.3, np.inf]),
             "lp": ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [0.1, np.inf]),
             "ln": ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [0.1, np.inf]),
         }
