@@ -1164,7 +1164,16 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         for t, params in mut_params.items()
         for p in params
     ]
-    assert len(example_mut_types) == 10
+    for dcl, dcb in [([0.0, 1.0], [0.0]), ([-0.2, 1.4, 0.5], [-0.1, 0.1])]:
+        for t in ('f', 'e', 'n'):
+            mt = stdpopsim.MutationType(
+                    distribution_type=t,
+                    distribution_args=mut_params[t][0],
+                    dominance_coeff_list=dcl,
+                    dominance_coeff_breaks=dcb,
+            )
+            example_mut_types.append((t, mt))
+    assert len(example_mut_types) == 16
 
     def get_example_dfes(self):
         # this is in a function because scoping is weird
@@ -1202,7 +1211,6 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         contig = get_test_contig()
         # make theta = 40
         contig.mutation_rate = 20 / (1000 * contig.recombination_map.sequence_length)
-        print(contig.mutation_rate)
         dfes = [
             stdpopsim.DFE(
                 id=str(j),
@@ -1232,7 +1240,6 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                     ts.tables.sites.position < breaks[j + 1],
                 )
             )[0]
-            print(mt)
             assert len(sites) > 0
             for k in sites:
                 s = ts.site(k)
@@ -1297,12 +1304,17 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                 is_dfe_neutral &= mt["is_neutral"]
             # Recall a mutation type will have proportion 0.0 in SLiM if it is
             # neutral and not all the mutation types in the corresponding DFE are
-            # neutral. SLiM does not allow a genomicelementtype to have all 0.0
+            # neutral. SLiM does not allow a genomicElementType to have all 0.0
             # proportions.
-            return [
-                prop if (not mt["is_neutral"]) or is_dfe_neutral else 0.0
-                for prop, mt in zip(dfe["proportions"], dfe["mutation_types"])
-            ]
+            print(dfe)
+            prop_list = []
+            for prop, mt in zip(dfe["proportions"], dfe["mutation_types"]):
+                first_mt = True
+                for i in mt['slim_mutation_type_id']:
+                    nonzero_prop = ((not mt["is_neutral"]) or is_dfe_neutral) and first_mt
+                    prop_list.append(prop if nonzero_prop else 0.0)
+                    first_mt = False
+            return prop_list
 
         for i, dfe in enumerate(ts.metadata["stdpopsim"]["DFEs"]):
             if dfe["id"] == "recapitation":
@@ -1319,11 +1331,32 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                 "intervalStarts": int_starts,
                 "mutationFractions": _slim_proportions(dfe),
                 "mutationTypes": [
-                    mt["slim_mutation_type_id"] for mt in dfe["mutation_types"]
+                    mid
+                    for mt in dfe["mutation_types"]
+                    for mid in mt["slim_mutation_type_id"]
                 ],
             }
-            ge = self.slim_metadata_key0(ge_types, str(i))
             assert ge == ge_from_meta
+
+    def verify_mutation_type_absence(self, contig, ts):
+        # check that the dummy first mutation type of discretized
+        # h-s relationship mutation types are absent
+        mut_type_counts = collections.Counter(
+                x['mutation_type'] for m in ts.mutations() for x in m.metadata['mutation_list']
+        )
+        print('metadata', [x['id'] for x in ts.metadata['stdpopsim']['DFEs']])
+        print('contig', [x.id for x in contig.dfe_list])
+        metadata_ids = [x['id'] for x in ts.metadata['stdpopsim']['DFEs']]
+        has_recap = (metadata_ids[-1] == "recapitation")
+        assert len(contig.dfe_list) + has_recap == len(ts.metadata['stdpopsim']['DFEs'])
+        for dfe, ts_metadata in zip(contig.dfe_list, ts.metadata['stdpopsim']['DFEs']):
+            assert dfe.id == ts_metadata['id']
+            assert len(dfe.mutation_types) == len(ts_metadata['mutation_types'])
+            for mt, md in zip(dfe.mutation_types, ts_metadata['mutation_types']):
+                if mt.dominance_coeff_list is not None:
+                    assert len(mt.dominance_coeff_list) + 1 == len(md['slim_mutation_type_id'])
+                    first_type = md['slim_mutation_type_id'][0]
+                    assert mut_type_counts[first_type] == 0
 
     def verify_genomic_elements(self, contig, ts):
         # compare information about genomic elements as recorded
@@ -1335,6 +1368,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             ts.metadata["SLiM"]["user_metadata"], "genomicElementTypes"
         )
         self.verify_dfes_metadata(ts, ge_types)
+        self.verify_mutation_type_absence(contig, ts)
         assert len(contig.dfe_list) == len(ge_types)
         for j, (dfe, intervals) in enumerate(
             zip(contig.dfe_list, contig.interval_list)
@@ -1343,13 +1377,21 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             ge = self.slim_metadata_key0(ge_types, str(j))
             # checking that the neutral mutations have 0.0 proportion unless
             # all the mutations are neutral in this dfe
-            for mt, dfe_prop, slim_prop in zip(
-                dfe.mutation_types, dfe.proportions, ge["mutationFractions"]
-            ):
+            assert len(dfe.mutation_types) == len(dfe.proportions)
+            ge_index = 0
+            for mt, dfe_prop in zip(dfe.mutation_types, dfe.proportions):
+                slim_prop = ge["mutationFractions"][ge_index]
+                ge_index += 1
                 if mt.is_neutral and not dfe.is_neutral:
                     assert slim_prop == 0.0
                 else:
                     assert slim_prop == dfe_prop
+                if mt.dominance_coeff_list is not None:
+                    for _ in mt.dominance_coeff_list:
+                        slim_prop = ge["mutationFractions"][ge_index]
+                        assert slim_prop == 0.0
+                        ge_index += 1
+            assert ge_index == len(ge["mutationFractions"])
             # "+1" because SLiM's intervals are closed on both ends,
             # stdpopsim's are closed on the left, open on the right
             slim_intervals = np.column_stack(
@@ -1359,20 +1401,36 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                 ]
             )
             assert_array_equal(intervals, slim_intervals)
-            slim_mut_types = ge["mutationTypes"]
-            assert len(dfe.mutation_types) == len(slim_mut_types)
-            for mt, mt_id in zip(dfe.mutation_types, slim_mut_types):
+            ge_index = 0
+            for mt in dfe.mutation_types:
+                mt_id = ge["mutationTypes"][ge_index]
+                ge_index += 1
                 assert str(mt_id) in mut_types
                 slim_mt = self.slim_metadata_key0(mut_types, str(mt_id))
-                assert mt.dominance_coeff == self.slim_metadata_key0(
-                    slim_mt, "dominanceCoeff"
-                )
+                if mt.dominance_coeff_list is None:
+                    assert mt.dominance_coeff == self.slim_metadata_key0(
+                        slim_mt, "dominanceCoeff"
+                    )
+                else:
+                    assert 0.5 == self.slim_metadata_key0(
+                        slim_mt, "dominanceCoeff"
+                    )
+                    for h in mt.dominance_coeff_list:
+                        mt_id = ge["mutationTypes"][ge_index]
+                        ge_index += 1
+                        assert str(mt_id) in mut_types
+                        slim_mt = self.slim_metadata_key0(mut_types, str(mt_id))
+                        assert np.allclose(
+                                h,
+                                self.slim_metadata_key0(slim_mt, "dominanceCoeff")
+                        )
                 assert mt.distribution_type == self.slim_metadata_key0(
                     slim_mt, "distributionType"
                 )
                 assert len(mt.distribution_args) == len(slim_mt["distributionParams"])
                 for a, b in zip(mt.distribution_args, slim_mt["distributionParams"]):
                     assert a == b
+            assert ge_index == len(ge["mutationTypes"])
 
     def test_no_dfe(self):
         contig = get_test_contig()
@@ -1415,6 +1473,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             samples=self.samples,
             verbosity=3,  # to get metadata output
         )
+        ts.dump("temp.trees")
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
 
@@ -1629,6 +1688,40 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
         assert int(ts.sequence_length) == right - left
+
+    def test_dominance_coeff_list(self):
+        # test that discretized h-s relationships work
+        contig = get_test_contig()
+        L = int(contig.length)
+        dfe0 = stdpopsim.DFE(
+            id="dfe",
+            description="the first one",
+            long_description="hello world",
+            proportions=[1.0],
+            mutation_types=[self.example_mut_types[5][1]],
+        )
+        dfe1 = stdpopsim.DFE(
+            id="dfe",
+            description="the second one",
+            long_description="I'm different but have the same name! =( =(",
+            proportions=[0.2, 0.8],
+            mutation_types=[m for _, m in self.example_mut_types[7:9]],
+        )
+        contig.add_dfe(np.array([[0, 0.5 * L]], dtype="int"), dfe0)
+        contig.add_dfe(np.array([[0.2 * L, 0.4 * L]], dtype="int"), dfe0)
+        contig.add_dfe(np.array([[0.45 * L, L]], dtype="int"), dfe1)
+        contig.add_dfe(np.array([[0.7 * L, 0.9 * L]], dtype="int"), dfe0)
+        assert len(contig.dfe_list) == 5
+        engine = stdpopsim.get_engine("slim")
+        ts = engine.simulate(
+            demographic_model=self.model,
+            contig=contig,
+            samples=self.samples,
+            verbosity=3,  # to get metadata output
+        )
+        self.verify_genomic_elements(contig, ts)
+        self.verify_mutation_rates(contig, ts)
+
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
