@@ -8,11 +8,17 @@ import collections.abc
 import numpy as np
 
 
+def _copy_converter(x):
+    if isinstance(x, list):
+        x = x.copy()
+    return x
+
+
 @attr.s(kw_only=True)
 class MutationType(object):
     """
-    Class representing a "type" of mutation.  The design closely (exactly)
-    mirrors SLiM's MutationType class.
+    Class representing a "type" of mutation.  The design closely mirrors SLiM's
+    MutationType class.
 
     The main thing that mutation types carry is a way of drawing a selection
     coefficient for each new mutation. This ``distribution_type`` should be one
@@ -31,28 +37,83 @@ class MutationType(object):
     exponential and gamma, a negative mean can be provided, obtaining always
     negative values.
 
+    Instead of a single dominance coefficient, a discretized relationship
+    between dominance and selection coefficient can be implemented:
+    if dominance_coeff_list is provided, then there is a mutations with selection
+    coefficient s with dominance_coeff_breaks[k-] <= s <= dominance_coeff_breaks[k] will
+    have dominance coefficient dominance_coeff[k]. In other words, the first entry of
+    dominance_coeff_list applies to any mutations with selection coefficient below the first
+    entry of dominance_coeff_breaks; the second entry of dominance_coeff_list applies to
+    mutations with selection coefficient between the first and second entries of
+    dominance_coeff_breaks, and so forth. The list of breaks must therefore be of length
+    one less than the list of dominance coefficients.
+
     :ivar distribution_type: A one-letter abbreviation for the distribution of
         fitness effects that each new mutation of this type draws from (see below).
     :vartype distribution_type: str
     :ivar distribution_args: Arguments for the distribution type.
     :vartype distribution_type: list
-    :ivar dominance_coeff: A single dominance coefficient (negative = underdominance,
+    :ivar dominance_coeff: The dominance coefficient (negative = underdominance,
         0 = recessive, 0.5 = additive, 1.0 = completely dominant, > 1.0 = overdominant)
+        Default: 0.5.
     :vartype dominance_coeff: float
     :ivar convert_to_substitution: Whether to retain any fixed mutations in the
         simulation: if not, we cannot ask about their frequency once fixed.
         (Either way, they will remain in the tree sequence).
     :vartype convert_to_substitution: bool
+    :ivar dominance_coeff_list: Either None (the default) or a list of floats describing
+        a list of dominance coefficients, to apply to different selection coefficients
+        (see details). Cannot be specified along with dominance_coeff.
+    :vartype dominance_coeff_list: list of floats
+    :ivar dominance_coeff_breaks: Either None (the default) or a list of floats describing
+        the intervals of selection coefficient over which each of the entries of
+        dominance_coeff_list applies (see details). Must be of length one shorter than
+        dominance_coeff_list.
+    :vartype dominance_coeff_breaks: list of floats
     """
 
-    dominance_coeff = attr.ib(default=0.5, type=float)
+    dominance_coeff = attr.ib(default=None, type=float)
     distribution_type = attr.ib(default="f", type=str)
-    distribution_args = attr.ib(factory=lambda: [0], type=list)
+    distribution_args = attr.ib(factory=lambda: [0], type=list, converter=_copy_converter)
     convert_to_substitution = attr.ib(default=True, type=bool)
+    dominance_coeff_list = attr.ib(default=None, type=list, converter=_copy_converter)
+    dominance_coeff_breaks = attr.ib(default=None, type=list, converter=_copy_converter)
 
     def __attrs_post_init__(self):
-        if not isinstance(self.dominance_coeff, (float, int)):
-            raise ValueError("dominance_coeff must be a number.")
+        if self.dominance_coeff is None and self.dominance_coeff_list is None:
+            self.dominance_coeff = 0.5
+
+        if self.dominance_coeff is not None:
+            if (self.dominance_coeff_list is not None) or (self.dominance_coeff_breaks is not None):
+                raise ValueError("Cannot specify both dominance_coeff and dominance_coeff_list.")
+            if not isinstance(self.dominance_coeff, (float, int)):
+                raise ValueError("dominance_coeff must be a number.")
+            if not np.isfinite(self.dominance_coeff):
+                raise ValueError(f"Invalid dominance coefficient {self.dominance_coeff}.")
+
+        if self.dominance_coeff_list is not None:
+            # disallow the inefficient and annoying length-one case
+            if len(self.dominance_coeff_list) < 2:
+                raise ValueError("dominance_coeff_list must have at least 2 elements.")
+            for h in self.dominance_coeff_list:
+                if not isinstance(h, (float, int)):
+                    raise ValueError("dominance_coeff_list must be a list of numbers.")
+                if not np.isfinite(h):
+                    raise ValueError(f"Invalid dominance coefficient {h}.")
+            if self.dominance_coeff_breaks is None:
+                raise ValueError(f"A list of dominance coefficients provided but no breaks.")
+            if len(self.dominance_coeff_list) != len(self.dominance_coeff_breaks) + 1:
+                raise ValueError("len(dominance_coeff_list) must be equal "
+                                 "to len(dominance_coeff_breaks) + 1") 
+            lb = -1 * np.inf
+            for b in self.dominance_coeff_breaks:
+                if not isinstance(b, (float, int)):
+                    raise ValueError("dominance_coeff_breaks must be a list of numbers.")
+                if not np.isfinite(b):
+                    raise ValueError(f"Invalid dominance coefficient break {b}.")
+                if b < lb:
+                    raise ValueError(f"dominance_coeff_breaks must be nondecreasing.")
+                lb = b
 
         if not isinstance(self.distribution_type, str):
             raise ValueError("distribution_type must be str.")
@@ -68,9 +129,6 @@ class MutationType(object):
 
         if not isinstance(self.convert_to_substitution, bool):
             raise ValueError("convert_to_substitution must be bool.")
-
-        if not np.isfinite(self.dominance_coeff):
-            raise ValueError(f"Invalid dominance coefficient {self.dominance_coeff}.")
 
         # To add a new distribution type: validate the
         # distribution_args here, and add unit tests.
