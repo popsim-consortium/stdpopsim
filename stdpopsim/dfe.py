@@ -42,11 +42,11 @@ class MutationType(object):
     if dominance_coeff_list is provided, then there is a mutations with selection
     coefficient s with dominance_coeff_breaks[k-] <= s <= dominance_coeff_breaks[k] will
     have dominance coefficient dominance_coeff[k]. In other words, the first entry of
-    dominance_coeff_list applies to any mutations with selection coefficient below the first
-    entry of dominance_coeff_breaks; the second entry of dominance_coeff_list applies to
-    mutations with selection coefficient between the first and second entries of
-    dominance_coeff_breaks, and so forth. The list of breaks must therefore be of length
-    one less than the list of dominance coefficients.
+    dominance_coeff_list applies to any mutations with selection coefficient below the
+    first entry of dominance_coeff_breaks; the second entry of dominance_coeff_list
+    applies to mutations with selection coefficient between the first and second entries
+    of dominance_coeff_breaks, and so forth. The list of breaks must therefore be of
+    length one less than the list of dominance coefficients.
 
     :ivar distribution_type: A one-letter abbreviation for the distribution of
         fitness effects that each new mutation of this type draws from (see below).
@@ -65,16 +65,18 @@ class MutationType(object):
         a list of dominance coefficients, to apply to different selection coefficients
         (see details). Cannot be specified along with dominance_coeff.
     :vartype dominance_coeff_list: list of floats
-    :ivar dominance_coeff_breaks: Either None (the default) or a list of floats describing
-        the intervals of selection coefficient over which each of the entries of
-        dominance_coeff_list applies (see details). Must be of length one shorter than
+    :ivar dominance_coeff_breaks: Either None (the default) or a list of floats
+        describing the intervals of selection coefficient over which each of the entries
+        of dominance_coeff_list applies (see details). Must be of length one shorter than
         dominance_coeff_list.
     :vartype dominance_coeff_breaks: list of floats
     """
 
     dominance_coeff = attr.ib(default=None, type=float)
     distribution_type = attr.ib(default="f", type=str)
-    distribution_args = attr.ib(factory=lambda: [0], type=list, converter=_copy_converter)
+    distribution_args = attr.ib(
+        factory=lambda: [0], type=list, converter=_copy_converter
+    )
     convert_to_substitution = attr.ib(default=True, type=bool)
     dominance_coeff_list = attr.ib(default=None, type=list, converter=_copy_converter)
     dominance_coeff_breaks = attr.ib(default=None, type=list, converter=_copy_converter)
@@ -84,12 +86,18 @@ class MutationType(object):
             self.dominance_coeff = 0.5
 
         if self.dominance_coeff is not None:
-            if (self.dominance_coeff_list is not None) or (self.dominance_coeff_breaks is not None):
-                raise ValueError("Cannot specify both dominance_coeff and dominance_coeff_list.")
+            if (self.dominance_coeff_list is not None) or (
+                self.dominance_coeff_breaks is not None
+            ):
+                raise ValueError(
+                    "Cannot specify both dominance_coeff and dominance_coeff_list."
+                )
             if not isinstance(self.dominance_coeff, (float, int)):
                 raise ValueError("dominance_coeff must be a number.")
             if not np.isfinite(self.dominance_coeff):
-                raise ValueError(f"Invalid dominance coefficient {self.dominance_coeff}.")
+                raise ValueError(
+                    f"Invalid dominance coefficient {self.dominance_coeff}."
+                )
 
         if self.dominance_coeff_list is not None:
             # disallow the inefficient and annoying length-one case
@@ -101,18 +109,24 @@ class MutationType(object):
                 if not np.isfinite(h):
                     raise ValueError(f"Invalid dominance coefficient {h}.")
             if self.dominance_coeff_breaks is None:
-                raise ValueError(f"A list of dominance coefficients provided but no breaks.")
+                raise ValueError(
+                    "A list of dominance coefficients provided but no breaks."
+                )
             if len(self.dominance_coeff_list) != len(self.dominance_coeff_breaks) + 1:
-                raise ValueError("len(dominance_coeff_list) must be equal "
-                                 "to len(dominance_coeff_breaks) + 1") 
+                raise ValueError(
+                    "len(dominance_coeff_list) must be equal "
+                    "to len(dominance_coeff_breaks) + 1"
+                )
             lb = -1 * np.inf
             for b in self.dominance_coeff_breaks:
                 if not isinstance(b, (float, int)):
-                    raise ValueError("dominance_coeff_breaks must be a list of numbers.")
+                    raise ValueError(
+                        "dominance_coeff_breaks must be a list of numbers."
+                    )
                 if not np.isfinite(b):
                     raise ValueError(f"Invalid dominance coefficient break {b}.")
                 if b < lb:
-                    raise ValueError(f"dominance_coeff_breaks must be nondecreasing.")
+                    raise ValueError("dominance_coeff_breaks must be nondecreasing.")
                 lb = b
 
         if not isinstance(self.distribution_type, str):

@@ -686,7 +686,9 @@ _raw_stdpopsim_top_level_schema = {
                                 "properties": {
                                     "dominance_coeff": {"type": ["number", "null"]},
                                     "dominance_coeff_list": {"type": ["array", "null"]},
-                                    "dominance_coeff_breaks": {"type": ["array", "null"]},
+                                    "dominance_coeff_breaks": {
+                                        "type": ["array", "null"]
+                                    },
                                     "distribution_type": {"type": "string"},
                                     "distribution_args": {
                                         "type": "array",
@@ -1229,12 +1231,12 @@ def slim_makescript(
             if mt.dominance_coeff_list is None:
                 h_list = [mt.dominance_coeff]
             else:
-                h_list = [0.5] # this value will not matter
+                h_list = [0.5]  # this value will not matter
                 h_list.extend(mt.dominance_coeff_list)
                 # record here what we'll need to set up the callbacks in script
                 mutation_callbacks[mid_list[0]] = {
-                    "dominance_coeff_breaks" : mt.dominance_coeff_breaks,
-                    "mutation_types" : mid_list[1:],
+                    "dominance_coeff_breaks": mt.dominance_coeff_breaks,
+                    "mutation_types": mid_list[1:],
                 }
             assert len(mid_list) == len(h_list)
             first_mt = True
@@ -1401,25 +1403,27 @@ def slim_makescript(
     printsc()
 
     # Mutation callbacks.
-    printsc("    // Mutations callbacks for h-s relationships, "
-            "one variable for each callback.")
+    printsc(
+        "    // Mutations callbacks for h-s relationships, "
+        "one variable for each callback."
+    )
     mut_types_with_callbacks = list(mutation_callbacks.keys())
     printsc(
-        f'    defineConstant("mut_types_with_callbacks", c('
+        '    defineConstant("mut_types_with_callbacks", c('
         + ", ".join(map(str, mut_types_with_callbacks))
-        + '));'
+        + "));"
     )
     for mt in mut_types_with_callbacks:
         printsc(
             f'    defineConstant("dominance_coeff_types_{mt}", c('
-            + ", ".join(map(str, mutation_callbacks[mt]['mutation_types']))
-            + '));'
+            + ", ".join(map(str, mutation_callbacks[mt]["mutation_types"]))
+            + "));"
         )
 
         printsc(
             f'    defineConstant("dominance_coeff_breaks_{mt}", c(-INF, '
-            + ", ".join(map(str, mutation_callbacks[mt]['dominance_coeff_breaks']))
-            + ', INF));'
+            + ", ".join(map(str, mutation_callbacks[mt]["dominance_coeff_breaks"]))
+            + ", INF));"
         )
 
     # Allele frequency conditioning
@@ -1805,7 +1809,9 @@ class _SLiMEngine(stdpopsim.Engine):
                     "distribution_args": [0],
                     "convert_to_substitution": False,
                     "Q_scaled_index": [0],
-                    "slim_mutation_type_id": [max_id + 1,],
+                    "slim_mutation_type_id": [
+                        max_id + 1,
+                    ],
                     "is_neutral": True,
                 }
             ],

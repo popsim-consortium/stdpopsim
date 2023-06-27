@@ -250,9 +250,9 @@ class TestCreateMutationType:
 
     def test_dominance_coeff_list(self):
         for dcl, dcb in (
-                ([-0.1, 0.7, 1.2], [-2.1, 1.0]),
-                ([-0.1, -0.7], [-2.1]),
-            ):
+            ([-0.1, 0.7, 1.2], [-2.1, 1.0]),
+            ([-0.1, -0.7], [-2.1]),
+        ):
             mt = dfe.MutationType(dominance_coeff_list=dcl, dominance_coeff_breaks=dcb)
             assert np.allclose(dcl, mt.dominance_coeff_list)
             assert np.allclose(dcb, mt.dominance_coeff_breaks)
@@ -290,19 +290,19 @@ class TestCreateMutationType:
         # can't specify both dominance_coeff and list
         with pytest.raises(ValueError, match="both dominance_coeff and"):
             dfe.MutationType(
-                    dominance_coeff=0.5,
-                    dominance_coeff_list=dcl,
-                    dominance_coeff_breaks=dcb,
+                dominance_coeff=0.5,
+                dominance_coeff_list=dcl,
+                dominance_coeff_breaks=dcb,
             )
         with pytest.raises(ValueError, match="both dominance_coeff and"):
             dfe.MutationType(
-                    dominance_coeff=0.5,
-                    dominance_coeff_list=dcl,
+                dominance_coeff=0.5,
+                dominance_coeff_list=dcl,
             )
         with pytest.raises(ValueError, match="both dominance_coeff and"):
             dfe.MutationType(
-                    dominance_coeff=0.5,
-                    dominance_coeff_breaks=dcb,
+                dominance_coeff=0.5,
+                dominance_coeff_breaks=dcb,
             )
         # must have both coeffs and breaks
         with pytest.raises(ValueError, match="dominance.*no breaks"):
@@ -310,34 +310,34 @@ class TestCreateMutationType:
         # must have at least 2 bins
         with pytest.raises(ValueError, match="dominance.*at least 2"):
             dfe.MutationType(
-                    dominance_coeff_list=[0.2],
-                    dominance_coeff_breaks=[],
+                dominance_coeff_list=[0.2],
+                dominance_coeff_breaks=[],
             )
         # list must be one longer than breaks
         for x in ([], [0.0], dcl):
             with pytest.raises(ValueError, match="dominance.*equal to"):
                 dfe.MutationType(
-                        dominance_coeff_list=dcl,
-                        dominance_coeff_breaks=x,
+                    dominance_coeff_list=dcl,
+                    dominance_coeff_breaks=x,
                 )
         # bad coefficients
-        for x in (np.inf, np.nan, 'abc', [], {}):
+        for x in (np.inf, np.nan, "abc", [], {}):
             with pytest.raises(ValueError, match="dominance.coeff"):
                 dfe.MutationType(
-                        dominance_coeff_list=[x] + dcl[1:],
-                        dominance_coeff_breaks=dcb,
+                    dominance_coeff_list=[x] + dcl[1:],
+                    dominance_coeff_breaks=dcb,
                 )
         # bad breaks
-        for x in (np.inf, np.nan, 'abc', [], {}):
+        for x in (np.inf, np.nan, "abc", [], {}):
             with pytest.raises(ValueError, match="dominance.*break"):
                 dfe.MutationType(
-                        dominance_coeff_list=dcl,
-                        dominance_coeff_breaks=[x] + dcb[1:],
+                    dominance_coeff_list=dcl,
+                    dominance_coeff_breaks=[x] + dcb[1:],
                 )
         with pytest.raises(ValueError, match="nondecreasing"):
             dfe.MutationType(
-                    dominance_coeff_list=dcl,
-                    dominance_coeff_breaks=list(reversed(dcb)),
+                dominance_coeff_list=dcl,
+                dominance_coeff_breaks=list(reversed(dcb)),
             )
 
 
