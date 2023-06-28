@@ -1306,7 +1306,6 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             # neutral and not all the mutation types in the corresponding DFE are
             # neutral. SLiM does not allow a genomicElementType to have all 0.0
             # proportions.
-            print(dfe)
             prop_list = []
             for prop, mt in zip(dfe["proportions"], dfe["mutation_types"]):
                 first_mt = True
@@ -1340,7 +1339,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             }
             assert ge == ge_from_meta
 
-    def verify_mutation_type_absence(self, contig, ts):
+    def verify_discretized_dominance(self, contig, ts):
         # check that the dummy first mutation type of discretized
         # h-s relationship mutation types are absent
         mut_type_counts = collections.Counter(
@@ -1348,10 +1347,10 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             for m in ts.mutations()
             for x in m.metadata["mutation_list"]
         )
-        print("metadata", [x["id"] for x in ts.metadata["stdpopsim"]["DFEs"]])
-        print("contig", [x.id for x in contig.dfe_list])
         metadata_ids = [x["id"] for x in ts.metadata["stdpopsim"]["DFEs"]]
+        slim_mt_info = ts.metadata["SLiM"]["user_metadata"]["mutationTypes"][0]
         has_recap = metadata_ids[-1] == "recapitation"
+        slim_to_mt_map = {}
         assert len(contig.dfe_list) + has_recap == len(ts.metadata["stdpopsim"]["DFEs"])
         for dfe, ts_metadata in zip(contig.dfe_list, ts.metadata["stdpopsim"]["DFEs"]):
             assert dfe.id == ts_metadata["id"]
@@ -1363,6 +1362,12 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                     )
                     first_type = md["slim_mutation_type_id"][0]
                     assert mut_type_counts[first_type] == 0
+                    for h, k in zip(
+                        mt.dominance_coeff_list, md["slim_mutation_type_id"][1:]
+                    ):
+                        assert str(k) in slim_mt_info
+                        assert np.allclose(slim_mt_info[str(k)][0]["dominanceCoeff"], h)
+                        slim_to_mt_map[k] = mt
 
     def verify_genomic_elements(self, contig, ts):
         # compare information about genomic elements as recorded
@@ -1374,7 +1379,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             ts.metadata["SLiM"]["user_metadata"], "genomicElementTypes"
         )
         self.verify_dfes_metadata(ts, ge_types)
-        self.verify_mutation_type_absence(contig, ts)
+        self.verify_discretized_dominance(contig, ts)
         assert len(contig.dfe_list) == len(ge_types)
         for j, (dfe, intervals) in enumerate(
             zip(contig.dfe_list, contig.interval_list)
