@@ -36,7 +36,7 @@ jobs:
       - name: find conda
         id: find-conda
         run: |
-          echo "::set-output name=CONDA::$CONDA"
+          echo "name=CONDA::$CONDA" >> $GITHUB_OUTPUT
 
       - name: fix conda permissions
         if: runner.os == 'macOS'
@@ -49,7 +49,7 @@ jobs:
         uses: actions/cache@v2
         env:
           # Increase this to reset the cache if the key hasn't changed.
-          CACHE_NUM: 2
+          CACHE_NUM: 3
         with:
           path: |
             ${{ steps.find-conda.outputs.CONDA }}/envs/${{ env.CONDA_ENV_NAME }}
