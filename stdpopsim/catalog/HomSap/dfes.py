@@ -147,3 +147,56 @@ def _HuberLogNormalDFE():
 
 
 _species.add_dfe(_HuberLogNormalDFE())
+
+
+def _KyriazisDFE():
+    id = "Mixed_K23"
+    description = "Deleterious Gamma DFE with additional lethals"
+    long_description = """
+    The DFE estimated from human data recommended in Kyriazis et al.
+    (2023), https://doi.org/10.1086/726736, for general use.
+    This model is similar to the Kim et al. (2017) DFE based on human
+    genetic data, modified to include the dominance distribution from
+    Henn et al. (2016).
+    The model is also augmented with an additional proportion of 0.3% of
+    recessive lethals, based on the analysis of Wade et al. (2023).
+    """
+    citations = [
+        stdpopsim.Citation(
+            author="Kyriazis et al.",
+            year=2023,
+            doi="https://doi.org/10.1086/726736",
+            reasons={stdpopsim.CiteReason.DFE},
+        )
+    ]
+    neutral = stdpopsim.MutationType()
+    gamma_mean = -0.0131
+    gamma_shape = 0.186
+    coefs = [0.45, 0.2, 0.05, 0]
+    breaks = [0.001, 0.01, 0.1]
+    gamma = stdpopsim.MutationType(
+        dominance_coeff_list=coefs,
+        dominance_coeff_breaks=breaks,
+        distribution_type="g",  # gamma distribution
+        distribution_args=[gamma_mean, gamma_shape],
+    )
+    lethal = stdpopsim.MutationType(
+        distribution_type="f",  # fixed value
+        distribution_args=[-1],  # fitness in SLiM for homozygotes is multiiplied by 1+s
+        dominance_coeff=0,
+    )
+    proportion_deleterious = 2.31 / (1 + 2.31)
+    lethal_prop = proportion_deleterious * 0.003  # 0.3% lethals
+    gamma_prop = proportion_deleterious - lethal_prop
+    neutral_prop = 1 - proportion_deleterious
+    return stdpopsim.DFE(
+        id=id,
+        description=description,
+        long_description=long_description,
+        mutation_types=[neutral, gamma, lethal],
+        proportions=[neutral_prop, gamma_prop, lethal_prop],
+        citations=citations,
+    )
+
+
+_species.add_dfe(_KyriazisDFE())

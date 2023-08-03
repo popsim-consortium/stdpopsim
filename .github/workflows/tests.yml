@@ -20,7 +20,6 @@ jobs:
         os: [ubuntu-20.04, macos-11, windows-latest]
         python: [3.8, "3.10"]
     env:
-      CONDA_ENV_NAME: stdpopsim
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python }}
 
@@ -60,7 +59,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v2
         if: steps.cache.outputs.cache-hit != 'true'
         with:
-          activate-environment: ${{ env.CONDA_ENV_NAME }}
+          activate-environment: stdpopsim
           python-version: ${{ matrix.python }}
           channels: conda-forge
           channel-priority: strict
