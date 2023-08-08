@@ -1481,7 +1481,6 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             samples=self.samples,
             verbosity=3,  # to get metadata output
         )
-        ts.dump("temp.trees")
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
 
@@ -1701,19 +1700,25 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         # test that discretized h-s relationships work
         contig = get_test_contig()
         L = int(contig.length)
+        emts = [emt for _, emt in self.example_mut_types[10:12]]
+        for emt in emts:
+            assert emt.dominance_coeff_list is not None
         dfe0 = stdpopsim.DFE(
             id="dfe",
             description="the first one",
             long_description="hello world",
-            proportions=[1.0],
-            mutation_types=[self.example_mut_types[5][1]],
+            proportions=[1.0, 0.0],
+            mutation_types=emts,
         )
+        emts = [emt for _, emt in self.example_mut_types[12:15]]
+        for emt in emts:
+            assert emt.dominance_coeff_list is not None
         dfe1 = stdpopsim.DFE(
             id="dfe",
             description="the second one",
             long_description="I'm different but have the same name! =( =(",
-            proportions=[0.2, 0.8],
-            mutation_types=[m for _, m in self.example_mut_types[7:9]],
+            proportions=[0.2, 0.7, 0.1],
+            mutation_types=emts,
         )
         contig.add_dfe(np.array([[0, 0.5 * L]], dtype="int"), dfe0)
         contig.add_dfe(np.array([[0.2 * L, 0.4 * L]], dtype="int"), dfe0)
@@ -1721,12 +1726,32 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         contig.add_dfe(np.array([[0.7 * L, 0.9 * L]], dtype="int"), dfe0)
         assert len(contig.dfe_list) == 5
         engine = stdpopsim.get_engine("slim")
+        contig.mutation_rate *= 10
         ts = engine.simulate(
             demographic_model=self.model,
             contig=contig,
             samples=self.samples,
             verbosity=3,  # to get metadata output
         )
+        assert len(ts.metadata["stdpopsim"]["DFEs"]) == len(contig.dfe_list) + 1
+        # slim mutation type IDs with dominance coeff lists:
+        mut_id_haslist = {}
+        for dfe in ts.metadata["stdpopsim"]["DFEs"]:
+            for mt in dfe["mutation_types"]:
+                haslist = (
+                    "dominance_coeff_list" in mt
+                    and mt["dominance_coeff_list"] is not None
+                )
+                for slim_id in mt["slim_mutation_type_id"]:
+                    assert slim_id not in mut_id_haslist
+                    mut_id_haslist[slim_id] = haslist
+        num_target_muts = 0
+        for mut in ts.mutations():
+            for md in mut.metadata["mutation_list"]:
+                if mut_id_haslist[md["mutation_type"]]:
+                    num_target_muts += 1
+        # the number 20 is not important, just want to make sure we have *some*
+        assert num_target_muts > 20
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
 
