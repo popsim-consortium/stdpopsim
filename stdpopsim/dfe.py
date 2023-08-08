@@ -41,7 +41,7 @@ class MutationType(object):
     Instead of a single dominance coefficient, a discretized relationship
     between dominance and selection coefficient can be implemented:
     if dominance_coeff_list is provided, then there is a mutations with selection
-    coefficient s with dominance_coeff_breaks[k-] <= s <= dominance_coeff_breaks[k] will
+    coefficient s with dominance_coeff_breaks[k-1] <= s <= dominance_coeff_breaks[k] will
     have dominance coefficient dominance_coeff[k]. In other words, the first entry of
     dominance_coeff_list applies to any mutations with selection coefficient below the
     first entry of dominance_coeff_breaks; the second entry of dominance_coeff_list
