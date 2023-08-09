@@ -786,13 +786,14 @@ def _dfe_to_mtypes(contig):
     This is necessary so that we use the same numeric ids to the mutation types
     in the _add_dfes_to_metadata and slim_makescript steps.
 
-    The assigned mutation type ids is a tuple, that is only of length greater
-    than one if the mutation type is of a sort that is implemented using more than
-    one SLiM mutation type; currently, these are only mutation types with a
-    discretized h-s relationship, and (a) only the first of these mutation types
-    are actually assigned a positive mutation rate in SLiM, but (b) all such
-    mutations are transformed to the other mutation types in the list, and hence
-    never end up in the final tree sequence. (See Recipe 10.6 in the SLiM manual.)
+    The assigned mutation type ids is stored as a tuple, that is only of length
+    greater than one if the mutation type is of a sort that is implemented
+    using more than one SLiM mutation type; currently, these are only mutation
+    types with a discretized h-s relationship, and (a) only the first of these
+    mutation types are actually assigned a positive mutation rate in SLiM, but
+    (b) all mutations of the first type are transformed to the other mutation
+    types in the list, and hence never end up in the final tree sequence. (See
+    Recipe 10.6 in the SLiM manual.)
     """
     mid = 0
     dfe_to_mtypes = {}
@@ -1231,7 +1232,9 @@ def slim_makescript(
             if mt.dominance_coeff_list is None:
                 h_list = [mt.dominance_coeff]
             else:
-                h_list = [0.5]  # this value will not matter
+                # this first value will apply only to mutations that are never kept,
+                # and so has no effect
+                h_list = [0.5]
                 h_list.extend(mt.dominance_coeff_list)
                 # record here what we'll need to set up the callbacks in script
                 mutation_callbacks[mid_list[0]] = {
