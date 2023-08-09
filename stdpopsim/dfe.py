@@ -37,16 +37,18 @@ class MutationType(object):
     exponential and gamma, a negative mean can be provided, obtaining always
     negative values.
 
-    Instead of a single dominance coefficient, a discretized relationship
-    between dominance and selection coefficient can be implemented:
-    if dominance_coeff_list is provided, then there is a mutations with selection
-    coefficient s with dominance_coeff_breaks[k-1] <= s <= dominance_coeff_breaks[k] will
-    have dominance coefficient dominance_coeff[k]. In other words, the first entry of
-    dominance_coeff_list applies to any mutations with selection coefficient below the
-    first entry of dominance_coeff_breaks; the second entry of dominance_coeff_list
-    applies to mutations with selection coefficient between the first and second entries
-    of dominance_coeff_breaks, and so forth. The list of breaks must therefore be of
-    length one less than the list of dominance coefficients.
+    Instead of a single dominance coefficient (which would be specified with
+    `dominance_coeff`), a discretized relationship between dominance and
+    selection coefficient can be implemented: if dominance_coeff_list is
+    provided, mutations with selection coefficient s for which
+    dominance_coeff_breaks[k-1] <= s <= dominance_coeff_breaks[k] will have
+    dominance coefficient dominance_coeff[k]. In other words, the first entry
+    of dominance_coeff_list applies to any mutations with selection coefficient
+    below the first entry of dominance_coeff_breaks; the second entry of
+    dominance_coeff_list applies to mutations with selection coefficient
+    between the first and second entries of dominance_coeff_breaks, and so
+    forth. The list of breaks must therefore be of length one less than the
+    list of dominance coefficients.
 
     :ivar distribution_type: A one-letter abbreviation for the distribution of
         fitness effects that each new mutation of this type draws from (see below).
