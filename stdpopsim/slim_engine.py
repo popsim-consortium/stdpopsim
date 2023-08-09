@@ -793,7 +793,8 @@ def _dfe_to_mtypes(contig):
     mutation types are actually assigned a positive mutation rate in SLiM, but
     (b) all mutations of the first type are transformed to the other mutation
     types in the list, and hence never end up in the final tree sequence. (See
-    Recipe 10.6 in the SLiM manual.)
+    Recipe 10.6 in the SLiM manual, "Varying the dominance coefficient among
+    mutations".)
     """
     mid = 0
     dfe_to_mtypes = {}
