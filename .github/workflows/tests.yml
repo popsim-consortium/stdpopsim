@@ -20,6 +20,7 @@ jobs:
         os: [ubuntu-20.04, macos-11, windows-latest]
         python: [3.8, "3.10"]
     env:
+      CONDA_ENV_NAME: stdpopsim
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python }}
 
@@ -48,7 +49,7 @@ jobs:
         uses: actions/cache@v2
         env:
           # Increase this to reset the cache if the key hasn't changed.
-          CACHE_NUM: 4
+          CACHE_NUM: 5
         with:
           path: |
             ${{ steps.find-conda.outputs.CONDA }}/envs/${{ env.CONDA_ENV_NAME }}
@@ -59,7 +60,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v2
         if: steps.cache.outputs.cache-hit != 'true'
         with:
-          activate-environment: stdpopsim
+          activate-environment: ${{ env.CONDA_ENV_NAME }}
           python-version: ${{ matrix.python }}
           channels: conda-forge
           channel-priority: strict
