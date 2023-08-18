@@ -23,7 +23,7 @@ jobs:
       CONDA_ENV_NAME: stdpopsim
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python }}
-
+      ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
     steps:
       - name: cancel previous runs
         uses: styfle/cancel-workflow-action@0.6.0
