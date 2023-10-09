@@ -66,11 +66,11 @@ def _dom_1pop():
             1234595,
             1429281,
             1654653,
+            1915544,
         ]
     )
     sizes = np.array(
         [
-            2040,
             2040,
             3844,
             90428,
@@ -126,6 +126,7 @@ def _dom_1pop():
             98811,
             133912,
             133912,
+            133912,
         ]
     )
 
@@ -148,7 +149,7 @@ def _dom_1pop():
         long_description="""
             This model comes from MSMC using four randomly sampled
             individuals (DEU01,DEU03,DEU04,DEU06) from a German population.
-            The model is estimated with 56 time periods. Data were provided
+            The model is estimated with 57 time periods. Data were provided
             directly by the first and corresponding authors of the paper,
             Kazumichi Fujiwara and Naoki Osada, respectively. A graphical
             depiction of the model can be found in Figure 3 of the paper.
@@ -236,11 +237,11 @@ def _mus_1pop():
             520579,
             602670,
             697702,
+            807711,
         ]
     )
     sizes = np.array(
         [
-            179912,
             179912,
             8931,
             8035,
@@ -296,6 +297,7 @@ def _mus_1pop():
             407105,
             152757,
             152757,
+            152757,
         ]
     )
 
@@ -318,7 +320,7 @@ def _mus_1pop():
         long_description="""
             This model comes from MSMC using four randomly sampled
             individuals (KOR01,KOR02,KOR03,KOR05) from a Korean population.
-            The model is estimated with 56 time periods. Data were provided
+            The model is estimated with 57 time periods. Data were provided
             directly by the first and corresponding authors of the paper,
             Kazumichi Fujiwara and Naoki Osada, respectively. A graphical
             depiction of the model can be found in Figure 3 of the paper.
@@ -406,11 +408,11 @@ def _cas_1pop():
             3901912,
             4397456,
             4955842,
+            5585000,
         ]
     )
     sizes = np.array(
         [
-            64853,
             64853,
             5064712,
             938111,
@@ -466,6 +468,7 @@ def _cas_1pop():
             463464,
             344802,
             344802,
+            344802,
         ]
     )
 
@@ -488,7 +491,7 @@ def _cas_1pop():
         long_description="""
             This model comes from MSMC using two randomly sampled
             individuals (IND03,IND04) from a Indian population.
-            The model is estimated with 56 time periods. Data were provided
+            The model is estimated with 57 time periods. Data were provided
             directly by the first and corresponding authors of the paper,
             Kazumichi Fujiwara and Naoki Osada, respectively. A graphical
             depiction of the model can be found in Figure 3 of the paper.
