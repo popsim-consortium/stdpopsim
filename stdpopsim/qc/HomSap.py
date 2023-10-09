@@ -1703,7 +1703,7 @@ def Huber2017():
     negative = stdpopsim.MutationType(
         dominance_coeff=0.5,
         distribution_type="g",  # gamma distribution
-        distribution_args=[-0.014, 0.19],
+        distribution_args=[-0.014 * 2, 0.19],
     )
 
     return stdpopsim.DFE(

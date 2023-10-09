@@ -32,9 +32,9 @@ class TestCreateMutationType:
             "n": ([0.5, 1], [0, 1]),
             "ln": ([0.5, 1], []),
             "lp": ([0.5, 1], []),
+            "u": ([-0.5, 1], []),
         }
         for t in mut_params:
-            print(f"{t}\t{mut_params[t]}")
             if t == "f":
                 mt = dfe.MutationType(
                     distribution_type=t,
@@ -157,6 +157,14 @@ class TestCreateMutationType:
                 distribution_args=[1, -2],
             )
 
+        # Uniformly-distributed selection coefficients
+        for bad_args in ([0], [1, 2, 3], [3, -2]):
+            with pytest.raises(ValueError, match="use a .min, max"):
+                dfe.MutationType(
+                    distribution_type="u",
+                    distribution_args=bad_args,
+                )
+
         # Lognormally-distributed selection coefficients
         for dt in ["lp", "ln"]:
             with pytest.raises(
@@ -204,13 +212,14 @@ class TestCreateMutationType:
             "e": ([0.1], [10], [5000], [0]),
             "n": ([-0.1, 0.2], [0.1, 0.1], [50, 50]),
             "w": ([0.1, 0.2], [0.1, 0.1], [50, 50]),
+            "u": ([0.1, 0.2], [0.1, 0.1], [-5, 50]),
             "lp": ([-0.1, 0.2], [0.1, 0.1], [50, 50]),
             "ln": ([-0.1, 0.2], [0.1, 0.1], [50, 50]),
         }
         for t in mut_params:
             for p in mut_params[t]:
                 mt = dfe.MutationType(distribution_type=t, distribution_args=p)
-                if t in ("lp", "ln"):
+                if t in ("lp", "ln", "u"):
                     assert mt.distribution_type == "s"
                 else:
                     assert mt.distribution_type == t
@@ -225,6 +234,7 @@ class TestCreateMutationType:
             "e": ([], [0, 1], [0.1, 0.4, 0.5], [np.inf]),
             "n": ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [0.3, np.inf]),
             "w": ([], [-0.1, 1], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [np.inf, 2.3]),
+            "u": ([], [-0.1, -0.5], [0.1, 0.4, 0.5], [0.1], [2.3, np.inf]),
             "lp": ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [0.1, np.inf]),
             "ln": ([], [0.1, -1], [0.1, 0.4, 0.5], [0.1], [0.1, np.inf]),
         }
@@ -248,15 +258,97 @@ class TestCreateMutationType:
             mt = dfe.MutationType(dominance_coeff=dominance_coeff)
             assert mt.dominance_coeff == dominance_coeff
 
+    def test_dominance_coeff_list(self):
+        for dcl, dcb in (
+            ([-0.1, 0.7, 1.2], [-2.1, 1.0]),
+            ([-0.1, -0.7], [-2.1]),
+        ):
+            mt = dfe.MutationType(dominance_coeff_list=dcl, dominance_coeff_breaks=dcb)
+            assert np.allclose(dcl, mt.dominance_coeff_list)
+            assert np.allclose(dcb, mt.dominance_coeff_breaks)
+
+    def test_pass_by_value(self):
+        # make sure that for the arguments that are lists
+        # we can't post-hoc modify them (and thus bypass validation)
+        val = 0.5
+        x = [val]
+        mt = dfe.MutationType(distribution_args=x)
+        x[0] = 2 * val + 1
+        assert mt.distribution_args[0] == val
+        x = [val, val]
+        mt = dfe.MutationType(dominance_coeff_list=x, dominance_coeff_breaks=[0.0])
+        x[0] = 2 * val + 1
+        assert mt.dominance_coeff_list[0] == val
+        x = [val]
+        mt = dfe.MutationType(dominance_coeff_list=[0.0, 0.0], dominance_coeff_breaks=x)
+        x[0] = 2 * val + 1
+        assert mt.dominance_coeff_breaks[0] == val
+
     def test_bad_dominance_coeff(self):
-        for dominance_coeff in (np.inf, np.nan, "abc", [], None, {}):
-            with pytest.raises(ValueError):
+        for dominance_coeff in (np.inf, np.nan, "abc", [], {}):
+            with pytest.raises(ValueError, match="dominance.coeff"):
                 dfe.MutationType(dominance_coeff=dominance_coeff)
 
     def test_bad_distribution_type(self):
         for distribution_type in (1, {}, None, "~", "!", "F"):
             with pytest.raises(ValueError):
                 dfe.MutationType(distribution_type=distribution_type)
+
+    def test_bad_dominance_coeff_list(self):
+        dcl = [-0.1, 0.7, 1.2]
+        dcb = [-2.1, 1.0]
+        # can't specify both dominance_coeff and list
+        with pytest.raises(ValueError, match="both dominance_coeff and"):
+            dfe.MutationType(
+                dominance_coeff=0.5,
+                dominance_coeff_list=dcl,
+                dominance_coeff_breaks=dcb,
+            )
+        with pytest.raises(ValueError, match="both dominance_coeff and"):
+            dfe.MutationType(
+                dominance_coeff=0.5,
+                dominance_coeff_list=dcl,
+            )
+        with pytest.raises(ValueError, match="both dominance_coeff and"):
+            dfe.MutationType(
+                dominance_coeff=0.5,
+                dominance_coeff_breaks=dcb,
+            )
+        # must have both coeffs and breaks
+        with pytest.raises(ValueError, match="dominance.*no breaks"):
+            dfe.MutationType(dominance_coeff_list=dcl)
+        # must have at least 2 bins
+        with pytest.raises(ValueError, match="dominance.*at least 2"):
+            dfe.MutationType(
+                dominance_coeff_list=[0.2],
+                dominance_coeff_breaks=[],
+            )
+        # list must be one longer than breaks
+        for x in ([], [0.0], dcl):
+            with pytest.raises(ValueError, match="dominance.*equal to"):
+                dfe.MutationType(
+                    dominance_coeff_list=dcl,
+                    dominance_coeff_breaks=x,
+                )
+        # bad coefficients
+        for x in (np.inf, np.nan, "abc", [], {}):
+            with pytest.raises(ValueError, match="dominance.coeff"):
+                dfe.MutationType(
+                    dominance_coeff_list=[x] + dcl[1:],
+                    dominance_coeff_breaks=dcb,
+                )
+        # bad breaks
+        for x in (np.inf, np.nan, "abc", [], {}):
+            with pytest.raises(ValueError, match="dominance.*break"):
+                dfe.MutationType(
+                    dominance_coeff_list=dcl,
+                    dominance_coeff_breaks=[x] + dcb[1:],
+                )
+        with pytest.raises(ValueError, match="nondecreasing"):
+            dfe.MutationType(
+                dominance_coeff_list=dcl,
+                dominance_coeff_breaks=list(reversed(dcb)),
+            )
 
 
 class TestAllDFEs:

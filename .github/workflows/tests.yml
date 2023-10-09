@@ -17,13 +17,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-10.15, windows-latest]
-        python: [3.7, "3.10"]
+        os: [ubuntu-20.04, macos-11, windows-latest]
+        python: [3.8, "3.10"]
     env:
       CONDA_ENV_NAME: stdpopsim
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python }}
-
     steps:
       - name: cancel previous runs
         uses: styfle/cancel-workflow-action@0.6.0
@@ -36,7 +35,7 @@ jobs:
       - name: find conda
         id: find-conda
         run: |
-          echo "::set-output name=CONDA::$CONDA"
+          echo "name=CONDA::$CONDA" >> $GITHUB_OUTPUT
 
       - name: fix conda permissions
         if: runner.os == 'macOS'
@@ -46,10 +45,10 @@ jobs:
 
       - name: cache conda
         id: cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           # Increase this to reset the cache if the key hasn't changed.
-          CACHE_NUM: 2
+          CACHE_NUM: 5
         with:
           path: |
             ${{ steps.find-conda.outputs.CONDA }}/envs/${{ env.CONDA_ENV_NAME }}
@@ -99,3 +98,6 @@ jobs:
         with:
           fail_ci_if_error: true
           env_vars: OS,PYTHON
+          # Use upload token to avoid upload failures.
+          # https://github.com/codecov/codecov-action/issues/837
+          token: 8ae76ade-9d0e-4a2d-b9ef-1180235be07f

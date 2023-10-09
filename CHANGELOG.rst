@@ -2,6 +2,22 @@
 [0.2.1] - 2023-XX-XX
 --------------------
 
+**Breaking changes**:
+
+- To add the possibility for a relationship between dominance and selection
+    coefficient, now each stdpopsim MutationType might have more than one
+    underlying SLiM mutation type; so, where this is recorded in top-level
+    metadata (under `ts.metadata["stdpopsim"]["DFEs"]`) is now a list
+    instead of a single value. This will not affect anyone who is not
+    parsing the metadata related to DFEs.
+
+**New features**:
+
+- *Relationship between dominance and selection coefficient:*
+    Added the `dominance_coeff_list` argument to `MutationType`, allowing
+    for DFEs with a discretized relationship between h and s.
+    (:user:`petrelharp`, :pr:`1498`)
+
 **New species**:
 
 - Mus musculus (:user:`peterdfields`, :pr:`1437`).

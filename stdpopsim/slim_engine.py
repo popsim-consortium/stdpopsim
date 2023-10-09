@@ -503,6 +503,22 @@ _slim_main = """
         }
     }
 
+    // Setup mutation callbacks.
+    // For each stdpopsim mutation type with an h-s relationship
+    // we have a sequence of assigned SLiM mutation types;
+    // the first is the one that gets produced by mutation,
+    // and the remainder are assigned by a mutation callback.
+    for (i in seqAlong(mut_types_with_callbacks)) {
+        mt = mut_types_with_callbacks[i];
+        sim.registerMutationCallback(NULL,
+            "{s = mut.selectionCoeff; "
+            + "k = findInterval(s, dominance_coeff_breaks_" + mt + "); "
+            + "mut.setMutationType(dominance_coeff_types_" + mt + "[k]); "
+            + "return T;}",
+            mt
+        );
+    }
+
     // Sample individuals.
     for (i in 0:(ncol(sampling_episodes)-1)) {
         pop = drop(sampling_episodes[0,i]);
@@ -538,7 +554,6 @@ _slim_main = """
 }
 
 """
-
 
 _slim_logfile = """
 // Optional logfile output:
@@ -669,7 +684,11 @@ _raw_stdpopsim_top_level_schema = {
                             "items": {
                                 "type": "object",
                                 "properties": {
-                                    "dominance_coeff": {"type": "number"},
+                                    "dominance_coeff": {"type": ["number", "null"]},
+                                    "dominance_coeff_list": {"type": ["array", "null"]},
+                                    "dominance_coeff_breaks": {
+                                        "type": ["array", "null"]
+                                    },
                                     "distribution_type": {"type": "string"},
                                     "distribution_args": {
                                         "type": "array",
@@ -680,7 +699,7 @@ _raw_stdpopsim_top_level_schema = {
                                         "type": "array",
                                         "items": {"type": "number"},
                                     },
-                                    "slim_mutation_type_id": {"type": "integer"},
+                                    "slim_mutation_type_id": {"type": "array"},
                                     "is_neutral": {"type": "boolean"},
                                 },
                             },
@@ -759,21 +778,38 @@ def _enum_dfe_and_intervals(contig):
 
 def _dfe_to_mtypes(contig):
     """
-    Assigns a mutation type id to each of the mutation types contained in this
+    Assigns mutation type ids to each of the mutation types contained in this
     `Contig`. This function will return a dictionary with `len(contig.dfe_list)`
     elements, in which the position of the DFE in `contig.dfe_list` is the key.
-    For each DFE, the dictionary holds a list of tuples that contain the an
-    assigned mutation type id (used in  SLiM) and the `MutationType` object.
+    For each DFE, the dictionary holds a list of tuples that contain the
+    assigned mutation type ids (used in SLiM) and the `MutationType` object.
     This is necessary so that we use the same numeric ids to the mutation types
     in the _add_dfes_to_metadata and slim_makescript steps.
+
+    The assigned mutation type ids is stored as a tuple, that is only of length
+    greater than one if the mutation type is of a sort that is implemented
+    using more than one SLiM mutation type; currently, these are only mutation
+    types with a discretized h-s relationship, and (a) only the first of these
+    mutation types are actually assigned a positive mutation rate in SLiM, but
+    (b) all mutations of the first type are transformed to the other mutation
+    types in the list, and hence never end up in the final tree sequence. (See
+    Recipe 10.6 in the SLiM manual, "Varying the dominance coefficient among
+    mutations".)
     """
     mid = 0
     dfe_to_mtypes = {}
     for i, d, _ in _enum_dfe_and_intervals(contig):
         dfe_to_mtypes[i] = []
         for mt in d.mutation_types:
-            dfe_to_mtypes[i].append((mid, mt))
+            # the first mutation type will be the one that has the mutation rate
+            # and each new mutation gets converted to one of the *other* types;
+            mid_list = [mid]
             mid += 1
+            if mt.dominance_coeff_list is not None:
+                for _ in mt.dominance_coeff_list:
+                    mid_list.append(mid)
+                    mid += 1
+            dfe_to_mtypes[i].append((tuple(mid_list), mt))
     return dfe_to_mtypes
 
 
@@ -798,9 +834,9 @@ def _add_dfes_to_metadata(ts, contig):
     for i, d, ints in _enum_dfe_and_intervals(contig):
         dfes[i]["intervals"] = ints.tolist()
         dfes[i]["proportions"] = d.proportions
-        for j, (mid, mt) in enumerate(dfe_to_mtypes[i]):
+        for j, (mid_list, mt) in enumerate(dfe_to_mtypes[i]):
             add = {
-                "slim_mutation_type_id": mid,
+                "slim_mutation_type_id": list(mid_list),
                 "is_neutral": mt.is_neutral,
             }
             dfes[i]["mutation_types"][j].update(add)
@@ -1012,7 +1048,7 @@ def slim_makescript(
                     f"refers to a DFE with intervals {dfe_intervals}, not "
                     f"to a single site."
                 )
-            mt_id, mt = slim_mutation_ids[dfe_index][0]
+            mt_id_list, mt = slim_mutation_ids[dfe_index][0]
             if not mt.distribution_type == "f":
                 raise ValueError(
                     f"The single site id '{ee.single_site_id}' referenced by "
@@ -1021,7 +1057,7 @@ def slim_makescript(
                     f"fixed fitness coefficient."
                 )
             coordinate = dfe_intervals[0, 0]
-            mutation_type_id = mt_id
+            mutation_type_id = mt_id_list[0]
         if hasattr(ee, "start_time") and hasattr(ee, "end_time"):
             # Now that GenerationAfter times have been accounted for, we can
             # properly catch invalid start/end times.
@@ -1176,47 +1212,66 @@ def slim_makescript(
         return "".join(s)
 
     # Genomic element types.
+    mutation_callbacks = {}
     dfe_mtypes = _dfe_to_mtypes(contig)
     for j, d, ints in _enum_dfe_and_intervals(contig):
-        # Mutation types.
+        # Mutation types and proportions.
         mut_type_list = []
+        mut_props_list = []
         assert len(dfe_mtypes[j]) == len(d.mutation_types)
-        for mid, m in dfe_mtypes[j]:
-            if len(m.Q_scaled_index) >= 1:
-                distrib_args = [str(arg) for arg in m.distribution_args]
-                for k in m.Q_scaled_index:
-                    distrib_args[m.Q_scaled_index[k]] = (
-                        "Q * " + distrib_args[m.Q_scaled_index[k]]
+        for mt_index, (mid_list, mt) in enumerate(dfe_mtypes[j]):
+            if len(mt.Q_scaled_index) >= 1:
+                distrib_args = [str(arg) for arg in mt.distribution_args]
+                for k in mt.Q_scaled_index:
+                    distrib_args[mt.Q_scaled_index[k]] = (
+                        "Q * " + distrib_args[mt.Q_scaled_index[k]]
                     )
                 distrib_args = ", ".join(distrib_args)
             # dealing with distributions given by "s" Eidos script,
             else:
-                distrib_args = "; ".join([f'"{a}"' for a in m.distribution_args])
-            mut_type_list.append(mid)
-            printsc(
-                f"    initializeMutationType({mid}, {m.dominance_coeff}, "
-                f'"{m.distribution_type}", {distrib_args});'
-            )
-            if not m.convert_to_substitution:
-                # T is the default for WF simulations.
-                printsc(f"    m{mid}.convertToSubstitution = F;")
-            # TODO: when msprime.SLiMMutationModel supports stacking policy,
-            # set policy such that there's at most a single mutation per-site
-            # and individual
-            # printsc(f"    m{mid}.mutationStackGroup = 0;")
-            # printsc(f"    m{mid}.mutationStackPolicy = 'l';")
+                distrib_args = "; ".join([f'"{a}"' for a in mt.distribution_args])
+            if mt.dominance_coeff_list is None:
+                h_list = [mt.dominance_coeff]
+            else:
+                # this first value will apply only to mutations that are never kept,
+                # and so has no effect
+                h_list = [0.5]
+                h_list.extend(mt.dominance_coeff_list)
+                # record here what we'll need to set up the callbacks in script
+                mutation_callbacks[mid_list[0]] = {
+                    "dominance_coeff_breaks": mt.dominance_coeff_breaks,
+                    "mutation_types": mid_list[1:],
+                }
+            assert len(mid_list) == len(h_list)
+            first_mt = True
+            for mid, h in zip(mid_list, h_list):
+                # We will assign a proportion of 0.0 to mutation types that are neutral
+                # unless all the mutation types in a DFE are neutral. In such case,
+                # SLiM would not allow all mutation types in a genomic element type to
+                # have 0.0 proportion. And the proportions in SLiM won't matter anyway,
+                # because all the intervals in this fully neutral DFE will have 0.0
+                # mutation rate anyway.
+                # Furthermore, for mutation types with a discretized h-s relationship,
+                # we only mutate to the first assigned mutation type, and remaining ones
+                # are produced by a mutation callback.
+                mut_type_list.append(mid)
+                use_prop = first_mt and ((not mt.is_neutral) or d.is_neutral)
+                p = d.proportions[mt_index] if use_prop else 0.0
+                mut_props_list.append(p)
+                printsc(
+                    f"    initializeMutationType({mid}, {h}, "
+                    f'"{mt.distribution_type}", {distrib_args});'
+                )
+                if not mt.convert_to_substitution:
+                    # T is the default for WF simulations.
+                    printsc(f"    m{mid}.convertToSubstitution = F;")
+                # TODO: when msprime.SLiMMutationModel supports stacking policy,
+                # set policy such that there's at most a single mutation per-site
+                # and individual
+                # printsc(f"    mt{mid}.mutationStackGroup = 0;")
+                # printsc(f"    mt{mid}.mutationStackPolicy = 'l';")
+                first_mt = False
         mut_types = ", ".join([str(mt) for mt in mut_type_list])
-        mut_types = ", ".join([str(mt) for mt in mut_type_list])
-        # We will assign a proportion of 0.0 to mutation types that are neutral
-        # unless all the mutation types in a DFE are neutral. In such case,
-        # SLiM would not allow all mutation types in a genomic element type to
-        # have 0.0 proportion. And the proportions in SLiM won't matter anyway,
-        # because all the intervals in this fully neutral DFE will have 0.0
-        # mutation rate anyway.
-        mut_props_list = [
-            prop if (not mt.is_neutral) or d.is_neutral else 0.0
-            for prop, mt in zip(d.proportions, d.mutation_types)
-        ]
         mut_props = ", ".join(map(str, mut_props_list))
         printsc(
             f"    initializeGenomicElementType({j}, c({mut_types}), c({mut_props}));"
@@ -1350,6 +1405,30 @@ def slim_makescript(
         + ");"
     )
     printsc()
+
+    # Mutation callbacks.
+    printsc(
+        "    // Mutations callbacks for h-s relationships, "
+        "one variable for each callback."
+    )
+    mut_types_with_callbacks = list(mutation_callbacks.keys())
+    printsc(
+        '    defineConstant("mut_types_with_callbacks", c('
+        + ", ".join(map(str, mut_types_with_callbacks))
+        + "));"
+    )
+    for mt in mut_types_with_callbacks:
+        printsc(
+            f'    defineConstant("dominance_coeff_types_{mt}", c('
+            + ", ".join(map(str, mutation_callbacks[mt]["mutation_types"]))
+            + "));"
+        )
+
+        printsc(
+            f'    defineConstant("dominance_coeff_breaks_{mt}", c(-INF, '
+            + ", ".join(map(str, mutation_callbacks[mt]["dominance_coeff_breaks"]))
+            + ", INF));"
+        )
 
     # Allele frequency conditioning
     op_types = ", ".join(
@@ -1721,7 +1800,7 @@ class _SLiMEngine(stdpopsim.Engine):
         max_id = -1
         for dfe in metadata["stdpopsim"]["DFEs"]:
             for mt in dfe["mutation_types"]:
-                max_id = max(mt["slim_mutation_type_id"], max_id)
+                max_id = max(max(mt["slim_mutation_type_id"]), max_id)
         recap_dfe = {
             "id": "recapitation",
             "description": "DFE used in recapitation",
@@ -1734,7 +1813,9 @@ class _SLiMEngine(stdpopsim.Engine):
                     "distribution_args": [0],
                     "convert_to_substitution": False,
                     "Q_scaled_index": [0],
-                    "slim_mutation_type_id": max_id + 1,
+                    "slim_mutation_type_id": [
+                        max_id + 1,
+                    ],
                     "is_neutral": True,
                 }
             ],
@@ -1797,12 +1878,12 @@ class _SLiMEngine(stdpopsim.Engine):
 
                     # Use msprime.SLiMMutationModel rather than msprime.JC69
                     # for neutral DFEs.  This ensures that there will be a
-                    # 'selection_coef' key in the mutation metadata (e.g. the
+                    # 'selection_coef' key in the mutation metadata (so the
                     # mutation metadata structure will be consistent across the
                     # tree sequence).
                     # TODO: set stacking policy to "l" when supported
                     model = msprime.SLiMMutationModel(
-                        type=mt["slim_mutation_type_id"],
+                        type=mt["slim_mutation_type_id"][0],
                         next_id=_get_next_id(ts),
                     )
 
