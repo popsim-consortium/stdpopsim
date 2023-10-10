@@ -82,7 +82,11 @@ def make_tarfile(output_filename, source_dir, dest):
     if os.path.exists(output_filename):
         os.remove(output_filename)
     with tarfile.open(output_filename, "w:gz") as tar:
-        tar.add(source_dir, arcname=dest)
+        tar.add(
+            source_dir,
+            arcname=dest,
+            filter=lambda x: None if x.name.endswith(".tar.gz") else x,
+        )
     tar.close()
 
 
