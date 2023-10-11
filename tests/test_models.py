@@ -426,9 +426,12 @@ class TestMutationRates:
                                     )
                             if param_data[0].startswith("Mutation rate"):
                                 mutation_rate = float(param_data[1])
-                    assert model.mutation_rate == mutation_rate
+                    if mutation_rate is None:
+                        assert model.mutation_rate is None
+                    else:
+                        assert np.allclose(model.mutation_rate, mutation_rate)
                     if generation_time is None:
                         # default is 1 if unspecified
                         assert model.generation_time == 1
                     else:
-                        assert model.generation_time == generation_time
+                        assert np.allclose(model.generation_time, generation_time)

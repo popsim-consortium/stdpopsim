@@ -15,9 +15,8 @@ def _BottMig_3C07_qc():
     )
     populations = [rufipogon, indica, japonica]
 
-    # generation time of 1 year and a mutation rate of 3.2e-9 per bp per generation
+    # generation time of 1 year
     generation_time = 1
-    mutation_rate = 3.2e-9
 
     # All demographic parameters were extracted from Caicedo et al. (2007)
     # Table 2, bottleneck + migration model
@@ -34,6 +33,12 @@ def _BottMig_3C07_qc():
     N_B = (
         0.0055 * 150000
     )  # bottleneck population size for both indica and tropical japonica
+
+    # "mutation rate estimated from the number of synonymous and noncoding
+    # segregating SNPs assuming O. rufipogon represented a population of
+    # constant size... and is equivalent to using Watterson's (1975) estimator
+    # of θ."
+    mutation_rate = 5.42e-3 / (4 * N_rufi)
 
     # Migration rates
     # to japonica = 0.42, to indica = 0.945, to rufipogon = 3.5
