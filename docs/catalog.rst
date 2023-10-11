@@ -83,9 +83,13 @@ Then, if you feel ready, make an issue on our
 
 .. speciescatalog:: MusMus
 
+.. speciescatalog:: OrySat
+
 .. speciescatalog:: PanTro
 
 .. speciescatalog:: PapAnu
+
+.. speciescatalog:: PhoSin
 
 .. speciescatalog:: PonAbe
 
