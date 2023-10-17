@@ -19,7 +19,7 @@ def _2epoch():
         id="Vaquita2Epoch_1R22",
         description="Vaquita two epoch model",
         long_description="""
-            A two-epoch demographic model estimated using dadi from site
+            A two-epoch demographic model estimated using dadi from the site
             frequency spectrum at putatively neutrally evolving regions of
             the genome identified as those located >10 kb from coding
             sequences which did not overlap with CpG islands.
