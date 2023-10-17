@@ -48,7 +48,7 @@ jobs:
         uses: actions/cache@v3
         env:
           # Increase this to reset the cache if the key hasn't changed.
-          CACHE_NUM: 6
+          CACHE_NUM: 7
         with:
           path: |
             ${{ steps.find-conda.outputs.CONDA }}/envs/${{ env.CONDA_ENV_NAME }}
