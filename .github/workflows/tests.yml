@@ -35,7 +35,11 @@ jobs:
       - name: find conda
         id: find-conda
         run: |
+          echo "$CONDA"
+          echo "$name"
           echo "name=CONDA::$CONDA" >> $GITHUB_OUTPUT
+          echo "$CONDA"
+          echo "$name"
 
       - name: fix conda permissions
         if: runner.os == 'macOS'
