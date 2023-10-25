@@ -16,7 +16,7 @@ _an = stdpopsim.Annotation(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
         "annotations/DroMel/FlyBase_BDGP6.32.51_exons.tar.gz"
     ),
-    intervals_sha256="f09b4684505c7c8c86c7739d632c79927b8d329fd60fd55ea3f610b944bb5856",
+    intervals_sha256="665df7639725ca18bde85001bbdc08fbef4450c52a8788e02ba76206e2e03d50",
     citations=[
         stdpopsim.Citation(
             year=2014,
@@ -45,7 +45,7 @@ _an2 = stdpopsim.Annotation(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
         "annotations/DroMel/FlyBase_BDGP6.32.51_CDS.tar.gz"
     ),
-    intervals_sha256="b993c8fc997e1c7ecdad626b7eeceae724cc0e0e477d8ab2f186866a6a0def15",
+    intervals_sha256="3f84b69f7ca558f16cc9b787ee74ba5d16685cb80b2ba8a6ddca4b7b0c4486e0",
     citations=[
         stdpopsim.Citation(
             year=2014,
