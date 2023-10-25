@@ -21,45 +21,42 @@ class TestSpeciesData(test_species.SpeciesTestBase):
     # independently referring to the citations provided in the
     # species definition, filling in the appropriate values
     # and deleting the pytest "skip" annotations.
-    @pytest.mark.skip("Population size QC not done yet")
     def test_qc_population_size(self):
-        assert self.species.population_size == -1
+        assert self.species.population_size == 3500
 
-    @pytest.mark.skip("Generation time QC not done yet")
     def test_qc_generation_time(self):
-        assert self.species.generation_time == -1
+        assert self.species.generation_time == 11.9
 
 
 class TestGenomeData(test_species.GenomeTestBase):
 
     genome = stdpopsim.get_species("PhoSin").genome
 
-    @pytest.mark.skip("Recombination rate QC not done yet")
     @pytest.mark.parametrize(
         ["name", "rate"],
         {
-            "1": -1,
-            "2": -1,
-            "3": -1,
-            "4": -1,
-            "5": -1,
-            "6": -1,
-            "7": -1,
-            "8": -1,
-            "9": -1,
-            "10": -1,
-            "11": -1,
-            "12": -1,
-            "13": -1,
-            "14": -1,
-            "15": -1,
-            "16": -1,
-            "17": -1,
-            "18": -1,
-            "19": -1,
-            "20": -1,
-            "21": -1,
-            "X": -1,
+            "1": 1e-8,
+            "2": 1e-8,
+            "3": 1e-8,
+            "4": 1e-8,
+            "5": 1e-8,
+            "6": 1e-8,
+            "7": 1e-8,
+            "8": 1e-8,
+            "9": 1e-8,
+            "10": 1e-8,
+            "11": 1e-8,
+            "12": 1e-8,
+            "13": 1e-8,
+            "14": 1e-8,
+            "15": 1e-8,
+            "16": 1e-8,
+            "17": 1e-8,
+            "18": 1e-8,
+            "19": 1e-8,
+            "20": 1e-8,
+            "21": 1e-8,
+            "X": 1e-8,
         }.items(),
     )
     def test_recombination_rate(self, name, rate):
@@ -67,32 +64,31 @@ class TestGenomeData(test_species.GenomeTestBase):
             self.genome.get_chromosome(name).recombination_rate
         )
 
-    @pytest.mark.skip("Mutation rate QC not done yet")
     @pytest.mark.parametrize(
         ["name", "rate"],
         {
-            "1": -1,
-            "2": -1,
-            "3": -1,
-            "4": -1,
-            "5": -1,
-            "6": -1,
-            "7": -1,
-            "8": -1,
-            "9": -1,
-            "10": -1,
-            "11": -1,
-            "12": -1,
-            "13": -1,
-            "14": -1,
-            "15": -1,
-            "16": -1,
-            "17": -1,
-            "18": -1,
-            "19": -1,
-            "20": -1,
-            "21": -1,
-            "X": -1,
+            "1": 5.83e-9,
+            "2": 5.83e-9,
+            "3": 5.83e-9,
+            "4": 5.83e-9,
+            "5": 5.83e-9,
+            "6": 5.83e-9,
+            "7": 5.83e-9,
+            "8": 5.83e-9,
+            "9": 5.83e-9,
+            "10": 5.83e-9,
+            "11": 5.83e-9,
+            "12": 5.83e-9,
+            "13": 5.83e-9,
+            "14": 5.83e-9,
+            "15": 5.83e-9,
+            "16": 5.83e-9,
+            "17": 5.83e-9,
+            "18": 5.83e-9,
+            "19": 5.83e-9,
+            "20": 5.83e-9,
+            "21": 5.83e-9,
+            "X": 5.83e-9,
         }.items(),
     )
     def test_mutation_rate(self, name, rate):
