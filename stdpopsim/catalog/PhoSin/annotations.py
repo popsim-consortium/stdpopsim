@@ -15,7 +15,7 @@ _an = stdpopsim.Annotation(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
         "annotations/PhoSin/Phocoena_sinus.mPhoSin1.pri.110_exons.tar.gz"
     ),
-    intervals_sha256="12e767581efc46c5494f800e17011d3e80eb000950f51a98308249afdeb68f87",
+    intervals_sha256="ec95fd1418b8a9a53cd6486fd6a37e699ecd1fce2635df85d8ea4360d53bfbf4",
     citations=[
         stdpopsim.Citation(
             year=2020,
@@ -44,7 +44,7 @@ _an2 = stdpopsim.Annotation(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
         "annotations/PhoSin/Phocoena_sinus.mPhoSin1.pri.110_CDS.tar.gz"
     ),
-    intervals_sha256="f44859c4ce99e93f1bacce1da1e620ed41eb2fe1bd75aafe8ac99d54cb6e7a7a",
+    intervals_sha256="3e30657d2db3ac39136684c56d91b6fd04a03112b139b5dd1a2a1b276f456a44",
     citations=[
         stdpopsim.Citation(
             year=2020,
