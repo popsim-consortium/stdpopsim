@@ -565,7 +565,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         # species:
         species = stdpopsim.get_species(self.arguments[0])
         sid = f"sec_catalog_{species.id}"
-        species_target = self.get_target(sid)
+        species_target = self.get_target(sid.lower())
         section = nodes.section(ids=[sid], names=[sid])
         section += nodes.title(text=species.name)
         section += self.species_summary(species)
@@ -606,16 +606,19 @@ class SpeciesCatalogDirective(SphinxDirective):
         section += nodes.transition()
         # genetic maps:
         if len(species.genetic_maps) > 0:
-            maps_section = nodes.section(ids=[f"sec_catalog_{species.id}_genetic_maps"])
+            map_id = f"sec_catalog_{species.id}_genetic_maps"
+            maps_section = nodes.section(ids=[map_id])
             maps_section += nodes.title(text="Genetic Maps")
             maps_section += self.genetic_maps_table(species)
             for gmap in species.genetic_maps:
                 maps_section += self.genetic_map_section(species, gmap)
+            section += self.get_target(map_id.lower())
             section += maps_section
             section += nodes.transition()
         # demographic models:
         if len(species.demographic_models) > 0:
-            models_section = nodes.section(ids=[f"sec_catalog_{species.id}_models"])
+            map_id = f"sec_catalog_{species.id}_models"
+            models_section = nodes.section(ids=[map_id])
             models_section += nodes.title(text="Demographic Models")
             models_section += self.models_table(species)
             for i, model in enumerate(species.demographic_models):
@@ -623,23 +626,28 @@ class SpeciesCatalogDirective(SphinxDirective):
                 models_section += self.model_image(species, model)
                 if i < len(species.demographic_models) - 1:
                     models_section += nodes.transition()
+            section += self.get_target(map_id.lower())
             section += models_section
         # annotation:
         if len(species.annotations) > 0:
-            annot_section = nodes.section(ids=[f"sec_catalog_{species.id}_annotations"])
+            map_id = f"sec_catalog_{species.id}_annotations"
+            annot_section = nodes.section(ids=[map_id])
             annot_section += nodes.title(text="Annotations")
             annot_section += self.annotation_table(species)
             for an in species.annotations:
                 annot_section += self.annotation_section(species, an)
+            section += self.get_target(map_id.lower())
             section += annot_section
             section += nodes.transition()
         # DFE:
         if len(species.dfes) > 0:
-            dfes_section = nodes.section(ids=[f"sec_catalog_{species.id}_dfe"])
+            map_id = f"sec_catalog_{species.id}_dfe"
+            dfes_section = nodes.section(ids=[map_id])
             dfes_section += nodes.title(text="Distribution of Fitness Effects (DFEs)")
             dfes_section += self.dfes_table(species)
             for i, dfe in enumerate(species.dfes):
                 dfes_section += self.dfe_section(species, dfe)
+            section += self.get_target(map_id.lower())
             section += dfes_section
             section += nodes.transition()
         return [species_target, section]
