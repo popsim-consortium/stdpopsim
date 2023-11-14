@@ -1379,6 +1379,57 @@ We can see that diversity is substantially reduced around the beneficial
 mutation (vertical dashed line), relative to what would be expected under
 neutrality.
 
+.. _sec_tute_moving_dfes:
+
+5.  Using a DFE from one species in another species
+---------------------------------------------------
+
+There are not very many empirically estimated DFEs in the literature
+(certainly not as many as demographic models!).
+How, then, to add selection to your simulation of a species without a published DFE?
+By diving into :ref:`the API <sec_api_dfes>` you could build one yourself.
+However, it's easier to borrow one from another species,
+and arguably biologically more plausible.
+(At least some aspects of the DFE should be shared at least by some species,
+such as the swath of deleterious mutations due to breakages in cellular machinery.)
+For some discussion of this,
+see `Kyriazis et al 2022 <https://www.biorxiv.org/content/10.1101/2022.08.12.503792v1>`_,
+which proposes a "generic" DFE for use in a variety of contexts.
+This DFE was estimated from human data, so it's under HomSap:
+
+.. code-block:: python
+
+    homsap = stdpopsim.get_species("HomSap")
+    dfe = homsap.get_dfe("Mixed_K23")
+    print(dfe.long_description)
+
+Even though the DFE is stored under HomSap in the catalogue,
+we can apply it to a contig from any species.
+For instance, we could apply it to the first 100Kb
+of the :ref:`Vaquita <sec_catalog_PhoSin>` chromosome 1:
+
+.. code-block:: python
+
+    vaquita = stdpopsim.get_species("PhoSin")
+    contig = vaquita.get_contig("1", right=1e5)
+    contig.add_dfe(intervals=[[0, 1e5]], DFE=dfe)
+    model = vaquita.get_demographic_model("Vaquita2Epoch_1R22")
+    samples = {"Vaquita": 50}
+
+    engine = stdpopsim.get_engine("slim")
+    ts = engine.simulate(
+        model,
+        contig,
+        samples,
+        seed=159,
+        slim_scaling_factor=10,
+        slim_burn_in=10,
+    )
+
+To make the example quick, we've only simulated the first 100Kb;
+a more realistic example would apply it to the exons, available
+as a :ref:`annotation <sec_catalog_phosin_annotations>`.
+
 .. _sec_tute_analyses:
 
 *******************************
