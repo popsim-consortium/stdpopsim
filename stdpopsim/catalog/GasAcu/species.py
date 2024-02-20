@@ -116,7 +116,7 @@ _genome = stdpopsim.Genome.from_data(
 
 _species = stdpopsim.Species(
     id="GasAcu",
-    ensembl_id="9307941",
+    ensembl_id="gasterosteus_aculeatus",
     name="Gasterosteus aculeatus",
     common_name="Three-spined stickleback",
     genome=_genome,
