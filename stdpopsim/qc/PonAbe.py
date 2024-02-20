@@ -62,4 +62,4 @@ def LockePongo():
     )
 
 
-_species.get_demographic_model("TwoSpecies_2L11").register_qc(LockePongo())
+_species.get_demographic_model("TwoSpecies_2L11").register_qc(LockePongo)

@@ -274,4 +274,4 @@ def GAS_stairwayplot():
     )
 
 
-_species.get_demographic_model("GabonAg1000G_1A17").register_qc(GAS_stairwayplot())
+_species.get_demographic_model("GabonAg1000G_1A17").register_qc(GAS_stairwayplot)
