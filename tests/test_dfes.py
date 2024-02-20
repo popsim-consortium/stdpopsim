@@ -9,8 +9,6 @@ import numpy as np
 from stdpopsim import dfe
 from stdpopsim import utils
 
-IS_WINDOWS = sys.platform.startswith("win")
-
 
 class TestCreateMutationType:
     """
@@ -646,7 +644,6 @@ class TestCreateDFE:
                 )
                 assert d.is_neutral is (neutral and dist == "f")
 
-    @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
     def test_no_msprime_dfe(self):
         # test we cannot simulate a non-neutral DFE with msprime
         m1 = dfe.MutationType(
@@ -736,7 +733,6 @@ class TestRegisterQCDFE:
             )
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class DFETestMixin:
     """
     Mixin for testing specific DFEs. Subclass should extend
@@ -786,7 +782,6 @@ class DFETestMixin:
         assert num_nonneutral > 0  # nonneutral mutations
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class CatalogDFETestMixin(DFETestMixin):
     """
     Mixin for DFEs in the catalog.
@@ -796,7 +791,6 @@ class CatalogDFETestMixin(DFETestMixin):
         assert utils.is_valid_dfe_id(self.dfe.id)
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class QcdCatalogDFETestMixin(CatalogDFETestMixin):
     """
     Extends the tests to also check that the qc DFE is equal to

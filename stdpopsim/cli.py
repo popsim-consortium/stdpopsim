@@ -35,8 +35,6 @@ except ImportError:
     pass
 
 
-IS_WINDOWS = sys.platform.startswith("win")
-
 logger = logging.getLogger(__name__)
 
 
@@ -1040,47 +1038,44 @@ def stdpopsim_cli_parser():
         "This option may provided multiple times.",
     )
 
-    # SLiM is not available for windows.
-    if not IS_WINDOWS:
+    def slim_exec(path):
+        # Hack to set the SLIM environment variable at parse time,
+        # before get_version() can be called.
+        os.environ["SLIM"] = path
+        return path
 
-        def slim_exec(path):
-            # Hack to set the SLIM environment variable at parse time,
-            # before get_version() can be called.
-            os.environ["SLIM"] = path
-            return path
-
-        slim_parser = top_parser.add_argument_group("SLiM specific parameters")
-        slim_parser.add_argument(
-            "--slim-path",
-            metavar="PATH",
-            type=slim_exec,
-            default=None,
-            help="Full path to `slim' executable.",
-        )
-        slim_parser.add_argument(
-            "--slim-script",
-            action="store_true",
-            default=False,
-            help="Write script to stdout and exit without running SLiM.",
-        )
-        slim_parser.add_argument(
-            "--slim-scaling-factor",
-            metavar="Q",
-            default=1,
-            type=float,
-            help="Rescale model parameters by Q to speed up simulation. "
-            "See SLiM manual: `5.5 Rescaling population sizes to "
-            "improve simulation performance`. "
-            "[default=%(default)s].",
-        )
-        slim_parser.add_argument(
-            "--slim-burn-in",
-            metavar="X",
-            default=10,
-            type=float,
-            help="Length of the burn-in phase, in units of N generations "
-            "[default=%(default)s].",
-        )
+    slim_parser = top_parser.add_argument_group("SLiM specific parameters")
+    slim_parser.add_argument(
+        "--slim-path",
+        metavar="PATH",
+        type=slim_exec,
+        default=None,
+        help="Full path to `slim' executable.",
+    )
+    slim_parser.add_argument(
+        "--slim-script",
+        action="store_true",
+        default=False,
+        help="Write script to stdout and exit without running SLiM.",
+    )
+    slim_parser.add_argument(
+        "--slim-scaling-factor",
+        metavar="Q",
+        default=1,
+        type=float,
+        help="Rescale model parameters by Q to speed up simulation. "
+        "See SLiM manual: `5.5 Rescaling population sizes to "
+        "improve simulation performance`. "
+        "[default=%(default)s].",
+    )
+    slim_parser.add_argument(
+        "--slim-burn-in",
+        metavar="X",
+        default=10,
+        type=float,
+        help="Length of the burn-in phase, in units of N generations "
+        "[default=%(default)s].",
+    )
 
     subparsers = top_parser.add_subparsers(dest="subcommand")
     subparsers.required = True
