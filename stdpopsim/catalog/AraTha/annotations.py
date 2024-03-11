@@ -13,9 +13,9 @@ _an = stdpopsim.Annotation(
     gff_sha256="72dbbe75631b0c42499c65712911dc24c0da4a265275e415c4732ffe21c00425",
     intervals_url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
-        "annotations/AraTha/araport_11_exons.tar.gz"
+        "annotations/AraTha/araport_11_v1_exons.tar.gz"
     ),
-    intervals_sha256="1b55a1e42c546a16caf6b0bedb879b8b161bff99677323b7c37f87d7973bb4cf",
+    intervals_sha256="5702bb2aecd3e7345ce40fece6236a2483f17d500e0ceabab237d6210749c87c",
     citations=[
         stdpopsim.Citation(
             year=2017,
@@ -42,9 +42,9 @@ _an2 = stdpopsim.Annotation(
     gff_sha256="72dbbe75631b0c42499c65712911dc24c0da4a265275e415c4732ffe21c00425",
     intervals_url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
-        "annotations/AraTha/araport_11_CDS.tar.gz"
+        "annotations/AraTha/araport_11_v1_CDS.tar.gz"
     ),
-    intervals_sha256="a66baeb5fd0907fe5b0b0c678c163065c470bb41f639c309d5976ea55e12d513",
+    intervals_sha256="2d5b7c81502aea0791fde1eb2731747713822e8957e56a67ea9f5865fceae070",
     citations=[
         stdpopsim.Citation(
             year=2017,
