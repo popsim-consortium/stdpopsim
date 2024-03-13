@@ -1357,7 +1357,7 @@ primary uploader but please wait to send files to him until directed).
 
 An important note: when an existing resource file (such as a genetic map or annotation)
 is updated and replaces the previous version,
-be sure to give it a new version name (i.e. ``name_{id}_more_name_v1.txt``). 
+be sure to give it a new version name (i.e. ``name_{id}_more_name_v1.txt``).
 This is to ensure that the previous file versions and checksums that are hosted
 remotely remain valid when new releases are made.
 
