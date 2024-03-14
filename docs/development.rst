@@ -1337,7 +1337,7 @@ see `Getting set up to add a new species`_):
         long_description="FILL_ME",
         url=("https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/dir/filename"),
         sha256="FILL_ME",
-        file_pattern="name_{id}_more_name.txt",
+        file_pattern="name_{id}_more_name.tar.gz",
         citations=[_genetic_map_citation],
     )
 
@@ -1355,11 +1355,20 @@ Once all this is done, submit a PR containing the code changes and wait for dire
 on whom to send the compressed archive of genetic maps to (currently Andrew Kern is the
 primary uploader but please wait to send files to him until directed).
 
-An important note: when an existing resource file (such as a genetic map or annotation)
+**An important note:**
+when an existing resource file (such as a genetic map or annotation)
 is updated and replaces the previous version,
-be sure to give it a new version name (i.e. ``name_{id}_more_name_v1.txt``).
-This is to ensure that the previous file versions and checksums that are hosted
-remotely remain valid when new releases are made.
+be sure to update the name of the file pattern with a version number
+(i.e. ``name_{id}_more_name_v1.tar.gz``).
+The file pattern names do not follow a fixed convention throughout the catalog,
+so simply add an underscore and version number to the end of whatever the current
+file pattern is (before the ``.tar.gz`` file extension),
+or increment the version number if the previous file already has one.
+When the file is downloaded locally to the cache, the file is given a standardized name
+that will be the same regardless of which file is pulled from AWS.
+This process is critical to ensure there are no name collisions on AWS server side,
+which would create conflicts between the checksums of the old and new files between
+different version releases of `stdpopsim`.
 
 **************************
 Lifting over a genetic map
