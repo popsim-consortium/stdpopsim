@@ -14,7 +14,7 @@ _an = stdpopsim.Annotation(
     gff_sha256="d882d9a2af1c090ad69b4c81e54b809506f7a8d5fdd90597c6ed05c79ad502bc",
     intervals_url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
-        "annotations/DroMel/FlyBase_BDGP6.32.51_v1_exons.tar.gz"
+        "annotations/DroMel/FlyBase_BDGP6.32.51_exons_v1.tar.gz"
     ),
     intervals_sha256="f3aa9eb288f76b1660cf30a38886f19139f8b15adc1210053bf9c7231167ac5c",
     citations=[
@@ -43,7 +43,7 @@ _an2 = stdpopsim.Annotation(
     gff_sha256="d882d9a2af1c090ad69b4c81e54b809506f7a8d5fdd90597c6ed05c79ad502bc",
     intervals_url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
-        "annotations/DroMel/FlyBase_BDGP6.32.51_v1_CDS.tar.gz"
+        "annotations/DroMel/FlyBase_BDGP6.32.51_CDS_v1.tar.gz"
     ),
     intervals_sha256="832befc80e2ba38ac9c84af164a3fc7089915c24225d37479707e1c7c098527e",
     citations=[
