@@ -13,7 +13,7 @@ _an = stdpopsim.Annotation(
     gff_sha256="313ad46bd4af78b45b9f5d8407bbcbd3f87f4be0747060e84b3b5eb931530ec1",
     intervals_url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
-        "annotations/HomSap/ensembl_havana_104_v1_exons.tar.gz"
+        "annotations/HomSap/ensembl_havana_104_exons_v1.tar.gz"
     ),
     intervals_sha256="bc548783962c51aa02df72e8f90842d17a100ccc0aa47d33dfa19abf568c8481",
     citations=[
@@ -42,7 +42,7 @@ _an2 = stdpopsim.Annotation(
     gff_sha256="313ad46bd4af78b45b9f5d8407bbcbd3f87f4be0747060e84b3b5eb931530ec1",
     intervals_url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
-        "annotations/HomSap/ensembl_havana_104_v1_CDS.tar.gz"
+        "annotations/HomSap/ensembl_havana_104_CDS_v1.tar.gz"
     ),
     intervals_sha256="3e719053943dad85a04b02d36e8bb01a4896e58f17ab35da73af39e1920beb09",
     citations=[

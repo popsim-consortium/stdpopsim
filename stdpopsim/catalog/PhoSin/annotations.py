@@ -13,7 +13,7 @@ _an = stdpopsim.Annotation(
     gff_sha256="dbc8640f8f2e046d063c45f160f39edcf729fc39549726603e389cb7b6ce542e",
     intervals_url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
-        "annotations/PhoSin/Phocoena_sinus.mPhoSin1.pri.110_v1_exons.tar.gz"
+        "annotations/PhoSin/Phocoena_sinus.mPhoSin1.pri.110_exons_v1.tar.gz"
     ),
     intervals_sha256="3fc6ad24cf6728bbca581042b11a8f82f43fab2d5cab853aa82d8924be50fb5a",
     citations=[
@@ -42,7 +42,7 @@ _an2 = stdpopsim.Annotation(
     gff_sha256="dbc8640f8f2e046d063c45f160f39edcf729fc39549726603e389cb7b6ce542e",
     intervals_url=(
         "https://stdpopsim.s3-us-west-2.amazonaws.com/"
-        "annotations/PhoSin/Phocoena_sinus.mPhoSin1.pri.110_v1_CDS.tar.gz"
+        "annotations/PhoSin/Phocoena_sinus.mPhoSin1.pri.110_CDS_v1.tar.gz"
     ),
     intervals_sha256="1cbac8612482fea3985350b099df0f3631e059f2bd41c1231b2641de112caa81",
     citations=[
