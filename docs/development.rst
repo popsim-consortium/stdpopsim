@@ -1335,9 +1335,10 @@ see `Getting set up to add a new species`_):
         id="FILL_ME",  # ID for genetic map, see naming conventions
         description="FILL_ME",
         long_description="FILL_ME",
-        url=("https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/dir/filename"),
+        url=("https://stdpopsim.s3-us-west-2.amazonaws.com/"
+              "genetic_maps/dir/filename.tar.gz"),
         sha256="FILL_ME",
-        file_pattern="name_{id}_more_name.tar.gz",
+        file_pattern="name_{id}_more_name.txt",
         citations=[_genetic_map_citation],
     )
 
@@ -1358,17 +1359,18 @@ primary uploader but please wait to send files to him until directed).
 **An important note:**
 when an existing resource file (such as a genetic map or annotation)
 is updated and replaces the previous version,
-be sure to update the name of the file pattern with a version number
-(i.e. ``name_{id}_more_name_v1.tar.gz``).
-The file pattern names do not follow a fixed convention throughout the catalog,
+be sure to update the url file name with a version number
+(i.e. ``url=(<...>/filename_v1.tar.gz)``).
+File names do not follow a fixed convention throughout the catalog,
 so simply add an underscore and version number to the end of whatever the current
-file pattern is (before the ``.tar.gz`` file extension),
+file name is (before the ``.tar.gz`` file extension),
 or increment the version number if the previous file already has one.
 When the file is downloaded locally to the cache, the file is given a standardized name
 that will be the same regardless of which file is pulled from AWS.
-This process is critical to ensure there are no name collisions on AWS server side,
-which would create conflicts between the checksums of the old and new files between
-different version releases of `stdpopsim`.
+This makes it so that different releases of `stdpopsim` continue to work:
+since the checksum is coded into the package,
+changing the file on AWS would cause an error when the new file's
+checksum is compared on download to the checksum in the package.
 
 **************************
 Lifting over a genetic map
