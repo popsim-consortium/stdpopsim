@@ -10,7 +10,7 @@ _species = stdpopsim.get_species("MusMus")
 
 
 def _BookerDFE():
-    id = "Gamma_Booker2021_CDS"
+    id = "Gamma_B21"
     description = "Deleterious Gamma DFE CDS"
     long_description = """
     Return negative MutationType()s representing a Mus
