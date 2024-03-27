@@ -43,7 +43,7 @@ def _BookerDFE():
         description=description,
         long_description=long_description,
         mutation_types=[neutral, negative],
-        proportions=[0.333, 0.664],
+        proportions=[0.334, 0.666],
         citations=citations,
     )
 
