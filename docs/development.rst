@@ -1293,11 +1293,19 @@ implemented by the reviewer.
 The original demographic model and its registered QC model are compared as part of
 the ``stdpopsim`` `Unit tests`_.
 
-********************
-Adding a genetic map
-********************
+**********************************
+Adding a genetic map or annotation
+**********************************
 
-Some species have sub-chromosomal recombination maps available. They can be added to
+Some species have sub-chromosomal recombination maps or genomic annotations available.
+These files are large enough that adding them directly to the package would quickly
+cause slow package installation and loading,
+so these files are downloaded as-needed from AWS
+and stored locally in a cache directory.
+The following documentation describes adding genetic maps;
+the procedure for annotations is similar (but see the important note below).
+
+Genetic maps can be added to
 `stdpopsim` by creating a new `GeneticMap` object and providing a formatted file
 detailing recombination rates to a designated `stdpopsim` maintainer who then uploads
 it to AWS. If there is one for your species that you wish to include, create a space
@@ -1335,8 +1343,10 @@ see `Getting set up to add a new species`_):
         id="FILL_ME",  # ID for genetic map, see naming conventions
         description="FILL_ME",
         long_description="FILL_ME",
-        url=("https://stdpopsim.s3-us-west-2.amazonaws.com/"
-              "genetic_maps/dir/filename.tar.gz"),
+        url=(
+            "https://stdpopsim.s3-us-west-2.amazonaws.com/"
+            "genetic_maps/dir/filename.tar.gz"
+        ),
         sha256="FILL_ME",
         file_pattern="name_{id}_more_name.txt",
         citations=[_genetic_map_citation],
@@ -1357,20 +1367,24 @@ on whom to send the compressed archive of genetic maps to (currently Andrew Kern
 primary uploader but please wait to send files to him until directed).
 
 **An important note:**
-when an existing resource file (such as a genetic map or annotation)
-is updated and replaces the previous version,
-be sure to update the url file name with a version number
+Since the checksum for the file uploaded to AWS is hardcoded into the package,
+it is important that we do not change that file in the future on AWS.
+For instance, if we uploaded a different annotation file with the same name
+(and hence obtainable by the same URL),
+then users of previous versions of stdpopsim who try to use that annotation
+would receive an error when the package downloads the file and finds
+its checksum does not match what is expected.
+So, when updating an existing resource file (such as a genetic map or annotation),
+we need to give the file a unique URL,
+which we do by updating the file name in the URL with a version number
 (i.e. ``url=(<...>/filename_v1.tar.gz)``).
-File names do not follow a fixed convention throughout the catalog,
+File names do not follow a fixed convention,
 so simply add an underscore and version number to the end of whatever the current
 file name is (before the ``.tar.gz`` file extension),
 or increment the version number if the previous file already has one.
-When the file is downloaded locally to the cache, the file is given a standardized name
+When the file is downloaded locally to the cache, it is given a standardized name
 that will be the same regardless of which file is pulled from AWS.
-This makes it so that different releases of `stdpopsim` continue to work:
-since the checksum is coded into the package,
-changing the file on AWS would cause an error when the new file's
-checksum is compared on download to the checksum in the package.
+
 
 **************************
 Lifting over a genetic map
