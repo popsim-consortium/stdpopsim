@@ -21,7 +21,7 @@ See the appropriate sections below:
 
 * `Adding a new species`_
 * `Adding a new demographic model`_
-* `Adding a genetic map`_
+* `Adding a genetic map or annotation`_
 * `Adding a DFE model`_
 
 `API developers` work on infrastructure development for the PopSim Consortium,
@@ -566,7 +566,7 @@ with a brief discussion of possible courses of action to take when components ha
    Ideally, one would want to specify a fine-scale chromosome-level **recombination map**,
    since the recombination rate is known to vary widely across chromosomes.
    If a recombination map exists for your species,
-   you may specify it separately (see `Adding a genetic map`_).
+   you may specify it separately (see `Adding a genetic map or annotation`_).
    Nonetheless, you should specify a default (average) recombination rate for each chromosome.
    As with mutation rates, if there is no information on the variation of recombination rates
    across chromosomes, the average genome-wide recombination rate can be specified for all chromosomes.
@@ -1448,7 +1448,7 @@ automatically named using the assembly name from the chain file.
 This file will be sent to one of the `stdpopsim` uploaders for placement in the
 AWS cloud, once the new map is approved. Finally, you must add a `GeneticMap`
 object to the file named for your species in the `stdpopsim/catalog/<SPECIES_ID>/`
-directory, as shown in `Adding a genetic map`_.
+directory, as shown in `Adding a genetic map or annotation`_.
 
 Again, once all this is done, submit a PR containing the code changes and wait for
 directions on whom to send the compressed archive of genetic maps to
