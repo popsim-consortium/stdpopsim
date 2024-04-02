@@ -13,6 +13,7 @@ import tempfile
 import pathlib
 import shutil
 import os
+import re
 import inspect
 
 import msprime
@@ -54,6 +55,12 @@ class CLIFormatter(logging.Formatter):
     # DEBUG: Write out debug messages for the user/developer.
     def format(self, record):
         if record.name == "py.warnings":
+            if len(record.args) > 0:
+                # trim the ugly warnings.warn message
+                match = re.search(
+                    r"Warning:\s*(.*?)\s*warnings.warn\(", record.args[0], re.DOTALL
+                )
+                record.args = (match.group(1),)
             self._style = logging.PercentStyle("WARNING: %(message)s")
         else:
             if record.levelno == logging.WARNING:
