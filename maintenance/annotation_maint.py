@@ -92,9 +92,11 @@ def make_tarfile(output_filename, source_dir, dest):
 
 def download_process_annotations():
     """
-    loop through all species and download annotation.
+    loop through all species and download annotations.
     from those annotations suck out what we want and
     store them in appropriately named files for upload
+    NOTE: files need to be renamed before upload,
+    to avoid clobbering existing files!
     """
     for spc in stdpopsim.all_species():
         if spc.annotations:
@@ -126,9 +128,14 @@ def download_process_annotations():
                         spc_name_path, an.file_pattern.format(id=chrom_id)
                     )
                     np.savetxt(out_file, intervals, fmt="%d")
-                tf = spc_name_path + f"/{an.id}.tar.gz"
+                tf = spc_name_path + f"/{an.id}_vX.tar.gz"
                 make_tarfile(tf, spc_name_path, "")
                 logger.info("made tarball at " + spc_name_path)
+                logger.info(
+                    "ALERT: need to rename the files (replace 'vX' with "
+                    "appropriate version number to not clobber existing files "
+                    "before upload."
+                )
                 for f in glob.glob(spc_name_path + "/*.txt"):
                     logger.info("removing " + f)
                     os.remove(f)
