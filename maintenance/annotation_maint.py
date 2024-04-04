@@ -131,7 +131,7 @@ def download_process_annotations():
                 tf = spc_name_path + f"/{an.id}_vCHANGEME.tar.gz"
                 make_tarfile(tf, spc_name_path, "")
                 logger.info("made tarball at " + spc_name_path)
-                logger.info(
+                logger.warning(
                     "ALERT: need to rename the files (replace 'CHANGEME' with "
                     "appropriate version number) to not clobber existing files "
                     "before upload."
