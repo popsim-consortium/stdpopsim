@@ -43,3 +43,30 @@ def Robinson2022_TwoEpoch():
 _species.get_demographic_model("Vaquita2Epoch_1R22").register_qc(
     Robinson2022_TwoEpoch()
 )
+
+
+def Robinson2022():
+    """
+    Gamma DFE from Robinson et al. 2022 Science.
+    """
+
+    id = "Robinson2022_gamma_dfe"
+    neutral = stdpopsim.MutationType()
+
+    negative = stdpopsim.MutationType(
+        dominance_coeff_list=[0.0, 0.01, 0.1, 0.4],
+        dominance_coeff_breaks=[-0.1, -0.01, -0.001],
+        distribution_type="g",  # gamma distribution
+        distribution_args=[-0.0257, 0.131],
+    )
+
+    return stdpopsim.DFE(
+        id=id,
+        description=id,
+        long_description=id,
+        mutation_types=[neutral, negative],
+        proportions=[0.3, 0.7],
+    )
+
+
+_species.get_dfe("Gamma_R22").register_qc(Robinson2022())
