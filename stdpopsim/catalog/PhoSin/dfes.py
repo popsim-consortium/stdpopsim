@@ -48,7 +48,7 @@ def _RobinsonDFE():
     #   is defined in fitDadi and in SLiM  ]
     # Since the inferred value of Na is not reported in the supplement, we use
     # here the value of the mean as reported in the supp info
-    gamma_mean = -0.00971  # mean of gamma          (see bottom of page 12 in supp)
+    gamma_mean = -0.0257  # mean of gamma          (see bottom of page 12 in supp)
 
     # dominance coefficient assumed in fitDadi inference was fully additive (h=0.5).
     # However, in the simulations described by Robinson et al. (2022), they used
