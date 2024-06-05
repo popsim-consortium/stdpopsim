@@ -126,7 +126,7 @@ def Durvasula2017MSMC():
     )
 
 
-_species.get_demographic_model("SouthMiddleAtlas_1D17").register_qc(Durvasula2017MSMC())
+_species.get_demographic_model("SouthMiddleAtlas_1D17").register_qc(Durvasula2017MSMC)
 
 
 def HuberTwoEpoch():
@@ -164,7 +164,7 @@ def HuberTwoEpoch():
     )
 
 
-_species.get_demographic_model("African2Epoch_1H18").register_qc(HuberTwoEpoch())
+_species.get_demographic_model("African2Epoch_1H18").register_qc(HuberTwoEpoch)
 
 
 def HuberThreeEpoch():
@@ -207,4 +207,4 @@ def HuberThreeEpoch():
     )
 
 
-_species.get_demographic_model("African3Epoch_1H18").register_qc(HuberThreeEpoch())
+_species.get_demographic_model("African3Epoch_1H18").register_qc(HuberThreeEpoch)

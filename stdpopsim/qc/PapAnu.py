@@ -66,4 +66,4 @@ def WallOnePopPapio():
     )
 
 
-_species.get_demographic_model("SinglePopSMCpp_1W22").register_qc(WallOnePopPapio())
+_species.get_demographic_model("SinglePopSMCpp_1W22").register_qc(WallOnePopPapio)

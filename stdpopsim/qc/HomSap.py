@@ -86,7 +86,7 @@ def TennessenOnePopAfrica():
     )
 
 
-_species.get_demographic_model("Africa_1T12").register_qc(TennessenOnePopAfrica())
+_species.get_demographic_model("Africa_1T12").register_qc(TennessenOnePopAfrica)
 
 
 def TennessenTwoPopOutOfAfrica():
@@ -203,7 +203,7 @@ def TennessenTwoPopOutOfAfrica():
 
 
 _species.get_demographic_model("OutOfAfrica_2T12").register_qc(
-    TennessenTwoPopOutOfAfrica()
+    TennessenTwoPopOutOfAfrica
 )
 
 
@@ -328,7 +328,7 @@ def BrowningAmerica():
     )
 
 
-_species.get_demographic_model("AmericanAdmixture_4B11").register_qc(BrowningAmerica())
+_species.get_demographic_model("AmericanAdmixture_4B11").register_qc(BrowningAmerica)
 
 
 def RagsdaleArchaic():
@@ -491,7 +491,7 @@ def RagsdaleArchaic():
 
 
 _species.get_demographic_model("OutOfAfricaArchaicAdmixture_5R19").register_qc(
-    RagsdaleArchaic()
+    RagsdaleArchaic
 )
 
 
@@ -703,7 +703,7 @@ def KammAncientSamples():
     )
 
 
-_species.get_demographic_model("AncientEurasia_9K19").register_qc(KammAncientSamples())
+_species.get_demographic_model("AncientEurasia_9K19").register_qc(KammAncientSamples)
 
 
 def DenisovanAncestryInPapuans():
@@ -1011,7 +1011,7 @@ def DenisovanAncestryInPapuans():
 
 
 _species.get_demographic_model("PapuansOutOfAfrica_10J19").register_qc(
-    DenisovanAncestryInPapuans()
+    DenisovanAncestryInPapuans
 )
 
 
@@ -1097,7 +1097,7 @@ def GutenkunstOOA():
     )
 
 
-_species.get_demographic_model("OutOfAfrica_3G09").register_qc(GutenkunstOOA())
+_species.get_demographic_model("OutOfAfrica_3G09").register_qc(GutenkunstOOA)
 
 
 def GladsteinAshkSubstructure():
@@ -1190,7 +1190,7 @@ def GladsteinAshkSubstructure():
     )
 
 
-_species.get_demographic_model("AshkSub_7G19").register_qc(GladsteinAshkSubstructure())
+_species.get_demographic_model("AshkSub_7G19").register_qc(GladsteinAshkSubstructure)
 
 
 def ZigZag():
@@ -1255,7 +1255,7 @@ def ZigZag():
     )
 
 
-_species.get_demographic_model("Zigzag_1S14").register_qc(ZigZag())
+_species.get_demographic_model("Zigzag_1S14").register_qc(ZigZag)
 
 
 def JouganousOOA2017():
@@ -1351,7 +1351,7 @@ def JouganousOOA2017():
     )
 
 
-_species.get_demographic_model("OutOfAfrica_4J17").register_qc(JouganousOOA2017())
+_species.get_demographic_model("OutOfAfrica_4J17").register_qc(JouganousOOA2017)
 
 
 def Boyko2008():
@@ -1390,7 +1390,7 @@ def Boyko2008():
     )
 
 
-_species.get_demographic_model("Africa_1B08").register_qc(Boyko2008())
+_species.get_demographic_model("Africa_1B08").register_qc(Boyko2008)
 
 
 def Iasi2021():
@@ -1536,7 +1536,7 @@ def Iasi2021():
 
 _species.get_demographic_model(
     "OutOfAfricaExtendedNeandertalAdmixturePulse_3I21"
-).register_qc(Iasi2021())
+).register_qc(Iasi2021)
 
 
 # Currently this is not in use, but we kept it here in case we need it when the
@@ -1690,7 +1690,7 @@ def PearsonAncientEurope():
     )
 
 
-_species.get_demographic_model("AncientEurope_4A21").register_qc(PearsonAncientEurope())
+_species.get_demographic_model("AncientEurope_4A21").register_qc(PearsonAncientEurope)
 
 
 def Huber2017():
@@ -1715,4 +1715,4 @@ def Huber2017():
     )
 
 
-_species.get_dfe("Gamma_H17").register_qc(Huber2017())
+_species.get_dfe("Gamma_H17").register_qc(Huber2017)

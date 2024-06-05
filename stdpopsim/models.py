@@ -174,10 +174,8 @@ class DemographicModel:
         """
         Register a QC model implementation for this model.
         """
-        if not isinstance(qc_model, self.__class__):
-            raise ValueError(
-                f"Cannot register non-DemographicModel '{qc_model}' as QC model"
-            )
+        if not callable(qc_model):
+            raise ValueError(f"'{qc_model}' must be a function returning a QC model")
         if self.qc_model is not None:
             raise ValueError(f"QC model already registered for {self.id}.")
         self.qc_model = qc_model
