@@ -94,7 +94,7 @@ initialize() {
 _slim_lower = """
     defineConstant("N", asInteger(_N/Q));
 
-    initializeTreeSeq();
+    initializeTreeSeq(timeUnit="generations");
     initializeRecombinationRate(recombination_rates, recombination_ends);
 }
 
