@@ -35,6 +35,7 @@ jobs:
       - name: find conda
         id: find-conda
         run: |
+          echo "$CONDA"
           echo "CONDA=$CONDA" >> $GITHUB_OUTPUT
 
       - name: fix conda permissions
