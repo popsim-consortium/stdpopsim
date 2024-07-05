@@ -908,7 +908,7 @@ def slim_makescript(
                 continue
             t = getattr(event, attr)
             t_rounded = round(float(t) / scaling_factor) * scaling_factor
-            if isinstance(t, stdpopsim.ext.GenerationAfter):
+            if isinstance(t, stdpopsim.GenerationAfter):
                 t_rounded -= scaling_factor
             if t_rounded < 0:
                 raise ValueError(f"Bad {attr}: {getattr(event, attr)}")
@@ -1000,7 +1000,7 @@ def slim_makescript(
     drawn_mutations = []
     fitness_callbacks = []
     condition_on_allele_frequency = []
-    op_id = stdpopsim.ext.ConditionOnAlleleFrequency.op_id
+    op_id = stdpopsim.ConditionOnAlleleFrequency.op_id
     slim_mutation_ids = _dfe_to_mtypes(contig)
     drawn_single_site_ids = collections.defaultdict(int)
     referenced_single_site_ids = set()
@@ -1061,7 +1061,7 @@ def slim_makescript(
         if hasattr(ee, "start_time") and hasattr(ee, "end_time"):
             # Now that GenerationAfter times have been accounted for, we can
             # properly catch invalid start/end times.
-            stdpopsim.ext.validate_time_range(ee.start_time, ee.end_time)
+            stdpopsim.validate_time_range(ee.start_time, ee.end_time)
         if hasattr(ee, "population"):
             # Convert population name to integer index. "-1" is used to encode
             # all populations (currently only valid for ChangeMutationFitness).
@@ -1078,7 +1078,7 @@ def slim_makescript(
                 population_id = population_name_to_index[ee.population]
 
         # Append attributes to lists per event type
-        if isinstance(ee, stdpopsim.ext.DrawMutation):
+        if isinstance(ee, stdpopsim.DrawMutation):
             assert population_id >= 0
             drawn_mutations.append(
                 (
@@ -1090,7 +1090,7 @@ def slim_makescript(
                 )
             )
             drawn_single_site_ids[ee.single_site_id] += 1
-        elif isinstance(ee, stdpopsim.ext.ChangeMutationFitness):
+        elif isinstance(ee, stdpopsim.ChangeMutationFitness):
             fitness_callbacks.append(
                 (
                     ee.start_time * demographic_model.generation_time,
@@ -1102,7 +1102,7 @@ def slim_makescript(
                 )
             )
             referenced_single_site_ids.add(ee.single_site_id)
-        elif isinstance(ee, stdpopsim.ext.ConditionOnAlleleFrequency):
+        elif isinstance(ee, stdpopsim.ConditionOnAlleleFrequency):
             assert population_id >= 0
             condition_on_allele_frequency.append(
                 (
@@ -1432,7 +1432,7 @@ def slim_makescript(
 
     # Allele frequency conditioning
     op_types = ", ".join(
-        f'"{op}"' for op in stdpopsim.ext.ConditionOnAlleleFrequency.op_types
+        f'"{op}"' for op in stdpopsim.ConditionOnAlleleFrequency.op_types
     )
     printsc(f'    defineConstant("op_types", c({op_types}));')
     printsc("    // Allele frequency conditioning, one row for each.")
@@ -1560,8 +1560,8 @@ class _SLiMEngine(stdpopsim.Engine):
 
         :param seed: The seed for the random number generator.
         :type seed: int
-        :param extended_events: A list of :class:`ext.ExtendedEvents` to be
-            passed to SLiM, e.g. produced by :func:`ext.selective_sweep()`.
+        :param extended_events: A list of :class:`ExtendedEvents` to be
+            passed to SLiM, e.g. produced by :func:`selective_sweep()`.
         :type extended_events: list
         :param slim_path: The full path to the slim executable, or the name of
             a command in the current PATH.

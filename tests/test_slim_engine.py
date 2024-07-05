@@ -27,7 +27,7 @@ slim_path = os.environ.get("SLIM", "slim")
 
 def count_mut_types(ts):
     selection_coeffs = [
-        stdpopsim.ext.selection_coeff_from_mutation(ts, mut) for mut in ts.mutations()
+        stdpopsim.selection_coeff_from_mutation(ts, mut) for mut in ts.mutations()
     ]
     num_neutral = sum([s == 0 for s in selection_coeffs])
     return [num_neutral, abs(len(selection_coeffs) - num_neutral)]
@@ -1786,7 +1786,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         contig = get_test_contig()
         contig.add_single_site(id=self.mut_id, coordinate=100)
         extended_events = [
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut,
                 single_site_id=self.mut_id,
                 population="pop_0",
@@ -1806,12 +1806,12 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         contig.add_single_site(id="recent", coordinate=100)
         contig.add_single_site(id="older", coordinate=101)
         extended_events = [
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut // 2,
                 single_site_id="recent",
                 population="pop_0",
             ),
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut,
                 single_site_id="older",
                 population="pop_0",
@@ -1830,12 +1830,12 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         contig = get_test_contig()
         contig.add_single_site(id="mutant", coordinate=100)
         extended_events = [
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut // 2,
                 single_site_id="mutant",
                 population="pop_0",
             ),
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut,
                 single_site_id="mutant",
                 population="pop_0",
@@ -1855,7 +1855,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         engine = stdpopsim.get_engine("slim")
         for single_site_id in ["deleterious", "sweep"]:
             extended_events = [
-                stdpopsim.ext.DrawMutation(
+                stdpopsim.DrawMutation(
                     time=self.T_mut,
                     single_site_id=single_site_id,
                     population="pop_0",
@@ -1872,7 +1872,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
 
     def test_no_mutation_types_defined(self):
         extended_events = [
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut,
                 single_site_id=self.mut_id,
                 population="pop_0",
@@ -1893,7 +1893,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
 
     def test_multiple_mutation_types_defined(self):
         extended_events = [
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
                 population="pop_0",
@@ -1929,7 +1929,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
 
     def test_fitness_distribution_not_fixed(self):
         extended_events = [
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
                 population="pop_0",
@@ -1956,7 +1956,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
 
     def test_multiple_intervals(self):
         extended_events = [
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
                 population="pop_0",
@@ -1992,7 +1992,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
 
     def test_interval_too_large(self):
         extended_events = [
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
                 population="pop_0",
@@ -2028,7 +2028,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
 
     def test_duplicate_mutation_ids(self):
         extended_events = [
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
                 population="pop_0",
@@ -2049,7 +2049,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
 
     def test_mutation_has_no_interval(self):
         extended_events = [
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
                 population="pop_0",
@@ -2071,15 +2071,15 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
     def test_bad_time(self):
         for time in (-1,):
             with pytest.raises(ValueError):
-                stdpopsim.ext.DrawMutation(
+                stdpopsim.DrawMutation(
                     time=time,
                     single_site_id="irrelevant",
                     population="pop_0",
                 )
         for time in (0, -1):
             with pytest.raises(ValueError):
-                stdpopsim.ext.DrawMutation(
-                    time=stdpopsim.ext.GenerationAfter(time),
+                stdpopsim.DrawMutation(
+                    time=stdpopsim.GenerationAfter(time),
                     single_site_id="irrelevant",
                     population="pop_0",
                 )
@@ -2094,12 +2094,12 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
         ct.mutation_rate = 0.0
         ct.add_single_site(id="test", coordinate=100)
         extended_events = [
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
                 population="pop_0",
             ),
-            stdpopsim.ext.ConditionOnAlleleFrequency(
+            stdpopsim.ConditionOnAlleleFrequency(
                 start_time=0,
                 end_time=0,
                 single_site_id="test",
@@ -2126,12 +2126,12 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
         ct.mutation_rate = 0.0
         ct.add_single_site(id="test", coordinate=100)
         extended_events = [
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut,
                 single_site_id="test",
                 population="pop_0",
             ),
-            stdpopsim.ext.ConditionOnAlleleFrequency(
+            stdpopsim.ConditionOnAlleleFrequency(
                 start_time=0,
                 end_time=0,
                 single_site_id="test",
@@ -2159,13 +2159,13 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
         ct.add_single_site(id="test", coordinate=100)
         for af_threshold, seed in zip((0.01, 0.1, 0.2), (1, 2, 3)):
             extended_events = [
-                stdpopsim.ext.DrawMutation(
+                stdpopsim.DrawMutation(
                     time=self.T_mut,
                     single_site_id="test",
                     population="pop_0",
                 ),
                 # Condition on desired AF at end of simulation.
-                stdpopsim.ext.ConditionOnAlleleFrequency(
+                stdpopsim.ConditionOnAlleleFrequency(
                     start_time=0,
                     end_time=0,
                     single_site_id="test",
@@ -2206,7 +2206,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
             ("<=", 1),
         ]:
             with pytest.raises(ValueError):
-                stdpopsim.ext.ConditionOnAlleleFrequency(
+                stdpopsim.ConditionOnAlleleFrequency(
                     start_time=0,
                     end_time=0,
                     single_site_id="irrelevant",
@@ -2218,7 +2218,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
     def test_bad_times(self):
         for start_time, end_time in [(-1, 0), (0, -1), (1, 100)]:
             with pytest.raises(ValueError):
-                stdpopsim.ext.ConditionOnAlleleFrequency(
+                stdpopsim.ConditionOnAlleleFrequency(
                     start_time=start_time,
                     end_time=end_time,
                     single_site_id="irrelevant",
@@ -2242,13 +2242,13 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
         ]:
             with pytest.raises(ValueError):
                 extended_events = [
-                    stdpopsim.ext.DrawMutation(
+                    stdpopsim.DrawMutation(
                         time=self.T_mut,
                         single_site_id=self.mut_id,
                         population="pop_0",
                     ),
-                    stdpopsim.ext.ConditionOnAlleleFrequency(
-                        start_time=stdpopsim.ext.GenerationAfter(start_time),
+                    stdpopsim.ConditionOnAlleleFrequency(
+                        start_time=stdpopsim.GenerationAfter(start_time),
                         end_time=end_time,
                         single_site_id=self.mut_id,
                         population="pop_0",
@@ -2265,18 +2265,18 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
                 )
 
     def test_op_id(self):
-        op_types = stdpopsim.ext.ConditionOnAlleleFrequency.op_types
+        op_types = stdpopsim.ConditionOnAlleleFrequency.op_types
         for op in op_types:
-            id = stdpopsim.ext.ConditionOnAlleleFrequency.op_id(op)
+            id = stdpopsim.ConditionOnAlleleFrequency.op_id(op)
             assert 0 <= id < len(op_types)
         for op in ("==", "=", "!=", {}, ""):
             with pytest.raises(ValueError):
-                id = stdpopsim.ext.ConditionOnAlleleFrequency.op_id(op)
+                id = stdpopsim.ConditionOnAlleleFrequency.op_id(op)
 
     def test_no_drawn_mutation(self):
         extended_events = [
-            stdpopsim.ext.ConditionOnAlleleFrequency(
-                start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
+            stdpopsim.ConditionOnAlleleFrequency(
+                start_time=stdpopsim.GenerationAfter(self.T_mut),
                 end_time=0,
                 single_site_id=self.mut_id,
                 population="pop_0",
@@ -2297,7 +2297,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
-    # Testing stdpopsim.ext.ChangeMutationFitness is challenging, because
+    # Testing stdpopsim.ChangeMutationFitness is challenging, because
     # the side-effects are not deterministic. But if we condition on fixation
     # of a drawn mutation, such a simulation will be very slow without strong
     # positive selection (because we effectively do rejection sampling on the
@@ -2309,13 +2309,13 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
         engine = stdpopsim.get_engine("slim")
         for af_threshold, seed in zip((0.5, 1), (1, 2)):
             extended_events = [
-                stdpopsim.ext.DrawMutation(
+                stdpopsim.DrawMutation(
                     time=self.T_mut,
                     single_site_id=self.mut_id,
                     population="pop_0",
                 ),
-                stdpopsim.ext.ChangeMutationFitness(
-                    start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
+                stdpopsim.ChangeMutationFitness(
+                    start_time=stdpopsim.GenerationAfter(self.T_mut),
                     end_time=0,
                     single_site_id=self.mut_id,
                     population="pop_0",
@@ -2324,8 +2324,8 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                 ),
                 # Condition on AF > 0, to restore() immediately if the
                 # allele is lost.
-                stdpopsim.ext.ConditionOnAlleleFrequency(
-                    start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
+                stdpopsim.ConditionOnAlleleFrequency(
+                    start_time=stdpopsim.GenerationAfter(self.T_mut),
                     end_time=0,
                     single_site_id=self.mut_id,
                     population="pop_0",
@@ -2333,7 +2333,7 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                     allele_frequency=0,
                 ),
                 # Condition on desired AF at end of simulation.
-                stdpopsim.ext.ConditionOnAlleleFrequency(
+                stdpopsim.ConditionOnAlleleFrequency(
                     start_time=0,
                     end_time=0,
                     single_site_id=self.mut_id,
@@ -2362,7 +2362,7 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
         contig.add_single_site("one", coordinate=100)
         contig.add_single_site("two", coordinate=101)
         extended_events = [
-            stdpopsim.ext.DrawMutation(
+            stdpopsim.DrawMutation(
                 time=self.T_mut,
                 single_site_id="one",
                 population="pop_0",
@@ -2383,8 +2383,8 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
 
     def test_no_drawn_mutation(self):
         extended_events = [
-            stdpopsim.ext.ChangeMutationFitness(
-                start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
+            stdpopsim.ChangeMutationFitness(
+                start_time=stdpopsim.GenerationAfter(self.T_mut),
                 end_time=0,
                 single_site_id=self.mut_id,
                 selection_coeff=0.1,
@@ -2404,7 +2404,7 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
     def test_bad_times(self):
         for start_time, end_time in [(-1, 0), (0, -1), (1, 100)]:
             with pytest.raises(ValueError):
-                stdpopsim.ext.ChangeMutationFitness(
+                stdpopsim.ChangeMutationFitness(
                     start_time=start_time,
                     end_time=end_time,
                     single_site_id="irrelevant",
@@ -2417,8 +2417,8 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
         engine = stdpopsim.get_engine("slim")
         for pop in ["not present", 0]:
             extended_events = [
-                stdpopsim.ext.ChangeMutationFitness(
-                    start_time=stdpopsim.ext.GenerationAfter(self.T_mut),
+                stdpopsim.ChangeMutationFitness(
+                    start_time=stdpopsim.GenerationAfter(self.T_mut),
                     end_time=0,
                     single_site_id=self.mut_id,
                     population=pop,
@@ -2450,13 +2450,13 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
         ]:
             with pytest.raises(ValueError):
                 extended_events = [
-                    stdpopsim.ext.DrawMutation(
+                    stdpopsim.DrawMutation(
                         time=self.T_mut,
                         single_site_id=self.mut_id,
                         population="pop_0",
                     ),
-                    stdpopsim.ext.ChangeMutationFitness(
-                        start_time=stdpopsim.ext.GenerationAfter(start_time),
+                    stdpopsim.ChangeMutationFitness(
+                        start_time=stdpopsim.GenerationAfter(start_time),
                         end_time=end_time,
                         single_site_id=self.mut_id,
                         population="pop_0",
@@ -2573,7 +2573,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
                     id=locus_id,
                     coordinate=100,
                 )
-                extended_events = stdpopsim.ext.selective_sweep(
+                extended_events = stdpopsim.selective_sweep(
                     single_site_id=locus_id,
                     population="pop_0",
                     mutation_generation_ago=mutation_generation_ago,
@@ -2614,7 +2614,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             id=locus_id,
             coordinate=100,
         )
-        extended_events = stdpopsim.ext.selective_sweep(
+        extended_events = stdpopsim.selective_sweep(
             single_site_id=locus_id,
             population="pop_0",
             mutation_generation_ago=mutation_generation_ago,
@@ -2661,7 +2661,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             id=locus_id,
             coordinate=100,
         )
-        extended_events = stdpopsim.ext.selective_sweep(
+        extended_events = stdpopsim.selective_sweep(
             single_site_id=locus_id,
             population="pop_0",
             mutation_generation_ago=mutation_generation_ago,
@@ -2695,7 +2695,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
 
     def test_sweep_with_negative_selection_coeff(self):
         with pytest.raises(ValueError, match="coefficient must be"):
-            stdpopsim.ext.selective_sweep(
+            stdpopsim.selective_sweep(
                 single_site_id="irrelevant",
                 population="irrelevant",
                 mutation_generation_ago=1000,
@@ -2705,7 +2705,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
     def test_sweep_with_bad_AF_conditions(self):
         for start_freq, end_freq in zip([-0.1, 0.1], [0.1, -0.1]):
             with pytest.raises(ValueError, match="of the sweep must be in"):
-                stdpopsim.ext.selective_sweep(
+                stdpopsim.selective_sweep(
                     single_site_id="irrelevant",
                     population="irrelevant",
                     mutation_generation_ago=1000,
@@ -2717,7 +2717,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
         with pytest.raises(
             ValueError, match="coincides with the introduction of the mutation"
         ):
-            stdpopsim.ext.selective_sweep(
+            stdpopsim.selective_sweep(
                 single_site_id="irrelevant",
                 population="irrelevant",
                 mutation_generation_ago=1000,
@@ -2740,7 +2740,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             id=locus_id,
             coordinate=100,
         )
-        extended_events = stdpopsim.ext.selective_sweep(
+        extended_events = stdpopsim.selective_sweep(
             single_site_id=locus_id,
             population="pop_1",
             mutation_generation_ago=mutation_generation_ago,
@@ -2795,7 +2795,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             id=locus_id,
             coordinate=100,
         )
-        extended_events = stdpopsim.ext.selective_sweep(
+        extended_events = stdpopsim.selective_sweep(
             single_site_id=locus_id,
             population="pop_1",
             mutation_generation_ago=mutation_generation_ago,
@@ -2850,7 +2850,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
                 id=locus_id,
                 coordinate=coord,
             )
-            extended_events += stdpopsim.ext.selective_sweep(
+            extended_events += stdpopsim.selective_sweep(
                 single_site_id=locus_id,
                 population=pop,
                 mutation_generation_ago=mutation_generation_ago,
@@ -2904,7 +2904,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             id=locus_id,
             coordinate=100,
         )
-        extended_events = stdpopsim.ext.selective_sweep(
+        extended_events = stdpopsim.selective_sweep(
             single_site_id=locus_id,
             population="pop_1",
             mutation_generation_ago=mutation_generation_ago,
@@ -2971,7 +2971,7 @@ class TestSelectionCoeffFromMutation:
             if any(is_stacked):
                 break
         selection_coeffs = [
-            stdpopsim.ext.selection_coeff_from_mutation(ts, m) for m in ts.mutations()
+            stdpopsim.selection_coeff_from_mutation(ts, m) for m in ts.mutations()
         ]
         assert np.all(
             np.logical_or(
@@ -2992,7 +2992,7 @@ class TestSelectionCoeffFromMutation:
             if ts.num_mutations > 0:
                 break
         selection_coeffs = [
-            stdpopsim.ext.selection_coeff_from_mutation(ts, m) for m in ts.mutations()
+            stdpopsim.selection_coeff_from_mutation(ts, m) for m in ts.mutations()
         ]
         assert np.allclose(selection_coeffs, 0.0)
 
@@ -3008,9 +3008,9 @@ class TestSelectionCoeffFromMutation:
             if ts.num_mutations > 0:
                 break
         with pytest.raises(ValueError, match="must be a"):
-            stdpopsim.ext.selection_coeff_from_mutation("foo", next(ts.mutations()))
+            stdpopsim.selection_coeff_from_mutation("foo", next(ts.mutations()))
         with pytest.raises(ValueError, match="must be a"):
-            stdpopsim.ext.selection_coeff_from_mutation(ts, "bar")
+            stdpopsim.selection_coeff_from_mutation(ts, "bar")
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
