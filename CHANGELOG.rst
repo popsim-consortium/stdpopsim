@@ -11,6 +11,9 @@
     instead of a single value. This will not affect anyone who is not
     parsing the metadata related to DFEs.
 
+- SLiM extended events and selective sweep infrastructure have been
+  moved from the `stdpopsim.ext` namespace into `stdpopsim` proper
+
 **New features**:
 
 - *Relationship between dominance and selection coefficient:*
