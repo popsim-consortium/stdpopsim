@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-13, windows-latest]
+        os: [ubuntu-20.04, macos-12, windows-latest]
         python: ["3.8", "3.10"]
     env:
       CONDA_ENV_NAME: stdpopsim
@@ -35,7 +35,6 @@ jobs:
       - name: find conda
         id: find-conda
         run: |
-          echo "$CONDA"
           echo "CONDA=$CONDA" >> $GITHUB_OUTPUT
 
       - name: fix conda permissions
