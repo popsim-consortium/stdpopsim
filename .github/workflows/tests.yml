@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-11, windows-latest]
+        os: [ubuntu-20.04, macos-12, windows-latest]
         python: ["3.8", "3.10"]
     env:
       CONDA_ENV_NAME: stdpopsim
@@ -41,7 +41,8 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           # Fix incorrect conda permissions on mac that prevent cache restore.
-          sudo chown -R $USER:staff $CONDA
+          echo "$USER:staff ${{ steps.find-conda.outputs.CONDA }}"
+          sudo chown -R $USER:staff ${{ steps.find-conda.outputs.CONDA }}
 
       - name: cache conda
         id: cache

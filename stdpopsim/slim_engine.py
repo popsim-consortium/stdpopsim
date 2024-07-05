@@ -94,7 +94,7 @@ initialize() {
 _slim_lower = """
     defineConstant("N", asInteger(_N/Q));
 
-    initializeTreeSeq();
+    initializeTreeSeq(timeUnit="generations");
     initializeRecombinationRate(recombination_rates, recombination_ends);
 }
 
@@ -1714,7 +1714,7 @@ class _SLiMEngine(stdpopsim.Engine):
             slim_path = self.slim_path()
 
         # SLiM v3.6 sends `stop()` output to stderr, which we rely upon.
-        self._assert_min_version("3.6", slim_path)
+        self._assert_min_version("4.0", slim_path)
 
         slim_cmd = [slim_path]
         if seed is not None:
