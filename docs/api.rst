@@ -169,6 +169,30 @@ that applies to the entire Contig.
 
 .. _sec_api_generic_models:
 
+
+.. _sec_api_sweeps:
+
+********************
+Selection and sweeps
+********************
+
+:class:`ExtendedEvent` and subclasses may be used to condition on sequences of
+events at particular loci using the SLiM engine, by passing lists of events to
+the `extended_events` argument in `Engine.simulate`. A simplified API is provided
+to construct the necessary events for selective sweeps.
+
+.. autoclass:: stdpopsim.DrawMutation()
+    :members:
+
+.. autoclass:: stdpopsim.ChangeMutationFitness()
+    :members:
+
+.. autoclass:: stdpopsim.ConditionOnAlleleFrequency()
+    :members:
+
+.. autofunction:: stdpopsim.selective_sweep
+
+
 **************
 Generic models
 **************
