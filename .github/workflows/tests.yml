@@ -41,8 +41,8 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           # Fix incorrect conda permissions on mac that prevent cache restore.
-          echo "$USER:staff $CONDA"
-          sudo chown -R $USER:staff $CONDA
+          echo "$USER:staff ${{ steps.find-conda.outputs.CONDA }}"
+          sudo chown -R $USER:staff ${{ steps.find-conda.outputs.CONDA }}
 
       - name: cache conda
         id: cache
