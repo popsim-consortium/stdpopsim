@@ -184,6 +184,17 @@ class Species:
         is to be simulated based on empirical information for a given species
         and chromosome.
 
+        *Coordinates:* If a particular chunk of a given chromosome is obtained
+        (by specifying a `chromosome` ID and `left` and `right` coordinates),
+        the resulting genomes will have coordinates matching the original
+        (full) genome, and portions of the genome outside of `[left, right)`
+        will be masked (and so contain missing data). So, coordinates of
+        `genetic_map` and masks should be in coordinates of the original genome
+        (so, not shifted to be relative to `left`). If it is desired to have
+        output coordinates relative to `left`, use the
+        :meth:`tskit.TreeSequence.trim` method on the result (for instance,
+        `ts_shifted = ts.trim()`).
+
         :param str chromosome: The ID of the chromosome to simulate.
             A complete list of chromosome IDs for each species can be found in the
             "Genome" subsection for the species in the :ref:`sec_catalog`.
@@ -218,11 +229,11 @@ class Species:
             and recombination rates are equal to the genome-wide average across all
             autosomal chromosomes.
         :param float left: The left coordinate (inclusive) of the region to
-            keep on the chromosome. Defaults to 0.  Genetic maps and masks are
-            clipped to this boundary.
+            keep on the chromosome. Defaults to 0. Remaining regions will have
+            missing data when simulated.
         :param float right: The right coordinate (exclusive) of the region to
             keep on the chromosome. Defaults to the length of the chromosome.
-            Genetic maps and masks are clipped to this boundary.
+            Remaining regions will have missing data when simulated.
         :rtype: :class:`.Contig`
         :return: A :class:`.Contig` describing the section of the genome.
         """

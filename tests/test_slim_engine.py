@@ -176,7 +176,7 @@ class TestAPI:
             slim_burn_in=0,
         )
         assert ts.num_samples == 10
-        assert all(tree.num_roots == 1 for tree in ts.trees())
+        assert all(tree.num_roots <= 1 for tree in ts.trees(root_threshold=2))
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_simulate_verbosity(self):
@@ -195,7 +195,7 @@ class TestAPI:
                 verbosity=v,
             )
             assert ts.num_samples == 10
-            assert all(tree.num_roots == 1 for tree in ts.trees())
+            assert all(tree.num_roots <= 1 for tree in ts.trees(root_threshold=2))
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
@@ -464,7 +464,8 @@ class TestCLI:
 
     def verify_slim_sim(self, ts, num_samples):
         assert ts.num_samples == num_samples
-        assert all(tree.num_roots == 1 for tree in ts.trees())
+        # regions of missing data will have 0 roots
+        assert all(tree.num_roots <= 1 for tree in ts.trees(root_threshold=2))
         n_mut_types = count_mut_types(ts)
         assert n_mut_types[0] > 0
         assert n_mut_types[1] > 0
@@ -475,6 +476,18 @@ class TestCLI:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
                 f"HomSap -c chr22 -l 0.02 -o {f.name} --dfe Gamma_K17 -s 24 "
+                f"pop_0:5"
+            ).split()
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+            ts = tskit.load(f.name)
+        self.verify_slim_sim(ts, num_samples=10)
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    def test_dfe_no_interval(self):
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+            cmd = (
+                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"HomSap -c chr22 -l 0.01 -o {f.name} --dfe Gamma_K17 -s 984 "
                 f"pop_0:5"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
@@ -544,15 +557,19 @@ class TestCLI:
     def test_chromosomal_segment(self):
         left = 101024
         right = 200111
+        sp = "HomSap"
+        chrom = "chr22"
         with tempfile.NamedTemporaryFile(mode="w") as f:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 --left {left} --right {right} -o {f.name} "
+                f"{sp} -c {chrom} --left {left} --right {right} -o {f.name} "
                 f"--dfe Gamma_K17 -s 24 pop_0:5"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
-        assert ts.sequence_length == right - left
+        species = stdpopsim.get_species(sp)
+        contig = species.get_contig(chrom)
+        assert ts.sequence_length == contig.length
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
@@ -561,22 +578,28 @@ class TestCLI:
         right = 200111
         dfe_left = left - 5000
         dfe_right = left + 90000
+        sp = "HomSap"
+        chrom = "chr21"
         with tempfile.NamedTemporaryFile(mode="w") as f:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 --left {left} --right {right} -o {f.name} "
+                f"{sp} -c {chrom} --left {left} --right {right} -o {f.name} "
                 f"--dfe Gamma_K17 -s 984 --dfe-interval {dfe_left},{dfe_right} "
                 f"pop_0:5"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
-        assert ts.sequence_length == right - left
+        species = stdpopsim.get_species(sp)
+        contig = species.get_contig(chrom)
+        assert ts.sequence_length == contig.length
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_chromosomal_segment_with_dfe_bed_file(self, tmp_path):
         left = 101024
         right = 300111
+        sp = "HomSap"
+        chrom = "chr19"
         lines = [
             "\t".join(["chr22", "100000", "145000"]),
             "\t".join(["chr22", "150000", "302425"]),
@@ -588,29 +611,35 @@ class TestCLI:
         fname = tmp_path / "sim.trees"
         cmd = (
             f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-            f"HomSap -c chr22 -s 1234 --left {left} --right {right} -o {fname} "
+            f"{sp} -c {chrom} -s 1234 --left {left} --right {right} -o {fname} "
             f"--dfe Gamma_K17 -s 183 --dfe-bed-file {tmp_path / 'ex.bed'} "
             f"pop_0:5"
         ).split()
         capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         ts = tskit.load(fname)
-        assert ts.sequence_length == right - left
+        species = stdpopsim.get_species(sp)
+        contig = species.get_contig(chrom)
+        assert ts.sequence_length == contig.length
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_chromosomal_segment_with_dfe_annotation(self):
         left = 37500000
-        right = 38000000
+        right = 48000000
+        sp = "HomSap"
+        chrom = "chr18"
         with tempfile.NamedTemporaryFile(mode="w") as f:
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 --left {left} --right {right} -o {f.name} "
+                f"{sp} -c {chrom} --left {left} --right {right} -o {f.name} "
                 f"--dfe Gamma_K17 -s 913 --dfe-annotation ensembl_havana_104_CDS "
                 f"pop_0:5"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             ts = tskit.load(f.name)
-        assert ts.sequence_length == right - left
+        species = stdpopsim.get_species(sp)
+        contig = species.get_contig(chrom)
+        assert ts.sequence_length == contig.length
         self.verify_slim_sim(ts, num_samples=10)
 
     # tmp_path is a pytest fixture
@@ -1224,6 +1253,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         breaks = np.linspace(0, contig.length, n + 1)
         for j, dfe in enumerate(dfes):
             interval = [breaks[j], breaks[j + 1]]
+            print(j, interval)
             contig.add_dfe(intervals=np.array([interval], dtype="int"), DFE=dfe)
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
@@ -1694,7 +1724,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         )
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
-        assert int(ts.sequence_length) == right - left
+        assert int(ts.sequence_length) == contig.length
 
     def test_dominance_coeff_list(self):
         # test that discretized h-s relationships work

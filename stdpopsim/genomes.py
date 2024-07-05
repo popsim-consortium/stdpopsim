@@ -14,6 +14,25 @@ import stdpopsim
 logger = logging.getLogger(__name__)
 
 
+def _uniform_rate_map(left, right, length, rate):
+    """
+    Makes a RateMap that is
+    """
+    pos = [
+        0.0,
+    ]
+    x = []
+    if left > 0:
+        pos.append(left)
+        x.append(np.nan)
+    pos.append(right)
+    x.append(rate)
+    if right < length:
+        pos.append(length)
+        x.append(np.nan)
+    return msprime.RateMap(position=pos, rate=x)
+
+
 @attr.s
 class Genome:
     """
@@ -225,9 +244,6 @@ class Contig:
     and ``interval_list``. These must be of the same length, and the k-th DFE
     applies to the k-th interval; see :meth:`.add_dfe` for more information.
 
-    The contig may be a segment of a named chromosome. If so, the original
-    coordinate system is used for :meth:`.add_dfe` and :meth:`add_single_site`.
-
     :ivar mutation_rate: The rate of mutation per base per generation.
     :vartype mutation_rate: float
     :ivar ploidy: The ploidy of the contig. Defaults to 2 (diploid).
@@ -267,11 +283,11 @@ class Contig:
     :ivar interval_list: A list of :class:`np.array` objects containing integers.
         By default, the inital interval list spans the whole chromosome with the
         neutral DFE.
-    :ivar original_coordinates: The location of the contig on a named chromosome,
+    :ivar coordinates: The location of the contig on a named chromosome,
         as a tuple of the form `(chromosome, left, right)`. If `None`, the contig
         is assumed to be generic (i.e. it does not inherit a coordinate system
         from a larger chromosome).
-    :vartype original_coordinates: tuple
+    :vartype coordinates: tuple
 
     .. note::
         To run stdpopsim simulations with alternative, user-specified mutation,
@@ -300,14 +316,14 @@ class Contig:
     exclusion_mask = attr.ib(default=None)
     dfe_list = attr.ib(factory=list)
     interval_list = attr.ib(factory=list)
-    original_coordinates = attr.ib(default=None, type=tuple)
+    coordinates = attr.ib(default=None, type=tuple)
 
     def __attrs_post_init__(self):
-        if self.original_coordinates is None:
-            self.original_coordinates = (None, 0, int(self.length))
-        _, left, right = self.original_coordinates
+        if self.coordinates is None:
+            self.coordinates = (None, 0, int(self.length))
+        _, left, right = self.coordinates
         self.add_dfe(
-            [[left, right]],
+            np.array([[left, right]]),
             stdpopsim.dfe.neutral_dfe(),
         )
 
@@ -491,20 +507,24 @@ class Contig:
                     logger.debug(
                         f"Making flat chromosome {length_multiplier} * {chrom.id}"
                     )
+                    recomb_map = msprime.RateMap.uniform(
+                        round(length_multiplier * chrom.length),
+                        chrom.recombination_rate,
+                    )
                 else:
                     logger.debug(
-                        f"Making flat contig of length {right - left} from {chrom.id}"
+                        f"Making flat contig from {left} to {right} for {chrom.id}"
                     )
-                recomb_map = msprime.RateMap.uniform(
-                    right - left, chrom.recombination_rate
-                )
+                    recomb_map = _uniform_rate_map(
+                        left, right, chrom.length, chrom.recombination_rate
+                    )
             else:
                 if length_multiplier != 1:
                     raise ValueError("Cannot use length multiplier with empirical maps")
                 logger.debug(f"Getting map for {chrom.id} from {genetic_map}")
                 gm = species.get_genetic_map(genetic_map)
                 recomb_map = gm.get_chromosome_map(chrom.id)
-                recomb_map = recomb_map.slice(left=left, right=right, trim=True)
+                recomb_map = recomb_map.slice(left=left, right=right)
 
             inclusion_intervals = None
             exclusion_intervals = None
@@ -517,7 +537,7 @@ class Contig:
                     )
                 else:
                     inclusion_intervals = inclusion_mask
-                inclusion_intervals = stdpopsim.utils.clip_and_shift_intervals(
+                inclusion_intervals = stdpopsim.utils.clip_intervals(
                     inclusion_intervals, left, right
                 )
             if exclusion_mask is not None:
@@ -529,7 +549,7 @@ class Contig:
                     )
                 else:
                     exclusion_intervals = exclusion_mask
-                exclusion_intervals = stdpopsim.utils.clip_and_shift_intervals(
+                exclusion_intervals = stdpopsim.utils.clip_intervals(
                     exclusion_intervals, left, right
                 )
 
@@ -562,7 +582,7 @@ class Contig:
                 gene_conversion_length=gene_conversion_length,
                 inclusion_mask=inclusion_intervals,
                 exclusion_mask=exclusion_intervals,
-                original_coordinates=(chromosome, left, right),
+                coordinates=(chromosome, left, right),
                 ploidy=ploidy,
             )
 
@@ -573,18 +593,29 @@ class Contig:
         return self.recombination_map.sequence_length
 
     @property
+    def original_coordinates(self):
+        warnings.warn(
+            stdpopsim.DeprecatedFeatureWarning(
+                "The original_coordinates property is deprecated, "
+                "since contigs are no longer shifted to be relative to their "
+                "left endpoint: use Contig.coordinates instead."
+            )
+        )
+        return self.coordinates
+
+    @property
     def origin(self):
         """
         The location of the contig on a named chromosome as a string with format,
         "chromosome:left-right"; or None if a generic contig.
         """
-        chromosome, left, right = self.original_coordinates
+        chromosome, left, right = self.coordinates
         if chromosome is None:
             return None
         else:
             return f"{chromosome}:{left}-{right}"
 
-    def dfe_breakpoints(self, relative_coordinates=True):
+    def dfe_breakpoints(self, *, relative_coordinates=None):
         """
         Returns two things: the sorted vector of endpoints of all intervals across
         all DFEs in the contig, and a vector of integer labels for these intervals,
@@ -607,21 +638,23 @@ class Contig:
         ``breaks[k]``.  Some intervals may not be covered by a DFE, in which
         case they will have the label ``-1`` (beware of python indexing!).
 
-        :param bool relative_coordinates: If True, the returned breakpoints
-            will be relative to the start of the contig, rather than to the
-            start of the chromosome to which to contig belongs.
-
         :return: A tuple (breaks, dfe_labels).
         """
+        if relative_coordinates is not None:
+            warnings.warn(
+                stdpopsim.DeprecatedFeatureWarning(
+                    "The relative_coordinates argument is deprecated "
+                    "(and no longer needed),"
+                    "because contigs are no longer shifted to be relative to their "
+                    "left endpoint."
+                )
+            )
         breaks = np.unique(
             np.vstack(self.interval_list + [[[0, int(self.length)]]])  # also sorted
         )
         dfe_labels = np.full(len(breaks) - 1, -1, dtype="int")
         for j, intervals in enumerate(self.interval_list):
             dfe_labels[np.isin(breaks[:-1], intervals[:, 0], assume_unique=True)] = j
-        if not relative_coordinates:
-            _, left, _ = self.original_coordinates
-            breaks += left
         return breaks, dfe_labels
 
     def clear_dfes(self):
@@ -659,9 +692,9 @@ class Contig:
         :param array intervals: A valid set of intervals.
         :param DFE dfe: A DFE object.
         """
-        _, left, right = self.original_coordinates
-        intervals = stdpopsim.utils.clip_and_shift_intervals(intervals, left, right)
-        stdpopsim.utils._check_intervals_validity(intervals, start=0, end=self.length)
+        _, left, right = self.coordinates
+        intervals = stdpopsim.utils.clip_intervals(intervals, left, right)
+        stdpopsim.utils._check_intervals_validity(intervals, start=left, end=right)
         for j, ints in enumerate(self.interval_list):
             self.interval_list[j] = stdpopsim.utils.mask_intervals(ints, intervals)
         self.dfe_list.append(DFE)

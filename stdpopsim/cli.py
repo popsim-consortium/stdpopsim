@@ -813,9 +813,9 @@ def add_simulate_species_parser(parser, species):
                 intervals_summary_str = f"[{left}, {right})"
             if intervals_summary_str is None:
                 # case where no intervals specified but we have a DFE
-                _, left, right = contig.original_coordinates
+                _, left, right = contig.coordinates
                 intervals = np.array([[left, right]])
-                intervals_summary_str = f"[{intervals[0][0]}, {intervals[0][1]})"
+                intervals_summary_str = f"[{left}, {right})"
 
             dfe = species.get_dfe(args.dfe)
             contig.add_dfe(

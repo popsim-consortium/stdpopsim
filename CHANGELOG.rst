@@ -2,7 +2,27 @@
 [0.2.1] - 2023-XX-XX
 --------------------
 
+**Bug fixes**:
+
+- Updates to SLiM support: updated the `active` flag in the SLiM code to be integer.`
+
 **Breaking changes**:
+
+- The `time_units` attribute of tree sequence metadata is now set to "generations"
+    for SLiM output, avoiding the "time units mismatch warning".
+    (:user:`nspope`, :pr:`1567`)
+
+- Previously, Contigs specified with `left` and `right` arguments produced
+  simulations having coordinates shifted so they were relative to `left`. This
+  is no longer the case: coordinates in resulting simulations retain the
+  original chromosome's coordinates. As a result, regions outside `[left,
+  right)` will now have missing data. To produce simulation output with the
+  previous behavior, use the `.trim()` method of the resulting TreeSequence.
+  So, the Contig's `.original_coordinates` attribute is now called
+  `.coordinates`, and several methods (e.g., `Contig.basic_contig()`) now take
+  `left` and `right` arguments as well as `length`. Finally, arguments such as
+  `relative_coordinates=True/False` to `Contig.dfe_breakpoints()` are no longer
+  necessary and are deprecated. (:user:`petrelharp`, :pr:`1570`)
 
 - To add the possibility for a relationship between dominance and selection
     coefficient, now each stdpopsim MutationType might have more than one
