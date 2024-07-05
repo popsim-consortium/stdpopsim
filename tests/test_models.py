@@ -67,18 +67,18 @@ class QcdCatalogDemographicModelTestMixin(CatalogDemographicModelTestMixin):
 
     def test_qc_model_equal(self):
         d1 = self.model.model
-        d2 = self.model.qc_model.model
+        d2 = self.model.qc_model().model
         d1.assert_equivalent(d2, rel_tol=1e-5)
         assert d1 != d2
 
     def test_generation_time_match(self):
         g1 = self.model.generation_time
-        g2 = self.model.qc_model.generation_time
+        g2 = self.model.qc_model().generation_time
         assert g1 == g2
 
     def test_mutation_rate_match(self):
         u1 = self.model.mutation_rate
-        u2 = self.model.qc_model.mutation_rate
+        u2 = self.model.qc_model().mutation_rate
         assert u1 == u2
 
 
@@ -115,19 +115,19 @@ class TestRegisterQCModel:
 
     def test_register_qc(self):
         model = self.make_model("test")
-        model.register_qc(model)
+        model.register_qc(lambda: model)
 
     def test_already_registered(self):
         model = self.make_model("test")
-        model.register_qc(model)
+        model.register_qc(lambda: model)
         with pytest.raises(ValueError):
-            model.register_qc(model)
+            model.register_qc(lambda: model)
 
     def test_bad_qc_models(self):
         model = self.make_model("test")
-        for not_a_model in [None, 15, "Zigzag_1S14"]:
+        for not_a_model_func in [None, 15, "Zigzag_1S14", model]:
             with pytest.raises(ValueError):
-                model.register_qc(not_a_model)
+                model.register_qc(not_a_model_func)
 
 
 class TestAllModels:
