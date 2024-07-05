@@ -254,12 +254,11 @@ def mask_intervals(intervals, mask):
     return out
 
 
-def clip_and_shift_intervals(intervals, left, right):
+def clip_intervals(intervals, left, right):
     """
     Intersect each interval in ``intervals`` with ``[left, right]``.
     ``intervals`` should be a numpy array with two columns that are the
-    beginning and end coordinates, respectively. The coordinates are then
-    shifted such that ``left`` becomes 0.
+    beginning and end coordinates, respectively.
     """
     assert 0 <= left < right
     intervals = np.array(intervals).astype(int)
@@ -268,7 +267,6 @@ def clip_and_shift_intervals(intervals, left, right):
     intervals = np.clip(intervals[~out_of_bounds], left, right)
     if intervals.shape[0] == 0:
         warnings.warn(f"No intervals remain after clipping to [{left}, {right}]")
-    intervals -= left
     return intervals
 
 
