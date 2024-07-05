@@ -62,7 +62,7 @@ def adaptive_introgression(seed):
     # generations before present.
     extended_events = [
         # Draw mutation in DenA.
-        stdpopsim.ext.DrawMutation(
+        stdpopsim.DrawMutation(
             time=T_mut,
             single_site_id=locus_id,
             population="DenA",
@@ -74,11 +74,11 @@ def adaptive_introgression(seed):
         # returned to the point where the mutation was introduced.
         # Conditioning should start one generation after T_mut (not at T_mut!),
         # to avoid checking for the mutation before SLiM can introduce it.
-        stdpopsim.ext.ConditionOnAlleleFrequency(
+        stdpopsim.ConditionOnAlleleFrequency(
             # Note: if T_mut ~= T_Den_split, then we end up with:
             #       GenerationAfter(T_mut) < T_Den_split,
             #       which will give an error due to "start_time < end_time".
-            start_time=stdpopsim.ext.GenerationAfter(T_mut),
+            start_time=stdpopsim.GenerationAfter(T_mut),
             end_time=T_Den_split,
             single_site_id=locus_id,
             population="DenA",
@@ -87,8 +87,8 @@ def adaptive_introgression(seed):
         ),
         # Denisovans split into DenA and Den1 at time T_Den_split,
         # so now we condition on having AF > 0 in Den1.
-        stdpopsim.ext.ConditionOnAlleleFrequency(
-            start_time=stdpopsim.ext.GenerationAfter(T_Den_split),
+        stdpopsim.ConditionOnAlleleFrequency(
+            start_time=stdpopsim.GenerationAfter(T_Den_split),
             end_time=T_mig,
             single_site_id=locus_id,
             population="Den1",
@@ -97,8 +97,8 @@ def adaptive_introgression(seed):
         ),
         # The Den1 lineage has migrants entering the Papaun lineage at T_mig,
         # so condition on AF > 0 in Papuans.
-        stdpopsim.ext.ConditionOnAlleleFrequency(
-            start_time=stdpopsim.ext.GenerationAfter(T_mig),
+        stdpopsim.ConditionOnAlleleFrequency(
+            start_time=stdpopsim.GenerationAfter(T_mig),
             end_time=0,
             single_site_id=locus_id,
             population="Papuan",
@@ -108,7 +108,7 @@ def adaptive_introgression(seed):
         # The mutation is positively selected in Papuans at T_sel.
         # Note that this will have no effect, unless/until a mutation with the
         # specified mutation_type_id is found in the population.
-        stdpopsim.ext.ChangeMutationFitness(
+        stdpopsim.ChangeMutationFitness(
             start_time=T_sel,
             end_time=0,
             single_site_id=locus_id,
@@ -117,7 +117,7 @@ def adaptive_introgression(seed):
             dominance_coeff=0.5,
         ),
         # Condition on AF > 0.05 in Papuans at the end of the simulation.
-        stdpopsim.ext.ConditionOnAlleleFrequency(
+        stdpopsim.ConditionOnAlleleFrequency(
             start_time=0,
             end_time=0,
             single_site_id=locus_id,

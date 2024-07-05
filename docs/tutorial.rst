@@ -1070,7 +1070,7 @@ resulting simulation:
 .. code-block:: python
 
     selection_coeffs = [
-        stdpopsim.ext.selection_coeff_from_mutation(ts, mut) for mut in ts.mutations()
+        stdpopsim.selection_coeff_from_mutation(ts, mut) for mut in ts.mutations()
     ]
     num_neutral = sum([s == 0 for s in selection_coeffs])
     print(
@@ -1131,7 +1131,7 @@ We'll count up the number of neutral and deleterious mutations in the three regi
         region = np.digitize(site.position, gene_interval.flatten())
         for mut in site.mutations:
             selection_coeffs[region].append(
-                stdpopsim.ext.selection_coeff_from_mutation(ts, mut)
+                stdpopsim.selection_coeff_from_mutation(ts, mut)
             )
 
     for region, coeffs in enumerate(selection_coeffs):
@@ -1292,7 +1292,7 @@ frequency :math:`1 / 2N`.
     "overwritten" and an error will be raised in simulation.
 
 Next, we will set up the "extended events" which will modify the demography.
-This is done through :func:`stdpopsim.ext.selective_sweep`, which represents a
+This is done through :func:`stdpopsim.selective_sweep`, which represents a
 general model for a mutation that is beneficial within a single population.  We
 specify that the mutation should originate 1000 generations ago in a random
 individual from the first population (named "pop_0" by default); that the
@@ -1302,7 +1302,7 @@ greater than 0.8.
 
 .. code-block:: python
 
-    extended_events = stdpopsim.ext.selective_sweep(
+    extended_events = stdpopsim.selective_sweep(
         single_site_id=locus_id,
         population="pop_0",
         selection_coeff=0.5,
