@@ -17,7 +17,7 @@ attrs
 appdirs
 humanize
 pre-commit
-pyslim>=1.0.1
+pyslim>=1.0.4
 numpy
 scikit-allel
 biopython
