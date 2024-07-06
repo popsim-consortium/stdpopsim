@@ -1,10 +1,12 @@
---------------------
-[0.2.1] - 2023-XX-XX
---------------------
+---------------------
+[0.2.1a] - 2024-07-06
+---------------------
 
 **Bug fixes**:
 
 - Updates to SLiM support: updated the `active` flag in the SLiM code to be integer.`
+
+- Factor of two error fixed in HomSap/Gamma_K17 DFE (:user:`RyanGutenkunst`, :pr:`1478`)
 
 **Breaking changes**:
 
@@ -45,6 +47,44 @@
 
 - Mus musculus (:user:`peterdfields`, :pr:`1437`).
   QC'd by :user:`igronau`, :pr:`1454`.
+
+- Orzya sativa (:user:`ornobalam`, :pr:`1453`).
+  QC'd by :user:`minesrebollo`, :pr:`1461`
+
+- Phocoena sinus (:user:`igronau`, :pr:`1514`).
+  QC'd by :user:`ckyriazis`, :pr:`1538`
+
+**New DFEs**:
+
+- HomSap/LogNormal_H17 (:user:`RyanGutenkunst`, :pr:`1480`)
+
+- HomSap/Mixed_K23 (:user:`chriscrsmith`, :pr:`1505`)
+
+- PhoSin/Gamma_R22 (:user:`igronau`, :pr:`1547`)
+  QC'd by :user:`ckyriazis`, :pr:`1560`
+
+- Generic "uniform" DFE (:user:`petrelharp`, :pr:`1492`)
+
+**New demographic models**:
+
+- MusMus/DomesticusEurope_1F22 (:user:`peterdfields`, :pr:`1485`)
+  QC'd by :usr:`igronau`, :pr:`1531`
+
+- MusMus/MusculusKorea_1F22 (:user:`peterdfields`, :pr:`1485`)
+  QC'd by :usr:`igronau`, :pr:`1531`
+
+- MusMus/CastaneusIndia_1F22 (:user:`peterdfields`, :pr:`1485`)
+  QC'd by :usr:`igronau`, :pr:`1531`
+
+- OrySat/BottleneckMigration_3C07 (:user:`ornobalam`, :pr:`1453`)
+  QC'd by :user:`petrelharp`, :pr:`1524`
+
+- PhoSin/Vaquita2Epoch_1R22 (:user:`igronau`, :pr:`1526`)
+  QC'd by :user:`ckyriazis`, :pr:`1538`
+
+**New annotations**:
+
+- PhoSin exons and CDS (:user:`chriscrsmith`, :pr:`1520`)
 
 --------------------
 [0.2.0] - 2022-11-01
