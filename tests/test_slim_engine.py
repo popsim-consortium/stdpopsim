@@ -4,8 +4,6 @@ Tests for SLiM simulation engine.
 
 import os
 import io
-import sys
-import tempfile
 import math
 from unittest import mock
 import numpy as np
@@ -22,7 +20,6 @@ import stdpopsim
 import stdpopsim.cli
 from .test_cli import capture_output
 
-IS_WINDOWS = sys.platform.startswith("win")
 slim_path = os.environ.get("SLIM", "slim")
 
 
@@ -34,7 +31,6 @@ def count_mut_types(ts):
     return [num_neutral, abs(len(selection_coeffs) - num_neutral)]
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestAPI:
     def test_bad_params(self):
         engine = stdpopsim.get_engine("slim")
@@ -152,7 +148,7 @@ class TestAPI:
     def test_recombination_map(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
-        contig = species.get_contig("chr1", genetic_map="HapMapII_GRCh37")
+        contig = species.get_contig("chr21", genetic_map="HapMapII_GRCh37")
         model = stdpopsim.PiecewiseConstantSize(100)
         samples = {"pop_0": 5}
         engine.simulate(
@@ -291,9 +287,13 @@ class TestAPI:
             slim_scaling_factor=10,
             seed=seed,
         )
+        # this is for Windows paths; there are two levels of escaping
+        # beware: since treefile is a Path object,
+        # treefile.replace('foo') does `cp treefile foo`
+        treefile_escaped = str(treefile).replace("\\", "\\\\\\\\")
         out = re.sub(
-            'defineConstant\\("trees_file.+;',
-            f'defineConstant("trees_file", "{treefile}");',
+            r'defineConstant."trees_file.+;',
+            rf'defineConstant("trees_file", "{treefile_escaped}");',
             out,
         )
         with open(scriptfile, "w") as f:
@@ -429,7 +429,6 @@ class TestAPI:
             assert all([x.isnumeric() for x in alleles])
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestCLI:
     def docmd(self, _cmd):
         cmd = (f"-q -e slim --slim-burn-in 0 {_cmd} -l 0.001 -c chr1 -s 1234").split()
@@ -449,15 +448,16 @@ class TestCLI:
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")
-    def test_simulate(self):
+    @pytest.mark.usefixtures("tmp_path")
+    def test_simulate(self, tmp_path):
         saved_slim_env = os.environ.get("SLIM")
         slim_path = os.environ.get("SLIM", "slim")
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            self.docmd(
-                f"--slim-scaling-factor 20 --slim-path {slim_path} HomSap "
-                f"pop_0:5 -o {f.name}"
-            )
-            ts = tskit.load(f.name)
+        fname = tmp_path / "sim1.trees"
+        self.docmd(
+            f"--slim-scaling-factor 20 --slim-path {slim_path} HomSap "
+            f"pop_0:5 -o {fname}"
+        )
+        ts = tskit.load(fname)
         assert ts.num_samples == 10
         assert all(tree.num_roots == 1 for tree in ts.trees())
 
@@ -466,20 +466,20 @@ class TestCLI:
         else:
             os.environ["SLIM"] = saved_slim_env
 
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            self.docmd(f"--slim-scaling-factor 20 HomSap pop_0:5 -o {f.name}")
-            ts = tskit.load(f.name)
+        fname = tmp_path / "sim2.trees"
+        self.docmd(f"--slim-scaling-factor 20 HomSap pop_0:5 -o {fname}")
+        ts = tskit.load(fname)
         assert ts.num_samples == 10
 
         # verify sample counts for a multipopulation demographic model
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                "-q -e slim --slim-scaling-factor 20 --slim-burn-in 0 "
-                f"HomSap -o {f.name} -l 0.001 -c chr1 -s 1234 "
-                "-d OutOfAfrica_3G09 YRI:0 CEU:0 CHB:4"
-            ).split()
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
+        fname = tmp_path / "sim3.trees"
+        cmd = (
+            "-q -e slim --slim-scaling-factor 20 --slim-burn-in 0 "
+            f"HomSap -o {fname} -l 0.001 -c chr1 -s 1234 "
+            "-d OutOfAfrica_3G09 YRI:0 CEU:0 CHB:4"
+        ).split()
+        capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        ts = tskit.load(fname)
         assert ts.num_populations == 3
         observed_counts = [0, 0, 0]
         for sample in ts.samples():
@@ -496,65 +496,70 @@ class TestCLI:
         assert n_mut_types[1] > 0
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_dfe_no_demography(self):
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l 0.02 -o {f.name} --dfe Gamma_K17 -s 24 "
-                f"pop_0:5"
-            ).split()
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
+    @pytest.mark.usefixtures("tmp_path")
+    def test_dfe_no_demography(self, tmp_path):
+        fname = tmp_path / "sim1.trees"
+        cmd = (
+            f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+            f"HomSap -c chr22 -l 0.02 -o {fname} --dfe Gamma_K17 -s 24 "
+            f"pop_0:5"
+        ).split()
+        capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        ts = tskit.load(fname)
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_dfe_no_interval(self):
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l 0.01 -o {f.name} --dfe Gamma_K17 -s 984 "
-                f"pop_0:5"
-            ).split()
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
+    @pytest.mark.usefixtures("tmp_path")
+    def test_dfe_no_interval(self, tmp_path):
+        fname = tmp_path / "sim1.trees"
+        cmd = (
+            f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+            f"HomSap -c chr22 -l 0.01 -o {fname} --dfe Gamma_K17 -s 984 "
+            f"pop_0:5"
+        ).split()
+        capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        ts = tskit.load(fname)
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_dfe_interval(self):
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l 0.01 -o {f.name} --dfe Gamma_K17 -s 984 "
-                f"--dfe-interval 1000,100000 pop_0:5"
-            ).split()
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
+    @pytest.mark.usefixtures("tmp_path")
+    def test_dfe_interval(self, tmp_path):
+        fname = tmp_path / "sim1.trees"
+        cmd = (
+            f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+            f"HomSap -c chr22 -l 0.01 -o {fname} --dfe Gamma_K17 -s 984 "
+            f"--dfe-interval 1000,100000 pop_0:5"
+        ).split()
+        capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        ts = tskit.load(fname)
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")
-    def test_dfe_demography(self):
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l 0.01 -o {f.name} "
-                "-d OutOfAfrica_3G09 --dfe Gamma_K17 -s 148 "
-                "--dfe-interval 1000,100000 YRI:5"
-            ).split()
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
+    @pytest.mark.usefixtures("tmp_path")
+    def test_dfe_demography(self, tmp_path):
+        fname = tmp_path / "sim1.trees"
+        cmd = (
+            f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+            f"HomSap -c chr22 -l 0.01 -o {fname} "
+            "-d OutOfAfrica_3G09 --dfe Gamma_K17 -s 148 "
+            "--dfe-interval 1000,100000 YRI:5"
+        ).split()
+        capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        ts = tskit.load(fname)
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_dfe_annotation(self):
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -o {f.name} --dfe Gamma_K17 -s 913 "
-                "--dfe-annotation ensembl_havana_104_CDS pop_0:5"
-            ).split()
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
+    @pytest.mark.usefixtures("tmp_path")
+    def test_dfe_annotation(self, tmp_path):
+        fname = tmp_path / "sim1.trees"
+        cmd = (
+            f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+            f"HomSap -c chr22 -o {fname} --dfe Gamma_K17 -s 913 "
+            "--dfe-annotation ensembl_havana_104_CDS pop_0:5"
+        ).split()
+        capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        ts = tskit.load(fname)
         self.verify_slim_sim(ts, num_samples=10)
 
     # tmp_path is a pytest fixture
@@ -579,41 +584,43 @@ class TestCLI:
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_chromosomal_segment(self):
+    @pytest.mark.usefixtures("tmp_path")
+    def test_chromosomal_segment(self, tmp_path):
+        fname = tmp_path / "sim1.trees"
         left = 101024
         right = 200111
         sp = "HomSap"
         chrom = "chr22"
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"{sp} -c {chrom} --left {left} --right {right} -o {f.name} "
-                f"--dfe Gamma_K17 -s 24 pop_0:5"
-            ).split()
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
+        cmd = (
+            f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+            f"{sp} -c {chrom} --left {left} --right {right} -o {fname} "
+            f"--dfe Gamma_K17 -s 24 pop_0:5"
+        ).split()
+        capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        ts = tskit.load(fname)
         species = stdpopsim.get_species(sp)
         contig = species.get_contig(chrom)
         assert ts.sequence_length == contig.length
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_chromosomal_segment_with_dfe_interval(self):
+    @pytest.mark.usefixtures("tmp_path")
+    def test_chromosomal_segment_with_dfe_interval(self, tmp_path):
+        fname = tmp_path / "sim1.trees"
         left = 101024
         right = 200111
         dfe_left = left - 5000
         dfe_right = left + 90000
         sp = "HomSap"
         chrom = "chr21"
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"{sp} -c {chrom} --left {left} --right {right} -o {f.name} "
-                f"--dfe Gamma_K17 -s 984 --dfe-interval {dfe_left},{dfe_right} "
-                f"pop_0:5"
-            ).split()
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
+        cmd = (
+            f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+            f"{sp} -c {chrom} --left {left} --right {right} -o {fname} "
+            f"--dfe Gamma_K17 -s 984 --dfe-interval {dfe_left},{dfe_right} "
+            f"pop_0:5"
+        ).split()
+        capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        ts = tskit.load(fname)
         species = stdpopsim.get_species(sp)
         contig = species.get_contig(chrom)
         assert ts.sequence_length == contig.length
@@ -648,27 +655,28 @@ class TestCLI:
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_chromosomal_segment_with_dfe_annotation(self):
+    @pytest.mark.usefixtures("tmp_path")
+    def test_chromosomal_segment_with_dfe_annotation(self, tmp_path):
         left = 37500000
         right = 48000000
         sp = "HomSap"
         chrom = "chr18"
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"{sp} -c {chrom} --left {left} --right {right} -o {f.name} "
-                f"--dfe Gamma_K17 -s 913 --dfe-annotation ensembl_havana_104_CDS "
-                f"pop_0:5"
-            ).split()
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
+        fname = tmp_path / "sim1.trees"
+        cmd = (
+            f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+            f"{sp} -c {chrom} --left {left} --right {right} -o {fname} "
+            f"--dfe Gamma_K17 -s 913 --dfe-annotation ensembl_havana_104_CDS "
+            f"pop_0:5"
+        ).split()
+        capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        ts = tskit.load(fname)
         species = stdpopsim.get_species(sp)
         contig = species.get_contig(chrom)
         assert ts.sequence_length == contig.length
         self.verify_slim_sim(ts, num_samples=10)
 
-    # tmp_path is a pytest fixture
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    @pytest.mark.usefixtures("tmp_path")
     def test_errors(self, tmp_path):
         lines = [
             "\t".join(["chr22", "100000", "145000"]),
@@ -746,7 +754,9 @@ class TestCLI:
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
     @mock.patch("stdpopsim.slim_engine._SLiMEngine.get_version", return_value="64.64")
-    def test_dry_run(self, _mocked_get_version):
+    @pytest.mark.usefixtures("tmp_path")
+    def test_dry_run(self, _mocked_get_version, tmp_path):
+        fname = tmp_path / "sim1.trees"
         # --dry-run should run slim, but not create an output file.
         with mock.patch("subprocess.Popen", autospec=True) as mocked_popen:
             # Popen is used as a context manager, so we frob the return value
@@ -755,14 +765,13 @@ class TestCLI:
             proc.returncode = 0
             proc.stdout = io.StringIO()
             proc.stderr = io.StringIO()
-            with tempfile.NamedTemporaryFile(mode="w") as f:
-                self.docmd(f"HomSap pop_0:5 --dry-run -o {f.name}")
+            self.docmd(f"HomSap pop_0:5 --dry-run -o {fname}")
         mocked_popen.assert_called_once()
         slim_path = os.environ.get("SLIM", "slim")
         assert slim_path in mocked_popen.call_args[0][0]
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            self.docmd(f"HomSap pop_0:5 --dry-run -o {f.name}")
-            assert os.stat(f.name).st_size == 0
+        fname = tmp_path / "sim2.trees"
+        self.docmd(f"HomSap pop_0:5 --dry-run -o {fname}")
+        assert not os.path.isfile(fname)
 
     def test_bad_slim_environ_var(self):
         saved_slim_env = os.environ.get("SLIM")
@@ -788,7 +797,6 @@ class TestCLI:
             os.environ["SLIM"] = saved_slim_env
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestWarningsAndErrors:
     """
     Checks that warning messages are printed when appropriate.
@@ -1075,7 +1083,7 @@ class TestWarningsAndErrors:
 
 class TestSlimAvailable:
     """
-    Checks whether SLiM is available or not on platforms that support it.
+    Checks whether SLiM is available or not.
     """
 
     def test_parser_has_options(self):
@@ -1083,11 +1091,7 @@ class TestSlimAvailable:
         with mock.patch("sys.exit", autospec=True):
             _, stderr = capture_output(parser.parse_args, ["--help"])
             # On windows we should have no "slim" options
-            assert IS_WINDOWS == ("slim" not in stderr)
-
-    def test_engine_available(self):
-        all_engines = [engine.id for engine in stdpopsim.all_engines()]
-        assert IS_WINDOWS == ("slim" not in all_engines)
+            assert "slim" in stderr
 
 
 def get_test_contig(
@@ -1134,7 +1138,6 @@ class PiecewiseConstantSizeMixin(object):
         return af
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestRecombinationMap(PiecewiseConstantSizeMixin):
     def verify_recombination_map(self, contig, ts):
         Q = ts.metadata["SLiM"]["user_metadata"]["Q"]
@@ -1237,7 +1240,6 @@ class TestRecombinationMap(PiecewiseConstantSizeMixin):
                 assert t.num_roots == 0
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
 
     mut_params = {
@@ -1898,7 +1900,6 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         self.verify_mutation_rates(contig, ts)
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestLogfile(PiecewiseConstantSizeMixin):
     # tmp_path is a pytest fixture
     def test_logfile(self, tmp_path):
@@ -1922,7 +1923,6 @@ class TestLogfile(PiecewiseConstantSizeMixin):
         assert np.all(data[:, 2] == 0.0)
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestDrawMutation(PiecewiseConstantSizeMixin):
     def test_draw_mutation(self):
         contig = get_test_contig()
@@ -2227,7 +2227,6 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
                 )
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_drawn_mutation_not_lost(self):
@@ -2439,7 +2438,6 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
             )
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
     # Testing stdpopsim.ChangeMutationFitness is challenging, because
     # the side-effects are not deterministic. But if we condition on fixation
@@ -2618,7 +2616,6 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
                 )
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestExtendedEvents(PiecewiseConstantSizeMixin):
     def test_bad_extended_events(self):
         engine = stdpopsim.get_engine("slim")
@@ -2638,7 +2635,6 @@ class TestExtendedEvents(PiecewiseConstantSizeMixin):
                 )
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestSelectiveSweep(PiecewiseConstantSizeMixin):
     @staticmethod
     def _get_island_model(Ne=1000, migration_rate=0.01):
@@ -3091,7 +3087,6 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
         assert np.all(p1_outside_sweep <= 1)
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestSelectionCoeffFromMutation:
 
     species = stdpopsim.get_species("HomSap")
@@ -3168,7 +3163,6 @@ class TestSelectionCoeffFromMutation:
             stdpopsim.selection_coeff_from_mutation(ts, "bar")
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestPopSizes:
     """
     Test that population sizes are set correctly.
@@ -3265,7 +3259,6 @@ class TestPopSizes:
         self.verify_pop_sizes(model, samples, generation_time=generation_time, Q=Q)
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestPloidy:
     """
     Test that population sizes used in SLiM engine are scaled correctly

@@ -1,3 +1,7 @@
+**New features**:
+
+- Added support for the SLiM engine on Windows. (:user:`petrelharp`, :pr:`1571`)
+
 ---------------------
 [0.2.1a] - 2024-07-06
 ---------------------
