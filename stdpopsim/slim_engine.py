@@ -1658,21 +1658,27 @@ class _SLiMEngine(stdpopsim.Engine):
 
         run_slim = not slim_script
 
-        mktemp = functools.partial(tempfile.NamedTemporaryFile, mode="w")
+        tempdir = tempfile.TemporaryDirectory(prefix="stdpopsim_")
+        ts_filename = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.trees")
 
         @contextlib.contextmanager
         def script_file_f():
-            f = mktemp(suffix=".slim") if not slim_script else sys.stdout
-            yield f
+            if run_slim:
+                fname = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.slim")
+                f = open(fname, "w")
+            else:
+                fname = "stdout"
+                f = sys.stdout
+            yield f, fname
             # Don't close sys.stdout.
-            if not slim_script:
+            if run_slim:
                 f.close()
 
-        with script_file_f() as script_file, mktemp(suffix=".ts") as ts_file:
-
+        with script_file_f() as sf:
+            script_file, script_filename = sf
             recap_epoch = slim_makescript(
                 script_file,
-                ts_file.name,
+                ts_filename,
                 demographic_model,
                 contig,
                 sample_sets,
@@ -1690,7 +1696,7 @@ class _SLiMEngine(stdpopsim.Engine):
                 return None
 
             self._run_slim(
-                script_file.name,
+                script_filename,
                 slim_path=slim_path,
                 seed=seed,
                 dry_run=dry_run,
@@ -1700,7 +1706,7 @@ class _SLiMEngine(stdpopsim.Engine):
             if dry_run:
                 return None
 
-            ts = tskit.load(ts_file.name)
+            ts = tskit.load(ts_filename)
 
         ts = _add_dfes_to_metadata(ts, contig)
         if _recap_and_rescale:
@@ -1740,7 +1746,6 @@ class _SLiMEngine(stdpopsim.Engine):
         if slim_path is None:
             slim_path = self.slim_path()
 
-        # SLiM v3.6 sends `stop()` output to stderr, which we rely upon.
         self._assert_min_version("4.0", slim_path)
 
         slim_cmd = [slim_path]
@@ -2029,6 +2034,4 @@ class _SLiMEngine(stdpopsim.Engine):
         return ts
 
 
-# SLiM does not currently work on Windows.
-if sys.platform != "win32":
-    stdpopsim.register_engine(_SLiMEngine())
+stdpopsim.register_engine(_SLiMEngine())
