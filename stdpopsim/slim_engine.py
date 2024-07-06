@@ -1725,7 +1725,6 @@ class _SLiMEngine(stdpopsim.Engine):
         if slim_path is None:
             slim_path = self.slim_path()
 
-        # SLiM v3.6 sends `stop()` output to stderr, which we rely upon.
         self._assert_min_version("4.0", slim_path)
 
         slim_cmd = [slim_path]
@@ -1735,6 +1734,8 @@ class _SLiMEngine(stdpopsim.Engine):
             slim_cmd.extend(["-d", "dry_run=T"])
         if verbosity is not None:
             slim_cmd.extend(["-d", f"verbosity={verbosity}"])
+        print("script_file:", script_file)
+        print("slim_cmd:", slim_cmd)
         slim_cmd.append(script_file)
 
         with subprocess.Popen(
