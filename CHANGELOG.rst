@@ -68,13 +68,13 @@
 **New demographic models**:
 
 - MusMus/DomesticusEurope_1F22 (:user:`peterdfields`, :pr:`1485`)
-  QC'd by :usr:`igronau`, :pr:`1531`
+  QC'd by :user:`igronau`, :pr:`1531`
 
 - MusMus/MusculusKorea_1F22 (:user:`peterdfields`, :pr:`1485`)
-  QC'd by :usr:`igronau`, :pr:`1531`
+  QC'd by :user:`igronau`, :pr:`1531`
 
 - MusMus/CastaneusIndia_1F22 (:user:`peterdfields`, :pr:`1485`)
-  QC'd by :usr:`igronau`, :pr:`1531`
+  QC'd by :user:`igronau`, :pr:`1531`
 
 - OrySat/BottleneckMigration_3C07 (:user:`ornobalam`, :pr:`1453`)
   QC'd by :user:`petrelharp`, :pr:`1524`
