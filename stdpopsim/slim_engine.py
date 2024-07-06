@@ -62,6 +62,12 @@ import json
 
 logger = logging.getLogger(__name__)
 
+
+def _escape_eidos(s):
+    # this is for Windows paths passed as strings in Eidos
+    return "\\\\".join(s.split("\\"))
+
+
 _slim_upper = """
 initialize() {
     if (!exists("dry_run"))
@@ -1198,7 +1204,7 @@ def slim_makescript(
             recombination_rates=recomb_rates_str,
             recombination_ends=recomb_ends_str,
             generation_time=demographic_model.generation_time,
-            trees_file=trees_file,
+            trees_file=_escape_eidos(trees_file),
             pop_names=f"c({pop_names_str})",
         )
     )
@@ -1517,7 +1523,7 @@ def slim_makescript(
     if logfile is not None:
         printsc(
             string.Template(_slim_logfile).substitute(
-                logfile=logfile,
+                logfile=_escape_eidos(str(logfile)),
                 loginterval=logfile_interval,
             )
         )
