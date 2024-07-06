@@ -8,6 +8,7 @@ from unittest import mock
 import numpy as np
 import collections
 import re
+import contextlib
 
 import pytest
 import tskit
@@ -443,14 +444,24 @@ class TestCLI:
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_dfe_no_interval(self):
-        with tempfile.NamedTemporaryFile(mode="w") as f:
+        tempdir = tempfile.TemporaryDirectory(prefix="TestCLI_")
+
+        @contextlib.contextmanager
+        def temp_file():
+            fname = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.slim")
+            f = open(fname, "w")
+            yield f, fname
+            f.close()
+
+        with temp_file() as fn:
+            f, fname = fn
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l 0.01 -o {f.name} --dfe Gamma_K17 -s 984 "
+                f"HomSap -c chr22 -l 0.01 -o {fname} --dfe Gamma_K17 -s 984 "
                 f"pop_0:5"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
+            ts = tskit.load(fname)
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
