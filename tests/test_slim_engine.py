@@ -485,7 +485,7 @@ class TestCLI:
             f"--dfe-interval 1000,100000 pop_0:5"
         ).split()
         capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        ts = tskit.load(fname)
+        ts = tskit.load(str(fname))
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
