@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-12, windows-latest]
+        os: [windows-latest]
         python: ["3.8", "3.10"]
     env:
       CONDA_ENV_NAME: stdpopsim
@@ -49,7 +49,7 @@ jobs:
         uses: actions/cache@v3
         env:
           # Increase this to reset the cache if the key hasn't changed.
-          CACHE_NUM: 9
+          CACHE_NUM: 10
         with:
           path: |
             ${{ steps.find-conda.outputs.CONDA }}/envs/${{ env.CONDA_ENV_NAME }}
