@@ -15,8 +15,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, macos-latest, windows-latest]
-        python: ["3.10", "3.12"]
+        os: [windows-latest]
+        python: ["3.12"]
     env:
       CONDA_ENV_NAME: stdpopsim
       OS: ${{ matrix.os }}
@@ -53,6 +53,11 @@ jobs:
       - name: Fix windows .profile
         if: steps.cache.outputs.cache-hit != 'true' && matrix.os == 'windows-latest'
         run: |
+          pwd
+          echo "HOME: $HOME"
+          ls -a ~
+          echo ".bash_profile"
+          cat ~/.bash_profile
           cp ~/.bash_profile ~/.profile
 
       - name: Install conda deps
@@ -65,26 +70,27 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
-            pip install -r requirements/CI/requirements.txt
+          echo "pip pwd:"
+          pwd
+          pip install -r requirements/CI/requirements.txt
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 15
+        # note: need to do:
+        # eval "$('/c/Miniconda/Scripts/conda.exe' 'shell.bash' 'hook')"
+        # conda activate "anaconda-client-env"
+        # after logging in
 
       - name: run test suite
         run: |
+          echo "test pwd"
+          pwd
+          which python
+          ls ~/.profile
           source ~/.profile
           conda activate anaconda-client-env
           python -m pytest \
             -n 0 \
             -v \
-            --cov=stdpopsim \
-            --cov-branch \
-            --cov-report=term-missing \
-            --cov-report=xml \
             tests
-
-      - name: upload coverage report to codecov
-        uses: codecov/codecov-action@v5.1.1
-        with:
-          fail_ci_if_error: true
-          env_vars: OS,PYTHON
-          # Use upload token to avoid upload failures.
-          # https://github.com/codecov/codecov-action/issues/837
-          token: 8ae76ade-9d0e-4a2d-b9ef-1180235be07f
