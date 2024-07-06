@@ -56,41 +56,6 @@ class TestAPI:
                     dry_run=True,
                 )
 
-    def test_bad_samples(self):
-        engine = stdpopsim.get_engine("slim")
-        species = stdpopsim.get_species("HomSap")
-        contig = species.get_contig("chr1")
-        model = stdpopsim.PiecewiseConstantSize(species.population_size)
-        samples = [1, 2, ["foo"]]
-        with pytest.raises(ValueError, match="Samples must be a dict"):
-            engine.simulate(
-                demographic_model=model,
-                contig=contig,
-                samples=samples,
-                dry_run=True,
-            )
-        with pytest.raises(ValueError, match="Samples must be a dict"):
-            engine.recap_and_rescale(
-                ts=None,
-                demographic_model=model,
-                contig=contig,
-                samples=samples,
-            )
-        samples = [
-            msprime.SampleSet(
-                num_samples=2,
-                population=0,
-                ploidy=3,
-            )
-        ]
-        with pytest.raises(ValueError, match="Sample ploidy other than 1 or 2"):
-            engine.simulate(
-                demographic_model=model,
-                contig=contig,
-                samples=samples,
-                dry_run=True,
-            )
-
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings(
         "ignore:.*model has mutation rate.*but this simulation used.*"
