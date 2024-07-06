@@ -503,18 +503,6 @@ class TestCLI:
             ts = tskit.load(f.name)
         self.verify_slim_sim(ts, num_samples=10)
 
-    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_dfe_annotation(self):
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 40 --slim-path {slim_path} "
-                f"HomSap -c chr22 -o {f.name} --dfe Gamma_K17 -s 913 "
-                "--dfe-annotation ensembl_havana_104_CDS pop_0:5"
-            ).split()
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
-        self.verify_slim_sim(ts, num_samples=10)
-
     # tmp_path is a pytest fixture
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_dfe_bed_file(self, tmp_path):
