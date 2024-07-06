@@ -463,27 +463,29 @@ class TestCLI:
         assert n_mut_types[1] > 0
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_dfe_no_demography(self):
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 50 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l 0.02 -o {f.name} --dfe Gamma_K17 -s 24 "
-                f"pop_0:5"
-            ).split()
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
+    @pytest.mark.usefixtures("tmp_path")
+    def test_dfe_no_demography(self, tmp_path):
+        fname = tmp_path / "test_dfe_no_demography.trees"
+        cmd = (
+            f"-q -e slim --slim-scaling-factor 50 --slim-path {slim_path} "
+            f"HomSap -c chr22 -l 0.02 -o {fname} --dfe Gamma_K17 -s 24 "
+            f"pop_0:5"
+        ).split()
+        capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        ts = tskit.load(fname)
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
-    def test_dfe_interval(self):
-        with tempfile.NamedTemporaryFile(mode="w") as f:
-            cmd = (
-                f"-q -e slim --slim-scaling-factor 40 --slim-path {slim_path} "
-                f"HomSap -c chr21 -l 0.01 -o {f.name} --dfe Gamma_K17 -s 984 "
-                f"--dfe-interval 1000,100000 pop_0:5"
-            ).split()
-            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-            ts = tskit.load(f.name)
+    @pytest.mark.usefixtures("tmp_path")
+    def test_dfe_interval(self, tmp_path):
+        fname = tmp_path / "test_dfe_interval.trees"
+        cmd = (
+            f"-q -e slim --slim-scaling-factor 40 --slim-path {slim_path} "
+            f"HomSap -c chr21 -l 0.01 -o {fname} --dfe Gamma_K17 -s 984 "
+            f"--dfe-interval 1000,100000 pop_0:5"
+        ).split()
+        capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        ts = tskit.load(fname)
         self.verify_slim_sim(ts, num_samples=10)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
