@@ -216,7 +216,7 @@ function (void)restore(void) {
      * start of the next tick.
      */
     sb = community.allScriptBlocks;
-    sb[sb.type == "late"].active = F;
+    sb[sb.type == "late"].active = 0;
 
     /*
      * 2. The late events below were run in the save() tick,

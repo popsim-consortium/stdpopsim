@@ -148,7 +148,7 @@ class TestAPI:
     def test_recombination_map(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
-        contig = species.get_contig("chr1", genetic_map="HapMapII_GRCh37")
+        contig = species.get_contig("chr21", genetic_map="HapMapII_GRCh37")
         model = stdpopsim.PiecewiseConstantSize(100)
         samples = {"pop_0": 5}
         engine.simulate(
@@ -274,8 +274,8 @@ class TestAPI:
         scriptfile = tmp_path / "slim.script"
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
-        contig = species.get_contig("chr1", length_multiplier=0.01)
-        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        contig = species.get_contig("chr19", length_multiplier=0.01)
+        model = stdpopsim.PiecewiseConstantSize(species.population_size / 10)
         samples = {"pop_0": 5}
         seed = 1024
         out, _ = capture_output(
@@ -469,7 +469,7 @@ class TestCLI:
     def test_dfe_no_demography(self):
         with tempfile.NamedTemporaryFile(mode="w") as f:
             cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"-q -e slim --slim-scaling-factor 50 --slim-path {slim_path} "
                 f"HomSap -c chr22 -l 0.02 -o {f.name} --dfe Gamma_K17 -s 24 "
                 f"pop_0:5"
             ).split()
@@ -481,8 +481,8 @@ class TestCLI:
     def test_dfe_interval(self):
         with tempfile.NamedTemporaryFile(mode="w") as f:
             cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-                f"HomSap -c chr22 -l 0.01 -o {f.name} --dfe Gamma_K17 -s 984 "
+                f"-q -e slim --slim-scaling-factor 40 --slim-path {slim_path} "
+                f"HomSap -c chr21 -l 0.01 -o {f.name} --dfe Gamma_K17 -s 984 "
                 f"--dfe-interval 1000,100000 pop_0:5"
             ).split()
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
@@ -507,7 +507,7 @@ class TestCLI:
     def test_dfe_annotation(self):
         with tempfile.NamedTemporaryFile(mode="w") as f:
             cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"-q -e slim --slim-scaling-factor 40 --slim-path {slim_path} "
                 f"HomSap -c chr22 -o {f.name} --dfe Gamma_K17 -s 913 "
                 "--dfe-annotation ensembl_havana_104_CDS pop_0:5"
             ).split()
@@ -528,8 +528,8 @@ class TestCLI:
         bedfile.close()
         fname = tmp_path / "sim.trees"
         cmd = (
-            f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
-            f"HomSap -c chr22 -s 1234 -l 0.01 -o {fname} --dfe Gamma_K17 -s 183 "
+            f"-q -e slim --slim-scaling-factor 30 --slim-path {slim_path} "
+            f"HomSap -c chr20 -s 1234 -l 0.01 -o {fname} --dfe Gamma_K17 -s 183 "
             f"--dfe-bed-file {tmp_path / 'ex.bed'} pop_0:5"
         ).split()
         capture_output(stdpopsim.cli.stdpopsim_main, cmd)
@@ -542,7 +542,7 @@ class TestCLI:
         right = 200111
         with tempfile.NamedTemporaryFile(mode="w") as f:
             cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"-q -e slim --slim-scaling-factor 30 --slim-path {slim_path} "
                 f"HomSap -c chr22 --left {left} --right {right} -o {f.name} "
                 f"--dfe Gamma_K17 -s 24 pop_0:5"
             ).split()
@@ -559,7 +559,7 @@ class TestCLI:
         dfe_right = left + 90000
         with tempfile.NamedTemporaryFile(mode="w") as f:
             cmd = (
-                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                f"-q -e slim --slim-scaling-factor 30 --slim-path {slim_path} "
                 f"HomSap -c chr22 --left {left} --right {right} -o {f.name} "
                 f"--dfe Gamma_K17 -s 984 --dfe-interval {dfe_left},{dfe_right} "
                 f"pop_0:5"
@@ -583,7 +583,7 @@ class TestCLI:
         bedfile.close()
         fname = tmp_path / "sim.trees"
         cmd = (
-            f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+            f"-q -e slim --slim-scaling-factor 30 --slim-path {slim_path} "
             f"HomSap -c chr22 -s 1234 --left {left} --right {right} -o {fname} "
             f"--dfe Gamma_K17 -s 183 --dfe-bed-file {tmp_path / 'ex.bed'} "
             f"pop_0:5"
