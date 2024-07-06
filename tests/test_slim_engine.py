@@ -285,7 +285,7 @@ class TestAPI:
             seed=seed,
         )
         out = re.sub(
-            r'defineConstant\\("trees_file.+;',
+            'defineConstant\\("trees_file.+;',
             rf'defineConstant("trees_file", "{treefile}");',
             out,
         )
