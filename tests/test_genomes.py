@@ -215,6 +215,36 @@ class TestContig(object):
             assert contig.origin == f"{chromosome}:{left}-{right}"
             assert contig.length == length
 
+    def test_not_simulated_outside_region(self):
+        # test that when left, right are specified
+        # we legit don't simulate anything outside that region
+        species = stdpopsim.get_species("AraTha")
+        model = stdpopsim.PiecewiseConstantSize(100)
+        samples = {"pop_0": 50}
+
+        left, right = 100000, 900000
+        contig = species.get_contig("1", left=left, right=right)
+
+        engine = stdpopsim.get_engine("msprime")
+        ts = engine.simulate(
+            model,
+            contig,
+            samples,
+            seed=236,
+        )
+
+        assert ts.sequence_length > right
+        assert ts.num_sites > 0
+        assert left in ts.breakpoints()
+        assert right in ts.breakpoints()
+        assert left <= min(ts.sites_position)
+        assert max(ts.sites_position) < right
+        assert ts.num_trees > 2
+        for t in ts.trees(root_threshold=2):
+            tl, tr = t.interval
+            if tl > right or tr < left:
+                assert t.num_roots == 0
+
     def test_chromosome_segment_with_genetic_map(self):
         chr_id = "chr2"
         left = 1000001
