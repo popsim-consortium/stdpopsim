@@ -102,6 +102,13 @@ class TestCLI:
         fname = tmp_path / "test_dfe_no_demography.trees"
         cmd = (
             f"-q -e slim --slim-scaling-factor 50 --slim-path {slim_path} "
+            "--slim-script "
+            f"HomSap -c chr22 -l 0.02 -o {fname} --dfe Gamma_K17 -s 24 "
+            f"pop_0:5"
+        ).split()
+        capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        cmd = (
+            f"-q -e slim --slim-scaling-factor 50 --slim-path {slim_path} "
             f"HomSap -c chr22 -l 0.02 -o {fname} --dfe Gamma_K17 -s 24 "
             f"pop_0:5"
         ).split()
@@ -122,6 +129,13 @@ class TestCLI:
 
         with temp_file() as fn:
             f, fname = fn
+            cmd = (
+                f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
+                "--slim-script "
+                f"HomSap -c chr22 -l 0.01 -o {fname} --dfe Gamma_K17 -s 984 "
+                f"pop_0:5"
+            ).split()
+            capture_output(stdpopsim.cli.stdpopsim_main, cmd)
             cmd = (
                 f"-q -e slim --slim-scaling-factor 20 --slim-path {slim_path} "
                 f"HomSap -c chr22 -l 0.01 -o {fname} --dfe Gamma_K17 -s 984 "
