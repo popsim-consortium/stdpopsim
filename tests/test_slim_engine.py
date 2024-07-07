@@ -50,11 +50,13 @@ class TestAPI:
             slim_scaling_factor=10,
             seed=seed,
         )
-        out = re.sub(
-            r'defineConstant\("trees_file.+;',
-            rf'defineConstant("trees_file", "{treefile}");',
-            out,
-        )
+        a, b = re.split(r'defineConstant\("trees_file.+;', out)
+        out = a + 'defineConstant("trees_file", ' + str(treefile) + ");" + b
+        # out = re.sub(
+        #     r'defineConstant\("trees_file.+;',
+        #     rf'defineConstant("trees_file", "{treefile}");',
+        #     out,
+        # )
         with open(scriptfile, "w") as f:
             f.write(out)
         engine._run_slim(scriptfile, seed=seed)
