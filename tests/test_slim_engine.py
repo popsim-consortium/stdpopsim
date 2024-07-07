@@ -51,7 +51,7 @@ class TestAPI:
             seed=seed,
         )
         a, b = re.split(r'defineConstant\("trees_file.+;', out)
-        out = a + 'defineConstant("trees_file", ' + str(treefile) + ");" + b
+        out = a + 'defineConstant("trees_file", "' + str(treefile) + '");' + b
         # out = re.sub(
         #     r'defineConstant\("trees_file.+;',
         #     rf'defineConstant("trees_file", "{treefile}");',
