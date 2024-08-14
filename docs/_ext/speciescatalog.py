@@ -93,6 +93,7 @@ class SpeciesCatalogDirective(SphinxDirective):
                     if stdpopsim.CiteReason.GEN_TIME in citation.reasons
                 ],
             ),
+            ("Ploidy", species.ploidy, None),
             (
                 "Population size",
                 species.population_size,
@@ -296,8 +297,8 @@ class SpeciesCatalogDirective(SphinxDirective):
     def chromosomes_table(self, species):
 
         table = nodes.table()
-        tgroup = nodes.tgroup(cols=4)
-        for _ in range(4):
+        tgroup = nodes.tgroup(cols=5)
+        for _ in range(5):
             colspec = nodes.colspec(colwidth=1)
             tgroup.append(colspec)
         table += tgroup
@@ -307,6 +308,10 @@ class SpeciesCatalogDirective(SphinxDirective):
         row = nodes.row()
         entry = nodes.entry()
         entry += nodes.paragraph(text="ID")
+        row += entry
+
+        entry = nodes.entry()
+        entry += nodes.paragraph(text="Ploidy")
         row += entry
 
         entry = nodes.entry()
@@ -328,6 +333,10 @@ class SpeciesCatalogDirective(SphinxDirective):
             row = nodes.row()
             entry = nodes.entry()
             entry += nodes.paragraph(text=chrom.id)
+            row += entry
+
+            entry = nodes.entry()
+            entry += nodes.paragraph(text="{:d}".format(chrom.ploidy))
             row += entry
 
             entry = nodes.entry()
