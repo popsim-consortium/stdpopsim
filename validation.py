@@ -61,7 +61,7 @@ def _onepop_PC(engine_id, out_dir, seed, N0=1000, *size_changes, **sim_kwargs):
     contig = irradiate(contig)
     model = stdpopsim.PiecewiseConstantSize(N0, *size_changes)
     model.generation_time = species.generation_time
-    samples = model.get_samples(100)
+    samples = {"pop_0": 100}
     engine = stdpopsim.get_engine(engine_id)
     t0 = time.perf_counter()
     ts = engine.simulate(model, contig, samples, seed=seed, **sim_kwargs)
@@ -141,34 +141,19 @@ class _PiecewiseSize(stdpopsim.DemographicModel):
     A copy of stdpopsim.PiecewiseConstantSize that permits growth rates.
     """
 
-    id = "Piecewise"
-    description = "Piecewise size population model over multiple epochs."
-    citations = []
-    populations = [stdpopsim.Population(id="pop0", description="Population 0")]
-    author = None
-    year = None
-    doi = None
-
     def __init__(self, N0, growth_rate, *args):
-        self.population_configurations = [
-            msprime.PopulationConfiguration(
-                initial_size=N0,
-                growth_rate=growth_rate,
-                metadata=self.populations[0].asdict(),
-            )
-        ]
-        self.migration_matrix = [[0]]
-        self.demographic_events = []
+        model = msprime.Demography.isolated_model(initial_size=[N0], growth_rate=[growth_rate])
         for t, initial_size, growth_rate in args:
-            self.demographic_events.append(
-                msprime.PopulationParametersChange(
-                    time=t,
-                    initial_size=initial_size,
-                    growth_rate=growth_rate,
-                    population_id=0,
-                )
-            )
+            model.add_population_parameters_change(time=t, initial_size=initial_size, growth_rate=growth_rate)  
 
+        super().__init__(
+            id = "Piecewise",
+            description = "Piecewise size population model over multiple epochs that permits a growth rate.",
+            citations = [],
+            long_description="",
+            model=model,
+            generation_time=1,     
+        )
 
 def _onepop_expgrowth(engine_id, out_dir, seed, N0=5000, N1=500, T=1000, **sim_kwargs):
     growth_rate = -np.log(N1 / N0) / T
@@ -177,7 +162,7 @@ def _onepop_expgrowth(engine_id, out_dir, seed, N0=5000, N1=500, T=1000, **sim_k
     contig = irradiate(contig)
     model = _PiecewiseSize(N0, growth_rate, (T, N1, 0))
     model.generation_time = species.generation_time
-    samples = model.get_samples(100)
+    samples = {"pop_0": 100}
     engine = stdpopsim.get_engine(engine_id)
     t0 = time.perf_counter()
     ts = engine.simulate(model, contig, samples, seed=seed, **sim_kwargs)
@@ -236,13 +221,13 @@ def _twopop_IM(
     contig = irradiate(contig)
     model = stdpopsim.IsolationWithMigration(NA=NA, N1=N1, N2=N2, T=T, M12=M12, M21=M21)
     if pulse is not None:
-        model.demographic_events.append(pulse)
-        model.demographic_events.sort(key=lambda x: x.time)
+        model.model.events.append(pulse)
+        model.model.events.sort(key=lambda x: x.time)
     # XXX: AraTha has species.generation_time == 1, but there is the potential
     # for this to mask bugs related to generation_time scaling, so we use 3 here.
     model.generation_time = 3
     if samples is None:
-        samples = model.get_samples(50, 50, 0)
+        samples = {"pop1": 50, "pop2": 50, "ancestral": 0}
     engine = stdpopsim.get_engine(engine_id)
     t0 = time.perf_counter()
     ts = engine.simulate(model, contig, samples, seed=seed, **sim_kwargs)
@@ -325,7 +310,7 @@ def twopop_pulse_migration_slim2(out_dir, seed):
     )
 
 
-_ancient_samples = 50 * [msprime.Sample(0, time=0), msprime.Sample(1, time=500)]
+_ancient_samples = 50 * [msprime.SampleSet(num_samples = 0, population = "pop1", time=0, ploidy = 2), msprime.SampleSet(num_samples = 1, population = "pop2", time=500, ploidy = 2)]
 
 
 def twopop_ancient_samples_msprime1(out_dir, seed):
@@ -362,7 +347,7 @@ def do_cmd(cmd, out_dir, seed):
     assert "-o" not in cmd and "--output" not in cmd
     assert "-s" not in cmd and "--seed" not in cmd
     out_file = out_dir / f"{seed}.trees"
-    full_cmd = cmd + f" -q -o {out_file} -s {seed}".split()
+    full_cmd = cmd + f" -o {out_file} -s {seed}".split()
     t0 = time.perf_counter()
     stdpopsim.cli.stdpopsim_main(full_cmd)
     t1 = time.perf_counter()
