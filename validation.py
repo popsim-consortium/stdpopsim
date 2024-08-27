@@ -143,10 +143,12 @@ class _PiecewiseSize(stdpopsim.DemographicModel):
 
     def __init__(self, N0, growth_rate, *args):
         model = msprime.Demography.isolated_model(
-            initial_size=[N0], growth_rate=[growth_rate])
+            initial_size=[N0], growth_rate=[growth_rate]
+        )
         for t, initial_size, growth_rate in args:
             model.add_population_parameters_change(
-                time=t, initial_size=initial_size, growth_rate=growth_rate)
+                time=t, initial_size=initial_size, growth_rate=growth_rate
+            )
 
         super().__init__(
             id="Piecewise",
@@ -314,9 +316,10 @@ def twopop_pulse_migration_slim2(out_dir, seed):
     )
 
 
-_ancient_samples = 50 * [msprime.SampleSet(
-    num_samples=0, population="pop1", time=0, ploidy=2),
-    msprime.SampleSet(num_samples=1, population="pop2", time=500, ploidy=2)]
+_ancient_samples = 50 * [
+    msprime.SampleSet(num_samples=0, population="pop1", time=0, ploidy=2),
+    msprime.SampleSet(num_samples=1, population="pop2", time=500, ploidy=2),
+]
 
 
 def twopop_ancient_samples_msprime1(out_dir, seed):
