@@ -142,18 +142,22 @@ class _PiecewiseSize(stdpopsim.DemographicModel):
     """
 
     def __init__(self, N0, growth_rate, *args):
-        model = msprime.Demography.isolated_model(initial_size=[N0], growth_rate=[growth_rate])
+        model = msprime.Demography.isolated_model(
+            initial_size=[N0], growth_rate=[growth_rate])
         for t, initial_size, growth_rate in args:
-            model.add_population_parameters_change(time=t, initial_size=initial_size, growth_rate=growth_rate)  
+            model.add_population_parameters_change(
+                time=t, initial_size=initial_size, growth_rate=growth_rate)
 
         super().__init__(
-            id = "Piecewise",
-            description = "Piecewise size population model over multiple epochs that permits a growth rate.",
-            citations = [],
+            id="Piecewise",
+            description="Piecewise size population model"
+            "over multiple epochs that permits a growth rate.",
+            citations=[],
             long_description="",
             model=model,
-            generation_time=1,     
+            generation_time=1,
         )
+
 
 def _onepop_expgrowth(engine_id, out_dir, seed, N0=5000, N1=500, T=1000, **sim_kwargs):
     growth_rate = -np.log(N1 / N0) / T
@@ -310,7 +314,9 @@ def twopop_pulse_migration_slim2(out_dir, seed):
     )
 
 
-_ancient_samples = 50 * [msprime.SampleSet(num_samples = 0, population = "pop1", time=0, ploidy = 2), msprime.SampleSet(num_samples = 1, population = "pop2", time=500, ploidy = 2)]
+_ancient_samples = 50 * [msprime.SampleSet(
+    num_samples=0, population="pop1", time=0, ploidy=2),
+    msprime.SampleSet(num_samples=1, population="pop2", time=500, ploidy=2)]
 
 
 def twopop_ancient_samples_msprime1(out_dir, seed):
