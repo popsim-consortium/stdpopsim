@@ -317,7 +317,7 @@ def twopop_pulse_migration_slim2(out_dir, seed):
 
 
 _ancient_samples = 50 * [
-    msprime.SampleSet(num_samples=0, population="pop1", time=0, ploidy=2),
+    msprime.SampleSet(num_samples=1, population="pop1", time=0, ploidy=2),
     msprime.SampleSet(num_samples=1, population="pop2", time=500, ploidy=2),
 ]
 
