@@ -158,7 +158,10 @@ def black_format(code):
 
 
 def ensembl_stdpopsim_id(ensembl_id):
+    if ensembl_id == "canis_lupus_familiaris":
+        ensembl_id = "canis_familiaris"
     tmp = ensembl_id.split("_")[:2]
+    print(tmp, ensembl_id)
     sps_id = "".join([x[0:3].capitalize() for x in tmp])
     if len(sps_id) != 6:
         raise ValueError(f"Cannot extract six character id from {ensembl_id}")
