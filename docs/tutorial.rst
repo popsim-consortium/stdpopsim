@@ -683,7 +683,18 @@ defined above. The simulation results are recorded in a tree sequence object
 
 .. code-block:: python
 
-    ts = engine.simulate(model, contig, samples)
+    ts = engine.simulate(
+        model, contig, samples,
+        msprime_model="dtwf", msprime_change_model=[(20, "hudson")]  # optional
+    )
+
+Above we have also also illustrated how to specify different msprime models,
+for different time periods. The discrete time Wright Fisher ("dtwf") model
+applies at the present day, followed by a switch to the more efficient "hudson"
+coalescent model when the backward simulation reaches 20 generations ago
+and older. Switching models like this can be a useful compromise in cases
+where the default Hudson model is an inaccurate approximation for the most
+recent few generations.
 
 Sanity check the tree sequence output
 -------------------------------------
