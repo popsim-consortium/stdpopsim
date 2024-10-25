@@ -497,6 +497,19 @@ The number of "sampling" populations could be smaller than the number of populat
 since some models have ancient populations which are currently not allowed to be
 sampled from -- but that is not the case in this model.
 
+If working in a notebook, it's also possible to plot a schematic of your chosen model
+using the `demesdraw <https://grahamgower.github.io/demesdraw/>`__ python library.
+This provides both a ``size_history`` plot and a ``tubes`` visualization. E.g.
+
+.. code-block:: python
+
+    import demesdraw
+    graph = model.model.to_demes()
+    demesdraw.tubes(model.model.to_demes());
+
+Equivalent plots for all the available demographic models are also
+shown in the :ref:`sec_catalog`.
+
 Set up the contig
 -----------------
 
