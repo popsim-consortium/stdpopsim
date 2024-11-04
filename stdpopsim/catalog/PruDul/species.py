@@ -2,13 +2,13 @@ import stdpopsim
 
 from . import genome_data
 
-# These are in Table 1 of Juneja et al:
-_recombination_rate = {"1": 1.97036e-6, "2": 1.51361e-6, "3": 1.886e-6,
-                       "4": 2.22347e-6,
-                        "5":2.54212e-6,
-                         "6": 1.9829e-6,
-                          "7": 2.61388e-6,
-                           "8": 2.11591e-6,
+# These are in MasGomezEtAl
+_recombination_rate = {"1": 1.97036e-8, "2": 1.51361e-8, "3": 1.886e-8,
+                       "4": 2.22347e-8,
+                        "5":2.54212e-8,
+                         "6": 1.9829e-8,
+                          "7": 2.61388e-8,
+                           "8": 2.11591e-8,
                            "MT": 0,
                            "Pt": 0,
                            "Test":1.97036e-8}
@@ -73,7 +73,7 @@ _WangEtal = stdpopsim.Citation(
 )
 
 
-_overall_rate = 10e-8  # per generation, from Velasco et al. 2016
+_overall_rate = 1e-8  # per generation, from Velasco et al. 2016
 _mutation_rate = {
     "1": _overall_rate,
     "2": _overall_rate,
