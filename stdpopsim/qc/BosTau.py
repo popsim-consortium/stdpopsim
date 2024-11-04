@@ -11,13 +11,14 @@ def McLeod2013_1Pop():
     id = "QC-HolsteinFriesian_1M13"
     populations = [stdpopsim.Population("Holstein_Friesian", "Holstein_Friesian")]
 
+    # values used by original model (QC-HolsteinFriesian_1M13)
+    # mutation_rate = 1.0e-8
+    recombination_rate = 1.0e-8
+
     # mutation rate taken from description of simulations
     # used to generate data mimicing the real genomic
     # data. See page 5-6 in SI of McLeod et al. (2013)
     mutation_rate = 9.4e-9
-
-    # value used by original model (QC-HolsteinFriesian_1M13)
-    # mutation_rate = 1.0e-8
 
     # Arrays of time durations and Ne's taken from
     # Supp Tabls S1 of McLeod et al. (2013).
@@ -38,8 +39,8 @@ def McLeod2013_1Pop():
             1100,
             600,
             1000,
-            29800
-            # , 900,000 LAST TIME PERIOD LAST FOEVER IN COAL MODELS
+            29800,
+            # , 900,000 LAST TIME PERIOD LAST FOREVER IN COAL MODELS
         ]
     )
 
@@ -68,6 +69,7 @@ def McLeod2013_1Pop():
         demographic_events=demographic_events,
         population_id_map=[{"Holstein_Friesian": 0}] * 13,
         mutation_rate=mutation_rate,
+        recombination_rate=recombination_rate,
     )
 
 

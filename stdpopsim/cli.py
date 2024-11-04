@@ -2,6 +2,7 @@
 The command line interface for stdpopsim. Provides standard simulations
 at the command line and methods to manage resources used by stdpopsim.
 """
+
 import argparse
 import json
 import logging
@@ -371,7 +372,10 @@ def get_citations(engine, model, contig, species, dfe):
     """
     Return a list of all the citations.
     """
-    citations = [stdpopsim.citations._stdpopsim_citation]
+    citations = [
+        stdpopsim.citations._stdpopsim_citation,
+        stdpopsim.citations._catalog_citation,
+    ]
     citations.extend(engine.citations)
     citations.extend(species.citations)
     citations.extend(species.genome.citations)
@@ -403,6 +407,11 @@ def write_citations(engine, model, contig, species, dfe):
         if (
             stdpopsim.citations.CiteReason.MUT_RATE in citation.reasons
             and model.mutation_rate is not None
+        ):
+            continue
+        if (
+            stdpopsim.citations.CiteReason.REC_RATE in citation.reasons
+            and model.recombination_rate is not None
         ):
             continue
         cite_str.append("\n")
@@ -704,9 +713,9 @@ def add_simulate_species_parser(parser, species):
         nargs="+",
         help=(
             "The number of samples to draw from each population. At least "
-            "two samples must be specified. The number of arguments that "
-            "will be accepted depends on the simulation model that is "
-            "specified: for a model that has n populations, we can specify "
+            "two genomes must be sampled, say, for one diploid individual. "
+            "The number of arguments accepted depends on the specified "
+            "simulation model: for a model that has n populations, we can specify "
             "the number of samples to draw from each of these populations."
             "We do not need to provide sample numbers of each of the "
             "populations; those that are omitted are set to zero."
@@ -755,6 +764,7 @@ def add_simulate_species_parser(parser, species):
             inclusion_mask=args.inclusion_mask,
             exclusion_mask=args.exclusion_mask,
             mutation_rate=model.mutation_rate,
+            recombination_rate=model.recombination_rate,
             left=args.left,
             right=args.right,
         )
@@ -901,7 +911,19 @@ def write_simulation_summary(
         dry_run_text += f"{sample_counts[p]} ({sample_time})\n"
     # Get information about relevant contig
     gmap = "None" if contig.genetic_map is None else contig.genetic_map.id
-    mean_recomb_rate = contig.recombination_map.mean_rate
+    # use the model recombination rate, if provided with the demographic model
+    if model.recombination_rate is not None:
+        mean_recomb_rate = model.recombination_rate
+        logging.info(
+            "using recombination rate from demographic model "
+            f"({model.recombination_rate})"
+        )
+    else:
+        mean_recomb_rate = contig.recombination_map.mean_rate
+        logging.info(
+            "using recombination rate from species contig "
+            f"({contig.recombination_map.mean_rate})"
+        )
     # use the model mutation rate, if provided with the demographic model
     if model.mutation_rate is not None:
         mut_rate = model.mutation_rate
@@ -920,8 +942,8 @@ def write_simulation_summary(
     dry_run_text += f"{indent}Contig origin: {contig_origin}\n"
     dry_run_text += f"{indent}Contig length: {contig_len}\n"
     dry_run_text += f"{indent}Contig ploidy: {contig_ploidy}\n"
-    dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"
     dry_run_text += f"{indent}Mean mutation rate: {mut_rate}\n"
+    dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"
     dry_run_text += f"{indent}Genetic map: {gmap}\n"
     if contig.bacterial_recombination is True:
         dry_run_text += (

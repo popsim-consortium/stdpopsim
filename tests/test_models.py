@@ -1,6 +1,7 @@
 """
 Tests for simulation model infrastructure.
 """
+
 import sys
 import textwrap
 import copy
@@ -81,6 +82,11 @@ class QcdCatalogDemographicModelTestMixin(CatalogDemographicModelTestMixin):
         u2 = self.model.qc_model.mutation_rate
         assert u1 == u2
 
+    def test_recombination_rate_match(self):
+        u1 = self.model.recombination_rate
+        u2 = self.model.qc_model.recombination_rate
+        assert u1 == u2
+
 
 # Add model specific test classes, derived from one of the above.
 qc_test_classes = []
@@ -148,6 +154,8 @@ class TestAllModels:
         assert model.generation_time > 0
         if model.mutation_rate is not None:
             assert model.mutation_rate > 0
+        if model.recombination_rate is not None:
+            assert model.recombination_rate >= 0
         model.model.validate()
 
 
@@ -173,19 +181,21 @@ class TestModelOutput:
             long_description="ABC " * 50,
             generation_time=1234,
             mutation_rate=888,
+            recombination_rate=None,
             model=msprime.Demography.isolated_model([1]),
         )
         s = str(model)
         expected = """\
         Demographic model:
-        ║  id               = xyz
-        ║  description      = abc
-        ║  long_description = ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC
+        ║  id                 = xyz
+        ║  description        = abc
+        ║  long_description   = ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC
         ║                     ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC
         ║                     ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC ABC
-        ║  generation_time  = 1234
-        ║  mutation_rate    = 888
-        ║  citations        = []
+        ║  generation_time    = 1234
+        ║  mutation_rate      = 888
+        ║  recombination_rate = None
+        ║  citations          = []
         """  # noqa 501
         assert textwrap.dedent(expected) in s
 
@@ -378,7 +388,8 @@ class TestMutationRates:
         samples = {"YRI": 5, "CEU": 5, "CHB": 5}
         for engine in stdpopsim.all_engines():
             with pytest.warns(
-                UserWarning, match="model has mutation rate.*but this simulation used"
+                UserWarning,
+                match="model has mutation rate.*but this simulation used",
             ):
                 engine.simulate(model, contig, samples, dry_run=True)
 
@@ -401,6 +412,45 @@ class TestMutationRates:
         for engine in stdpopsim.all_engines():
             engine.simulate(model, contig, samples, dry_run=True)
 
+
+class TestRecombinationRates:
+    def test_recombination_rate_warning(self):
+        species = stdpopsim.get_species("BosTau")
+        model = copy.deepcopy(species.get_demographic_model("HolsteinFriesian_1M13"))
+        contig = species.get_contig("chr25", mutation_rate=model.mutation_rate)
+        samples = {"Holstein_Friesian": 1}
+        for engine in stdpopsim.all_engines():
+            with pytest.warns(
+                UserWarning,
+                match="model has recombination rate.*but this simulation used",
+            ):
+                engine.simulate(model, contig, samples, dry_run=True)
+
+    @pytest.mark.filterwarnings(
+        "error:.*model has recombination rate.*but this simulation used.*"
+    )
+    def test_recombination_rate_match(self):
+        species = stdpopsim.get_species("BosTau")
+        model = copy.deepcopy(species.get_demographic_model("HolsteinFriesian_1M13"))
+        contig = species.get_contig("chr25")
+        assert model.recombination_rate != contig.recombination_map.mean_rate
+        contig = species.get_contig(
+            "chr25", recombination_rate=model.recombination_rate
+        )
+        assert model.recombination_rate == contig.recombination_map.mean_rate
+        contig = species.get_contig(length=100)
+        assert model.recombination_rate != contig.recombination_map.mean_rate
+        contig = species.get_contig(
+            length=100, recombination_rate=model.recombination_rate
+        )
+        assert model.recombination_rate == contig.recombination_map.mean_rate
+
+        samples = {"Holstein_Friesian": 1}
+        for engine in stdpopsim.all_engines():
+            engine.simulate(model, contig, samples, dry_run=True)
+
+
+class TestParameterTables:
     def test_params_match_docs_tables(self):
         for species in stdpopsim.all_species():
             for model in species.demographic_models:
@@ -416,6 +466,7 @@ class TestMutationRates:
                         param_list = list(reader)
                         generation_time = None
                         mutation_rate = None
+                        recombination_rate = None
                         for param_data in param_list:
                             if param_data[0].startswith("Generation time"):
                                 try:
@@ -426,10 +477,16 @@ class TestMutationRates:
                                     )
                             if param_data[0].startswith("Mutation rate"):
                                 mutation_rate = float(param_data[1])
+                            if param_data[0].startswith("Recombination rate"):
+                                recombination_rate = float(param_data[1])
                     if mutation_rate is None:
                         assert model.mutation_rate is None
                     else:
                         assert np.allclose(model.mutation_rate, mutation_rate)
+                    if recombination_rate is None:
+                        assert model.recombination_rate is None
+                    else:
+                        assert np.allclose(model.recombination_rate, mutation_rate)
                     if generation_time is None:
                         # default is 1 if unspecified
                         assert model.generation_time == 1

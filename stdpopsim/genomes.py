@@ -2,6 +2,7 @@
 Infrastructure for defining information about species' genomes and genomic
 regions to be simulated.
 """
+
 import logging
 import warnings
 import attr
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def _uniform_rate_map(left, right, length, rate):
     """
-    Makes a RateMap that is
+    Makes a uniform RateMap
     """
     pos = [
         0.0,
@@ -40,8 +41,12 @@ class Genome:
 
     :ivar chromosomes: A list of :class:`.Chromosome` objects.
     :vartype chromosomes: list
+    :ivar assembly_name: The name of the genome assembly.
+    :vartype assembly_name: str
+    :ivar assembly_accession: The ID of the genome assembly accession.
+    :vartype assembly_accession: str
     :ivar bacterial_recombination: Whether recombination is via horizontal gene
-        transfer (if this is True) or via crossover and possibly gene
+        transfer (if this is True) or via crossing-over and possibly gene
         conversion (if this is False). Default: False.
     :vartype bacterial_recombination: bool
     :ivar citations: A list of :class:`.Citation` objects
@@ -52,11 +57,9 @@ class Genome:
     :vartype length: int
     """
 
-    # TODO document the assembly_name and accession
-
     chromosomes = attr.ib(factory=list)
-    assembly_name = attr.ib(default=None, kw_only=True)
-    assembly_accession = attr.ib(default=None, kw_only=True)
+    assembly_name = attr.ib(type=str, default=None, kw_only=True)
+    assembly_accession = attr.ib(type=str, default=None, kw_only=True)
     bacterial_recombination = attr.ib(type=bool, default=False, kw_only=True)
     citations = attr.ib(factory=list, kw_only=True)
 
@@ -174,7 +177,7 @@ class Genome:
     def mean_recombination_rate(self):
         """
         The length-weighted mean recombination rate across all chromosomes.
-        (Note that this is the rate of crossovers, not all double-stranded breaks.)
+        (Note that this is the rate of crossing-over, not all double-stranded breaks.)
         """
         length = self.length
         mean_recombination_rate = 0
@@ -202,15 +205,15 @@ class Genome:
 class Chromosome:
     """
     Class representing a single chromosome for a species. Note that although
-    the recombination rate for a Chromosome is the rate of crossovers,
-    the recombination map for a Contig gives the rate of both crossovers
+    the recombination rate for a Chromosome is the rate of crossing-over,
+    the recombination map for a Contig gives the rate of both crossing-over
     and gene conversion, so will differ if the gene conversion fraction is nonzero.
 
     :ivar str ~.id: The string identifier for the chromosome.
     :ivar int length: The length of the chromosome.
     :ivar float mutation_rate: The mutation rate used when simulating this
         chromosome.
-    :ivar float recombination_rate: The rate of crossovers used when simulating
+    :ivar float recombination_rate: The rate of crossing-over used when simulating
         this chromosome (if not using a genetic map).
     :ivar float gene_conversion_fraction: The gene conversion fraction used when
         simulating this chromosome.
@@ -248,18 +251,21 @@ class Contig:
     :vartype mutation_rate: float
     :ivar ploidy: The ploidy of the contig. Defaults to 2 (diploid).
     :vartype ploidy: int
+    :ivar genetic_map: The genetic map for the region, that gives
+        the rates of crossing-over. A :class:`.GeneticMap` object.
+    :vartype genetic_map: .GeneticMap
     :ivar recombination_map: The recombination map for the region, that gives
         the rates of double-stranded breaks. Note that if gene conversion
         fraction is nonzero, then this map can have a larger rate than the
         corresponding chromosome's recombination rate, since the chromosome's
-        rate describes only crossovers. A :class:`msprime.RateMap` object.
+        rate describes only crossing-over. A :class:`msprime.RateMap` object.
     :vartype recombination_map: msprime.RateMap
     :ivar bacterial_recombination: Whether the model of recombination is
         by horizontal gene transfer or not (default is False, i.e.,
-        recombination is by crossovers and possibly gene conversion).
+        recombination is by crossing-over and possibly gene conversion).
     :ivar gene_conversion_fraction: The fraction of recombinations that resolve
         as gene conversion events. The recombination map gives the rates of
-        *both* crossovers and gene conversions, with a fraction of gene
+        *both* crossing-over and gene conversion, with a fraction of gene
         conversions given by this value. Defaults to None, i.e., no gene
         conversion. Must be None or between 0 and 1. Must be None if
         bacterial_recombination is True.
@@ -386,6 +392,7 @@ class Contig:
         length_multiplier=1,
         length=None,
         mutation_rate=None,
+        recombination_rate=None,
         use_species_gene_conversion=False,
         inclusion_mask=None,
         exclusion_mask=None,
@@ -451,7 +458,11 @@ class Contig:
                         )
             if mutation_rate is None:
                 mutation_rate = u_tot / L_tot
-            r = r_tot / L_tot
+            if recombination_rate is None:
+                r = r_tot / L_tot
+            else:
+                r = recombination_rate
+                r_tot = r * L_tot
             if use_species_gene_conversion is True:
                 if gcf_tot > 0:
                     gene_conversion_fraction = gcf_tot / r_tot
@@ -503,25 +514,28 @@ class Contig:
 
             if genetic_map is None:
                 gm = None
+                if recombination_rate is None:
+                    r = chrom.recombination_rate
+                else:
+                    r = recombination_rate
                 if length_multiplier != 1:
                     logger.debug(
                         f"Making flat chromosome {length_multiplier} * {chrom.id}"
                     )
                     recomb_map = msprime.RateMap.uniform(
-                        round(length_multiplier * chrom.length),
-                        chrom.recombination_rate,
+                        round(length_multiplier * chrom.length), r
                     )
                 else:
                     logger.debug(
                         f"Making flat contig from {left} to {right} for {chrom.id}"
                     )
-                    recomb_map = _uniform_rate_map(
-                        left, right, chrom.length, chrom.recombination_rate
-                    )
+                    recomb_map = _uniform_rate_map(left, right, chrom.length, r)
             else:
                 if length_multiplier != 1:
-                    raise ValueError("Cannot use length multiplier with empirical maps")
-                logger.debug(f"Getting map for {chrom.id} from {genetic_map}")
+                    raise ValueError("Cannot use length multiplier with genetic map")
+                if recombination_rate is not None:
+                    raise ValueError("Cannot use recombination rate with genetic map")
+                logger.debug(f"Getting genetic map for {chrom.id} from {genetic_map}")
                 gm = species.get_genetic_map(genetic_map)
                 recomb_map = gm.get_chromosome_map(chrom.id)
                 recomb_map = recomb_map.slice(left=left, right=right)
@@ -817,15 +831,15 @@ class Contig:
     def __str__(self):
         gmap = "None" if self.genetic_map is None else self.genetic_map.id
         s = (
-            "Contig(length={:.2G}, recombination_rate={:.2G}, "
-            "mutation_rate={:.2G}, bacterial_recombination={}, "
+            "Contig(length={:.2G}, mutation_rate={:.2G}, "
+            "recombination_rate={:.2G}, bacterial_recombination={}, "
             "gene_conversion_fraction={}, gene_conversion_length={}, "
             "genetic_map={}, origin={}, dfe_list={}, "
             "interval_list={})"
         ).format(
             self.length,
-            self.recombination_map.mean_rate,
             self.mutation_rate,
+            self.recombination_map.mean_rate,
             self.bacterial_recombination,
             self.gene_conversion_fraction,
             self.gene_conversion_length,

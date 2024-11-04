@@ -2,6 +2,7 @@
 Infrastructure for defining basic information about species and
 organising the species catalog.
 """
+
 import logging
 
 import attr
@@ -173,6 +174,7 @@ class Species:
         length_multiplier=1,
         length=None,
         mutation_rate=None,
+        recombination_rate=None,
         use_species_gene_conversion=False,
         inclusion_mask=None,
         exclusion_mask=None,
@@ -212,6 +214,9 @@ class Species:
             ``genetic_map`` argument.
         :param float mutation_rate: The per-base mutation rate. If none is given,
             the mutation rate defaults to the rate specified by species chromosomes.
+        :param float recombination_rate: The per-base recombination rate. If none is
+            given, the recombination rate defaults to the rate specified by species
+            chromosomes. Ignored when ``genetic_map`` argument is specified.
         :param bool use_species_gene_conversion: If set to True the parameters for gene
             conversion of the species chromosome are used if available. For "generic"
             contigs the gene conversion fraction and length are given by the mean
@@ -244,6 +249,7 @@ class Species:
             length_multiplier=length_multiplier,
             length=length,
             mutation_rate=mutation_rate,
+            recombination_rate=recombination_rate,
             use_species_gene_conversion=use_species_gene_conversion,
             inclusion_mask=inclusion_mask,
             exclusion_mask=exclusion_mask,
@@ -285,7 +291,7 @@ class Species:
 
         :param str id: The string identifier for the DFE.
             A complete list of IDs for each species can be found in the
-            # TODO add that section to the species catalogo
+            # TODO add that section to the species catalog
             "DFE" subsection for the species in the
             :ref:`sec_catalog`.
         :rtype: :class:`DFE`
@@ -321,8 +327,7 @@ class Species:
         #     A complete list of IDs for each species can be found in the
         #     "Genetic Maps" subsection for the species in the :ref:`sec_catalog`.
         # :rtype: :class:`GeneticMap`
-        # :return: A :class:`GeneticMap` that defines the frequency of
-        #     recombinations across the genome.
+        # :return: A :class:`GeneticMap` with recombination rate across the genome.
         for gm in self.genetic_maps:
             if gm.id == id:
                 return gm

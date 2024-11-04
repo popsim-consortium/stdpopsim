@@ -1,6 +1,7 @@
 """
 Infrastructure for managing genetic maps.
 """
+
 import warnings
 
 import msprime
@@ -13,7 +14,7 @@ import stdpopsim
 class GeneticMap:
     """
     Class representing a genetic map for a species. Provides functionality for
-    downloading and cacheing recombination maps from a remote URL.
+    downloading and cacheing genetic maps from a remote URL.
 
     .. note: This interface is internal, preliminary and should not be used by
         external code.
@@ -101,7 +102,7 @@ class GeneticMap:
         # needs to be redownloaded.
         map_file = self.map_cache_dir / self.file_pattern.format(id=chrom.id)
         if map_file.exists():
-            recomb_map = msprime.RateMap.read_hapmap(
+            genetic_map = msprime.RateMap.read_hapmap(
                 map_file,
                 rate_col=2,
                 # TODO: set the sequence length. Unfortunately, some of our
@@ -110,22 +111,24 @@ class GeneticMap:
             )
         else:
             warnings.warn(
-                "Recombination map not found for chromosome: '{}'"
+                "Genetic map not found for chromosome: '{}'"
                 " on map: '{}', substituting a flat map with chromosome "
                 "recombination rate {}".format(id, self.id, chrom.recombination_rate)
             )
-            recomb_map = msprime.RateMap.uniform(chrom.length, chrom.recombination_rate)
-        map_length = recomb_map.sequence_length
+            genetic_map = msprime.RateMap.uniform(
+                chrom.length, chrom.recombination_rate
+            )
+        map_length = genetic_map.sequence_length
         if map_length < chrom.length:
             # Extend map to the end of the chromosome.
-            positions = np.append(recomb_map.position, chrom.length)
-            rates = np.append(recomb_map.rate, 0)
-            recomb_map = msprime.RateMap(position=positions, rate=rates)
+            positions = np.append(genetic_map.position, chrom.length)
+            rates = np.append(genetic_map.rate, 0)
+            genetic_map = msprime.RateMap(position=positions, rate=rates)
         elif map_length > chrom.length:
             # TODO: consider making this an error, and deprecating genetic maps
             # that do not match the assembly.
             warnings.warn(
-                f"Recombination map has length {map_length}, which is longer than"
+                f"Genetic map has length {map_length}, which is longer than"
                 f" chromosome length {chrom.length}. The latter will be used."
             )
-        return recomb_map
+        return genetic_map

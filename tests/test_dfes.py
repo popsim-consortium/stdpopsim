@@ -1,6 +1,7 @@
 """
 Tests for simulation dfe infrastructure
 """
+
 import sys
 import pytest
 import stdpopsim
@@ -82,7 +83,7 @@ class TestCreateMutationType:
                 convert_to_substitution=1,
             )
 
-        for dc in [np.inf, np.nan, np.NINF]:
+        for dc in [np.inf, np.nan, -np.inf]:
             with pytest.raises(
                 ValueError, match=f"Invalid dominance coefficient {dc}."
             ):

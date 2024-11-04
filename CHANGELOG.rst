@@ -34,7 +34,7 @@
     parsing the metadata related to DFEs.
 
 - SLiM extended events and selective sweep infrastructure have been
-  moved from the `stdpopsim.ext` namespace into `stdpopsim` proper
+  moved from the `stdpopsim.ext` namespace into ``stdpopsim`` proper
 
 **New features**:
 
