@@ -1,6 +1,7 @@
 """
 Tests for classes that hold information about genomic region to be simulated.
 """
+
 import numpy as np
 import pytest
 import msprime
@@ -495,3 +496,10 @@ class TestGeneConversion(object):
         assert np.isclose(
             contig.recombination_map.mean_rate, chrom.recombination_rate / (1 - gc_frac)
         )
+        species = stdpopsim.get_species("HomSap")
+        with pytest.raises(
+            ValueError, match="Cannot use recombination rate with genetic map"
+        ):
+            _ = species.get_contig(
+                "chr22", genetic_map="HapMapII_GRCh38", recombination_rate=1e-8
+            )

@@ -3,7 +3,7 @@ import stdpopsim
 
 from . import genome_data
 
-# De novo assembly of the cattle reference genome with single-molecule sequencing.
+# De novo assembly of the cattle reference genome with single-molecule sequencing
 _RosenEtAl = stdpopsim.Citation(
     author="Rosen et al.",
     year=2020,
@@ -11,6 +11,7 @@ _RosenEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
 
+# Ensembl 2021
 _HoweEtAl = stdpopsim.Citation(
     author="Howe et al.",
     year=2020,
@@ -19,7 +20,7 @@ _HoweEtAl = stdpopsim.Citation(
 )
 
 # Frequency of mosaicism points towards mutation-prone early cleavage
-# cell divisions in cattle.
+# cell divisions in cattle
 _HarlandEtAl = stdpopsim.Citation(
     author="Harland et al.",
     year=2017,
@@ -28,7 +29,7 @@ _HarlandEtAl = stdpopsim.Citation(
 )
 
 # Cattle Sex-Specific Recombination and Genetic Control from a
-# Large Pedigree Analysis.
+# Large Pedigree Analysis
 _MaEtAl = stdpopsim.Citation(
     author="Ma et al.",
     year=2015,
@@ -37,7 +38,7 @@ _MaEtAl = stdpopsim.Citation(
 )
 
 # Inferring Demography from Runs of Homozygosity in Whole-Genome Sequence,
-# with Correction for Sequence Errors.
+# with Correction for Sequence Errors
 _MacLeodEtAl = stdpopsim.Citation(
     author="MacLeod et al.",
     year=2013,
@@ -117,10 +118,10 @@ for name, data in genome_data.data["chromosomes"].items():
 _genome = stdpopsim.Genome(
     chromosomes=_chromosomes,
     citations=[
-        _HoweEtAl,
-        _RosenEtAl,
-        _HarlandEtAl,
-        _MaEtAl,
+        _HoweEtAl,  # ASSEMBLY
+        _RosenEtAl,  # ASSEMBLY
+        _HarlandEtAl,  # MUT_RATE
+        _MaEtAl,  # REC_RATE
     ],
 )
 stdpopsim.utils.append_common_synonyms(_genome)
@@ -134,7 +135,7 @@ _species = stdpopsim.Species(
     generation_time=5,
     population_size=62000,  # ancestral Ne in _MacLeodEtAl
     ploidy=_species_ploidy,
-    citations=[_MacLeodEtAl],
+    citations=[_MacLeodEtAl],  # GEN_TIME, POP_SIZE
 )
 
 stdpopsim.register_species(_species)

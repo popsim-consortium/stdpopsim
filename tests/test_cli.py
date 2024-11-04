@@ -1,6 +1,7 @@
 """
 Test cases for the command line interfaces to stdpopsim
 """
+
 import tempfile
 import pathlib
 import subprocess
@@ -638,7 +639,10 @@ class TestWriteBibtex:
         engine = stdpopsim.get_default_engine()
         dfe = species.get_dfe("Gamma_K17")
         local_cites = stdpopsim.Citation.merge(
-            [stdpopsim.citations._stdpopsim_citation]
+            [
+                stdpopsim.citations._stdpopsim_citation,
+                stdpopsim.citations._catalog_citation,
+            ]
             + genetic_map.citations
             + model.citations
             + engine.citations
@@ -674,6 +678,20 @@ class TestWriteCitations:
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("22")
         model = species.get_demographic_model("OutOfAfrica_3G09")
+        engine = stdpopsim.get_default_engine()
+        dfe = None
+        stdout, stderr = capture_output(
+            cli.write_citations, engine, model, contig, species, dfe
+        )
+        assert len(stdout) == 0
+        genetic_map = None
+        self.check_citations(engine, species, genetic_map, model, caplog.text)
+
+        species = stdpopsim.get_species("BosTau")
+        contig = species.get_contig("25")
+        model = species.get_demographic_model("HolsteinFriesian_1M13")
+        # this model has recombination rate, which should knock out the default
+        # recombination rate and associated citation
         engine = stdpopsim.get_default_engine()
         dfe = None
         stdout, stderr = capture_output(
@@ -954,6 +972,27 @@ class TestNonAutosomal:
                 capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
 
+class TestRecombinationRate:
+    @pytest.mark.usefixtures("caplog")
+    def test_recomb_rate(self, caplog):
+        sp = stdpopsim.get_species("BosTau")
+        mod = sp.get_demographic_model("HolsteinFriesian_1M13")
+        cmd = (
+            "BosTau -D -c 1 -o /dev/null -d HolsteinFriesian_1M13 Holstein_Friesian:10"
+        )
+        with mock.patch("stdpopsim.cli.setup_logging", autospec=True):
+            out, err = capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
+            assert len(out) == 0
+            assert len(err) == 0
+            log_output = caplog.text
+            for ll in log_output.split("\n"):
+                if "recombination" in ll:
+                    assert (
+                        ll.split()
+                        == f"Mean recombination rate: {mod.recombination_rate}".split()
+                    )
+
+
 class TestNoQCWarning:
     species = stdpopsim.get_species("EscCol")
     model = stdpopsim.DemographicModel(
@@ -998,11 +1037,14 @@ class TestNoQCWarning:
         # shouldn't be offered to the user.
         out, err = capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
         log_output = caplog.text
+        # citations are written out via the logging mechanism
+        assert len(out) == 0
+        assert len(err) == 0
         for citation in self.model.citations:
-            assert not (citation.author in out)
-            assert not (citation.doi in out)
-            assert not (citation.author in err)
-            assert not (citation.doi in err)
+            assert not (citation.author in log_output)
+            assert not (citation.doi in log_output)
+            assert not (citation.author in log_output)
+            assert not (citation.doi in log_output)
             assert not (citation.author in log_output)
             assert not (citation.doi in log_output)
 

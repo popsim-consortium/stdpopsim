@@ -1,6 +1,7 @@
 """
 Tests for SLiM simulation engine.
 """
+
 import os
 import io
 import sys
@@ -147,7 +148,7 @@ class TestAPI:
         )
         assert "community.registerLateEvent" in out
 
-    @pytest.mark.filterwarnings("ignore:Recombination map has length:UserWarning")
+    @pytest.mark.filterwarnings("ignore: Genetic map.*is longer than chromosome length")
     def test_recombination_map(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")

@@ -1,6 +1,7 @@
 """
 Tests for the generic species interface.
 """
+
 import math
 import numpy as np
 
@@ -279,10 +280,11 @@ class TestGetContig:
                 "chr1", genetic_map="HapMapII_GRCh37", length_multiplier=2
             )
 
-    @pytest.mark.filterwarnings("ignore:Recombination map has length:UserWarning")
+    @pytest.mark.filterwarnings("ignore: Genetic map.*is longer than chromosome length")
     def test_genetic_map(self):
         # TODO we should use a different map here so we're not hitting the cache.
         contig = self.species.get_contig("chr22", genetic_map="HapMapII_GRCh37")
+        assert isinstance(contig.genetic_map, stdpopsim.GeneticMap)
         assert isinstance(contig.recombination_map, msprime.RateMap)
 
     def test_contig_options(self):
@@ -356,18 +358,22 @@ class TestGetContig:
             )
             gcs = np.array(
                 [
-                    c.gene_conversion_fraction
-                    if c.gene_conversion_fraction is not None
-                    else 0
+                    (
+                        c.gene_conversion_fraction
+                        if c.gene_conversion_fraction is not None
+                        else 0
+                    )
                     for c in self.species.genome.chromosomes
                     if c.id in chrom_ids
                 ]
             )
             gcls = np.array(
                 [
-                    c.gene_conversion_length
-                    if c.gene_conversion_length is not None
-                    else 0
+                    (
+                        c.gene_conversion_length
+                        if c.gene_conversion_length is not None
+                        else 0
+                    )
                     for c in self.species.genome.chromosomes
                     if c.id in chrom_ids
                 ]

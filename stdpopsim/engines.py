@@ -120,9 +120,24 @@ class Engine:
             warnings.warn(
                 "The demographic model has mutation rate "
                 f"{demographic_model.mutation_rate}, but this simulation used the "
-                f"contig's mutation rate {contig.mutation_rate}. Diversity levels "
-                "may be different than expected for this species. For details see "
-                "documentation at "
+                "contig's mutation rate "
+                f"{contig.mutation_rate}. "
+                "Diversity levels may be different than expected for this species. "
+                "For details see documentation at "
+                "https://popsim-consortium.github.io/stdpopsim-docs/stable/tutorial.html"
+            )
+
+    def _warn_recombination_rate_mismatch(self, contig, demographic_model):
+        if demographic_model.recombination_rate is not None and not math.isclose(
+            demographic_model.recombination_rate, contig.recombination_map.mean_rate
+        ):
+            warnings.warn(
+                "The demographic model has recombination rate "
+                f"{demographic_model.recombination_rate}, but this simulation used the "
+                "contig's recombination rate "
+                f"{contig.recombination_map.mean_rate}. "
+                "Patterns of linkage may be different than expected for this species. "
+                "For details see documentation at "
                 "https://popsim-consortium.github.io/stdpopsim-docs/stable/tutorial.html"
             )
 
@@ -259,6 +274,7 @@ class _MsprimeEngine(Engine):
         # TODO: remove this after a release or two. See #745.
         self._warn_zigzag(demographic_model)
         self._warn_mutation_rate_mismatch(contig, demographic_model)
+        self._warn_recombination_rate_mismatch(contig, demographic_model)
 
         rng = np.random.default_rng(seed)
         seeds = rng.integers(1, 2**31 - 1, size=2)
@@ -276,7 +292,7 @@ class _MsprimeEngine(Engine):
             )
         elif (gc_frac is not None) and (gc_frac > 0.0):
             # the recombination map is a map of double-stranded breaks,
-            # so we need to separate out GC from crossovers
+            # so we need to separate out gene conversion from crossing-over
             gc_rate = contig.recombination_map.mean_rate * gc_frac / (1 - gc_frac)
             recombination_map = msprime.RateMap(
                 position=recombination_map.position,

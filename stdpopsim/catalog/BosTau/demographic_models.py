@@ -6,11 +6,21 @@ _species = stdpopsim.get_species("BosTau")
 
 def _HolsteinFriesian_1M13():
     id = "HolsteinFriesian_1M13"
-    description = "Piecewise size changes in Holstein-Friesian cattle."
+    description = (
+        "Piecewise size model for Holstein-Friesian cattle (MacLeod et al., 2013)."
+    )
     long_description = """
     The piecewise-constant population size model of Holstein-Friesian cattle
-    from MacLeod et al. (2013). Population sizes were estimated from inferred
-    runs of homozygosity, with parameter values taken from Figure 4A and Table S1.
+    from MacLeod et al. (2013). Effective population sizes were estimated based
+    on runs of homozygosity observed in a single individual,
+    using the following assumptions:
+    a generation interval of 5 years (page 2213),
+    a mutation rate of 0.94e-8 (pages 2221 and 2215), and
+    a recombination rate of 1e-8 (pages 2215 and 2221).
+    Effective population sizes are given in Figure 4A and Table S1.
+    The single individual is the bull Walkway Chief Mark.
+    Mark and his father are two of the most influentiual sires in this breed - see
+    Larkin et al. (2012) http://www.pnas.org/cgi/doi/10.1073/pnas.1114546109.
     """
     populations = [
         stdpopsim.Population(id="Holstein_Friesian", description="Holstein-Friesian"),
@@ -31,6 +41,7 @@ def _HolsteinFriesian_1M13():
         citations=citations,
         generation_time=_species.generation_time,
         mutation_rate=0.94e-8,
+        recombination_rate=1e-8,
         population_configurations=[
             #       3 generations at     90,      [0-      3)
             msprime.PopulationConfiguration(
