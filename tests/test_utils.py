@@ -1,6 +1,7 @@
 """
 Tests for the utils module.
 """
+
 import functools
 import os
 import pathlib

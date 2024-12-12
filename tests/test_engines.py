@@ -1,6 +1,7 @@
 """
 Tests for simulation engine infrastructure.
 """
+
 import stdpopsim
 import msprime
 import pytest

@@ -811,7 +811,7 @@ class Contig:
             mut_types = contig.mutation_types()
             for m in muts:
                 dfe_ids = [mut_types[k]["dfe_id"] for md in m.metadata["muation_list"]]
-                print(f"Mutation {m.id} has mutations from DFE(s) {','.join(dfe_ids)")
+                print(f"Mutation {m.id} has mutations from DFE(s) {','.join(dfe_ids)}")
 
         """
         id = 0

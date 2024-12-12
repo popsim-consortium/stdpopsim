@@ -1,6 +1,7 @@
 """
 Infrastructure for defining information about genome annotation.
 """
+
 import logging
 import os
 import attr

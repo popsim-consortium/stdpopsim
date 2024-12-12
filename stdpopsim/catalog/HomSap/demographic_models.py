@@ -46,7 +46,6 @@ def _ooa_nea_extended_pulse():
         dest,
         migration_cutoff=1e-5,
     ):
-
         """
         This function creates a dataframe of migration rate changes to simulate
         an extended pulse of unidirectional gene flow from a dest to a source
