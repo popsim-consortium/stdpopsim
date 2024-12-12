@@ -65,12 +65,9 @@ jobs:
           channel-priority: strict
           auto-update-conda: true
 
-      - name: move profile
-        if: steps.cache.outputs.cache-hit != 'true' && runner.os != 'Windows'
+      - name: Fix windows .profile
+        if: steps.cache.outputs.cache-hit != 'true' && runner.os == 'Windows'
         run: |
-          # The setup-miniconda action leaves different shell init files for
-          # different OSes. Bash gives priority to ~/.bash_profile, so here we
-          # ensure that's used for all platforms.
           cp ~/.bash_profile ~/.profile
 
       - name: install dependencies
