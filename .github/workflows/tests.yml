@@ -25,12 +25,12 @@ jobs:
       PYTHON: ${{ matrix.python }}
     steps:
       - name: cancel previous runs
-        uses: styfle/cancel-workflow-action@0.6.0
+        uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
 
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: find conda
         id: find-conda
@@ -45,7 +45,7 @@ jobs:
 
       - name: cache conda
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           # Increase this to reset the cache if the key hasn't changed.
           CACHE_NUM: 10
@@ -56,7 +56,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.python }}-conda-${{ hashFiles('requirements/CI/*') }}-${{ env.CACHE_NUM }}
 
       - name: install conda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@v3
         if: steps.cache.outputs.cache-hit != 'true'
         with:
           activate-environment: ${{ env.CONDA_ENV_NAME }}
@@ -72,7 +72,7 @@ jobs:
           # The setup-miniconda action leaves different shell init files for
           # different OSes. Bash gives priority to ~/.bash_profile, so here we
           # ensure that's used for all platforms.
-          mv ~/.profile ~/.bash_profile
+          cp ~/.bash_profile ~/.profile
 
       - name: install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
