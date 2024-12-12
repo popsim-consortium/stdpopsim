@@ -17,8 +17,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-12, windows-latest]
-        python: ["3.8", "3.10"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.9", "3.12"]
     env:
       CONDA_ENV_NAME: stdpopsim
       OS: ${{ matrix.os }}
