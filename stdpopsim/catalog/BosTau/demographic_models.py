@@ -11,8 +11,8 @@ def _HolsteinFriesian_1M13():
     )
     long_description = """
     The piecewise-constant population size model of Holstein-Friesian cattle
-    from MacLeod et al. (2013). Effective population sizes were estimated based
-    on runs of homozygosity observed in a single individual,
+    from MacLeod et al. (2013). Effective population sizes were estimated from
+    runs of homozygosity observed in a single individual,
     using the following assumptions:
     a generation interval of 5 years (page 2213),
     a mutation rate of 0.94e-8 (pages 2221 and 2215), and
@@ -39,7 +39,7 @@ def _HolsteinFriesian_1M13():
         long_description=long_description,
         populations=populations,
         citations=citations,
-        generation_time=_species.generation_time,
+        generation_time=5,
         mutation_rate=0.94e-8,
         recombination_rate=1e-8,
         population_configurations=[
@@ -146,7 +146,7 @@ def _HolsteinFriesian_1B16():
         long_description=long_description,
         populations=populations,
         citations=citations,
-        generation_time=_species.generation_time,
+        generation_time=5,
         mutation_rate=1e-8,
         recombination_rate=3.66e-9,
         population_configurations=[
@@ -283,7 +283,7 @@ def _Fleckvieh_1B16():
         long_description=long_description,
         populations=populations,
         citations=citations,
-        generation_time=_species.generation_time,
+        generation_time=5,
         mutation_rate=1e-8,
         recombination_rate=3.89e-9,
         population_configurations=[
@@ -417,7 +417,7 @@ def _Jersey_1B16():
         long_description=long_description,
         populations=populations,
         citations=citations,
-        generation_time=_species.generation_time,
+        generation_time=5,
         mutation_rate=1e-8,
         recombination_rate=4.58e-9,
         population_configurations=[
@@ -554,7 +554,7 @@ def _Angus_1B16():
         long_description=long_description,
         populations=populations,
         citations=citations,
-        generation_time=_species.generation_time,
+        generation_time=5,
         mutation_rate=1e-8,
         recombination_rate=5.00e-9,
         population_configurations=[
