@@ -913,13 +913,13 @@ def write_simulation_summary(
     gmap = "None" if contig.genetic_map is None else contig.genetic_map.id
     # use the model recombination rate, if provided with the demographic model
     if model.recombination_rate is not None:
-        mean_recomb_rate = model.recombination_rate
+        recomb_rate = model.recombination_rate
         logging.info(
             "using recombination rate from demographic model "
             f"({model.recombination_rate})"
         )
     else:
-        mean_recomb_rate = contig.recombination_map.mean_rate
+        recomb_rate = contig.recombination_map.mean_rate
         logging.info(
             "using recombination rate from species contig "
             f"({contig.recombination_map.mean_rate})"
@@ -942,8 +942,8 @@ def write_simulation_summary(
     dry_run_text += f"{indent}Contig origin: {contig_origin}\n"
     dry_run_text += f"{indent}Contig length: {contig_len}\n"
     dry_run_text += f"{indent}Contig ploidy: {contig_ploidy}\n"
-    dry_run_text += f"{indent}Mean mutation rate: {mut_rate}\n"
-    dry_run_text += f"{indent}Mean recombination rate: {mean_recomb_rate}\n"
+    dry_run_text += f"{indent}Mutation rate: {mut_rate}\n"
+    dry_run_text += f"{indent}Recombination rate: {recomb_rate}\n"
     dry_run_text += f"{indent}Genetic map: {gmap}\n"
     if contig.bacterial_recombination is True:
         dry_run_text += (
