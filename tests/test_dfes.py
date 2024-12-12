@@ -717,8 +717,9 @@ class TestRegisterQCDFE:
 
     def test_register_qc(self):
         dfe = self.make_dfe("test")
-        dfe.register_qc(dfe)
-        assert dfe.qc_dfe == dfe
+        dfe_two = self.make_dfe("test")
+        dfe.register_qc(dfe_two)
+        assert dfe.qc_dfe == dfe_two
 
     def test_already_registered(self):
         dfe = self.make_dfe("test")
