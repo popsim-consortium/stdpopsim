@@ -48,7 +48,7 @@ jobs:
         uses: actions/cache@v4
         env:
           # Increase this to reset the cache if the key hasn't changed.
-          CACHE_NUM: 10
+          CACHE_NUM: 11
         with:
           path: |
             ${{ steps.find-conda.outputs.CONDA }}/envs/${{ env.CONDA_ENV_NAME }}
@@ -64,7 +64,6 @@ jobs:
           channels: conda-forge
           channel-priority: strict
           auto-update-conda: true
-          use-only-tar-bz2: true
 
       - name: move profile
         if: steps.cache.outputs.cache-hit != 'true' && runner.os != 'Windows'
