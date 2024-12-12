@@ -1,6 +1,7 @@
 """
 Tests for the drosophila_melanogaster data definitions.
 """
+
 import pytest
 
 import stdpopsim

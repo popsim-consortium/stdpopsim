@@ -1,6 +1,7 @@
 """
 Tests for the human data definitions.
 """
+
 import stdpopsim
 
 import pytest

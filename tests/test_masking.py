@@ -1,6 +1,7 @@
 """
 Tests for the genetic maps management.
 """
+
 import sys
 
 import numpy as np
@@ -22,8 +23,8 @@ class TestMasking:
         bedfile = str(tmp_path / "temp_file.bed")
         with open(bedfile, "w+") as fout:
             for c, i in intervals_in.items():
-                for (l, r) in i:
-                    fout.write(f"{c}\t{l}\t{r}\n")
+                for left, right in i:
+                    fout.write(f"{c}\t{left}\t{right}\n")
         intervals_chr1 = stdpopsim.utils.read_bed(bedfile, "chr1")
         intervals_chr22 = stdpopsim.utils.read_bed(bedfile, "chr22")
         for interval in intervals_chr1:
@@ -55,8 +56,8 @@ class TestMasking:
         bedfile = str(tmp_path / "temp_file.bed")
         with open(bedfile, "w+") as fout:
             for c, i in intervals_in.items():
-                for (l, r) in i:
-                    fout.write(f"{c}\t{l}\t{r}\n")
+                for left, right in i:
+                    fout.write(f"{c}\t{left}\t{right}\n")
         intervals_test = intervals_to_keep_test_func(bedfile, "chr1")
         intervals_utils = stdpopsim.utils.read_bed(bedfile, "chr1")
         for i1, i2 in zip(intervals_utils, intervals_test):
@@ -87,8 +88,8 @@ class TestMasking:
         bedfile = str(tmp_path / "temp_file.bed")
         with open(bedfile, "w+") as fout:
             for c, i in intervals_in.items():
-                for (l, r) in i:
-                    fout.write(f"{c}\t{l}\t{r}\n")
+                for left, right in i:
+                    fout.write(f"{c}\t{left}\t{right}\n")
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("chr1", inclusion_mask=bedfile)
         assert contig.exclusion_mask is None

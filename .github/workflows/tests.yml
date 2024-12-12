@@ -11,79 +11,66 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        # Use a login shell, so that ~/.bash_profile is executed and
-        # the conda environment gets initialised.
-        shell: bash -l {0}
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-12, windows-latest]
-        python: ["3.8", "3.10"]
+        os: [ubuntu-24.04, macos-latest, windows-latest]
+        python: ["3.10", "3.12"]
     env:
       CONDA_ENV_NAME: stdpopsim
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python }}
     steps:
       - name: cancel previous runs
-        uses: styfle/cancel-workflow-action@0.6.0
+        uses: styfle/cancel-workflow-action@0.12.1
         with:
           access_token: ${{ github.token }}
 
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4.2.2
 
-      - name: find conda
-        id: find-conda
-        run: |
-          echo "CONDA=$CONDA" >> $GITHUB_OUTPUT
-
-      - name: fix conda permissions
-        if: runner.os == 'macOS'
-        run: |
-          # Fix incorrect conda permissions on mac that prevent cache restore.
-          sudo chown -R $USER:staff ${{ steps.find-conda.outputs.CONDA }}
-
-      - name: cache conda
+      - name: Cache conda and dependencies
         id: cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4.2.0
         env:
           # Increase this to reset the cache if the key hasn't changed.
-          CACHE_NUM: 9
+          CACHE_NUM: 0
         with:
-          path: |
-            ${{ steps.find-conda.outputs.CONDA }}/envs/${{ env.CONDA_ENV_NAME }}
-            ~/.bash_profile
-          key: ${{ runner.os }}-${{ matrix.python }}-conda-${{ hashFiles('requirements/CI/*') }}-${{ env.CACHE_NUM }}
+          path: ${{ env.CONDA }}/envs
+          key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.python}}-conda-${{ env.CACHE_NUM }}-${{ hashFiles('requirements/CI/*') }}
 
-      - name: install conda
-        uses: conda-incubator/setup-miniconda@v2
+      - name: Install Conda
+        uses: conda-incubator/setup-miniconda@v3.1.0
         if: steps.cache.outputs.cache-hit != 'true'
         with:
-          activate-environment: ${{ env.CONDA_ENV_NAME }}
+          activate-environment: anaconda-client-env
           python-version: ${{ matrix.python }}
           channels: conda-forge
           channel-priority: strict
           auto-update-conda: true
-          use-only-tar-bz2: true
 
-      - name: move profile
-        if: steps.cache.outputs.cache-hit != 'true' && runner.os != 'Windows'
+      - name: Fix windows .profile
+        if: steps.cache.outputs.cache-hit != 'true' && matrix.os == 'windows-latest'
         run: |
-          # The setup-miniconda action leaves different shell init files for
-          # different OSes. Bash gives priority to ~/.bash_profile, so here we
-          # ensure that's used for all platforms.
-          mv ~/.profile ~/.bash_profile
+          cp ~/.bash_profile ~/.profile
 
-      - name: install dependencies
+      - name: Install conda deps
         if: steps.cache.outputs.cache-hit != 'true'
+        shell: bash -l {0} #We need a login shell to get conda
         run: |
-          # We install msprime from conda to avoid GSL-related build issues
-          # when pip installing without binary wheels (on Windows).
           conda install --yes --file=requirements/CI/conda.txt
-          pip install -r requirements/CI/requirements.txt
+
+      - name: Install pip deps
+        if: steps.cache.outputs.cache-hit != 'true'
+        shell: bash -l {0}
+        run: |
+            pip install -r requirements/CI/requirements.txt
 
       - name: run test suite
         run: |
+          source ~/.profile
+          conda activate anaconda-client-env
           python -m pytest \
             -n 0 \
             -v \
@@ -94,7 +81,7 @@ jobs:
             tests
 
       - name: upload coverage report to codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5.1.1
         with:
           fail_ci_if_error: true
           env_vars: OS,PYTHON

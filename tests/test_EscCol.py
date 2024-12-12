@@ -1,6 +1,7 @@
 """
 Tests for the EscCol data definitions.
 """
+
 import stdpopsim
 import pytest
 from tests import test_species

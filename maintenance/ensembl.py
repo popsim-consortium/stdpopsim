@@ -1,6 +1,7 @@
 """
 Utilites for working with the ensembl Rest API.
 """
+
 import json
 import time
 import logging

@@ -1,6 +1,7 @@
 """
 Miscellaneous utilities.
 """
+
 import contextlib
 import hashlib
 import math

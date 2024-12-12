@@ -1,6 +1,7 @@
 """
 Tests for the annotations management.
 """
+
 from unittest import mock
 import gzip
 import tempfile
