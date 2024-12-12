@@ -37,12 +37,6 @@ jobs:
         run: |
           echo "CONDA=$CONDA" >> $GITHUB_OUTPUT
 
-      - name: fix conda permissions
-        if: runner.os == 'macOS'
-        run: |
-          # Fix incorrect conda permissions on mac that prevent cache restore.
-          sudo chown -R $USER:staff ${{ steps.find-conda.outputs.CONDA }}
-
       - name: cache conda
         id: cache
         uses: actions/cache@v4
