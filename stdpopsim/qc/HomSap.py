@@ -208,7 +208,7 @@ _species.get_demographic_model("OutOfAfrica_2T12").register_qc(
 
 
 def BrowningAmerica():
-    id = "QC-AmericanAdmixture_4B11"
+    id = "QC-AmericanAdmixture_4B18"
     populations = [population_sample_0] * 4
 
     # Parameters are taken from the Methods - Simulated data section
@@ -328,7 +328,7 @@ def BrowningAmerica():
     )
 
 
-_species.get_demographic_model("AmericanAdmixture_4B11").register_qc(BrowningAmerica())
+_species.get_demographic_model("AmericanAdmixture_4B18").register_qc(BrowningAmerica())
 
 
 def RagsdaleArchaic():

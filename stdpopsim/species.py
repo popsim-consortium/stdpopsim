@@ -261,10 +261,10 @@ class Species:
     def _warn_browning(self, model_id):
         if model_id == "AmericanAdmixture_4B11":
             warnings.warn(
-                "In stdpopsim <= 0.2.1, the AmericanAdmixture_4B11 model "
-                "was named AmericanAdmixture_4B18; but since it comes "
+                "In stdpopsim <= 0.2.1, the AmericanAdmixture_4B18 model "
+                "was named AmericanAdmixture_4B11; but since it comes "
                 "from a 2018 paper, this is corrected. The model name "
-                "AmericanAdmixture_4B11  will work for now but is deprecated."
+                "AmericanAdmixture_4B11 will work for now but is deprecated."
             )
             model_id = "AmericanAdmixture_4B18"
         return model_id
