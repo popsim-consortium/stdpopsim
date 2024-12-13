@@ -1625,8 +1625,6 @@ class _SLiMEngine(stdpopsim.Engine):
         # by msprime later
         slim_rate_map = get_slim_mutation_rate_map(contig)
 
-        # TODO: remove this after a release or two. See #745.
-        self._warn_zigzag(demographic_model)
         self._warn_mutation_rate_mismatch(contig, demographic_model)
         self._warn_recombination_rate_mismatch(contig, demographic_model)
 
