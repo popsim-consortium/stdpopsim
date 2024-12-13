@@ -14,6 +14,10 @@
 
 **Breaking changes**:
 
+- The 2018 Browning et al HomSap demographic model previously named
+  "AmericanAdmixture_4B11" is now named "AmericanAdmixture_4B18"; the old name
+  works but throws a deprecation warning. (:user:`petrelharp`, :pr:`1603`)
+
 - The `time_units` attribute of tree sequence metadata is now set to "generations"
     for SLiM output, avoiding the "time units mismatch warning".
     (:user:`nspope`, :pr:`1567`)
