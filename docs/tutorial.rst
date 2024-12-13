@@ -1439,6 +1439,78 @@ To make the example quick, we've only simulated the first 100Kb;
 a more realistic example would apply it to the exons, available
 as a :ref:`annotation <sec_catalog_phosin_annotations>`.
 
+.. _sec_tute_recapitation:
+
+Tips, tricks, and gotchas
+=========================
+
+Here are a few things about the whole process that it might be useful to know.
+Maybe this will save you some time,
+or let you do new things!
+
+.. _sec_tute_missing_data:
+
+Missing data and coordinates
+----------------------------
+
+Suppose as above that we've simulated just a portion of a chromosome,
+using the `left` and `right` arguments to `species.get_contig( )`:
+
+.. code-block:: python
+
+    species = stdpopsim.get_species("HomSap")
+    model = species.get_demographic_model("Africa_1T12")
+    contig = species.get_contig(
+        "chr22", left=10e6, right=20e6, mutation_rate=model.mutation_rate
+    )
+    samples = {"AFR": 100}
+    engine = stdpopsim.get_engine("msprime")
+    ts = engine.simulate(model, contig, samples)
+    print(
+        f"Sequence length: {ts.sequence_length}\n"
+        f"  First variant: {ts.sites_position[0]}\n"
+        f"   Last variant: {ts.sites_position[-1]}\n"
+    )
+    # Sequence length: 50818468.0
+    #   First variant: 10000142.0
+    #    Last variant: 19999926.0
+
+
+We would like the output to preserve the coordinate system,
+so all variants we'd see in a VCF file (for instance) are between
+10Mb and 20Mb. However, for the tree sequence to
+retain the same coordinates, it must start at position 0,
+and end at the sequence length of human chromosome 22.
+So, the rest of the tree sequence contains "misssing data",
+which is encoded as, basically, a big "tree" where no-one is
+related to anyone else on those segments (in other words,
+before 10Mb and after 20Mb).
+
+This can lead to surprising things.
+For instance, the first tree (the tree describing relationships
+at position 0 along the sequence) has 200 roots:
+
+.. code-block:: python
+
+    t = ts.first()
+    t.num_roots
+    # 200
+
+Of course, that's just one root per sample: in other words,
+there's actually no trees on this portion of the genome.
+If we check all the trees using the `root_threshold` argument
+to :meth:`tskit.TreeSequence.trees`, then we'll correctly see
+that in fact all trees have fully coalesced (as they should have,
+because as discussed above, we have recapitated them):
+
+.. code-block:: python
+
+    max([t.num_roots for t in ts.trees(root_threshold=2)])
+    # 1
+
+To read more about using tree sequences,
+see `tskit's documentation <https://tskit.dev/tskit/docs/latest/data-model.html>`__.
+
 .. _sec_tute_analyses:
 
 *******************************
