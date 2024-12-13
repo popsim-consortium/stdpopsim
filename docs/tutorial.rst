@@ -1478,7 +1478,8 @@ using the `left` and `right` arguments to `species.get_contig( )`:
 
 We would like the output to preserve the coordinate system,
 so all variants we'd see in a VCF file (for instance) are between
-10Mb and 20Mb. However, for the tree sequence to
+10Mb and 20Mb. (And, if you're just getting a VCF, then no need to read
+the rest of this!) However, for the tree sequence to
 retain the same coordinates, it must start at position 0,
 and end at the sequence length of human chromosome 22.
 So, the rest of the tree sequence contains "misssing data",
