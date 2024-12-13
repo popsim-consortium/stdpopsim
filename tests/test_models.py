@@ -369,17 +369,6 @@ class TestPopulationSampling:
             assert sum(allow_sample_status[num_sampling:]) == 0
 
 
-class TestZigZagWarning:
-    def test_zigzag_produces_warning(self):
-        species = stdpopsim.get_species("HomSap")
-        model = species.get_demographic_model("Zigzag_1S14")
-        contig = species.get_contig("chr22")
-        samples = {"generic": 5}
-        for engine in stdpopsim.all_engines():
-            with pytest.warns(UserWarning, match="Zigzag_1S14 model.*sizes 5x lower"):
-                engine.simulate(model, contig, samples, dry_run=True)
-
-
 class TestMutationRates:
     def test_mutation_rate_warning(self):
         species = stdpopsim.get_species("HomSap")
