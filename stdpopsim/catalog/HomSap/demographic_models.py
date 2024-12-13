@@ -474,7 +474,7 @@ _species.add_demographic_model(_african())
 
 
 def _america():
-    id = "AmericanAdmixture_4B11"
+    id = "AmericanAdmixture_4B18"
     description = "American admixture"
     long_description = """
         Demographic model for American admixture, taken from Browning et al. 2018.

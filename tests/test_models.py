@@ -369,6 +369,14 @@ class TestPopulationSampling:
             assert sum(allow_sample_status[num_sampling:]) == 0
 
 
+class TestBrowningWarning:
+    def test_browning_produces_warning(self):
+        species = stdpopsim.get_species("HomSap")
+        with pytest.warns(UserWarning, match="AmericanAdmixture_4B18"):
+            model = species.get_demographic_model("AmericanAdmixture_4B11")
+        assert model.id == "AmericanAdmixture_4B18"
+
+
 class TestMutationRates:
     def test_mutation_rate_warning(self):
         species = stdpopsim.get_species("HomSap")
