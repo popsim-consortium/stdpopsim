@@ -512,6 +512,7 @@ This provides both a ``size_history`` plot and a ``tubes`` visualization. E.g.
 .. code-block:: python
 
     import demesdraw
+
     graph = model.model.to_demes()
     demesdraw.tubes(model.model.to_demes())
 
