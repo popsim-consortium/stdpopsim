@@ -1555,7 +1555,7 @@ models available to us:
 This prints detailed information about all of the available models to
 the terminal.
 In this tutorial, we will use the model of African-American admixture from
-`2011 Browning et al <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.
+`Browning et al. (2018) <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.
 From the help output (or the :ref:`Catalog <sec_catalog_homsap_models_americanadmixture_4b11>`),
 we can see that this model has id ``AmericanAdmixture_4B11``,
 and allows samples to be drawn from 4 contemporary populations representing African,
