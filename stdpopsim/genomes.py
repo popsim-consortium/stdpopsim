@@ -389,7 +389,7 @@ class Contig:
         species,
         chromosome=None,
         genetic_map=None,
-        length_multiplier=1,
+        length_multiplier=None,
         length=None,
         mutation_rate=None,
         recombination_rate=None,
@@ -418,6 +418,16 @@ class Contig:
         ):
             raise ValueError(
                 "Cannot use species gene conversion with bacterial recombination."
+            )
+        # TODO: remove deprecated argument in a release or two, see issue #1349.
+        if length_multiplier is None:
+            length_multiplier = 1
+        else:
+            warnings.warn(
+                stdpopsim.DeprecatedFeatureWarning(
+                    "The 'length_multiplier' option is deprecated and will be removed "
+                    "in a future release. Use 'left' and 'right' instead."
+                )
             )
         gene_conversion_fraction = None
         gene_conversion_length = None

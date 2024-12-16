@@ -57,7 +57,7 @@ def irradiate(contig, x=20):
 
 def _onepop_PC(engine_id, out_dir, seed, N0=1000, *size_changes, **sim_kwargs):
     species = stdpopsim.get_species("CanFam")
-    contig = species.get_contig("chr35", length_multiplier=0.01)  # ~265 kb
+    contig = species.get_contig("chr35", right=265e3)  # ~265 kb
     contig = irradiate(contig)
     model = stdpopsim.PiecewiseConstantSize(N0, *size_changes)
     model.generation_time = species.generation_time
@@ -164,7 +164,7 @@ class _PiecewiseSize(stdpopsim.DemographicModel):
 def _onepop_expgrowth(engine_id, out_dir, seed, N0=5000, N1=500, T=1000, **sim_kwargs):
     growth_rate = -np.log(N1 / N0) / T
     species = stdpopsim.get_species("DroMel")
-    contig = species.get_contig("chr2R", length_multiplier=0.01)  # ~250 kb
+    contig = species.get_contig("chr2R", right=250e3)  # ~250 kb
     contig = irradiate(contig)
     model = _PiecewiseSize(N0, growth_rate, (T, N1, 0))
     model.generation_time = species.generation_time
@@ -223,7 +223,7 @@ def _twopop_IM(
     **sim_kwargs,
 ):
     species = stdpopsim.get_species("AraTha")
-    contig = species.get_contig("chr5", length_multiplier=0.01)  # ~270 kb
+    contig = species.get_contig("chr5", right=270e3)  # ~270 kb
     contig = irradiate(contig)
     model = stdpopsim.IsolationWithMigration(NA=NA, N1=N1, N2=N2, T=T, M12=M12, M21=M21)
     if pulse is not None:
