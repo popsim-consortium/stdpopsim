@@ -513,7 +513,7 @@ This provides both a ``size_history`` plot and a ``tubes`` visualization. E.g.
 
     import demesdraw
     graph = model.model.to_demes()
-    demesdraw.tubes(model.model.to_demes());
+    demesdraw.tubes(model.model.to_demes())
 
 Equivalent plots for all the available demographic models are also
 shown in the :ref:`sec_catalog`.
