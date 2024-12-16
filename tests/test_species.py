@@ -265,6 +265,7 @@ class TestGetContig:
 
     species = stdpopsim.get_species("HomSap")
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_length_multiplier(self):
         contig1 = self.species.get_contig("chr22")
         for x in [0.125, 1.0, 2.0]:
@@ -274,6 +275,7 @@ class TestGetContig:
                 == contig2.recombination_map.position[-1]
             )
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_length_multiplier_on_empirical_map(self):
         with pytest.raises(ValueError):
             self.species.get_contig(
@@ -287,6 +289,7 @@ class TestGetContig:
         assert isinstance(contig.genetic_map, stdpopsim.GeneticMap)
         assert isinstance(contig.recombination_map, msprime.RateMap)
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_contig_options(self):
         with pytest.raises(ValueError, match="Cannot use genetic map"):
             # cannot use genetic map with generic contig
