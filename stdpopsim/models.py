@@ -250,7 +250,8 @@ class DemographicModel:
 
         .. note: This interface is deprecated. Instead, a dict containing the
             number of individuals per population should be directly provided to
-            :meth:`Engine.simulate`.
+            :meth:`Engine.simulate`. Note that in the updated API, each sample
+            is an individual of the species' ploidy.
         """
 
         warnings.warn(
@@ -259,7 +260,10 @@ class DemographicModel:
                 "positional sample counts (CLI) is deprecated. Instead, supply a "
                 "{population_name:num_samples} dict to "
                 "`Engine.simulate(samples=...)` (Python API); or use the syntax "
-                "`stdpopsim SpeciesName population_name:num_samples` (CLI)."
+                "`stdpopsim SpeciesName population_name:num_samples` (CLI). Note "
+                "that the deprecated API specifies the number of haploids, "
+                "while the new API specifies the number of individuals of the "
+                "species' ploidy."
             )
         )
 
