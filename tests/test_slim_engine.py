@@ -1762,6 +1762,45 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         self.verify_mutation_rates(contig, ts)
         assert int(ts.sequence_length) == contig.length
 
+    def test_dfe_clipping_to_segment(self):
+        left = 100101
+        right = 201024
+        homsap = stdpopsim.get_species("HomSap")
+
+        # check that default DFE is clipped to [left, right]
+        contig = homsap.get_contig("chr22", left=left, right=right)
+        dfe_breaks, dfe_type = contig.dfe_breakpoints()
+        assert dfe_breaks.size == 4 and dfe_type.size == 3
+        assert dfe_breaks[1] == left and dfe_breaks[2] == right
+        assert dfe_type[0] == dfe_type[2] == -1 and dfe_type[1] == 0
+
+        # check that added DFE is clipped to [left, right]
+        dfe = homsap.get_dfe("Gamma_K17")
+        contig.add_dfe(np.array([[0, contig.length]], dtype="int"), dfe)
+        dfe_breaks, dfe_type = contig.dfe_breakpoints()
+        assert dfe_breaks.size == 4 and dfe_type.size == 3
+        assert dfe_breaks[1] == left and dfe_breaks[2] == right
+        assert dfe_type[0] == dfe_type[2] == -1 and dfe_type[1] == 1
+
+        # check that (not recapitated) simulation has no recombinations or mutations
+        # in the "missing" flanks
+        engine = stdpopsim.get_engine("slim")
+        demogr = stdpopsim.PiecewiseConstantSize(1e3)
+        ts = engine.simulate(
+            demographic_model=demogr,
+            contig=contig,
+            samples={"pop_0": 10},
+            seed=1234,
+            _recap_and_rescale=False,
+        )
+        assert ts.first().interval.right >= left
+        assert ts.last().interval.left <= right
+        mutations_in_region = np.logical_and(
+            ts.sites_position[ts.mutations_site] >= left,
+            ts.sites_position[ts.mutations_site] <= right,
+        )
+        assert np.all(mutations_in_region)
+
     def test_dominance_coeff_list(self):
         # test that discretized h-s relationships work
         contig = get_test_contig()
