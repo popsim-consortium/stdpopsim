@@ -172,7 +172,7 @@ class Species:
         self,
         chromosome=None,
         genetic_map=None,
-        length_multiplier=1,
+        length_multiplier=None,
         length=None,
         mutation_rate=None,
         recombination_rate=None,
@@ -208,11 +208,12 @@ class Species:
             using a default uniform recombination rate on a region with the length of
             the specified chromosome. The default rates are species- and chromosome-
             specific, and can be found in the :ref:`sec_catalog`. (Default: None)
-        :param float length_multiplier: If specified, simulate a region of length
-            `length_multiplier` times the length of the specified chromosome with the
-            same chromosome-specific mutation and recombination rates.
-            This option cannot currently be used in conjunction with the
-            ``genetic_map`` argument.
+        :param float length_multiplier: Deprecated, use `left` and `right`
+            instead. If specified, simulate a region of length `length_multiplier`
+            times the length of the specified chromosome with the same
+            chromosome-specific mutation and recombination rates.  This option
+            cannot currently be used in conjunction with the ``genetic_map``
+            argument.
         :param float mutation_rate: The per-base mutation rate. If none is given,
             the mutation rate defaults to the rate specified by species chromosomes.
         :param float recombination_rate: The per-base recombination rate. If none is

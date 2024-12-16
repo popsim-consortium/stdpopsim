@@ -387,6 +387,7 @@ class TestContig(object):
         for x, y in zip(breakpoints, ob):
             assert x == y
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_chromosome_segment_fails_with_length_multiplier(self):
         chrom = "chr2"
         species = stdpopsim.get_species("HomSap")

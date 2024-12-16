@@ -1,3 +1,13 @@
+--------------------
+[0.2.1] - 2024-XX-XX
+--------------------
+
+**Breaking changes**:
+
+- The `length_multiplier` option to `Species.get_contig` is deprecated and
+  prints a warning. The options `left` and `right` should be used to truncate a
+  contig, instead. (:user:`nspope`, :pr:`xxxx`)
+
 ---------------------
 [0.2.1a] - 2024-07-06
 ---------------------

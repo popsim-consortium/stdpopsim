@@ -570,13 +570,16 @@ def add_simulate_species_parser(parser, species):
         type=str,
         help="Path to exclusion mask specified in bed format.",
     )
+    # TODO: remove deprecated `length_multiplier` argument after a release or
+    # two, see issue #1349.
     species_parser.add_argument(
         "-l",
         "--length-multiplier",
-        default=1,
+        default=None,
         type=float,
-        help="Simulate a sequence of length l times the named chromosome's length "
-        "using the named chromosome's mutation and recombination rates.",
+        help="Deprecated. Simulate a sequence of length l times the named "
+        "chromosome's length using the named chromosome's mutation and "
+        "recombination rates.",
     )
     species_parser.add_argument(
         "--left",
