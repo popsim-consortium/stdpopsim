@@ -58,10 +58,19 @@ _recombination_rate = $chromosome_rate_dict
 
 _mutation_rate = $chromosome_rate_dict
 
+# [The following are notes for implementers and should be deleted
+#  once the recombination rates have been inserted]
+# This is the per-chromosome ploidy.
+# Values in this dictionary are set to -1 by default, so you have
+# to update each one.
+
+_ploidy = $chromosome_rate_dict
+
 _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
+    ploidy=_ploidy,
     # [ Implementers: please insert citations for the papers you are basing
     # the estimates for recombination and mutation rates. The assembly
     # citation is optional and can be deleted if not needed.]
@@ -81,6 +90,8 @@ _species = stdpopsim.Species(
     name="$scientific_name",
     common_name="$common_name",
     genome=_genome,
+    # [Implementers: you must provide the typical ploidy of the organism.]
+    ploidy=-1,
     # [Implementers: you must provide an estimate of the generation_time.
     # Please also add a citation for this.]
     generation_time=0,
@@ -150,6 +161,13 @@ class TestGenomeData(test_species.GenomeTestBase):
         $chromosome_rate_dict.items())
     def test_mutation_rate(self, name, rate):
         assert rate == pytest.approx(self.genome.get_chromosome(name).mutation_rate)
+
+    @pytest.mark.skip("Ploidy QC not done yet")
+    @pytest.mark.parametrize(
+        ["name", "ploidy"],
+        $chromosome_rate_dict.items())
+    def test_chromosome_ploidy(self, name, ploidy):
+        assert ploidy == self.genome.get_chromosome(name).ploidy
 """
 )
 
