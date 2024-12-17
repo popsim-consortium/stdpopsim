@@ -178,17 +178,9 @@ Selection and sweeps
 
 :class:`ExtendedEvent` and subclasses may be used to condition on sequences of
 events at particular loci using the SLiM engine, by passing lists of events to
-the `extended_events` argument in `Engine.simulate`. A simplified API is provided
-to construct the necessary events for selective sweeps.
-
-.. autoclass:: stdpopsim.DrawMutation()
-    :members:
-
-.. autoclass:: stdpopsim.ChangeMutationFitness()
-    :members:
-
-.. autoclass:: stdpopsim.ConditionOnAlleleFrequency()
-    :members:
+the `extended_events` argument in `Engine.simulate`. These are intended for
+internal use only, as they may change in the future. However, a stable API is
+provided to construct the necessary events for selective sweeps.
 
 .. autofunction:: stdpopsim.selective_sweep
 
