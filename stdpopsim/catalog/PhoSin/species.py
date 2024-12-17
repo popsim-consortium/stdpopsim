@@ -131,6 +131,7 @@ _species = stdpopsim.Species(
     name="Phocoena sinus",
     common_name="Vaquita",
     genome=_genome,
+    ploidy=_species_ploidy,
     ##########################
     # Robinson et al. (2022) and Morin et al. (2021) assumed an average
     # generation time of 11.9 years in their analyses/calibrations.

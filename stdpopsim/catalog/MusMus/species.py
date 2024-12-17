@@ -160,6 +160,7 @@ _species = stdpopsim.Species(
     name="Mus musculus",
     common_name="Mouse",
     genome=_genome,
+    ploidy=_species_ploidy,
     generation_time=0.75,
     population_size=500000,
     citations=[

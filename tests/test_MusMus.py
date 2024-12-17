@@ -97,3 +97,33 @@ class TestGenomeData(test_species.GenomeTestBase):
     )
     def test_mutation_rate(self, name, rate):
         assert rate == pytest.approx(self.genome.get_chromosome(name).mutation_rate)
+
+    @pytest.mark.parametrize(
+        ["name", "ploidy"],
+        {
+            "1": 2,
+            "2": 2,
+            "3": 2,
+            "4": 2,
+            "5": 2,
+            "6": 2,
+            "7": 2,
+            "8": 2,
+            "9": 2,
+            "10": 2,
+            "11": 2,
+            "12": 2,
+            "13": 2,
+            "14": 2,
+            "15": 2,
+            "16": 2,
+            "17": 2,
+            "18": 2,
+            "19": 2,
+            "X": 2,
+            "Y": 1,
+            "MT": 1,
+        }.items(),
+    )
+    def test_chromosome_ploidy(self, name, ploidy):
+        assert ploidy == self.genome.get_chromosome(name).ploidy
