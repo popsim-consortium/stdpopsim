@@ -842,12 +842,12 @@ class TestWarningsAndErrors:
         model = stdpopsim.PiecewiseConstantSize(100)
         samples = {"pop_0": 1}
 
-        with pytest.raises(stdpopsim.SLiMException):
+        with pytest.raises(stdpopsim.SLiMException, match="is zero at tick 1"):
             engine.simulate(
                 demographic_model=model,
                 contig=contig,
                 samples=samples,
-                slim_scaling_factor=200,
+                slim_scaling_factor=300,
                 dry_run=True,
             )
 
@@ -882,7 +882,7 @@ class TestWarningsAndErrors:
                 demographic_model=model,
                 contig=contig,
                 samples=samples,
-                slim_scaling_factor=200,
+                slim_scaling_factor=300,
                 dry_run=True,
             )
 
@@ -3077,6 +3077,79 @@ class TestSelectionCoeffFromMutation:
             stdpopsim.selection_coeff_from_mutation("foo", next(ts.mutations()))
         with pytest.raises(ValueError, match="must be a"):
             stdpopsim.selection_coeff_from_mutation(ts, "bar")
+
+
+@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
+class TestPopSizes:
+    """
+    Test that population sizes are set correctly.
+    Thanks to discretization artifacts, this is a bit tricky in phases
+    of exponential growth: suppose we are growing at rate r for the
+    time period [t, t+T), starting from size x. In discrete time, at
+    time t we set the size to x; then subsequently we re-set the size
+    only T-1 times. (One consideration is that we re-set sizes in `late`,
+    which doesn't take effect until the next tick, so a reset in the final
+    time step has no effect.) This means that the continuous-time msprime model
+    that we base this on is growing for total time T, but the SLiM model grows
+    in T-1 time steps. Furthermore, we'd like both the final and initial sizes
+    to be exactly what they are supposed to be. This amounts to approximating
+    exp(r*t) over the interval [0,T] by exp(r*t*T/(T-1)). Probably something
+    nicer could be done, but this is close. The approximation is better for
+    smaller growth rates.
+    """
+
+    def verify_pop_sizes(self, model, samples, generation_time=1):
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("chr17", left=1e7, right=1e7 + 1e4)
+        engine = stdpopsim.get_engine("slim")
+        sp_model = stdpopsim.DemographicModel(
+            id="test",
+            description="foo",
+            long_description="fooooooo",
+            generation_time=generation_time,
+            model=model,
+        )
+        ts = engine.simulate(
+            sp_model, contig, samples, seed=123, slim_burn_in=0.0, verbosity=3
+        )
+        slim_sizes = ts.metadata["SLiM"]["user_metadata"]["population_sizes"][0]
+        dd = model.debug()
+        T = ts.metadata["SLiM"]["cycle"]
+        for pop in slim_sizes:
+            k = [x.name for x in model.populations].index(pop)
+            pop_t = np.array(slim_sizes[pop][0]["t"])
+            pop_N = np.array(slim_sizes[pop][0]["N"])
+            dd_N = dd.population_size_trajectory(T - pop_t)[:, k]
+            np.testing.assert_allclose(pop_N, dd_N, rtol=0.01)
+
+    @pytest.mark.parametrize("generation_time", [1, 3])
+    def test_pop_growth(self, generation_time):
+        model = msprime.Demography()
+        model.add_population(initial_size=100, name="pop_0", growth_rate=0.003)
+        model.add_population_parameters_change(time=100, growth_rate=0.0)
+        samples = {"pop_0": 100}
+        self.verify_pop_sizes(model, samples, generation_time=generation_time)
+
+    @pytest.mark.parametrize("generation_time", [1, 3])
+    def test_pop_resize(self, generation_time):
+        model = msprime.Demography()
+        model.add_population(initial_size=100, name="pop_0")
+        model.add_population_parameters_change(time=10, initial_size=75)
+        model.add_population_parameters_change(time=20, initial_size=150)
+        samples = {"pop_0": 100}
+        self.verify_pop_sizes(model, samples, generation_time=generation_time)
+
+    @pytest.mark.parametrize("generation_time", [1, 3])
+    def test_pop_split(self, generation_time):
+        model = msprime.Demography()
+        model.add_population(initial_size=100, name="pop_0")
+        model.add_population(initial_size=70, name="pop_1", growth_rate=0.001)
+        model.add_population(initial_size=130, name="pop_2", growth_rate=-0.001)
+        model.add_population_split(
+            time=150, derived=["pop_1", "pop_2"], ancestral="pop_0"
+        )
+        samples = {"pop_1": 70, "pop_2": 130}
+        self.verify_pop_sizes(model, samples, generation_time=generation_time)
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
