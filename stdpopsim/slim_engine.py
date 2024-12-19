@@ -524,7 +524,7 @@ _slim_main = """
 
     // Sample individuals.
     for (i in 0:(ncol(sampling_episodes)-1)) {
-        pop = drop(sampling_episodes[0,i]);
+        pop = drop(asInteger(sampling_episodes[0,i]));
         n = sampling_episodes[1,i];
         g = time_to_tick(sampling_episodes[2,i]);
 
@@ -671,24 +671,24 @@ _slim_debug_output = """
 // This is for development purposes, and the format of this metadata
 // is subject to change or may even be removed!
 1 first() {
-	if (verbosity >= 3) {
-		metadata.setValue("population_sizes", Dictionary());
-	}
+    if (verbosity >= 3) {
+        metadata.setValue("population_sizes", Dictionary());
+    }
 }
 
 1: late() {
-	if (verbosity >= 3) {
-		popsizes = metadata.getValue("population_sizes");
-		for (pop in sim.subpopulations) {
-			traj = popsizes.getValue(pop.name);
-			if (isNULL(traj)) {
-				traj = Dictionary();
-				popsizes.setValue(pop.name, traj);
-			}
-			traj.setValue("t", c(traj.getValue("t"), community.tick));
-			traj.setValue("N", c(traj.getValue("N"), pop.individualCount));
-		}
-	}
+    if (verbosity >= 3) {
+        popsizes = metadata.getValue("population_sizes");
+        for (pop in sim.subpopulations) {
+            traj = popsizes.getValue(pop.name);
+            if (isNULL(traj)) {
+                traj = Dictionary();
+                popsizes.setValue(pop.name, traj);
+            }
+            traj.setValue("t", c(traj.getValue("t"), community.tick));
+            traj.setValue("N", c(traj.getValue("N"), pop.individualCount));
+        }
+    }
 }
 
 """
@@ -966,7 +966,7 @@ def slim_makescript(
             # SLiM simulates a diploid population, so rescale population size
             # depending on contig ploidy. If/when the SLiM simulation is
             # converted to a haploid model, this rescaling should be removed.
-            N[i, j] = (pop.end_size * contig.ploidy / 2)
+            N[i, j] = pop.end_size * contig.ploidy / 2
             growth_rates[i, j] = pop.growth_rate
 
     admixture_pulses = []

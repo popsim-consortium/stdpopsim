@@ -3098,7 +3098,7 @@ class TestPopSizes:
     smaller growth rates.
     """
 
-    def verify_pop_sizes(self, model, samples, generation_time=1):
+    def verify_pop_sizes(self, model, samples, generation_time=1, Q=1):
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("chr17", left=1e7, right=1e7 + 1e4)
         engine = stdpopsim.get_engine("slim")
@@ -3110,7 +3110,13 @@ class TestPopSizes:
             model=model,
         )
         ts = engine.simulate(
-            sp_model, contig, samples, seed=123, slim_burn_in=0.0, verbosity=3
+            sp_model,
+            contig,
+            samples,
+            seed=123,
+            slim_burn_in=0.0,
+            verbosity=3,
+            slim_scaling_factor=Q,
         )
         slim_sizes = ts.metadata["SLiM"]["user_metadata"]["population_sizes"][0]
         dd = model.debug()
@@ -3119,37 +3125,52 @@ class TestPopSizes:
             k = [x.name for x in model.populations].index(pop)
             pop_t = np.array(slim_sizes[pop][0]["t"])
             pop_N = np.array(slim_sizes[pop][0]["N"])
-            dd_N = dd.population_size_trajectory(T - pop_t)[:, k]
-            np.testing.assert_allclose(pop_N, dd_N, rtol=0.01)
+            dd_N = dd.population_size_trajectory(np.floor((T - pop_t) * Q))[:, k] / Q
+            dd_N1 = (
+                dd.population_size_trajectory(np.floor((T - pop_t + 1) * Q))[:, k] / Q
+            )
+            # np.testing.assert_allclose(pop_N, dd_N, rtol=0.01)
+            assert np.all(
+                np.logical_or(
+                    np.isclose(pop_N, dd_N, rtol=0.01),
+                    np.isclose(pop_N, dd_N1, rtol=0.01),
+                )
+            )
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.parametrize("generation_time", [1, 3])
-    def test_pop_growth(self, generation_time):
+    @pytest.mark.parametrize("Q", [1, 3])
+    def test_pop_growth(self, generation_time, Q):
         model = msprime.Demography()
-        model.add_population(initial_size=100, name="pop_0", growth_rate=0.003)
+        model.add_population(initial_size=300, name="pop_0", growth_rate=0.003)
         model.add_population_parameters_change(time=100, growth_rate=0.0)
-        samples = {"pop_0": 100}
-        self.verify_pop_sizes(model, samples, generation_time=generation_time)
+        samples = {"pop_0": int(300 / Q)}
+        self.verify_pop_sizes(model, samples, generation_time=generation_time, Q=Q)
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.parametrize("generation_time", [1, 3])
-    def test_pop_resize(self, generation_time):
+    @pytest.mark.parametrize("Q", [1, 3])
+    def test_pop_resize(self, generation_time, Q):
         model = msprime.Demography()
-        model.add_population(initial_size=100, name="pop_0")
-        model.add_population_parameters_change(time=10, initial_size=75)
-        model.add_population_parameters_change(time=20, initial_size=150)
-        samples = {"pop_0": 100}
-        self.verify_pop_sizes(model, samples, generation_time=generation_time)
+        model.add_population(initial_size=300, name="pop_0")
+        model.add_population_parameters_change(time=10, initial_size=160)
+        model.add_population_parameters_change(time=20, initial_size=450)
+        samples = {"pop_0": int(300 / Q)}
+        self.verify_pop_sizes(model, samples, generation_time=generation_time, Q=Q)
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.parametrize("generation_time", [1, 3])
-    def test_pop_split(self, generation_time):
+    @pytest.mark.parametrize("Q", [1, 3])
+    def test_pop_split(self, generation_time, Q):
         model = msprime.Demography()
-        model.add_population(initial_size=100, name="pop_0")
-        model.add_population(initial_size=70, name="pop_1", growth_rate=0.001)
-        model.add_population(initial_size=130, name="pop_2", growth_rate=-0.001)
+        model.add_population(initial_size=300, name="pop_0")
+        model.add_population(initial_size=210, name="pop_1", growth_rate=0.001)
+        model.add_population(initial_size=420, name="pop_2", growth_rate=-0.001)
         model.add_population_split(
             time=150, derived=["pop_1", "pop_2"], ancestral="pop_0"
         )
-        samples = {"pop_1": 70, "pop_2": 130}
-        self.verify_pop_sizes(model, samples, generation_time=generation_time)
+        samples = {"pop_1": int(210 / Q), "pop_2": int(420 / Q)}
+        self.verify_pop_sizes(model, samples, generation_time=generation_time, Q=Q)
 
 
 @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
