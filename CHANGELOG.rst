@@ -6,7 +6,7 @@
 
 - The `length_multiplier` option to `Species.get_contig` is deprecated and
   prints a warning. The options `left` and `right` should be used to truncate a
-  contig, instead. (:user:`nspope`, :pr:`xxxx`)
+  contig, instead. (:user:`nspope`, :pr:`1605`)
 
 ---------------------
 [0.2.1a] - 2024-07-06
