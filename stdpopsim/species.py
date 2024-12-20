@@ -212,8 +212,7 @@ class Species:
             instead. If specified, simulate a region of length `length_multiplier`
             times the length of the specified chromosome with the same
             chromosome-specific mutation and recombination rates.  This option
-            cannot currently be used in conjunction with the ``genetic_map``
-            argument.
+            cannot be used in conjunction with the ``genetic_map`` argument.
         :param float mutation_rate: The per-base mutation rate. If none is given,
             the mutation rate defaults to the rate specified by species chromosomes.
         :param float recombination_rate: The per-base recombination rate. If none is
