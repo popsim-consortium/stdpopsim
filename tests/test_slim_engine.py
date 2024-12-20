@@ -3125,11 +3125,14 @@ class TestPopSizes:
             k = [x.name for x in model.populations].index(pop)
             pop_t = np.array(slim_sizes[pop][0]["t"])
             pop_N = np.array(slim_sizes[pop][0]["N"])
+            # Mostly we expect dd_N and pop_N to be close; however, time
+            # discretization artifacts and the fact that addSubpopSplit
+            # is recorded by the logging differently than setSubpopulationSize
+            # means we need to check the adjacent time interval as well.
             dd_N = dd.population_size_trajectory(np.floor((T - pop_t) * Q))[:, k] / Q
             dd_N1 = (
                 dd.population_size_trajectory(np.floor((T - pop_t + 1) * Q))[:, k] / Q
             )
-            # np.testing.assert_allclose(pop_N, dd_N, rtol=0.01)
             assert np.all(
                 np.logical_or(
                     np.isclose(pop_N, dd_N, rtol=0.01),
