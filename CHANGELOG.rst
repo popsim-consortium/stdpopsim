@@ -8,6 +8,10 @@
 
 - Factor of two error fixed in HomSap/Gamma_K17 DFE (:user:`RyanGutenkunst`, :pr:`1478`)
 
+- Discretization for exponential growth using the SLiM engine led to the final size
+  in growing/declining populations not matching (by a small amount) what is listed
+  in the model; improved discretization scheme (:user:`petrelharp`, :pr:`1622`)
+
 **Breaking changes**:
 
 - The `time_units` attribute of tree sequence metadata is now set to "generations"
