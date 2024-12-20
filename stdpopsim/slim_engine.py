@@ -927,7 +927,7 @@ def slim_makescript(
         extended_events = copy.deepcopy(extended_events)
 
     # Reassign event times according to integral SLiM ticks.
-    # This collapses the time deltas used in HomSap/AmericanAdmixture_4B11,
+    # This collapses the time deltas used in HomSap/AmericanAdmixture_4B18,
     # and calculates times for GenerationAfter objects.
     def fix_time(event):
         for attr in ("time", "start_time", "end_time"):

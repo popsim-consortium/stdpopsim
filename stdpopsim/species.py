@@ -4,6 +4,7 @@ organising the species catalog.
 """
 
 import logging
+import warnings
 
 import attr
 
@@ -257,6 +258,17 @@ class Species:
             right=right,
         )
 
+    def _warn_browning(self, model_id):
+        if model_id == "AmericanAdmixture_4B11":
+            warnings.warn(
+                "In stdpopsim <= 0.2.1, the AmericanAdmixture_4B18 model "
+                "was named AmericanAdmixture_4B11; but since it comes "
+                "from a 2018 paper, this is corrected. The model name "
+                "AmericanAdmixture_4B11 will work for now but is deprecated."
+            )
+            model_id = "AmericanAdmixture_4B18"
+        return model_id
+
     def get_demographic_model(self, id):
         """
         Returns a demographic model with the specified ``id``.
@@ -268,6 +280,8 @@ class Species:
         :rtype: :class:`DemographicModel`
         :return: A :class:`DemographicModel` that defines the requested model.
         """
+        # TODO: remove this after a release or two. See #841.
+        id = self._warn_browning(id)
         for model in self.demographic_models:
             if model.id == id:
                 return model

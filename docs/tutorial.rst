@@ -475,7 +475,7 @@ demographic models are available for humans:
    # OutOfAfrica_3G09
    # OutOfAfrica_2T12
    # Africa_1T12
-   # AmericanAdmixture_4B11
+   # AmericanAdmixture_4B18
    # OutOfAfricaArchaicAdmixture_5R19
    # Zigzag_1S14
    # AncientEurasia_9K19
@@ -1557,8 +1557,8 @@ This prints detailed information about all of the available models to
 the terminal.
 In this tutorial, we will use the model of African-American admixture from
 `Browning et al. (2018) <http://dx.doi.org/10.1371/journal.pgen.1007385>`_.
-From the help output (or the :ref:`Catalog <sec_catalog_homsap_models_americanadmixture_4b11>`),
-we can see that this model has id ``AmericanAdmixture_4B11``,
+From the help output (or the :ref:`Catalog <sec_catalog_homsap_models_americanadmixture_4b18>`),
+we can see that this model has id ``AmericanAdmixture_4B18``,
 and allows samples to be drawn from 4 contemporary populations representing African,
 European, Asian and African-American groups.
 
@@ -1577,7 +1577,7 @@ To check that we have set up the simulation correctly, we may first wish to perf
 dry run using the ``-D`` option.
 This will print information about the simulation to the terminal:
 
-.. command-output:: stdpopsim HomSap -c chr1 -o afr-america-chr1.trees -s 13 -g HapMapII_GRCh38 -d AmericanAdmixture_4B11 AFR:2 EUR:2 ASIA:2 ADMIX:2 -D
+.. command-output:: stdpopsim HomSap -c chr1 -o afr-america-chr1.trees -s 13 -g HapMapII_GRCh38 -d AmericanAdmixture_4B18 AFR:2 EUR:2 ASIA:2 ADMIX:2 -D
     :ellipsis: 18
 
 Once we're sure, we can remove the ``-D`` flag to run the simulation
@@ -1586,7 +1586,7 @@ Once we're sure, we can remove the ``-D`` flag to run the simulation
 .. code-block:: console
 
     $ stdpopsim HomSap -c chr1 -o afr-america-chr1.trees -s 13 -g HapMapII_GRCh38 \
-    $    -d AmericanAdmixture_4B11 AFR:2 EUR:2 ASIA:2 ADMIX:2
+    $    -d AmericanAdmixture_4B18 AFR:2 EUR:2 ASIA:2 ADMIX:2
 
 2. Calculating divergences
 --------------------------

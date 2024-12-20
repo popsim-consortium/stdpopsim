@@ -137,7 +137,7 @@ class TestAPI:
         )
         assert "community.registerLateEvent" in out
 
-        model = species.get_demographic_model("AmericanAdmixture_4B11")
+        model = species.get_demographic_model("AmericanAdmixture_4B18")
         samples = {"AFR": 10, "EUR": 10, "ASIA": 10}
         out, _ = capture_output(
             engine.simulate,
@@ -420,7 +420,7 @@ class TestCLI:
         out, _ = self.docmd("--slim-script HomSap -d AncientEurasia_9K19 Mbuti:5")
         assert "community.registerLateEvent" in out
         # simultaneous mass migrations, with proportions summing to 1.0
-        out, _ = self.docmd("--slim-script HomSap -d AmericanAdmixture_4B11 AFR:5")
+        out, _ = self.docmd("--slim-script HomSap -d AmericanAdmixture_4B18 AFR:5")
         assert "community.registerLateEvent" in out
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
