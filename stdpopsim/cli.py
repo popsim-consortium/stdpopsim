@@ -577,9 +577,9 @@ def add_simulate_species_parser(parser, species):
         "--length-multiplier",
         default=None,
         type=float,
-        help="Deprecated. Simulate a sequence of length l times the named "
-        "chromosome's length using the named chromosome's mutation and "
-        "recombination rates.",
+        help="Deprecated: use left/right instead. Simulate a sequence of "
+        "length l times the named chromosome's length using the named "
+        "chromosome's mutation and recombination rates.",
     )
     species_parser.add_argument(
         "--left",
