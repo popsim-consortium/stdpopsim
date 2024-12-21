@@ -34,6 +34,7 @@ class TestMasking:
         assert len(intervals_chr1) == len(intervals_in["chr1"])
         assert len(intervals_chr22) == len(intervals_in["chr22"])
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_length_interval_invalid(self):
         species = stdpopsim.get_species("HomSap")
         with pytest.raises(ValueError, match="Cannot use length multiplier"):

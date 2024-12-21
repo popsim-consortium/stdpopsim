@@ -44,6 +44,10 @@
 - SLiM extended events and selective sweep infrastructure have been
   moved from the `stdpopsim.ext` namespace into ``stdpopsim`` proper
 
+- The `length_multiplier` option to `Species.get_contig` is deprecated and
+  prints a warning. The options `left` and `right` should be used to truncate a
+  contig, instead. (:user:`nspope`, :pr:`1605`)
+
 **New features**:
 
 - *Relationship between dominance and selection coefficient:*

@@ -166,7 +166,7 @@ class TestAPI:
     def test_simulate(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("AraTha")
-        contig = species.get_contig("5", length_multiplier=0.001)
+        contig = species.get_contig(length=26976)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         samples = {"pop_0": 5}
         ts = engine.simulate(
@@ -183,7 +183,7 @@ class TestAPI:
     def test_simulate_verbosity(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("AraTha")
-        contig = species.get_contig("5", length_multiplier=0.001)
+        contig = species.get_contig(length=26976)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         samples = {"pop_0": 5}
         for v in [0, 1, 2, 3]:
@@ -211,7 +211,7 @@ class TestAPI:
         samples_dict = {"YRI": 5, "CEU": 5, "CHB": 5}
         for samples in [samples_deprecated, samples_dict]:
             for proportion, seed in zip((0, 1), (1234, 2345)):
-                contig = species.get_contig("chr22", length_multiplier=0.001)
+                contig = species.get_contig(length=50818)
                 # need selected mutations so that SLiM produces some
                 contig.add_dfe(
                     intervals=np.array([[0, contig.length / 2]], dtype="int"),
@@ -278,7 +278,7 @@ class TestAPI:
         scriptfile = tmp_path / "slim.script"
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
-        contig = species.get_contig("chr1", length_multiplier=0.01)
+        contig = species.get_contig(length=2489564)
         model = stdpopsim.PiecewiseConstantSize(species.population_size)
         samples = {"pop_0": 5}
         seed = 1024
@@ -773,13 +773,13 @@ class TestWarningsAndErrors:
     def triplet_diploid(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
-        contig = species.get_contig("chr22", length_multiplier=0.001)
+        contig = species.get_contig(length=50818)
         return engine, species, contig
 
     def triplet_haploid(self):
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("EscCol")
-        contig = species.get_contig("Chromosome", length_multiplier=0.001)
+        contig = species.get_contig(length=4642)
         return engine, species, contig
 
     @pytest.mark.filterwarnings("error::stdpopsim.SLiMOddSampleWarning")
@@ -1067,12 +1067,11 @@ class TestSlimAvailable:
 
 
 def get_test_contig(
-    spp="HomSap", chrom="chr22", length_multiplier=0.001, left=None, right=None
+    spp="HomSap",
+    length=50818,
 ):
     species = stdpopsim.get_species(spp)
-    contig = species.get_contig(
-        chrom, length_multiplier=length_multiplier, left=left, right=right
-    )
+    contig = species.get_contig(length=length)
     return contig
 
 
@@ -1741,7 +1740,8 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
     def test_chromosomal_segment(self):
         left = 100101
         right = 201024
-        contig = get_test_contig(length_multiplier=1, left=left, right=right)
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("chr22", left=left, right=right)
         L = contig.length
         example_dfes = self.get_example_dfes()
         for j, dfe in enumerate(example_dfes):

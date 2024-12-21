@@ -215,35 +215,35 @@ class TestEndToEnd:
         assert ts.num_samples == num_samples
 
     def test_homsap_seed(self):
-        cmd = "HomSap -c chr20 -l0.1 -s 1234 pop_0:10"
+        cmd = "HomSap -c chr20 --right 6444417 -s 1234 pop_0:10"
         self.verify(cmd, num_samples=20, seed=1234)
 
     def test_homsap_constant(self):
-        cmd = "HomSap -c chr20 -l0.1 pop_0:5"
+        cmd = "HomSap -c chr20 --right 6444417 pop_0:5"
         self.verify(cmd, num_samples=10)
 
     def test_tennessen_two_pop_ooa(self):
-        cmd = "HomSap -c chr20 -l0.1 -d OutOfAfrica_2T12 AFR:2 EUR:3"
+        cmd = "HomSap -c chr20 --right 6444417 -d OutOfAfrica_2T12 AFR:2 EUR:3"
         self.verify(cmd, num_samples=10)
 
     def test_gutenkunst_three_pop_ooa(self):
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 YRI:5"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 YRI:5"
         self.verify(cmd, num_samples=10)
 
     def test_browning_america(self):
-        cmd = "HomSap -c chr1 -l0.01 -d AmericanAdmixture_4B18 AFR:5"
+        cmd = "HomSap -c chr1 --right 2489564 -d AmericanAdmixture_4B18 AFR:5"
         self.verify(cmd, num_samples=10)
 
     def test_ragsdale_archaic(self):
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfricaArchaicAdmixture_5R19 YRI:5"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfricaArchaicAdmixture_5R19 YRI:5"
         self.verify(cmd, num_samples=10)
 
     def test_dromel_constant(self):
-        cmd = "DroMel -c 2L -l0.001 pop_0:2"
+        cmd = "DroMel -c 2L --right 23514 pop_0:2"
         self.verify(cmd, num_samples=4)
 
     def test_li_stephan_two_population(self):
-        cmd = "DroMel -c 2L -l0.001 -d OutOfAfrica_2L06 AFR:3"
+        cmd = "DroMel -c 2L --right 23514 -d OutOfAfrica_2L06 AFR:3"
         self.verify(cmd, num_samples=6)
 
     def test_aratha_constant(self):
@@ -352,11 +352,11 @@ class TestRedirection:
             self.verify_files(filename1, filename2)
 
     def test_quiet(self):
-        cmd = "-q HomSap pop_0:5 -s 2 -c chr20 -l 0.001"
+        cmd = "-q HomSap pop_0:5 -s 2 -c chr20 --right 64444"
         self.verify(cmd)
 
     def test_no_quiet(self):
-        cmd = "HomSap pop_0:5 -s 3 -c chr20 -l 0.001"
+        cmd = "HomSap pop_0:5 -s 3 -c chr20 --right 64444"
         self.verify(cmd)
 
 
@@ -616,7 +616,7 @@ class TestWriteBibtex:
             filename = pathlib.Path(tmpdir) / "output.trees"
             bibfile = pathlib.Path(tmpdir) / "bib.bib"
             full_cmd = (
-                f"HomSap -c chr20 -l0.1 YRI:10 "
+                f"HomSap -c chr20 --right 6444417 YRI:10 "
                 f"-o {filename} -d OutOfAfrica_3G09 --seed={seed} "
                 f"--bibtex={bibfile}"
             )
@@ -1100,27 +1100,27 @@ class TestSampleCountParser:
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_deprecated_positional_samples(self):
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 5"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 5"
         self.verify(cmd, num_samples=[5, 0, 0])
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 5 10"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 5 10"
         self.verify(cmd, num_samples=[5, 10, 0])
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 5 0 10"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 5 0 10"
         self.verify(cmd, num_samples=[5, 0, 10])
 
     def test_population_sample_pairs(self):
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 YRI:5"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 YRI:5"
         self.verify(cmd, num_samples=[10, 0, 0])
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 CHB:5 YRI:10"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 CHB:5 YRI:10"
         self.verify(cmd, num_samples=[20, 0, 10])
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 CHB:5 YRI:10 CEU:0"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 CHB:5 YRI:10 CEU:0"
         self.verify(cmd, num_samples=[20, 0, 10])
 
     def test_bad_sample_specification(self):
         for cmd in [
-            "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 5 bad",
-            "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 5 CEU:5",
-            "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 YRI:5 very:bad",
-            "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 YRI=5",
+            "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 5 bad",
+            "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 5 CEU:5",
+            "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 YRI:5 very:bad",
+            "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 YRI=5",
         ]:
             with pytest.raises(
                 ValueError, match="Sample specification must be in the form"
@@ -1128,6 +1128,6 @@ class TestSampleCountParser:
                 self.verify(cmd, num_samples=[5, 0, 0])
 
     def test_duplicate_sample_specification(self):
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 YRI:5 YRI:5"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 YRI:5 YRI:5"
         with pytest.raises(ValueError, match="specified more than once"):
             self.verify(cmd, num_samples=[20, 0, 0])
