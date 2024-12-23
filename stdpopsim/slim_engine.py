@@ -1664,68 +1664,67 @@ class _SLiMEngine(stdpopsim.Engine):
 
         run_slim = not slim_script
 
-        tempdir = tempfile.TemporaryDirectory(prefix="stdpopsim_", ignore_cleanup_errors=True)
-        ts_filename = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.trees")
+        with tempfile.TemporaryDirectory(prefix="stdpopsim_", ignore_cleanup_errors=True) as tempdir:
+            ts_filename = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.trees")
 
-        if run_slim:
-            script_filename = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.slim")
-            script_file = open(fname, "w")
-        else:
-            script_filename = "stdout"
-            script_file = sys.stdout
+            if run_slim:
+                script_filename = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.slim")
+                script_file = open(script_filename, "w")
+            else:
+                script_filename = "stdout"
+                script_file = sys.stdout
 
-        script_file, script_filename = sf
-        recap_epoch = slim_makescript(
-            script_file,
-            ts_filename,
-            demographic_model,
-            contig,
-            sample_sets,
-            extended_events,
-            slim_scaling_factor,
-            slim_burn_in,
-            slim_rate_map,
-            logfile=logfile,
-            logfile_interval=logfile_interval,
-        )
-
-        script_file.flush()
-
-        # TODO: CLEANUP
-        if not run_slim:
-            return None
-
-        self._run_slim(
-            script_filename,
-            slim_path=slim_path,
-            seed=seed,
-            dry_run=dry_run,
-            verbosity=verbosity,
-        )
-
-        if dry_run:
-            return None
-
-        ts = tskit.load(ts_filename)
-
-        ts = _add_dfes_to_metadata(ts, contig)
-        if _recap_and_rescale:
-            ts = self._recap_and_rescale(
-                ts,
-                seed,
-                recap_epoch,
+            script_file, script_filename = sf
+            recap_epoch = slim_makescript(
+                script_file,
+                ts_filename,
+                demographic_model,
                 contig,
-                slim_scaling_factor,
-                keep_mutation_ids_as_alleles,
+                sample_sets,
                 extended_events,
+                slim_scaling_factor,
+                slim_burn_in,
+                slim_rate_map,
+                logfile=logfile,
+                logfile_interval=logfile_interval,
             )
 
-        if contig.inclusion_mask is not None:
-            ts = stdpopsim.utils.mask_tree_sequence(ts, contig.inclusion_mask, False)
-        if contig.exclusion_mask is not None:
-            ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
-        
-        tempdir.cleanup()
+            script_file.flush()
+
+            if run_slim:
+                self._run_slim(
+                    script_filename,
+                    slim_path=slim_path,
+                    seed=seed,
+                    dry_run=dry_run,
+                    verbosity=verbosity,
+                )
+
+                if dry_run:
+                    ts = None
+                else:
+                    ts = tskit.load(ts_filename)
+
+                    ts = _add_dfes_to_metadata(ts, contig)
+                    if _recap_and_rescale:
+                        ts = self._recap_and_rescale(
+                            ts,
+                            seed,
+                            recap_epoch,
+                            contig,
+                            slim_scaling_factor,
+                            keep_mutation_ids_as_alleles,
+                            extended_events,
+                        )
+
+                    if contig.inclusion_mask is not None:
+                        ts = stdpopsim.utils.mask_tree_sequence(ts, contig.inclusion_mask, False)
+                    if contig.exclusion_mask is not None:
+                        ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
+                
+                script_file.close()
+            else:
+                ts = None
 
         return ts
 
