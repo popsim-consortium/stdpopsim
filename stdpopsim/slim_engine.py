@@ -1769,7 +1769,6 @@ class _SLiMEngine(stdpopsim.Engine):
             universal_newlines=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            close_fds=False,
         ) as proc:
             for line in proc.stdout:
                 line = line.rstrip()
