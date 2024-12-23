@@ -34,7 +34,10 @@ def count_mut_types(ts):
 
 class TestCLI:
     def docmd(self, _cmd):
-        cmd = (f"-q -e slim --slim-burn-in 0 {_cmd} -l 0.001 -c chr1 -s 1234").split()
+        cmd = (
+            f"-q -e slim --slim-burn-in 0 {_cmd} --left 10000000 --right 10010000 "
+            "-c chr1 -s 1234"
+        ).split()
         return capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")

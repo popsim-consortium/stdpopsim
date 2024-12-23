@@ -74,17 +74,4 @@ jobs:
           python -m pytest \
             -n 0 \
             -v \
-            --cov=stdpopsim \
-            --cov-branch \
-            --cov-report=term-missing \
-            --cov-report=xml \
             tests
-
-      - name: upload coverage report to codecov
-        uses: codecov/codecov-action@v5.1.1
-        with:
-          fail_ci_if_error: true
-          env_vars: OS,PYTHON
-          # Use upload token to avoid upload failures.
-          # https://github.com/codecov/codecov-action/issues/837
-          token: 8ae76ade-9d0e-4a2d-b9ef-1180235be07f
