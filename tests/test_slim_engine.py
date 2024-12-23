@@ -47,6 +47,7 @@ class TestCLI:
         saved_slim_env = os.environ.get("SLIM")
         slim_path = os.environ.get("SLIM", "slim")
         fname = tmp_path / "sim.trees"
+        print("fname", fname)
         self.docmd(
             f"--slim-scaling-factor 20 --slim-path {slim_path} HomSap "
             f"pop_0:5 -o {fname}"
