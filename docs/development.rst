@@ -1664,18 +1664,14 @@ At this point, most of your work is done.
 **You have officially joined the** ``stdpopsim`` **development team. Welcome!!**
 Your DFE model still needs to undergo review by another member
 of the development team before it is fully incorporated into ``stdpopsim``.
-To facilitate this, please
-`open a new blank issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`__
-and specify the following information:
-
-1. **PR for new model:**
-2. **Original paper:**
-3. **Parameter values:**
-4. **Potential issues:**
-5. **QC'er requests:**
-
 This will likely require additional feedback from you,
 so, stay tuned for discussion during the review process.
+
+To facilitate this, there is one more step: please open a
+`new issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`__,
+using the "DFE QC" template.
+The template asks for the basic information that someone will need
+to independently verify the implemented DFE.
 
 ---------------------
 Reviewing a DFE model
