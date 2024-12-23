@@ -1664,57 +1664,49 @@ class _SLiMEngine(stdpopsim.Engine):
 
         run_slim = not slim_script
 
-        tempdir = tempfile.TemporaryDirectory(prefix="stdpopsim_")
+        tempdir = tempfile.TemporaryDirectory(prefix="stdpopsim_", ignore_cleanup_errors=True)
         ts_filename = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.trees")
 
-        @contextlib.contextmanager
-        def script_file_f():
-            if run_slim:
-                fname = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.slim")
-                f = open(fname, "w")
-            else:
-                fname = "stdout"
-                f = sys.stdout
-            yield f, fname
-            # Don't close sys.stdout.
-            # if run_slim:
-            #     f.close()
+        if run_slim:
+            script_filename = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.slim")
+            script_file = open(fname, "w")
+        else:
+            script_filename = "stdout"
+            script_file = sys.stdout
 
-        # with script_file_f() as sf:
-        script_file, script_filename = script_file_f()
-        if True:
-            script_file, script_filename = sf
-            recap_epoch = slim_makescript(
-                script_file,
-                ts_filename,
-                demographic_model,
-                contig,
-                sample_sets,
-                extended_events,
-                slim_scaling_factor,
-                slim_burn_in,
-                slim_rate_map,
-                logfile=logfile,
-                logfile_interval=logfile_interval,
-            )
+        script_file, script_filename = sf
+        recap_epoch = slim_makescript(
+            script_file,
+            ts_filename,
+            demographic_model,
+            contig,
+            sample_sets,
+            extended_events,
+            slim_scaling_factor,
+            slim_burn_in,
+            slim_rate_map,
+            logfile=logfile,
+            logfile_interval=logfile_interval,
+        )
 
-            script_file.flush()
+        script_file.flush()
 
-            if not run_slim:
-                return None
+        # TODO: CLEANUP
+        if not run_slim:
+            return None
 
-            self._run_slim(
-                script_filename,
-                slim_path=slim_path,
-                seed=seed,
-                dry_run=dry_run,
-                verbosity=verbosity,
-            )
+        self._run_slim(
+            script_filename,
+            slim_path=slim_path,
+            seed=seed,
+            dry_run=dry_run,
+            verbosity=verbosity,
+        )
 
-            if dry_run:
-                return None
+        if dry_run:
+            return None
 
-            ts = tskit.load(ts_filename)
+        ts = tskit.load(ts_filename)
 
         ts = _add_dfes_to_metadata(ts, contig)
         if _recap_and_rescale:
@@ -1732,9 +1724,8 @@ class _SLiMEngine(stdpopsim.Engine):
             ts = stdpopsim.utils.mask_tree_sequence(ts, contig.inclusion_mask, False)
         if contig.exclusion_mask is not None:
             ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
-
-        if run_slim:
-            script_file.close()
+        
+        tempdir.cleanup()
 
         return ts
 
