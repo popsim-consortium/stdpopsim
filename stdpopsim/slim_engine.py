@@ -1665,16 +1665,15 @@ class _SLiMEngine(stdpopsim.Engine):
         run_slim = not slim_script
 
         with tempfile.TemporaryDirectory(prefix="stdpopsim_", ignore_cleanup_errors=True) as tempdir:
-            ts_filename = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.trees")
+            ts_filename = os.path.join(tempdir, f"{os.urandom(3).hex()}.trees")
 
-            if run_slim:
-                script_filename = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.slim")
+            if not slim_script:
+                script_filename = os.path.join(tempdir, f"{os.urandom(3).hex()}.slim")
                 script_file = open(script_filename, "w")
             else:
                 script_filename = "stdout"
                 script_file = sys.stdout
 
-            script_file, script_filename = sf
             recap_epoch = slim_makescript(
                 script_file,
                 ts_filename,
