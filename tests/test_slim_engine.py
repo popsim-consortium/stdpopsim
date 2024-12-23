@@ -38,7 +38,8 @@ class TestCLI:
             f"-q -e slim --slim-burn-in 0 {_cmd} --left 10000000 --right 10010000 "
             "-c chr1 -s 1234"
         ).split()
-        return capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        # return capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        stdpopsim.cli.stdpopsim_main(cmd)
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")

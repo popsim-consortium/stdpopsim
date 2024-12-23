@@ -1769,10 +1769,9 @@ class _SLiMEngine(stdpopsim.Engine):
             universal_newlines=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            close_fds=False,
         ) as proc:
-            print("+++++++++")
             for line in proc.stdout:
-                print("STDOUT", line)
                 line = line.rstrip()
                 if line.startswith("WARNING: "):
                     warnings.warn(
@@ -1784,9 +1783,7 @@ class _SLiMEngine(stdpopsim.Engine):
                     logger.debug(line)
 
             stderr = proc.stderr.read()
-            print("+++++++++")
             for line in stderr.splitlines():
-                print("STDERR", line)
                 if line.startswith("ERROR: "):
                     logger.error(line[len("ERROR: ") :])
 
