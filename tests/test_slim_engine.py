@@ -1173,6 +1173,7 @@ class TestRecombinationMap(PiecewiseConstantSizeMixin):
             samples=samples,
             slim_burn_in=0.1,
             verbosity=3,
+            seed=888,
         )
         self.verify_recombination_map(contig, ts)
 
@@ -1195,6 +1196,7 @@ class TestRecombinationMap(PiecewiseConstantSizeMixin):
             samples=samples,
             slim_burn_in=0.1,
             verbosity=3,
+            seed=456,
         )
         self.verify_recombination_map(contig, ts)
         assert list(ts.breakpoints()) == [0.0, midpoint, contig.length]
@@ -1550,6 +1552,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             contig=contig,
             samples=self.samples,
             verbosity=3,  # to get metadata output
+            seed=135,
         )
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
@@ -1569,6 +1572,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             contig=contig,
             samples=self.samples,
             verbosity=3,  # to get metadata output
+            seed=246,
         )
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
@@ -1586,6 +1590,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             contig=contig,
             samples=self.samples,
             verbosity=3,  # to get metadata output
+            seed=357,
         )
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
@@ -1620,6 +1625,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             contig=contig,
             samples=self.samples,
             verbosity=3,  # to get metadata output
+            seed=468,
         )
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
@@ -1648,6 +1654,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             slim_scaling_factor=10,
             slim_burn_in=0.1,
             verbosity=3,  # to get metadata output
+            seed=579,
             _recap_and_rescale=False,
         )
         assert ts.num_sites > 0
@@ -1664,6 +1671,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             slim_scaling_factor=10,
             slim_burn_in=0.1,
             verbosity=3,
+            seed=147,
             _recap_and_rescale=False,
         )
         assert ts.num_sites == 0
@@ -1682,6 +1690,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             slim_scaling_factor=10,
             slim_burn_in=0.1,
             verbosity=3,
+            seed=258,
             _recap_and_rescale=False,
         )
         assert ts.num_sites == 0
@@ -1700,6 +1709,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             slim_scaling_factor=Q,
             slim_burn_in=0.1,
             verbosity=3,
+            seed=369,
             _recap_and_rescale=False,
         )
         ge_types = self.slim_metadata_key0(
@@ -1732,6 +1742,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             slim_scaling_factor=Q,
             slim_burn_in=0.1,
             verbosity=3,
+            seed=470,
             _recap_and_rescale=False,
         )
         ge_types = self.slim_metadata_key0(
@@ -1781,6 +1792,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             contig=contig,
             samples=self.samples,
             verbosity=3,  # to get metadata output
+            seed=159,
         )
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
@@ -1861,6 +1873,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             contig=contig,
             samples=self.samples,
             verbosity=3,  # to get metadata output
+            seed=260,
         )
         assert len(ts.metadata["stdpopsim"]["DFEs"]) == len(contig.dfe_list) + 1
         # slim mutation type IDs with dominance coeff lists:
@@ -2244,6 +2257,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
             extended_events=extended_events,
             slim_scaling_factor=10,
             slim_burn_in=0.1,
+            seed=321,
             _recap_and_rescale=False,
         )
         assert ts.num_mutations == 1
@@ -2276,6 +2290,7 @@ class TestAlleleFrequencyConditioning(PiecewiseConstantSizeMixin):
             extended_events=extended_events,
             slim_scaling_factor=10,
             slim_burn_in=0.1,
+            seed=432,
             _recap_and_rescale=False,
         )
         assert ts.num_mutations == 0
@@ -2502,6 +2517,7 @@ class TestChangeMutationFitness(PiecewiseConstantSizeMixin):
             contig=contig,
             samples=self.samples,
             extended_events=extended_events,
+            seed=543,
         )
         referenced_dfe = ts.metadata["stdpopsim"]["DFEs"][1]
         assert referenced_dfe["id"] == "one"
@@ -2718,6 +2734,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
                     slim_burn_in=1,
                     logfile=logfile,
                     logfile_interval=1,
+                    seed=654,
                 )
                 in_sweep, outside_sweep, _ = self._fitness_per_generation(
                     logfile=logfile,
@@ -2761,6 +2778,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
                 slim_burn_in=1,
                 logfile=logfile,
                 logfile_interval=1,
+                seed=654,
             )
             in_sweep, outside_sweep, rejections = self._fitness_per_generation(
                 logfile=logfile,
@@ -2808,6 +2826,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
                 slim_burn_in=1,
                 logfile=logfile,
                 logfile_interval=1,
+                seed=765,
             )
             in_sweep, outside_sweep, rejections = self._fitness_per_generation(
                 logfile=logfile,
@@ -2889,6 +2908,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
                 slim_burn_in=1,
                 logfile=logfile,
                 logfile_interval=1,
+                seed=876,
             )
             p0_in_sweep, p0_outside_sweep, _ = self._fitness_per_generation(
                 logfile=logfile,
@@ -2941,6 +2961,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             slim_burn_in=1,
             logfile=logfile,
             logfile_interval=1,
+            seed=987,
         )
         p0_in_sweep, p0_outside_sweep, _ = self._fitness_per_generation(
             logfile=logfile,
@@ -2996,6 +3017,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             slim_burn_in=1,
             logfile=logfile,
             logfile_interval=1,
+            seed=531,
         )
         for i, _ in enumerate(pop_ids):
             in_sweep, outside_sweep, _ = self._fitness_per_generation(
@@ -3048,6 +3070,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             slim_burn_in=1,
             logfile=logfile,
             logfile_interval=1,
+            seed=642,
         )
         p0_in_sweep, p0_outside_sweep, _ = self._fitness_per_generation(
             logfile=logfile,
@@ -3095,6 +3118,7 @@ class TestSelectionCoeffFromMutation:
                 contig=contig,
                 samples=self.samples,
                 slim_burn_in=10,
+                seed=753,
             )
             is_stacked = [len(m.metadata["mutation_list"]) > 1 for m in ts.mutations()]
             if any(is_stacked):
@@ -3117,6 +3141,7 @@ class TestSelectionCoeffFromMutation:
                 demographic_model=self.model,
                 contig=contig,
                 samples=self.samples,
+                seed=864,
             )
             if ts.num_mutations > 0:
                 break
@@ -3133,6 +3158,7 @@ class TestSelectionCoeffFromMutation:
                 demographic_model=self.model,
                 contig=contig,
                 samples=self.samples,
+                seed=975,
             )
             if ts.num_mutations > 0:
                 break
@@ -3280,7 +3306,7 @@ class TestPloidy:
         contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=2)
         model = stdpopsim.PiecewiseConstantSize(N)
         with caplog.at_level(logging.DEBUG):
-            engine.simulate(model, contig, samples={"pop_0": 2}, verbosity=2)
+            engine.simulate(model, contig, samples={"pop_0": 2}, verbosity=2, seed=9)
         log_str = " ".join([rec.getMessage() for rec in caplog.records])
         # match: "1: p = sim.addSubpop(0, <SLiM population size>);"
         extract_ne = re.compile(".+1: p = sim.addSubpop\\(0, ([0-9]+)\\).+")
@@ -3318,7 +3344,7 @@ class TestPloidy:
         engine = stdpopsim.get_engine("slim")
         for ploidy in [1, 2]:
             contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=ploidy)
-            ts = engine.simulate(model, contig, samples={"pop_0": 2})
+            ts = engine.simulate(model, contig, samples={"pop_0": 2}, seed=8)
             assert ts.num_individuals == 2
             assert ts.num_samples == 2 * ploidy
             individual = ts.tables.nodes.individual
@@ -3330,7 +3356,7 @@ class TestPloidy:
         model = stdpopsim.PiecewiseConstantSize(N)
         engine = stdpopsim.get_engine("slim")
         contig = stdpopsim.Contig.basic_contig(length=1000, ploidy=2)
-        ts = engine.simulate(model, contig, samples={"pop_0": 3})
+        ts = engine.simulate(model, contig, samples={"pop_0": 3}, seed=7)
         ts_hap = stdpopsim.utils.haploidize_individuals(ts)
         assert ts_hap.num_individuals == ts.num_individuals * 2
         for i, j in zip(ts.samples(), ts_hap.samples()):
