@@ -43,7 +43,8 @@ def _dog_wolf_admixture():
         )
     ]
 
-    generation_time = 3
+    generation_time = 3  # page 3
+    mutation_rate = 1e-8  # page 3
 
     # Estimated (calibrated) effective population sizes, from Table S12
     N_BSJ = 2639
@@ -172,7 +173,7 @@ def _dog_wolf_admixture():
         long_description=long_description,
         citations=citations,
         generation_time=generation_time,
-        mutation_rate=1e-8,
+        mutation_rate=mutation_rate,
         model=model,
     )
 
