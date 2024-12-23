@@ -152,7 +152,7 @@ stdpopsim.utils.append_common_synonyms(_genome)
 
 _species = stdpopsim.Species(
     id="CanFam",
-    ensembl_id="canis_familiaris",
+    ensembl_id="canis_lupus_familiaris",
     name="Canis familiaris",
     common_name="Dog",
     genome=_genome,
