@@ -67,10 +67,6 @@ jobs:
         run: |
             pip install -r requirements/CI/requirements.txt
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 15
-
       - name: run test suite
         run: |
           source ~/.profile
@@ -79,3 +75,7 @@ jobs:
             -n 0 \
             -v \
             tests
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 15
