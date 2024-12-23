@@ -438,7 +438,9 @@ class TestRecombinationRates:
         contig = species.get_contig(length=100)
         assert model.recombination_rate != contig.recombination_map.mean_rate
         contig = species.get_contig(
-            length=100, recombination_rate=model.recombination_rate
+            length=100,
+            mutation_rate=model.mutation_rate,
+            recombination_rate=model.recombination_rate,
         )
         assert model.recombination_rate == contig.recombination_map.mean_rate
 
