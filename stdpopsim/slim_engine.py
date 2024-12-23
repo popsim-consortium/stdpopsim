@@ -1769,7 +1769,7 @@ class _SLiMEngine(stdpopsim.Engine):
         if verbosity is not None:
             slim_cmd.extend(["-d", f"verbosity={verbosity}"])
         print("FOO", script_file, os.path.isfile(script_file))
-        slim_cmd.append(script_file + "foofoofoo")
+        slim_cmd.append(script_file)
 
         with subprocess.Popen(
             slim_cmd,

@@ -67,6 +67,13 @@ jobs:
         run: |
             pip install -r requirements/CI/requirements.txt
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        if: ${{ failure() }}
+        with:
+          ## If no one connects after 5 minutes, shut down server.
+          wait-timeout-minutes: 5
+
       - name: run test suite
         run: |
           source ~/.profile
