@@ -1677,10 +1677,12 @@ class _SLiMEngine(stdpopsim.Engine):
                 f = sys.stdout
             yield f, fname
             # Don't close sys.stdout.
-            if run_slim:
-                f.close()
+            # if run_slim:
+            #     f.close()
 
-        with script_file_f() as sf:
+        # with script_file_f() as sf:
+        script_file, script_filename = script_file_f()
+        if True:
             script_file, script_filename = sf
             recap_epoch = slim_makescript(
                 script_file,
@@ -1730,6 +1732,9 @@ class _SLiMEngine(stdpopsim.Engine):
             ts = stdpopsim.utils.mask_tree_sequence(ts, contig.inclusion_mask, False)
         if contig.exclusion_mask is not None:
             ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
+
+        if run_slim:
+            script_file.close()
 
         return ts
 
