@@ -1664,15 +1664,28 @@ class _SLiMEngine(stdpopsim.Engine):
 
         run_slim = not slim_script
 
-        with tempfile.TemporaryDirectory(prefix="stdpopsim_", ignore_cleanup_errors=True) as tempdir:
-            ts_filename = os.path.join(tempdir, f"{os.urandom(3).hex()}.trees")
+        @contextlib.contextmanager
+        def _slim_tempdir():
+            tempdir = tempfile.TemporaryDirectory(
+                prefix="stdpopsim_", ignore_cleanup_errors=True
+            )
+            ts_filename = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.trees")
 
             if not slim_script:
-                script_filename = os.path.join(tempdir, f"{os.urandom(3).hex()}.slim")
+                script_filename = os.path.join(
+                    tempdir.name, f"{os.urandom(3).hex()}.slim"
+                )
                 script_file = open(script_filename, "w")
             else:
                 script_filename = "stdout"
                 script_file = sys.stdout
+            yield script_file, script_filename, ts_filename
+            if not slim_script:
+                script_file.close()
+            tempdir.cleanup()
+
+        with _slim_tempdir() as st:
+            script_file, script_filename, ts_filename = st
 
             recap_epoch = slim_makescript(
                 script_file,
@@ -1690,40 +1703,40 @@ class _SLiMEngine(stdpopsim.Engine):
 
             script_file.flush()
 
-            if run_slim:
-                self._run_slim(
-                    script_filename,
-                    slim_path=slim_path,
-                    seed=seed,
-                    dry_run=dry_run,
-                    verbosity=verbosity,
+            if not run_slim:
+                return None
+
+            self._run_slim(
+                script_filename,
+                slim_path=slim_path,
+                seed=seed,
+                dry_run=dry_run,
+                verbosity=verbosity,
+            )
+
+            if dry_run:
+                return None
+
+            ts = tskit.load(ts_filename)
+
+            ts = _add_dfes_to_metadata(ts, contig)
+            if _recap_and_rescale:
+                ts = self._recap_and_rescale(
+                    ts,
+                    seed,
+                    recap_epoch,
+                    contig,
+                    slim_scaling_factor,
+                    keep_mutation_ids_as_alleles,
+                    extended_events,
                 )
 
-                if dry_run:
-                    ts = None
-                else:
-                    ts = tskit.load(ts_filename)
-
-                    ts = _add_dfes_to_metadata(ts, contig)
-                    if _recap_and_rescale:
-                        ts = self._recap_and_rescale(
-                            ts,
-                            seed,
-                            recap_epoch,
-                            contig,
-                            slim_scaling_factor,
-                            keep_mutation_ids_as_alleles,
-                            extended_events,
-                        )
-
-                    if contig.inclusion_mask is not None:
-                        ts = stdpopsim.utils.mask_tree_sequence(ts, contig.inclusion_mask, False)
-                    if contig.exclusion_mask is not None:
-                        ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
-                
-                script_file.close()
-            else:
-                ts = None
+            if contig.inclusion_mask is not None:
+                ts = stdpopsim.utils.mask_tree_sequence(
+                    ts, contig.inclusion_mask, False
+                )
+            if contig.exclusion_mask is not None:
+                ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
 
         return ts
 
@@ -1755,6 +1768,7 @@ class _SLiMEngine(stdpopsim.Engine):
             slim_cmd.extend(["-d", "dry_run=T"])
         if verbosity is not None:
             slim_cmd.extend(["-d", f"verbosity={verbosity}"])
+        print("FOO", script_file, os.path.isfile(script_file))
         slim_cmd.append(script_file)
 
         with subprocess.Popen(
