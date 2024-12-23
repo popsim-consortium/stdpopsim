@@ -50,10 +50,16 @@
 
 **New features**:
 
-- *Relationship between dominance and selection coefficient:*
+- Relationship between dominance and selection coefficient:
     Added the `dominance_coeff_list` argument to `MutationType`, allowing
     for DFEs with a discretized relationship between h and s.
     (:user:`petrelharp`, :pr:`1498`)
+
+- Model specific recombination rates:
+    Added the `recombination_rate` attribute to demographic model,
+    allowing for model specific recombination rates in addition to
+    the species default rates.
+    (:user:`gregorgorjanc`, :pr:`1591`)
 
 **New species**:
 
@@ -180,7 +186,7 @@ for simulating selection via SLiM.
 - AnoGam/GabonAg1000G_1A17 (:user:`andrewkern`, :pr:`856`).
   QC'd by :user:`petrelharp`, :pr:`1279`.
 
-- BosTau/HolsteinFriesian_1M13 (:user:`grahamgower`, :pr:`600`).
+- BosTau/HolsteinFriesian_1M13 (:user:`grahamgower` and :user:`iechevarriaz`, :pr:`558` and :pr:`600`).
   QC'd by :user:`igronau`, :pr:`1272`.
 
 - HomSap/OutOfAfricaExtendedNeandertalAdmixturePulse_3I21
