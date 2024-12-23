@@ -321,6 +321,30 @@ class TestAPI:
         assert tables1.edges == tables2.edges
         assert tables1.mutations == tables2.mutations
 
+    def test_recap_start_time(self):
+        # check that the correct time to start adding mutations from
+        # is actually the value recorded in metadata (whether it is or
+        # differs by 1 or 2 depends on the stages in which the simulation
+        # is set up and written out; see pyslim:#308
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("AnaPla")
+        contig = species.get_contig(length=1e3)
+        model = stdpopsim.PiecewiseConstantSize(100)
+        samples = {"pop_0": 10}
+        ts = engine.simulate(
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            slim_burn_in=3,
+            _recap_and_rescale=False,
+        )
+        root_times = set([ts.node(n).time for t in ts.trees() for n in t.roots])
+        assert root_times == set(
+            [
+                ts.metadata["SLiM"]["cycle"],
+            ]
+        )
+
     def test_assert_min_version(self):
         engine = stdpopsim.get_engine("slim")
         with mock.patch(
