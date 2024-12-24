@@ -62,6 +62,12 @@ import json
 
 logger = logging.getLogger(__name__)
 
+
+def _escape_eidos(s):
+    # this is for Windows paths passed as strings in Eidos
+    return "\\\\".join(s.split("\\"))
+
+
 _slim_upper = """
 initialize() {
     if (!exists("dry_run"))
@@ -1198,7 +1204,7 @@ def slim_makescript(
             recombination_rates=recomb_rates_str,
             recombination_ends=recomb_ends_str,
             generation_time=demographic_model.generation_time,
-            trees_file=trees_file,
+            trees_file=_escape_eidos(trees_file),
             pop_names=f"c({pop_names_str})",
         )
     )
@@ -1517,7 +1523,7 @@ def slim_makescript(
     if logfile is not None:
         printsc(
             string.Template(_slim_logfile).substitute(
-                logfile=logfile,
+                logfile=_escape_eidos(str(logfile)),
                 loginterval=logfile_interval,
             )
         )
@@ -1658,21 +1664,32 @@ class _SLiMEngine(stdpopsim.Engine):
 
         run_slim = not slim_script
 
-        mktemp = functools.partial(tempfile.NamedTemporaryFile, mode="w")
-
         @contextlib.contextmanager
-        def script_file_f():
-            f = mktemp(suffix=".slim") if not slim_script else sys.stdout
-            yield f
-            # Don't close sys.stdout.
-            if not slim_script:
-                f.close()
+        def _slim_tempdir():
+            tempdir = tempfile.TemporaryDirectory(
+                prefix="stdpopsim_", ignore_cleanup_errors=True
+            )
+            ts_filename = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.trees")
 
-        with script_file_f() as script_file, mktemp(suffix=".ts") as ts_file:
+            if not slim_script:
+                script_filename = os.path.join(
+                    tempdir.name, f"{os.urandom(3).hex()}.slim"
+                )
+                script_file = open(script_filename, "w")
+            else:
+                script_filename = "stdout"
+                script_file = sys.stdout
+            yield script_file, script_filename, ts_filename
+            if not slim_script:
+                script_file.close()
+            tempdir.cleanup()
+
+        with _slim_tempdir() as st:
+            script_file, script_filename, ts_filename = st
 
             recap_epoch = slim_makescript(
                 script_file,
-                ts_file.name,
+                ts_filename,
                 demographic_model,
                 contig,
                 sample_sets,
@@ -1690,7 +1707,7 @@ class _SLiMEngine(stdpopsim.Engine):
                 return None
 
             self._run_slim(
-                script_file.name,
+                script_filename,
                 slim_path=slim_path,
                 seed=seed,
                 dry_run=dry_run,
@@ -1700,24 +1717,26 @@ class _SLiMEngine(stdpopsim.Engine):
             if dry_run:
                 return None
 
-            ts = tskit.load(ts_file.name)
+            ts = tskit.load(ts_filename)
 
-        ts = _add_dfes_to_metadata(ts, contig)
-        if _recap_and_rescale:
-            ts = self._recap_and_rescale(
-                ts,
-                seed,
-                recap_epoch,
-                contig,
-                slim_scaling_factor,
-                keep_mutation_ids_as_alleles,
-                extended_events,
-            )
+            ts = _add_dfes_to_metadata(ts, contig)
+            if _recap_and_rescale:
+                ts = self._recap_and_rescale(
+                    ts,
+                    seed,
+                    recap_epoch,
+                    contig,
+                    slim_scaling_factor,
+                    keep_mutation_ids_as_alleles,
+                    extended_events,
+                )
 
-        if contig.inclusion_mask is not None:
-            ts = stdpopsim.utils.mask_tree_sequence(ts, contig.inclusion_mask, False)
-        if contig.exclusion_mask is not None:
-            ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
+            if contig.inclusion_mask is not None:
+                ts = stdpopsim.utils.mask_tree_sequence(
+                    ts, contig.inclusion_mask, False
+                )
+            if contig.exclusion_mask is not None:
+                ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
 
         return ts
 
@@ -1740,7 +1759,6 @@ class _SLiMEngine(stdpopsim.Engine):
         if slim_path is None:
             slim_path = self.slim_path()
 
-        # SLiM v3.6 sends `stop()` output to stderr, which we rely upon.
         self._assert_min_version("4.0", slim_path)
 
         slim_cmd = [slim_path]
@@ -1750,6 +1768,7 @@ class _SLiMEngine(stdpopsim.Engine):
             slim_cmd.extend(["-d", "dry_run=T"])
         if verbosity is not None:
             slim_cmd.extend(["-d", f"verbosity={verbosity}"])
+        print("FOO", script_file, os.path.isfile(script_file))
         slim_cmd.append(script_file)
 
         with subprocess.Popen(
@@ -2029,6 +2048,4 @@ class _SLiMEngine(stdpopsim.Engine):
         return ts
 
 
-# SLiM does not currently work on Windows.
-if sys.platform != "win32":
-    stdpopsim.register_engine(_SLiMEngine())
+stdpopsim.register_engine(_SLiMEngine())
