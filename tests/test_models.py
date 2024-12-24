@@ -34,10 +34,18 @@ class DemographicModelTestMixin:
 
     @pytest.mark.filterwarnings("ignore:.*Zigzag_1S14.*:UserWarning")
     def test_simulation_runs(self):
-        # With a recombination_map of None, we simulate a coalescent without
-        # recombination in msprime, with mutation rate equal to rate from model.
+        # For the purposes of testing the model, here we use the
+        # model's mutation and recombination rate if it has them;
+        # otherwise, we use zero recombination and the species
+        # mutation rate.
+        if self.model.recombination_rate is None:
+            recombination_rate = 0
+        else:
+            recombination_rate = self.model.recombination_rate
         contig = stdpopsim.Contig.basic_contig(
-            length=100, mutation_rate=self.model.mutation_rate
+            length=100,
+            mutation_rate=self.model.mutation_rate,
+            recombination_rate=recombination_rate,
         )
         # Generate vector with 2 samples for each pop with sampling enabled
         samples = {}
