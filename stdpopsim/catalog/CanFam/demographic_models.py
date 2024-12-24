@@ -61,6 +61,7 @@ def _dog_wolf_admixture():
     N_root = 18169
 
     # Estimated (calibrated) divergence times, from Table S12
+    T_ancDOG1 = 12102
     T_ancDOG = 12795
     T_ancWLF1 = 13389
     T_ancWLF = 13455
@@ -114,6 +115,7 @@ def _dog_wolf_admixture():
         initial_size=N_ancDOG1,
         name="ancDOG1",
         description="Ancestral Basenji",
+        # we removed Boxer above
     )
     model.add_population(
         initial_size=N_ancDOG,
@@ -146,11 +148,12 @@ def _dog_wolf_admixture():
     model.set_migration_rate(rate=m_CHW_DNG, source="DNG", dest="CHW")
     model.set_migration_rate(rate=m_DNG_CHW, source="CHW", dest="DNG")
     model.set_migration_rate(rate=m_GLJ_ISW, source="ISW", dest="GLJ")
-    model.set_migration_rate(rate=m_ISW_BSJ, source="BSJ", dest="ISW")
     model.set_migration_rate(rate=m_ISW_GLJ, source="GLJ", dest="ISW")
     model.set_migration_rate(rate=m_GLJ_ancDW, source="ancDW", dest="GLJ")
     model.set_migration_rate(rate=m_ancDW_GLJ, source="GLJ", dest="ancDW")
 
+    model.add_population_split(time=T_ancDOG1, derived=["BSJ"], ancestral="ancDOG1")
+    # we removed Boxer above
     model.add_population_split(
         time=T_ancDOG, derived=["ancDOG1", "DNG"], ancestral="ancDOG"
     )
