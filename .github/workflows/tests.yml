@@ -53,6 +53,12 @@ jobs:
       - name: Fix windows .profile
         if: steps.cache.outputs.cache-hit != 'true' && matrix.os == 'windows-latest'
         run: |
+          pwd
+          echo "HOME: $HOME"
+          echo ".profile"
+          cat ~/.profile
+          echo ".bash_profile"
+          cat ~/.bash_profile
           cp ~/.bash_profile ~/.profile
 
       - name: Install conda deps
@@ -65,7 +71,9 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         shell: bash -l {0}
         run: |
-            pip install -r requirements/CI/requirements.txt
+          echo "pip pwd:"
+          pwd
+          pip install -r requirements/CI/requirements.txt
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
@@ -73,6 +81,9 @@ jobs:
 
       - name: run test suite
         run: |
+          echo "test pwd"
+          pwd
+          ls ~/.profile
           source ~/.profile
           conda activate anaconda-client-env
           python -m pytest \
