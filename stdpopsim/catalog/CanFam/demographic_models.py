@@ -32,7 +32,8 @@ def _dog_wolf_admixture():
     end times of the two populations that define it (section S9.2.3 in S9).
     While Boxer reference genome was used, no Boxer-specific parameters
     were estimated in the model, hence Boxer was removed from this model
-    implementation.
+    implementation. Boxer coalesced with Basenji, so Ancestral Basenji
+    population here is ancestral population to Boxer and Basenji.
     """
     citations = [
         stdpopsim.Citation(
@@ -120,27 +121,27 @@ def _dog_wolf_admixture():
     model.add_population(
         initial_size=N_ancDOG,
         name="ancDOG",
-        description="Ancestral Basenji and Dingo",
+        description="Ancestral Basenji-Dingo",
     )
     model.add_population(
         initial_size=N_ancWLF1,
         name="ancWLF1",
-        description="Ancestral Israeli and Croatian wolf",
+        description="Ancestral Israeli-Croatian wolf",
     )
     model.add_population(
         initial_size=N_ancWLF,
         name="ancWLF",
-        description="Ancestral Israeli-Croatian and Chinese wolf",
+        description="Ancestral (Israeli-Croatian)-Chinese wolf",
     )
     model.add_population(
         initial_size=N_ancDW,
         name="ancDW",
-        description="Ancestral dog and wolf",
+        description="Ancestral dog-wolf",
     )
     model.add_population(
         initial_size=N_root,
         name="root",
-        description="Ancestral root of dog, wolf, and jackal",
+        description="Ancestral (dog-wolf)-golden jackal (root)",
     )
 
     model.set_migration_rate(rate=m_ISW_BSJ, source="BSJ", dest="ISW")
