@@ -55,8 +55,7 @@ jobs:
         run: |
           pwd
           echo "HOME: $HOME"
-          echo ".profile"
-          cat ~/.profile
+          ls ~/.profile ~/.bash_profile
           echo ".bash_profile"
           cat ~/.bash_profile
           cp ~/.bash_profile ~/.profile
