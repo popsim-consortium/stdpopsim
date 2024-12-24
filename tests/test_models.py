@@ -34,11 +34,10 @@ class DemographicModelTestMixin:
 
     @pytest.mark.filterwarnings("ignore:.*Zigzag_1S14.*:UserWarning")
     def test_simulation_runs(self):
-        # When model has no specific recombination rate,
-        #   we simulate coalescent without recombination.
-        # Otherwise, we use the rate from the model.
-        # We use mutation rate equal to rate from model
-        #  (or species when the model does not have one.
+        # For the purposes of testing the model, here we use the
+        # model's mutation and recombination rate if it has them;
+        # otherwise, we use zero recombination and the species
+        # mutation rate.
         if self.model.recombination_rate is None:
             recombination_rate = 0
         else:
