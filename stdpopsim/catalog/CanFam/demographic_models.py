@@ -12,7 +12,7 @@ _species = stdpopsim.get_species("CanFam")
 
 
 def _dog_wolf_admixture():
-    id = "EarlyWolfAdmixture_7F14"
+    id = "EarlyWolfAdmixture_6F14"
     description = "Dog domestication and admixture with wolf (Freedman et al., 2014)"
     long_description = """
     Demographic model of dog domestication with the Boxer reference
