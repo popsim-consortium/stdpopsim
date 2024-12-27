@@ -8,12 +8,10 @@
  */
 
 initialize() {
-__X=11; catn(__X + " I");
+catn("AA 0");
     if (!exists("dry_run"))
         defineConstant("dry_run", F);
-__X=14; catn(__X + " I");
-    defineConstant("verbosity", 10);
-__X=17; catn(__X + " I");
+defineConstant("verbosity", 5);
 
     // Scaling factor to speed up simulation.
     // See SLiM manual:
@@ -22,24 +20,21 @@ __X=17; catn(__X + " I");
 
     defineConstant("burn_in", 0.0);
     defineConstant("generation_time", 30);
-    // defineConstant("trees_file", "/tmp/stdpopsim_643nx6zr/620ac7.trees");
+    defineConstant("trees_file", "/tmp/stdpopsim_7dk_5e59/307112.trees");
     defineConstant("pop_names", c("pop_0"));
-__X=28; catn(__X + " I");
 
     _recombination_rates = c(
         0.0, 1.1523470111585671e-08, 0.0);
-__X=32; catn(__X + " I");
     if (Q != 1) {
         _recombination_rates = (1-(1-2*_recombination_rates)^Q)/2;
     }
-__X=36; catn(__X + " I");
     _recombination_ends = c(
         9999999, 10009999, 248956421);
     defineConstant("recombination_rates", _recombination_rates);
     defineConstant("recombination_ends", _recombination_ends);
     // whatever is in this dictionary will be saved out in the .trees file
     defineConstant("metadata", Dictionary("Q", Q));
-__X=43; catn(__X + " I");
+catn("AA 1");
 
     initializeMutationType(0, 0.5, "f", Q * 0);
     initializeGenomicElementType(0, c(0), c(1.0));
@@ -50,7 +45,6 @@ __X=43; catn(__X + " I");
     initializeMutationRate(Q*c(
         0.0, 0.0, 0.0), c(
         9999999, 10009999, 248956421));
-__X=54; catn(__X + " I");
 
     // Time of epoch boundaries, in years before present.
     // The first epoch spans from INF to _T[0].
@@ -62,7 +56,6 @@ __X=54; catn(__X + " I");
         // INF:_T[0], _T[0]:_T[1], etc.
         c(10000.0) // pop_0
     ), c(1, 1));
-__X=66; catn(__X + " I");
 
     defineConstant("num_epochs", length(_T));
     defineConstant("num_populations", ncol(_N));
@@ -72,7 +65,6 @@ __X=66; catn(__X + " I");
         // INF:_T[0], _T[0]:_T[1], etc.
         c(0.0) // pop_0
     ), c(num_epochs, num_populations)));
-__X=76; catn(__X + " I");
 
     no_migration = rep(0, num_populations*num_populations);
 
@@ -113,12 +105,11 @@ __X=76; catn(__X + " I");
     // Note: these are floats because rounding causes error in population
     // growth: exp(round(x)*r*t) != round(exp(x*r*t))
     defineConstant("N", _N/Q);
-__X=117; catn(__X + " I");
 
+catn("AA 2");
     initializeTreeSeq(timeUnit="generations");
-__X=120; catn(__X + " I");
     initializeRecombinationRate(recombination_rates, recombination_ends);
-__X=122; catn(__X + " I");
+catn("AA 3");
 }
 
 function (void)err(string$ s) {
@@ -263,21 +254,22 @@ function (void)restore(void) {
 
 
 1 early() {
+catn("AA 4");
     // save/restore bookkeeping
     sim.setValue("n_restores", 0);
     sim.setValue("n_saves", 0);
     sim.setValue("restore_function", F);
-__X=271; catn(__X + " S");
 
     /*
      * Create initial populations and migration rates.
      */
 
+catn("AA 5");
     // Initial populations.
     for (i in 0:(num_populations-1)) {
-__X=279; catn(__X + " S");
+catn("AA 6");
         if (N[0,i] > 0) {
-__X=281; catn(__X + " S");
+catn("AA 7");
             check_size(i, asInteger(round(N[0,i])), community.tick);
             dbg("p = sim.addSubpop("+i+", "+asInteger(round(N[0,i]))+");");
             p = sim.addSubpop(i, asInteger(round(N[0,i])));
@@ -285,48 +277,37 @@ __X=281; catn(__X + " S");
             p.name = pop_names[i];
         }
     }
-__X=289; catn(__X + " S");
 
     if (length(sim.subpopulations) == 0) {
-__X=292; catn(__X + " S");
         err("No populations with non-zero size in tick 1.");
     }
 
     // Initial migration rates.
     i = 0;
-__X=298; catn(__X + " S");
+catn("AA 8");
     for (j in 0:(num_populations-1)) {
-__X=300; catn(__X + " S");
+catn("AA 9");
         for (k in 0:(num_populations-1)) {
-__X=302; catn(__X + " S");
+catn("AA 10");
             if (j==k | N[i,j] < 1 | N[i,k] < 1) {
-__X=304; catn(__X + " S");
                 next;
             }
 
             m = Q * migration_matrices[k,j,i];
-__X=309; catn(__X + " S");
             p = sim.subpopulations[j];
-__X=311; catn(__X + " S");
             dbg("p"+j+".setMigrationRates("+k+", "+m+");");
             p.setMigrationRates(k, m);
-__X=314; catn(__X + " S");
         }
     }
-__X=317; catn(__X + " S");
 
     // The end of the burn-in is the starting tick, and corresponds to
     // tick G_start. All remaining events are relative to this tick.
+catn("AA 11");
     N_max = asInteger(round(max(N[0,0:(num_populations-1)])));
-__X=322; catn(__X + " S");
     G_start = 1 + asInteger(round(burn_in * N_max));
-__X=324; catn(__X + " S");
     defineConstant("G0", asInteger(max(_T) / generation_time / Q + G_start));
-__X=326; catn(__X + " S");
     G = time_to_tick(_T);
-__X=328; catn(__X + " S");
     G_end = max(G);
-__X=330; catn(__X + " S");
 
     /*
      * Register events occurring at time T_start or more recently.
@@ -334,7 +315,7 @@ __X=330; catn(__X + " S");
 
     // Save/restore events. These should come before all other events.
     if (length(drawn_mutations) > 0) {
-__X=338; catn(__X + " S");
+catn("AA 12");
         n_checkpoints = 0;
         for (i in 0:(ncol(drawn_mutations)-1)) {
             save = drawn_mutations[4,i] == 1;
@@ -353,7 +334,7 @@ __X=338; catn(__X + " S");
         }
     }
     if (length(condition_on_allele_frequency) > 0) {
-__X=357; catn(__X + " S");
+catn("AA 13");
         for (i in 0:(ncol(condition_on_allele_frequency)-1)) {
             g_start = time_to_tick(condition_on_allele_frequency[0,i]);
             g_end = time_to_tick(condition_on_allele_frequency[1,i]);
@@ -377,7 +358,7 @@ __X=357; catn(__X + " S");
 
     // Split events.
     if (length(subpopulation_splits) > 0 ) {
-__X=381; catn(__X + " S");
+catn("AA 14");
         for (i in 0:(ncol(subpopulation_splits)-1)) {
             g = time_to_tick(subpopulation_splits[0,i]);
             newpop = asInteger(drop(subpopulation_splits[1,i]));
@@ -394,16 +375,13 @@ __X=381; catn(__X + " S");
 
     // Population size changes.
     if (num_epochs > 1) {
-__X=398; catn(__X + " S");
+catn("AA 15");
         for (i in 1:(num_epochs-1)) {
-__X=400; catn(__X + " S");
             g = G[i-1];
             for (j in 0:(num_populations-1)) {
-__X=403; catn(__X + " S");
                 // Change population size if this hasn't already been taken
                 // care of by sim.addSubpop() or sim.addSubpopSplit().
                 if ((N[i,j] != N[i-1,j] | growth_rates[i-1,j] != 0) & N[i-1,j] >= 1) {
-__X=407; catn(__X + " S");
                     check_size(j, asInteger(N[i,j]), g);
                     community.registerLateEvent(NULL,
                         "{dbg(self.source); " +
@@ -412,7 +390,6 @@ __X=407; catn(__X + " S");
                 }
 
                 if (growth_rates[i,j] != 0) {
-__X=416; catn(__X + " S");
                     growth_phase_start = g+1;
                     growth_phase_end = G[i] - 1;
                     // this is the number of ticks that the pop will grow for
@@ -421,7 +398,6 @@ __X=416; catn(__X + " S");
                     growth_phase_length = growth_phase_ticks + 1;
 
                     if (growth_phase_start >= growth_phase_end) {
-__X=425; catn(__X + " S");
                         // Demographic models could have duplicate epoch times,
                         // which should be fixed.
                         warn("growth_phase_start="+growth_phase_start+
@@ -431,11 +407,9 @@ __X=425; catn(__X + " S");
 
                     N_growth_phase_end = pop_size_at(G, j, growth_phase_end);
                     check_size(j, N_growth_phase_end, growth_phase_end);
-__X=435; catn(__X + " S");
 
                     N0 = N[i,j];
                     r = Q * growth_rates[i,j] * growth_phase_length / growth_phase_ticks;
-__X=439; catn(__X + " S");
                     community.registerLateEvent(NULL,
                         "{" +
                             "dbg(self.source); " +
@@ -444,19 +418,18 @@ __X=439; catn(__X + " S");
                             "p"+j+".setSubpopulationSize(size);" +
                         "}",
                         growth_phase_start, growth_phase_end);
-__X=448; catn(__X + " S");
                 }
             }
         }
-__X=452; catn(__X + " S");
 
         // Migration rates.
+catn("AA 16");
         for (i in 1:(num_epochs-1)) {
-__X=456; catn(__X + " S");
+catn("AA 17");
             for (j in 0:(num_populations-1)) {
-__X=458; catn(__X + " S");
+catn("AA 18");
                 for (k in 0:(num_populations-1)) {
-__X=460; catn(__X + " S");
+catn("AA 19");
                     if (j==k | N[i,j] < 1 | N[i,k] < 1) {
                         next;
                     }
@@ -468,21 +441,18 @@ __X=460; catn(__X + " S");
                         next;
                     }
                     g = G[i-1];
-__X=472; catn(__X + " S");
                     community.registerLateEvent(NULL,
                         "{dbg(self.source); " +
                         "p"+j+".setMigrationRates("+k+", "+m+");}",
                         g, g);
-__X=477; catn(__X + " S");
                 }
             }
         }
     }
-__X=482; catn(__X + " S");
 
     // Admixture pulses.
     if (length(admixture_pulses) > 0 ) {
-__X=486; catn(__X + " S");
+catn("AA 20");
         for (i in 0:(ncol(admixture_pulses)-1)) {
             g = time_to_tick(admixture_pulses[0,i]);
             dest = asInteger(admixture_pulses[1,i]);
@@ -501,7 +471,7 @@ __X=486; catn(__X + " S");
 
     // Draw mutations.
     if (length(drawn_mutations) > 0) {
-__X=505; catn(__X + " S");
+catn("AA 21");
         for (i in 0:(ncol(drawn_mutations)-1)) {
             g = time_to_tick(drawn_mutations[0,i]);
             mut_type = asInteger(drawn_mutations[1,i]);
@@ -516,7 +486,7 @@ __X=505; catn(__X + " S");
 
     // Setup fitness callbacks.
     if (length(fitness_callbacks) > 0) {
-__X=520; catn(__X + " S");
+catn("AA 22");
         for (i in 0:(ncol(fitness_callbacks)-1)) {
             g_start = time_to_tick(fitness_callbacks[0,i]);
             g_end = time_to_tick(fitness_callbacks[1,i]);
@@ -569,7 +539,7 @@ __X=520; catn(__X + " S");
     // the first is the one that gets produced by mutation,
     // and the remainder are assigned by a mutation callback.
     for (i in seqAlong(mut_types_with_callbacks)) {
-__X=573; catn(__X + " S");
+catn("AA 23");
         mt = mut_types_with_callbacks[i];
         sim.registerMutationCallback(NULL,
             "{s = mut.selectionCoeff; "
@@ -582,7 +552,7 @@ __X=573; catn(__X + " S");
 
     // Sample individuals.
     for (i in 0:(ncol(sampling_episodes)-1)) {
-__X=586; catn(__X + " S");
+catn("AA 24");
         pop = drop(asInteger(sampling_episodes[0,i]));
         n = sampling_episodes[1,i];
         g = time_to_tick(sampling_episodes[2,i]);
@@ -604,19 +574,19 @@ __X=586; catn(__X + " S");
         }
     }
 
-__X=608; catn(__X + " S");
+catn("AA 25");
     community.registerLateEvent(NULL, "{dbg(self.source); end();}", G_end, G_end);
-__X=610; catn(__X + " S");
+catn("AA 26");
 
     if (G_start > community.tick) {
-__X=613; catn(__X + " S");
+catn("AA 27");
         dbg("Starting burn-in...");
     }
 
     if (dry_run) {
         sim.simulationFinished();
     }
-__X=620; catn(__X + " S");
+catn("AA 28");
 }
 
 
@@ -632,6 +602,7 @@ __X=620; catn(__X + " S");
 // Header:
 1 late() {
     if (verbosity >= 3) {
+catn("AA 34");
         dbg(paste(c("dbg_selection_coeff:",
                     "selectionCoeff",
                     "id",

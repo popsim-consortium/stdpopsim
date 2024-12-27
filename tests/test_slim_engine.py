@@ -41,6 +41,23 @@ class TestCLI:
         # return capture_output(stdpopsim.cli.stdpopsim_main, cmd)
         stdpopsim.cli.stdpopsim_main(cmd)
 
+    def test_runs(self):
+        slim_path = os.environ.get("SLIM", "slim")
+        with subprocess.Popen(
+            [slim_path, "-v"],
+            bufsize=1,
+            universal_newlines=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ) as proc:
+            for line in proc.stdout:
+                print("stdout", line)
+            stderr = proc.stderr.read()
+            for line in stderr.splitlines():
+                print("stderr", line)
+            print("return code:", proc.returncode)
+
+
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")
     @pytest.mark.usefixtures("tmp_path")
