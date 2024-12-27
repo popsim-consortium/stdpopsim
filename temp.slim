@@ -1,8 +1,20 @@
+/*
+ * stdpopsim 0.2.1a2.dev17+gf2e1ab8.d20241213
+ *
+ * Demographic model: PiecewiseConstant
+ * Piecewise constant size population model over multiple epochs.
+ * Tremblay and Vézina, 2000: https://doi.org/10.1086/302770
+ * Takahata, 1993: https://doi.org/10.1093/oxfordjournals.molbev.a039995
+ */
+
 initialize() {
+__X=11; catn(__X + " I");
     if (!exists("dry_run"))
         defineConstant("dry_run", F);
+__X=14; catn(__X + " I");
     if (!exists("verbosity"))
         defineConstant("verbosity", 2);
+__X=17; catn(__X + " I");
 
     // Scaling factor to speed up simulation.
     // See SLiM manual:
@@ -11,20 +23,24 @@ initialize() {
 
     defineConstant("burn_in", 0.0);
     defineConstant("generation_time", 30);
-    defineConstant("trees_file", "/tmp/stdpopsim_ftuuk9x2/3c298e.trees");
+    // defineConstant("trees_file", "/tmp/stdpopsim_643nx6zr/620ac7.trees");
     defineConstant("pop_names", c("pop_0"));
+__X=28; catn(__X + " I");
 
     _recombination_rates = c(
         0.0, 1.1523470111585671e-08, 0.0);
+__X=32; catn(__X + " I");
     if (Q != 1) {
         _recombination_rates = (1-(1-2*_recombination_rates)^Q)/2;
     }
+__X=36; catn(__X + " I");
     _recombination_ends = c(
         9999999, 10009999, 248956421);
     defineConstant("recombination_rates", _recombination_rates);
     defineConstant("recombination_ends", _recombination_ends);
     // whatever is in this dictionary will be saved out in the .trees file
     defineConstant("metadata", Dictionary("Q", Q));
+__X=43; catn(__X + " I");
 
     initializeMutationType(0, 0.5, "f", Q * 0);
     initializeGenomicElementType(0, c(0), c(1.0));
@@ -35,6 +51,7 @@ initialize() {
     initializeMutationRate(Q*c(
         0.0, 0.0, 0.0), c(
         9999999, 10009999, 248956421));
+__X=54; catn(__X + " I");
 
     // Time of epoch boundaries, in years before present.
     // The first epoch spans from INF to _T[0].
@@ -46,6 +63,7 @@ initialize() {
         // INF:_T[0], _T[0]:_T[1], etc.
         c(10000.0) // pop_0
     ), c(1, 1));
+__X=66; catn(__X + " I");
 
     defineConstant("num_epochs", length(_T));
     defineConstant("num_populations", ncol(_N));
@@ -55,6 +73,7 @@ initialize() {
         // INF:_T[0], _T[0]:_T[1], etc.
         c(0.0) // pop_0
     ), c(num_epochs, num_populations)));
+__X=76; catn(__X + " I");
 
     no_migration = rep(0, num_populations*num_populations);
 
@@ -95,9 +114,12 @@ initialize() {
     // Note: these are floats because rounding causes error in population
     // growth: exp(round(x)*r*t) != round(exp(x*r*t))
     defineConstant("N", _N/Q);
+__X=117; catn(__X + " I");
 
     initializeTreeSeq(timeUnit="generations");
+__X=120; catn(__X + " I");
     initializeRecombinationRate(recombination_rates, recombination_ends);
+__X=122; catn(__X + " I");
 }
 
 function (void)err(string$ s) {
@@ -246,6 +268,7 @@ function (void)restore(void) {
     sim.setValue("n_restores", 0);
     sim.setValue("n_saves", 0);
     sim.setValue("restore_function", F);
+__X=271; catn(__X + " S");
 
     /*
      * Create initial populations and migration rates.
@@ -253,7 +276,9 @@ function (void)restore(void) {
 
     // Initial populations.
     for (i in 0:(num_populations-1)) {
+__X=279; catn(__X + " S");
         if (N[0,i] > 0) {
+__X=281; catn(__X + " S");
             check_size(i, asInteger(round(N[0,i])), community.tick);
             dbg("p = sim.addSubpop("+i+", "+asInteger(round(N[0,i]))+");");
             p = sim.addSubpop(i, asInteger(round(N[0,i])));
@@ -261,34 +286,48 @@ function (void)restore(void) {
             p.name = pop_names[i];
         }
     }
-catn('Pops setup.');
+__X=289; catn(__X + " S");
 
     if (length(sim.subpopulations) == 0) {
+__X=292; catn(__X + " S");
         err("No populations with non-zero size in tick 1.");
     }
 
     // Initial migration rates.
     i = 0;
+__X=298; catn(__X + " S");
     for (j in 0:(num_populations-1)) {
+__X=300; catn(__X + " S");
         for (k in 0:(num_populations-1)) {
+__X=302; catn(__X + " S");
             if (j==k | N[i,j] < 1 | N[i,k] < 1) {
+__X=304; catn(__X + " S");
                 next;
             }
 
             m = Q * migration_matrices[k,j,i];
+__X=309; catn(__X + " S");
             p = sim.subpopulations[j];
+__X=311; catn(__X + " S");
             dbg("p"+j+".setMigrationRates("+k+", "+m+");");
             p.setMigrationRates(k, m);
+__X=314; catn(__X + " S");
         }
     }
+__X=317; catn(__X + " S");
 
     // The end of the burn-in is the starting tick, and corresponds to
     // tick G_start. All remaining events are relative to this tick.
     N_max = asInteger(round(max(N[0,0:(num_populations-1)])));
+__X=322; catn(__X + " S");
     G_start = 1 + asInteger(round(burn_in * N_max));
+__X=324; catn(__X + " S");
     defineConstant("G0", asInteger(max(_T) / generation_time / Q + G_start));
+__X=326; catn(__X + " S");
     G = time_to_tick(_T);
+__X=328; catn(__X + " S");
     G_end = max(G);
+__X=330; catn(__X + " S");
 
     /*
      * Register events occurring at time T_start or more recently.
@@ -296,6 +335,7 @@ catn('Pops setup.');
 
     // Save/restore events. These should come before all other events.
     if (length(drawn_mutations) > 0) {
+__X=338; catn(__X + " S");
         n_checkpoints = 0;
         for (i in 0:(ncol(drawn_mutations)-1)) {
             save = drawn_mutations[4,i] == 1;
@@ -314,6 +354,7 @@ catn('Pops setup.');
         }
     }
     if (length(condition_on_allele_frequency) > 0) {
+__X=357; catn(__X + " S");
         for (i in 0:(ncol(condition_on_allele_frequency)-1)) {
             g_start = time_to_tick(condition_on_allele_frequency[0,i]);
             g_end = time_to_tick(condition_on_allele_frequency[1,i]);
@@ -337,6 +378,7 @@ catn('Pops setup.');
 
     // Split events.
     if (length(subpopulation_splits) > 0 ) {
+__X=381; catn(__X + " S");
         for (i in 0:(ncol(subpopulation_splits)-1)) {
             g = time_to_tick(subpopulation_splits[0,i]);
             newpop = asInteger(drop(subpopulation_splits[1,i]));
@@ -344,7 +386,7 @@ catn('Pops setup.');
             oldpop = asInteger(subpopulation_splits[3,i]);
             check_size(newpop, size, g);
             community.registerLateEvent(NULL,
-                "{catn('A ' + community.tick); dbg(self.source); " +
+                "{dbg(self.source); " +
                 "p = sim.addSubpopSplit("+newpop+","+size+","+oldpop+"); " +
                 "p.name = '"+pop_names[newpop]+"';}",
                 g, g);
@@ -353,20 +395,25 @@ catn('Pops setup.');
 
     // Population size changes.
     if (num_epochs > 1) {
+__X=398; catn(__X + " S");
         for (i in 1:(num_epochs-1)) {
+__X=400; catn(__X + " S");
             g = G[i-1];
             for (j in 0:(num_populations-1)) {
+__X=403; catn(__X + " S");
                 // Change population size if this hasn't already been taken
                 // care of by sim.addSubpop() or sim.addSubpopSplit().
                 if ((N[i,j] != N[i-1,j] | growth_rates[i-1,j] != 0) & N[i-1,j] >= 1) {
+__X=407; catn(__X + " S");
                     check_size(j, asInteger(N[i,j]), g);
                     community.registerLateEvent(NULL,
-                        "{catn('P ' + community.tick); dbg(self.source); " +
+                        "{dbg(self.source); " +
                         "p"+j+".setSubpopulationSize("+asInteger(round(N[i,j]))+");}",
                         g, g);
                 }
 
                 if (growth_rates[i,j] != 0) {
+__X=416; catn(__X + " S");
                     growth_phase_start = g+1;
                     growth_phase_end = G[i] - 1;
                     // this is the number of ticks that the pop will grow for
@@ -375,6 +422,7 @@ catn('Pops setup.');
                     growth_phase_length = growth_phase_ticks + 1;
 
                     if (growth_phase_start >= growth_phase_end) {
+__X=425; catn(__X + " S");
                         // Demographic models could have duplicate epoch times,
                         // which should be fixed.
                         warn("growth_phase_start="+growth_phase_start+
@@ -384,25 +432,32 @@ catn('Pops setup.');
 
                     N_growth_phase_end = pop_size_at(G, j, growth_phase_end);
                     check_size(j, N_growth_phase_end, growth_phase_end);
+__X=435; catn(__X + " S");
 
                     N0 = N[i,j];
                     r = Q * growth_rates[i,j] * growth_phase_length / growth_phase_ticks;
+__X=439; catn(__X + " S");
                     community.registerLateEvent(NULL,
                         "{" +
-                            "catn('Q ' + community.tick); dbg(self.source); " +
+                            "dbg(self.source); " +
                             "gx=community.tick-"+g+"; " +
                             "size=asInteger(round("+N0+"*exp("+r+"*gx))); " +
                             "p"+j+".setSubpopulationSize(size);" +
                         "}",
                         growth_phase_start, growth_phase_end);
+__X=448; catn(__X + " S");
                 }
             }
         }
+__X=452; catn(__X + " S");
 
         // Migration rates.
         for (i in 1:(num_epochs-1)) {
+__X=456; catn(__X + " S");
             for (j in 0:(num_populations-1)) {
+__X=458; catn(__X + " S");
                 for (k in 0:(num_populations-1)) {
+__X=460; catn(__X + " S");
                     if (j==k | N[i,j] < 1 | N[i,k] < 1) {
                         next;
                     }
@@ -414,17 +469,21 @@ catn('Pops setup.');
                         next;
                     }
                     g = G[i-1];
+__X=472; catn(__X + " S");
                     community.registerLateEvent(NULL,
                         "{dbg(self.source); " +
                         "p"+j+".setMigrationRates("+k+", "+m+");}",
                         g, g);
+__X=477; catn(__X + " S");
                 }
             }
         }
     }
+__X=482; catn(__X + " S");
 
     // Admixture pulses.
     if (length(admixture_pulses) > 0 ) {
+__X=486; catn(__X + " S");
         for (i in 0:(ncol(admixture_pulses)-1)) {
             g = time_to_tick(admixture_pulses[0,i]);
             dest = asInteger(admixture_pulses[1,i]);
@@ -443,6 +502,7 @@ catn('Pops setup.');
 
     // Draw mutations.
     if (length(drawn_mutations) > 0) {
+__X=505; catn(__X + " S");
         for (i in 0:(ncol(drawn_mutations)-1)) {
             g = time_to_tick(drawn_mutations[0,i]);
             mut_type = asInteger(drawn_mutations[1,i]);
@@ -457,6 +517,7 @@ catn('Pops setup.');
 
     // Setup fitness callbacks.
     if (length(fitness_callbacks) > 0) {
+__X=520; catn(__X + " S");
         for (i in 0:(ncol(fitness_callbacks)-1)) {
             g_start = time_to_tick(fitness_callbacks[0,i]);
             g_end = time_to_tick(fitness_callbacks[1,i]);
@@ -509,9 +570,10 @@ catn('Pops setup.');
     // the first is the one that gets produced by mutation,
     // and the remainder are assigned by a mutation callback.
     for (i in seqAlong(mut_types_with_callbacks)) {
+__X=573; catn(__X + " S");
         mt = mut_types_with_callbacks[i];
         sim.registerMutationCallback(NULL,
-            "{catn('M' + community.tick); s = mut.selectionCoeff; "
+            "{s = mut.selectionCoeff; "
             + "k = findInterval(s, dominance_coeff_breaks_" + mt + "); "
             + "mut.setMutationType(dominance_coeff_types_" + mt + "[k]); "
             + "return T;}",
@@ -521,6 +583,7 @@ catn('Pops setup.');
 
     // Sample individuals.
     for (i in 0:(ncol(sampling_episodes)-1)) {
+__X=586; catn(__X + " S");
         pop = drop(asInteger(sampling_episodes[0,i]));
         n = sampling_episodes[1,i];
         g = time_to_tick(sampling_episodes[2,i]);
@@ -535,22 +598,135 @@ catn('Pops setup.');
 
         if (n > 0) {
             community.registerLateEvent(NULL,
-                "{catn('S' + community.tick); dbg(self.source); " +
+                "{dbg(self.source); " +
                 "inds=p"+pop+".sampleIndividuals("+n+"); " +
                 "sim.treeSeqRememberIndividuals(inds);}",
                 g, g);
         }
     }
 
-    community.registerLateEvent(NULL, "{catn('E ' + community.tick); dbg(self.source); end();}", G_end, G_end);
+__X=608; catn(__X + " S");
+    community.registerLateEvent(NULL, "{dbg(self.source); end();}", G_end, G_end);
+__X=610; catn(__X + " S");
 
     if (G_start > community.tick) {
+__X=613; catn(__X + " S");
         dbg("Starting burn-in...");
     }
 
     if (dry_run) {
         sim.simulationFinished();
     }
-catn("Done init.");
+__X=620; catn(__X + " S");
 }
 
+
+
+
+///
+/// Debugging output
+///
+
+// Print out selection coefficients for every new mutation:
+// this is for development purposes, and the format of this output
+// is subject to change or may even be removed!
+// Header:
+1 late() {
+    if (verbosity >= 3) {
+        dbg(paste(c("dbg_selection_coeff:",
+                    "selectionCoeff",
+                    "id",
+                    "position"),
+                  sep="	"));
+    }
+}
+
+// Content:
+1: late() {
+    // Print out selection coefficients for every new mutation:
+    // this is for development purposes, and the format of this output
+    // is subject to change or may even be removed!
+    if (verbosity >= 3) {
+        new = (sim.mutations.originTick == community.tick);
+        for (mut in sim.mutations[new]) {
+            dbg(paste(c("dbg_selection_coeff:",
+                        mut.selectionCoeff,
+                        mut.id,
+                        mut.position),
+                      sep="	"));
+        }
+    }
+}
+
+// Save genomic element type information in tree sequence metadata
+// This is for development purposes, and the format of this metadata
+// is subject to change or may even be removed!
+1 early() {
+    if (verbosity >= 3) {
+        // recombination map
+        metadata.setValue(
+            "recombination_rates",
+            sim.chromosome.recombinationRates
+        );
+        metadata.setValue(
+            "recombination_ends",
+            sim.chromosome.recombinationEndPositions
+        );
+        // mutationTypes
+        muts = Dictionary();
+        for (mt in sim.mutationTypes) {
+            mut_info = Dictionary(
+                "distributionParams", mt.distributionParams,
+                "distributionType", mt.distributionType,
+                "dominanceCoeff", mt.dominanceCoeff
+            );
+            muts.setValue(asString(mt.id), mut_info);
+        }
+        metadata.setValue("mutationTypes", muts);
+        // genomicElementTypes
+        ge_starts = sim.chromosome.genomicElements.startPosition;
+        ge_ends= sim.chromosome.genomicElements.endPosition;
+        ge_types= sim.chromosome.genomicElements.genomicElementType.id;
+        ges = Dictionary();
+        for (gt in sim.genomicElementTypes) {
+            gt_info = Dictionary(
+                "mutationTypes", gt.mutationTypes.id,
+                "mutationFractions", gt.mutationFractions,
+                "intervalStarts", ge_starts[ge_types == gt.id],
+                "intervalEnds", ge_ends[ge_types == gt.id]
+            );
+            ges.setValue(asString(gt.id), gt_info);
+        }
+        metadata.setValue("genomicElementTypes", ges);
+        // mutation rates
+        mr = Dictionary(
+            "rates", sim.chromosome.mutationRates,
+            "ends", sim.chromosome.mutationEndPositions
+        );
+        metadata.setValue("mutationRates", mr);
+    }
+}
+
+// Save populations size information in tree sequence metadata
+// This is for development purposes, and the format of this metadata
+// is subject to change or may even be removed!
+1 first() {
+    if (verbosity >= 3) {
+        metadata.setValue("population_sizes", Dictionary());
+    }
+}
+
+1: late() {
+    if (verbosity >= 3) {
+        popsizes = metadata.getValue("population_sizes");
+        for (pop in sim.subpopulations) {
+            traj = popsizes.getValue(pop.name);
+            if (isNULL(traj)) {
+                traj = Dictionary();
+                popsizes.setValue(pop.name, traj);
+            }
+            traj.setValue("t", c(traj.getValue("t"), community.tick));
+            traj.setValue("N", c(traj.getValue("N"), pop.individualCount));
+        }
+    }
+}

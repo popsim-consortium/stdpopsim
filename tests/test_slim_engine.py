@@ -50,7 +50,7 @@ class TestCLI:
         fname = tmp_path / "sim.trees"
         print("fname", fname)
         self.docmd(
-            f"--slim-scaling-factor 20 --slim-path {slim_path} HomSap "
+            f"--slim-scaling-factor 20 --slim-path {slim_path} -v -v -v HomSap "
             f"pop_0:5 -o {fname}"
         )
         ts = tskit.load(fname)
