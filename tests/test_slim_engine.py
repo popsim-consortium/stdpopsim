@@ -12,6 +12,7 @@ from numpy.testing import assert_array_equal
 import collections
 import re
 import logging
+import subprocess
 
 import pytest
 import tskit
@@ -56,7 +57,8 @@ class TestCLI:
             for line in stderr.splitlines():
                 print("stderr", line)
             print("return code:", proc.returncode)
-
+        print("all good?")
+        assert False
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")
