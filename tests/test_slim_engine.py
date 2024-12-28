@@ -56,7 +56,7 @@ class TestCLI:
             stderr = proc.stderr.read()
             for line in stderr.splitlines():
                 print("stderr", line)
-            print("return code:", proc.returncode)
+        print("return code:", proc.returncode)
         print("all good?")
         assert False
 
