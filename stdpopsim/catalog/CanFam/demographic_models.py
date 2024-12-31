@@ -32,8 +32,8 @@ def _dog_wolf_admixture():
     end times of the two populations that define it (section S9.2.3 in S9).
     While Boxer reference genome was used, no Boxer-specific parameters
     were estimated in the model, hence Boxer was removed from this model
-    implementation. Boxer coalesced with Basenji, so Ancestral Basenji
-    population here is ancestral population to Boxer and Basenji.
+    implementation. Thence the ancestral Basenji population with its specific
+    Ne is for the Ancestral (Boxer, Basenji) population.
     """
     citations = [
         stdpopsim.Citation(
@@ -48,26 +48,27 @@ def _dog_wolf_admixture():
     mutation_rate = 1e-8  # page 3
 
     # Estimated (calibrated) effective population sizes, from Table S12
+    # no N_BOX provided in the paper
     N_BSJ = 2639
     N_DNG = 1914
     N_ISW = 26092
     N_CRW = 11427
     N_CHW = 5426
     N_GLJ = 19446
-    N_ancDOG1 = 793
-    N_ancDOG = 1999
-    N_ancWLF1 = 1393
-    N_ancWLF = 12627
-    N_ancDW = 44993
-    N_root = 18169
+    N_ancDOG1 = 793  # (Boxer, Basenji)
+    N_ancDOG = 1999  # ((Boxer, Basenji), Dingo)
+    N_ancWLF1 = 1393  # (Israeli, Croatian) wolf
+    N_ancWLF = 12627  # ((Israeli, Croatian), Chinese) wolf
+    N_ancDW = 44993  # (dog, wolf)
+    N_root = 18169  # ((dog, wolf), golden jackal)root
 
     # Estimated (calibrated) divergence times, from Table S12
-    T_ancDOG1 = 12102
-    T_ancDOG = 12795
-    T_ancWLF1 = 13389
-    T_ancWLF = 13455
-    T_ancDW = 14874
-    T_ancroot = 398262
+    T_ancDOG1 = 12102  # (Boxer, Basenji)
+    T_ancDOG = 12795  # ((Boxer, Basenji), Dingo)
+    T_ancWLF1 = 13389  # (Israeli, Croatian) wolf
+    T_ancWLF = 13455  # ((Israeli, Croatian), Chinese) wolf
+    T_ancDW = 14874  # (dog, wolf)
+    T_ancroot = 398262  # ((dog, wolf), golden jackal)root
 
     # Migration rates, from Table S12
     # migration is constant continuous geneflow from the start and end times of
@@ -86,6 +87,8 @@ def _dog_wolf_admixture():
         initial_size=N_BSJ,
         name="BSJ",
         description="Basenji",
+        initially_active=True,
+        # need initially_active=True due to the removal of Boxer
     )
     model.add_population(
         initial_size=N_DNG,
@@ -112,36 +115,36 @@ def _dog_wolf_admixture():
         name="GLJ",
         description="Golden jackal",
     )
-    model.add_population(
-        initial_size=N_ancDOG1,
-        name="ancDOG1",
-        description="Ancestral Basenji",
-        # we removed Boxer above
-    )
+    # model.add_population(
+    #     initial_size=N_ancDOG1,
+    #     name="ancDOG1",
+    #     description="Ancestral (Boxer, Basenji)",
+    # )
+    # commenting ancDOG1 pop due to the removal of Boxer
     model.add_population(
         initial_size=N_ancDOG,
         name="ancDOG",
-        description="Ancestral Basenji-Dingo",
+        description="Ancestral ((Boxer, Basenji), Dingo)",
     )
     model.add_population(
         initial_size=N_ancWLF1,
         name="ancWLF1",
-        description="Ancestral Israeli-Croatian wolf",
+        description="Ancestral (Israeli, Croatian) wolf",
     )
     model.add_population(
         initial_size=N_ancWLF,
         name="ancWLF",
-        description="Ancestral (Israeli-Croatian)-Chinese wolf",
+        description="Ancestral ((Israeli, Croatian), Chinese) wolf",
     )
     model.add_population(
         initial_size=N_ancDW,
         name="ancDW",
-        description="Ancestral dog-wolf",
+        description="Ancestral (dog, wolf)",
     )
     model.add_population(
         initial_size=N_root,
         name="root",
-        description="Ancestral (dog-wolf)-golden jackal (root)",
+        description="Ancestral ((dog, wolf), golden jackal)root",
     )
 
     model.set_migration_rate(rate=m_ISW_BSJ, source="BSJ", dest="ISW")
@@ -153,10 +156,19 @@ def _dog_wolf_admixture():
     model.set_migration_rate(rate=m_GLJ_ancDW, source="ancDW", dest="GLJ")
     model.set_migration_rate(rate=m_ancDW_GLJ, source="GLJ", dest="ancDW")
 
-    model.add_population_split(time=T_ancDOG1, derived=["BSJ"], ancestral="ancDOG1")
-    # we removed Boxer above
+    # model.add_population_split(
+    #     time=T_ancDOG1, derived=["BOX", "BSJ"], ancestral="ancDOG1"
+    # )
+    # commenting out pop split above due to the removal of Boxer and
+    # instead changing Ne below for "Ancestral (Boxer, Basenji)"
+    model.add_population_parameters_change(
+        time=T_ancDOG1,
+        initial_size=N_ancDOG1,
+        population="BSJ",
+    )
+    # In the paper, the below split is (ancDOG1, DNG)ancDOG
     model.add_population_split(
-        time=T_ancDOG, derived=["ancDOG1", "DNG"], ancestral="ancDOG"
+        time=T_ancDOG, derived=["BSJ", "DNG"], ancestral="ancDOG"
     )
     model.add_population_split(
         time=T_ancWLF1, derived=["ISW", "CRW"], ancestral="ancWLF1"
