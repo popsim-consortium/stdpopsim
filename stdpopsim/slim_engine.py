@@ -62,12 +62,19 @@ import json
 
 logger = logging.getLogger(__name__)
 
+
+def _escape_eidos(s):
+    # this is for Windows paths passed as strings in Eidos
+    return "\\\\".join(s.split("\\"))
+
+
 _slim_upper = """
 initialize() {
+catn("AA 0");
     if (!exists("dry_run"))
         defineConstant("dry_run", F);
-    if (!exists("verbosity"))
-        defineConstant("verbosity", 2);
+defineConstant("verbosity", 5);
+ffoo;
 
     // Scaling factor to speed up simulation.
     // See SLiM manual:
@@ -88,6 +95,7 @@ initialize() {
     defineConstant("recombination_ends", _recombination_ends);
     // whatever is in this dictionary will be saved out in the .trees file
     defineConstant("metadata", Dictionary("Q", Q));
+catn("AA 1");
 """
 
 
@@ -96,8 +104,10 @@ _slim_lower = """
     // growth: exp(round(x)*r*t) != round(exp(x*r*t))
     defineConstant("N", _N/Q);
 
+catn("AA 2");
     initializeTreeSeq(timeUnit="generations");
     initializeRecombinationRate(recombination_rates, recombination_ends);
+catn("AA 3");
 }
 
 function (void)err(string$ s) {
@@ -246,6 +256,7 @@ function (void)restore(void) {
 
 _slim_main = """
 1 early() {
+catn("AA 4");
     // save/restore bookkeeping
     sim.setValue("n_restores", 0);
     sim.setValue("n_saves", 0);
@@ -255,9 +266,12 @@ _slim_main = """
      * Create initial populations and migration rates.
      */
 
+catn("AA 5");
     // Initial populations.
     for (i in 0:(num_populations-1)) {
+catn("AA 6");
         if (N[0,i] > 0) {
+catn("AA 7");
             check_size(i, asInteger(round(N[0,i])), community.tick);
             dbg("p = sim.addSubpop("+i+", "+asInteger(round(N[0,i]))+");");
             p = sim.addSubpop(i, asInteger(round(N[0,i])));
@@ -272,8 +286,11 @@ _slim_main = """
 
     // Initial migration rates.
     i = 0;
+catn("AA 8");
     for (j in 0:(num_populations-1)) {
+catn("AA 9");
         for (k in 0:(num_populations-1)) {
+catn("AA 10");
             if (j==k | N[i,j] < 1 | N[i,k] < 1) {
                 next;
             }
@@ -287,6 +304,7 @@ _slim_main = """
 
     // The end of the burn-in is the starting tick, and corresponds to
     // tick G_start. All remaining events are relative to this tick.
+catn("AA 11");
     N_max = asInteger(round(max(N[0,0:(num_populations-1)])));
     G_start = 1 + asInteger(round(burn_in * N_max));
     defineConstant("G0", asInteger(max(_T) / generation_time / Q + G_start));
@@ -299,6 +317,7 @@ _slim_main = """
 
     // Save/restore events. These should come before all other events.
     if (length(drawn_mutations) > 0) {
+catn("AA 12");
         n_checkpoints = 0;
         for (i in 0:(ncol(drawn_mutations)-1)) {
             save = drawn_mutations[4,i] == 1;
@@ -317,6 +336,7 @@ _slim_main = """
         }
     }
     if (length(condition_on_allele_frequency) > 0) {
+catn("AA 13");
         for (i in 0:(ncol(condition_on_allele_frequency)-1)) {
             g_start = time_to_tick(condition_on_allele_frequency[0,i]);
             g_end = time_to_tick(condition_on_allele_frequency[1,i]);
@@ -340,6 +360,7 @@ _slim_main = """
 
     // Split events.
     if (length(subpopulation_splits) > 0 ) {
+catn("AA 14");
         for (i in 0:(ncol(subpopulation_splits)-1)) {
             g = time_to_tick(subpopulation_splits[0,i]);
             newpop = asInteger(drop(subpopulation_splits[1,i]));
@@ -356,6 +377,7 @@ _slim_main = """
 
     // Population size changes.
     if (num_epochs > 1) {
+catn("AA 15");
         for (i in 1:(num_epochs-1)) {
             g = G[i-1];
             for (j in 0:(num_populations-1)) {
@@ -403,9 +425,13 @@ _slim_main = """
         }
 
         // Migration rates.
+catn("AA 16");
         for (i in 1:(num_epochs-1)) {
+catn("AA 17");
             for (j in 0:(num_populations-1)) {
+catn("AA 18");
                 for (k in 0:(num_populations-1)) {
+catn("AA 19");
                     if (j==k | N[i,j] < 1 | N[i,k] < 1) {
                         next;
                     }
@@ -428,6 +454,7 @@ _slim_main = """
 
     // Admixture pulses.
     if (length(admixture_pulses) > 0 ) {
+catn("AA 20");
         for (i in 0:(ncol(admixture_pulses)-1)) {
             g = time_to_tick(admixture_pulses[0,i]);
             dest = asInteger(admixture_pulses[1,i]);
@@ -446,6 +473,7 @@ _slim_main = """
 
     // Draw mutations.
     if (length(drawn_mutations) > 0) {
+catn("AA 21");
         for (i in 0:(ncol(drawn_mutations)-1)) {
             g = time_to_tick(drawn_mutations[0,i]);
             mut_type = asInteger(drawn_mutations[1,i]);
@@ -460,6 +488,7 @@ _slim_main = """
 
     // Setup fitness callbacks.
     if (length(fitness_callbacks) > 0) {
+catn("AA 22");
         for (i in 0:(ncol(fitness_callbacks)-1)) {
             g_start = time_to_tick(fitness_callbacks[0,i]);
             g_end = time_to_tick(fitness_callbacks[1,i]);
@@ -512,6 +541,7 @@ _slim_main = """
     // the first is the one that gets produced by mutation,
     // and the remainder are assigned by a mutation callback.
     for (i in seqAlong(mut_types_with_callbacks)) {
+catn("AA 23");
         mt = mut_types_with_callbacks[i];
         sim.registerMutationCallback(NULL,
             "{s = mut.selectionCoeff; "
@@ -524,6 +554,7 @@ _slim_main = """
 
     // Sample individuals.
     for (i in 0:(ncol(sampling_episodes)-1)) {
+catn("AA 24");
         pop = drop(asInteger(sampling_episodes[0,i]));
         n = sampling_episodes[1,i];
         g = time_to_tick(sampling_episodes[2,i]);
@@ -545,15 +576,19 @@ _slim_main = """
         }
     }
 
+catn("AA 25");
     community.registerLateEvent(NULL, "{dbg(self.source); end();}", G_end, G_end);
+catn("AA 26");
 
     if (G_start > community.tick) {
+catn("AA 27");
         dbg("Starting burn-in...");
     }
 
     if (dry_run) {
         sim.simulationFinished();
     }
+catn("AA 28");
 }
 
 """
@@ -563,7 +598,9 @@ _slim_logfile = """
 // Fitness values are only available in early(),
 // so logging happens in that stage.
 1 early () {
+catn("AA 29");
     defineConstant("log", community.createLogFile("$logfile", logInterval=NULL));
+catn("AA 30");
     log.addTick();
     log.precision = 12;
     for (pop in sim.subpopulations.id) {
@@ -572,11 +609,15 @@ _slim_logfile = """
             "p" + pop + ".cachedFitness(NULL);"
         );
     }
+catn("AA 31");
 }
 
 1: early() {
-    if ((community.tick - 1) % $loginterval == 0)
+catn("AA 32");
+    if ((community.tick - 1) % $loginterval == 0) {
         log.logRow();
+catn("AA 33");
+    }
 }
 """
 
@@ -593,6 +634,7 @@ _slim_debug_output = """
 // Header:
 1 late() {
     if (verbosity >= 3) {
+catn("AA 34");
         dbg(paste(c("dbg_selection_coeff:",
                     "selectionCoeff",
                     "id",
@@ -1198,7 +1240,7 @@ def slim_makescript(
             recombination_rates=recomb_rates_str,
             recombination_ends=recomb_ends_str,
             generation_time=demographic_model.generation_time,
-            trees_file=trees_file,
+            trees_file=_escape_eidos(trees_file),
             pop_names=f"c({pop_names_str})",
         )
     )
@@ -1517,7 +1559,7 @@ def slim_makescript(
     if logfile is not None:
         printsc(
             string.Template(_slim_logfile).substitute(
-                logfile=logfile,
+                logfile=_escape_eidos(str(logfile)),
                 loginterval=logfile_interval,
             )
         )
@@ -1658,21 +1700,32 @@ class _SLiMEngine(stdpopsim.Engine):
 
         run_slim = not slim_script
 
-        mktemp = functools.partial(tempfile.NamedTemporaryFile, mode="w")
-
         @contextlib.contextmanager
-        def script_file_f():
-            f = mktemp(suffix=".slim") if not slim_script else sys.stdout
-            yield f
-            # Don't close sys.stdout.
-            if not slim_script:
-                f.close()
+        def _slim_tempdir():
+            tempdir = tempfile.TemporaryDirectory(
+                prefix="stdpopsim_", ignore_cleanup_errors=True
+            )
+            ts_filename = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.trees")
 
-        with script_file_f() as script_file, mktemp(suffix=".ts") as ts_file:
+            if not slim_script:
+                script_filename = os.path.join(
+                    tempdir.name, f"{os.urandom(3).hex()}.slim"
+                )
+                script_file = open(script_filename, "w")
+            else:
+                script_filename = "stdout"
+                script_file = sys.stdout
+            yield script_file, script_filename, ts_filename
+            if not slim_script:
+                script_file.close()
+            tempdir.cleanup()
+
+        with _slim_tempdir() as st:
+            script_file, script_filename, ts_filename = st
 
             recap_epoch = slim_makescript(
                 script_file,
-                ts_file.name,
+                ts_filename,
                 demographic_model,
                 contig,
                 sample_sets,
@@ -1690,7 +1743,7 @@ class _SLiMEngine(stdpopsim.Engine):
                 return None
 
             self._run_slim(
-                script_file.name,
+                script_filename,
                 slim_path=slim_path,
                 seed=seed,
                 dry_run=dry_run,
@@ -1700,24 +1753,26 @@ class _SLiMEngine(stdpopsim.Engine):
             if dry_run:
                 return None
 
-            ts = tskit.load(ts_file.name)
+            ts = tskit.load(ts_filename)
 
-        ts = _add_dfes_to_metadata(ts, contig)
-        if _recap_and_rescale:
-            ts = self._recap_and_rescale(
-                ts,
-                seed,
-                recap_epoch,
-                contig,
-                slim_scaling_factor,
-                keep_mutation_ids_as_alleles,
-                extended_events,
-            )
+            ts = _add_dfes_to_metadata(ts, contig)
+            if _recap_and_rescale:
+                ts = self._recap_and_rescale(
+                    ts,
+                    seed,
+                    recap_epoch,
+                    contig,
+                    slim_scaling_factor,
+                    keep_mutation_ids_as_alleles,
+                    extended_events,
+                )
 
-        if contig.inclusion_mask is not None:
-            ts = stdpopsim.utils.mask_tree_sequence(ts, contig.inclusion_mask, False)
-        if contig.exclusion_mask is not None:
-            ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
+            if contig.inclusion_mask is not None:
+                ts = stdpopsim.utils.mask_tree_sequence(
+                    ts, contig.inclusion_mask, False
+                )
+            if contig.exclusion_mask is not None:
+                ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
 
         return ts
 
@@ -1737,10 +1792,11 @@ class _SLiMEngine(stdpopsim.Engine):
         they are always generated by the `stop()` eidos function which
         makes SLiM exit with a non-zero return code.
         """
+        print_output = True
+
         if slim_path is None:
             slim_path = self.slim_path()
 
-        # SLiM v3.6 sends `stop()` output to stderr, which we rely upon.
         self._assert_min_version("4.0", slim_path)
 
         slim_cmd = [slim_path]
@@ -1750,6 +1806,7 @@ class _SLiMEngine(stdpopsim.Engine):
             slim_cmd.extend(["-d", "dry_run=T"])
         if verbosity is not None:
             slim_cmd.extend(["-d", f"verbosity={verbosity}"])
+        print("FOO", script_file, os.path.isfile(script_file))
         slim_cmd.append(script_file)
 
         with subprocess.Popen(
@@ -1759,8 +1816,11 @@ class _SLiMEngine(stdpopsim.Engine):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         ) as proc:
-            for line in proc.stdout:
+            stdout = proc.stdout.read()
+            for line in stdout.split():
                 line = line.rstrip()
+                if print_output:
+                    print(":::", line)
                 if line.startswith("WARNING: "):
                     warnings.warn(
                         stdpopsim.UnspecifiedSLiMWarning(line[len("WARNING: ") :])
@@ -1772,6 +1832,8 @@ class _SLiMEngine(stdpopsim.Engine):
 
             stderr = proc.stderr.read()
             for line in stderr.splitlines():
+                if print_output:
+                    print(";;;", line)
                 if line.startswith("ERROR: "):
                     logger.error(line[len("ERROR: ") :])
 
@@ -2029,6 +2091,4 @@ class _SLiMEngine(stdpopsim.Engine):
         return ts
 
 
-# SLiM does not currently work on Windows.
-if sys.platform != "win32":
-    stdpopsim.register_engine(_SLiMEngine())
+stdpopsim.register_engine(_SLiMEngine())
