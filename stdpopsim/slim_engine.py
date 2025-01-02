@@ -74,6 +74,7 @@ catn("AA 0");
     if (!exists("dry_run"))
         defineConstant("dry_run", F);
 defineConstant("verbosity", 5);
+ffoo;
 
     // Scaling factor to speed up simulation.
     // See SLiM manual:
