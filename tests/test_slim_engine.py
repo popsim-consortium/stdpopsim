@@ -39,8 +39,7 @@ class TestCLI:
             f"-e slim --slim-burn-in 0 {_cmd} --left 10000000 --right 10010000 "
             "-c chr1 -s 1234"
         ).split()
-        # return capture_output(stdpopsim.cli.stdpopsim_main, cmd)
-        stdpopsim.cli.stdpopsim_main(cmd)
+        return capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
     def test_runs(self):
         slim_path = os.environ.get("SLIM", "slim")
@@ -85,10 +84,14 @@ class TestCLI:
         slim_path = os.environ.get("SLIM", "slim")
         fname = tmp_path / "sim.trees"
         print("fname", fname)
-        self.docmd(
-            f"--slim-scaling-factor 20 --slim-path {slim_path} -v -v -v HomSap "
+        stdout, stderr = self.docmd(
+            f"--slim-scaling-factor 20 --slim-path {slim_path} -v -v -v -v HomSap "
             f"pop_0:5 -o {fname}"
         )
+        print("::: STDOUT")
+        print(stdout)
+        print("::: STDERR")
+        print(stderr)
         ts = tskit.load(fname)
         # assert ts.num_samples == 10
         # assert all(tree.num_roots == 1 for tree in ts.trees())
