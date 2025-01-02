@@ -44,6 +44,7 @@ class TestCLI:
 
     def test_runs(self):
         slim_path = os.environ.get("SLIM", "slim")
+        print("slim path:", slim_path)
         with subprocess.Popen(
             [slim_path, "-v"],
             bufsize=1,
@@ -57,8 +58,24 @@ class TestCLI:
             for line in stderr.splitlines():
                 print("stderr", line)
         print("return code:", proc.returncode)
+        print("-----------")
+        assert proc.returncode == 0
+        with subprocess.Popen(
+            [slim_path, "-d", 'trees_file="temp.trees"', "temp.slim"],
+            bufsize=1,
+            universal_newlines=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ) as proc:
+            outs, errs = proc.communicate(timeout=15)
+            for line in outs.splitlines():
+                print("stdout", line)
+            for line in errs.splitlines():
+                print("stderr", line)
+        print("return code:", proc.returncode)
+        assert proc.returncode == 0
+        print("-----------")
         print("all good?")
-        assert False
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     @pytest.mark.filterwarnings("ignore:.*has only.*individuals alive")

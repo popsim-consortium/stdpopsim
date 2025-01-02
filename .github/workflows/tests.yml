@@ -89,7 +89,7 @@ jobs:
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 30
+        timeout-minutes: 15
         # note: after logging in do:
         # eval "$('/c/Miniconda/Scripts/conda.exe' 'shell.bash' 'hook')"
         # conda activate "anaconda-client-env"
