@@ -1738,8 +1738,9 @@ class _SLiMEngine(stdpopsim.Engine):
                 logfile_interval=logfile_interval,
             )
             print("AHA:", ts_filename)
-            print("EXISTS?:", os.stat(os.path.dirname(ts_filename), os.F_OK))
-            print("WRITEABLE?:", os.stat(os.path.dirname(ts_filename), os.W_OK))
+            print("STAT:", os.stat(os.path.dirname(ts_filename)))
+            print("EXISTS?:", os.access(os.path.dirname(ts_filename), os.F_OK))
+            print("WRITEABLE?:", os.access(os.path.dirname(ts_filename), os.W_OK))
 
             script_file.flush()
 
