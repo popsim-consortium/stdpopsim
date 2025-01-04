@@ -171,7 +171,9 @@ function (integer)time_to_tick(numeric t) {
 
 // Output tree sequence file and end the simulation.
 function (void)end(void) {
+catn("AA end0");
     sim.treeSeqOutput(trees_file, metadata=metadata);
+catn("AA end1");
     sim.simulationFinished();
 }
 
