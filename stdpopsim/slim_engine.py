@@ -1808,6 +1808,7 @@ class _SLiMEngine(stdpopsim.Engine):
         if verbosity is not None:
             slim_cmd.extend(["-d", f"verbosity={verbosity}"])
         print("FOO", script_file, os.path.isfile(script_file))
+        print("FOO", os.stat(script_file))
         slim_cmd.append(script_file)
 
         with subprocess.Popen(
@@ -1817,8 +1818,8 @@ class _SLiMEngine(stdpopsim.Engine):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         ) as proc:
-            stdout = proc.stdout.read()
-            for line in stdout.splitlines():
+            outs, errs = proc.communicate(timeout=15)
+            for line in outs.splitlines():
                 line = line.rstrip()
                 if print_output:
                     print(":::", line)
@@ -1831,8 +1832,7 @@ class _SLiMEngine(stdpopsim.Engine):
                     line = line.replace("dbg(self.source); ", "")
                     logger.debug(line)
 
-            stderr = proc.stderr.read()
-            for line in stderr.splitlines():
+            for line in errs.splitlines():
                 if print_output:
                     print(";;;", line)
                 if line.startswith("ERROR: "):

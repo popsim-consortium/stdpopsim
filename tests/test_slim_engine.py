@@ -85,14 +85,15 @@ class TestCLI:
         slim_path = os.environ.get("SLIM", "slim")
         fname = tmp_path / "sim.trees"
         print("fname", fname)
-        stdout, stderr = self.docmd(
+        # stdout, stderr = self.docmd(
+        self.docmd(
             f"--slim-scaling-factor 20 --slim-path {slim_path} -v -v -v -v HomSap "
             f"pop_0:5 -o {fname}"
         )
-        print("::: STDOUT")
-        print(stdout)
-        print("::: STDERR")
-        print(stderr)
+        # print("::: STDOUT")
+        # print(stdout)
+        # print("::: STDERR")
+        # print(stderr)
         ts = tskit.load(fname)
         assert False
         # assert ts.num_samples == 10
