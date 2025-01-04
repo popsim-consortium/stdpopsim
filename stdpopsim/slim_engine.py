@@ -74,7 +74,6 @@ catn("AA 0");
     if (!exists("dry_run"))
         defineConstant("dry_run", F);
 defineConstant("verbosity", 5);
-ffoo;
 
     // Scaling factor to speed up simulation.
     // See SLiM manual:
@@ -1817,7 +1816,7 @@ class _SLiMEngine(stdpopsim.Engine):
             stderr=subprocess.PIPE,
         ) as proc:
             stdout = proc.stdout.read()
-            for line in stdout.split():
+            for line in stdout.splitlines():
                 line = line.rstrip()
                 if print_output:
                     print(":::", line)
