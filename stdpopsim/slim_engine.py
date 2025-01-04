@@ -1843,7 +1843,7 @@ class _SLiMEngine(stdpopsim.Engine):
 
         if proc.returncode != 0:
             raise SLiMException(
-                f"{slim_path} exited with code {proc.returncode}.\n{stderr}"
+                f"{slim_path} exited with code {proc.returncode}.\n{errs}"
             )
 
     def _simplify_remembered(self, ts):
