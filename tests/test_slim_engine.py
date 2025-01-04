@@ -39,7 +39,8 @@ class TestCLI:
             f"-e slim --slim-burn-in 0 {_cmd} --left 10000000 --right 10010000 "
             "-c chr1 -s 1234"
         ).split()
-        return capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        # return capture_output(stdpopsim.cli.stdpopsim_main, cmd)
+        stdpopsim.cli.stdpopsim_main(cmd)
 
     def test_runs(self):
         slim_path = os.environ.get("SLIM", "slim")
