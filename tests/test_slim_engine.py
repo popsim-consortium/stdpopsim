@@ -32,6 +32,7 @@ def count_mut_types(ts):
     num_neutral = sum([s == 0 for s in selection_coeffs])
     return [num_neutral, abs(len(selection_coeffs) - num_neutral)]
 
+
 class TestAPI:
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
@@ -60,7 +61,7 @@ class TestAPI:
         )
         # beware: treefile is a Path object, for which
         # treefile.replace('foo') does `cp treefile foo`
-        treefile_escaped = str(treefile).replace('\\', '\\\\')
+        treefile_escaped = str(treefile).replace("\\", "\\\\\\\\")
         out = re.sub(
             r'defineConstant."trees_file.+;',
             rf'defineConstant("trees_file", "{treefile_escaped}");',
@@ -586,6 +587,7 @@ class DontTestPloidy:
             ind_j = ts_hap.nodes_individual[j]
             assert ts.tables.individuals[ind_i] == ts_hap.tables.individuals[ind_j]
 
+
 def get_test_contig(
     spp="HomSap",
     length=50818,
@@ -594,10 +596,12 @@ def get_test_contig(
     contig = species.get_contig(length=length)
     return contig
 
+
 class PiecewiseConstantSizeMixin(object):
     """
     Mixin that sets up a simple demographic model used by multiple unit tests.
     """
+
     N0 = 1000  # size in the present
     N1 = 500  # ancestral size
     T = 500  # generations since size change occurred
@@ -613,6 +617,7 @@ class PiecewiseConstantSizeMixin(object):
         description="🧬",
         long_description="👽",
     )
+
     def allele_frequency(self, ts):
         """
         Get the allele frequency of the drawn mutation.
@@ -625,6 +630,7 @@ class PiecewiseConstantSizeMixin(object):
         have_mut = [u for u in alive if tree.is_descendant(u, mut.node)]
         af = len(have_mut) / len(alive)
         return af
+
 
 class TestSelectiveSweep(PiecewiseConstantSizeMixin):
     @staticmethod
