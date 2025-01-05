@@ -1,0 +1,21 @@
+// here is a "special" character: é
+initialize() {
+	initializeTreeSeq();
+	initializeMutationRate(0.0);
+	initializeMutationType("m1", 0.5, "f", 0.0);
+	initializeGenomicElementType("g1", m1, 1.0);
+	initializeGenomicElement(g1, 0, 99999);
+	initializeRecombinationRate(1e-8);
+}
+
+1 early() {
+	sim.addSubpop("p1", 5);
+}
+
+10 late() { 
+	catn("about to write out trees without script");
+	sim.treeSeqOutput("test_noscript.trees", includeModel=F); 
+	catn("about to write out trees with script");
+	sim.treeSeqOutput("test.trees"); 
+	catn("done writing out trees");
+}

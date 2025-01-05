@@ -176,7 +176,7 @@ catn("AA file " + trees_file);
 writeFile(trees_file, "testtesttest");
 catn("AA read " + readFile(trees_file));
 catn("AA del " + deleteFile(trees_file));
-    sim.treeSeqOutput(trees_file, metadata=metadata);
+    sim.treeSeqOutput(trees_file, metadata=metadata, includeModel=F);
 catn("AA end1");
     sim.simulationFinished();
 }
