@@ -1719,7 +1719,7 @@ class _SLiMEngine(stdpopsim.Engine):
                 script_filename = os.path.join(
                     tempdir.name, f"{os.urandom(3).hex()}.slim"
                 )
-                script_file = open(script_filename, "w")
+                script_file = open(script_filename, "w", encoding="utf-8")
             else:
                 script_filename = "stdout"
                 script_file = sys.stdout
