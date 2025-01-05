@@ -93,7 +93,7 @@ _tian2019 = stdpopsim.Citation(
 _tremblay2000 = stdpopsim.Citation(
     doi="https://doi.org/10.1086/302770",
     year=2000,
-    author="Tremblay and Vézina",
+    author="Tremblay and Vezina",
     reasons={stdpopsim.CiteReason.GEN_TIME},
 )
 
