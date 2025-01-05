@@ -582,3 +582,161 @@ class DontTestPloidy:
             ind_i = ts.nodes_individual[i]
             ind_j = ts_hap.nodes_individual[j]
             assert ts.tables.individuals[ind_i] == ts_hap.tables.individuals[ind_j]
+
+def get_test_contig(
+    spp="HomSap",
+    length=50818,
+):
+    species = stdpopsim.get_species(spp)
+    contig = species.get_contig(length=length)
+    return contig
+
+class PiecewiseConstantSizeMixin(object):
+    """
+    Mixin that sets up a simple demographic model used by multiple unit tests.
+    """
+    N0 = 1000  # size in the present
+    N1 = 500  # ancestral size
+    T = 500  # generations since size change occurred
+    T_mut = 300  # introduce a mutation at this generation
+    model = stdpopsim.PiecewiseConstantSize(N0, (T, N1))
+    model.generation_time = 1
+    samples = {"pop_0": 50}
+    contig = get_test_contig()
+    mut_id = "mut"
+    contig.add_single_site(
+        id=mut_id,
+        coordinate=100,
+        description="🧬",
+        long_description="👽",
+    )
+    def allele_frequency(self, ts):
+        """
+        Get the allele frequency of the drawn mutation.
+        """
+        # surely there's a simpler way!
+        assert ts.num_mutations == 1
+        alive = ts.samples(time=0)
+        mut = next(ts.mutations())
+        tree = ts.at(ts.site(mut.site).position)
+        have_mut = [u for u in alive if tree.is_descendant(u, mut.node)]
+        af = len(have_mut) / len(alive)
+        return af
+class TestSelectiveSweep(PiecewiseConstantSizeMixin):
+    @staticmethod
+    def _get_island_model(Ne=1000, migration_rate=0.01):
+        model = msprime.Demography()
+        model.add_population(initial_size=Ne, name="pop_0")
+        model.add_population(initial_size=Ne, name="pop_1")
+        model.set_migration_rate(source="pop_0", dest="pop_1", rate=migration_rate)
+        model.set_migration_rate(source="pop_1", dest="pop_0", rate=migration_rate)
+        return stdpopsim.DemographicModel(
+            id="🏝️",
+            description="island model",
+            long_description="for sweep tests",
+            model=model,
+            generation_time=1,
+        )
+
+    @staticmethod
+    def _fitness_per_generation(
+        logfile, start_generation_ago, end_generation_ago, pop=0
+    ):
+        # NB: Be careful of rounding error in log with weak selection
+        assert start_generation_ago >= end_generation_ago
+        # Pull out average fitness for every generation in a specified time
+        # interval from the fitness logfile. Columns are:
+        #   "tick", "fitness_p0_mean", "fitness_p0_sd"
+        # This test will break if the logfile format changes.
+        log = np.genfromtxt(logfile, delimiter=",", names=True)
+        tick = log["tick"].astype(int)
+        # Because of save-restore during rejection sampling, the log may
+        # contain multiple trajectories; keep the one that passed (last
+        # fitness value for a given generation).
+        accepted_trajectory = {
+            i: x for i, x in zip(tick, log["fitness_p" + str(pop) + "_mean"])
+        }
+        generation = np.array(sorted(accepted_trajectory))
+        mean_fitness = np.array([accepted_trajectory[i] for i in generation])
+        generation = np.max(generation) - generation
+        # Generations in which trajectory was rejected
+        rejected = [tick[i + 1] <= tick[i] for i in range(len(tick) - 1)] + [False]
+        rejections_by_generation = collections.Counter(np.max(tick) - tick[rejected])
+        # Check that logging interval hits sweep boundaries exactly.  Fitness
+        # is calculated in the early() block; so in the logfile, mean fitness
+        # refers to the fitness of the generation **previous** to the tick.
+        start_generation_ago = max(start_generation_ago - 1, 0)
+        end_generation_ago = max(end_generation_ago - 1, 0)
+        in_sweep = np.logical_and(
+            generation <= start_generation_ago,
+            generation >= end_generation_ago,
+        )
+        assert np.max(generation[in_sweep]) == start_generation_ago
+        assert np.min(generation[in_sweep]) == end_generation_ago
+        assert np.sum(in_sweep) == start_generation_ago - end_generation_ago + 1
+        return (
+            mean_fitness[in_sweep],
+            mean_fitness[~in_sweep],
+            rejections_by_generation,
+        )
+
+    @pytest.mark.usefixtures("tmp_path")
+    def test_sweep_with_background_selection(self, tmp_path):
+        logfile = tmp_path / "sweep_bgs.logfile"
+        engine = stdpopsim.get_engine("slim")
+        model = self._get_island_model()
+        contig = get_test_contig()
+        contig.add_dfe(
+            intervals=np.array([[0, contig.length // 2]], dtype="int"),
+            DFE=stdpopsim.DFE(
+                id="BGS",
+                description="deleterious",
+                long_description="mutations",
+                mutation_types=[
+                    stdpopsim.MutationType(
+                        distribution_type="e",
+                        distribution_args=[-0.01],
+                    )
+                ],
+            ),
+        )
+        locus_id = "sweep"
+        mutation_generation_ago = 1000
+        contig.add_single_site(
+            id=locus_id,
+            coordinate=100,
+        )
+        extended_events = stdpopsim.selective_sweep(
+            single_site_id=locus_id,
+            population="pop_1",
+            mutation_generation_ago=mutation_generation_ago,
+            selection_coeff=100.0,
+            globally_adaptive=False,
+        )
+        engine.simulate(
+            demographic_model=model,
+            contig=contig,
+            samples=self.samples,
+            extended_events=extended_events,
+            slim_burn_in=1,
+            logfile=logfile,
+            logfile_interval=1,
+            seed=642,
+        )
+        p0_in_sweep, p0_outside_sweep, _ = self._fitness_per_generation(
+            logfile=logfile,
+            start_generation_ago=mutation_generation_ago,
+            end_generation_ago=0,
+            pop=0,
+        )
+        p1_in_sweep, p1_outside_sweep, _ = self._fitness_per_generation(
+            logfile=logfile,
+            start_generation_ago=mutation_generation_ago,
+            end_generation_ago=0,
+            pop=1,
+        )
+        # Population 0 = BGS only; Population 1 = BGS + sweep
+        assert np.all(p0_in_sweep <= 1)
+        assert np.all(p0_outside_sweep <= 1)
+        assert np.all(p1_in_sweep > 1)
+        assert np.all(p1_outside_sweep <= 1)
