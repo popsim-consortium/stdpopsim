@@ -58,11 +58,12 @@ class TestAPI:
             slim_scaling_factor=10,
             seed=seed,
         )
-        # re.sub processes backslash escapes given a string,
-        # so to avoid this (for Windows filenames) we use a callable
+        # beware: treefile is a Path object, for which
+        # treefile.replace('foo') does `cp treefile foo`
+        treefile_escaped = str(treefile).replace('\\', '\\\\')
         out = re.sub(
             r'defineConstant."trees_file.+;',
-            lambda u: rf'defineConstant("trees_file", "{treefile}");',
+            rf'defineConstant("trees_file", "{treefile_escaped}");',
             out,
         )
         with open(scriptfile, "w") as f:
@@ -624,6 +625,7 @@ class PiecewiseConstantSizeMixin(object):
         have_mut = [u for u in alive if tree.is_descendant(u, mut.node)]
         af = len(have_mut) / len(alive)
         return af
+
 class TestSelectiveSweep(PiecewiseConstantSizeMixin):
     @staticmethod
     def _get_island_model(Ne=1000, migration_rate=0.01):
