@@ -95,7 +95,6 @@ class TestCLI:
         # print("::: STDERR")
         # print(stderr)
         ts = tskit.load(fname)
-        assert False
         # assert ts.num_samples == 10
         # assert all(tree.num_roots == 1 for tree in ts.trees())
 
