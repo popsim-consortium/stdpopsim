@@ -58,9 +58,11 @@ class TestAPI:
             slim_scaling_factor=10,
             seed=seed,
         )
+        # re.sub processes backslash escapes given a string,
+        # so to avoid this (for Windows filenames) we use a callable
         out = re.sub(
             r'defineConstant."trees_file.+;',
-            rf'defineConstant("trees_file", "{treefile}");',
+            lambda u: rf'defineConstant("trees_file", "{treefile}");',
             out,
         )
         with open(scriptfile, "w") as f:
