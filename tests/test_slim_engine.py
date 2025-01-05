@@ -32,6 +32,64 @@ def count_mut_types(ts):
     num_neutral = sum([s == 0 for s in selection_coeffs])
     return [num_neutral, abs(len(selection_coeffs) - num_neutral)]
 
+class TestAPI:
+
+    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
+    @pytest.mark.usefixtures("tmp_path")
+    def test_recap_and_rescale_on_external_slim_run(self, tmp_path):
+        # _SLiMEngine.simulate() adds metadata after SLiM is run.  If we
+        # produce a script file, then run with SLiM externally, this metadata
+        # would be omitted. We want to check that engine.recap_and_rescale
+        # still runs in this case.
+        treefile = tmp_path / "foo.trees"
+        scriptfile = tmp_path / "slim.script"
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig(length=2489564)
+        model = stdpopsim.PiecewiseConstantSize(species.population_size)
+        samples = {"pop_0": 5}
+        seed = 1024
+        out, _ = capture_output(
+            engine.simulate,
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            slim_script=True,
+            slim_scaling_factor=10,
+            seed=seed,
+        )
+        out = re.sub(
+            'defineConstant\\("trees_file.+;',
+            f'defineConstant("trees_file", "{treefile}");',
+            r'defineConstant\("trees_file.+;',
+            rf'defineConstant("trees_file", "{treefile}");',
+            out,
+        )
+        with open(scriptfile, "w") as f:
+            f.write(out)
+        engine._run_slim(scriptfile, seed=seed)
+        ts_external = tskit.load(treefile)
+        ts_external = engine.recap_and_rescale(
+            ts_external,
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            slim_scaling_factor=10,
+            seed=seed,
+        )
+        ts_internal = engine.simulate(
+            demographic_model=model,
+            contig=contig,
+            samples=samples,
+            slim_scaling_factor=10,
+            seed=seed,
+        )
+        tables1 = ts_external.dump_tables()
+        tables2 = ts_internal.dump_tables()
+        assert tables1.nodes == tables2.nodes
+        assert tables1.edges == tables2.edges
+        assert tables1.mutations == tables2.mutations
+
 
 class TestCLI:
     def docmd(self, _cmd):
