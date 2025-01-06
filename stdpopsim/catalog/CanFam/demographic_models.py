@@ -87,8 +87,6 @@ def _dog_wolf_admixture():
         initial_size=N_BSJ,
         name="BSJ",
         description="Basenji",
-        initially_active=True,
-        # need initially_active=True due to the removal of Boxer
     )
     model.add_population(
         initial_size=N_DNG,
@@ -144,7 +142,7 @@ def _dog_wolf_admixture():
     model.add_population(
         initial_size=N_root,
         name="root",
-        description="Ancestral ((dog, wolf), golden jackal)root",
+        description="Ancestral ((dog, wolf), golden jackal) root",
     )
 
     model.set_migration_rate(rate=m_ISW_BSJ, source="BSJ", dest="ISW")
@@ -153,8 +151,6 @@ def _dog_wolf_admixture():
     model.set_migration_rate(rate=m_DNG_CHW, source="CHW", dest="DNG")
     model.set_migration_rate(rate=m_GLJ_ISW, source="ISW", dest="GLJ")
     model.set_migration_rate(rate=m_ISW_GLJ, source="GLJ", dest="ISW")
-    model.set_migration_rate(rate=m_GLJ_ancDW, source="ancDW", dest="GLJ")
-    model.set_migration_rate(rate=m_ancDW_GLJ, source="GLJ", dest="ancDW")
 
     # model.add_population_split(
     #     time=T_ancDOG1, derived=["BOX", "BSJ"], ancestral="ancDOG1"
@@ -178,6 +174,12 @@ def _dog_wolf_admixture():
     )
     model.add_population_split(
         time=T_ancDW, derived=["ancDOG", "ancWLF"], ancestral="ancDW"
+    )
+    model.add_migration_rate_change(
+        time=T_ancDW, rate=m_GLJ_ancDW, source="ancDW", dest="GLJ"
+    )
+    model.add_migration_rate_change(
+        time=T_ancDW, rate=m_ancDW_GLJ, source="GLJ", dest="ancDW"
     )
     model.add_population_split(
         time=T_ancroot, derived=["ancDW", "GLJ"], ancestral="root"
