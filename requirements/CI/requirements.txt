@@ -14,7 +14,7 @@ appdirs==1.4.4
 humanize==4.11.0
 pyslim==1.0.4
 numpy==2.2.1
-scipy==1.14.1
+scipy==1.15.0
 scikit-allel==1.3.13
 biopython==1.84
 demes==0.2.2
