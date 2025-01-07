@@ -93,7 +93,7 @@ stdpopsim.utils.append_common_synonyms(_genome)
 
 _species = stdpopsim.Species(
     id="StrAga",
-    ensembl_id="NA",
+    ensembl_id="streptococcus_agalactiae_GCA_001017915",
     name="Streptococcus agalactiae",
     common_name="Group B Streptococcus",
     genome=_genome,

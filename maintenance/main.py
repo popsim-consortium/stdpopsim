@@ -177,6 +177,10 @@ def black_format(code):
 
 
 def ensembl_stdpopsim_id(ensembl_id):
+    if ensembl_id == "canis_lupus_familiaris":
+        ensembl_id = "canis_familiaris"
+    elif ensembl_id == "escherichia_coli_str_k_12_substr_mg1655_gca_000005845":
+        ensembl_id = "escherichia_coli"
     tmp = ensembl_id.split("_")[:2]
     sps_id = "".join([x[0:3].capitalize() for x in tmp])
     if len(sps_id) != 6:
@@ -296,15 +300,50 @@ class DataWriter:
             raise ValueError(
                 f"Directory {id} corresponding to {ensembl_id} does" + "not exist"
             )
-        logger.info(f"Writing genome data for {sps_id} {ensembl_id}")
-        path = path / "genome_data.py"
+
+        genome_data_path = path / "genome_data.py"
+        # Check if file exists and was manually created
+        if genome_data_path.exists():
+            with open(genome_data_path) as f:
+                first_line = f.readline().strip()
+                if first_line.startswith("# File created manually"):
+                    logger.info(
+                        f"Skipping {sps_id} ({ensembl_id}): manually created \
+                            genome data file"
+                    )
+                    return ("manual", None)
+
+        # Get new data from Ensembl
         data = self.ensembl_client.get_genome_data(ensembl_id)
+
+        # Check if existing genome data exists and compare chromosome names
+        if genome_data_path.exists():
+            try:
+                # Get existing chromosome names
+                namespace = {}
+                with open(genome_data_path) as f:
+                    exec(f.read(), namespace)
+                existing_chroms = set(namespace["data"]["chromosomes"].keys())
+                new_chroms = set(data["chromosomes"].keys())
+
+                if existing_chroms != new_chroms:
+                    logger.warning(
+                        f"Skipping {sps_id} ({ensembl_id}): chromosome names mismatch."
+                    )
+                    return ("chrom_mismatch", (existing_chroms, new_chroms))
+            except Exception as e:
+                logger.warning(
+                    f"Error comparing chromosome names for {sps_id}: {e}. \
+                        Proceeding with update."
+                )
+
+        logger.info(f"Writing genome data for {sps_id} {ensembl_id}")
         code = f"data = {data}"
 
         # Format the code with Black so we don't get noisy diffs
-        with self.write(path) as f:
+        with self.write(genome_data_path) as f:
             f.write(black_format(code))
-        return data
+        return ("updated", None)
 
     def write_genome_data_ncbi(self, ncbi_id, sps_id):
         path = catalog_path(sps_id)
@@ -371,15 +410,69 @@ def update_genome_data(species):
     will update the genome data for humans. Multiple species can
     be specified. By default all species are updated.
     """
-    # TODO make this work for NCBI as well
+    # Track warnings and errors
+    skipped_species = []
+
+    # Original species processing logic
     if len(species) == 0:
-        embl_ids = [s.ensembl_id for s in stdpopsim.all_species()]
+        species_list = list(stdpopsim.all_species())
+        logger.info(f"Found {len(species_list)} species in catalog")
+        embl_ids = []
+        for s in species_list:
+            logger.info(f"Processing {s.id}: ensembl_id={s.ensembl_id}")
+            embl_ids.append((s.id, s.ensembl_id))
     else:
-        embl_ids = [s.lower() for s in species]
+        embl_ids = [(s, s.lower()) for s in species]
+
+    # Process each species, maintaining existing logging
     writer = DataWriter()
-    for eid in embl_ids:
-        writer.write_genome_data(eid)
+    for species_id, eid in embl_ids:
+        try:
+            result = writer.write_genome_data(eid)
+            if result is not None:
+                status, details = result
+                if status == "manual":
+                    skipped_species.append(
+                        (species_id, eid, "Manually created genome data file")
+                    )
+                elif status == "chrom_mismatch":
+                    existing_chroms, new_chroms = details
+                    skipped_species.append(
+                        (
+                            species_id,
+                            eid,
+                            (
+                                f"Chromosome names mismatch.\n"
+                                f"Existing: {sorted(existing_chroms)}\n"
+                                f"New: {sorted(new_chroms)}"
+                            ),
+                        )
+                    )
+        except ValueError as e:
+            logger.error(f"Error processing {eid}: {e}")
+            skipped_species.append((species_id, eid, str(e)))
+        except Exception as e:
+            logger.error(f"Unexpected error processing {eid}: {e}")
+            skipped_species.append((species_id, eid, f"Unexpected error: {str(e)}"))
+
     writer.write_ensembl_release()
+
+    # Add summary report at the end
+    if skipped_species:
+        logger.warning("\n=== Species Update Summary ===")
+        logger.warning("The following species were not updated:")
+        for species_id, eid, reason in skipped_species:
+            if "Chromosome names mismatch" in reason:
+                # Split the chromosome mismatch message into multiple lines
+                logger.warning(f"  - {species_id} (Ensembl ID: {eid}):")
+                logger.warning("    Chromosome names mismatch.")
+                # Parse the chromosome lists from the new format
+                existing = reason.split("Existing: ")[1].split("\n")[0]
+                new = reason.split("New: ")[1]
+                logger.warning(f"    Existing chromosomes: {existing}")
+                logger.warning(f"    New chromosomes: {new}")
+            else:
+                logger.warning(f"  - {species_id} (Ensembl ID: {eid}): {reason}")
 
 
 @cli.command()

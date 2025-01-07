@@ -46,6 +46,7 @@ _recombination_rate_data = {
     "38": 1.4363726512881696e-08,
     "X": 9.506483722244087e-09,
     "MT": 0,
+    "Y": 0,  # manually set to 0 because it's not in the map
 }
 
 # Generic and chromosome-specific ploidy
@@ -91,6 +92,7 @@ _ploidy = {
     "38": _species_ploidy,
     "X": _species_ploidy,
     "MT": 1,
+    "Y": 1,
 }
 
 _LindbladTohEtAl = stdpopsim.Citation(
@@ -152,7 +154,7 @@ stdpopsim.utils.append_common_synonyms(_genome)
 
 _species = stdpopsim.Species(
     id="CanFam",
-    ensembl_id="canis_familiaris",
+    ensembl_id="canis_lupus_familiaris",
     name="Canis familiaris",
     common_name="Dog",
     genome=_genome,
