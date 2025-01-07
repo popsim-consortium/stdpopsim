@@ -99,10 +99,13 @@
   QC'd by :user:`igronau`, :pr:`1531`
 
 - OrySat/BottleneckMigration_3C07 (:user:`ornobalam`, :pr:`1453`)
-  QC'd by :user:`petrelharp`, :pr:`1524`
+  QC'd by :user:`minesrebollo`, :pr:`1466` and :user:`petrelharp`, :pr:`1524`
 
 - PhoSin/Vaquita2Epoch_1R22 (:user:`igronau`, :pr:`1526`)
   QC'd by :user:`ckyriazis`, :pr:`1538`
+
+- CanFam/EarlyWolfAdmixture_6F14 (:user:`agladstein`, :pr:`1632`)
+  QC'd by :user:`gregorgorjanc`, :pr:`1644`
 
 **New annotations**:
 
