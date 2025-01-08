@@ -9,7 +9,7 @@ class TestSpeciesData(test_species.SpeciesTestBase):
     species = stdpopsim.get_species("GasAcu")
 
     def test_ensembl_id(self):
-        assert self.species.ensembl_id == "9307941"
+        assert self.species.ensembl_id == "gasterosteus_aculeatus"
 
     def test_name(self):
         assert self.species.name == "Gasterosteus aculeatus"

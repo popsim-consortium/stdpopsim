@@ -9,7 +9,7 @@ class TestSpeciesData(test_species.SpeciesTestBase):
     species = stdpopsim.get_species("CanFam")
 
     def test_ensembl_id(self):
-        assert self.species.ensembl_id == "canis_familiaris"
+        assert self.species.ensembl_id == "canis_lupus_familiaris"
 
     def test_name(self):
         assert self.species.name == "Canis familiaris"
