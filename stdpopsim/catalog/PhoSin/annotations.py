@@ -27,6 +27,7 @@ _an = stdpopsim.Annotation(
     file_pattern="Phocoena_sinus.mPhoSin1.pri.110_exon_{id}.txt",
     annotation_source="ensembl",
     annotation_type="exon",
+    assembly_name="mPhoSin1.pri",
 )
 _species.add_annotations(_an)
 
@@ -56,5 +57,6 @@ _an2 = stdpopsim.Annotation(
     file_pattern="Phocoena_sinus.mPhoSin1.pri.110_CDS_{id}.txt",
     annotation_source="ensembl",
     annotation_type="CDS",
+    assembly_name="mPhoSin1.pri",
 )
 _species.add_annotations(_an2)

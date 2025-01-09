@@ -28,6 +28,7 @@ _an = stdpopsim.Annotation(
     file_pattern="flybase_exons_{id}.txt",
     annotation_source="FlyBase",
     annotation_type="exon",
+    assembly_name="BDGP6.32.51",
 )
 _species.add_annotations(_an)
 
@@ -57,5 +58,6 @@ _an2 = stdpopsim.Annotation(
     file_pattern="flybase_CDS_{id}.txt",
     annotation_source="FlyBase",
     annotation_type="CDS",
+    assembly_name="BDGP6.32.51",
 )
 _species.add_annotations(_an2)

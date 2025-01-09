@@ -35,6 +35,7 @@ class GeneticMap:
         description=None,
         long_description=None,
         citations=None,
+        assembly_name=None,
     ):
         self.id = id
         self.species = species
@@ -45,6 +46,7 @@ class GeneticMap:
         self.file_pattern = file_pattern
         self.description = description
         self.citations = citations
+        self.assembly_name = assembly_name
 
         self._cache = stdpopsim.CachedData(
             namespace=f"genetic_maps/{self.species.id}/{id}",

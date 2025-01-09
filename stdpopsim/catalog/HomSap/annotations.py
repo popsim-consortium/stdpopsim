@@ -27,6 +27,7 @@ _an = stdpopsim.Annotation(
     file_pattern="ensembl_havana_exons_{id}.txt",
     annotation_source="ensembl_havana",
     annotation_type="exon",
+    assembly_name = "GRCh38.p13"
 )
 _species.add_annotations(_an)
 
@@ -56,5 +57,6 @@ _an2 = stdpopsim.Annotation(
     file_pattern="ensembl_havana_CDS_{id}.txt",
     annotation_source="ensembl_havana",
     annotation_type="CDS",
+    assembly_name = "GRCh38.p13",
 )
 _species.add_annotations(_an2)

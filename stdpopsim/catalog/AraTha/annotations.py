@@ -27,6 +27,7 @@ _an = stdpopsim.Annotation(
     file_pattern="araport_exons_{id}.txt",
     annotation_source="araport11",
     annotation_type="exon",
+    assembly_name = "TAIR10"
 )
 _species.add_annotations(_an)
 
@@ -56,5 +57,7 @@ _an2 = stdpopsim.Annotation(
     file_pattern="araport_CDS_{id}.txt",
     annotation_source="araport11",
     annotation_type="CDS",
+    assembly_name = "TAIR10"
+
 )
 _species.add_annotations(_an2)

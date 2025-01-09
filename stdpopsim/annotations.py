@@ -27,6 +27,9 @@ class Annotation:
     :vartype citations: list of :class:`.Citation`
     :ivar file_pattern: The pattern used to map individual chromosome id strings
         to files
+        :ivar assembly_name: The name of the genome assembly.
+    :vartype assembly_name: str    
+    :ivar str assembly_name: The name of the assembly the annotation is based on
     """
 
     id = attr.ib()
@@ -40,6 +43,7 @@ class Annotation:
     file_pattern = attr.ib()
     annotation_source = attr.ib()
     annotation_type = attr.ib()
+    assembly_name = attr.ib()
 
     def __attrs_post_init__(self):
         self._cache = stdpopsim.CachedData(

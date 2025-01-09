@@ -31,6 +31,7 @@ _gm = stdpopsim.GeneticMap(
     sha256="80f22d9e6cb0e497074ed1bc277e765fa9d8e22f21b2f66c3b10286520f6b68f",
     file_pattern="genetic_map_GRCh37_chr{id}.txt",
     citations=[_hapmap2007.because(stdpopsim.CiteReason.GEN_MAP)],
+    assembly_name="GRCh37",
 )
 _species.add_genetic_map(_gm)
 
@@ -60,6 +61,7 @@ _gm = stdpopsim.GeneticMap(
     sha256="497512ed1c0f8a40e9aa13696049a9f8c3cb062e898921cfd7d85ce9d14c4baa",
     file_pattern="genetic_map_Hg38_chr{id}.txt",
     citations=[_hapmap2007.because(stdpopsim.CiteReason.GEN_MAP)],
+    assembly_name="GRCh38.p13",
 )
 _species.add_genetic_map(_gm)
 
@@ -90,6 +92,7 @@ _gm = stdpopsim.GeneticMap(
             reasons={stdpopsim.CiteReason.GEN_MAP},
         )
     ],
+    assembly_name="GRCh36",
 )
 _species.add_genetic_map(_gm)
 
@@ -131,6 +134,7 @@ _gm = stdpopsim.GeneticMap(
             reasons={stdpopsim.CiteReason.GEN_MAP},
         )
     ],
+    assembly_name="GRCh38.p13",
 )
 _species.add_genetic_map(_gm)
 
@@ -223,5 +227,6 @@ e3cf06041c6ffceb29fbc617c86966948203e166c3399d036c95915e3d5ebdcd
                 reasons={stdpopsim.CiteReason.GEN_MAP},
             )
         ],
+        assembly_name="GRCh38.p13",
     )
     _species.add_genetic_map(_gm)
