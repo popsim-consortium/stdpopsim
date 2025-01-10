@@ -208,3 +208,29 @@ def HuberThreeEpoch():
 
 
 _species.get_demographic_model("African3Epoch_1H18").register_qc(HuberThreeEpoch())
+
+
+def HuberDFE():
+    id = "QC-GammaAdditive_H18"
+    # Huber et al. 2018 Supplementary table 4.
+    #  genome-wide A. lyrata additive fitness effects
+    neutral = stdpopsim.MutationType()
+    gamma_shape = 0.27
+    gamma_scale = 0.0004
+    gamma_mean = -(gamma_shape * gamma_scale)  # negative since deleterious mutations
+    h = 0.5
+    negative = stdpopsim.MutationType(
+        dominance_coeff=h,
+        distribution_type="g",
+        distribution_args=[-2 * gamma_mean, gamma_shape],
+    )
+    return stdpopsim.DFE(
+        id=id,
+        description=id,
+        long_description=id,
+        mutation_types=[neutral, negative],
+        proportions=[0.0, 1.0],
+    )
+
+
+_species.get_dfe("GammaAdditive_H18").register_qc(HuberDFE())

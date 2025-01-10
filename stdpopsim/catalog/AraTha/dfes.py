@@ -10,19 +10,15 @@ _species = stdpopsim.get_species("AraTha")
 
 
 def _HuberDFE():
-    id = "Gamma_H18"
-    description = "Deleterious Gamma DFE"
+    id = "GammaAdditive_H18"
+    description = "Deleterious additive Gamma DFE"
     long_description = """
-    Return negative (no neutral, in this case) MutationType()s
-    representing an Arabidopsis DFE. From Huber et al. (2018).
-    Gamma parameters are based on Supplementary Table 4,
-    the genome-wide, additive-only model for A. LYRATA- due to
-    challenges with simulating with selfing for A. thaliana.
-    The Supplementary Table 4 DFEs are not noted to contain
-    any neutral mutations (in contrast, Supplementary Table 3
-    notes neutral proportions for two other DFEs), and in the
-    main text including neutral mutations seems like a
-    supplementary analysis rather than the main strategy.
+    Additive, deleterious DFE from Huber et al. (2018) for Arabidopsis,
+    estimated from the SFS of A. lyrata as a Gamma distribution
+    of deleterious effects. Parameters are from Supplementary Table 4,
+    the "genome-wide, additive-only model for A. lyrata". The DFE for
+    A. lyrata (rather than A. thaliana) is provided due to challenges
+    with simulating selfing.
     """
     citations = [
         stdpopsim.Citation(
@@ -34,12 +30,15 @@ def _HuberDFE():
     ]
     neutral = stdpopsim.MutationType()
     gamma_shape = 0.27  # shape
-    gamma_mean = -0.0004  # expected value
+    gamma_scale = -0.0004  # scale
+    gamma_mean = gamma_shape * gamma_scale
     h = 0.5  # dominance coefficient
     negative = stdpopsim.MutationType(
         dominance_coeff=h,
         distribution_type="g",  # gamma distribution
-        distribution_args=[gamma_mean, gamma_shape],
+        # extra factor of 2 is to convert dadi to SLiM
+        # (1+s for homozygote in SLiM versus 1+2s in dadi)
+        distribution_args=[-2 * gamma_mean, gamma_shape],
     )
 
     return stdpopsim.DFE(

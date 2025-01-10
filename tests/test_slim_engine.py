@@ -1213,7 +1213,7 @@ class TestRecombinationMap(PiecewiseConstantSizeMixin):
 
         left, right = 100000, 900000
         contig = species.get_contig("1", left=left, right=right)
-        dfe = species.get_dfe("Gamma_H18")
+        dfe = species.get_dfe("GammaAdditive_H18")
         exons = species.get_annotations("araport_11_exons")
         exon_intervals = exons.get_chromosome_annotations("1")
         contig.add_dfe(intervals=exon_intervals, DFE=dfe)
