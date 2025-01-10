@@ -132,6 +132,12 @@ class TestSpeciesData(test_species.SpeciesTestBase):
     def test_common_name(self):
         assert self.species.common_name == "$common_name"
 
+    def test_assembly_source(self):
+        assert self.genome.assembly_source == "$assembly_source"
+
+    def test_assembly_build_version(self):
+        assert self.genome.assembly_build_version == "$assembly_build_version"
+
     # QC Tests. These tests are performed by another contributor
     # independently referring to the citations provided in the
     # species definition, filling in the appropriate values
