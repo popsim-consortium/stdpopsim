@@ -302,19 +302,49 @@ class DataWriter:
             )
 
         genome_data_path = path / "genome_data.py"
-        # Check if file exists and was manually created
+        # Check if file exists and has non-Ensembl assembly source
         if genome_data_path.exists():
-            with open(genome_data_path) as f:
-                first_line = f.readline().strip()
-                if first_line.startswith("# File created manually"):
+            try:
+                # Get existing data
+                namespace = {}
+                with open(genome_data_path) as f:
+                    exec(f.read(), namespace)
+                existing_assembly_source = namespace["data"].get(
+                    "assembly_source", "ensembl"
+                )
+                if existing_assembly_source != "ensembl":
                     logger.info(
-                        f"Skipping {sps_id} ({ensembl_id}): manually created \
-                            genome data file"
+                        f"Skipping {sps_id} ({ensembl_id}): non-Ensembl assembly source"
                     )
                     return ("manual", None)
+            except Exception as e:
+                logger.warning(
+                    f"Error checking assembly source for {sps_id}: {e}. "
+                    "Proceeding with update."
+                )
 
         # Get new data from Ensembl
         data = self.ensembl_client.get_genome_data(ensembl_id)
+
+        # Preserve existing assembly source or default to "ensembl"
+        if genome_data_path.exists():
+            try:
+                namespace = {}
+                with open(genome_data_path) as f:
+                    exec(f.read(), namespace)
+                data["assembly_source"] = namespace["data"].get(
+                    "assembly_source", "ensembl"
+                )
+            except Exception:
+                data["assembly_source"] = "ensembl"
+        else:
+            data["assembly_source"] = "ensembl"
+
+        # Add Ensembl version number if assembly source is Ensembl
+        if data["assembly_source"] == "ensembl":
+            data["assembly_build_version"] = str(self.ensembl_client.get_release())
+        else:
+            data["assembly_build_version"] = None
 
         # Check if existing genome data exists and compare chromosome names
         if genome_data_path.exists():
@@ -455,7 +485,7 @@ def update_genome_data(species):
             logger.error(f"Unexpected error processing {eid}: {e}")
             skipped_species.append((species_id, eid, f"Unexpected error: {str(e)}"))
 
-    writer.write_ensembl_release()
+    # writer.write_ensembl_release()
 
     # Add summary report at the end
     if skipped_species:
@@ -484,7 +514,7 @@ def add_species(ensembl_id, force):
     """
     writer = DataWriter()
     writer.add_species(ensembl_id.lower(), force=force)
-    writer.write_ensembl_release()
+    # writer.write_ensembl_release()
 
 
 # TODO refactor this so that it's an option to add-species. By default

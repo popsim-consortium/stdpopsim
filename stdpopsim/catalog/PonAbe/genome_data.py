@@ -33,4 +33,6 @@ data = {
         # Mitochondria absent in ponAbe3, so length taken from ponAbe2.
         "MT": {"length": 16499, "synonyms": []},
     },
+    "assembly_source": "manual",
+    "assembly_build_version": None,
 }

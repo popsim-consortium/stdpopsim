@@ -3,4 +3,6 @@ data = {
     "assembly_accession": "GCA_000005845.2",
     "assembly_name": "ASM584v2",
     "chromosomes": {"Chromosome": {"length": 4641652, "synonyms": []}},
+    "assembly_source": "ensembl",
+    "assembly_build_version": "113",
 }

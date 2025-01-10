@@ -1,6 +1,5 @@
 import pathlib
 
-from . import ensembl_info  # noqa: F401
 
 # Import all species definitions in the catalog.
 __all__ = []

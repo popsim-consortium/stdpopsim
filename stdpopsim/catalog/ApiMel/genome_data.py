@@ -21,4 +21,6 @@ data = {
         "CM009946.2": {"length": 7238532, "synonyms": []},
         "CM009947.2": {"length": 16343, "synonyms": []},
     },
+    "assembly_source": "ensembl",
+    "assembly_build_version": "113",
 }

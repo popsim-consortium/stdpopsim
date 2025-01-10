@@ -11,4 +11,6 @@ data = {
         "X": {"length": 17718942, "synonyms": []},
         "MtDNA": {"length": 13794, "synonyms": []},
     },
+    "assembly_source": "ensembl",
+    "assembly_build_version": "113",
 }

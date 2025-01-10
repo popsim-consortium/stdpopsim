@@ -29,7 +29,6 @@ _didelot_et_al = stdpopsim.Citation(
 )
 
 _species_ploidy = 1
-
 _chromosomes = []
 for name, data in genome_data.data["chromosomes"].items():
     _chromosomes.append(
@@ -46,11 +45,24 @@ for name, data in genome_data.data["chromosomes"].items():
         )
     )
 
-_genome = stdpopsim.Genome(
-    chromosomes=_chromosomes,
+
+_ploidy_data = {str(i.id): _species_ploidy for i in _chromosomes}
+
+_mutation_rate = 8.9e-11
+_mutation_rate_data = {str(i.id): _mutation_rate for i in _chromosomes}
+
+_recombination_rate = 8.9e-11
+_recombination_rate_data = {str(i.id): _recombination_rate for i in _chromosomes}
+
+_gene_conversion_length = 542
+_gene_conversion_data = {str(i.id): _gene_conversion_length for i in _chromosomes}
+_genome = stdpopsim.Genome.from_data(
+    genome_data=genome_data.data,
+    mutation_rate=_mutation_rate_data,
+    recombination_rate=_recombination_rate_data,
+    gene_conversion_length=_gene_conversion_data,
     bacterial_recombination=True,
-    assembly_name=genome_data.data["assembly_name"],
-    assembly_accession=genome_data.data["assembly_accession"],
+    ploidy=_ploidy_data,
     citations=[
         _wielgoss_et_al.because(
             {stdpopsim.CiteReason.MUT_RATE, stdpopsim.CiteReason.GENE_CONVERSION}

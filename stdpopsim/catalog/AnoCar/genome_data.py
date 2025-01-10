@@ -18,4 +18,6 @@ data = {
         "LGh": {"length": 248369, "synonyms": []},
         "MT": {"length": 17223, "synonyms": []},
     },
+    "assembly_source": "ensembl",
+    "assembly_build_version": "103",
 }

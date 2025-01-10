@@ -12,4 +12,6 @@ data = {
         "Y": {"length": 3667352, "synonyms": []},
         "mitochondrion_genome": {"length": 19524, "synonyms": []},
     },
+    "assembly_source": "ensembl",
+    "assembly_build_version": "113",
 }
