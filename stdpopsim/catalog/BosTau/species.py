@@ -76,20 +76,6 @@ _species_ploidy = 2
 _ploidy = {str(i): _species_ploidy for i in range(1, 30)}
 _ploidy.update({"X": _species_ploidy, "MT": 1})
 
-_chromosomes = []
-for name, data in genome_data.data["chromosomes"].items():
-    _chromosomes.append(
-        stdpopsim.Chromosome(
-            id=name,
-            length=data["length"],
-            synonyms=data["synonyms"],
-            # Harland et al. (2017), sex-averaged estimate per bp per generation.
-            mutation_rate=1.2e-8,
-            recombination_rate=_recombination_rate_data[name],
-            ploidy=_ploidy[name],
-        )
-    )
-
 _genome = stdpopsim.Genome.from_data(
     genome_data=genome_data.data,
     recombination_rate=_recombination_rate_data,

@@ -106,23 +106,6 @@ _ploidy = {
     "MtDNA": 1,
 }
 
-_chromosomes = []
-for name, data in genome_data.data["chromosomes"].items():
-    _chromosomes.append(
-        stdpopsim.Chromosome(
-            id=name,
-            length=data["length"],
-            synonyms=data["synonyms"],
-            mutation_rate=_mutation_rate_data[name],
-            # _Konrad et al. de-nove mutation rate,
-            # it's not uniform and it's much better to use
-            # a mutation map.
-            # mutation_rate=_mutation_rate_data[name],
-            recombination_rate=_recombination_rate_data[name],
-            ploidy=_ploidy[name],
-        )
-    )
-
 _genome = stdpopsim.Genome.from_data(
     genome_data=genome_data.data,
     recombination_rate=_recombination_rate_data,

@@ -97,9 +97,7 @@ _ploidy = {
 
 _mutation_rate = 4e-9
 _mutation_rate_data = {str(i): _mutation_rate for i in range(1, 39)}
-_mutation_rate_data["MT"] = (
-    _mutation_rate  
-)
+_mutation_rate_data["MT"] = _mutation_rate
 _mutation_rate_data["X"] = _mutation_rate
 
 _LindbladTohEtAl = stdpopsim.Citation(
@@ -132,19 +130,6 @@ _CampbellEtAl = stdpopsim.Citation(
     year=2016,
     doi="https://doi.org/10.1534/g3.116.034678",
 )
-
-_chromosomes = []
-for name, data in genome_data.data["chromosomes"].items():
-    _chromosomes.append(
-        stdpopsim.Chromosome(
-            id=name,
-            length=data["length"],
-            synonyms=data["synonyms"],
-            mutation_rate=4e-9,  # based on non-CpG sites only
-            recombination_rate=_recombination_rate_data[name],
-            ploidy=_ploidy[name],
-        )
-    )
 
 _genome = stdpopsim.Genome.from_data(
     genome_data=genome_data.data,
