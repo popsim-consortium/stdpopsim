@@ -68,6 +68,8 @@ _mutation_rate_data["X"] = _mutation_rate
 _recombination_rate_data = collections.defaultdict(
     lambda: _genome_wide_recombination_rate
 )
+for name, data in genome_data.data["chromosomes"].items():
+    _recombination_rate_data[name] = _genome_wide_recombination_rate
 # Set some exceptions for non-recombining chrs.
 _recombination_rate_data["MT"] = 0
 
