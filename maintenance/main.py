@@ -320,7 +320,9 @@ class DataWriter:
                 )
                 if existing_assembly_source != "ensembl":
                     logger.info(
-                        f"Skipping {sps_id} ({ensembl_id}): non-Ensembl assembly source"
+                        f"Skipping {sps_id} ({ensembl_id}): existing genome_data.py has data "
+                        f"not from Ensembl. (Re)move {genome_data_path}, re-run, and look "
+                        "at a diff to compare to current Ensembl data."
                     )
                     return ("manual", None)
             except Exception as e:
