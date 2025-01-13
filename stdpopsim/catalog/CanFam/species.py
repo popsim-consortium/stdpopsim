@@ -98,7 +98,7 @@ _ploidy = {
 _mutation_rate = 4e-9
 _mutation_rate_data = {str(i): _mutation_rate for i in range(1, 39)}
 _mutation_rate_data["MT"] = (
-    _mutation_rate  # note this is likely incorrect but consistent with current setup
+    _mutation_rate  
 )
 _mutation_rate_data["X"] = _mutation_rate
 
