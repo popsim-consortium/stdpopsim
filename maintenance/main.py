@@ -185,6 +185,11 @@ def black_format(code):
 def ensembl_stdpopsim_id(ensembl_id):
     # below is do deal with name changes in Ensembl
     # TODO: remove this once we have moved to the new names
+    # this was added as a temporary fix to allow the release to be
+    # updated to 113, where the names of these species were changed
+    # in the future we might keep this code block, but comment it out
+    # to show others how maintenance updates were performed in the case
+    # where the species name changed in Ensembl
     if ensembl_id == "canis_lupus_familiaris":
         ensembl_id = "canis_familiaris"
     elif ensembl_id == "escherichia_coli_str_k_12_substr_mg1655_gca_000005845":
