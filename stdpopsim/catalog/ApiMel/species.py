@@ -131,15 +131,9 @@ chr_synonyms_dict = {
     "CM009947.2": ["NC_001566.1", "MT"],
 }
 
-
-def add_if_unique(chrom, synonyms):
-    for syn in synonyms:
-        if syn not in chrom.synonyms:
-            chrom.synonyms.append(syn)
-
-
 for chrom in _genome.chromosomes:
-    add_if_unique(chrom, chr_synonyms_dict[chrom.id])
+    syns = list(set(chrom.synonyms + chr_synonyms_dict[chrom.id]))
+    chrom.synonyms = syns
 
 _NelsonEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1111/mec.14122",

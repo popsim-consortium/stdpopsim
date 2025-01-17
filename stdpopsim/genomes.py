@@ -45,6 +45,12 @@ class Genome:
     :vartype assembly_name: str
     :ivar assembly_accession: The ID of the genome assembly accession.
     :vartype assembly_accession: str
+    :ivar assembly_source: The source of the genome assembly data.
+        (for instance "ensembl"). Use "manual" if manually entered.
+    :vartype assembly_source: str
+    :ivar assembly_build_version: The version of the genome assembly build,
+        or "None" if manually entered.
+    :vartype assembly_build_version: str
     :ivar bacterial_recombination: Whether recombination is via horizontal gene
         transfer (if this is True) or via crossing-over and possibly gene
         conversion (if this is False). Default: False.
@@ -60,6 +66,8 @@ class Genome:
     chromosomes = attr.ib(factory=list)
     assembly_name = attr.ib(type=str, default=None, kw_only=True)
     assembly_accession = attr.ib(type=str, default=None, kw_only=True)
+    assembly_source = attr.ib(type=str, default=None, kw_only=True)
+    assembly_build_version = attr.ib(type=str, default=None, kw_only=True)
     bacterial_recombination = attr.ib(type=bool, default=False, kw_only=True)
     citations = attr.ib(factory=list, kw_only=True)
 
@@ -110,6 +118,8 @@ class Genome:
             chromosomes=chromosomes,
             assembly_name=genome_data["assembly_name"],
             assembly_accession=genome_data["assembly_accession"],
+            assembly_source=genome_data["assembly_source"],
+            assembly_build_version=genome_data["assembly_build_version"],
             bacterial_recombination=bacterial_recombination,
             citations=citations,
         )

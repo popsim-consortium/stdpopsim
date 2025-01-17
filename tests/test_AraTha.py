@@ -28,3 +28,9 @@ class TestGenome(test_species.GenomeTestBase):
             assert chrom.ploidy == 1
         else:
             assert chrom.ploidy == 2
+
+    def test_assembly_source(self):
+        assert self.genome.assembly_source == "ensembl"
+
+    def test_assembly_build_version(self):
+        assert self.genome.assembly_build_version is not None

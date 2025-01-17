@@ -9,7 +9,7 @@ class TestSpeciesData(test_species.SpeciesTestBase):
     species = stdpopsim.get_species("CanFam")
 
     def test_ensembl_id(self):
-        assert self.species.ensembl_id == "canis_familiaris"
+        assert self.species.ensembl_id == "canis_lupus_familiaris"
 
     def test_name(self):
         assert self.species.name == "Canis familiaris"
@@ -158,3 +158,9 @@ class TestGenomeData(test_species.GenomeTestBase):
             assert chrom.ploidy == 1
         else:
             assert chrom.ploidy == 2
+
+    def test_assembly_source(self):
+        assert self.genome.assembly_source == "ensembl"
+
+    def test_assembly_build_version(self):
+        assert self.genome.assembly_build_version is not None

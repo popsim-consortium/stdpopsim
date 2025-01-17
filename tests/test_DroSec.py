@@ -61,3 +61,9 @@ class TestGenomeData(test_species.GenomeTestBase):
     @pytest.mark.parametrize("chrom", [chrom for chrom in genome.chromosomes])
     def test_chromosome_ploidy(self, chrom):
         assert chrom.ploidy == 2
+
+    def test_assembly_source(self):
+        assert self.genome.assembly_source == "manual"
+
+    def test_assembly_build_version(self):
+        assert self.genome.assembly_build_version is None
