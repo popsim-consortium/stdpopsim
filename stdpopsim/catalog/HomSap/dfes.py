@@ -199,6 +199,7 @@ def _KyriazisDFE():
 _species.add_dfe(_KyriazisDFE())
 
 
+
 def _RodriguesDFE():
     id = "PosNeg_R24"
     description = "Deleterious Gamma and Beneficial Exponential DFE"
@@ -259,3 +260,65 @@ def _RodriguesDFE():
 
 
 _species.add_dfe(_RodriguesDFE())
+
+
+def _ZhenDFE():
+    id = "GammaPos_Z21"
+    description = "Deleterious Gamma DFE with fixed-s beneficials"
+    long_description = """
+    The DFE estimated from human-chimp data estimated in Zhen et al
+    (2021, https://dx.doi.org/10.1101/gr.256636.119).
+    This uses the demographic model and deleterious-only DFE from
+    Huber et al (2017), and then the number of nonsynonymous differences
+    to chimpanzee to estimate a proportion of nonsynonmyous differences
+    and (single) selection coefficient. So, this is the "Gamma_H17" DFE,
+    with some proportion of positive selection with fixed s.
+    """
+    citations = [
+        stdpopsim.Citation(
+            author="Zhen et al.",
+            year=2021,
+            doi="https://dx.doi.org/10.1101/gr.256636.119",
+            reasons={stdpopsim.CiteReason.DFE},
+        )
+    ]
+    # modified from _HuberDFE() above
+    neutral = stdpopsim.MutationType()
+    gamma_shape = 0.19  # shape
+    # Extra factor of 2 in mean is to account for difference between tools
+    # in how fitness is defined
+    # (1+s for homozygote in SLiM versus 1+2s in dadi)
+    gamma_mean = -0.014 * 2  # expected value
+    negative = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="g",  # gamma distribution
+        distribution_args=[gamma_mean, gamma_shape],
+    )
+    # p. 2 in supplement says that the total sequence length of synonymous sites LS
+    # related to the total sequence length LNS by LNS = 2.31 * LS
+    # so, this is 1 / (1 + 2.31) = 0.3021148036253776
+    prop_synonymous = 0.3
+
+    sel_coeff = 10 ** (-3.949)
+    prop_beneficial = 1.55e-2
+    positive = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="f",
+        distribution_args=[sel_coeff],
+    )
+
+    return stdpopsim.DFE(
+        id=id,
+        description=description,
+        long_description=long_description,
+        mutation_types=[neutral, negative, positive],
+        proportions=[
+            prop_synonymous,
+            (1 - prop_synonymous) * (1 - prop_beneficial),
+            (1 - prop_synonymous) * prop_beneficial,
+        ],
+        citations=citations,
+    )
+
+
+_species.add_dfe(_ZhenDFE())
