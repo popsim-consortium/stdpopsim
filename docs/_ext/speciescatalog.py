@@ -699,6 +699,15 @@ class SpeciesCatalogDirective(SphinxDirective):
         # genomes:
         genome_section = nodes.section(ids=[f"sec_catalog_{species.id}_genome"])
         genome_section += nodes.title(text="Genome")
+        genome_section += self.make_field_list(
+            [
+                (
+                    "Genome assembly name",
+                    species.genome.assembly_name,
+                    None,
+                )
+            ]
+        )
         if species.genome.bacterial_recombination is True:
             genome_section += self.make_field_list(
                 [
