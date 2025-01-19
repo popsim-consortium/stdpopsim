@@ -199,7 +199,6 @@ def _KyriazisDFE():
 _species.add_dfe(_KyriazisDFE())
 
 
-
 def _RodriguesDFE():
     id = "PosNeg_R24"
     description = "Deleterious Gamma and Beneficial Exponential DFE"
@@ -295,7 +294,8 @@ def _ZhenDFE():
         distribution_args=[gamma_mean, gamma_shape],
     )
     # p. 2 in supplement says that the total sequence length of synonymous sites LS
-    # related to the total sequence length LNS by LNS = 2.31 * LS
+    # related to the total sequence length of nonsynonymous sites LNS
+    # by LNS = 2.31 * LS
     # so, this is 1 / (1 + 2.31) = 0.3021148036253776
     prop_synonymous = 0.3
 

@@ -47,12 +47,72 @@ def _HuberDFE():
         description=description,
         long_description=long_description,
         mutation_types=[neutral, negative],
-        proportions=[prop_synonymous, 1 - prop_synonymous],  # LNS = 2.85 x LS
+        proportions=[prop_synonymous, 1 - prop_synonymous],
         citations=citations,
     )
 
 
 _species.add_dfe(_HuberDFE())
+
+
+def _ZhenDFE():
+    id = "GammaPos_H17"
+    description = "Deleterious Gamma DFE with fixed-s beneficials"
+    long_description = """
+    The DFE estimated from D.melanogaster-simulans data estimated in Zhen et al
+    (2021, https://dx.doi.org/10.1101/gr.256636.119).
+    This uses the demographic model and deleterious-only DFE from
+    Huber et al (2017), and then the number of nonsynonymous differences
+    to simulans to estimate a proportion of nonsynonmyous differences
+    and (single) selection coefficient. So, this is the "Gamma_H17" DFE,
+    with some proportion of positive selection with fixed s.
+    """
+    citations = [
+        stdpopsim.Citation(
+            author="Zhen et al.",
+            year=2021,
+            doi="https://dx.doi.org/10.1101/gr.256636.119",
+            reasons={stdpopsim.CiteReason.DFE},
+        )
+    ]
+    neutral = stdpopsim.MutationType()
+    gamma_shape = 0.33  # shape
+    gamma_mean = -3.96e-04  # expected value
+    h = 0.5  # dominance coefficient
+    negative = stdpopsim.MutationType(
+        dominance_coeff=h,
+        distribution_type="g",  # gamma distribution
+        distribution_args=[gamma_mean, gamma_shape],
+    )
+    # p. 2 in supplement says that the total sequence length of synonymous sites LS
+    # related to the total sequence length of nonsynonymous sites LNS
+    # by LNS = 2.85 * LS
+    # so this is 1 / (1 + 2.85) = 0.2597402597402597
+    prop_synonymous = 0.26
+
+    sel_coeff = 10 ** (-4.801)
+    prop_beneficials = 6.75e-4
+    positive = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="f",
+        distribution_args=[sel_coeff],
+    )
+
+    return stdpopsim.DFE(
+        id=id,
+        description=description,
+        long_description=long_description,
+        mutation_types=[neutral, negative, positive],
+        proportions=[
+            prop_synonymous,
+            (1 - prop_synonymous) * (1 - prop_beneficials),
+            (1 - prop_synonymous) * prop_beneficials,
+        ],
+        citations=citations,
+    )
+
+
+_species.add_dfe(_ZhenDFE())
 
 
 def _RagsdaleDFE():
