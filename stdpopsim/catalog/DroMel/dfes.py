@@ -13,11 +13,11 @@ def _HuberDFE():
     id = "Gamma_H17"
     description = "Deleterious Gamma DFE"
     long_description = """
-    Return neutral and negative MutationType()s representing a drosophila DFE.
+    Deleterious, gamma-distributed DFE estimated from a D. melanogaster SFS in
     Huber et al. (2017), https://doi.org/10.1073/pnas.1619508114.
-    DFE parameters are based on the Full model described in Table S2, in which
-    singletons are excluded and a recent mutation rate estimate is used
-    (mu=3x10e-9, Keightley 2014).
+    DFE parameters are based on the "full" model described in Table S2, for which
+    singletons were excluded and a recent mutation rate estimate is used
+    (3e-9, Keightley 2014).
     """
     citations = [
         stdpopsim.Citation(
@@ -54,19 +54,24 @@ def _RagsdaleDFE():
     id = "LognormalPlusPositive_R16"
     description = "Deleterious log-normal and beneficial mixed DFE"
     long_description = """
-    Return deleterious and beneficial MutationType()s representing a drosophila DFE
-    from Ragsdale et al. (2016), https://doi.org/10.1534/genetics.115.184812.
-    DFE parameters are given in Table S1, with deleterious mutations drawn from a
-    log-normal distribution and a point mass of positive selection. The DFE was
-    inferred assuming synonymous variants are neutral and a relative mutation
-    rate ratio of 2.5 nonsynonymous to 1 synonymous mutation. Results are given as
-    scaled parameters, so that S = 2*N*s, so an estimate of Ne is required to
-    convert the scaled selection coefficients to unscaled coefficients. Because the
-    original study did not report an estimated effective population size, we use
-    the estimate from Huber et al. (2017) of Ne=2.8e6, which was estimated from
-    observed genome-wide synonymous mutation diversity and assuming a mutation rate
-    of 3e-9.
+    Estimated DFE containing deleterious and beneficial mutations, estimated
+    by Ragsdale et al. (2016), https://doi.org/10.1534/genetics.115.184812,
+    with a log-normal distribution for deleterious mutations and a single
+    selection coefficient for positive mutations.  The DFE was inferred in
+    scaled units from the triallelic frequency spectrum in D. melanogaster,
+    here scaled to real units using an effective population size of Ne=2.8e6
+    (Huber et al 2017).
     """
+    # DFE parameters are given in Table S1, with deleterious mutations drawn from a
+    # log-normal distribution and a point mass of positive selection.
+    # Uses only nonsynonymous changes, and assumes a ratio of 2.5 nonsynonymous
+    # to 1 synonymous mutation. Results are given as scaled parameters, so that
+    # S = 2*N*s, so an estimate of Ne is required to convert the scaled
+    # selection coefficients to unscaled coefficients. Because the original
+    # study did not report an estimated effective population size, we use the
+    # estimate from Huber et al. (2017) of Ne=2.8e6, which was estimated from
+    # observed genome-wide synonymous mutation diversity and assuming a
+    # mutation rate of 3e-9.
     citations = [
         stdpopsim.Citation(
             author="Ragsdale et al.",
