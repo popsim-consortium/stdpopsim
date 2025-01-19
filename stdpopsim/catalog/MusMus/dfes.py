@@ -14,9 +14,8 @@ def _BookerDFE():
     description = "Deleterious Gamma DFE CDS"
     long_description = """
     A gamma-distributed DFE for deleterious mutations estimated from the SFS of
-    Mus musculus castaneous exons by Booker et al. (2021),
-    https://doi.org/10.1101/2021.06.10.447924,
-    using polyDFE v2 (Tataru and Bataillon 2019).
+    Mus musculus castaneous exons by Booker et al. (2021), using polyDFE v2
+    (Tataru and Bataillon 2019).
     """
     citations = [
         stdpopsim.Citation(

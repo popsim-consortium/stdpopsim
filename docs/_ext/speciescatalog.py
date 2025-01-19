@@ -513,6 +513,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         section = nodes.section(ids=[dfe_id])
         section += nodes.title(text=dfe.id)
         section += nodes.paragraph(text=dfe.description)
+        section += nodes.paragraph(text=dfe.long_description)
         section += nodes.rubric(text="Citations")
         section += self.citation_list(dfe)
         section += nodes.rubric(text="DFE parameters")

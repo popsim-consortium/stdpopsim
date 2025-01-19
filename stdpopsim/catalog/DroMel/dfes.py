@@ -14,11 +14,11 @@ def _HuberDFE():
     description = "Deleterious Gamma DFE"
     long_description = """
     Deleterious, gamma-distributed DFE estimated from a D. melanogaster SFS in
-    Huber et al. (2017), https://doi.org/10.1073/pnas.1619508114.
-    DFE parameters are based on the "full" model described in Table S2, for which
-    singletons were excluded and a recent mutation rate estimate is used
-    (3e-9, Keightley 2014).
+    Huber et al. (2017).  DFE parameters are based on the "full" model
+    described in Table S2, for which singletons were excluded and a recent
+    mutation rate estimate is used (3e-9, Keightley 2014).
     """
+    # https://doi.org/10.1073/pnas.1619508114
     citations = [
         stdpopsim.Citation(
             author="Huber et al.",
@@ -55,12 +55,11 @@ def _RagsdaleDFE():
     description = "Deleterious log-normal and beneficial mixed DFE"
     long_description = """
     Estimated DFE containing deleterious and beneficial mutations, estimated
-    by Ragsdale et al. (2016), https://doi.org/10.1534/genetics.115.184812,
-    with a log-normal distribution for deleterious mutations and a single
-    selection coefficient for positive mutations.  The DFE was inferred in
-    scaled units from the triallelic frequency spectrum in D. melanogaster,
-    here scaled to real units using an effective population size of Ne=2.8e6
-    (Huber et al 2017).
+    by Ragsdale et al. (2016), with a log-normal distribution for deleterious
+    mutations and a single selection coefficient for positive mutations.  The
+    DFE was inferred in scaled units from the triallelic frequency spectrum in
+    D. melanogaster, here scaled to real units using an effective population
+    size of Ne=2.8e6 (Huber et al 2017).
     """
     # DFE parameters are given in Table S1, with deleterious mutations drawn from a
     # log-normal distribution and a point mass of positive selection.

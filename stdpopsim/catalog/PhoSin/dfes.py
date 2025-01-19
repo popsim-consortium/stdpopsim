@@ -14,7 +14,6 @@ def _RobinsonDFE():
     description = "Deleterious Gamma DFE"
     long_description = """
     Gamma-distributed deleterious DFE inferred by Robinson et al. (2022),
-    https://doi.org/10.1126/science.abm1742,
     and used in their simulations, from the synonymous and nonsynonymous SFS from
     Vaquita data, following the methods of Huber et al (2017).
     """

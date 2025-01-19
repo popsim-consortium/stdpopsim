@@ -14,9 +14,8 @@ def _KimDFE():
     id = "Gamma_K17"
     description = "Deleterious Gamma DFE"
     long_description = """
-    Deleterious, gamma-distributed DFE estimated using 'Fit∂a∂i' from the
-    nonsynonymous SFS in exons from a dataset of European humans by Kim et al.
-    (2017), https://doi.org/10.1534/genetics.116.197145.
+    Deleterious, gamma-distributed DFE estimated using 'Fit∂a∂i' from the nonsynonymous
+    SFS in exons from a dataset of European humans by Kim et al. (2017).
     """
     # The DFE was inferred assuming synonymous variants are neutral and a relative
     # mutation rate ratio of 2.31 nonsynonymous to 1 synonymous mutation
@@ -64,9 +63,9 @@ def _HuberDFE():
     description = "Deleterious Gamma DFE"
     long_description = """
     Deleterious, gamma-distributed DFE estimated from the SFS of YRI samples in
-    the 1000 genomes project by Huber et al. (2017),
-    https://doi.org/10.1073/pnas.1619508114.  DFE parameters are from the "full"
-    model in Table S2, in which all data (none of the listed filters) were used.
+    the 1000 genomes project by Huber et al. (2017). DFE parameters are from
+    the "full" model in Table S2, in which all data (none of the listed
+    filters) were used.
     """
     # [this was a different filtering scheme than the Huber et al DroMel DFE ]
     citations = [
@@ -112,8 +111,7 @@ def _HuberLogNormalDFE():
     description = "Deleterious Log-normal DFE"
     long_description = """
     Deleterious, log-normal-distributed DFE estimated from the SFS of YRI
-    samples in the 1000 genomes project by Huber et al. (2017),
-    https://doi.org/10.1073/pnas.1619508114.
+    samples in the 1000 genomes project by Huber et al. (2017).
     Parameters as shown for the "full" model in Table S3.
     """
     citations = [
@@ -153,10 +151,9 @@ def _KyriazisDFE():
     id = "Mixed_K23"
     description = "Deleterious Gamma DFE with additional lethals"
     long_description = """
-    The DFE estimated from human data recommended in Kyriazis et al.
-    (2023), https://doi.org/10.1086/726736, for general use.
-    This model is similar to the Kim et al. (2017) DFE based on human
-    genetic data, modified to include the dominance distribution from
+    The DFE estimated from human data recommended in Kyriazis et al.  (2023),
+    for general use.  This model is similar to the Kim et al. (2017) DFE based
+    on human genetic data, modified to include the dominance distribution from
     Henn et al. (2016).  The model is also augmented with an additional
     proportion of 0.3% of recessive lethals, based on the analysis of
     Wade et al. (2023).
