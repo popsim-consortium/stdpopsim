@@ -146,7 +146,6 @@ def _HuberLogNormalDFE():
 
 _species.add_dfe(_HuberLogNormalDFE())
 
-
 def _KyriazisDFE():
     id = "Mixed_K23"
     description = "Deleterious Gamma DFE with additional lethals"
