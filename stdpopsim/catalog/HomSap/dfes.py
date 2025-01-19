@@ -200,3 +200,66 @@ def _KyriazisDFE():
 
 
 _species.add_dfe(_KyriazisDFE())
+
+
+def _RodriguesDFE():
+    id = "PosNeg_R24"
+    description = "Deleterious Gamma and Beneficial Exponential DFE"
+    long_description = """
+    The best-fitting DFE simulated by Rodrigues et al (2024),
+    https://doi.org/10.1093/genetics/iyae006,
+    from among 57 simulated scenarios with varying amounts of positive
+    and negative selection. Fit was based on similarity of diversity
+    and divergence across the great ape clade in simulations; the shape
+    of the DFE was not inferred, only the proportion of positive and
+    negative mutations; the shape of the deleterious portion of the DFE
+    was obtained from Castellano et al (2019),
+    https://doi.org/10.1534/genetics.119.302494.
+    """
+    citations = [
+        stdpopsim.Citation(
+            author="Rodrigues et al.",
+            year=2024,
+            doi="https://doi.org/10.1093/genetics/iyae006",
+            reasons={stdpopsim.CiteReason.DFE},
+        ),
+        stdpopsim.Citation(
+            author="Castellano et al.",
+            year=2019,
+            doi="https://doi.org/10.1534/genetics.119.302494",
+            reasons={stdpopsim.CiteReason.DFE},
+        ),
+    ]
+    neutral = stdpopsim.MutationType()
+    # parameters from row 32 in Table S1, based on
+    # identification of rates in Figure 9
+    neg_mean = -3e-2
+    neg_shape = 0.16
+    negative = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="g",  # gamma distribution
+        distribution_args=[neg_mean, neg_shape],
+    )
+    pos_mean = 1e-2
+    positive = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="e",  # exponential distribution
+        distribution_args=[pos_mean],
+    )
+    total_rate = 2e-8
+    pos_rate = 1e-12
+    neg_rate = 1.2e-8
+    prop_pos = pos_rate / total_rate
+    prop_neg = neg_rate / total_rate
+    neutral_prop = 1 - prop_pos - prop_neg
+    return stdpopsim.DFE(
+        id=id,
+        description=description,
+        long_description=long_description,
+        mutation_types=[neutral, negative, positive],
+        proportions=[neutral_prop, prop_pos, prop_neg],
+        citations=citations,
+    )
+
+
+_species.add_dfe(_RodriguesDFE())
