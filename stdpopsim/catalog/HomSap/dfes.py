@@ -231,6 +231,11 @@ def _ZhenDFE():
         distribution_type="g",  # gamma distribution
         distribution_args=[gamma_mean, gamma_shape],
     )
+    # p. 2 in supplement says that the total sequence length of synonymous sites LS
+    # related to the total sequence length LNS by LNS = 2.31 * LS
+    # so, this is 1 / (1 + 2.31) = 0.3021148036253776
+    prop_synonymous = 0.3
+
     sel_coeff = 10 ** (-3.949)
     prop_beneficial = 1.55e-2
     positive = stdpopsim.MutationType(
@@ -245,10 +250,10 @@ def _ZhenDFE():
         long_description=long_description,
         mutation_types=[neutral, negative, positive],
         proportions=[
-            0.3,
-            0.7 * (1 - prop_beneficial),
-            0.7 * prop_beneficial,
-        ],  # [0.3 and 0.7 are from Gamma_H17
+            prop_synonymous,
+            (1 - prop_synonymous) * (1 - prop_beneficial),
+            (1 - prop_synonymous) * prop_beneficial,
+        ],
         citations=citations,
     )
 
