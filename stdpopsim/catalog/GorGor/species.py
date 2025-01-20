@@ -65,7 +65,7 @@ _mutation_rate = {
     "21": _mean_mutation_rate,
     "22": _mean_mutation_rate,
     "X": _mean_mutation_rate,
-    "MT": 0,
+    "MT": _mean_mutation_rate,
 }
 
 # species ploidy and chromosome-specific ploidy

@@ -12,7 +12,7 @@ class TestSpeciesData(test_species.SpeciesTestBase):
         assert self.species.ensembl_id == "gorilla_gorilla"
 
     def test_name(self):
-        assert self.species.name == "Gorilla gorilla gorilla"
+        assert self.species.name == "Gorilla gorilla"
 
     def test_common_name(self):
         assert self.species.common_name == "Gorilla"
