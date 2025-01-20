@@ -182,7 +182,7 @@ class SpeciesTestBase:
         for chrom in self.species.genome.chromosomes:
             contig = self.species.get_contig(chrom.id)
             assert contig.ploidy is not None
-        contig = self.species.get_contig(length=1000)
+        contig = self.species.get_contig(length=200000)
         assert contig.ploidy == self.species.ploidy
 
 

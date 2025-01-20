@@ -620,6 +620,14 @@ class Contig:
                 ploidy=ploidy,
             )
 
+        if contig.gene_conversion_length is not None:
+            if contig.length <= contig.gene_conversion_length:
+                raise ValueError(
+                    "Cannot simulate a contig whose length is shorter "
+                    "than the gene conversion length "
+                    f"({contig.gene_conversion_length}bp)."
+                )
+
         return contig
 
     @property
