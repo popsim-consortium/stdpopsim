@@ -49,3 +49,14 @@ class TestGenomeData(test_species.GenomeTestBase):
     @pytest.mark.parametrize("chrom", [chrom for chrom in genome.chromosomes])
     def test_chromosome_ploidy(self, chrom):
         assert chrom.ploidy == 1
+
+    @pytest.mark.skip("QC for gene conversion not done yet")
+    @pytest.mark.parametrize(
+        ["name", "length"],
+        {"1": -1}.items(),
+    )
+    def test_gene_conversion_length(self, name, length):
+        assert self.genome.get_chromosome(name).gene_conversion_length == length
+
+    def test_bacterial_recombination(self):
+        assert self.genome.bacterial_recombination is True
