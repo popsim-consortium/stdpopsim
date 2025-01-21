@@ -146,11 +146,13 @@ def Gamma_H17():
         # (1+s for homozygote in SLiM versus 1+2s in dadi)
         distribution_args=[-2 * gamma_mean, gamma_shape],
     )
+    # LNS = 2.85 * LS
+    prop_synonymous = 1 / (1 + 2.85)
     return stdpopsim.DFE(
         id=id,
         description=description,
         long_description=long_description,
         mutation_types=[neutral, negative],
-        proportions=[0.3, 0.7],
+        proportions=[prop_synonymous, 1 - prop_synonymous],
         citations=citations,
     )
