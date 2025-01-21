@@ -77,6 +77,11 @@ class TestContig(object):
                     gene_conversion_length=bad_len,
                 )
 
+    def test_gc_length_error(self):
+        sp = stdpopsim.get_species("StrAga")
+        with pytest.raises(ValueError, match="shorter than the gene conv"):
+            _ = sp.get_contig(length=100000)
+
     def test_default_dfe(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
         assert len(contig.dfe_list) == 1
