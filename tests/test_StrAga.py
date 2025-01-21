@@ -9,7 +9,7 @@ class TestSpeciesData(test_species.SpeciesTestBase):
     species = stdpopsim.get_species("StrAga")
 
     def test_ensembl_id(self):
-        assert self.species.ensembl_id == "NA"
+        assert self.species.ensembl_id == "streptococcus_agalactiae_GCA_001017915"
 
     def test_name(self):
         assert self.species.name == "Streptococcus agalactiae"

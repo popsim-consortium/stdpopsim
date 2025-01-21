@@ -45,6 +45,12 @@ class Genome:
     :vartype assembly_name: str
     :ivar assembly_accession: The ID of the genome assembly accession.
     :vartype assembly_accession: str
+    :ivar assembly_source: The source of the genome assembly data.
+        (for instance "ensembl"). Use "manual" if manually entered.
+    :vartype assembly_source: str
+    :ivar assembly_build_version: The version of the genome assembly build,
+        or "None" if manually entered.
+    :vartype assembly_build_version: str
     :ivar bacterial_recombination: Whether recombination is via horizontal gene
         transfer (if this is True) or via crossing-over and possibly gene
         conversion (if this is False). Default: False.
@@ -60,6 +66,8 @@ class Genome:
     chromosomes = attr.ib(factory=list)
     assembly_name = attr.ib(type=str, default=None, kw_only=True)
     assembly_accession = attr.ib(type=str, default=None, kw_only=True)
+    assembly_source = attr.ib(type=str, default=None, kw_only=True)
+    assembly_build_version = attr.ib(type=str, default=None, kw_only=True)
     bacterial_recombination = attr.ib(type=bool, default=False, kw_only=True)
     citations = attr.ib(factory=list, kw_only=True)
 
@@ -110,6 +118,8 @@ class Genome:
             chromosomes=chromosomes,
             assembly_name=genome_data["assembly_name"],
             assembly_accession=genome_data["assembly_accession"],
+            assembly_source=genome_data["assembly_source"],
+            assembly_build_version=genome_data["assembly_build_version"],
             bacterial_recombination=bacterial_recombination,
             citations=citations,
         )
@@ -610,6 +620,14 @@ class Contig:
                 ploidy=ploidy,
             )
 
+        if contig.gene_conversion_length is not None:
+            if contig.length <= contig.gene_conversion_length:
+                raise ValueError(
+                    "Cannot simulate a contig whose length is shorter "
+                    "than the gene conversion length "
+                    f"({contig.gene_conversion_length}bp)."
+                )
+
         return contig
 
     @property
@@ -700,14 +718,17 @@ class Contig:
         object is added more than once.
 
         For instance, if we do
-        ```
-        a1 = np.array([[0, 100]])
-        a2 = np.array([[50, 120]])
-        contig.add_dfe(a1, dfe1)
-        contig.add_dfe(a2, dfe2)
-        ```
-        then ``dfe1`` applies to the region from 0 to 50 and ``dfe2`` applies
-        to the region from 50 to 120.
+
+        .. code-block:: python
+
+            a1 = np.array([[0, 100]])
+            a2 = np.array([[50, 120]])
+            contig.add_dfe(a1, dfe1)
+            contig.add_dfe(a2, dfe2)
+
+        then ``dfe1`` applies to the region from 0 to 50 (including 0 but not
+        50) and ``dfe2`` applies to the region from 50 to 120 (including 50 but
+        not 120).
 
         Any of the ``intervals`` that fall outside of the contig will be
         clipped to the contig boundaries. If no ``intervals`` overlap the

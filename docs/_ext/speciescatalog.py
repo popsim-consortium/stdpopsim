@@ -513,6 +513,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         section = nodes.section(ids=[dfe_id])
         section += nodes.title(text=dfe.id)
         section += nodes.paragraph(text=dfe.description)
+        section += nodes.paragraph(text=dfe.long_description)
         section += nodes.rubric(text="Citations")
         section += self.citation_list(dfe)
         section += nodes.rubric(text="DFE parameters")
@@ -699,6 +700,15 @@ class SpeciesCatalogDirective(SphinxDirective):
         # genomes:
         genome_section = nodes.section(ids=[f"sec_catalog_{species.id}_genome"])
         genome_section += nodes.title(text="Genome")
+        genome_section += self.make_field_list(
+            [
+                (
+                    "Genome assembly name",
+                    species.genome.assembly_name,
+                    None,
+                )
+            ]
+        )
         if species.genome.bacterial_recombination is True:
             genome_section += self.make_field_list(
                 [

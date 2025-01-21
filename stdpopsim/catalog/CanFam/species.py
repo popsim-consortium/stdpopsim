@@ -46,6 +46,7 @@ _recombination_rate_data = {
     "38": 1.4363726512881696e-08,
     "X": 9.506483722244087e-09,
     "MT": 0,
+    # "Y": 0,  # removed because not in the map or assembly
 }
 
 # Generic and chromosome-specific ploidy
@@ -91,7 +92,13 @@ _ploidy = {
     "38": _species_ploidy,
     "X": _species_ploidy,
     "MT": 1,
+    # "Y": 1, removed because it's not in the map
 }
+
+_mutation_rate = 4e-9
+_mutation_rate_data = {str(i): _mutation_rate for i in range(1, 39)}
+_mutation_rate_data["MT"] = _mutation_rate
+_mutation_rate_data["X"] = _mutation_rate
 
 _LindbladTohEtAl = stdpopsim.Citation(
     # Genome sequence, comparative analysis and haplotype structure of the
@@ -124,23 +131,11 @@ _CampbellEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1534/g3.116.034678",
 )
 
-_chromosomes = []
-for name, data in genome_data.data["chromosomes"].items():
-    _chromosomes.append(
-        stdpopsim.Chromosome(
-            id=name,
-            length=data["length"],
-            synonyms=data["synonyms"],
-            mutation_rate=4e-9,  # based on non-CpG sites only
-            recombination_rate=_recombination_rate_data[name],
-            ploidy=_ploidy[name],
-        )
-    )
-
-_genome = stdpopsim.Genome(
-    chromosomes=_chromosomes,
-    assembly_name=genome_data.data["assembly_name"],
-    assembly_accession=genome_data.data["assembly_accession"],
+_genome = stdpopsim.Genome.from_data(
+    genome_data=genome_data.data,
+    recombination_rate=_recombination_rate_data,
+    mutation_rate=_mutation_rate_data,
+    ploidy=_ploidy,
     citations=[
         _SkoglundEtAl.because(stdpopsim.CiteReason.MUT_RATE),
         _FrantzEtAl.because(stdpopsim.CiteReason.MUT_RATE),
@@ -152,7 +147,7 @@ stdpopsim.utils.append_common_synonyms(_genome)
 
 _species = stdpopsim.Species(
     id="CanFam",
-    ensembl_id="canis_familiaris",
+    ensembl_id="canis_lupus_familiaris",
     name="Canis familiaris",
     common_name="Dog",
     genome=_genome,

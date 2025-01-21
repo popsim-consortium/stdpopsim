@@ -8,4 +8,6 @@ data = {
         "3": {"length": 409777670, "synonyms": []},
         "MT": {"length": 16790, "synonyms": []},
     },
+    "assembly_source": "ensembl",
+    "assembly_build_version": "113",
 }

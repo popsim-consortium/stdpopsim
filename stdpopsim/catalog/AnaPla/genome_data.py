@@ -45,4 +45,6 @@ data = {
         "39": {"length": 2018729, "synonyms": []},
         "40": {"length": 1354177, "synonyms": []},
     },
+    "assembly_source": "ensembl",
+    "assembly_build_version": "113",
 }
