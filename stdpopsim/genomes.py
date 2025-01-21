@@ -718,14 +718,17 @@ class Contig:
         object is added more than once.
 
         For instance, if we do
-        ```
-        a1 = np.array([[0, 100]])
-        a2 = np.array([[50, 120]])
-        contig.add_dfe(a1, dfe1)
-        contig.add_dfe(a2, dfe2)
-        ```
-        then ``dfe1`` applies to the region from 0 to 50 and ``dfe2`` applies
-        to the region from 50 to 120.
+
+        .. code-block:: python
+
+            a1 = np.array([[0, 100]])
+            a2 = np.array([[50, 120]])
+            contig.add_dfe(a1, dfe1)
+            contig.add_dfe(a2, dfe2)
+
+        then ``dfe1`` applies to the region from 0 to 50 (including 0 but not
+        50) and ``dfe2`` applies to the region from 50 to 120 (including 50 but
+        not 120).
 
         Any of the ``intervals`` that fall outside of the contig will be
         clipped to the contig boundaries. If no ``intervals`` overlap the
