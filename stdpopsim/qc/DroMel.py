@@ -120,13 +120,7 @@ _species.get_demographic_model("African3Epoch_1S16").register_qc(SheehanSongThre
 def Gamma_H17():
     id = "Gamma_H17"
     description = "Deleterious Gamma DFE"
-    long_description = """
-    Return neutral and negative MutationType()s representing a drosophila DFE.
-    Huber et al. (2017), https://doi.org/10.1073/pnas.1619508114.
-    DFE parameters are based on the Full model described in Table S2, in which
-    singletons are excluded and a recent mutation rate estimate is used
-    (mu=3x10e-9, Keightley 2014).
-    """
+    long_description = "QC version"
     neutral = stdpopsim.MutationType()
     gamma_shape = 0.33
     gamma_scale = 1.2e-3
