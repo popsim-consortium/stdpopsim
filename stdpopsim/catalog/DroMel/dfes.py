@@ -29,20 +29,24 @@ def _HuberDFE():
     ]
     neutral = stdpopsim.MutationType()
     gamma_shape = 0.33  # shape
-    gamma_mean = -3.96e-04  # expected value
+    gamma_scale = 1.2e-3  # scale
+    gamma_mean = gamma_shape * gamma_scale  # expected value
     h = 0.5  # dominance coefficient
     negative = stdpopsim.MutationType(
         dominance_coeff=h,
         distribution_type="g",  # gamma distribution
-        distribution_args=[gamma_mean, gamma_shape],
+        # (1+s for homozygote in SLiM versus 1+2s in dadi)
+        distribution_args=[-2 * gamma_mean, gamma_shape],
     )
-
+    # LNS = 2.85 * LS
+    # prop_synonymous = 1/(1+2.85) = 0.26
+    prop_synonymous = 0.26
     return stdpopsim.DFE(
         id=id,
         description=description,
         long_description=long_description,
         mutation_types=[neutral, negative],
-        proportions=[0.26, 0.74],  # LNS = 2.85 x LS
+        proportions=[prop_synonymous, 1 - prop_synonymous],  # LNS = 2.85 x LS
         citations=citations,
     )
 
