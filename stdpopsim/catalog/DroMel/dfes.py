@@ -38,8 +38,9 @@ def _HuberDFE():
         # (1+s for homozygote in SLiM versus 1+2s in dadi)
         distribution_args=[-2 * gamma_mean, gamma_shape],
     )
-    # LNS = 2.85 * LS
-    # prop_synonymous = 1/(1+2.85) = 0.26
+    # p. 2 in supplement says that the total sequence length of synonymous sites LS
+    # related to the total sequence length of nonsynonymous sites LNS by LNS = 2.85 * LS;
+    # so this is 1 / (1 + 2.85) = 0.2597402597402597
     prop_synonymous = 0.26
     return stdpopsim.DFE(
         id=id,
