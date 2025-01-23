@@ -319,7 +319,10 @@ def QC_GammaB21():
         description=id,
         long_description=id,
         mutation_types=[neutral, negative],
-        proportions=[1 - prop_nonsynonymous, prop_nonsynonymous],
+        proportions=[
+            np.around(1 - prop_nonsynonymous, 3),
+            np.around(prop_nonsynonymous, 3),
+        ],
     )
 
 
