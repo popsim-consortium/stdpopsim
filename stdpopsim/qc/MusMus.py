@@ -286,3 +286,37 @@ _species.get_demographic_model("DomesticusEurope_1F22").register_qc(
 _species.get_demographic_model("MusculusKorea_1F22").register_qc(QC_MusculusKorea())
 
 _species.get_demographic_model("CastaneusIndia_1F22").register_qc(QC_CastaneusIndia())
+
+
+def QC_GammaB21():
+    id = "QC-GammaB21"
+    # M. m. castaneus from https://www.biorxiv.org/content/10.1101/2021.06.10.447924v2
+    # 0-fold site model with parameters from Tables S1, S2
+    neutral = stdpopsim.MutationType()
+    gamma_shape = 0.18617976
+    # Using polyDFE, the DFE is estimated in terms of
+    # the scaled selection coefficient for deleterious mutations,
+    # 2Nesd, where sd is the reduction in fitness experienced by
+    # an individual homozygous for the mutation
+    gamma_mean = -50044.583
+    Ne = 420000  # effective population size from methods
+    gamma_mean /= Ne
+    h = 0.5
+    negative = stdpopsim.MutationType(
+        dominance_coeff=h,
+        distribution_type="g",
+        # polyDFE uses 2sd, so we need to multiply by Ne
+        distribution_args=[2 * gamma_mean, gamma_shape],
+    )
+    tstv = 3.3833
+    prop_nonsynonymous = 1 / (1 + tstv)
+    return stdpopsim.DFE(
+        id=id,
+        description=id,
+        long_description=id,
+        mutation_types=[neutral, negative],
+        proportions=[1 - prop_nonsynonymous, prop_nonsynonymous],
+    )
+
+
+_species.get_dfe("Gamma_B21").register_qc(QC_GammaB21())
