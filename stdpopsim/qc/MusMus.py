@@ -305,8 +305,9 @@ def QC_GammaB21():
     negative = stdpopsim.MutationType(
         dominance_coeff=h,
         distribution_type="g",
-        # polyDFE uses 2sd, so we need to multiply by Ne
-        distribution_args=[2 * gamma_mean, gamma_shape],
+        # PolyDFE gives two times the selection coefficient on a homozygote,
+        # so divide mean by two
+        distribution_args=[gamma_mean/2, gamma_shape],
     )
     tstv = 3.3833
     prop_nonsynonymous = 1 / (1 + tstv)
