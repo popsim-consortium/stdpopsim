@@ -307,7 +307,7 @@ def QC_GammaB21():
         distribution_type="g",
         # PolyDFE gives two times the selection coefficient on a homozygote,
         # so divide mean by two
-        distribution_args=[gamma_mean/2, gamma_shape],
+        distribution_args=[gamma_mean / 2, gamma_shape],
     )
     tstv = 3.3833
     prop_nonsynonymous = 1 / (1 + tstv)
