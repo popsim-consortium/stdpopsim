@@ -115,3 +115,33 @@ def SheehanSongThreeEpic():
 
 
 _species.get_demographic_model("African3Epoch_1S16").register_qc(SheehanSongThreeEpic())
+
+
+def Gamma_H17():
+    id = "Gamma_H17"
+    description = "Deleterious Gamma DFE"
+    long_description = "QC version"
+    neutral = stdpopsim.MutationType()
+    gamma_shape = 0.33
+    gamma_scale = 1.2e-3
+    gamma_mean = gamma_shape * gamma_scale
+    h = 0.5  # dominance coefficient
+    negative = stdpopsim.MutationType(
+        dominance_coeff=h,
+        distribution_type="g",  # gamma distribution
+        # (1+s for homozygote in SLiM versus 1+2s in dadi)
+        distribution_args=[-2 * gamma_mean, gamma_shape],
+    )
+    # LNS = 2.85 * LS
+    # prop_synonymous = 1/(1+2.85) = 0.26
+    prop_synonymous = 0.26
+    return stdpopsim.DFE(
+        id=id,
+        description=description,
+        long_description=long_description,
+        mutation_types=[neutral, negative],
+        proportions=[prop_synonymous, 1 - prop_synonymous],
+    )
+
+
+_species.get_dfe("Gamma_H17").register_qc(Gamma_H17())
