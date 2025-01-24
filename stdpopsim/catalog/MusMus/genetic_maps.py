@@ -22,7 +22,7 @@ _gm = stdpopsim.GeneticMap(
         map was lifted to the GRCm39 genome are described on a github repo:
         https://github.com/kbroman/CoxMapV3
         """,
-    url=("https://stdpopsim.s3-us-west-2.amazonaws.com/genetic_maps/dir/cox.tar.gz"),
+    url=("https://us-west-2.console.aws.amazon.com/s3/object/stdpopsim/genetic_maps/MusMus/cox.tar.gz"),
     sha256="d589a7adf334f31343aff722aeebe96b1663cab573856d80a883f07bd3cb9b11",
     file_pattern="Cox_etal_2009_v3_GRCm39_{id}.txt",
     citations=[_genetic_map_citation],
