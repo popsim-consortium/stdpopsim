@@ -9,7 +9,7 @@ sphinx-argparse==0.5.2
 sphinx-issues==5.0.0
 sphinx_rtd_theme==3.0.2
 sphinxcontrib-programoutput==0.18
-attrs==24.3.0
+attrs==25.1.0
 appdirs==1.4.4
 humanize==4.11.0
 pyslim==1.0.4
