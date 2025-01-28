@@ -5,7 +5,7 @@ from . import genome_data
 _ZhangEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1016/j.gpb.2022.02.001",
     year=2022,
-    author="Mingpeng Zhang et al.",
+    author="Zhang et al.",
     reasons={
         stdpopsim.CiteReason.MUT_RATE,
         stdpopsim.CiteReason.GEN_TIME,
@@ -15,8 +15,14 @@ _ZhangEtAl = stdpopsim.Citation(
 _JohnssonEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1186/s12711-021-00643-0",
     year=2021,
-    author="Martin Johnsson et al.",
+    author="Johnsson et al.",
     reasons={stdpopsim.CiteReason.REC_RATE},
+)
+_WarrEtAl = stdpopsim.Citation(
+    doi="https://doi.org/10.1093/gigascience/giaa051",
+    year=2020,
+    author="Warr et al.",
+    reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
 # [The following are notes for implementers and should be deleted
 #  once the recombination rates have been inserted]
@@ -27,7 +33,7 @@ _JohnssonEtAl = stdpopsim.Citation(
 # data and how they were obtained should be documented here.
 # The appropriate citation must be added to the list of
 # recombination_rate_citations in the Genome object.
-
+# X recombination rate is mean of autosomes because it is not in paper.
 _recombination_rate = {
     "1": 5.335247608983185e-09,
     "2": 8.6057260999254e-09,
@@ -47,12 +53,12 @@ _recombination_rate = {
     "16": 1.1407464686635653e-08,
     "17": 1.3779949516098884e-08,
     "18": 1.3679923888648167e-08,
-    "X": -1,
+    "X": 9.41539636725104e-09,
     "Y": 0,
     "MT": 0,
 }
 
-# the de novo mutation rate is inferred by Mingpeng Zhang et al 2022,
+# the de novo mutation rate is inferred by Zhang et al 2022,
 #  which was used for the PSMC demographic inference
 _overall_rate = 3.6e-9
 _mutation_rate = {
@@ -111,13 +117,8 @@ _genome = stdpopsim.Genome.from_data(
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
     ploidy=_ploidy,
-    # [ Implementers: please insert citations for the papers you are basing
-    # the estimates for recombination and mutation rates. The assembly
-    # citation is optional and can be deleted if not needed.]
     citations=[
-        stdpopsim.Citation(
-            author="", year=-1, doi="", reasons={stdpopsim.CiteReason.ASSEMBLY}
-        ),
+        _WarrEtAl,
         _JohnssonEtAl,
         _ZhangEtAl,
     ],
