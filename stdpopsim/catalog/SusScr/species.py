@@ -24,8 +24,6 @@ _WarrEtAl = stdpopsim.Citation(
     author="Warr et al.",
     reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
-# [The following are notes for implementers and should be deleted
-#  once the recombination rates have been inserted]
 # This is the per-chromosome recombination rate, typically the mean
 # rate along the chromosome.
 # Values in this dictionary are set to -1 by default, so you have
@@ -131,10 +129,18 @@ _species = stdpopsim.Species(
     common_name="Pig",
     genome=_genome,
     ploidy=2,
-    # The age at first pregnancy varies in the wild from about 10 to 20 months,
-    # while boars begin rut when they are three to five years old.
-    # The first rut age of 4–5 years was documented in Russian wild boars,
-    # and 3–4 years was recorded in Chinese wild boars.
+    # "Pigs are typically social animals, breeding in the form of polygamy [25]. 
+    # The ages of estrus in sows and boars in the wild are different. 
+    # The age at first pregnancy varies in the wild from about 10 to 20 months [26],
+    # while boars begin rut when they are three to five years old. 
+    # The first rut age of 4–5 years was documented in Russian wild boars [27], 
+    # and 3–4 years was recorded in Chinese wild boars [28]. 
+    # Pigs are multiparous animals, and the gestation period lasts about 114–130 days [29]. 
+    # Comparing to the animals with single birth, such as cattle and yaks, 
+    # we believe that the generation transmission of pigs is of good continuity. 
+    # Therefore, we set the generation interval of pigs as 3 years, 
+    # which is roughly equivalent to the average age of the first pregnancy in sows and the beginning of rut in boars 
+    # plus the pregnant gestation period of sows." (Zhang et al., p. 1042 Genomics Proteomics Bioinformatics).
     generation_time=3,
     # [Implementers: you must provide an estimate of the population size.
     # TODO: give a definition of what this should be.
