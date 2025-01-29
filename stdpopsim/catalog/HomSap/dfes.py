@@ -207,7 +207,6 @@ def _RodriguesDFE():
     description = "Deleterious Gamma and Beneficial Exponential DFE"
     long_description = """
     The best-fitting DFE simulated by Rodrigues et al (2024),
-    https://doi.org/10.1093/genetics/iyae006,
     from among 57 simulated scenarios with varying amounts of positive
     and negative selection. Fit was based on similarity of diversity
     and divergence across the great ape clade in simulations; the shape
