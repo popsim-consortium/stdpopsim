@@ -26,12 +26,8 @@ _WarrEtAl = stdpopsim.Citation(
 )
 # This is the per-chromosome recombination rate, typically the mean
 # rate along the chromosome.
-# Values in this dictionary are set to -1 by default, so you have
-# to update each one. These should be derived from the most reliable
-# data and how they were obtained should be documented here.
-# The appropriate citation must be added to the list of
-# recombination_rate_citations in the Genome object.
 # X recombination rate is mean of autosomes because it is not in paper.
+# The data sourced from Johnsson et al., Additional file 4: Table S3
 _recombination_rate = {
     "1": 5.335247608983185e-09,
     "2": 8.6057260999254e-09,
@@ -56,8 +52,8 @@ _recombination_rate = {
     "MT": 0,
 }
 
-# the de novo mutation rate is inferred by Zhang et al 2022,
-#  which was used for the PSMC demographic inference
+# the de novo mutation rate is inferred by Zhang et al., p. 1040 Genomics Proteomics Bioinformatics,
+# which was used for the PSMC demographic inference
 _overall_rate = 3.6e-9
 _mutation_rate = {
     "1": _overall_rate,
