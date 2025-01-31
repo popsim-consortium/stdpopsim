@@ -1,0 +1,5 @@
+{% extends "!footer.html" %}
+{% block extrafooter %}
+    {{ super() }}
+    <div class="footer">Version: {{ version }} ({{ release }})</div>
+{% endblock %}
