@@ -349,6 +349,26 @@ class TestPopulationSampling:
         sample_populations = [i.population for i in test_samples]
         assert sample_populations == [0, 1]
 
+    def test_random_sample_counts(self):
+        species = stdpopsim.get_species("HomSap")
+        model = species.get_demographic_model("OutOfAfricaArchaicAdmixture_5R19")
+        counts = model.random_sample_counts(n=10, seed=10)
+        assert counts == {
+            "YRI": 3,
+            "CEU": 5,
+            "CHB": 2,
+        }, f"Expected {{'YRI': 3, 'CEU': 5, 'CHB': 2}}, but got {counts}"
+
+    def test_random_sample_counts_varied(self):
+        species = stdpopsim.get_species("HomSap")
+        model = species.get_demographic_model("OutOfAfricaArchaicAdmixture_5R19")
+        ns = [5, 15, 20, 25, 30]
+        for n in ns:
+            counts = model.random_sample_counts(n=n)
+            assert (
+                sum(counts.values()) == n
+            ), f"Expected sum {n}, but got {sum(counts.values())}"
+
     @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_deprecated_get_samples(self):
         base_mod = self.make_model()

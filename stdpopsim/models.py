@@ -4,6 +4,7 @@ Common infrastructure for specifying demographic models.
 
 import copy
 import textwrap
+import random
 
 import msprime
 import warnings
@@ -289,6 +290,22 @@ class DemographicModel:
                     f"Samples requested from non-sampling population {pop_name}"
                 )
         return samples
+
+    def random_sample_counts(self, n, seed=None):
+        """
+        Randomly distributes `n` samples across the given sampling populations.
+
+        :param int n: Number of samples to draw.
+        :param int seed: Optional seed for reproducibility.
+
+        :return: Dictionary mapping population names to sample counts.
+        :rtype: dict
+        """
+        rng = random.Random(seed)
+        sampled_counts = {pop.name: 0 for pop in self.sampling_populations}
+        for pop in rng.choices(self.sampling_populations, k=n):
+            sampled_counts[pop.name] += 1
+        return sampled_counts
 
 
 class PiecewiseConstantSize(DemographicModel):
