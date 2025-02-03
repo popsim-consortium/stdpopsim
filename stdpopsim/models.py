@@ -171,6 +171,10 @@ class DemographicModel:
         return self.model.populations
 
     @property
+    def sampling_populations(self):
+        return [pop for pop in self.populations if pop.allow_samples]
+
+    @property
     def num_populations(self):
         return self.model.num_populations
 

@@ -312,6 +312,10 @@ class TestPopulationSampling:
         )
         return base_mod
 
+    def test_sampling_populations(self):
+        base_mod = self.make_model()
+        assert base_mod.num_sampling_populations == len(base_mod.sampling_populations)
+
     def test_num_sampling_populations(self):
         base_mod = self.make_model()
         assert base_mod.num_sampling_populations == 2
