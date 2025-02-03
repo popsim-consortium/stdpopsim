@@ -174,6 +174,22 @@ class TestGenomeData(test_species.GenomeTestBase):
         $chromosome_rate_dict.items())
     def test_chromosome_ploidy(self, name, ploidy):
         assert ploidy == self.genome.get_chromosome(name).ploidy
+
+    @pytest.mark.skip("Gene conversion length QC not done yet")
+    @pytest.mark.parametrize(
+        ["name", "gene_conversion_length"],
+        $chromosome_rate_dict.items())
+    def test_chromosome_gene_conversion_length(self, name, gene_conversion_length):
+        assert gene_conversion_length ==
+            self.genome.get_chromosome(name).gene_conversion_length
+
+    @pytest.mark.skip("Gene conversion fraction QC not done yet")
+    @pytest.mark.parametrize(
+        ["name", "gene_conversion_fraction"],
+        $chromosome_rate_dict.items())
+    def test_chromosome_gene_conversion_fraction(self, name, gene_conversion_fraction):
+        assert gene_conversion_fraction ==
+            self.genome.get_chromosome(name).gene_conversion_fraction
 """
 )
 
