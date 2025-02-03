@@ -20,10 +20,21 @@ _BourgeoisEtAl = stdpopsim.Citation(
     },
 )
 
-# No recombination rate yet for this species.
-# Author of BourgeoisEtAl is sending the recombination map
-# Placeholder rate of 1cM/Mb used
-_recombo_rate = 1e-8
+_YurchenkoEtAl = stdpopsim.Citation(
+    doi="https://doi.org/10.1093/gbe/evaa161",
+    year=2020,
+    author="Yurchenko et al.",
+    reasons={stdpopsim.CiteReason.REC_RATE},
+)
+
+# Recombination rate from Yurchenko et al.
+# which was calculated from a linkage map
+# from a different lizard species, Zootoca vivipara
+# the "common lizard"
+# they estimated male and female recombination rates
+# at 1.49 cM/Mb and 1.69 cM/Mb, respectively
+# we can use the average of the two
+_recombo_rate = 1.59e-8
 
 _recombination_rate = {
     "1": _recombo_rate,
