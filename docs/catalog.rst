@@ -75,6 +75,8 @@ Then, if you feel ready, make an issue on our
 
 .. speciescatalog:: GasAcu
 
+.. speciescatalog:: GorGor
+
 .. speciescatalog:: HelAnn
 
 .. speciescatalog:: HelMel
