@@ -12,8 +12,10 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import datetime
 import os
 import sys
+from setuptools_scm import get_version
 
 sys.path.insert(0, os.path.abspath(".."))
 # Add the path for local extensions
@@ -22,13 +24,16 @@ sys.path.append(os.path.abspath("./_ext"))
 # -- Project information -----------------------------------------------------
 
 project = "stdpopsim"
-copyright = "2019-2022, PopSim Consortium"
+copyright = f"2019-{datetime.datetime.now().year}, PopSim Consortium"
 author = "PopSim Consortium"
 
-# The short X.Y version
-version = ""
-# The full version, including alpha/beta/rc tags
-release = "0.2.0"
+# get the release version from the setuptools_scm
+try:
+    release = get_version(root="..", relative_to=__file__)
+    version = ".".join(release.split(".")[:2])
+except Exception:
+    release = "unknown"
+    version = "unknown"
 
 
 # -- General configuration ---------------------------------------------------
@@ -41,6 +46,7 @@ release = "0.2.0"
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "sphinx_rtd_theme",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
@@ -93,12 +99,28 @@ html_theme = "sphinx_rtd_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_context = {
+    "display_github": True,
+    "version": version,
+    "release": release,
+}
+html_theme_options = {
+    "version_selector": True,
+}
+
+# Show the version number in the navigation bar
+html_show_sphinx = True
+html_show_version = True
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+
+# Add custom CSS to style the footer
+html_css_files = [
+    "custom.css",
+]
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
