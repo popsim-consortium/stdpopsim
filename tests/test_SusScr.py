@@ -18,10 +18,10 @@ class TestSpeciesData(test_species.SpeciesTestBase):
         assert self.species.common_name == "Pig"
 
     def test_assembly_source(self):
-        assert self.genome.assembly_source == "ensembl"
+        assert self.species.genome.assembly_source == "ensembl"
 
     def test_assembly_build_version(self):
-        assert self.genome.assembly_build_version == "113"
+        assert self.species.genome.assembly_build_version == "113"
 
     # QC Tests. These tests are performed by another contributor
     # independently referring to the citations provided in the
