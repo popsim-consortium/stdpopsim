@@ -318,7 +318,7 @@ def QC_GammaB21():
         description=id,
         long_description=id,
         mutation_types=[neutral, negative],
-        proportions=[prop_neutral, 1-prop_neutral],
+        proportions=[prop_neutral, 1 - prop_neutral],
     )
 
 
