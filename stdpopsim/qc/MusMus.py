@@ -312,17 +312,12 @@ def QC_GammaB21():
             np.around(gamma_shape, decimals=3),
         ],
     )
-    tstv = 3.3833
-    prop_nonsynonymous = 1 / (1 + tstv)
     return stdpopsim.DFE(
         id=id,
         description=id,
         long_description=id,
         mutation_types=[neutral, negative],
-        proportions=[
-            np.around(1 - prop_nonsynonymous, 3),
-            np.around(prop_nonsynonymous, 3),
-        ],
+        proportions=[0.333, 0.664],
     )
 
 
