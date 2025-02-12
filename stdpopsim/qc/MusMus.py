@@ -312,12 +312,13 @@ def QC_GammaB21():
             np.around(gamma_shape, decimals=3),
         ],
     )
+    prop_neutral = 0.333
     return stdpopsim.DFE(
         id=id,
         description=id,
         long_description=id,
         mutation_types=[neutral, negative],
-        proportions=[0.333, 0.664],
+        proportions=[prop_neutral, 1-prop_neutral],
     )
 
 
