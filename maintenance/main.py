@@ -222,6 +222,11 @@ def write_catalog_stub(*, path, sps_id, ensembl_id, species_data, genome_data):
     scientific_name = species_data["scientific_name"]
     common_name = species_data["display_name"]
     logger.info(f"{sps_id}: name={scientific_name}, common_name={common_name}")
+
+    # Get assembly information from genome_data
+    assembly_source = genome_data.get("assembly_source", "ensembl")
+    assembly_build_version = genome_data.get("assembly_build_version", "unknown")
+
     chr_names = genome_data["chromosomes"].keys()
     chromosome_rate_template = {name: -1 for name in chr_names}
     species_code = species_template.substitute(
@@ -242,6 +247,8 @@ def write_catalog_stub(*, path, sps_id, ensembl_id, species_data, genome_data):
         scientific_name=scientific_name,
         common_name=common_name,
         chromosome_rate_dict=chromosome_rate_template,
+        assembly_source=assembly_source,
+        assembly_build_version=assembly_build_version,
     )
     test_path = pathlib.Path("tests") / f"test_{sps_id}.py"
     logger.info(f"Writing species test stub to {test_path}")
@@ -272,14 +279,19 @@ class DataWriter:
             shutil.rmtree(root, ignore_errors=True)
         root.mkdir()
         genome_data = self.write_genome_data(ensembl_id)
-        species_data = self.ensembl_client.get_species_data(ensembl_id)
-        write_catalog_stub(
-            path=root,
-            sps_id=sps_id,
-            ensembl_id=ensembl_id,
-            species_data=species_data,
-            genome_data=genome_data,
-        )
+        if genome_data[0] == "updated":
+            species_data = self.ensembl_client.get_species_data(ensembl_id)
+            write_catalog_stub(
+                path=root,
+                sps_id=sps_id,
+                ensembl_id=ensembl_id,
+                species_data=species_data,
+                genome_data=genome_data[1],
+            )
+        else:
+            raise ValueError(
+                f"Failed to get genome data for {sps_id}: {genome_data[0]}"
+            )
 
     def add_species_ncbi(self, ncbi_id, force=False):
         species_name = ncbi.get_species_name(ncbi_id)
@@ -375,7 +387,7 @@ class DataWriter:
         # Format the code with Black so we don't get noisy diffs
         with self.write(genome_data_path) as f:
             f.write(black_format(code))
-        return ("updated", None)
+        return ("updated", data)
 
     def write_genome_data_ncbi(self, ncbi_id, sps_id):
         path = catalog_path(sps_id)
