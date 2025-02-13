@@ -312,6 +312,8 @@ def QC_GammaB21():
             np.around(gamma_shape, decimals=3),
         ],
     )
+    # Tom's original code @ TBooker/MuridRodentProject/blob/master/bin/SlimFunctions.py
+    # parses the DFE assuming 1/3 of sites are neutral
     prop_neutral = 0.334
     return stdpopsim.DFE(
         id=id,
