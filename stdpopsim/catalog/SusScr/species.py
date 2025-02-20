@@ -10,7 +10,6 @@ _ZhangEtAl = stdpopsim.Citation(
     author="Zhang et al.",
     reasons={
         stdpopsim.CiteReason.MUT_RATE,  # on page 1042
-        stdpopsim.CiteReason.GEN_TIME,  # on page 1042
         stdpopsim.CiteReason.POP_SIZE,  # on page 1048
     },
 )
@@ -138,6 +137,7 @@ _species = stdpopsim.Species(
     population_size=270_000,
     citations=[
         _ZhangEtAl,  # POP_SIZE
+        _ServantyEtAl,  # GEN_TIME
     ],
 )
 
