@@ -1742,7 +1742,7 @@ def Kim2017():
         description=id,
         long_description=id,
         mutation_types=[neutral, negative],
-        proportions=[round(1 - ns_proportion, 1), round(ns_proportion)],
+        proportions=[round(1 - ns_proportion, 1)[0], round(ns_proportion, 1)[0]],
     )
 
 
