@@ -97,6 +97,7 @@ Then, if you feel ready, make an issue on our
 
 .. speciescatalog:: StrAga
 
+.. speciescatalog:: SusScr
 
 Generic models
 ==============

@@ -44,7 +44,7 @@ _WarrEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
 
-# Ploidy
+# Ploidy - pig is diploid with XY sex chromosome system and has MT
 _ploidy = 2
 _ploidy_contig = {str(i): _ploidy for i in range(1, 19)}
 _ploidy_contig["X"] = _ploidy
@@ -60,8 +60,9 @@ _mutation_rate_contig["Y"] = _mutation_rate
 _mutation_rate_contig["MT"] = _mutation_rate
 
 # Recombination rate
-# This mean rate along each chromosome was calculated from
+# This mean rate for each chromosome was calculated from
 # Johnsson et al. (2021) in Additional file 4: Table S3
+# (summed rates along chromosome and divided by the reported physical length)
 _tmp = [
     5.335247608983185e-09,
     8.6057260999254e-09,
