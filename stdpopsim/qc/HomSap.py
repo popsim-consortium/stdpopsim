@@ -1715,3 +1715,35 @@ def Huber2017():
 
 
 _species.get_dfe("Gamma_H17").register_qc(Huber2017())
+
+
+def Kim2017():
+    """
+    Gamma DFE with neutral mutations from
+    Kim et al. 2017 Genetics.
+    """
+    id = "Kim2017_gamma_dfe"
+    neutral = stdpopsim.MutationType()
+    gamma_shape = 0.186
+    gamma_scale = 875
+    # get gamma mean and scale using ancestral Ne
+    Ne_ancestral = 12378
+    # they use dadi for inference, so add a factor of 2
+    gamma_mean = (-gamma_shape * gamma_scale * 2) / (Ne_ancestral * 2)
+    negative = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="g",  # gamma distribution
+        distribution_args=[gamma_mean, gamma_shape],
+    )
+    # proportion neutral
+    ns_proportion = 2.31 / (2.31 + 1.0)
+    return stdpopsim.DFE(
+        id=id,
+        description=id,
+        long_description=id,
+        mutation_types=[neutral, negative],
+        proportions=[round(1 - ns_proportion, 1), round(ns_proportion, 1)],
+    )
+
+
+_species.get_dfe("Gamma_K17").register_qc(Kim2017())
