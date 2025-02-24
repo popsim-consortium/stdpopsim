@@ -28,7 +28,7 @@ class TestGenomeData(test_species.GenomeTestBase):
 
     genome = stdpopsim.get_species("AnoCar").genome
 
-    rec_rate = 1e-8  # placeholder as we wait for map
+    rec_rate = 1.59e-8  # placeholder as we wait for map
 
     @pytest.mark.parametrize(
         ["name", "rate"],
