@@ -1747,3 +1747,40 @@ def Kim2017():
 
 
 _species.get_dfe("Gamma_K17").register_qc(Kim2017())
+
+
+def ZhenPos():
+    """
+    Huber 2017 Gamma distribution with a proportion of
+    nonsynonymous mutations that are positively selected
+    """
+    id = "Zhen17_pos_gamma_dfe"
+
+    # Huber 2017 gamma distribution
+    neutral = stdpopsim.MutationType()
+    negative = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="g",  # gamma distribution
+        distribution_args=[-0.014 * 2, 0.19],
+    )
+
+    prop_neutral = 0.3
+    selection_coefficient = 0.0001124605
+    prop_beneficial = (1 - prop_neutral) * 1.55e-2
+    prop_deleterious = 1 - (prop_neutral + prop_beneficial)
+    positive = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="f",
+        distribution_args=[selection_coefficient],
+    )
+
+    return stdpopsim.DFE(
+        id=id,
+        description=id,
+        long_description=id,
+        mutation_types=[neutral, negative, positive],
+        proportions=[prop_neutral, prop_deleterious, prop_beneficial],
+    )
+
+
+_species.get_dfe("GammaPos_Z21").register_qc(ZhenPos())
