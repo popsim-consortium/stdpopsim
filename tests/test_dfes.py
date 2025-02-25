@@ -813,7 +813,10 @@ class QcdCatalogDFETestMixin(CatalogDFETestMixin):
         for i in range(len(mt1)):
             assert mt1[i].dominance_coeff == mt2[i].dominance_coeff
             assert mt1[i].distribution_type == mt2[i].distribution_type
-            assert np.allclose(mt1[i].distribution_args, mt2[i].distribution_args)
+            if all(isinstance(x, str) for x in mt1[i].distribution_args):
+                assert mt1[i].distribution_args == mt2[i].distribution_args
+            else:
+                assert np.allclose(mt1[i].distribution_args, mt2[i].distribution_args)
             assert mt1[i].convert_to_substitution == mt2[i].convert_to_substitution
 
     def test_proporitions_match(self):
