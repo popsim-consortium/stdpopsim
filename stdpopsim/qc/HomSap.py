@@ -1784,3 +1784,45 @@ def ZhenPos():
 
 
 _species.get_dfe("GammaPos_Z21").register_qc(ZhenPos())
+
+def genericDFE():
+    """
+    gamma distribution based on Kyriazis et al. 2022
+    w/ discrete dominance coefficients
+    and lethal mutations
+    """
+    id = "generic_gamma_dfe"
+    neutral = stdpopsim.MutationType()
+    gamma_mean = -0.0131
+    gamma_shape = 0.186
+    h_values = [0.45, 0.2, 0.05, 0]
+    h_breaks = [0.001, 0.01, 0.1]
+    negative = stdpopsim.MutationType(
+        dominance_coeff_list=h_values,
+        dominance_coeff_breaks=h_breaks,
+        distribution_type="g",
+        distribution_args=[gamma_mean, gamma_shape],
+    )
+    lethal = stdpopsim.MutationType(
+        distribution_type="f",
+        distribution_args=[-1],
+        dominance_coeff=0,
+    )
+
+    ns_proportion = 2.31 / (2.31 + 1.0)
+    lethal_proportion = 0.003 * ns_proportion
+    ns_proportion = ns_proportion - lethal_proportion
+    return stdpopsim.DFE(
+        id=id,
+        description=id,
+        long_description=id,
+        mutation_types=[neutral, negative, lethal],
+        proportions=[
+            (1 - (ns_proportion + lethal_proportion)),
+            ns_proportion,
+            lethal_proportion,
+        ],
+    )
+
+
+_species.get_dfe("Mixed_K23").register_qc(genericDFE())
