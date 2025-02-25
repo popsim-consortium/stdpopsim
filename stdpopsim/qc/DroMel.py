@@ -159,7 +159,7 @@ def ZhenPos():
     negative = stdpopsim.MutationType(
         dominance_coeff=h,
         distribution_type="g",  # gamma distribution
-        distribution_args=[-2 * gamma_mean, gamma_shape],
+        distribution_args=[round(-2 * gamma_mean, 4), gamma_shape],
     )
     # LNS = 2.85 * LS
     # prop_synonymous = 1/(1+2.85) = 0.26
