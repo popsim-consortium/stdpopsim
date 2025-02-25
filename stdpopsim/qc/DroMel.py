@@ -145,3 +145,40 @@ def Gamma_H17():
 
 
 _species.get_dfe("Gamma_H17").register_qc(Gamma_H17())
+
+
+def ZhenPos():
+    id = "GammaPos_H17"
+    description = "Deleterious Gamma DFE with fixed-s beneficials"
+    # Same model as Huber 2017
+    neutral = stdpopsim.MutationType()
+    gamma_shape = 0.33
+    gamma_scale = 1.2e-3
+    gamma_mean = gamma_shape * gamma_scale
+    h = 0.5  # dominance coefficient
+    negative = stdpopsim.MutationType(
+        dominance_coeff=h,
+        distribution_type="g",  # gamma distribution
+        distribution_args=[-2 * gamma_mean, gamma_shape],
+    )
+    # LNS = 2.85 * LS
+    # prop_synonymous = 1/(1+2.85) = 0.26
+    prop_synonymous = 0.26
+    prop_beneficial = (1 - prop_synonymous) * 6.75e-4
+    selection_coefficient = 1.58e-5
+    prop_deleterious = 1 - (prop_synonymous + prop_beneficial)
+    positive = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="f",
+        distribution_args=[selection_coefficient],
+    )
+    return stdpopsim.DFE(
+        id=id,
+        description=description,
+        long_description=description,
+        mutation_types=[neutral, negative, positive],
+        proportions=[prop_synonymous, prop_deleterious, prop_beneficial],
+    )
+
+
+_species.get_dfe("GammaPos_H17").register_qc(ZhenPos())
