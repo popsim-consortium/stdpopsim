@@ -153,7 +153,7 @@ def ZhenPos():
     # Same model as Huber 2017
     neutral = stdpopsim.MutationType()
     gamma_shape = 0.33
-    gamma_scale = 1.2e-3
+    gamma_scale = 6.01e-4
     gamma_mean = gamma_shape * gamma_scale
     h = 0.5  # dominance coefficient
     negative = stdpopsim.MutationType(
