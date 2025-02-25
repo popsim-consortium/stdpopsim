@@ -1835,12 +1835,18 @@ def HuberLog():
     """
     id = "Huber2017_lognormal_dfe"
     neutral = stdpopsim.MutationType()
-    muval = -7.37 + math.log(2)
+    # mu and sigma values from table s3
+    muvalD = -7.37
     sigmaval = 4.58
+    expectedmean = math.exp(muvalD + (1 / 2) * (sigmaval**2))
+    # converting DaDi to SLiM selection coefficients -
+    targetmean = 2 * expectedmean
+    muvalS = math.log(targetmean) - (1 / 2) * (sigmaval**2)
+
     negative = stdpopsim.MutationType(
         dominance_coeff=0.5,
         distribution_type="ln",  # lognormal distribution
-        distribution_args=[muval, sigmaval],
+        distribution_args=[muvalS, sigmaval],
     )
 
     return stdpopsim.DFE(
