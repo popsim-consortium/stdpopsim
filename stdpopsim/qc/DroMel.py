@@ -167,7 +167,7 @@ def RagsdalePos():
     )
     # lognormal DFE parameters for deleterious mutations,
     # scale by 2Ne
-    muval = -5.42 / Ne / 2
+    muval = 5.42 / Ne / 2
     sigmaval = 3.36 / Ne / 2
     # adjust mu so that mean is 2x former mean
     # (to match DaDi's scaling)
