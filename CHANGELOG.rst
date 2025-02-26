@@ -16,6 +16,10 @@
   in growing/declining populations not matching (by a small amount) what is listed
   in the model; improved discretization scheme (:user:`petrelharp`, :pr:`1622`)
 
+- Incorrect scaling of the DroMel/LognormalPlusPositive_R16 DFE led to negative selection
+  coefficients that were too large (on the order of 1e-3); scaling was fixed for the
+  log scale (:user:`clararehmann`, :pr:`1699`)
+
 **Breaking changes**:
 
 - The 2018 Browning et al HomSap demographic model previously named
