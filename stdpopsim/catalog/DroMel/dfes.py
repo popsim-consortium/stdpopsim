@@ -78,12 +78,13 @@ def _ZhenDFE():
     ]
     neutral = stdpopsim.MutationType()
     gamma_shape = 0.33  # shape
-    gamma_mean = -3.96e-04  # expected value
+    gamma_scale = 6.01e-4
+    gamma_mean = gamma_shape * gamma_scale
     h = 0.5  # dominance coefficient
     negative = stdpopsim.MutationType(
         dominance_coeff=h,
         distribution_type="g",  # gamma distribution
-        distribution_args=[gamma_mean, gamma_shape],
+        distribution_args=[round(-2 * gamma_mean, 7), gamma_shape],
     )
     # p. 2 in supplement says that the total sequence length of synonymous sites LS
     # related to the total sequence length of nonsynonymous sites LNS
