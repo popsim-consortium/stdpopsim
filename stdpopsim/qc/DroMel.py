@@ -165,7 +165,7 @@ def ZhenPos():
     # prop_synonymous = 1/(1+2.85) = 0.26
     prop_synonymous = 0.26
     prop_beneficial = (1 - prop_synonymous) * 6.75e-4
-    selection_coefficient = 1.58e-5
+    selection_coefficient = 10 ** (-4.801)
     prop_deleterious = 1 - (prop_synonymous + prop_beneficial)
     positive = stdpopsim.MutationType(
         dominance_coeff=0.5,
