@@ -17,7 +17,7 @@
   in the model; improved discretization scheme (:user:`petrelharp`, :pr:`1622`)
 
 - Incorrect scaling of the DroMel/LognormalPlusPositive_R16 DFE led to negative selection
-  coefficients that were too large (on the order of 1e-3); scaling was fixed for the
+  coefficients that were too large (many on the order of -1e3); scaling was fixed for the
   log scale (:user:`clararehmann`, :pr:`1699`)
 
 **Breaking changes**:
