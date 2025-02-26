@@ -1,4 +1,5 @@
 import stdpopsim
+import math
 
 _species = stdpopsim.get_species("DroMel")
 
@@ -158,18 +159,18 @@ def _RagsdaleDFE():
     # selection strengths
     S_positive = 39.9
     s_positive = S_positive / 2 / Ne
-    # TODO: these are *not* scale and shape parameters:
-    # the arguments to lognorm are meanlog and sdlog.
-    # Rename these after checking!
-    scale_negative = 5.42 / 2 / Ne
-    shape_negative = 3.36
+    # double for DaDi
+    s_positive = 2 * s_positive
+    meanlog = 5.42 - math.log(2 * Ne)
+    sdlog = 3.36
     h = 0.5
-
+    # double for DaDi, on the log scale
+    meanlog = meanlog + math.log(2)
     synonymous = stdpopsim.MutationType()
     negative = stdpopsim.MutationType(
         dominance_coeff=h,
         distribution_type="ln",  # negative log-normal distribution
-        distribution_args=[scale_negative, shape_negative],
+        distribution_args=[meanlog, sdlog],
     )
     positive = stdpopsim.MutationType(
         dominance_coeff=h,

@@ -160,6 +160,8 @@ def RagsdalePos():
     prop_nonsynonymous = prop_nonsynonymous - prop_beneficial
     # beneficial selection coefficient
     sval_pos = 39.9 / Ne / 2
+    # scale for DaDi
+    sval_pos = 2 * sval_pos
     positive = stdpopsim.MutationType(
         dominance_coeff=0.5,
         distribution_type="f",
@@ -167,8 +169,8 @@ def RagsdalePos():
     )
     # lognormal DFE parameters for deleterious mutations,
     # scale by 2Ne
-    muval = 5.42 / Ne / 2
-    sigmaval = 3.36 / Ne / 2
+    muval = 5.42 - math.log(2 * Ne)
+    sigmaval = 3.36
     # adjust mu so that mean is 2x former mean
     # (to match DaDi's scaling)
     expectedmean = math.exp(muval + (sigmaval**2 / 2))
