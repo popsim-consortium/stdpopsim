@@ -1827,3 +1827,35 @@ def genericDFE():
 
 
 _species.get_dfe("Mixed_K23").register_qc(genericDFE())
+
+
+def HuberLog():
+    """
+    lognormal DFE from Huber et al. 2017 PNAS.
+    """
+    id = "Huber2017_lognormal_dfe"
+    neutral = stdpopsim.MutationType()
+    # mu and sigma values from table s3
+    muvalD = -7.37
+    sigmaval = 4.58
+    expectedmean = math.exp(muvalD + (1 / 2) * (sigmaval**2))
+    # converting DaDi to SLiM selection coefficients -
+    targetmean = 2 * expectedmean
+    muvalS = math.log(targetmean) - (1 / 2) * (sigmaval**2)
+
+    negative = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="ln",  # lognormal distribution
+        distribution_args=[muvalS, sigmaval],
+    )
+
+    return stdpopsim.DFE(
+        id=id,
+        description=id,
+        long_description=id,
+        mutation_types=[neutral, negative],
+        proportions=[0.3, 0.7],
+    )
+
+
+_species.get_dfe("LogNormal_H17").register_qc(HuberLog())
