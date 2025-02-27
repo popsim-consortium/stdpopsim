@@ -91,7 +91,6 @@ def _ZhenDFE():
     # by LNS = 2.85 * LS
     # so this is 1 / (1 + 2.85) = 0.2597402597402597
     prop_synonymous = 0.26
-
     sel_coeff = 10 ** (-4.801)
     prop_beneficials = 6.75e-4
     positive = stdpopsim.MutationType(
@@ -187,5 +186,6 @@ def _RagsdaleDFE():
         proportions=[p_syn, p_negative, p_positive],
         citations=citations,
     )
+
 
 _species.add_dfe(_RagsdaleDFE())
