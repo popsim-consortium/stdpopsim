@@ -188,5 +188,4 @@ def _RagsdaleDFE():
         citations=citations,
     )
 
-
 _species.add_dfe(_RagsdaleDFE())
