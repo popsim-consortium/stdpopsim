@@ -1,5 +1,5 @@
 import msprime
-
+import math
 import stdpopsim
 
 
@@ -182,3 +182,49 @@ def ZhenPos():
 
 
 _species.get_dfe("GammaPos_H17").register_qc(ZhenPos())
+
+
+def RagsdalePos():
+    id = "RagsdalePos"
+    description = "lognormal DFE based on Ragsdale et al. 2021"
+    neutral = stdpopsim.MutationType()
+    # selection coefficients are scaled by 2xeffective population size
+    Ne = 2.8e6
+    # NS = 2.5 * S
+    prop_synonymous = 1 / (1 + 2.5)
+    prop_nonsynonymous = 1 - prop_synonymous
+    prop_beneficial = 0.0079 * prop_nonsynonymous
+    prop_nonsynonymous = prop_nonsynonymous - prop_beneficial
+    # beneficial selection coefficient
+    sval_pos = 39.9 / Ne / 2
+    # scale for DaDi
+    sval_pos = 2 * sval_pos
+    positive = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="f",
+        distribution_args=[sval_pos],
+    )
+    # lognormal DFE parameters for deleterious mutations,
+    # scale by 2Ne
+    muval = 5.42 - math.log(2 * Ne)
+    sigmaval = 3.36
+    # adjust mu so that mean is 2x former mean
+    # (to match DaDi's scaling)
+    expectedmean = math.exp(muval + (sigmaval**2 / 2))
+    targetmean = expectedmean * 2
+    muval = math.log(targetmean) - (sigmaval**2 / 2)
+    negative = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="ln",
+        distribution_args=[muval, sigmaval],
+    )
+    return stdpopsim.DFE(
+        id=id,
+        description=description,
+        long_description=description,
+        mutation_types=[neutral, negative, positive],
+        proportions=[prop_synonymous, prop_nonsynonymous, prop_beneficial],
+    )
+
+
+_species.get_dfe("LognormalPlusPositive_R16").register_qc(RagsdalePos())
