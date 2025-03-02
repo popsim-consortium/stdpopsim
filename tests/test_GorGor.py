@@ -18,51 +18,46 @@ class TestSpeciesData(test_species.SpeciesTestBase):
         assert self.species.common_name == "Gorilla"
 
     # QC Tests. These tests are performed by another contributor
-    # independently referring to the citations provided in the
-    # species definition, filling in the appropriate values
-    # and deleting the pytest "skip" annotations.
-    @pytest.mark.skip("Population size QC not done yet")
     def test_qc_population_size(self):
-        assert self.species.population_size == -1
+        assert self.species.population_size == 25200
 
-    @pytest.mark.skip("Generation time QC not done yet")
     def test_qc_generation_time(self):
-        assert self.species.generation_time == -1
+        assert self.species.generation_time == 19.0
 
 
 class TestGenomeData(test_species.GenomeTestBase):
 
     genome = stdpopsim.get_species("GorGor").genome
+    qc_rec_rate = 1.193e-08  # 0.944 /1000 / 4 / 19,785
 
-    @pytest.mark.skip("Recombination rate QC not done yet")
     @pytest.mark.parametrize(
         ["name", "rate"],
         {
-            "1": -1,
-            "2A": -1,
-            "2B": -1,
-            "3": -1,
-            "4": -1,
-            "5": -1,
-            "6": -1,
-            "7": -1,
-            "8": -1,
-            "9": -1,
-            "10": -1,
-            "11": -1,
-            "12": -1,
-            "13": -1,
-            "14": -1,
-            "15": -1,
-            "16": -1,
-            "17": -1,
-            "18": -1,
-            "19": -1,
-            "20": -1,
-            "21": -1,
-            "22": -1,
-            "X": -1,
-            "MT": -1,
+            "1": qc_rec_rate,
+            "2A": qc_rec_rate,
+            "2B": qc_rec_rate,
+            "3": qc_rec_rate,
+            "4": qc_rec_rate,
+            "5": qc_rec_rate,
+            "6": qc_rec_rate,
+            "7": qc_rec_rate,
+            "8": qc_rec_rate,
+            "9": qc_rec_rate,
+            "10": qc_rec_rate,
+            "11": qc_rec_rate,
+            "12": qc_rec_rate,
+            "13": qc_rec_rate,
+            "14": qc_rec_rate,
+            "15": qc_rec_rate,
+            "16": qc_rec_rate,
+            "17": qc_rec_rate,
+            "18": qc_rec_rate,
+            "19": qc_rec_rate,
+            "20": qc_rec_rate,
+            "21": qc_rec_rate,
+            "22": qc_rec_rate,
+            "X": 0,  # no X rate given in the paper
+            "MT": 0,
         }.items(),
     )
     def test_recombination_rate(self, name, rate):
@@ -70,35 +65,36 @@ class TestGenomeData(test_species.GenomeTestBase):
             self.genome.get_chromosome(name).recombination_rate
         )
 
-    @pytest.mark.skip("Mutation rate QC not done yet")
+    qc_mut_rate = 1.125e-08  # average of two trio estimates (1.03e-8 and 1.22e-8)
+
     @pytest.mark.parametrize(
         ["name", "rate"],
         {
-            "1": -1,
-            "2A": -1,
-            "2B": -1,
-            "3": -1,
-            "4": -1,
-            "5": -1,
-            "6": -1,
-            "7": -1,
-            "8": -1,
-            "9": -1,
-            "10": -1,
-            "11": -1,
-            "12": -1,
-            "13": -1,
-            "14": -1,
-            "15": -1,
-            "16": -1,
-            "17": -1,
-            "18": -1,
-            "19": -1,
-            "20": -1,
-            "21": -1,
-            "22": -1,
-            "X": -1,
-            "MT": -1,
+            "1": qc_mut_rate,
+            "2A": qc_mut_rate,
+            "2B": qc_mut_rate,
+            "3": qc_mut_rate,
+            "4": qc_mut_rate,
+            "5": qc_mut_rate,
+            "6": qc_mut_rate,
+            "7": qc_mut_rate,
+            "8": qc_mut_rate,
+            "9": qc_mut_rate,
+            "10": qc_mut_rate,
+            "11": qc_mut_rate,
+            "12": qc_mut_rate,
+            "13": qc_mut_rate,
+            "14": qc_mut_rate,
+            "15": qc_mut_rate,
+            "16": qc_mut_rate,
+            "17": qc_mut_rate,
+            "18": qc_mut_rate,
+            "19": qc_mut_rate,
+            "20": qc_mut_rate,
+            "21": qc_mut_rate,
+            "22": qc_mut_rate,
+            "X": qc_mut_rate,
+            "MT": qc_mut_rate,
         }.items(),
     )
     def test_mutation_rate(self, name, rate):
