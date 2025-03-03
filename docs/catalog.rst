@@ -95,6 +95,8 @@ Then, if you feel ready, make an issue on our
 
 .. speciescatalog:: PonAbe
 
+.. speciescatalog:: RatNor
+    
 .. speciescatalog:: StrAga
 
 .. speciescatalog:: SusScr
