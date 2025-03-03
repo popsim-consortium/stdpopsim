@@ -56,7 +56,7 @@ class TestGenomeData(test_species.GenomeTestBase):
             "20": qc_rec_rate,
             "21": qc_rec_rate,
             "22": qc_rec_rate,
-            "X": 0,  # no X rate given in the paper
+            "X": qc_rec_rate,
             "MT": 0,
         }.items(),
     )
@@ -65,7 +65,7 @@ class TestGenomeData(test_species.GenomeTestBase):
             self.genome.get_chromosome(name).recombination_rate
         )
 
-    qc_mut_rate = 1.125e-08  # average of two trio estimates (1.03e-8 and 1.22e-8)
+    qc_mut_rate = 1.235e-8  # 0.65e-9 mutations/year times gen. time of 19 years
 
     @pytest.mark.parametrize(
         ["name", "rate"],
