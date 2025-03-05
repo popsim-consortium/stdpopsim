@@ -44,8 +44,8 @@ Time (yrs.),"40,948",Time of Neandertal to Papuan admixture
 Time (yrs.),"25,607",Time of Neandertal to East Asian admixture
 Migration rate (x10^-4),1.79,Ghost--African migration rate
 Migration rate (x10^-4),4.42,Ghost--European migration rate
-Migration rate (x10^-4),31.4,European--East Asian migration rate
-Migration rate (x10^-4),57.2,East Asian--Papuan migration rate
+Migration rate (x10^-5),3.14,European--East Asian migration rate
+Migration rate (x10^-5),5.72,East Asian--Papuan migration rate
 Migration rate (x10^-4),5.72,(European + East Asian)--Papuan migration rate
 Migration rate (x10^-4),4.42,(European + East Asian)--Ghost migration rate
 Time (yrs.),"37,497",(European + East Asian)--Papuan migration begins
