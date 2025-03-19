@@ -1,6 +1,6 @@
----------------------
+--------------------
 [0.3.0] - 2025-03-18
----------------------
+--------------------
 
 Major feature release adding documented, stable support for simulating selection (via SLiM),
 as well as new species and models.
@@ -155,9 +155,9 @@ as well as new species and models.
 - MusMus/Gamma_B21 (:user:`clararehmann`, :pr:`1669`)
 
 
---------------------
+---------------------
 [0.2.1a] - 2024-07-06
---------------------
+---------------------
 
 This was the alpha release for 0.3.0 (before releasing, we decided to change
 the version number to 0.3.0).
