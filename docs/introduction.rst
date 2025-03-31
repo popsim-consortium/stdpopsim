@@ -102,7 +102,7 @@ If you use ``stdpopsim`` in your work, please cite our
     *Accessible, realistic genome simulation with selection using stdpopsim*,
     bioRxiv 2025.03.23.644823; doi: https://doi.org/10.1101/2025.03.23.644823
 
-Bibtex entries for these manuscripts are:
+Bibtex entries for these manuscripts are::
 
     @article{adrion2020community,
         article_type = {journal},
