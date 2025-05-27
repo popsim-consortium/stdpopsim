@@ -62,7 +62,8 @@ def _pop1_almond():
         description="Prunus_dulcis_population",
         long_description="""
             This model comes from MSMC using five
-            individuals (PD03, PD04, PD05, PD06, and PD07) from Turkey, Iran, Pakistan and Italy.
+            individuals (PD03, PD04, PD05, PD06, and PD07) from Turkey,
+              Iran, Pakistan and Italy.
             The model is estimated with 14 time periods.
             depiction of the model can be found in Figure S8a of the paper.
         """,

@@ -50,8 +50,11 @@ _CastaneraEtAl = stdpopsim.Citation(
 )
 _MasGomezEtAl = (
     stdpopsim.Citation(
-        doi="",  # doi is pending: Integration of Linkage Mapping, QTL Analysis, RNA-Seq Data,
-        # and Genome-Wide Association Studies (GWAS) to Explore Relative Flowering Traits in Almond (Prunus dulcis Mill. D.A. Webb)
+        doi="",  # doi is pending: Integration of Linkage Mapping, QTL Analysis,
+         # RNA-Seq Data,
+        # and Genome-Wide Association Studies (GWAS)
+        #  to Explore Relative Flowering Traits
+        #  in Almond (Prunus dulcis Mill. D.A. Webb)
         # Accepted 04/23/2025 Horticultural Plant Journal
         year=2025,
         author="Mas-Gomez et al.",
