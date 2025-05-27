@@ -3,7 +3,7 @@ data = {
     "assembly_accession": "GSE254853",
     "assembly_name": "Texas v.3.0",
     "chromosomes": {
-        "1": {"length":50452767 , "synonyms": []},
+        "1": {"length": 50452767, "synonyms": []},
         "2": {"length": 30972344, "synonyms": []},
         "3": {"length": 30498384, "synonyms": []},
         "4": {"length": 28068711, "synonyms": []},
@@ -12,8 +12,8 @@ data = {
         "7": {"length": 24859559, "synonyms": []},
         "8": {"length": 27108964, "synonyms": []},
         "MT": {"length": 444092, "synonyms": []},
-        "Pt": {"length": 157783, "synonyms": []}
+        "Pt": {"length": 157783, "synonyms": []},
     },
-        "assembly_source": "manual",
+    "assembly_source": "manual",
     "assembly_build_version": None,
 }

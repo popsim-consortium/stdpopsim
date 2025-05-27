@@ -3,14 +3,18 @@ import stdpopsim
 from . import genome_data
 
 # These are in MasGomezEtAl
-_recombination_rate = {"1": 1.97036e-8, "2": 1.51361e-8, "3": 1.886e-8,
-                       "4": 2.22347e-8,
-                        "5":2.54212e-8,
-                         "6": 1.9829e-8,
-                          "7": 2.61388e-8,
-                           "8": 2.11591e-8,
-                           "MT": 0,
-                           "Pt": 0}
+_recombination_rate = {
+    "1": 1.97036e-8,
+    "2": 1.51361e-8,
+    "3": 1.886e-8,
+    "4": 2.22347e-8,
+    "5": 2.54212e-8,
+    "6": 1.9829e-8,
+    "7": 2.61388e-8,
+    "8": 2.11591e-8,
+    "MT": 0,
+    "Pt": 0,
+}
 
 # Generic and chromosome-specific ploidy
 _species_ploidy = 2
@@ -24,7 +28,7 @@ _ploidy = {
     "7": _species_ploidy,
     "8": _species_ploidy,
     "MT": 1,
-    "Pt":1
+    "Pt": 1,
 }
 
 
@@ -42,34 +46,29 @@ _CastaneraEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1093/hr/uhae106",
     year=2024,
     author="Castanera et al.",
-    reasons={
-        stdpopsim.CiteReason.ASSEMBLY
-    },
+    reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
-_MasGomezEtAl = stdpopsim.Citation(
-    doi="", #doi is pending: Integration of Linkage Mapping, QTL Analysis, RNA-Seq Data,
-     # and Genome-Wide Association Studies (GWAS) to Explore Relative Flowering Traits in Almond (Prunus dulcis Mill. D.A. Webb)
-     # Accepted 04/23/2025 Horticultural Plant Journal
-    year=2025,
-    author="Mas-Gomez et al.",
-    reasons={
-        stdpopsim.CiteReason.REC_RATE
-    }),
+_MasGomezEtAl = (
+    stdpopsim.Citation(
+        doi="",  # doi is pending: Integration of Linkage Mapping, QTL Analysis, RNA-Seq Data,
+        # and Genome-Wide Association Studies (GWAS) to Explore Relative Flowering Traits in Almond (Prunus dulcis Mill. D.A. Webb)
+        # Accepted 04/23/2025 Horticultural Plant Journal
+        year=2025,
+        author="Mas-Gomez et al.",
+        reasons={stdpopsim.CiteReason.REC_RATE},
+    ),
+)
 _DAmico_WillmanEtal = stdpopsim.Citation(
     doi="https://doi.org/10.1093/g3journal/jkac065",
     year=2022,
     author="D'Amico-Willman et al.",
-    reasons={
-        stdpopsim.CiteReason.ASSEMBLY #mitochondrial
-    },
+    reasons={stdpopsim.CiteReason.ASSEMBLY},  # mitochondrial
 )
 _WangEtal = stdpopsim.Citation(
     doi="https://doi.org/10.1038/s41598-020-67264-3",
     year=2020,
     author="Wang et al.",
-    reasons={
-        stdpopsim.CiteReason.ASSEMBLY #chloroplast
-    },
+    reasons={stdpopsim.CiteReason.ASSEMBLY},  # chloroplast
 )
 
 
@@ -84,9 +83,8 @@ _mutation_rate = {
     "7": _overall_rate,
     "8": _overall_rate,
     "MT": _overall_rate,
-    "Pt":_overall_rate
+    "Pt": _overall_rate,
 }
-
 
 
 _genome = stdpopsim.Genome.from_data(
@@ -94,9 +92,7 @@ _genome = stdpopsim.Genome.from_data(
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
     ploidy=_ploidy,
-    citations=[
-_VelascoEtAl, _CastaneraEtAl
-    ],
+    citations=[_VelascoEtAl, _CastaneraEtAl],
 )
 stdpopsim.utils.append_common_synonyms(_genome)
 
@@ -110,7 +106,12 @@ _species = stdpopsim.Species(
     ploidy=_species_ploidy,
     # the estimated population size from the plot of Velasco et al. 2016
     population_size=200,
-    citations=[_VelascoEtAl, _CastaneraEtAl,_DAmico_WillmanEtal, _WangEtal], #_MasGomezEtAl,
+    citations=[
+        _VelascoEtAl,
+        _CastaneraEtAl,
+        _DAmico_WillmanEtal,
+        _WangEtal,
+    ],  # _MasGomezEtAl,
 )
 
 stdpopsim.register_species(_species)
