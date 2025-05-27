@@ -12,7 +12,6 @@ data = {
         "7": {"length": 24859559, "synonyms": []},
         "8": {"length": 27108964, "synonyms": []},
         "MT": {"length": 444092, "synonyms": []},
-        "Pt": {"length": 157783, "synonyms": []},
-        "Test": {"length": 10000, "synonyms": []}
+        "Pt": {"length": 157783, "synonyms": []}
     },
 }
