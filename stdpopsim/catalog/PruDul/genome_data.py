@@ -14,4 +14,6 @@ data = {
         "MT": {"length": 444092, "synonyms": []},
         "Pt": {"length": 157783, "synonyms": []}
     },
+        "assembly_source": "manual",
+    "assembly_build_version": None,
 }
