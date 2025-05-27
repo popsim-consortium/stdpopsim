@@ -1,6 +1,7 @@
 """
 Test cases for the command line interfaces to stdpopsim
 """
+
 import tempfile
 import pathlib
 import subprocess
@@ -214,35 +215,35 @@ class TestEndToEnd:
         assert ts.num_samples == num_samples
 
     def test_homsap_seed(self):
-        cmd = "HomSap -c chr20 -l0.1 -s 1234 pop_0:10"
+        cmd = "HomSap -c chr20 --right 6444417 -s 1234 pop_0:10"
         self.verify(cmd, num_samples=20, seed=1234)
 
     def test_homsap_constant(self):
-        cmd = "HomSap -c chr20 -l0.1 pop_0:5"
+        cmd = "HomSap -c chr20 --right 6444417 pop_0:5"
         self.verify(cmd, num_samples=10)
 
     def test_tennessen_two_pop_ooa(self):
-        cmd = "HomSap -c chr20 -l0.1 -d OutOfAfrica_2T12 AFR:2 EUR:3"
+        cmd = "HomSap -c chr20 --right 6444417 -d OutOfAfrica_2T12 AFR:2 EUR:3"
         self.verify(cmd, num_samples=10)
 
     def test_gutenkunst_three_pop_ooa(self):
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 YRI:5"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 YRI:5"
         self.verify(cmd, num_samples=10)
 
     def test_browning_america(self):
-        cmd = "HomSap -c chr1 -l0.01 -d AmericanAdmixture_4B11 AFR:5"
+        cmd = "HomSap -c chr1 --right 2489564 -d AmericanAdmixture_4B18 AFR:5"
         self.verify(cmd, num_samples=10)
 
     def test_ragsdale_archaic(self):
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfricaArchaicAdmixture_5R19 YRI:5"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfricaArchaicAdmixture_5R19 YRI:5"
         self.verify(cmd, num_samples=10)
 
     def test_dromel_constant(self):
-        cmd = "DroMel -c 2L -l0.001 pop_0:2"
+        cmd = "DroMel -c 2L --right 23514 pop_0:2"
         self.verify(cmd, num_samples=4)
 
     def test_li_stephan_two_population(self):
-        cmd = "DroMel -c 2L -l0.001 -d OutOfAfrica_2L06 AFR:3"
+        cmd = "DroMel -c 2L --right 23514 -d OutOfAfrica_2L06 AFR:3"
         self.verify(cmd, num_samples=6)
 
     def test_aratha_constant(self):
@@ -351,11 +352,11 @@ class TestRedirection:
             self.verify_files(filename1, filename2)
 
     def test_quiet(self):
-        cmd = "-q HomSap pop_0:5 -s 2 -c chr20 -l 0.001"
+        cmd = "-q HomSap pop_0:5 -s 2 -c chr20 --right 64444"
         self.verify(cmd)
 
     def test_no_quiet(self):
-        cmd = "HomSap pop_0:5 -s 3 -c chr20 -l 0.001"
+        cmd = "HomSap pop_0:5 -s 3 -c chr20 --right 64444"
         self.verify(cmd)
 
 
@@ -541,14 +542,14 @@ class TestErrors:
         self.verify_bad_samples("HomSap -d OutOfAfrica_3G09 2 3 4 5")
 
     def test_browning_america(self):
-        self.verify_bad_samples("HomSap -d AmericanAdmixture_4B11 2 3 4 5 6")
+        self.verify_bad_samples("HomSap -d AmericanAdmixture_4B18 2 3 4 5 6")
 
     IS_WINDOWS = sys.platform.startswith("win")
 
     @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
     def test_browning_america_dfe(self):
         self.verify_bad_samples(
-            "HomSap -d AmericanAdmixture_4B11 --dfe Gamma_K17 2 3 4 5 6"
+            "HomSap -d AmericanAdmixture_4B18 --dfe Gamma_K17 2 3 4 5 6"
         )
 
 
@@ -615,7 +616,7 @@ class TestWriteBibtex:
             filename = pathlib.Path(tmpdir) / "output.trees"
             bibfile = pathlib.Path(tmpdir) / "bib.bib"
             full_cmd = (
-                f"HomSap -c chr20 -l0.1 YRI:10 "
+                f"HomSap -c chr20 --right 6444417 YRI:10 "
                 f"-o {filename} -d OutOfAfrica_3G09 --seed={seed} "
                 f"--bibtex={bibfile}"
             )
@@ -638,7 +639,10 @@ class TestWriteBibtex:
         engine = stdpopsim.get_default_engine()
         dfe = species.get_dfe("Gamma_K17")
         local_cites = stdpopsim.Citation.merge(
-            [stdpopsim.citations._stdpopsim_citation]
+            [
+                stdpopsim.citations._stdpopsim_citation,
+                stdpopsim.citations._catalog_citation,
+            ]
             + genetic_map.citations
             + model.citations
             + engine.citations
@@ -674,6 +678,20 @@ class TestWriteCitations:
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("22")
         model = species.get_demographic_model("OutOfAfrica_3G09")
+        engine = stdpopsim.get_default_engine()
+        dfe = None
+        stdout, stderr = capture_output(
+            cli.write_citations, engine, model, contig, species, dfe
+        )
+        assert len(stdout) == 0
+        genetic_map = None
+        self.check_citations(engine, species, genetic_map, model, caplog.text)
+
+        species = stdpopsim.get_species("BosTau")
+        contig = species.get_contig("25")
+        model = species.get_demographic_model("HolsteinFriesian_1M13")
+        # this model has recombination rate, which should knock out the default
+        # recombination rate and associated citation
         engine = stdpopsim.get_default_engine()
         dfe = None
         stdout, stderr = capture_output(
@@ -954,6 +972,27 @@ class TestNonAutosomal:
                 capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
 
+class TestRecombinationRate:
+    @pytest.mark.usefixtures("caplog")
+    def test_recomb_rate(self, caplog):
+        sp = stdpopsim.get_species("BosTau")
+        mod = sp.get_demographic_model("HolsteinFriesian_1M13")
+        cmd = (
+            "BosTau -D -c 1 -o /dev/null -d HolsteinFriesian_1M13 Holstein_Friesian:10"
+        )
+        with mock.patch("stdpopsim.cli.setup_logging", autospec=True):
+            out, err = capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
+            assert len(out) == 0
+            assert len(err) == 0
+            log_output = caplog.text
+            for ll in log_output.split("\n"):
+                if "recombination" in ll:
+                    assert (
+                        ll.split()
+                        == f"Mean recombination rate: {mod.recombination_rate}".split()
+                    )
+
+
 class TestNoQCWarning:
     species = stdpopsim.get_species("EscCol")
     model = stdpopsim.DemographicModel(
@@ -998,11 +1037,14 @@ class TestNoQCWarning:
         # shouldn't be offered to the user.
         out, err = capture_output(stdpopsim.cli.stdpopsim_main, cmd.split())
         log_output = caplog.text
+        # citations are written out via the logging mechanism
+        assert len(out) == 0
+        assert len(err) == 0
         for citation in self.model.citations:
-            assert not (citation.author in out)
-            assert not (citation.doi in out)
-            assert not (citation.author in err)
-            assert not (citation.doi in err)
+            assert not (citation.author in log_output)
+            assert not (citation.doi in log_output)
+            assert not (citation.author in log_output)
+            assert not (citation.doi in log_output)
             assert not (citation.author in log_output)
             assert not (citation.doi in log_output)
 
@@ -1058,27 +1100,27 @@ class TestSampleCountParser:
 
     @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_deprecated_positional_samples(self):
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 5"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 5"
         self.verify(cmd, num_samples=[5, 0, 0])
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 5 10"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 5 10"
         self.verify(cmd, num_samples=[5, 10, 0])
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 5 0 10"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 5 0 10"
         self.verify(cmd, num_samples=[5, 0, 10])
 
     def test_population_sample_pairs(self):
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 YRI:5"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 YRI:5"
         self.verify(cmd, num_samples=[10, 0, 0])
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 CHB:5 YRI:10"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 CHB:5 YRI:10"
         self.verify(cmd, num_samples=[20, 0, 10])
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 CHB:5 YRI:10 CEU:0"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 CHB:5 YRI:10 CEU:0"
         self.verify(cmd, num_samples=[20, 0, 10])
 
     def test_bad_sample_specification(self):
         for cmd in [
-            "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 5 bad",
-            "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 5 CEU:5",
-            "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 YRI:5 very:bad",
-            "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 YRI=5",
+            "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 5 bad",
+            "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 5 CEU:5",
+            "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 YRI:5 very:bad",
+            "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 YRI=5",
         ]:
             with pytest.raises(
                 ValueError, match="Sample specification must be in the form"
@@ -1086,6 +1128,6 @@ class TestSampleCountParser:
                 self.verify(cmd, num_samples=[5, 0, 0])
 
     def test_duplicate_sample_specification(self):
-        cmd = "HomSap -c chr1 -l0.01 -d OutOfAfrica_3G09 YRI:5 YRI:5"
+        cmd = "HomSap -c chr1 --right 2489564 -d OutOfAfrica_3G09 YRI:5 YRI:5"
         with pytest.raises(ValueError, match="specified more than once"):
             self.verify(cmd, num_samples=[20, 0, 0])

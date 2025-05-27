@@ -1,6 +1,7 @@
 """
 Tests for simulation dfe infrastructure
 """
+
 import sys
 import pytest
 import stdpopsim
@@ -82,7 +83,7 @@ class TestCreateMutationType:
                 convert_to_substitution=1,
             )
 
-        for dc in [np.inf, np.nan, np.NINF]:
+        for dc in [np.inf, np.nan, -np.inf]:
             with pytest.raises(
                 ValueError, match=f"Invalid dominance coefficient {dc}."
             ):
@@ -716,8 +717,9 @@ class TestRegisterQCDFE:
 
     def test_register_qc(self):
         dfe = self.make_dfe("test")
-        dfe.register_qc(dfe)
-        assert dfe.qc_dfe == dfe
+        dfe_two = self.make_dfe("test")
+        dfe.register_qc(dfe_two)
+        assert dfe.qc_dfe == dfe_two
 
     def test_already_registered(self):
         dfe = self.make_dfe("test")
@@ -811,7 +813,10 @@ class QcdCatalogDFETestMixin(CatalogDFETestMixin):
         for i in range(len(mt1)):
             assert mt1[i].dominance_coeff == mt2[i].dominance_coeff
             assert mt1[i].distribution_type == mt2[i].distribution_type
-            assert np.allclose(mt1[i].distribution_args, mt2[i].distribution_args)
+            if all(isinstance(x, str) for x in mt1[i].distribution_args):
+                assert mt1[i].distribution_args == mt2[i].distribution_args
+            else:
+                assert np.allclose(mt1[i].distribution_args, mt2[i].distribution_args)
             assert mt1[i].convert_to_substitution == mt2[i].convert_to_substitution
 
     def test_proporitions_match(self):

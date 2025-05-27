@@ -29,4 +29,6 @@ data = {
         "X": {"length": 155549662, "synonyms": ["chrX"]},
         "Y": {"length": 26350515, "synonyms": ["chrY"]},
     },
+    "assembly_source": "ensembl",
+    "assembly_build_version": "103",
 }

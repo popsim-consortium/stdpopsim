@@ -2,7 +2,9 @@
 Infrastructure for defining basic information about species and
 organising the species catalog.
 """
+
 import logging
+import warnings
 
 import attr
 
@@ -170,9 +172,10 @@ class Species:
         self,
         chromosome=None,
         genetic_map=None,
-        length_multiplier=1,
+        length_multiplier=None,
         length=None,
         mutation_rate=None,
+        recombination_rate=None,
         use_species_gene_conversion=False,
         inclusion_mask=None,
         exclusion_mask=None,
@@ -205,13 +208,16 @@ class Species:
             using a default uniform recombination rate on a region with the length of
             the specified chromosome. The default rates are species- and chromosome-
             specific, and can be found in the :ref:`sec_catalog`. (Default: None)
-        :param float length_multiplier: If specified, simulate a region of length
-            `length_multiplier` times the length of the specified chromosome with the
-            same chromosome-specific mutation and recombination rates.
-            This option cannot currently be used in conjunction with the
-            ``genetic_map`` argument.
+        :param float length_multiplier: Deprecated, use `left` and `right`
+            instead. If specified, simulate a region of length `length_multiplier`
+            times the length of the specified chromosome with the same
+            chromosome-specific mutation and recombination rates.  This option
+            cannot be used in conjunction with the ``genetic_map`` argument.
         :param float mutation_rate: The per-base mutation rate. If none is given,
             the mutation rate defaults to the rate specified by species chromosomes.
+        :param float recombination_rate: The per-base recombination rate. If none is
+            given, the recombination rate defaults to the rate specified by species
+            chromosomes. Ignored when ``genetic_map`` argument is specified.
         :param bool use_species_gene_conversion: If set to True the parameters for gene
             conversion of the species chromosome are used if available. For "generic"
             contigs the gene conversion fraction and length are given by the mean
@@ -244,12 +250,24 @@ class Species:
             length_multiplier=length_multiplier,
             length=length,
             mutation_rate=mutation_rate,
+            recombination_rate=recombination_rate,
             use_species_gene_conversion=use_species_gene_conversion,
             inclusion_mask=inclusion_mask,
             exclusion_mask=exclusion_mask,
             left=left,
             right=right,
         )
+
+    def _warn_browning(self, model_id):
+        if model_id == "AmericanAdmixture_4B11":
+            warnings.warn(
+                "In stdpopsim <= 0.2.1, the AmericanAdmixture_4B18 model "
+                "was named AmericanAdmixture_4B11; but since it comes "
+                "from a 2018 paper, this is corrected. The model name "
+                "AmericanAdmixture_4B11 will work for now but is deprecated."
+            )
+            model_id = "AmericanAdmixture_4B18"
+        return model_id
 
     def get_demographic_model(self, id):
         """
@@ -262,6 +280,8 @@ class Species:
         :rtype: :class:`DemographicModel`
         :return: A :class:`DemographicModel` that defines the requested model.
         """
+        # TODO: remove this after a release or two. See #841.
+        id = self._warn_browning(id)
         for model in self.demographic_models:
             if model.id == id:
                 return model
@@ -285,7 +305,7 @@ class Species:
 
         :param str id: The string identifier for the DFE.
             A complete list of IDs for each species can be found in the
-            # TODO add that section to the species catalogo
+            # TODO add that section to the species catalog
             "DFE" subsection for the species in the
             :ref:`sec_catalog`.
         :rtype: :class:`DFE`
@@ -321,8 +341,7 @@ class Species:
         #     A complete list of IDs for each species can be found in the
         #     "Genetic Maps" subsection for the species in the :ref:`sec_catalog`.
         # :rtype: :class:`GeneticMap`
-        # :return: A :class:`GeneticMap` that defines the frequency of
-        #     recombinations across the genome.
+        # :return: A :class:`GeneticMap` with recombination rate across the genome.
         for gm in self.genetic_maps:
             if gm.id == id:
                 return gm

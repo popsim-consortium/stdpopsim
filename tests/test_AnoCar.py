@@ -28,7 +28,7 @@ class TestGenomeData(test_species.GenomeTestBase):
 
     genome = stdpopsim.get_species("AnoCar").genome
 
-    rec_rate = 1e-8  # placeholder as we wait for map
+    rec_rate = 1.59e-8  # placeholder as we wait for map
 
     @pytest.mark.parametrize(
         ["name", "rate"],
@@ -84,3 +84,9 @@ class TestGenomeData(test_species.GenomeTestBase):
             assert chrom.ploidy == 1
         else:
             assert chrom.ploidy == 2
+
+    def test_assembly_source(self):
+        assert self.genome.assembly_source == "ensembl"
+
+    def test_assembly_build_version(self):
+        assert self.genome.assembly_build_version is not None

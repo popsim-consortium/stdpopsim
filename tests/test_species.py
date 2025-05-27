@@ -1,6 +1,7 @@
 """
 Tests for the generic species interface.
 """
+
 import math
 import numpy as np
 
@@ -181,7 +182,7 @@ class SpeciesTestBase:
         for chrom in self.species.genome.chromosomes:
             contig = self.species.get_contig(chrom.id)
             assert contig.ploidy is not None
-        contig = self.species.get_contig(length=1000)
+        contig = self.species.get_contig(length=200000)
         assert contig.ploidy == self.species.ploidy
 
 
@@ -264,6 +265,7 @@ class TestGetContig:
 
     species = stdpopsim.get_species("HomSap")
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_length_multiplier(self):
         contig1 = self.species.get_contig("chr22")
         for x in [0.125, 1.0, 2.0]:
@@ -273,18 +275,21 @@ class TestGetContig:
                 == contig2.recombination_map.position[-1]
             )
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_length_multiplier_on_empirical_map(self):
         with pytest.raises(ValueError):
             self.species.get_contig(
                 "chr1", genetic_map="HapMapII_GRCh37", length_multiplier=2
             )
 
-    @pytest.mark.filterwarnings("ignore:Recombination map has length:UserWarning")
+    @pytest.mark.filterwarnings("ignore: Genetic map.*is longer than chromosome length")
     def test_genetic_map(self):
         # TODO we should use a different map here so we're not hitting the cache.
         contig = self.species.get_contig("chr22", genetic_map="HapMapII_GRCh37")
+        assert isinstance(contig.genetic_map, stdpopsim.GeneticMap)
         assert isinstance(contig.recombination_map, msprime.RateMap)
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_contig_options(self):
         with pytest.raises(ValueError, match="Cannot use genetic map"):
             # cannot use genetic map with generic contig
@@ -356,18 +361,22 @@ class TestGetContig:
             )
             gcs = np.array(
                 [
-                    c.gene_conversion_fraction
-                    if c.gene_conversion_fraction is not None
-                    else 0
+                    (
+                        c.gene_conversion_fraction
+                        if c.gene_conversion_fraction is not None
+                        else 0
+                    )
                     for c in self.species.genome.chromosomes
                     if c.id in chrom_ids
                 ]
             )
             gcls = np.array(
                 [
-                    c.gene_conversion_length
-                    if c.gene_conversion_length is not None
-                    else 0
+                    (
+                        c.gene_conversion_length
+                        if c.gene_conversion_length is not None
+                        else 0
+                    )
                     for c in self.species.genome.chromosomes
                     if c.id in chrom_ids
                 ]

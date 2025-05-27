@@ -65,9 +65,9 @@ Citations
 ---------
 
 If you use ``stdpopsim`` in your work, please cite our
-`original manuscript <https://doi.org/10.7554/eLife.54967>`__ and/or the
-`followup manuscript <https://doi.org/10.1101/2022.10.29.514266>`__ describing
-major additions to the catalog:
+`original manuscript <https://doi.org/10.7554/eLife.54967>`__,
+`adding-species manuscript <https://doi.org/10.1101/2022.10.29.514266>`__, and/or
+`selection manuscript <https://doi.org/10.1101/2025.03.23.644823>`__:
 
   - Jeffrey R Adrion, Christopher B Cole, Noah Dukler, Jared G Galloway,
     Ariella L Gladstein, Graham Gower, Christopher C Kyriazis, Aaron P Ragsdale,
@@ -79,22 +79,32 @@ major additions to the catalog:
     *A community-maintained standard library of population genetic models*,
     eLife 9:e54967; doi: https://doi.org/10.7554/eLife.54967
 
-  - M. Elise Lauterbur, Maria Izabel A. Cavassim, Ariella L. Gladstein, Graham Gower,
-    Nathaniel S. Pope, Georgia Tsambos, Jeff Adrion, Saurabh Belsare, Arjun Biddanda,
-    Victoria Caudill, Jean Cury, Ignacio Echevarria, Benjamin C. Haller, Ahmed R. Hasan,
+  - M Elise Lauterbur, Maria Izabel A Cavassim, Ariella L Gladstein, Graham Gower,
+    Nathaniel S Pope, Georgia Tsambos, Jeff Adrion, Saurabh Belsare, Arjun Biddanda,
+    Victoria Caudill, Jean Cury, Ignacio Echevarria, Benjamin C Haller, Ahmed R Hasan,
     Xin Huang, Leonardo Nicola Martin Iasi, Ekaterina Noskova, Jana Obšteter,
-    Vitor Antonio Corrêa Pavinato, Alice Pearson, David Peede, Manolo F. Perez,
-    Murillo F. Rodrigues, Chris C. R. Smith, Jeffrey P. Spence, Anastasia Teterina,
-    Silas Tittes, Per Unneberg, Juan Manuel Vazquez, Ryan K. Waples, Anthony Wilder Wohns,
-    Yan Wong, Franz Baumdicker, Reed A. Cartwright, Gregor Gorjanc, Ryan N. Gutenkunst,
-    Jerome Kelleher, Andrew D. Kern, Aaron P. Ragsdale, Peter L. Ralph, Daniel R. Schrider,
+    Vitor Antonio Corrêa Pavinato, Alice Pearson, David Peede, Manolo F Perez,
+    Murillo F Rodrigues, Chris C R Smith, Jeffrey P Spence, Anastasia Teterina,
+    Silas Tittes, Per Unneberg, Juan Manuel Vazquez, Ryan K Waples, Anthony Wilder Wohns,
+    Yan Wong, Franz Baumdicker, Reed A Cartwright, Gregor Gorjanc, Ryan N Gutenkunst,
+    Jerome Kelleher, Andrew D Kern, Aaron P Ragsdale, Peter L Ralph, Daniel R Schrider,
     Ilan Gronau (2023)
     *Expanding the stdpopsim species catalog, and lessons learned for realistic genome simulations*,
-    eLife 12:RP84874; doi: https://doi.org/10.7554/eLife.84874.2
+    eLife 12:RP84874; doi: https://doi.org/10.7554/eLife.84874
 
-Bibtex records::
+  - Graham Gower, Nathaniel S Pope, Murillo F Rodrigues, Silas Tittes, Linh N Tran,
+    Ornob Alam, Maria Izabel A Cavassim, Peter D Fields, Benjamin C Haller, Xin Huang,
+    Ben Jeffrey, Kevin Korfmann, Christopher C Kyriazis, Jiseon Min, Inés Rebollo,
+    Clara T Rehmann, Scott T Small, Chris C R Smith, Georgia Tsambos, Yan Wong,
+    Yu Zhang, Christian D Huber, Gregor Gorjanc, Aaron P Ragsdale, Ilan Gronau,
+    Ryan N Gutenkunst, Jerome Kelleher, Kirk E Lohmueller, Daniel R Schrider,
+    Peter L Ralph, Andrew D Kern
+    *Accessible, realistic genome simulation with selection using stdpopsim*,
+    bioRxiv 2025.03.23.644823; doi: https://doi.org/10.1101/2025.03.23.644823
 
-    @article {10.7554/eLife.54967,
+Bibtex entries for these manuscripts are::
+
+    @article{adrion2020community,
         article_type = {journal},
         title = {A community-maintained standard library of population genetic models},
         author = {Adrion, Jeffrey R and Cole, Christopher B and Dukler, Noah and Galloway, Jared
@@ -121,26 +131,43 @@ Bibtex records::
         publisher = {eLife Sciences Publications, Ltd},
     }
 
-    @article{10.7554/eLife.84874.2,
+    @article{lauterbur2023expanding,
         title={Expanding the stdpopsim species catalog, and lessons learned for realistic genome simulations},
-	author = {M. Elise Lauterbur and Maria Izabel A. Cavassim and Ariella L. Gladstein and Graham Gower and
-           Nathaniel S. Pope and Georgia Tsambos and Jeff Adrion and Saurabh Belsare and Arjun Biddanda and
-           Victoria Caudill and Jean Cury and Ignacio Echevarria and Benjamin C. Haller and Ahmed R. Hasan and
-           Xin Huang and Leonardo Nicola Martin Iasi and Ekaterina Noskova and Jana Ob{\v{s}}teter and
-           Vitor Antonio Corr{\^{e}}a Pavinato and Alice Pearson and David Peede and Manolo F. Perez and
-           Murillo F. Rodrigues and Chris C. R. Smith and Jeffrey P. Spence and Anastasia Teterina and
-           Silas Tittes and Per Unneberg and Juan Manuel Vazquez and Ryan K. Waples and Anthony Wilder Wohns and
-           Yan Wong and Franz Baumdicker and Reed A. Cartwright and Gregor Gorjanc and Ryan N. Gutenkunst and
-           Jerome Kelleher and Andrew D. Kern and Aaron P. Ragsdale and Peter L. Ralph and Daniel R. Schrider and
-           Ilan Gronau},
-	doi = {10.7554/elife.84874.2},
-	url = {https://doi.org/10.7554/elife.84874.2},
-	journal = {eLife},
-	volume={12},
-	pages={RP84874},
-	year = 2023,
-	month = {may},
-	publisher = {{eLife} Sciences Publications, Ltd},
+        author = {Lauterbur, M Elise and Cavassim, Maria Izabel A and Gladstein, Ariella L and Gower, Graham and
+           Pope, Nathaniel S and Tsambos, Georgia and Adrion, Jeffrey R and Belsare, Saurabh and Biddanda, Arjun and
+           Caudill, Victoria and Cury, Jean and Echevarria, Ignacio and Haller, Benjamin C and Hasan, Ahmed R and
+           Huang, Xin and Iasi,  Leonardo Nicola Martin and Noskova, Ekaterina and Ob{\v{s}}teter, Jana and
+           Pavinato, Vitor Antonio Corr{\^{e}}a and Pearson, Alice and Peede, David and Perez, Manolo F and
+           Rodrigues, Murillo F and Smith, Chris C R and Spence, Jeffrey P and Teterina, Anastasia and
+           Tittes, Silas and Unneberg, Per and Vazquez, Juan Manuel and Waples, Ryan K and Wohns, Anthony Wilder and
+           Wong, Yan and Baumdicker, Franz and Cartwright, Reed A and Gorjanc, Gregor and Gutenkunst, Ryan N and
+           Kelleher, Jerome and Kern, Andrew D and Ragsdale, Aaron P and Ralph, Peter L and Schrider, Daniel R and
+           Gronau, Ilan},
+        doi = {10.7554/elife.84874},
+        url = {https://doi.org/10.7554/elife.84874},
+        journal = {eLife},
+        volume={12},
+        pages={RP84874},
+        year = 2023,
+        month = {may},
+        publisher = {{eLife} Sciences Publications, Ltd},
+    }
+
+    @article{gower2025accessible,
+        title = {Accessible, realistic genome simulation with selection using stdpopsim},
+        author = {Gower, Graham and Pope, Nathaniel S and Rodrigues, Murillo F and Tittes, Silas and
+            Tran, Linh N and Alam, Ornob and Cavassim, Maria Izabel A and Fields, Peter D and
+            Haller, Benjamin C and Huang, Xin and Jeffrey, Ben and Korfmann, Kevin and
+            Kyriazis, Christopher C and Min, Jiseon and Rebollo, In{\'e}s and Rehmann, Clara T and
+            Small, Scott T and Smith, Chris C R and Tsambos, Georgia and Wong, Yan and Zhang, Yu and
+            Huber, Christian D and Gorjanc, Gregor and Ragsdale, Aaron P and Gronau, Ilan and
+            Gutenkunst, Ryan N and Kelleher, Jerome and Lohmueller, Kirk E and Schrider, Daniel R and
+            Ralph, Peter L and Kern, Andrew D},
+        year = {2025},
+        doi = {10.1101/2025.03.23.644823},
+        publisher = {Cold Spring Harbor Laboratory},
+        URL = {https://www.biorxiv.org/content/early/2025/03/23/2025.03.23.644823},
+        journal = {bioRxiv}
     }
 
 

@@ -208,7 +208,7 @@ _species.get_demographic_model("OutOfAfrica_2T12").register_qc(
 
 
 def BrowningAmerica():
-    id = "QC-AmericanAdmixture_4B11"
+    id = "QC-AmericanAdmixture_4B18"
     populations = [population_sample_0] * 4
 
     # Parameters are taken from the Methods - Simulated data section
@@ -328,7 +328,7 @@ def BrowningAmerica():
     )
 
 
-_species.get_demographic_model("AmericanAdmixture_4B11").register_qc(BrowningAmerica())
+_species.get_demographic_model("AmericanAdmixture_4B18").register_qc(BrowningAmerica())
 
 
 def RagsdaleArchaic():
@@ -1446,7 +1446,6 @@ def Iasi2021():
         dest,
         migration_cutoff=1e-5,
     ):
-
         """
         This function creates a dataframe of migration rate changes to simulate
         an extended pulse of unidirectional gene flow from a dest to a source
@@ -1716,3 +1715,147 @@ def Huber2017():
 
 
 _species.get_dfe("Gamma_H17").register_qc(Huber2017())
+
+
+def Kim2017():
+    """
+    Gamma DFE with neutral mutations from
+    Kim et al. 2017 Genetics.
+    """
+    id = "Kim2017_gamma_dfe"
+    neutral = stdpopsim.MutationType()
+    gamma_shape = 0.186
+    gamma_scale = 875
+    # get gamma mean and scale using ancestral Ne
+    Ne_ancestral = 12378
+    # they use dadi for inference, so add a factor of 2
+    gamma_mean = (-gamma_shape * gamma_scale * 2) / (Ne_ancestral * 2)
+    negative = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="g",  # gamma distribution
+        distribution_args=[gamma_mean, gamma_shape],
+    )
+    # proportion neutral
+    ns_proportion = 2.31 / (2.31 + 1.0)
+    return stdpopsim.DFE(
+        id=id,
+        description=id,
+        long_description=id,
+        mutation_types=[neutral, negative],
+        proportions=[round(1 - ns_proportion, 1), round(ns_proportion, 1)],
+    )
+
+
+_species.get_dfe("Gamma_K17").register_qc(Kim2017())
+
+
+def ZhenPos():
+    """
+    Huber 2017 Gamma distribution with a proportion of
+    nonsynonymous mutations that are positively selected
+    """
+    id = "Zhen17_pos_gamma_dfe"
+
+    # Huber 2017 gamma distribution
+    neutral = stdpopsim.MutationType()
+    negative = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="g",  # gamma distribution
+        distribution_args=[-0.014 * 2, 0.19],
+    )
+
+    prop_neutral = 0.3
+    selection_coefficient = 0.0001124605
+    prop_beneficial = (1 - prop_neutral) * 1.55e-2
+    prop_deleterious = 1 - (prop_neutral + prop_beneficial)
+    positive = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="f",
+        distribution_args=[selection_coefficient],
+    )
+
+    return stdpopsim.DFE(
+        id=id,
+        description=id,
+        long_description=id,
+        mutation_types=[neutral, negative, positive],
+        proportions=[prop_neutral, prop_deleterious, prop_beneficial],
+    )
+
+
+_species.get_dfe("GammaPos_Z21").register_qc(ZhenPos())
+
+
+def genericDFE():
+    """
+    gamma distribution based on Kyriazis et al. 2022
+    w/ discrete dominance coefficients
+    and lethal mutations
+    """
+    id = "generic_gamma_dfe"
+    neutral = stdpopsim.MutationType()
+    gamma_mean = -0.0131
+    gamma_shape = 0.186
+    h_values = [0.45, 0.2, 0.05, 0]
+    h_breaks = [0.001, 0.01, 0.1]
+    negative = stdpopsim.MutationType(
+        dominance_coeff_list=h_values,
+        dominance_coeff_breaks=h_breaks,
+        distribution_type="g",
+        distribution_args=[gamma_mean, gamma_shape],
+    )
+    lethal = stdpopsim.MutationType(
+        distribution_type="f",
+        distribution_args=[-1],
+        dominance_coeff=0,
+    )
+
+    ns_proportion = 2.31 / (2.31 + 1.0)
+    lethal_proportion = 0.003 * ns_proportion
+    ns_proportion = ns_proportion - lethal_proportion
+    return stdpopsim.DFE(
+        id=id,
+        description=id,
+        long_description=id,
+        mutation_types=[neutral, negative, lethal],
+        proportions=[
+            (1 - (ns_proportion + lethal_proportion)),
+            ns_proportion,
+            lethal_proportion,
+        ],
+    )
+
+
+_species.get_dfe("Mixed_K23").register_qc(genericDFE())
+
+
+def HuberLog():
+    """
+    lognormal DFE from Huber et al. 2017 PNAS.
+    """
+    id = "Huber2017_lognormal_dfe"
+    neutral = stdpopsim.MutationType()
+    # mu and sigma values from table s3
+    muvalD = -7.37
+    sigmaval = 4.58
+    expectedmean = math.exp(muvalD + (1 / 2) * (sigmaval**2))
+    # converting DaDi to SLiM selection coefficients -
+    targetmean = 2 * expectedmean
+    muvalS = math.log(targetmean) - (1 / 2) * (sigmaval**2)
+
+    negative = stdpopsim.MutationType(
+        dominance_coeff=0.5,
+        distribution_type="ln",  # lognormal distribution
+        distribution_args=[muvalS, sigmaval],
+    )
+
+    return stdpopsim.DFE(
+        id=id,
+        description=id,
+        long_description=id,
+        mutation_types=[neutral, negative],
+        proportions=[0.3, 0.7],
+    )
+
+
+_species.get_dfe("LogNormal_H17").register_qc(HuberLog())

@@ -27,4 +27,6 @@ data = {
         "Y": {"length": 15859692, "synonyms": []},
         "MT": {"length": 16543, "synonyms": []},
     },
+    "assembly_source": "ensembl",
+    "assembly_build_version": "103",
 }

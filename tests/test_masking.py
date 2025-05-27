@@ -1,6 +1,7 @@
 """
 Tests for the genetic maps management.
 """
+
 import sys
 
 import numpy as np
@@ -22,8 +23,8 @@ class TestMasking:
         bedfile = str(tmp_path / "temp_file.bed")
         with open(bedfile, "w+") as fout:
             for c, i in intervals_in.items():
-                for (l, r) in i:
-                    fout.write(f"{c}\t{l}\t{r}\n")
+                for left, right in i:
+                    fout.write(f"{c}\t{left}\t{right}\n")
         intervals_chr1 = stdpopsim.utils.read_bed(bedfile, "chr1")
         intervals_chr22 = stdpopsim.utils.read_bed(bedfile, "chr22")
         for interval in intervals_chr1:
@@ -33,6 +34,7 @@ class TestMasking:
         assert len(intervals_chr1) == len(intervals_in["chr1"])
         assert len(intervals_chr22) == len(intervals_in["chr22"])
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_length_interval_invalid(self):
         species = stdpopsim.get_species("HomSap")
         with pytest.raises(ValueError, match="Cannot use length multiplier"):
@@ -55,8 +57,8 @@ class TestMasking:
         bedfile = str(tmp_path / "temp_file.bed")
         with open(bedfile, "w+") as fout:
             for c, i in intervals_in.items():
-                for (l, r) in i:
-                    fout.write(f"{c}\t{l}\t{r}\n")
+                for left, right in i:
+                    fout.write(f"{c}\t{left}\t{right}\n")
         intervals_test = intervals_to_keep_test_func(bedfile, "chr1")
         intervals_utils = stdpopsim.utils.read_bed(bedfile, "chr1")
         for i1, i2 in zip(intervals_utils, intervals_test):
@@ -87,8 +89,8 @@ class TestMasking:
         bedfile = str(tmp_path / "temp_file.bed")
         with open(bedfile, "w+") as fout:
             for c, i in intervals_in.items():
-                for (l, r) in i:
-                    fout.write(f"{c}\t{l}\t{r}\n")
+                for left, right in i:
+                    fout.write(f"{c}\t{left}\t{right}\n")
         species = stdpopsim.get_species("HomSap")
         contig = species.get_contig("chr1", inclusion_mask=bedfile)
         assert contig.exclusion_mask is None

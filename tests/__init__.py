@@ -1,6 +1,7 @@
 """
 Package definition for tests. Defined to allow cross-importing.
 """
+
 import tempfile
 
 import stdpopsim

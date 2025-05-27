@@ -29,28 +29,25 @@ _didelot_et_al = stdpopsim.Citation(
 )
 
 _species_ploidy = 1
+_chromosomes_names = genome_data.data["chromosomes"].keys()
 
-_chromosomes = []
-for name, data in genome_data.data["chromosomes"].items():
-    _chromosomes.append(
-        stdpopsim.Chromosome(
-            id=name,
-            length=data["length"],
-            synonyms=data["synonyms"],
-            # Wielgoss et al. (2011) calculated for strain REL606,
-            # from synonymous substitutions over 40,000 generations.
-            mutation_rate=8.9e-11,
-            ploidy=_species_ploidy,
-            recombination_rate=8.9e-11,
-            gene_conversion_length=542,
-        )
-    )
+_ploidy_data = {str(i): _species_ploidy for i in _chromosomes_names}
 
-_genome = stdpopsim.Genome(
-    chromosomes=_chromosomes,
+_mutation_rate = 8.9e-11
+_mutation_rate_data = {str(i): _mutation_rate for i in _chromosomes_names}
+
+_recombination_rate = 8.9e-11
+_recombination_rate_data = {str(i): _recombination_rate for i in _chromosomes_names}
+
+_gene_conversion_length = 542
+_gene_conversion_data = {str(i): _gene_conversion_length for i in _chromosomes_names}
+_genome = stdpopsim.Genome.from_data(
+    genome_data=genome_data.data,
+    mutation_rate=_mutation_rate_data,
+    recombination_rate=_recombination_rate_data,
+    gene_conversion_length=_gene_conversion_data,
     bacterial_recombination=True,
-    assembly_name=genome_data.data["assembly_name"],
-    assembly_accession=genome_data.data["assembly_accession"],
+    ploidy=_ploidy_data,
     citations=[
         _wielgoss_et_al.because(
             {stdpopsim.CiteReason.MUT_RATE, stdpopsim.CiteReason.GENE_CONVERSION}

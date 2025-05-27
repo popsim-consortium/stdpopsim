@@ -25,13 +25,13 @@ that it's obvious how to get the correct value from the provided references.
   - This might be genome-wide, or per-chromosome. Both are fine.
   - Check there's a comment describing where it came from, and/or how calculated.
   - From a publication? Check the value(s) match the publication.
-  - Calculated somehow? Average over a recombination map? Redo the calculation.
+  - Calculated somehow? Average over a recombination/genetic map? Redo the calculation.
 - [ ] Mutation rate.
   - This might be genome-wide, or per-chromosome. Both are fine.
   - Check there's a comment describing where it came from, and/or how calculated.
   - From a publication? Check the value(s) match the publication.
   - Calculated somehow? Redo the calculation.
-- [ ] Recombination map (if present).
+- [ ] Recombination/genetic map (if present).
   - Does it match the assembly? Liftover is fine, if clearly stated.
   - Is the description/long_description a good summary of how the map was created?
 - [ ] Population size.
@@ -47,7 +47,7 @@ Citations are required for:
 - [ ] Genome reference assembly.
 - [ ] Mutation rate.
 - [ ] Recombination rate.
-- [ ] Recombination map(s) (if relevant).
+- [ ] Recombination/genetic map(s) (if relevant).
 - [ ] Population size.
 - [ ] Generation time.
 

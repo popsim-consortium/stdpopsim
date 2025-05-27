@@ -1,6 +1,7 @@
 """
 Tests for classes that hold information about genomic region to be simulated.
 """
+
 import numpy as np
 import pytest
 import msprime
@@ -75,6 +76,11 @@ class TestContig(object):
                     gene_conversion_fraction=0.8,
                     gene_conversion_length=bad_len,
                 )
+
+    def test_gc_length_error(self):
+        sp = stdpopsim.get_species("StrAga")
+        with pytest.raises(ValueError, match="shorter than the gene conv"):
+            _ = sp.get_contig(length=100000)
 
     def test_default_dfe(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
@@ -386,6 +392,7 @@ class TestContig(object):
         for x, y in zip(breakpoints, ob):
             assert x == y
 
+    @pytest.mark.filterwarnings("ignore::stdpopsim.DeprecatedFeatureWarning")
     def test_chromosome_segment_fails_with_length_multiplier(self):
         chrom = "chr2"
         species = stdpopsim.get_species("HomSap")
@@ -495,3 +502,10 @@ class TestGeneConversion(object):
         assert np.isclose(
             contig.recombination_map.mean_rate, chrom.recombination_rate / (1 - gc_frac)
         )
+        species = stdpopsim.get_species("HomSap")
+        with pytest.raises(
+            ValueError, match="Cannot use recombination rate with genetic map"
+        ):
+            _ = species.get_contig(
+                "chr22", genetic_map="HapMapII_GRCh38", recombination_rate=1e-8
+            )

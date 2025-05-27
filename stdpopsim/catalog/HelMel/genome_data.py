@@ -34,4 +34,6 @@ data = {
         "20": {"length": 14871695, "synonyms": []},
         "21": {"length": 13359691, "synonyms": []},
     },
+    "assembly_source": "manual",
+    "assembly_build_version": None,
 }

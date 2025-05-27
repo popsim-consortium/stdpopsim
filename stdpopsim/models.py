@@ -1,6 +1,7 @@
 """
 Common infrastructure for specifying demographic models.
 """
+
 import copy
 import textwrap
 
@@ -74,6 +75,10 @@ class DemographicModel:
     :ivar mutation_rate: The mutation rate associated with the demographic model.
         If no mutation rate is given, the species' default mutation rate is used.
     :vartype mutation_rate: float
+    :ivar recombination_rate: The recombination rate associated with the demographic
+        model. If no recombination rate is given, the species' default recombination
+        rate is used.
+    :vartype recombination_rate: float
     """
 
     def __init__(
@@ -92,12 +97,14 @@ class DemographicModel:
         populations=None,
         model=None,
         mutation_rate=None,
+        recombination_rate=None,
     ):
         self.id = id
         self.description = description
         self.long_description = long_description
         self.generation_time = 1 if generation_time is None else generation_time
         self.mutation_rate = mutation_rate
+        self.recombination_rate = recombination_rate
         self.citations = [] if citations is None else citations
         self.qc_model = qc_model
 
@@ -148,12 +155,13 @@ class DemographicModel:
         long_desc = "\n║                     ".join(long_desc_lines)
         s = (
             "Demographic model:\n"
-            f"║  id               = {self.id}\n"
-            f"║  description      = {self.description}\n"
-            f"║  long_description = {long_desc}\n"
-            f"║  generation_time  = {self.generation_time}\n"
-            f"║  mutation_rate    = {self.mutation_rate}\n"
-            f"║  citations        = {[cite.doi for cite in self.citations]}\n"
+            f"║  id                 = {self.id}\n"
+            f"║  description        = {self.description}\n"
+            f"║  long_description   = {long_desc}\n"
+            f"║  generation_time    = {self.generation_time}\n"
+            f"║  mutation_rate      = {self.mutation_rate}\n"
+            f"║  recombination_rate = {self.recombination_rate}\n"
+            f"║  citations          = {[cite.doi for cite in self.citations]}\n"
             f"║{self.model}"
         )
         return s
@@ -242,7 +250,8 @@ class DemographicModel:
 
         .. note: This interface is deprecated. Instead, a dict containing the
             number of individuals per population should be directly provided to
-            :meth:`Engine.simulate`.
+            :meth:`Engine.simulate`. Note that in the updated API, each sample
+            is an individual of the species' ploidy.
         """
 
         warnings.warn(
@@ -251,7 +260,10 @@ class DemographicModel:
                 "positional sample counts (CLI) is deprecated. Instead, supply a "
                 "{population_name:num_samples} dict to "
                 "`Engine.simulate(samples=...)` (Python API); or use the syntax "
-                "`stdpopsim SpeciesName population_name:num_samples` (CLI)."
+                "`stdpopsim SpeciesName population_name:num_samples` (CLI). Note "
+                "that the deprecated API specifies the number of haploids, "
+                "while the new API specifies the number of individuals of the "
+                "species' ploidy."
             )
         )
 

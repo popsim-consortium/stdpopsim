@@ -10,4 +10,6 @@ data = {
         "X": {"length": 22909512, "synonyms": []},
         "4": {"length": 1277805, "synonyms": []},
     },
+    "assembly_source": "manual",
+    "assembly_build_version": None,
 }

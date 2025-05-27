@@ -13,16 +13,15 @@ def _RobinsonDFE():
     id = "Gamma_R22"
     description = "Deleterious Gamma DFE"
     long_description = """
-    Vaquita DFE inferred by Robinson et al. (2022), and used in simulations.
-    The DFE was inferred assuming synonymous variants are neutral and a relative
-    mutation rate ratio of 2.31 nonsynonymous to 1 synonymous mutation
-    (Huber et al. 2017). The inference procedure is described in pages 9-10 of
-    the supplementary material of Robinson et al. (2022), and values used in
-    SLiM simulations based on this DFE are specified in pages 11-12.
-    Supplement URL:
-    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9881057/
-    bin/NIHMS1864134-supplement-Supplementary_material.pdf
+    Gamma-distributed deleterious DFE inferred by Robinson et al. (2022),
+    and used in their simulations, from the synonymous and nonsynonymous SFS from
+    Vaquita data, following the methods of Huber et al (2017).
     """
+    # The DFE was inferred assuming synonymous variants are neutral and a relative
+    # mutation rate ratio of 2.31 nonsynonymous to 1 synonymous mutation
+    # (Huber et al. 2017). The inference procedure is described in pages 9-10 of
+    # the supplementary material of Robinson et al. (2022), and values used in
+    # SLiM simulations based on this DFE are specified in pages 11-12.
     citations = [
         stdpopsim.Citation(
             author="Robinson et al.",

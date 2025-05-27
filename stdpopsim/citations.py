@@ -3,6 +3,7 @@ Citation management for stdpopsim. Provides utilities for printing
 citation information associated with different entities derived from the
 literature that are used within a simulation.
 """
+
 import collections
 import urllib.request
 
@@ -109,5 +110,12 @@ _stdpopsim_citation = Citation(
     doi="https://doi.org/10.7554/eLife.54967",
     year="2020",
     author="Adrion et al.",
+    reasons={CiteReason.STDPOPSIM},
+)
+
+_catalog_citation = Citation(
+    doi="https://doi.org/10.7554/eLife.84874",
+    year="2023",
+    author="Lauterbur et al.",
     reasons={CiteReason.STDPOPSIM},
 )

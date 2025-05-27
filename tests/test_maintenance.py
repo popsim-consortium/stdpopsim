@@ -1,6 +1,7 @@
 """
 Tests for the maintenance utilities.
 """
+
 from unittest import mock
 import json
 import urllib

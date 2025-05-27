@@ -11,4 +11,6 @@ data = {
         "Mt": {"length": 366924, "synonyms": []},
         "Pt": {"length": 154478, "synonyms": []},
     },
+    "assembly_source": "ensembl",
+    "assembly_build_version": "113",
 }

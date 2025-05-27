@@ -9,7 +9,7 @@ Development
 We envision at least three main types of ``stdpopsim`` developers:
 
 1. Contributors of new species, demographic models, and other features
-   (such as recombination maps, annotations, DFE models)
+   (such as recombination/genetic maps, annotations, DFE models)
 2. API developers
 3. Documentation and tutorial curators
 
@@ -21,7 +21,7 @@ See the appropriate sections below:
 
 * `Adding a new species`_
 * `Adding a new demographic model`_
-* `Adding a genetic map or annotation`_
+* `Adding a recombination/genetic map or annotation`_
 * `Adding a DFE model`_
 
 `API developers` work on infrastructure development for the PopSim Consortium,
@@ -546,9 +546,6 @@ with a brief discussion of possible courses of action to take when components ha
 1. The **genome assembly** should consist of a list of chromosomes or scaffolds and their lengths.
    Having a good quality assembly with complete chromosomes, or at least very long scaffolds,
    is essential for chromosome-level simulations produced by ``stdpopsim``.
-   Species with less complete genome builds typically do not have genetic maps
-   or good estimates of recombination rates,
-   making chromosome-level simulation much less useful.
    Thus, currently, ``stdpopsim`` only supports adding species with near-complete
    chromosome-level genome assemblies (i.e., close to one contig per chromosome).
 
@@ -563,11 +560,11 @@ with a brief discussion of possible courses of action to take when components ha
 
 3. An **average recombination rate**
    should be specified for each chromosome (per generation per bp).
-   Ideally, one would want to specify a fine-scale chromosome-level **recombination map**,
-   since the recombination rate is known to vary widely across chromosomes.
-   If a recombination map exists for your species,
-   you may specify it separately (see `Adding a genetic map or annotation`_).
-   Nonetheless, you should specify a default (average) recombination rate for each chromosome.
+   Ideally, one would want to specify a fine-scale chromosome-level **genetic map**,
+   since the recombination rate is known to vary widely across and along chromosomes.
+   If a genetic map exists for your species,
+   you may specify it separately (see `Adding a recombination/genetic map or annotation`_).
+   Nonetheless, you should also specify a default (average) recombination rate for each chromosome.
    As with mutation rates, if there is no information on the variation of recombination rates
    across chromosomes, the average genome-wide recombination rate can be specified for all chromosomes.
    Furthermore, if your species of interest does not have direct estimates of recombination rates,
@@ -800,7 +797,7 @@ accompanied by the appropriate ``stdpopsim.Citation`` objects.
         common_name="A. thaliana",
         genome=_genome,
         generation_time=1.0,
-        population_size=10 ** 4,
+        population_size=10_000,
         ploidy=_species_ploidy,
         citations=[
             stdpopsim.Citation(
@@ -1026,7 +1023,7 @@ Misspecification of the model can generate unrealistic patterns of genetic
 variation that will affect downstream analyses.
 So, having at least one detailed demographic model is recommended for every species.
 A given species might have more than one demographic model,
-fit from different data or by different methods.
+fit from different data or by different methods or different assumptions/parameters.
 
 -----------------------------------
 What models are appropriate to add?
@@ -1040,7 +1037,7 @@ such as population splits and changes in the amount of gene flow between populat
 The values of different parameters should be specified in units of "number of individuals"
 (for population sizes) and generations (for times).
 Sometimes, you will need to convert values published in the literature
-to these units by making some assumptions on the mutation rate;
+to these units by making some assumptions on the mutation rate (sometimes even recombination rate);
 typically the same assumptions made by the study that published the demographic model.
 
 
@@ -1113,6 +1110,7 @@ We provide below a template block of code for these two operations:
           citations=...,
           generation_time=...,
           mutation_rate=...,
+          recombination_rate=...,
           population_configurations=...,
           migration_matrix=...,
           demographic_events=...,
@@ -1120,8 +1118,8 @@ We provide below a template block of code for these two operations:
 
       _species.add_demographic_model(_model_func_name())
 
-A demographic model is thus defined using ten different attributes.
-The first seven attributes are quite straightforward:
+A demographic model is thus defined using up to eleven different attributes.
+The first eight attributes are quite straightforward:
 
 * ``id`` (`string`): A unique, short-hand identifier for this demographic model.
   This id contains a short description written in camel case,
@@ -1167,6 +1165,16 @@ The first seven attributes are quite straightforward:
   However, note that this is quite uncommon, so you should make sure this is the case
   before you set the mutation rate to ``None``.
 
+* ``recombination_rate`` (`double`): The recombination rate assumed during the inference
+  of this demographic model, if any (per bp per generation).
+  While demographic model inference might make less assumptions about recombination rates
+  than mutation rates, we provide this option for completness.
+  Namely, a demographic model might have been inferred under the assumption of a specific
+  recombination rate, which does not match with the species' recombination rate implemented
+  in ``stdpopsim``.
+  Also, some demographic models were inferred under the assumptions of a specifc ratio of
+  mutation to recombination rates.
+
 The final three attributes
 (``population_configurations``, ``migration_matrix``, and ``demographic_events``)
 describe the inferred demographic history that you wish to code.
@@ -1185,7 +1193,7 @@ then we highly recommend that you take some time to read through its
    parameter of interest.
    In your coded model, you should use some reasonable point estimate,
    such as the value associated with the the maximum likelihood fit,
-   or the mean posterior (for Bayesian methods).
+   or the mean of posterior distribution for Bayesian methods.
 
 ------------------------------------
 Adding a parameter table to the docs
@@ -1293,11 +1301,19 @@ implemented by the reviewer.
 The original demographic model and its registered QC model are compared as part of
 the ``stdpopsim`` `Unit tests`_.
 
-**********************************
-Adding a genetic map or annotation
-**********************************
+************************************************
+Adding a recombination/genetic map or annotation
+************************************************
 
-Some species have sub-chromosomal recombination maps or genomic annotations available.
+.. note::
+    Recombination map and genetic map are terms used to describe
+    maps of recombination rates that vary across and along chromosomes.
+    In the ``stdpopsim`` code and documentation, we use the term
+    **genetic map** to refer specifically to a "crossing-over rate map" and
+    **recombination map** to refer to a "crossing-over and gene conversion rate map.""
+    See :ref:`further details <sec_api_gene_conversion>` on this distinction.
+
+Some species have sub-chromosomal genetic maps or genomic annotations available.
 These files are large enough that adding them directly to the package would quickly
 cause slow package installation and loading,
 so these files are downloaded as-needed from AWS
@@ -1307,13 +1323,13 @@ the procedure for annotations is similar (but see the important note below).
 
 Genetic maps can be added to
 `stdpopsim` by creating a new `GeneticMap` object and providing a formatted file
-detailing recombination rates to a designated `stdpopsim` maintainer who then uploads
+detailing recombination rates to a designated ``stdpopsim`` maintainer who then uploads
 it to AWS. If there is one for your species that you wish to include, create a space
 delimited file with four columns: Chromosome, Position(bp), Rate(cM/Mb), and Map(cM).
 Each chromosome should be placed in a separate file and with the chromosome id in the
 file name in such a way that it can be programatically parsed out. IMPORTANT: chromosome
 ids must match those provided in the genome definition exactly! Below is an example start
-to a recombination map file (see `here
+to a genetic map file (see `here
 <https://tskit.dev/msprime/docs/stable/api.html#msprime.RateMap.read_hapmap>`__
 for more details)::
 
@@ -1321,9 +1337,9 @@ for more details)::
     chr1 32807 5.016134 0
     chr1 488426 4.579949 0
 
-Once you have the recombination map files formatted, tar and gzip them into a single
+Once you have the genetic map files formatted, tar and gzip them into a single
 compressed archive. The gzipped tarball must be FLAT (there are no directories in the
-tarball). This file will be sent to one of the `stdpopsim` uploaders for placement in the
+tarball). This file will be sent to one of the ``stdpopsim`` uploaders for placement in the
 AWS cloud once the new genetic map(s) are approved. Finally, you must add a `GeneticMap`
 object to the file named for your species in the ``stdpopsim/catalog/<SPECIES_ID>/`` directory
 (the one that contains all the simulation code for that species,
@@ -1335,7 +1351,7 @@ see `Getting set up to add a new species`_):
         doi="FILL_ME", author="FILL_ME", year=9999, reasons={stdpopsim.CiteReason.GEN_MAP}
     )
     """
-    The file_pattern argument is a pattern that matches the recombination map filenames,
+    The file_pattern argument is a pattern that matches the genetic map filenames,
     where '{id}' is replaced with the 'id' field of a given chromosome.
     """
     _gm = stdpopsim.GeneticMap(
@@ -1385,13 +1401,13 @@ or increment the version number if the previous file already has one.
 When the file is downloaded locally to the cache, it is given a standardized name
 that will be the same regardless of which file is pulled from AWS.
 
+****************************************
+Lifting over a recombination/genetic map
+****************************************
 
-**************************
-Lifting over a genetic map
-**************************
 Existing genetic maps will need to be lifted over to a new assembly, if and when the
-current assembly is updated in `stdpopsim`. This process can be partially automated by running
-the liftOver maintenance code.
+current assembly is updated in ``stdpopsim``. This process can be partially automated by running
+the ``liftOver`` maintenance code.
 
 First, you must download and install the ``liftOver`` executable from the
 `UCSC Genome Browser Store <https://genome-store.ucsc.edu/>`__.
@@ -1445,10 +1461,10 @@ system, the following can instead be used:
 
 The newly lifted over maps will be formatted in a compressed archive and
 automatically named using the assembly name from the chain file.
-This file will be sent to one of the `stdpopsim` uploaders for placement in the
+This file will be sent to one of the ``stdpopsim`` uploaders for placement in the
 AWS cloud, once the new map is approved. Finally, you must add a `GeneticMap`
 object to the file named for your species in the `stdpopsim/catalog/<SPECIES_ID>/`
-directory, as shown in `Adding a genetic map or annotation`_.
+directory, as shown in `Adding a recombination/genetic map or annotation`_.
 
 Again, once all this is done, submit a PR containing the code changes and wait for
 directions on whom to send the compressed archive of genetic maps to
@@ -1636,7 +1652,7 @@ Testing your DFE model and submitting a PR
 
 After you finished your implementation, and specified all the
 necessary citations,
-we recommend that you run some basic local tests to see that
+we recommend that you run some basic local checks to see that
 the model was successfully loaded to ``stdpopsim``.
 You may follow the process outlined for `Testing your demographic model and submitting a PR`_.
 
@@ -1651,24 +1667,31 @@ of the development team before it is fully incorporated into ``stdpopsim``.
 This will likely require additional feedback from you,
 so, stay tuned for discussion during the review process.
 
+To facilitate this, there is one more step: please open a
+`new issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`__,
+using the "DFE QC" template.
+The template asks for the basic information that someone will need
+to independently verify the implemented DFE.
+
 ---------------------
 Reviewing a DFE model
 ---------------------
 
-The review process for DFE models is currently being developed.
-For now, we suggest that you
-`open a new blank issue <https://github.com/popsim-consortium/stdpopsim/issues/new>`__
-and specify the following information:
+The process for reviewing a DFE is essentially the same
+as for reviewing a demographic model (see `Overview of the stdpopsim review process`_).
+Briefly, you will re-implement the DFE "blind", i.e., without looking at the DFE
+implementation already added to the code.
+Then, the unit tests check whether the implementations are equivalent.
+To do this, you add your implementation to ``stdpopsim/qc/<SPECIES_ID>.py``,
+followed by a call like
 
-1. **PR for new model:**
-2. **Original paper:**
-3. **Parameter values:**
-4. **Potential issues:**
-5. **QC'er requests:**
+.. code-block:: python
 
-A reviewer will be assigned to check your implementation and approve it.
-All discussion about the review can be conducted in the **QC issue**
-mentioned above.
+    _species.get_dfe(_MODEL_ID_).register_qc(_your_review_function())
+
+where ``_MODEL_ID_`` is the string specified as the ID for the original DFE,
+and ``_your_review_function()`` is the function you've added to the QC file
+that returns a DFE object.
 
 ****************
 Coding standards
@@ -1771,7 +1794,7 @@ to check locally how well your tests are covering your code by asking
     $ pytest --cov-report html --cov=stdpopsim tests/
 
 this will output a directory of html files for you to browse test coverage
-for every file in `stdpopsim` in a reasonably straightfoward graphical
+for every file in ``stdpopsim`` in a reasonably straightfoward graphical
 way. To see them, direct your web browser to the `htmlcov/index.html` file.
 You'll be looking for lines of code that are highlighted yellow or red
 indicated that tests do not currently cover that bit of code.

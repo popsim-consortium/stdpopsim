@@ -1,6 +1,7 @@
 """
 Tests for the EscCol data definitions.
 """
+
 import stdpopsim
 import pytest
 from tests import test_species
@@ -43,3 +44,9 @@ class TestGenome(test_species.GenomeTestBase):
     @pytest.mark.parametrize("chrom", [chrom for chrom in genome.chromosomes])
     def test_chromosome_ploidy(self, chrom):
         assert chrom.ploidy == 1
+
+    def test_assembly_source(self):
+        assert self.genome.assembly_source == "ensembl"
+
+    def test_assembly_build_version(self):
+        assert self.genome.assembly_build_version is not None

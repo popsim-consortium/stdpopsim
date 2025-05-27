@@ -1,6 +1,7 @@
 """
 Tests for the genetic maps management.
 """
+
 from unittest import mock
 import tarfile
 import tempfile
@@ -207,7 +208,7 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapMapII_GRCh37")
         chrom = species.genome.get_chromosome("chrY")
-        with pytest.warns(UserWarning, match="Recombination map not found"):
+        with pytest.warns(UserWarning, match="Genetic map not found"):
             cm = genetic_map.get_chromosome_map(chrom.id)
         assert isinstance(cm, msprime.RateMap)
         assert chrom.length == cm.sequence_length
@@ -220,12 +221,12 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
         assert isinstance(cm, msprime.RateMap)
         assert chrom.length == cm.sequence_length
 
-    def test_warning_for_long_recomb_map(self):
+    def test_warning_for_long_genetic_map(self):
         species = stdpopsim.get_species("HomSap")
         genetic_map = species.get_genetic_map("HapMapII_GRCh37")
         chrom = species.genome.get_chromosome("chr1")
         with pytest.warns(
-            UserWarning, match="Recombination map.*is longer than chromosome length"
+            UserWarning, match="Genetic map.*is longer than chromosome length"
         ):
             cm = genetic_map.get_chromosome_map(chrom.id)
         assert isinstance(cm, msprime.RateMap)
@@ -238,10 +239,8 @@ class TestGetChromosomeMap(tests.CacheReadingTest):
             with pytest.raises(ValueError):
                 genetic_map.get_chromosome_map(bad_chrom)
 
-    @pytest.mark.filterwarnings(
-        "ignore: Recombination map.*is longer than chromosome length"
-    )
-    @pytest.mark.filterwarnings("error: Recombination map not found")
+    @pytest.mark.filterwarnings("ignore: Genetic map.*is longer than chromosome length")
+    @pytest.mark.filterwarnings("error: Genetic map not found")
     def test_one_chrom_from_each_map(self):
         for gm in stdpopsim.all_genetic_maps():
             species = gm.species

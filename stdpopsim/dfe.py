@@ -1,7 +1,7 @@
 """
 Common infrastructure for specifying DFEs.
 """
-# import numpy as np
+
 import textwrap
 import attr
 import collections.abc

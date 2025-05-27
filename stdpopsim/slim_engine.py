@@ -62,6 +62,12 @@ import json
 
 logger = logging.getLogger(__name__)
 
+
+def _escape_eidos(s):
+    # this is for Windows paths passed as strings in Eidos
+    return "\\\\".join(s.split("\\"))
+
+
 _slim_upper = """
 initialize() {
     if (!exists("dry_run"))
@@ -92,7 +98,9 @@ initialize() {
 
 
 _slim_lower = """
-    defineConstant("N", asInteger(_N/Q));
+    // Note: these are floats because rounding causes error in population
+    // growth: exp(round(x)*r*t) != round(exp(x*r*t))
+    defineConstant("N", _N/Q);
 
     initializeTreeSeq(timeUnit="generations");
     initializeRecombinationRate(recombination_rates, recombination_ends);
@@ -138,6 +146,8 @@ function (integer)epoch(integer G, integer $g) {
 }
 
 // Return the population size of pop at generation g.
+// This function returns values consistent with the continuous-time
+// msprime model, not taking into account discretization effects.
 function (integer)pop_size_at(integer G, integer$ pop, integer$ g) {
     e = epoch(G, g);
     N0 = N[e,pop];
@@ -146,14 +156,14 @@ function (integer)pop_size_at(integer G, integer$ pop, integer$ g) {
         N_g = N0;
     } else {
         g_diff = g - G[e-1];
-        N_g = asInteger(round(N0*exp(r*g_diff)));
+        N_g = N0*exp(r*g_diff);
     }
-    return N_g;
+    return asInteger(round(N_g));
 }
 
-// Return the number of generations that separate t0 and t1.
-function (integer)gdiff(numeric$ t0, numeric t1) {
-    return asInteger(round((t0-t1)/generation_time/Q));
+// Return the tick number for a given number of years ago.
+function (integer)time_to_tick(numeric t) {
+    return G0 - asInteger(t/generation_time/Q);
 }
 
 // Output tree sequence file and end the simulation.
@@ -254,9 +264,9 @@ _slim_main = """
     // Initial populations.
     for (i in 0:(num_populations-1)) {
         if (N[0,i] > 0) {
-            check_size(i, N[0,i], community.tick);
-            dbg("p = sim.addSubpop("+i+", "+N[0,i]+");");
-            p = sim.addSubpop(i, N[0,i]);
+            check_size(i, asInteger(round(N[0,i])), community.tick);
+            dbg("p = sim.addSubpop("+i+", "+asInteger(round(N[0,i]))+");");
+            p = sim.addSubpop(i, asInteger(round(N[0,i])));
             dbg("p.name = '"+pop_names[i]+"';");
             p.name = pop_names[i];
         }
@@ -270,7 +280,7 @@ _slim_main = """
     i = 0;
     for (j in 0:(num_populations-1)) {
         for (k in 0:(num_populations-1)) {
-            if (j==k | N[i,j] == 0 | N[i,k] == 0) {
+            if (j==k | N[i,j] < 1 | N[i,k] < 1) {
                 next;
             }
 
@@ -282,11 +292,11 @@ _slim_main = """
     }
 
     // The end of the burn-in is the starting tick, and corresponds to
-    // time T_start. All remaining events are relative to this tick.
-    N_max = max(N[0,0:(num_populations-1)]);
-    G_start = community.tick + asInteger(round(burn_in * N_max));
-    T_start = max(_T);
-    G = G_start + gdiff(T_start, _T);
+    // tick G_start. All remaining events are relative to this tick.
+    N_max = asInteger(round(max(N[0,0:(num_populations-1)])));
+    G_start = 1 + asInteger(round(burn_in * N_max));
+    defineConstant("G0", asInteger(max(_T) / generation_time / Q + G_start));
+    G = time_to_tick(_T);
     G_end = max(G);
 
     /*
@@ -307,15 +317,15 @@ _slim_main = """
                 n_checkpoints = n_checkpoints + 1;
 
                 // Unconditionally save the state before the mutation is drawn.
-                g = G_start + gdiff(T_start, drawn_mutations[0,i]);
+                g = time_to_tick(drawn_mutations[0,i]);
                 community.registerLateEvent(NULL, "{save();}", g, g);
             }
         }
     }
     if (length(condition_on_allele_frequency) > 0) {
         for (i in 0:(ncol(condition_on_allele_frequency)-1)) {
-            g_start = G_start + gdiff(T_start, condition_on_allele_frequency[0,i]);
-            g_end = G_start + gdiff(T_start, condition_on_allele_frequency[1,i]);
+            g_start = time_to_tick(condition_on_allele_frequency[0,i]);
+            g_end = time_to_tick(condition_on_allele_frequency[1,i]);
             mut_type = asInteger(condition_on_allele_frequency[2,i]);
             pop_id = asInteger(condition_on_allele_frequency[3,i]);
             op = op_types[asInteger(drop(condition_on_allele_frequency[4,i]))];
@@ -337,10 +347,10 @@ _slim_main = """
     // Split events.
     if (length(subpopulation_splits) > 0 ) {
         for (i in 0:(ncol(subpopulation_splits)-1)) {
-            g = G_start + gdiff(T_start, subpopulation_splits[0,i]);
-            newpop = drop(subpopulation_splits[1,i]);
-            size = asInteger(subpopulation_splits[2,i] / Q);
-            oldpop = subpopulation_splits[3,i];
+            g = time_to_tick(subpopulation_splits[0,i]);
+            newpop = asInteger(drop(subpopulation_splits[1,i]));
+            size = asInteger(round(subpopulation_splits[2,i] / Q));
+            oldpop = asInteger(subpopulation_splits[3,i]);
             check_size(newpop, size, g);
             community.registerLateEvent(NULL,
                 "{dbg(self.source); " +
@@ -357,22 +367,21 @@ _slim_main = """
             for (j in 0:(num_populations-1)) {
                 // Change population size if this hasn't already been taken
                 // care of by sim.addSubpop() or sim.addSubpopSplit().
-                if (N[i,j] != N[i-1,j] & N[i-1,j] != 0) {
-                    check_size(j, N[i,j], g);
+                if ((N[i,j] != N[i-1,j] | growth_rates[i-1,j] != 0) & N[i-1,j] >= 1) {
+                    check_size(j, asInteger(N[i,j]), g);
                     community.registerLateEvent(NULL,
                         "{dbg(self.source); " +
-                        "p"+j+".setSubpopulationSize("+N[i,j]+");}",
+                        "p"+j+".setSubpopulationSize("+asInteger(round(N[i,j]))+");}",
                         g, g);
                 }
 
                 if (growth_rates[i,j] != 0) {
                     growth_phase_start = g+1;
-                    if (i == num_epochs-1) {
-                        growth_phase_end = G[i];
-                    } else {
-                        // We already registered a size change at tick G[i].
-                        growth_phase_end = G[i] - 1;
-                    }
+                    growth_phase_end = G[i] - 1;
+                    // this is the number of ticks that the pop will grow for
+                    growth_phase_ticks = growth_phase_end - growth_phase_start;
+                    // but this is the amount of continuous time the pop model grows for
+                    growth_phase_length = growth_phase_ticks + 1;
 
                     if (growth_phase_start >= growth_phase_end) {
                         // Demographic models could have duplicate epoch times,
@@ -386,7 +395,7 @@ _slim_main = """
                     check_size(j, N_growth_phase_end, growth_phase_end);
 
                     N0 = N[i,j];
-                    r = Q * growth_rates[i,j];
+                    r = Q * growth_rates[i,j] * growth_phase_length / growth_phase_ticks;
                     community.registerLateEvent(NULL,
                         "{" +
                             "dbg(self.source); " +
@@ -403,7 +412,7 @@ _slim_main = """
         for (i in 1:(num_epochs-1)) {
             for (j in 0:(num_populations-1)) {
                 for (k in 0:(num_populations-1)) {
-                    if (j==k | N[i,j] == 0 | N[i,k] == 0) {
+                    if (j==k | N[i,j] < 1 | N[i,k] < 1) {
                         next;
                     }
 
@@ -426,7 +435,7 @@ _slim_main = """
     // Admixture pulses.
     if (length(admixture_pulses) > 0 ) {
         for (i in 0:(ncol(admixture_pulses)-1)) {
-            g = G_start + gdiff(T_start, admixture_pulses[0,i]);
+            g = time_to_tick(admixture_pulses[0,i]);
             dest = asInteger(admixture_pulses[1,i]);
             src = asInteger(admixture_pulses[2,i]);
             rate = admixture_pulses[3,i];
@@ -444,7 +453,7 @@ _slim_main = """
     // Draw mutations.
     if (length(drawn_mutations) > 0) {
         for (i in 0:(ncol(drawn_mutations)-1)) {
-            g = G_start + gdiff(T_start, drawn_mutations[0,i]);
+            g = time_to_tick(drawn_mutations[0,i]);
             mut_type = asInteger(drawn_mutations[1,i]);
             pop_id = asInteger(drawn_mutations[2,i]);
             coordinate = asInteger(drawn_mutations[3,i]);
@@ -458,8 +467,8 @@ _slim_main = """
     // Setup fitness callbacks.
     if (length(fitness_callbacks) > 0) {
         for (i in 0:(ncol(fitness_callbacks)-1)) {
-            g_start = G_start + gdiff(T_start, fitness_callbacks[0,i]);
-            g_end = G_start + gdiff(T_start, fitness_callbacks[1,i]);
+            g_start = time_to_tick(fitness_callbacks[0,i]);
+            g_end = time_to_tick(fitness_callbacks[1,i]);
             mut_type = asInteger(fitness_callbacks[2,i]);
             pop_id = asInteger(fitness_callbacks[3,i]);
             selection_coeff = Q * fitness_callbacks[4,i];
@@ -521,9 +530,9 @@ _slim_main = """
 
     // Sample individuals.
     for (i in 0:(ncol(sampling_episodes)-1)) {
-        pop = drop(sampling_episodes[0,i]);
+        pop = drop(asInteger(sampling_episodes[0,i]));
         n = sampling_episodes[1,i];
-        g = G_start + gdiff(T_start, sampling_episodes[2,i]);
+        g = time_to_tick(sampling_episodes[2,i]);
 
         // Check that there will be at least n individuals for sampling.
         N_g = pop_size_at(G, pop, g);
@@ -661,6 +670,30 @@ _slim_debug_output = """
             "ends", sim.chromosome.mutationEndPositions
         );
         metadata.setValue("mutationRates", mr);
+    }
+}
+
+// Save populations size information in tree sequence metadata
+// This is for development purposes, and the format of this metadata
+// is subject to change or may even be removed!
+1 first() {
+    if (verbosity >= 3) {
+        metadata.setValue("population_sizes", Dictionary());
+    }
+}
+
+1: late() {
+    if (verbosity >= 3) {
+        popsizes = metadata.getValue("population_sizes");
+        for (pop in sim.subpopulations) {
+            traj = popsizes.getValue(pop.name);
+            if (isNULL(traj)) {
+                traj = Dictionary();
+                popsizes.setValue(pop.name, traj);
+            }
+            traj.setValue("t", c(traj.getValue("t"), community.tick));
+            traj.setValue("N", c(traj.getValue("N"), pop.individualCount));
+        }
     }
 }
 
@@ -900,7 +933,7 @@ def slim_makescript(
         extended_events = copy.deepcopy(extended_events)
 
     # Reassign event times according to integral SLiM ticks.
-    # This collapses the time deltas used in HomSap/AmericanAdmixture_4B11,
+    # This collapses the time deltas used in HomSap/AmericanAdmixture_4B18,
     # and calculates times for GenerationAfter objects.
     def fix_time(event):
         for attr in ("time", "start_time", "end_time"):
@@ -932,14 +965,14 @@ def slim_makescript(
     T = [round(e.start_time * demographic_model.generation_time) for e in epochs]
     migration_matrices = [e.migration_matrix for e in epochs]
 
-    N = np.empty(shape=(dd.num_populations, len(epochs)), dtype=int)
+    N = np.empty(shape=(dd.num_populations, len(epochs)), dtype=float)
     growth_rates = np.empty(shape=(dd.num_populations, len(epochs)), dtype=float)
     for j, epoch in enumerate(epochs):
         for i, pop in enumerate(epoch.populations):
             # SLiM simulates a diploid population, so rescale population size
             # depending on contig ploidy. If/when the SLiM simulation is
             # converted to a haploid model, this rescaling should be removed.
-            N[i, j] = int(pop.end_size * contig.ploidy / 2)
+            N[i, j] = pop.end_size * contig.ploidy / 2
             growth_rates[i, j] = pop.growth_rate
 
     admixture_pulses = []
@@ -1171,7 +1204,7 @@ def slim_makescript(
             recombination_rates=recomb_rates_str,
             recombination_ends=recomb_ends_str,
             generation_time=demographic_model.generation_time,
-            trees_file=trees_file,
+            trees_file=_escape_eidos(trees_file),
             pop_names=f"c({pop_names_str})",
         )
     )
@@ -1302,7 +1335,8 @@ def slim_makescript(
     printsc()
 
     # Population sizes.
-    printsc("    // Population sizes in each epoch.")
+    printsc("    // Population sizes at the beginning of each epoch")
+    printsc("    // (will be rounded).")
     printsc(
         "    _N = "
         + matrix2str(
@@ -1489,7 +1523,7 @@ def slim_makescript(
     if logfile is not None:
         printsc(
             string.Template(_slim_logfile).substitute(
-                logfile=logfile,
+                logfile=_escape_eidos(str(logfile)),
                 loginterval=logfile_interval,
             )
         )
@@ -1625,27 +1659,37 @@ class _SLiMEngine(stdpopsim.Engine):
         # by msprime later
         slim_rate_map = get_slim_mutation_rate_map(contig)
 
-        # TODO: remove this after a release or two. See #745.
-        self._warn_zigzag(demographic_model)
         self._warn_mutation_rate_mismatch(contig, demographic_model)
+        self._warn_recombination_rate_mismatch(contig, demographic_model)
 
         run_slim = not slim_script
 
-        mktemp = functools.partial(tempfile.NamedTemporaryFile, mode="w")
-
         @contextlib.contextmanager
-        def script_file_f():
-            f = mktemp(suffix=".slim") if not slim_script else sys.stdout
-            yield f
-            # Don't close sys.stdout.
-            if not slim_script:
-                f.close()
+        def _slim_tempdir():
+            tempdir = tempfile.TemporaryDirectory(
+                prefix="stdpopsim_", ignore_cleanup_errors=True
+            )
+            ts_filename = os.path.join(tempdir.name, f"{os.urandom(3).hex()}.trees")
 
-        with script_file_f() as script_file, mktemp(suffix=".ts") as ts_file:
+            if run_slim:
+                script_filename = os.path.join(
+                    tempdir.name, f"{os.urandom(3).hex()}.slim"
+                )
+                script_file = open(script_filename, "w", encoding="utf-8")
+            else:
+                script_filename = "stdout"
+                script_file = sys.stdout
+            yield script_file, script_filename, ts_filename
+            if run_slim:
+                script_file.close()
+            tempdir.cleanup()
+
+        with _slim_tempdir() as st:
+            script_file, script_filename, ts_filename = st
 
             recap_epoch = slim_makescript(
                 script_file,
-                ts_file.name,
+                ts_filename,
                 demographic_model,
                 contig,
                 sample_sets,
@@ -1663,7 +1707,7 @@ class _SLiMEngine(stdpopsim.Engine):
                 return None
 
             self._run_slim(
-                script_file.name,
+                script_filename,
                 slim_path=slim_path,
                 seed=seed,
                 dry_run=dry_run,
@@ -1673,24 +1717,26 @@ class _SLiMEngine(stdpopsim.Engine):
             if dry_run:
                 return None
 
-            ts = tskit.load(ts_file.name)
+            ts = tskit.load(ts_filename)
 
-        ts = _add_dfes_to_metadata(ts, contig)
-        if _recap_and_rescale:
-            ts = self._recap_and_rescale(
-                ts,
-                seed,
-                recap_epoch,
-                contig,
-                slim_scaling_factor,
-                keep_mutation_ids_as_alleles,
-                extended_events,
-            )
+            ts = _add_dfes_to_metadata(ts, contig)
+            if _recap_and_rescale:
+                ts = self._recap_and_rescale(
+                    ts,
+                    seed,
+                    recap_epoch,
+                    contig,
+                    slim_scaling_factor,
+                    keep_mutation_ids_as_alleles,
+                    extended_events,
+                )
 
-        if contig.inclusion_mask is not None:
-            ts = stdpopsim.utils.mask_tree_sequence(ts, contig.inclusion_mask, False)
-        if contig.exclusion_mask is not None:
-            ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
+            if contig.inclusion_mask is not None:
+                ts = stdpopsim.utils.mask_tree_sequence(
+                    ts, contig.inclusion_mask, False
+                )
+            if contig.exclusion_mask is not None:
+                ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
 
         return ts
 
@@ -1713,7 +1759,6 @@ class _SLiMEngine(stdpopsim.Engine):
         if slim_path is None:
             slim_path = self.slim_path()
 
-        # SLiM v3.6 sends `stop()` output to stderr, which we rely upon.
         self._assert_min_version("4.0", slim_path)
 
         slim_cmd = [slim_path]
@@ -1732,7 +1777,19 @@ class _SLiMEngine(stdpopsim.Engine):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         ) as proc:
-            for line in proc.stdout:
+            procout = proc.communicate()
+            try:
+                # we get procout == None with the patching of suprocess.Popen
+                # that we do in test_slim_engine.py::TestCLI::test_dry_run
+                outs, errs = procout
+            except ValueError:
+                warnings.warn(
+                    stdpopsim.UnspecifiedSLiMWarning(
+                        "Cannot get output from SLiM " "for unknown reasons."
+                    )
+                )
+                outs, errs = "", ""
+            for line in outs.splitlines():
                 line = line.rstrip()
                 if line.startswith("WARNING: "):
                     warnings.warn(
@@ -1743,14 +1800,13 @@ class _SLiMEngine(stdpopsim.Engine):
                     line = line.replace("dbg(self.source); ", "")
                     logger.debug(line)
 
-            stderr = proc.stderr.read()
-            for line in stderr.splitlines():
+            for line in errs.splitlines():
                 if line.startswith("ERROR: "):
                     logger.error(line[len("ERROR: ") :])
 
         if proc.returncode != 0:
             raise SLiMException(
-                f"{slim_path} exited with code {proc.returncode}.\n{stderr}"
+                f"{slim_path} exited with code {proc.returncode}.\n{errs}"
             )
 
     def _simplify_remembered(self, ts):
@@ -2002,6 +2058,4 @@ class _SLiMEngine(stdpopsim.Engine):
         return ts
 
 
-# SLiM does not currently work on Windows.
-if sys.platform != "win32":
-    stdpopsim.register_engine(_SLiMEngine())
+stdpopsim.register_engine(_SLiMEngine())

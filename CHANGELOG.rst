@@ -1,18 +1,37 @@
----------------------
-[0.2.1a] - 2024-07-06
----------------------
+--------
+Upcoming
+--------
+
+--------------------
+[0.3.0] - 2025-03-18
+--------------------
+
+Major feature release adding documented, stable support for simulating selection (via SLiM),
+as well as new species and models.
 
 **Bug fixes**:
 
-- Updates to SLiM support: updated the `active` flag in the SLiM code to be integer.`
+- Incorrect scaling of the DroMel/LognormalPlusPositive_R16 DFE led to negative selection
+  coefficients that were too large (many on the order of -1e3); scaling was fixed for the
+  log scale (:user:`clararehmann`, :pr:`1699`)
 
 - Factor of two error fixed in HomSap/Gamma_K17 DFE (:user:`RyanGutenkunst`, :pr:`1478`)
 
+- Discretization for exponential growth using the SLiM engine led to the final size
+  in growing/declining populations not matching (by a small amount) what is listed
+  in the model; improved discretization scheme (:user:`petrelharp`, :pr:`1622`)
+
+- Updates to SLiM support: updated the `active` flag in the SLiM code to be integer.`
+
 **Breaking changes**:
 
+- The 2018 Browning et al HomSap demographic model previously named
+  "AmericanAdmixture_4B11" is now named "AmericanAdmixture_4B18"; the old name
+  works but throws a deprecation warning. (:user:`petrelharp`, :pr:`1603`)
+
 - The `time_units` attribute of tree sequence metadata is now set to "generations"
-    for SLiM output, avoiding the "time units mismatch warning".
-    (:user:`nspope`, :pr:`1567`)
+  for SLiM output, avoiding the "time units mismatch warning".
+  (:user:`nspope`, :pr:`1567`)
 
 - Previously, Contigs specified with `left` and `right` arguments produced
   simulations having coordinates shifted so they were relative to `left`. This
@@ -27,21 +46,39 @@
   necessary and are deprecated. (:user:`petrelharp`, :pr:`1570`)
 
 - To add the possibility for a relationship between dominance and selection
-    coefficient, now each stdpopsim MutationType might have more than one
-    underlying SLiM mutation type; so, where this is recorded in top-level
-    metadata (under `ts.metadata["stdpopsim"]["DFEs"]`) is now a list
-    instead of a single value. This will not affect anyone who is not
-    parsing the metadata related to DFEs.
+  coefficient, now each stdpopsim MutationType might have more than one
+  underlying SLiM mutation type; so, where this is recorded in top-level
+  metadata (under `ts.metadata["stdpopsim"]["DFEs"]`) is now a list
+  instead of a single value. This will not affect anyone who is not
+  parsing the metadata related to DFEs.
 
 - SLiM extended events and selective sweep infrastructure have been
-  moved from the `stdpopsim.ext` namespace into `stdpopsim` proper
+  moved from the `stdpopsim.ext` namespace into ``stdpopsim`` proper.
+
+- The `length_multiplier` option to `Species.get_contig` is deprecated and
+  prints a warning. The options `left` and `right` should be used to truncate a
+  contig, instead. (:user:`nspope`, :pr:`1605`)
+
+- Added `assembly_source` and `assembly_build_version` properties to
+  `Genome` objects, so that different genomes could be based on
+  different sources (previously, all were with reference to the Ensembl
+  release 103). (:user:`andrewkern`, :pr:1646)
 
 **New features**:
 
-- *Relationship between dominance and selection coefficient:*
+- Relationship between dominance and selection coefficient:
     Added the `dominance_coeff_list` argument to `MutationType`, allowing
     for DFEs with a discretized relationship between h and s.
     (:user:`petrelharp`, :pr:`1498`)
+
+- Model specific recombination rates:
+    Added the `recombination_rate` attribute to demographic model,
+    allowing for model specific recombination rates in addition to
+    the species default rates.
+    (:user:`gregorgorjanc`, :pr:`1591`)
+
+- Added support for the SLiM engine on Windows. (:user:`petrelharp`, :pr:`1571`)
+
 
 **New species**:
 
@@ -54,16 +91,35 @@
 - Phocoena sinus (:user:`igronau`, :pr:`1514`).
   QC'd by :user:`ckyriazis`, :pr:`1538`
 
+- Gorila gorila (:user:`ChristianHuber`, :pr:`1517`)
+  QC'd by :user:`andrewkern`, :pr:`1701`
+
+- Rattus norvegicus (:user:`kevinkorfman`, :pr:`1700`)
+  QC'd by :user:`andrewkern`, :pr:`1706`
+
+- Sus scrofa (:user:`aprilyuzhang`, :pr:`1672`)
+  QC'd by :user:`gregorgorjanc`, :pr:`1689`
+
+
 **New DFEs**:
 
+- Generic "uniform" DFE (:user:`petrelharp`, :pr:`1492`)
+
 - HomSap/LogNormal_H17 (:user:`RyanGutenkunst`, :pr:`1480`)
+  QC'd by :user:`clararehmann`, :pr:`1698`
 
 - HomSap/Mixed_K23 (:user:`chriscrsmith`, :pr:`1505`)
+  QC'd by :user:`clararehmann`, :pr:`1696`
 
 - PhoSin/Gamma_R22 (:user:`igronau`, :pr:`1547`)
   QC'd by :user:`ckyriazis`, :pr:`1560`
 
-- Generic "uniform" DFE (:user:`petrelharp`, :pr:`1492`)
+- AraTha/Gamma_H18 (:user:`chriscrsmith`, :pr:`1324`)
+  QC'd by :user:`clararehmann`, :pr:`1647`
+
+- HomSap/GammaPos_H17 and DroMel/GammaPos_Z21 (:user:`petrelharp`, :pr:`1656`)
+  QC'd by :user:`clararehmann`, :pr:`1694` & :pr:`1695`
+
 
 **New demographic models**:
 
@@ -77,14 +133,38 @@
   QC'd by :user:`igronau`, :pr:`1531`
 
 - OrySat/BottleneckMigration_3C07 (:user:`ornobalam`, :pr:`1453`)
-  QC'd by :user:`petrelharp`, :pr:`1524`
+  QC'd by :user:`minesrebollo`, :pr:`1466` and :user:`petrelharp`, :pr:`1524`
 
 - PhoSin/Vaquita2Epoch_1R22 (:user:`igronau`, :pr:`1526`)
   QC'd by :user:`ckyriazis`, :pr:`1538`
 
+- CanFam/EarlyWolfAdmixture_6F14 (:user:`agladstein`, :pr:`1632`)
+  QC'd by :user:`gregorgorjanc`, :pr:`1644`
+
+- BosTau/HolsteinFriesian_1B16, BosTau/Angus_1B16, BosTau/Fleckvieh_1B16, and
+  BosTau/Jersey_1B16 (:user:`gregorgorjanc`, :pr:`1593`)
+
 **New annotations**:
 
 - PhoSin exons and CDS (:user:`chriscrsmith`, :pr:`1520`)
+
+**New QCs**:
+
+- DroMel/Gamma_H17 (:user:`clararehmann`, :pr:`1668`)
+
+- DroMel/LognormalPlusPositive_R16 (:user:`clararehmann`, :pr:`1699`)
+
+- HomSap/Gamma_K17 (:user:`clararehmann`, :pr:`1687`).
+
+- MusMus/Gamma_B21 (:user:`clararehmann`, :pr:`1669`)
+
+
+---------------------
+[0.2.1a] - 2024-07-06
+---------------------
+
+This was the alpha release for 0.3.0 (before releasing, we decided to change
+the version number to 0.3.0).
 
 --------------------
 [0.2.0] - 2022-11-01
@@ -168,7 +248,7 @@ for simulating selection via SLiM.
 - AnoGam/GabonAg1000G_1A17 (:user:`andrewkern`, :pr:`856`).
   QC'd by :user:`petrelharp`, :pr:`1279`.
 
-- BosTau/HolsteinFriesian_1M13 (:user:`grahamgower`, :pr:`600`).
+- BosTau/HolsteinFriesian_1M13 (:user:`grahamgower` and :user:`iechevarriaz`, :pr:`558` and :pr:`600`).
   QC'd by :user:`igronau`, :pr:`1272`.
 
 - HomSap/OutOfAfricaExtendedNeandertalAdmixturePulse_3I21

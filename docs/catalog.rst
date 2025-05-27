@@ -14,11 +14,11 @@ your simulation.
 It is organised around a number of choices that you'll need to make about the
 :class:`.Species` you wish to simulate:
 
-1. Which **chromosome**? (ie. which :class:`.Genome` object?)
-2. Which **genetic map**? (ie. which :class:`.GeneticMap` object?)
-3. Which **model of demographic history**? (ie. which :class:`.DemographicModel` object)
-4. Which **distribution of fitness effects** (ie. which :class:`.DFE` object) within
-5. which **annotation track**? (ie. which :class:`.Annotation` object)
+1. Which **chromosome** (:class:`.Genome` object)?
+2. Which **recombination/genetic map** (:class:`.GeneticMap` object)?
+3. Which **model of demographic history** (:class:`.DemographicModel` object)?
+4. Which **distribution of fitness effects** (:class:`.DFE` object) within
+5. which **annotation track** (:class:`.Annotation` object)?
 
 For instance, suppose you are interested in simulating modern human samples of
 
@@ -75,6 +75,8 @@ Then, if you feel ready, make an issue on our
 
 .. speciescatalog:: GasAcu
 
+.. speciescatalog:: GorGor
+
 .. speciescatalog:: HelAnn
 
 .. speciescatalog:: HelMel
@@ -93,8 +95,11 @@ Then, if you feel ready, make an issue on our
 
 .. speciescatalog:: PonAbe
 
+.. speciescatalog:: RatNor
+
 .. speciescatalog:: StrAga
 
+.. speciescatalog:: SusScr
 
 Generic models
 ==============

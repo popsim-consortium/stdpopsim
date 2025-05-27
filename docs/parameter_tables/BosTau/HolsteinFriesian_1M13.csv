@@ -25,3 +25,4 @@ Time (gen.),"6",Begining of 11th time interval
 Time (gen.),"3",Begining of 12th time interval
 Generation time (yrs.),5,Generation time
 Mutation rate,9.4e-9,Per-base per-generation mutation rate
+Recombination rate,1.0e-0,Per-base per-generation recombination rate

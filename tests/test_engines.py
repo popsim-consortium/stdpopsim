@@ -1,6 +1,7 @@
 """
 Tests for simulation engine infrastructure.
 """
+
 import stdpopsim
 import msprime
 import pytest
@@ -86,7 +87,7 @@ class TestBehaviour:
     def test_msprime_kwargs(self):
         species = stdpopsim.get_species("HomSap")
         model = species.get_demographic_model("AshkSub_7G19")
-        contig = species.get_contig("chr22", length_multiplier=0.01)
+        contig = species.get_contig("chr22", right=5e5)
         samples = {"YRI": 5}
         engine = stdpopsim.get_engine("msprime")
         sim_arg = engine.simulate(
@@ -97,7 +98,7 @@ class TestBehaviour:
     def test_msprime_seed(self):
         species = stdpopsim.get_species("HomSap")
         model = species.get_demographic_model("AshkSub_7G19")
-        contig = species.get_contig("chr22", length_multiplier=0.01)
+        contig = species.get_contig("chr22", right=5e5)
         samples = {"YRI": 5}
         engine = stdpopsim.get_engine("msprime")
         with pytest.raises(ValueError):
