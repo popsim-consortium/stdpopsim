@@ -48,7 +48,7 @@ def _pop1_almond():
             )
         ],
         generation_time=10,
-        mutation_rate=1e-8 ,
+        mutation_rate=1e-10 ,
         demographic_events=demographic_events,
         population_configurations=[
             msprime.PopulationConfiguration(
