@@ -58,7 +58,7 @@ def _pop1_almond():
     ]
 
     return stdpopsim.DemographicModel(
-        id="Almonds_5_indv",
+        id="AlmondHist_1V16",
         description="Prunus_dulcis_population",
         long_description="""
             This model comes from MSMC using five
