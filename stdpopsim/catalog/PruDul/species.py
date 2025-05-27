@@ -10,8 +10,7 @@ _recombination_rate = {"1": 1.97036e-8, "2": 1.51361e-8, "3": 1.886e-8,
                           "7": 2.61388e-8,
                            "8": 2.11591e-8,
                            "MT": 0,
-                           "Pt": 0,
-                           "Test":1.97036e-8}
+                           "Pt": 0}
 
 # Generic and chromosome-specific ploidy
 _species_ploidy = 2
@@ -25,8 +24,7 @@ _ploidy = {
     "7": _species_ploidy,
     "8": _species_ploidy,
     "MT": 1,
-    "Pt":1,
-    "Test":_species_ploidy
+    "Pt":1
 }
 
 
@@ -48,13 +46,15 @@ _CastaneraEtAl = stdpopsim.Citation(
         stdpopsim.CiteReason.ASSEMBLY
     },
 )
-# _MasGomezEtAl = stdpopsim.Citation(
-#     doi="https://doi.org/10.3389/fpls.2023.1165847", #Real doi is pending
-#     year=2023,
-#     author="Mas-Gomez et al.",
-#     reasons={
-#         stdpopsim.CiteReason.REC_RATE
-#     }),
+_MasGomezEtAl = stdpopsim.Citation(
+    doi="", #doi is pending: Integration of Linkage Mapping, QTL Analysis, RNA-Seq Data,
+     # and Genome-Wide Association Studies (GWAS) to Explore Relative Flowering Traits in Almond (Prunus dulcis Mill. D.A. Webb)
+     # Accepted 04/23/2025 Horticultural Plant Journal
+    year=2025,
+    author="Mas-Gomez et al.",
+    reasons={
+        stdpopsim.CiteReason.REC_RATE
+    }),
 _DAmico_WillmanEtal = stdpopsim.Citation(
     doi="https://doi.org/10.1093/g3journal/jkac065",
     year=2022,
@@ -73,7 +73,7 @@ _WangEtal = stdpopsim.Citation(
 )
 
 
-_overall_rate = 1e-10  # per generation, from Velasco et al. 2016
+_overall_rate = 10e-8  # per generation, from Velasco et al. 2016
 _mutation_rate = {
     "1": _overall_rate,
     "2": _overall_rate,
@@ -84,8 +84,7 @@ _mutation_rate = {
     "7": _overall_rate,
     "8": _overall_rate,
     "MT": _overall_rate,
-    "Pt":_overall_rate,
-    "Test":_overall_rate
+    "Pt":_overall_rate
 }
 
 
