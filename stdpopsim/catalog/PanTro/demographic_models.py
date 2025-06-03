@@ -29,7 +29,7 @@ def _bonobo_ghost():
         modelled as a 1.7% pulse from the ghost lineage to bonobos.
         Migration events among western chimpanzees, central chimpanzees,
         and bonobos are modelled as single generation pulses.
-        Populatio size changes are also modelled.
+        Population size changes are also modelled.
     """
 
     populations = [
