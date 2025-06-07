@@ -253,7 +253,7 @@ def _RodriguesDFE():
         description=description,
         long_description=long_description,
         mutation_types=[neutral, negative, positive],
-        proportions=[neutral_prop, prop_pos, prop_neg],
+        proportions=[neutral_prop, prop_neg, prop_pos],
         citations=citations,
     )
 

@@ -2,6 +2,11 @@
 Upcoming
 --------
 
+**Bug fixes**:
+
+- The 'positive' and 'negative' proportions were swapped in the PosNeg_R24 DFE.
+    (:user:`bhaller`, :user:`petrelharp`, :pr:`1736`)
+
 --------------------
 [0.3.0] - 2025-03-18
 --------------------
