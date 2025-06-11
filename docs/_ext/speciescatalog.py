@@ -6,6 +6,12 @@ http://www.sphinx-doc.org/en/master/extdev/index.html#dev-extensions
 
 This is based on the todo tutorial:
 http://www.sphinx-doc.org/en/master/development/tutorials/todo.html
+
+Tip: one way to figure out how to add a particular type of element
+using docutils.nodes is to look at the docutils docs:
+https://docutils.sourceforge.io/docs/ref/doctree.html
+for the element type you want, and then see if docutils.nodes
+has a constructor method for that type.
 """
 
 import csv
@@ -412,6 +418,11 @@ class SpeciesCatalogDirective(SphinxDirective):
         section = nodes.section(ids=[mid])
         section += nodes.title(text=model.description)
         section += nodes.paragraph(text=model.long_description)
+        if model.qc_model is None:
+            msg = "This model has not undergone QC."
+            field = nodes.warning()
+            field += nodes.paragraph(text=msg)
+            section += field
         section += nodes.rubric(text="Details")
         section += self.model_summary(model)
         section += nodes.rubric(text="Populations")
@@ -518,6 +529,11 @@ class SpeciesCatalogDirective(SphinxDirective):
         section += nodes.title(text=dfe.id)
         section += nodes.paragraph(text=dfe.description)
         section += nodes.paragraph(text=dfe.long_description)
+        if dfe.qc_dfe is None:
+            msg = "This DFE has not undergone QC."
+            field = nodes.warning()
+            field += nodes.paragraph(text=msg)
+            section += field
         section += nodes.rubric(text="Citations")
         section += self.citation_list(dfe)
         section += nodes.rubric(text="DFE parameters")
