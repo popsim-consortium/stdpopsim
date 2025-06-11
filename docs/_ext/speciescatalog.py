@@ -116,7 +116,7 @@ class SpeciesCatalogDirective(SphinxDirective):
         ]
         return self.make_field_list(data)
 
-    def citation_list(self, citable):
+    def citation_list(self, citable, reasons=False):
         bullet_list = nodes.bullet_list()
         for citation in citable.citations:
             list_item = nodes.list_item()
@@ -125,6 +125,10 @@ class SpeciesCatalogDirective(SphinxDirective):
             para += nodes.reference(
                 internal=False, refuri=citation.doi, text=citation.doi
             )
+            if reasons:
+                para += nodes.paragraph(
+                    text="(" + ", ".join(citation.reasons) + ")",
+                )
             list_item += para
             bullet_list += list_item
         return bullet_list
@@ -705,7 +709,11 @@ class SpeciesCatalogDirective(SphinxDirective):
                 (
                     "Genome assembly name",
                     species.genome.assembly_name,
-                    None,
+                    [
+                        citation
+                        for citation in species.genome.citations
+                        if stdpopsim.CiteReason.ASSEMBLY in citation.reasons
+                    ],
                 )
             ]
         )
@@ -739,6 +747,8 @@ class SpeciesCatalogDirective(SphinxDirective):
             text="Mutation and recombination rates "
             "are in units of per bp and per generation."
         )
+        genome_section += nodes.rubric(text="Citations")
+        genome_section += self.citation_list(species.genome, reasons=True)
         section += genome_section
         section += nodes.transition()
         # genetic maps:
