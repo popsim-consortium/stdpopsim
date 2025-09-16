@@ -21,8 +21,8 @@ pyslim>=1.0.4
 numpy
 scikit-allel
 biopython
-demes==0.2.0
-demesdraw==0.2.0
+demes==0.2.3
+demesdraw==0.4.0
 boto3
 kastore
 scipy
