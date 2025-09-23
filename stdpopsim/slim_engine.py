@@ -175,7 +175,7 @@ function (void)end(void) {
 
 // Add `mut_type` mutation at `pos`, to a single individual in `pop`.
 function (void)add_mut(object$ mut_type, object$ pop, integer$ pos) {
-   targets = sample(pop.genomes, 1);
+   targets = sample(pop.haplosomes, 1);
    targets.addNewDrawnMutation(mut_type, pos);
 }
 
