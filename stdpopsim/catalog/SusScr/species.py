@@ -9,12 +9,14 @@ _ZhangEtAl = stdpopsim.Citation(
     year=2022,
     author="Zhang et al.",
     reasons={
-        stdpopsim.CiteReason.MUT_RATE,  # on page 1042
+        # stdpopsim.CiteReason.MUT_RATE,  # on page 1042
+        # (based on a pedigree with 9 individuals)
         stdpopsim.CiteReason.POP_SIZE,  # on page 1048
     },
 )
 
-# Generation time in wild boar
+# Influence of harvesting pressure on demographic tactics: implications
+# for wildlife management
 _ServantyEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1111/j.1365-2664.2011.02017.x",
     year=2011,
@@ -33,6 +35,9 @@ _JohnssonEtAl = stdpopsim.Citation(
     # in Additional file 4: Table S3 (sex-averaged)
     # Additional file 2: Table S1 holds   male-specific values
     # Additional file 3: Table S2 holds female-specific values
+    # (based on multigenerational pedigrees from 9 populations,
+    # total 145,763 informative individuals, and
+    # up to 80K SNP array genotypes)
 )
 
 # An improved pig reference genome sequence to enable pig genetics and
@@ -44,6 +49,16 @@ _WarrEtAl = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
 
+# Estimating mutation rate and characterising single nucleotide de novo
+# mutations in pigs
+_RochusEtAl = stdpopsim.Citation(
+    doi="https://doi.org/10.1186/s12711-025-00967-1",
+    year=2025,
+    author="Rochus et al.",
+    reasons={stdpopsim.CiteReason.MUT_RATE},  # Table 1, page 4, also page 5
+    # (based on 46 trios from two populations)
+)
+
 # Ploidy - pig is diploid with XY sex chromosome system and has MT
 _ploidy = 2
 _ploidy_contig = {str(i): _ploidy for i in range(1, 19)}
@@ -51,9 +66,9 @@ _ploidy_contig["X"] = _ploidy
 _ploidy_contig["Y"] = 1
 _ploidy_contig["MT"] = 1
 
-# De-novo mutation rate
-# from Zhang et al. (2022) on page 1042
-_mutation_rate = 3.6e-9
+# De-novo mutation rate per site per generation
+# from Rochus et al. (2025) Table 1, page 4, also page 5
+_mutation_rate = 6.3e-9
 _mutation_rate_contig = {str(i): _mutation_rate for i in range(1, 19)}
 _mutation_rate_contig["X"] = _mutation_rate
 _mutation_rate_contig["Y"] = _mutation_rate
@@ -105,7 +120,7 @@ _genome = stdpopsim.Genome.from_data(
     citations=[
         _WarrEtAl,  # ASSEMBLY
         _JohnssonEtAl,  # REC_RATE
-        _ZhangEtAl,  # MUT_RATE
+        _RochusEtAl,  # MUT_RATE
     ],
 )
 
@@ -120,7 +135,8 @@ _species = stdpopsim.Species(
     # "We Calculated generation time as the inverse of the relative elasticity of
     # the population growth rate to a change in all recruitment parameters."
     # For comparison, Groenen et al. (2012, 10.1038/nature11622) used a best guess
-    # of 5 years (supplement page 56) and this value is cited very often.
+    # of 5 years (supplement page 56) and this value is cited very often
+    # (e.g., Wang et al., 2025, 10.1016/j.xgen.2025.100954).
     # To improve upon this best guess, Zhang et al. (2022) assumed a generation time
     # of 3 years, as the age of parents at the first litter, but pigs have
     # multiple parities in their lifetime, so 3 years must be an underestimate.
