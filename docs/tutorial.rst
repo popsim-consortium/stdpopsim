@@ -1302,14 +1302,14 @@ First, we need to add the site at which the selected mutation will occur.  This
 is like adding a DFE, except to a single site -- we're saying that there is a
 potential mutation at a particular site with defined fitness consequences. So
 that we can refer to the single site later, we give it a unique string ID.
-Here, we'll add the site in the middle of the contig with ID "hard sweep",
+Here, we'll add the site in the middle of the accessible portion of the contig with ID "hard sweep",
 so named because we will imagine this beneficial mutation originates at
 frequency :math:`1 / 2N`.
 
 .. code-block:: python
 
     locus_id = "hard sweep"
-    coordinate = round(contig.length / 2)
+    coordinate = 5e5
     contig.add_single_site(
         id=locus_id,
         coordinate=coordinate,
