@@ -11,6 +11,7 @@ _ZhangEtAl = stdpopsim.Citation(
     reasons={
         # stdpopsim.CiteReason.MUT_RATE,  # on page 1042
         # (based on a pedigree with 9 individuals)
+        # replaced by the more recent citation _RochusEtAl
         stdpopsim.CiteReason.POP_SIZE,  # on page 1048
     },
 )
