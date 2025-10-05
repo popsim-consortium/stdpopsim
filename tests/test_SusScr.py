@@ -77,32 +77,33 @@ class TestGenomeData(test_species.GenomeTestBase):
             self.genome.get_chromosome(name).recombination_rate
         )
 
-    # De-novo mutation rate (Zhang et al., 2022: page 1042)
-    # https://doi.org/10.1016/j.gpb.2022.02.001
+    # De-novo mutation rate per site per generation
+    # (Rochus et al., 2025: Table 1, page 4, also page 5)
+    # https://doi.org/10.1186/s12711-025-00967-1
     @pytest.mark.parametrize(
         ["name", "rate"],
         {
-            "1": 3.6e-9,
-            "2": 3.6e-9,
-            "3": 3.6e-9,
-            "4": 3.6e-9,
-            "5": 3.6e-9,
-            "6": 3.6e-9,
-            "7": 3.6e-9,
-            "8": 3.6e-9,
-            "9": 3.6e-9,
-            "10": 3.6e-9,
-            "11": 3.6e-9,
-            "12": 3.6e-9,
-            "13": 3.6e-9,
-            "14": 3.6e-9,
-            "15": 3.6e-9,
-            "16": 3.6e-9,
-            "17": 3.6e-9,
-            "18": 3.6e-9,
-            "X": 3.6e-9,
-            "Y": 3.6e-9,
-            "MT": 3.6e-9,
+            "1": 6.3e-9,
+            "2": 6.3e-9,
+            "3": 6.3e-9,
+            "4": 6.3e-9,
+            "5": 6.3e-9,
+            "6": 6.3e-9,
+            "7": 6.3e-9,
+            "8": 6.3e-9,
+            "9": 6.3e-9,
+            "10": 6.3e-9,
+            "11": 6.3e-9,
+            "12": 6.3e-9,
+            "13": 6.3e-9,
+            "14": 6.3e-9,
+            "15": 6.3e-9,
+            "16": 6.3e-9,
+            "17": 6.3e-9,
+            "18": 6.3e-9,
+            "X": 6.3e-9,
+            "Y": 6.3e-9,
+            "MT": 6.3e-9,
         }.items(),
     )
     def test_mutation_rate(self, name, rate):
