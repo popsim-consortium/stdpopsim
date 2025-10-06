@@ -62,7 +62,7 @@ _MasGomezEtAl = (
         doi="https://doi.org/10.1016/j.hpj.2025.04.013",
         year=2025,
         author="Mas-Gomez et al.",
-        reasons={stdpopsim.CiteReason.REC_RATE},
+        reasons={stdpopsim.CiteReason.REC_RATE},  # Table 1
     ),
 )
 # Whole-genome sequence and methylome profiling of the almond
