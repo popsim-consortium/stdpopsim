@@ -3,17 +3,17 @@ import stdpopsim
 from . import genome_data
 
 # Recombination rates
-# From linkage map in Map-Gomez et al. (2025) Table 1
+# From linkage map in Mas-Gomez et al. (2025) Table 1
 # (divided the genetic length per chromosome in cM with physical length)
 _recombination_rate = {
-    "1": 1.97036e-8,
-    "2": 1.51361e-8,
-    "3": 1.886e-8,
-    "4": 2.22347e-8,
-    "5": 2.54212e-8,
-    "6": 1.9829e-8,
-    "7": 2.61388e-8,
-    "8": 2.11591e-8,
+    "1": 1.97e-8,
+    "2": 1.51e-8,
+    "3": 1.89e-8,
+    "4": 2.22e-8,
+    "5": 2.54e-8,
+    "6": 1.98e-8,
+    "7": 2.61e-8,
+    "8": 2.12e-8,
     "MT": 0,
     "Pt": 0,
 }
@@ -105,7 +105,7 @@ _genome = stdpopsim.Genome.from_data(
     ploidy=_ploidy,
     citations=[
         _VelascoEtAl,  # MUT_RATE
-        _MasGomezEtal,  # REC_RATE
+        _MasGomezEtAl,  # REC_RATE
         _CastaneraEtAl,  # ASSEMBLY
         _DAmicoWillmanEtal,  # ASSEMBLY
         _WangEtal,  # ASSEMBLY
@@ -121,7 +121,7 @@ _species = stdpopsim.Species(
     genome=_genome,
     generation_time=10,  # Velasco et al. (2016), page 3987
     ploidy=_species_ploidy,
-    population_size=TODO,  # Velasco et al. (2016), Figure S8, page 3987-8
+    population_size=216627,  # Velasco et al. (2016), Figure S8, page 3987-8
     citations=[
         _VelascoEtAl,  # GEN_TIME, POP_SIZE
     ],
