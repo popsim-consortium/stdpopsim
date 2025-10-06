@@ -65,7 +65,9 @@ _MasGomezEtAl = (
         reasons={stdpopsim.CiteReason.REC_RATE},
     ),
 )
-_DAmico_WillmanEtal = stdpopsim.Citation(
+# Whole-genome sequence and methylome profiling of the almond
+# [Prunus dulcis (Mill.) D.A. Webb] cultivar ‘Nonpareil’
+_DAmicoWillmanEtal = stdpopsim.Citation(
     doi="https://doi.org/10.1093/g3journal/jkac065",
     year=2022,
     author="D'Amico-Willman et al.",
