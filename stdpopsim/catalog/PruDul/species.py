@@ -118,11 +118,8 @@ _species = stdpopsim.Species(
     # the estimated population size from the plot of Velasco et al. 2016
     population_size=200,
     citations=[
-        _VelascoEtAl,
-        _CastaneraEtAl,
-        _DAmico_WillmanEtal,
-        _WangEtal,
-    ],  # _MasGomezEtAl,
+        _VelascoEtAl,  # GEN_TIME, POP_SIZE
+    ],
 )
 
 stdpopsim.register_species(_species)
