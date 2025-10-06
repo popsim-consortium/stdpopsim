@@ -28,4 +28,4 @@ Time (yrs.),26655,Begining of 12th time interval
 Time (yrs.),22074,Begining of 13th time interval
 Time (yrs.),14440,Begining of 14th time interval
 Generation time (yrs.),10,Average generation interval
-Mutation rate,10e-8,Per-base per-generation mutation rate
+Mutation rate,1e-8,Per-base per-generation mutation rate
