@@ -73,6 +73,8 @@ _DAmicoWillmanEtal = stdpopsim.Citation(
     author="D'Amico-Willman et al.",
     reasons={stdpopsim.CiteReason.ASSEMBLY},  # mitochondrial
 )
+# Comparative and Phylogenetic Analyses of the Complete Chloroplast
+# Genomes of Six Almond Species (Prunus spp. L.)
 _WangEtal = stdpopsim.Citation(
     doi="https://doi.org/10.1038/s41598-020-67264-3",
     year=2020,
