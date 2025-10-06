@@ -103,7 +103,13 @@ _genome = stdpopsim.Genome.from_data(
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
     ploidy=_ploidy,
-    citations=[_VelascoEtAl, _CastaneraEtAl],
+    citations=[
+        _VelascoEtAl,  # MUT_RATE
+        _MasGomezEtal,  # REC_RATE
+        _CastaneraEtAl,  # ASSEMBLY
+        _DAmicoWillmanEtal,  # ASSEMBLY
+        _WangEtal,  # ASSEMBLY
+    ],
 )
 stdpopsim.utils.append_common_synonyms(_genome)
 
