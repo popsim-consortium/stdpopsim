@@ -54,6 +54,9 @@ _CastaneraEtAl = stdpopsim.Citation(
     author="Castanera et al.",
     reasons={stdpopsim.CiteReason.ASSEMBLY},
 )
+# Integration of linkage mapping, QTL analysis, RNA-Seq data, and
+# Genome-Wide Association Studies (GWAS) to explore relative
+# flowering traits in almond
 _MasGomezEtAl = (
     stdpopsim.Citation(
         doi="https://doi.org/10.1016/j.hpj.2025.04.013",
