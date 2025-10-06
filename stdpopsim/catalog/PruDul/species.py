@@ -113,7 +113,7 @@ _species = stdpopsim.Species(
     name="Prunus dulcis",
     common_name="Prunus dulcis",
     genome=_genome,
-    generation_time=10,
+    generation_time=10,  # Velasco et al. (2016), page 3987
     ploidy=_species_ploidy,
     # the estimated population size from the plot of Velasco et al. 2016
     population_size=200,
