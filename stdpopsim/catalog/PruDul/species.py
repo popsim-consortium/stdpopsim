@@ -2,7 +2,9 @@ import stdpopsim
 
 from . import genome_data
 
-# These are in MasGomezEtAl
+# Recombination rates
+# From linkage map in Map-Gomez et al. (2025) Table 1
+# (divided the genetic length per chromosome in cM with physical length)
 _recombination_rate = {
     "1": 1.97036e-8,
     "2": 1.51361e-8,
