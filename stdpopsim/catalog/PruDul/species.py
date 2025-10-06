@@ -121,8 +121,7 @@ _species = stdpopsim.Species(
     genome=_genome,
     generation_time=10,  # Velasco et al. (2016), page 3987
     ploidy=_species_ploidy,
-    # the estimated population size from the plot of Velasco et al. 2016
-    population_size=200,
+    population_size=TODO,  # Velasco et al. (2016), Figure S8, page 3987-8
     citations=[
         _VelascoEtAl,  # GEN_TIME, POP_SIZE
     ],
