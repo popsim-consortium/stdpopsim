@@ -73,7 +73,7 @@ _WangEtal = stdpopsim.Citation(
 )
 
 
-_overall_rate = 10e-8  # per generation, from Velasco et al. 2016
+_overall_rate = 1e-8  # per generation, Velasco et al. (2016), page 3987
 _mutation_rate = {
     "1": _overall_rate,
     "2": _overall_rate,
