@@ -40,7 +40,7 @@ _VelascoEtAl = stdpopsim.Citation(
     year=2016,
     author="Velasco et al.",
     reasons={
-        stdpopsim.CiteReason.GEN_TIME,
+        stdpopsim.CiteReason.GEN_TIME,  # page 3987
         stdpopsim.CiteReason.POP_SIZE,
         stdpopsim.CiteReason.MUT_RATE,
     },
