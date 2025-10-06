@@ -42,7 +42,7 @@ _VelascoEtAl = stdpopsim.Citation(
     reasons={
         stdpopsim.CiteReason.GEN_TIME,  # page 3987
         stdpopsim.CiteReason.POP_SIZE,
-        stdpopsim.CiteReason.MUT_RATE,
+        stdpopsim.CiteReason.MUT_RATE,  # page 3987
     },
 )
 _CastaneraEtAl = stdpopsim.Citation(
