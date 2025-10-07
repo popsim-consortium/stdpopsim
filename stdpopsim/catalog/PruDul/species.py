@@ -58,10 +58,10 @@ _CastaneraEtAl = stdpopsim.Citation(
 # Genome-Wide Association Studies (GWAS) to explore relative
 # flowering traits in almond
 _MasGomezEtAl = stdpopsim.Citation(
-        doi="https://doi.org/10.1016/j.hpj.2025.04.013",
-        year=2025,
-        author="Mas-Gomez et al.",
-        reasons={stdpopsim.CiteReason.REC_RATE},  # Table 1
+    doi="https://doi.org/10.1016/j.hpj.2025.04.013",
+    year=2025,
+    author="Mas-Gomez et al.",
+    reasons={stdpopsim.CiteReason.REC_RATE},  # Table 1
 )
 
 # Whole-genome sequence and methylome profiling of the almond
