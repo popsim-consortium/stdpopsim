@@ -1,31 +1,31 @@
-Population size,133409,Ancestral population size
-Population size,133409,Pop. size during 1st time interval
-Population size,116879,Pop. size during 2nd time interval
-Population size,98724,Pop. size during 3rd time interval
-Population size,83878,Pop. size during 4th time interval
-Population size,69583,Pop. size during 5th time interval
-Population size,57496,Pop. size during 6th time interval
-Population size,47616,Pop. size during 7th time interval
-Population size,44353,Pop. size during 8th time interval
-Population size,45483,Pop. size during 9th time interval
-Population size,49918,Pop. size during 10th time interval
-Population size,65380,Pop. size during 11th time interval
-Population size,110605,Pop. size during 12th time interval
-Population size,219758,Pop. size during 13th time interval
-Population size,216523,Pop. size during 14th time interval
-Time (yrs.),51888,Begining of 1st time interval
-Time (yrs.),49959,Begining of 2nd time interval
-Time (yrs.),47950,Begining of 3rd time interval
-Time (yrs.),45861,Begining of 4th time interval
-Time (yrs.),43611,Begining of 5th time interval
-Time (yrs.),41120,Begining of 6th time interval
-Time (yrs.),38307,Begining of 7th time interval
-Time (yrs.),36700,Begining of 8th time interval
-Time (yrs.),34771,Begining of 9th time interval
-Time (yrs.),32601,Begining of 10th time interval
-Time (yrs.),29949,Begining of 11th time interval
-Time (yrs.),26655,Begining of 12th time interval
-Time (yrs.),22074,Begining of 13th time interval
-Time (yrs.),14440,Begining of 14th time interval
+Population size,134679,Ancestral population size
+Population size,134679,Pop. size during 1st time interval
+Population size,117577,Pop. size during 2nd time interval
+Population size,100475,Pop. size during 3rd time interval
+Population size,84798,Pop. size during 4th time interval
+Population size,70546,Pop. size during 5th time interval
+Population size,58432,Pop. size during 6th time interval
+Population size,49168,Pop. size during 7th time interval
+Population size,43467,Pop. size during 8th time interval
+Population size,44180,Pop. size during 9th time interval
+Population size,49881,Pop. size during 10th time interval
+Population size,66270,Pop. size during 11th time interval
+Population size,111163,Pop. size during 12th time interval
+Population size,220902,Pop. size during 13th time interval
+Population size,216627,Pop. size during 14th time interval
+Time (yrs.),59366,Begining of 1st time interval
+Time (yrs.),49651,Begining of 2nd time interval
+Time (yrs.),41325,Begining of 3rd time interval
+Time (yrs.),34063,Begining of 4th time interval
+Time (yrs.),27673,Begining of 5th time interval
+Time (yrs.),21943,Begining of 6th time interval
+Time (yrs.),16819,Begining of 7th time interval
+Time (yrs.),14409,Begining of 8th time interval
+Time (yrs.),12047,Begining of 9th time interval
+Time (yrs.),9879,Begining of 10th time interval
+Time (yrs.),7754,Begining of 11th time interval
+Time (yrs.),5685,Begining of 12th time interval
+Time (yrs.),3726,Begining of 13th time interval
+Time (yrs.),1821,Begining of 14th time interval
 Generation time (yrs.),10,Average generation interval
-Mutation rate,1e-8,Per-base per-generation mutation rate
+Mutation rate,1.00E-08,Per-base per-generation mutation rate
