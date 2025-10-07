@@ -57,14 +57,13 @@ _CastaneraEtAl = stdpopsim.Citation(
 # Integration of linkage mapping, QTL analysis, RNA-Seq data, and
 # Genome-Wide Association Studies (GWAS) to explore relative
 # flowering traits in almond
-_MasGomezEtAl = (
-    stdpopsim.Citation(
+_MasGomezEtAl = stdpopsim.Citation(
         doi="https://doi.org/10.1016/j.hpj.2025.04.013",
         year=2025,
         author="Mas-Gomez et al.",
         reasons={stdpopsim.CiteReason.REC_RATE},  # Table 1
-    ),
-)
+    )
+
 # Whole-genome sequence and methylome profiling of the almond
 # [Prunus dulcis (Mill.) D.A. Webb] cultivar ‘Nonpareil’
 _DAmicoWillmanEtal = stdpopsim.Citation(
