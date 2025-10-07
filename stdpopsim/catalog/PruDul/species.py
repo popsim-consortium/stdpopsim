@@ -70,17 +70,8 @@ _DAmicoWillmanEtal = stdpopsim.Citation(
     doi="https://doi.org/10.1093/g3journal/jkac065",
     year=2022,
     author="D'Amico-Willman et al.",
-    reasons={stdpopsim.CiteReason.ASSEMBLY},  # mitochondrial
+    reasons={stdpopsim.CiteReason.ASSEMBLY},  # mitochondrial and chloroplast
 )
-# Comparative and Phylogenetic Analyses of the Complete Chloroplast
-# Genomes of Six Almond Species (Prunus spp. L.)
-_WangEtal = stdpopsim.Citation(
-    doi="https://doi.org/10.1038/s41598-020-67264-3",
-    year=2020,
-    author="Wang et al.",
-    reasons={stdpopsim.CiteReason.ASSEMBLY},  # chloroplast
-)
-
 
 _overall_rate = 1e-8  # per generation, Velasco et al. (2016), page 3987
 _mutation_rate = {
@@ -107,7 +98,6 @@ _genome = stdpopsim.Genome.from_data(
         _MasGomezEtAl,  # REC_RATE
         _CastaneraEtAl,  # ASSEMBLY
         _DAmicoWillmanEtal,  # ASSEMBLY
-        _WangEtal,  # ASSEMBLY
     ],
 )
 stdpopsim.utils.append_common_synonyms(_genome)
