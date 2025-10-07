@@ -62,7 +62,7 @@ _MasGomezEtAl = stdpopsim.Citation(
         year=2025,
         author="Mas-Gomez et al.",
         reasons={stdpopsim.CiteReason.REC_RATE},  # Table 1
-    )
+)
 
 # Whole-genome sequence and methylome profiling of the almond
 # [Prunus dulcis (Mill.) D.A. Webb] cultivar ‘Nonpareil’
