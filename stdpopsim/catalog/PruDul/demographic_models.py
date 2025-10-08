@@ -66,6 +66,8 @@ def _pop1_almond():
               Iran, Pakistan and Italy.
             The model is estimated with 14 time periods.
             depiction of the model can be found in Figure S8a of the paper.
+            Data points for population size over time were
+            obtained by digitizing line plot Figure S8a.
         """,
         populations=populations,
         citations=[
