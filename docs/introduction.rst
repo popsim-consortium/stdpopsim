@@ -100,7 +100,7 @@ If you use ``stdpopsim`` in your work, please cite our
     Ryan N Gutenkunst, Jerome Kelleher, Kirk E Lohmueller, Daniel R Schrider,
     Peter L Ralph, Andrew D Kern
     *Accessible, realistic genome simulation with selection using stdpopsim*,
-    bioRxiv 2025.03.23.644823; doi: https://doi.org/10.1101/2025.03.23.644823
+    Molecular Biology and Evolution msaf236; doi: https://doi.org/10.1093/molbev/msaf236
 
 Bibtex entries for these manuscripts are::
 
@@ -164,10 +164,10 @@ Bibtex entries for these manuscripts are::
             Gutenkunst, Ryan N and Kelleher, Jerome and Lohmueller, Kirk E and Schrider, Daniel R and
             Ralph, Peter L and Kern, Andrew D},
         year = {2025},
-        doi = {10.1101/2025.03.23.644823},
-        publisher = {Cold Spring Harbor Laboratory},
-        URL = {https://www.biorxiv.org/content/early/2025/03/23/2025.03.23.644823},
-        journal = {bioRxiv}
+        pages = {msaf236},
+        doi = {10.1093/molbev/msaf236},
+        URL = {https://doi.org/10.1093/molbev/msaf236},
+        journal = {Molecular Biology and Evolution}
     }
 
 
