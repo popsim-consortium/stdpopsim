@@ -127,6 +127,7 @@ _species = stdpopsim.Species(
     ensembl_id="homo_sapiens",
     name="Homo sapiens",
     common_name="Human",
+    separate_sexes=True,
     genome=_genome,
     generation_time=30,
     population_size=10**4,

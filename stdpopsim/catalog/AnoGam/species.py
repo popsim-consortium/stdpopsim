@@ -99,6 +99,7 @@ _species = stdpopsim.Species(
     ensembl_id="anopheles_gambiae",
     name="Anopheles gambiae",
     common_name="Anopheles gambiae",
+    separate_sexes=True,
     genome=_genome,
     generation_time=1 / 11,
     # based on theta = 4 Ne u in Gabon population, rounded

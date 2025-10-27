@@ -257,6 +257,12 @@ class Contig:
     and ``interval_list``. These must be of the same length, and the k-th DFE
     applies to the k-th interval; see :meth:`.add_dfe` for more information.
 
+    One attribute of the Contig is ``species``, which is necessary to pass
+    on aspects of life history important for simulation. However, generic
+    contigs not associated with any specific species can be created, in
+    which case a default ``species`` will be assigned (see
+    ``contig.species`` for defaults in this case).
+
     :ivar mutation_rate: The rate of mutation per base per generation.
     :vartype mutation_rate: float
     :ivar ploidy: The ploidy of the contig. Defaults to 2 (diploid).
@@ -304,6 +310,8 @@ class Contig:
         is assumed to be generic (i.e. it does not inherit a coordinate system
         from a larger chromosome).
     :vartype coordinates: tuple
+    :ivar species: The species this contig represents a portion of the genome of.
+    :vartype species: .Species
 
     .. note::
         To run stdpopsim simulations with alternative, user-specified mutation,
@@ -318,6 +326,7 @@ class Contig:
                 mutation_rate=old_contig.mutation_rate * 2,
                 recombination_map=old_contig.recombination_map,
                 genetic_map=old_contig.genetic_map,
+                species=old_contig.species,
             )
     """
 
@@ -333,6 +342,7 @@ class Contig:
     dfe_list = attr.ib(factory=list)
     interval_list = attr.ib(factory=list)
     coordinates = attr.ib(default=None, type=tuple)
+    species = attr.ib(default=None, kw_only=True)
 
     def __attrs_post_init__(self):
         if self.coordinates is None:
@@ -342,11 +352,21 @@ class Contig:
             np.array([[left, right]]),
             stdpopsim.dfe.neutral_dfe(),
         )
+        if self.species is None:
+            self.species = stdpopsim.species.Species(
+                id="default",
+                name="Generic default species",
+                common_name="Generic default species",
+                separate_sexes=False,
+                genome=None,
+                ensembl_id="none",
+            )
 
     @staticmethod
     def basic_contig(
         *,
         length,
+        species=None,
         mutation_rate=0,
         recombination_rate=0,
         ploidy=2,
@@ -391,6 +411,7 @@ class Contig:
             gene_conversion_fraction=gene_conversion_fraction,
             gene_conversion_length=gene_conversion_length,
             ploidy=ploidy,
+            species=species,
         )
 
     @staticmethod
@@ -498,6 +519,7 @@ class Contig:
                 gene_conversion_fraction=gene_conversion_fraction,
                 gene_conversion_length=gene_conversion_length,
                 ploidy=species.ploidy,
+                species=species,
             )
         else:
             # Named contig:
@@ -618,6 +640,7 @@ class Contig:
                 exclusion_mask=exclusion_intervals,
                 coordinates=(chromosome, left, right),
                 ploidy=ploidy,
+                species=species,
             )
 
         if contig.gene_conversion_length is not None:
@@ -866,7 +889,7 @@ class Contig:
             "recombination_rate={:.2G}, bacterial_recombination={}, "
             "gene_conversion_fraction={}, gene_conversion_length={}, "
             "genetic_map={}, origin={}, dfe_list={}, "
-            "interval_list={})"
+            "interval_list={}, species={})"
         ).format(
             self.length,
             self.mutation_rate,
@@ -878,5 +901,6 @@ class Contig:
             self.origin,
             self.dfe_list,
             self.interval_list,
+            self.species.id,
         )
         return s

@@ -130,6 +130,7 @@ _species = stdpopsim.Species(
     ensembl_id="phocoena_sinus",
     name="Phocoena sinus",
     common_name="Vaquita",
+    separate_sexes=True,
     genome=_genome,
     ploidy=_species_ploidy,
     ##########################

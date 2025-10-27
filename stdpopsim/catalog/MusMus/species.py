@@ -159,6 +159,7 @@ _species = stdpopsim.Species(
     ensembl_id="mus_musculus",
     name="Mus musculus",
     common_name="Mouse",
+    separate_sexes=True,
     genome=_genome,
     ploidy=_species_ploidy,
     generation_time=0.75,

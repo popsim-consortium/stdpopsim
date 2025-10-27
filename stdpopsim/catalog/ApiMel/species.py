@@ -155,6 +155,10 @@ _species = stdpopsim.Species(
     ensembl_id="apis_mellifera",
     name="Apis mellifera",
     common_name="Apis mellifera (DH4)",
+    # Drones are "flying gametes" and so at a rough level they
+    # act like a hermarphoditic population of queens; so this
+    # might be changed when implementing haplodiploidy.
+    separate_sexes=False,
     genome=_genome,
     generation_time=2,
     population_size=2e05,

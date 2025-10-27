@@ -133,6 +133,7 @@ _species = stdpopsim.Species(
     ensembl_id="rattus_norvegicus",
     name="Rattus norvegicus",
     common_name="Rat",
+    separate_sexes=True,
     genome=_genome,
     ploidy=_species_ploidy,
     # some notes on the generation time

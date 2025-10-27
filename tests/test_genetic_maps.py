@@ -68,6 +68,7 @@ class GeneticMapTestClass(stdpopsim.GeneticMap):
             name="Test species",
             common_name="Testy McTestface",
             genome=genome,
+            separate_sexes=True,
         )
         super().__init__(
             species=_species,

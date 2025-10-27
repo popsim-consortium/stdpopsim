@@ -428,6 +428,15 @@ class TestContig(object):
         contig = stdpopsim.Contig.basic_contig(length=1000)
         assert contig.ploidy == 2
 
+    def test_species_property_default(self):
+        contig = stdpopsim.Contig.basic_contig(length=1000)
+        assert contig.species.separate_sexes is False
+
+    def test_species_property(self):
+        species = stdpopsim.get_species("AnaPla")
+        contig = species.get_contig("chr2")
+        assert contig.species == species
+
 
 class TestGeneConversion(object):
     def test_mean_gene_conversion(self):
