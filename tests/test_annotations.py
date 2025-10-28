@@ -139,7 +139,8 @@ class TestAnnotationDownload(tests.CacheWritingTest):
 
     def test_incorrect_url(self):
         an = AnnotationTestClass()
-        an.intervals_url = "http://asdfwersdf.com/foozip"
+        # Use localhost with a port that won't be listening - fails fast without DNS
+        an.intervals_url = "http://localhost:0/foozip"
         with pytest.raises(OSError):
             an.download()
 
