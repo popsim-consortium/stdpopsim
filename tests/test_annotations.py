@@ -69,6 +69,7 @@ class AnnotationTestClass(stdpopsim.Annotation):
             name="Test species",
             common_name="Testy McTestface",
             genome=genome,
+            separate_sexes=False,
         )
         super().__init__(
             species=_species,

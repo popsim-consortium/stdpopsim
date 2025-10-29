@@ -24,6 +24,9 @@ class TestSpecies(test_species.SpeciesTestBase):
     def test_qc_generation_time(self):
         assert self.species.generation_time == 24.6
 
+    def test_separate_sexes(self):
+        assert self.species.separate_sexes is True
+
 
 class TestGenome(test_species.GenomeTestBase):
 

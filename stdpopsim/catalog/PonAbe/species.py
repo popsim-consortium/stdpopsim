@@ -127,6 +127,7 @@ _species = stdpopsim.Species(
     ensembl_id="pongo_abelii",
     name="Pongo abelii",
     common_name="Sumatran orangutan",
+    separate_sexes=True,
     genome=_genome,
     # generation time used by Nater et al., citing Wich et al.
     generation_time=25,

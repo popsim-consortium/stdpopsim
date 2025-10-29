@@ -114,6 +114,7 @@ _species = stdpopsim.Species(
     ensembl_id="sus_scrofa",
     name="Sus scrofa",
     common_name="Pig",
+    separate_sexes=True,
     genome=_genome,
     ploidy=_ploidy,
     # Servanty et al. (2011) on page 837 write:

@@ -105,6 +105,7 @@ _species = stdpopsim.Species(
     ensembl_id="chlamydomonas_reinhardtii",
     name="Chlamydomonas reinhardtii",
     common_name="Chlamydomonas reinhardtii",
+    separate_sexes=False,
     genome=_genome,
     generation_time=1 / 876,
     population_size=1.4 * 1e-7,

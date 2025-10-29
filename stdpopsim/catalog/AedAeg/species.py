@@ -80,6 +80,7 @@ _species = stdpopsim.Species(
     ensembl_id="aedes_aegypti_lvpagwg",
     name="Aedes aegypti",
     common_name="Yellow fever mosquito",
+    separate_sexes=True,
     genome=_genome,
     generation_time=1 / 15,
     ploidy=_species_ploidy,

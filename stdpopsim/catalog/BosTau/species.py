@@ -97,6 +97,7 @@ _species = stdpopsim.Species(
     ensembl_id="bos_taurus",
     name="Bos taurus",
     common_name="Cattle",
+    separate_sexes=True,
     genome=_genome,
     generation_time=5,
     population_size=62000,  # ancestral Ne in _MacLeodEtAl

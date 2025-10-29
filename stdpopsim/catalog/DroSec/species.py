@@ -98,6 +98,7 @@ _species = stdpopsim.Species(
     ensembl_id="drosophila_sechellia",
     name="Drosophila sechellia",
     common_name="Drosophila sechellia",
+    separate_sexes=True,
     genome=_genome,
     generation_time=0.05,
     population_size=100000,

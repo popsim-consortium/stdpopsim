@@ -17,6 +17,7 @@ class TestSpecies(test_species.SpeciesTestBase):
         # 20 minutes per generation
         generation_time = 1.0 / (525600 / 20)
         assert round(abs(self.species.generation_time - generation_time), 7) == 0
+        assert self.species.separate_sexes is False
 
 
 class TestGenome(test_species.GenomeTestBase):

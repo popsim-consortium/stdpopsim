@@ -104,6 +104,7 @@ _species = stdpopsim.Species(
     ensembl_id="helianthus_annuus",
     name="Helianthus annuus",
     common_name="Helianthus annuus",
+    separate_sexes=False,
     genome=_genome,
     generation_time=1.0,
     population_size=673968,

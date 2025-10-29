@@ -2893,8 +2893,9 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             selection_coeff=1000.0,  # so that mutation stays in non-source pop
             globally_adaptive=True,
         )
-        while True:
-            # The while loop is to avoid rare stochastic failure due to
+        seed = 876
+        for _ in range(10):
+            # The for loop is to avoid rare stochastic failure due to
             # mutation never migrating into the non-source population
             engine.simulate(
                 demographic_model=model,
@@ -2904,7 +2905,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
                 slim_burn_in=1,
                 logfile=logfile,
                 logfile_interval=1,
-                seed=876,
+                seed=seed,
             )
             p0_in_sweep, p0_outside_sweep, _ = self._fitness_per_generation(
                 logfile=logfile,
@@ -2915,6 +2916,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             # Mutation is in non-source pop at start of sweep
             if p0_in_sweep[0] > 1:
                 break
+            seed += 1
         p1_in_sweep, p1_outside_sweep, _ = self._fitness_per_generation(
             logfile=logfile,
             start_generation_ago=start_generation_ago,
@@ -3343,7 +3345,6 @@ class TestPloidy:
             individual = ts.tables.nodes.individual
             assert len(np.unique(individual[: ts.num_samples])) == ts.num_individuals
 
-    @pytest.mark.filterwarnings("ignore::stdpopsim.SLiMScalingFactorWarning")
     def test_haploidize_individuals(self):
         N = 100
         model = stdpopsim.PiecewiseConstantSize(N)
@@ -3357,3 +3358,33 @@ class TestPloidy:
             ind_i = ts.nodes_individual[i]
             ind_j = ts_hap.nodes_individual[j]
             assert ts.tables.individuals[ind_i] == ts_hap.tables.individuals[ind_j]
+
+
+class TestSpeciesProperties:
+
+    def test_separate_sexes(self):
+        N = 100
+        model = stdpopsim.PiecewiseConstantSize(N)
+        engine = stdpopsim.get_engine("slim")
+        for sp, ans in [("HomSap", True), ("AraTha", False)]:
+            species = stdpopsim.get_species(sp)
+            contig = species.get_contig("chr1", left=1e7, right=1e7 + 1e4)
+            ts = engine.simulate(model, contig, samples={"pop_0": 3}, seed=7)
+            assert ts.metadata["SLiM"]["separate_sexes"] is ans
+
+    def test_separate_sexes_default(self):
+        N = 100
+        model = stdpopsim.PiecewiseConstantSize(N)
+        engine = stdpopsim.get_engine("slim")
+        contig1 = stdpopsim.Contig.basic_contig(length=1000, ploidy=2)
+        ts = engine.simulate(model, contig1, samples={"pop_0": 3}, seed=7)
+        # default
+        assert ts.metadata["SLiM"]["separate_sexes"] is False
+        contig1.species.separate_sexes = True
+        ts = engine.simulate(model, contig1, samples={"pop_0": 3}, seed=7)
+        assert ts.metadata["SLiM"]["separate_sexes"] is True
+        # check that each contig gets its own Species, so modifying one
+        # doesn't change the other's properties
+        contig2 = stdpopsim.Contig.basic_contig(length=1000, ploidy=2)
+        ts = engine.simulate(model, contig2, samples={"pop_0": 3}, seed=7)
+        assert ts.metadata["SLiM"]["separate_sexes"] is False

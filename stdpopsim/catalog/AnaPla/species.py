@@ -269,6 +269,7 @@ _species = stdpopsim.Species(
     # "endangered endemics in Hawaii and New Zealand. The assembly, "
     # "recombination rates, and default Ne were estimtaed with wild Chinese "
     # "mallards.",
+    separate_sexes=True,
     genome=_genome,
     # generation time estimate from Lavertsky et al. (2020):
     # Generation time (G) was calculated as G = \alpha + (s/(1 − s)),
