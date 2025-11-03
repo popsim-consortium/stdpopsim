@@ -16,7 +16,7 @@ pyslim==1.1.0
 numpy==2.2.6
 scipy==1.15.3
 scikit-allel==1.3.13
-biopython==1.85
+biopython==1.86
 demes==0.2.3
 demesdraw==0.4.1
 kastore==0.3.3
