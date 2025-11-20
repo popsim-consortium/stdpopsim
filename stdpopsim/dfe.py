@@ -14,6 +14,9 @@ def _copy_converter(x):
     return x
 
 
+#TODO: need to add trait index to get passed up to MultivariateMutationType
+# and also do all of the subclassing stuff.
+# Default index should probably be 0 to keep 
 @attr.s(kw_only=True)
 class MutationType(object):
     """
@@ -51,7 +54,7 @@ class MutationType(object):
     forth. The list of breaks must therefore be of length one less than the
     list of dominance coefficients.
 
-    :ivar distribution_type: A one-letter abbreviation for the distribution of
+    :ivar distribution_type: A str abbreviation for the distribution of
         fitness effects that each new mutation of this type draws from (see below).
     :vartype distribution_type: str
     :ivar distribution_args: Arguments for the distribution type.
@@ -158,7 +161,7 @@ class MutationType(object):
                 )
         elif self.distribution_type == "g":
             # Gamma-distributed selection coefficient with (mean, shape)
-            # parameterisation. A negative value for the mean is permitted,
+            # parameterization. A negative value for the mean is permitted,
             # and indicates a reflection of the horizontal axis.
             # See Eidos documentation for rgamma().
             if len(self.distribution_args) != 2:
