@@ -7,33 +7,44 @@ import numpy as np
 
 
 class Traits:
-    def __init__(self, model, genotype_to_phenotype_map, fitness_function_list, num_traits):
+    def __init__(self, model, environments, genetic_val_transform, fitness_functions, num_traits):
+        """
+        environments: list of tuples (start_time, [pop_indices], Environment object)
+        fitness_functions: list of tuples (start_time, [pop_indices], FitnessFunction object)
+        """
         self.demographic_model = model
         self.num_traits = num_traits
         
-        assert self.is_valid_g2p(genotype_to_phenotype_map)
-        assert self.is_valid_fitness_function(fitness_function_list)
+        assert self.check_model_params(environments)
+        assert self.is_valid_g2p(genetic_val_transform)
+        assert self.check_model_params(fitness_functions)
 
         # make these attributes
-        self._genotype_to_phenotype_map = genotype_to_phenotype_map
-        self._fitness_function = fitness_function_list
+        self._genetic_val_transform = genetic_val_transform 
+        self._fitness_function = fitness_functions
 
-    def is_valid_g2p(self, genotype_to_phenotype_map):
-        # check that populations/time points are consistent with demographic model
+    def is_valid_g2p(self, genetic_val_transform):
+        # check that provided transform is valid
         return
 
-    def is_valid_fitness_function(self, fitness_function):
-        # for each fitness function in list: check that populations/time points 
-        # are consistent with demographic model. also check that the list is 
-        # comprehensive.
-        return
+    def check_model_params(self, params):
+        # sort elements by epoch start time (which is the backwards-in-time generation time)
+        # tuples should look like (epoch_start, [list of applicable pops], distribution params...)
+        # check populations and generation times make sense?
+        # distributions should propagate backwards in time
+        # so to apply the same distribution everywhere, use the tuple (0, "all", ...)
+        # also check that num_traits matches distribution params
+        pass
 
-class GenotypeToPhenotypeMap:
-    def __init__(self, envs, transformation):
-        return
+class Environment(Distribution):
+    def __init__(self, first, *args):
+        super().__init__()
+        pass
 
-class FitnessFunction:
-    def __init__(self, start, end, populations, distributions):
+class FitnessFunction(Distribution):
+    def __init__(self, first, *args):
+        super().__init__()
+        # TODO check that distribution is either stabilizing or truncating
         pass
 
     # TODO figure out structure of distributions
@@ -43,7 +54,7 @@ class FitnessFunction:
     # truncating trait indices, truncation params.
 
 
-# TODO: is this too OO?
+# TODO: convert this to multivariate distribution class
 class ProductMultivariateMutationType(object):
     pass
 
@@ -54,7 +65,7 @@ class ProductMultivariateMutationType(object):
 
 # superclass of mutationtype
 @attr.s(kw_only=True)
-class MultivariateMutationType(object):
+class Distribution:
     """
 
     Class representing a "type" of mutation.  The design closely mirrors SLiM's
@@ -66,7 +77,11 @@ class MultivariateMutationType(object):
 
     - ``mvn``: multivariate normal, two parameters (mean, covariance matrix)
 
-    TODO
+    TODO edit docstring - this needs to be a general class
+    TODO change affected_trait_indices to something more general
+    TODO generalize checks here -- they are specific to mvn
+    TODO implement default for affected_trait_idx
+    TODO implement truncating distribution (at minimum) + mixtures of gaussians (maybe)
 
     :ivar distribution_type: A str abbreviation for the distribution of
         fitness effects that each new mutation of this type draws from (see below).
@@ -96,7 +111,7 @@ class MultivariateMutationType(object):
         if 0 in affected_trait_indices:
             raise ValueError("TODO")
         # Make sure all indices are unique
-        if len(affected_trait_indices) != len(np.unique(affected_trait_indices):
+        if len(affected_trait_indices) != len(np.unique(affected_trait_indices)):
             raise ValueError("TODO")
 
         if not isinstance(self.distribution_type, str):
@@ -127,12 +142,12 @@ class MultivariateMutationType(object):
                 raise ValueError("TODO")
             try:
                 np.linalg.cholesky(self.distribution_args[1])
-            except LinAlgError:
+            except np.LinAlgError:
                 raise ValueError("Covariance matrix is not positive definite.")
-         else:
-             raise ValueError(
+        else:
+            raise ValueError(
                 f"{self.distribution_type} is not a supported distribution type."
-             )
+            )
 
     
 # superclass of DFE
