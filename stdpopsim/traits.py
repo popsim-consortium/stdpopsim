@@ -14,13 +14,13 @@ class Traits:
         """
         self.demographic_model = model
         self.num_traits = num_traits
-        
+
         assert self.check_model_params(environments)
         assert self.is_valid_g2p(genetic_val_transform)
         assert self.check_model_params(fitness_functions)
 
         # make these attributes
-        self._genetic_val_transform = genetic_val_transform 
+        self._genetic_val_transform = genetic_val_transform
         self._fitness_function = fitness_functions
 
     def is_valid_g2p(self, genetic_val_transform):
@@ -132,7 +132,7 @@ class Distribution:
                 raise ValueError("TODO")
             if len(self.distribution_args[1].shape) != 2:
                 raise ValueError("TODO")
-            if self.distribution_args[0].shape[0] != self.distribution_args[1].shape[0]: 
+            if self.distribution_args[0].shape[0] != self.distribution_args[1].shape[0]:
                 raise ValueError("TODO")
             if self.distribution_args[1].shape[0] != self.distribution_args[1].shape[1]:
                 raise ValueError("TODO")
@@ -149,7 +149,7 @@ class Distribution:
                 f"{self.distribution_type} is not a supported distribution type."
             )
 
-    
+
 # superclass of DFE
 class EffectSizeDistribution(object):
     # Remember to make sure none of the components MutationTypes are converting to substitutions unless they only affect fitness
