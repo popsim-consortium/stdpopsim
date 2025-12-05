@@ -6,7 +6,7 @@ import attr
 import numpy as np
 
 
-class Traits:
+class Traits(object):
     def __init__(self, model, environments, genetic_val_transform, fitness_functions, num_traits):
         """
         environments: list of tuples (start_time, [pop_indices], Environment object)
@@ -54,6 +54,19 @@ class FitnessFunction(Distribution):
     # truncating trait indices, truncation params.
 
 
+@attr.s(kw_only=True)
+class MultivariateEffectSizeDistribution(Distribution):
+    def __attrs_post_init__(self):
+        # Make sure fitness is not affected
+        if 0 in supported_indices:
+            raise ValueError(
+                "distributions cannot simultaneously directly affect fitness "
+                "and traits. that is, if 0 (fitness) is a supported index "
+                "no other index can also be supported in supported_indices."
+            )
+
+
+
 # TODO: convert this to multivariate distribution class
 class ProductMultivariateMutationType(object):
     pass
@@ -65,7 +78,7 @@ class ProductMultivariateMutationType(object):
 
 # superclass of mutationtype
 @attr.s(kw_only=True)
-class Distribution:
+class Distribution(object):
     """
 
     Class representing a "type" of mutation.  The design closely mirrors SLiM's
@@ -78,18 +91,18 @@ class Distribution:
     - ``mvn``: multivariate normal, two parameters (mean, covariance matrix)
 
     TODO edit docstring - this needs to be a general class
-    TODO change affected_trait_indices to something more general
     TODO generalize checks here -- they are specific to mvn
     TODO implement default for affected_trait_idx
     TODO implement truncating distribution (at minimum) + mixtures of gaussians (maybe)
 
-    :ivar distribution_type: A str abbreviation for the distribution of
-        fitness effects that each new mutation of this type draws from (see below).
+    :ivar distribution_type: A str abbreviation for the parametric family of
+        distributions (see below).
     :vartype distribution_type: str
-    :ivar num_traits: Total number of traits being considered.
-    :vartype num_traits: int
-    :ivar affected_trait_indices: List of indices of the traits affected by mutations of this type
-    :vartype affected_trait_indices: list
+    :ivar num_dimensions: Total number of dimensions considered.
+    :vartype num_dimensions: int
+    :ivar supported_indices: List of indices for which the distribution can be
+        nonzero.
+    :vartype supported_indices: list
     """
 
     distribution_type = attr.ib(type=str)
@@ -100,19 +113,18 @@ class Distribution:
 
 
     def __attrs_post_init__(self):
-        # Make sure this affects at least one trait
-        if len(affected_trait_indices) == 0:
-            raise ValueError("TODO")
         # Make sure all indices are within range, and nothing funny is going on with negative indices
-        for t_idx in affected_trait_indices:
-            if t_idx < 0 or t_idx >= num_traits:
-                raise ValueError("TODO")
-        # Make sure fitness is not affected
-        if 0 in affected_trait_indices:
-            raise ValueError("TODO")
+        for t_idx in supported_indices:
+            if t_idx < 0 or t_idx >= num_dimensions:
+                raise ValueError(
+                    "elements of supported_indices must be at least 0 "
+                    "and less than num_dimensions."
+                )
         # Make sure all indices are unique
-        if len(affected_trait_indices) != len(np.unique(affected_trait_indices)):
-            raise ValueError("TODO")
+        if len(supported_indices) != len(np.unique(supported_indices)):
+            raise ValueError(
+                "cannot have repeated indices in supported_indices."
+            )
 
         if not isinstance(self.distribution_type, str):
             raise ValueError("distribution_type must be str.")
@@ -123,27 +135,49 @@ class Distribution:
         if self.distribution_type == "mvn":
             # Multivariate Normal distribution with (mean, covariance) parameterization.
             if len(self.distribution_args) != 2:
-                raise ValueError("TODO")
+                raise ValueError(
+                    "multivariate normal requires two parameters "
+                    "in distribution_args: "
+                    "a mean vector and covariance matrix."
+                )
             if not isinstance(self.distribution_args[0], np.ndarray):
-                raise ValueError("TODO")
+                raise ValueError(
+                    "mvn mean vector must be specified as numpy array."
+                )
             if not isinstance(self.distribution_args[1], np.ndarray):
-                raise ValueError("TODO")
+                raise ValueError(
+                    "mvn covariance matrix must be specified as numpy array."
+                )
             if len(self.distribution_args[0].shape) != 1:
-                raise ValueError("TODO")
+                raise ValueError(
+                    "mvn mean vector must be 1 dimensional."
+                )
             if len(self.distribution_args[1].shape) != 2:
-                raise ValueError("TODO")
+                raise ValueError(
+                    "mvn covariance matrix must be 2 dimensional."
+                )
             if self.distribution_args[0].shape[0] != self.distribution_args[1].shape[0]:
-                raise ValueError("TODO")
+                raise ValueError(
+                    "mvn mean vector and covariance matrix must be conformal."
+                )
             if self.distribution_args[1].shape[0] != self.distribution_args[1].shape[1]:
-                raise ValueError("TODO")
-            if len(affected_trait_indices) != self.distribution_args[0].shape[0]:
-                raise ValueError("TODO")
+                raise ValueError(
+                    "mvn covariance matrix must be square."
+                )
+            if len(supported_indices) != self.distribution_args[0].shape[0]:
+                raise ValueError(
+                    "mvn dimensions must match the number of supported indices."
+                )
             if not np.allclose(self.distribution_args[1], self.distribution_args[1].T):
-                raise ValueError("TODO")
+                raise ValueError(
+                    "mvn covariance matrix must be symmetric."
+                )
             try:
                 np.linalg.cholesky(self.distribution_args[1])
             except np.LinAlgError:
-                raise ValueError("Covariance matrix is not positive definite.")
+                raise ValueError(
+                    "mvn covariance matrix is not positive definite."
+                )
         else:
             raise ValueError(
                 f"{self.distribution_type} is not a supported distribution type."
