@@ -915,6 +915,25 @@ we'd do the following
        demography, contig, samples, slim_burn_in=0.1, slim_scaling_factor=10
    )
 
+We can check the number of ``ticks`` that have been simulated in SLiM
+(which in simple models will correspond to the number of generations)
+by looking at the :ref:`tskit:sec_provenance` entry of the resulting
+tree sequence. As the SLiM command was the first step in creating the
+tree sequence, it will correspond to the first provenance entry (ID=0):
+
+.. code-block:: python
+
+   import json
+
+   slim_info = ts.provenance(0)
+   print(json.loads(slim_info.record)['slim'])
+
+   # {'cycle': 666, 'file_version': '0.9', 'name': 'sim', 'tick': 666}
+
+We can see that slim ran for 666 ticks ('generations'). When multiplied
+by the scaling factor, that corresponds to the value of 6,651 generations
+(rounded up) that we expected from the calculations above.
+
 Outputting the ``SLiM`` script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
