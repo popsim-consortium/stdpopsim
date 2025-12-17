@@ -36,23 +36,65 @@ class Traits(object):
         # also check that num_traits matches distribution params
         pass
 
+    # TODO check g2p against fitness_functions -- traits with binary fitness fn should have binary phenos
+
 class Environment(Distribution):
     def __init__(self, first, *args):
         super().__init__()
         pass
 
-class FitnessFunction(Distribution):
-    def __init__(self, first, *args):
-        super().__init__()
-        # TODO check that distribution is either stabilizing or truncating
+class FitnessFunction(object):
+    """
+    Class to store a set of fitness functions. Note that this class is 
+    agnostic to population or generation time; that information is 
+    exclusively provided to and used by Traits.
+
+    Each argument is a tuple (trait_type, indices, params) containing 
+    information about a different type of fitness function.
+
+    :ivar trait_type: A string representing the type of trait (quantitative,
+        binary, fitness (i.e. where mutations directly affect fitness), or
+        neutral)
+    :vartype trait_type: str
+    :ivar indices: A list of integers corresponding to the indices of traits
+        with the given trait_type
+    :vartype indices: list
+    :ivar params: A tuple containing parameters for the fitness function
+        associated with traits of type trait_type
+    :vartype params: tuple
+    """
+    def __init__(self, *args):
+        # TODO discuss: is params flexible enough to include MoG for quantitative traits?
+        # TODO implement checks for params (correct params for trait_type, and correct dimensions for indices)
+        # TODO do we need to complain if there are two "fitness" tuples, for example?
+        idx = []
+        for trait_type, indices, params in args:
+            if trait_type not in ["quantitative", "binary", "fitness", "neutral"]:
+                raise ValueError("TODO")
+
+            idx.extend(indices)
+
+        n_traits = self.count_traits(idx)
         pass
 
-    # TODO figure out structure of distributions
+    def count_traits(self, idx_lst):
+        idx_arr = np.array(idx_lst, dtype=np.int64)
+        if np.min(idx_arr) < 0:
+            raise ValueError(
+                "fitness function provided for trait with a negative index."
+            )
 
-    # For SLiM, we want to pass a list of fitness pseudo-callbacks that each have information on
-    # start and end time (in generations), pop ID(s), stabilizing trait indices, stabilizing covariance,
-    # truncating trait indices, truncation params.
+        if idx_arr.shape[0] != np.unique(idx_arr).shape[0]:
+            raise ValueError(
+                "trait indices are not unique."
+            )
+        
+        if idx_arr.shape[0] != np.max(idx_arr) - 1:
+            raise ValueError(
+                "some trait indices are missing between 0 and the max trait index provided."
+            )
 
+        return(np.max(idx_arr))
 
 @attr.s(kw_only=True)
 class MultivariateEffectSizeDistribution(Distribution):
