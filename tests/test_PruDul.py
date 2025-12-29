@@ -39,7 +39,8 @@ class TestGenomeData(test_species.GenomeTestBase):
     genome = stdpopsim.get_species("PruDul").genome
 
     # Recombination rates from linkage map in Mas-Gomez et al. (2025) Table 1
-    # and physical lengths from genome assembly in Castanera et al. (2024) - file genome_data.py
+    # and physical lengths from genome assembly
+    # in Castanera et al. (2024) - file genome_data.py
     # https://doi.org/10.1016/j.hpj.2025.04.013
     @pytest.mark.parametrize(
         ["name", "rate"],
