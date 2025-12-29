@@ -116,6 +116,7 @@ _species = stdpopsim.Species(
     citations=[
         _VelascoEtAl,  # GEN_TIME, POP_SIZE
     ],
+    separate_sexes=False,
 )
 
 stdpopsim.register_species(_species)
