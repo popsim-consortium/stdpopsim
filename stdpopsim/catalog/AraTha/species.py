@@ -59,6 +59,7 @@ _species = stdpopsim.Species(
     ensembl_id="arabidopsis_thaliana",
     name="Arabidopsis thaliana",
     common_name="A. thaliana",
+    separate_sexes=False,
     genome=_genome,
     generation_time=1.0,
     population_size=10**4,

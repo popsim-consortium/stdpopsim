@@ -106,6 +106,7 @@ _species = stdpopsim.Species(
     ensembl_id="anolis_carolinensis",
     name="Anolis carolinensis",
     common_name="Anole lizard",
+    separate_sexes=True,
     genome=_genome,
     generation_time=1.5,
     # they live between 1-2 years after they are able to mate

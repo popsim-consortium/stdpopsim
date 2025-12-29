@@ -119,6 +119,7 @@ _species = stdpopsim.Species(
     ensembl_id="gasterosteus_aculeatus",
     name="Gasterosteus aculeatus",
     common_name="Three-spined stickleback",
+    separate_sexes=True,
     genome=_genome,
     generation_time=2,  # PSMC description at the Materials and Methods.
     population_size=1e4,  # From PSMC results.

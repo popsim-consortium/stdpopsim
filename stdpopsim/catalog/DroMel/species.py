@@ -124,6 +124,7 @@ _species = stdpopsim.Species(
     ensembl_id="drosophila_melanogaster",
     name="Drosophila melanogaster",
     common_name="D. melanogaster",
+    separate_sexes=True,
     genome=_genome,
     generation_time=0.1,
     # Population size is the older of two population sizes estimated by

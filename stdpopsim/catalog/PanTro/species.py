@@ -90,6 +90,7 @@ _species = stdpopsim.Species(
     ensembl_id="pan_troglodytes",
     name="Pan troglodytes",
     common_name="Chimpanzee",
+    separate_sexes=True,
     genome=_genome,
     generation_time=24.6,
     population_size=16781,

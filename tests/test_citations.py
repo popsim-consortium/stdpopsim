@@ -57,9 +57,12 @@ class TestFetchBibtex:
             citation.fetch_bibtex()
 
     def test_get_bibtex_404(self):
-        # Tests a 404
+        # Tests a 404.  The previous URL here, http://doi.org/url-does-not-exist,
+        # started just not responding.
         citation = stdpopsim.Citation(
-            doi="http://doi.org/url-does-not-exist", author="Authors", year="2000"
+            doi="http://github.com/popsim-consortium/this_is_not_a_repo",
+            author="Authors",
+            year="2000",
         )
         with pytest.raises(urllib.error.HTTPError):
             citation.fetch_bibtex()

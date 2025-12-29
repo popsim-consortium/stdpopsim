@@ -143,6 +143,7 @@ _species = stdpopsim.Species(
     ensembl_id="gorilla_gorilla",
     name="Gorilla gorilla",
     common_name="Gorilla",
+    separate_sexes=True,
     genome=_genome,
     generation_time=19.0,
     population_size=_Ne,

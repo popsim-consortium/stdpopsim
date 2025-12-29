@@ -112,6 +112,7 @@ _species = stdpopsim.Species(
     ensembl_id="papio_anubis",
     name="Papio anubis",
     common_name="Olive baboon",
+    separate_sexes=True,
     genome=_genome,
     generation_time=11,  # Generation time from Wu et al section
     # "Inferring split times of humans and baboons"
