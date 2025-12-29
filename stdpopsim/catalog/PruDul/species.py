@@ -45,6 +45,7 @@ _VelascoEtAl = stdpopsim.Citation(
         stdpopsim.CiteReason.MUT_RATE,  # page 3987
     },
 )
+
 # A phased genome of the highly heterozygous ‘Texas’ almond
 # uncovers patterns of allele-specific expression linked to
 # heterozygous structural variants
