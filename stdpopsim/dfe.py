@@ -6,19 +6,13 @@ import textwrap
 import attr
 import collections.abc
 import numpy as np
-
-
-def _copy_converter(x):
-    if isinstance(x, list):
-        x = x.copy()
-    return x
+from traits import MultivariateMutationType
 
 
 #TODO: need to add trait index to get passed up to MultivariateMutationType
 # and also do all of the subclassing stuff.
-# Default index should probably be 0 to keep 
-@attr.s(kw_only=True)
-class MutationType(object):
+# Default index should probably be 0 to keep
+class MutationType(MultivariateMutationType):
     """
     Class representing a "type" of mutation.  The design closely mirrors SLiM's
     MutationType class.
@@ -78,177 +72,19 @@ class MutationType(object):
     :vartype dominance_coeff_breaks: list of floats
     """
 
-    dominance_coeff = attr.ib(default=None, type=float)
-    distribution_type = attr.ib(default="f", type=str)
-    distribution_args = attr.ib(
-        factory=lambda: [0], type=list, converter=_copy_converter
-    )
-    convert_to_substitution = attr.ib(default=True, type=bool)
-    dominance_coeff_list = attr.ib(default=None, type=list, converter=_copy_converter)
-    dominance_coeff_breaks = attr.ib(default=None, type=list, converter=_copy_converter)
+    # TODO: I made this up. We should check if this works.
+    def __init__(self, **kwargs):
+        super_kwargs = {}
+        for k, v in kwargs.items():
+            if k != 'convert_to_substitution':
+                super_kwargs['fitness_' + k] = v
+            else:
+                super_kwargs[k] = v
+        super().__init__(**super_kwargs)
 
-    def __attrs_post_init__(self):
-        if self.dominance_coeff is None and self.dominance_coeff_list is None:
-            self.dominance_coeff = 0.5
-
-        if self.dominance_coeff is not None:
-            if (self.dominance_coeff_list is not None) or (
-                self.dominance_coeff_breaks is not None
-            ):
-                raise ValueError(
-                    "Cannot specify both dominance_coeff and dominance_coeff_list."
-                )
-            if not isinstance(self.dominance_coeff, (float, int)):
-                raise ValueError("dominance_coeff must be a number.")
-            if not np.isfinite(self.dominance_coeff):
-                raise ValueError(
-                    f"Invalid dominance coefficient {self.dominance_coeff}."
-                )
-
-        if self.dominance_coeff_list is not None:
-            # disallow the inefficient and annoying length-one case
-            if len(self.dominance_coeff_list) < 2:
-                raise ValueError("dominance_coeff_list must have at least 2 elements.")
-            for h in self.dominance_coeff_list:
-                if not isinstance(h, (float, int)):
-                    raise ValueError("dominance_coeff_list must be a list of numbers.")
-                if not np.isfinite(h):
-                    raise ValueError(f"Invalid dominance coefficient {h}.")
-            if self.dominance_coeff_breaks is None:
-                raise ValueError(
-                    "A list of dominance coefficients provided but no breaks."
-                )
-            if len(self.dominance_coeff_list) != len(self.dominance_coeff_breaks) + 1:
-                raise ValueError(
-                    "len(dominance_coeff_list) must be equal "
-                    "to len(dominance_coeff_breaks) + 1"
-                )
-            lb = -1 * np.inf
-            for b in self.dominance_coeff_breaks:
-                if not isinstance(b, (float, int)):
-                    raise ValueError(
-                        "dominance_coeff_breaks must be a list of numbers."
-                    )
-                if not np.isfinite(b):
-                    raise ValueError(f"Invalid dominance coefficient break {b}.")
-                if b < lb:
-                    raise ValueError("dominance_coeff_breaks must be nondecreasing.")
-                lb = b
-
-        if not isinstance(self.distribution_type, str):
-            raise ValueError("distribution_type must be str.")
-
-        if not isinstance(self.distribution_args, list):
-            raise ValueError("distribution_args must be list.")
-
-        for i in range(len(self.distribution_args)):
-            if not isinstance(self.distribution_args[i], (float, int)):
-                raise ValueError(f"distribution_args[{i}] is not a number.")
-            if not np.isfinite(self.distribution_args[i]):
-                raise ValueError(f"distribution_args[{i}] is an invalid parameter.")
-
-        if not isinstance(self.convert_to_substitution, bool):
-            raise ValueError("convert_to_substitution must be bool.")
-
-        # To add a new distribution type: validate the
-        # distribution_args here, and add unit tests.
-        if self.distribution_type == "f":
-            # Fixed-value selection coefficent.
-            if len(self.distribution_args) != 1:
-                raise ValueError(
-                    "Fixed-value mutation types (distribution_type='f') "
-                    "take a single selection-coefficient parameter."
-                )
-        elif self.distribution_type == "g":
-            # Gamma-distributed selection coefficient with (mean, shape)
-            # parameterization. A negative value for the mean is permitted,
-            # and indicates a reflection of the horizontal axis.
-            # See Eidos documentation for rgamma().
-            if len(self.distribution_args) != 2:
-                raise ValueError(
-                    "Gamma-distributed sel. coefs. (distribution_type='g') "
-                    "use a (mean, shape) parameterisation."
-                )
-            if self.distribution_args[1] <= 0:
-                raise ValueError("The shape parameter must be positive.")
-        elif self.distribution_type == "e":
-            # An exponentially-distributed fitness effect (mean).
-            # See Eidos documentation for rexp().
-            if len(self.distribution_args) != 1:
-                raise ValueError(
-                    "Exponentially-distributed sel. coefs. (distribution_type='e') "
-                    "use a (mean) parameterisation."
-                )
-        elif self.distribution_type == "n":
-            # An normally-distributed fitness effect (mean, standard deviation).
-            # See Eidos documentation for rnorm().
-            if len(self.distribution_args) != 2:
-                raise ValueError(
-                    "Normally-distributed sel. coefs. (distribution_type='n') "
-                    "use a (mean, sd) parameterisation."
-                )
-            if self.distribution_args[1] < 0:
-                raise ValueError("The sd parameter must be nonnegative.")
-        elif self.distribution_type == "w":
-            # A Weibull-distributed fitness effect (scale, shape).
-            # See Eidos documentation for rweibull().
-            if len(self.distribution_args) != 2:
-                raise ValueError(
-                    "Weibull-distributed sel. coef. (distribution_type='w') "
-                    "use a (scale, shape) parameterisation."
-                )
-            if self.distribution_args[0] <= 0:
-                raise ValueError("The scale parameter must be positive.")
-            if self.distribution_args[1] <= 0:
-                raise ValueError("The shape parameter must be positive.")
-        elif self.distribution_type in ("lp", "ln"):
-            # A lognormally-distributed fitness effect (meanlog, sdlog),
-            # either positive or negative.
-            # See Eidos documentation for rlnorm().
-            if len(self.distribution_args) != 2:
-                raise ValueError(
-                    "Lognormally-distributed sel. coefs. (distribution_type='lp'/'ln') "
-                    "use a (meanlog, sdlog) parameterisation, requiring sdlog > 0."
-                )
-            if self.distribution_args[1] < 0:
-                raise ValueError("The sdlog parameter must be nonnegative.")
-            # dealing with lognormal distribution
-            # (adding instead of multiplying the mean):
-            logmean = self.distribution_args[0]
-            logsd = self.distribution_args[1]
-            sign = "" if self.distribution_type == "lp" else "-1 *"
-            self.distribution_args = [
-                f"return {sign}rlnorm(1, {logmean} + log(Q), {logsd});"
-            ]
-            self.distribution_type = "s"
-        elif self.distribution_type == "u":
-            # Uniform
-            if (
-                len(self.distribution_args) != 2
-                or self.distribution_args[0] > self.distribution_args[1]
-            ):
-                raise ValueError(
-                    "Uniformly-distributed sel. coefs. (distribution_type='u') "
-                    "use a (min, max) parameterisation, with min <= max."
-                )
-            umin, umax = self.distribution_args
-            self.distribution_args = [f"return runif(1, Q * {umin}, Q * {umax});"]
-            self.distribution_type = "s"
-        else:
-            raise ValueError(
-                f"{self.distribution_type} is not a supported distribution type."
-            )
-
-        # The index(s) of the param in the distribution_args list that should be
-        # multiplied by Q when using --slim-scaling-factor Q.
-        self.Q_scaled_index = {
-            "e": [0],  # mean
-            "f": [0],  # fixed value
-            "g": [0],  # mean
-            "n": [0, 1],  # mean and sd
-            "w": [0],  # scale
-            "s": [],  # script types should just printout arguments
-        }[self.distribution_type]
+    #TODO: we have broken everything in here by appending fitness_ in front of
+    # the name in the superclass (MultivariateMutationType) maybe we can add
+    # accessors here to keep back compatibility
 
     @property
     def is_neutral(self):
@@ -257,7 +93,7 @@ class MutationType(object):
         be of type "f" and with fitness effect 0.0, and so excludes other situations
         that also produce only neutral mutations (e.g., exponential with mean 0).
         """
-        return self.distribution_type == "f" and self.distribution_args[0] == 0
+        return self.directly_affects_fitness()
 
 
 @attr.s(kw_only=True)
