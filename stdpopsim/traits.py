@@ -53,6 +53,11 @@ class Traits(object):
 
     # TODO check g2p against fitness_functions -- traits with binary fitness fn should have binary phenos
 
+    def add_fitness_function(self, traits, distribution_type, distribution_args, spatiotemporal=None):
+        new_fitness = FitnessFunction(traits, distribution_type, distribution_args, spacetime=spatiotemporal)
+        self._fitness_functions.extend(new_fitness)
+
+
 class Environment(Distribution):
     def __init__(self, first, *args):
         super().__init__()
@@ -60,56 +65,39 @@ class Environment(Distribution):
 
 class FitnessFunction(object):
     """
-    Class to store a set of fitness functions. Note that this class is
-    agnostic to population or generation time; that information is
-    exclusively provided to and used by Traits.
-
-    Each argument is a tuple (trait_type, indices, params) containing
-    information about a different type of fitness function.
-
-    :ivar trait_type: A string representing the type of trait (quantitative,
-        binary, fitness (i.e. where mutations directly affect fitness), or
-        neutral)
-    :vartype trait_type: str
-    :ivar indices: A list of integers corresponding to the indices of traits
-        with the given trait_type
-    :vartype indices: list
-    :ivar params: A tuple containing parameters for the fitness function
-        associated with traits of type trait_type
-    :vartype params: tuple
+    Class to store a fitness function. 
+    
+    :ivar traits: List of trait names or indices, as initialized in Traits object.
+    :vartype traits: list
+    :ivar function_type: One-letter string corresponding to fitness function type
+    :vartype function_type: str
+    :ivar function_args: Tuple containing parameters for the fitness function
+    :vartype function_args: str
+    :ivar spacetime: Generations and populations for which this fitness function applies 
+    :vartype spacetime: list of tuples (?)
     """
-    def __init__(self, *args):
-        # TODO discuss: is params flexible enough to include MoG for quantitative traits?
-        # TODO implement checks for params (correct params for trait_type, and correct dimensions for indices)
-        # TODO do we need to complain if there are two "fitness" tuples, for example?
-        idx = []
-        for trait_type, indices, params in args:
-            if trait_type not in ["quantitative", "binary", "fitness", "neutral"]:
-                raise ValueError("TODO")
+    # TODO check function_args depending on function_type
+    # TODO check dimensions of traits against dimensions of function_args, 
+    # depending on function_type - plus check dimensions >=1 
+    # TODO much later - check spacetime is formatted correctly
 
-            idx.extend(indices)
+    supported_function_types = [] # TODO
 
-        n_traits = self.count_traits(idx)
-        pass
+    traits = attr.ib(type=list)
+    function_type = attr.ib(type=str)
+    function_args = attr.ib(type=tuple)
+    # spacetime = attr.ib(type=list)
 
-    def count_traits(self, idx_lst):
-        idx_arr = np.array(idx_lst, dtype=np.int64)
-        if np.min(idx_arr) < 0:
+    def __attrs_post_init__(self):
+        if len(self.traits) < 1:
             raise ValueError(
-                "fitness function provided for trait with a negative index."
+                "At least one trait must be specified."
+            )
+        if self.function_type not in self.supported_function_types:
+            raise ValueError(
+                "Proposed fitness function not supported at this time."
             )
 
-        if idx_arr.shape[0] != np.unique(idx_arr).shape[0]:
-            raise ValueError(
-                "trait indices are not unique."
-            )
-
-        if idx_arr.shape[0] != np.max(idx_arr) - 1:
-            raise ValueError(
-                "some trait indices are missing between 0 and the max trait index provided."
-            )
-
-        return(np.max(idx_arr))
 
 @attr.s(kw_only=True)
 class MultivariateEffectSizeDistribution(Distribution):
