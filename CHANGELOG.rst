@@ -7,6 +7,12 @@ Upcoming
 - The 'positive' and 'negative' proportions were swapped in the PosNeg_R24 DFE.
     (:user:`bhaller`, :user:`petrelharp`, :pr:`1736`)
 
+**Breaking changes**:
+
+- Species now have a `separate_sexes` property, which is used by the SLiM engine
+  to run a sexual WF model for these species. Previously, a hermaphroditic WF
+  model was used for all species. (:user:`petrelharp`, :pr:`1766`)
+
 --------------------
 [0.3.0] - 2025-03-18
 --------------------
