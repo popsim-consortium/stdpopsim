@@ -231,61 +231,42 @@ def _check_multivariate_distribution(distribution_type, distribution_args, dim):
         raise ValueError("distribution_args must be list.")
 
     if distribution_type == "mvn":
-        # TODO: I don't think we need the "list of dimensions that are not zero"
-        # Multivariate Normal distribution with
-        #   (mean, covariance, indices) parameterization.
-        if len(distribution_args) != 3:
-            raise ValueError(
-                "multivariate normal requires three parameters "
-                "in distribution_args: "
-                "a mean vector, covariance matrix, and list of dimensions "
-                "that are not zero."
-            )
-        if not isinstance(distribution_args[0], np.ndarray):
-            raise ValueError(
-                "mvn mean vector must be a numpy array" f"of length equal to {dim}."
-            )
-        if not isinstance(distribution_args[1], np.ndarray):
-            raise ValueError("mvn covariance matrix must be specified as numpy array.")
-        if len(distribution_args[0].shape) != 1 or distribution_args[0].shape[0] != dim:
-            raise ValueError(
-                "mvn mean vector must be 1 dimensional " f"of length {dim}."
-            )
-        if len(distribution_args[1].shape) != 2:
-            raise ValueError("mvn covariance matrix must be 2 dimensional.")
-        if distribution_args[1].shape != (dim, dim):
-            raise ValueError(
-                "mvn covariance matrix must be square, "
-                f"with dimensions ({dim}, {dim})."
-            )
-        # TODO: `supported_indices` not defined?
-        # if len(supported_indices) != distribution_args[0].shape[0]:
-        #     raise ValueError(
-        #         "mvn dimensions must match the number of supported indices."
-        #     )
-        if not np.allclose(distribution_args[1], distribution_args[1].T):
-            raise ValueError("mvn covariance matrix must be symmetric.")
-        try:
-            np.linalg.cholesky(distribution_args[1])
-        except np.LinAlgError:
-            raise ValueError("mvn covariance matrix is not positive definite.")
-
-        supported_indices = distribution_args[2]
-        # TODO: check dtype of supported_indices
-        for t_idx in supported_indices:
-            if t_idx < 0:
-                raise ValueError(
-                    "elements of supported_indices must be at least 0 "
-                    "and less than num_dimensions."
-                )
-        # Make sure all indices are unique
-        if len(supported_indices) != len(np.unique(supported_indices)):
-            raise ValueError("cannot have repeated indices in supported_indices.")
-
+        _check_multivariate_normal_args(distribution_args, dim)
     else:
         raise ValueError(f"{distribution_type} is not a supported distribution type.")
 
-    pass
+
+def _check_multivariate_normal_args(distribution_args, dim):
+    # TODO: I don't think we need the "list of dimensions that are not zero"
+    # Multivariate Normal distribution with
+    #   (mean, covariance, indices) parameterization.
+    if len(distribution_args) != 3:
+        raise ValueError(
+            "multivariate normal requires three parameters "
+            "in distribution_args: "
+            "a mean vector, covariance matrix, and list of dimensions "
+            "that are not zero."
+        )
+    if not isinstance(distribution_args[0], np.ndarray):
+        raise ValueError(
+            "mvn mean vector must be a numpy array" f"of length equal to {dim}."
+        )
+    if not isinstance(distribution_args[1], np.ndarray):
+        raise ValueError("mvn covariance matrix must be specified as numpy array.")
+    if len(distribution_args[0].shape) != 1 or distribution_args[0].shape[0] != dim:
+        raise ValueError("mvn mean vector must be 1 dimensional " f"of length {dim}.")
+    if len(distribution_args[1].shape) != 2:
+        raise ValueError("mvn covariance matrix must be 2 dimensional.")
+    if distribution_args[1].shape != (dim, dim):
+        raise ValueError(
+            "mvn covariance matrix must be square, " f"with dimensions ({dim}, {dim})."
+        )
+    if not np.allclose(distribution_args[1], distribution_args[1].T):
+        raise ValueError("mvn covariance matrix must be symmetric.")
+    try:
+        np.linalg.cholesky(distribution_args[1])
+    except np.LinAlgError:
+        raise ValueError("mvn covariance matrix is not positive definite.")
 
 
 def _check_univariate_distribution(distribution_type, distribution_args):
