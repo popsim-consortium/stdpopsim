@@ -52,8 +52,8 @@ class Traits(object):
 
     def add_environment(self, *, phenotype_ids, distribution_type, distribution_args):
         """
-        Add random "environmental" (i.e., non-genetic) effects to the specified ``traits``.
-        See :class:`Environment` more more detail.
+        Add random "environmental" (i.e., non-genetic) effects to the specified
+        ``phenotypes``.  See :class:`Environment` more more detail.
         """
         pids = [p.id for p in self.phenotypes]
         for pid in phenotype_ids:
@@ -70,11 +70,14 @@ class Traits(object):
         # Check for consistency with a given demographic model.
         # TODO: is this where we want to do this?
         #
-        # sort elements by epoch start time (which is the backwards-in-time generation time)
-        # tuples should look like (epoch_start, [list of applicable pops], distribution params...)
+        # sort elements by epoch start time
+        # (which is the backwards-in-time generation time)
+        # tuples should look like
+        # (epoch_start, [list of applicable pops], distribution params...)
         # check populations and generation times make sense?
         # distributions should propagate backwards in time
-        # so to apply the same distribution everywhere, use the tuple (0, "all", ...)
+        # so to apply the same distribution everywhere, use the tuple
+        # (0, "all", ...)
         # also check that num_traits matches distribution params
         pass
 
@@ -100,7 +103,7 @@ class Environment:
     phenotype_ids = attr.ib()  # list of phenotype IDs
     distribution_type = attr.ib()
     distribution_args = attr.ib()
-    ## TODO: add later
+    # TODO: add later
     # start_time = attr.ib(default=None)
     # end_time = attr.ib(default=None)
     # populations = attr.ib(default=None)
@@ -140,10 +143,10 @@ class FitnessFunction(object):
 
 
 @attr.s(kw_only=True)
-class MultivariateEffectSizeDistribution(Distribution):
+class MultivariateEffectSizeDistribution:
     def __attrs_post_init__(self):
         # Make sure fitness is not affected
-        if 0 in supported_indices:
+        if 0 in self.supported_indices:
             raise ValueError(
                 "distributions cannot simultaneously directly affect fitness "
                 "and traits. that is, if 0 (fitness) is a supported index "
@@ -152,14 +155,15 @@ class MultivariateEffectSizeDistribution(Distribution):
 
 
 def _check_multivariate_distribution(distribution_type, distribution_args):
-    if not isinstance(self.distribution_type, str):
+    if not isinstance(distribution_type, str):
         raise ValueError("distribution_type must be str.")
 
-    if not isinstance(self.distribution_args, list):
+    if not isinstance(distribution_args, list):
         raise ValueError("distribution_args must be list.")
 
     if distribution_type == "mvn":
-        # Multivariate Normal distribution with (mean, covariance, indices) parameterization.
+        # Multivariate Normal distribution with
+        #   (mean, covariance, indices) parameterization.
         if len(distribution_args) != 3:
             raise ValueError(
                 "multivariate normal requires three parameters "
@@ -179,10 +183,11 @@ def _check_multivariate_distribution(distribution_type, distribution_args):
             raise ValueError("mvn mean vector and covariance matrix must be conformal.")
         if distribution_args[1].shape[0] != distribution_args[1].shape[1]:
             raise ValueError("mvn covariance matrix must be square.")
-        if len(supported_indices) != distribution_args[0].shape[0]:
-            raise ValueError(
-                "mvn dimensions must match the number of supported indices."
-            )
+        # TODO: `supported_indices` not defined?
+        # if len(supported_indices) != distribution_args[0].shape[0]:
+        #     raise ValueError(
+        #         "mvn dimensions must match the number of supported indices."
+        #     )
         if not np.allclose(distribution_args[1], distribution_args[1].T):
             raise ValueError("mvn covariance matrix must be symmetric.")
         try:
@@ -345,13 +350,15 @@ class MultivariateMutationType(object):
                 self.fitness_dominance_coeff_breaks is not None
             ):
                 raise ValueError(
-                    "Cannot specify both fitness_dominance_coeff and fitness_dominance_coeff_list."
+                    "Cannot specify both fitness_dominance_coeff "
+                    "and fitness_dominance_coeff_list."
                 )
             if not isinstance(self.fitness_dominance_coeff, (float, int)):
                 raise ValueError("fitness_dominance_coeff must be a number.")
             if not np.isfinite(self.fitness_dominance_coeff):
                 raise ValueError(
-                    f"Invalid fitness dominance coefficient {self.fitness_dominance_coeff}."
+                    "Invalid fitness dominance "
+                    f"coefficient {self.fitness_dominance_coeff}."
                 )
 
         if self.fitness_dominance_coeff_list is not None:
@@ -420,9 +427,10 @@ class MultivariateMutationType(object):
     @property
     def directly_affects_fitness(self):
         """
-        Tests whether the mutation type has direct effects on fitness. This is defined here to
-        be of type "f" and with fitness effect 0.0, and so excludes other situations
-        that also produce only neutral mutations (e.g., exponential with mean 0).
+        Tests whether the mutation type has direct effects on fitness. This is
+        defined here to be of type "f" and with fitness effect 0.0, and so
+        excludes other situations that also produce only neutral mutations
+        (e.g., exponential with mean 0).
         """
         return (
             self.fitness_distribution_type == "f"
@@ -432,5 +440,6 @@ class MultivariateMutationType(object):
 
 # superclass of DFE
 class EffectSizeDistribution(object):
-    # Remember to make sure none of the components MutationTypes are converting to substitutions unless they only affect fitness
+    # Remember to make sure none of the components MutationTypes are converting
+    # to substitutions unless they only affect fitness
     pass
