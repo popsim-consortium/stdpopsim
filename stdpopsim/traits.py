@@ -38,9 +38,16 @@ class Traits(object):
         :ivar phenotypes: List of :class:`Phenotype` objects.
         :vartype phenotypes: list
         """
+        pids = [p.id for p in phenotypes]
+        if len(set(pids)) != len(pids):
+            raise ValueError("Phenotype IDs must be unique.")
+
         self.phenotypes = phenotypes
         self.environments = []
         self.fitness_functions = []
+        # We *could* take in Environment and FitnessFunction objects
+        # to the construtor here, but no need;
+        # we'll just add them with the add_X functions.
 
     def add_fitness_function(
         self, traits, distribution_type, distribution_args, spatiotemporal=None
@@ -83,6 +90,55 @@ class Traits(object):
 
 
 @attr.s(kw_only=True)
+class Phenotype:
+    """
+    Represents a single phenotype, i.e., something that can be measured.
+    This only defines how the underlying (TODO WHAT IS THIS CALLED)
+    "additive value" (genetic value plus environmental deviation)
+    is mapped to the observed value.
+
+    Options for "transform" are:
+
+    "identity": the phenotype is equal to the additive value.
+
+    "threshold" (parameters: x): the phenotype is equal to 1 if the additive
+        value is less than x, and is equal to 0 otherwise.
+
+    "liability" (parameters center, slope): the phenotype whose
+        additive value is z is equal to 1 with probability
+        1 / (1 + exp((z - center) * slope)), and is equal to 0 otherwise.
+
+    :ivar id: ID of the phenotype (think of this as the 'name').
+    :vartype id: str
+    :ivar transform: Type of transformation.
+    :vartype transform: str
+    :ivar params: Parameters given to the transformation.
+    :vartype params: tuple
+    """
+
+    id = attr.ib()
+    transform = attr.ib(default="identity")
+    params = attr.ib(default=())
+
+    def __attrs_post_init__(self):
+        if self.transform == "identity":
+            if len(self.params) != 0:
+                raise ValueError("identity transform takes no parameters.")
+        elif self.transform == "threshold":
+            if len(self.params) != 1:
+                raise ValueError(
+                    "threshold transform requires one parameter (the threshold)"
+                )
+        elif self.transform == "liability":
+            if len(self.params) != 2:
+                raise ValueError(
+                    "threshold transform requires two parameters " "(center and slope)"
+                )
+        else:
+            raise ValueError(f"Transform {self.transform} unknown.")
+
+
+@attr.s(kw_only=True)
 class Environment:
     """
     Represents random "environmental" (i.e., non-genetic) effects on traits.
@@ -107,6 +163,19 @@ class Environment:
     # start_time = attr.ib(default=None)
     # end_time = attr.ib(default=None)
     # populations = attr.ib(default=None)
+
+    def __attrs_post_init__(self):
+        dim = len(self.phenotype_ids)
+        if dim < 1:
+            raise ValueError("Must have at least one phenotype.")
+        elif dim == 1:
+            _check_univariate_distribution(
+                self.distribution_type, self.distribution_args
+            )
+        else:
+            _check_multivariate_distribution(
+                self.distribution_type, self.distribution_args, dim
+            )
 
 
 class FitnessFunction(object):
@@ -154,7 +223,7 @@ class MultivariateEffectSizeDistribution:
             )
 
 
-def _check_multivariate_distribution(distribution_type, distribution_args):
+def _check_multivariate_distribution(distribution_type, distribution_args, dim):
     if not isinstance(distribution_type, str):
         raise ValueError("distribution_type must be str.")
 
@@ -162,6 +231,7 @@ def _check_multivariate_distribution(distribution_type, distribution_args):
         raise ValueError("distribution_args must be list.")
 
     if distribution_type == "mvn":
+        # TODO: I don't think we need the "list of dimensions that are not zero"
         # Multivariate Normal distribution with
         #   (mean, covariance, indices) parameterization.
         if len(distribution_args) != 3:
@@ -172,17 +242,22 @@ def _check_multivariate_distribution(distribution_type, distribution_args):
                 "that are not zero."
             )
         if not isinstance(distribution_args[0], np.ndarray):
-            raise ValueError("mvn mean vector must be specified as numpy array.")
+            raise ValueError(
+                "mvn mean vector must be a numpy array" f"of length equal to {dim}."
+            )
         if not isinstance(distribution_args[1], np.ndarray):
             raise ValueError("mvn covariance matrix must be specified as numpy array.")
-        if len(distribution_args[0].shape) != 1:
-            raise ValueError("mvn mean vector must be 1 dimensional.")
+        if len(distribution_args[0].shape) != 1 or distribution_args[0].shape[0] != dim:
+            raise ValueError(
+                "mvn mean vector must be 1 dimensional " f"of length {dim}."
+            )
         if len(distribution_args[1].shape) != 2:
             raise ValueError("mvn covariance matrix must be 2 dimensional.")
-        if distribution_args[0].shape[0] != distribution_args[1].shape[0]:
-            raise ValueError("mvn mean vector and covariance matrix must be conformal.")
-        if distribution_args[1].shape[0] != distribution_args[1].shape[1]:
-            raise ValueError("mvn covariance matrix must be square.")
+        if distribution_args[1].shape != (dim, dim):
+            raise ValueError(
+                "mvn covariance matrix must be square, "
+                f"with dimensions ({dim}, {dim})."
+            )
         # TODO: `supported_indices` not defined?
         # if len(supported_indices) != distribution_args[0].shape[0]:
         #     raise ValueError(
