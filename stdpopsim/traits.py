@@ -57,11 +57,39 @@ class Traits(object):
         new_fitness = FitnessFunction(traits, distribution_type, distribution_args, spacetime=spatiotemporal)
         self._fitness_functions.extend(new_fitness)
 
+    def add_environment(self, *, traits, distribution_type, distribution_args):
+        """
+        Add random "environmental" (i.e., non-genetic) effects to the specified ``traits``.
+        See :class:`Environment` more more detail.
+        """
 
-class Environment(Distribution):
-    def __init__(self, first, *args):
-        super().__init__()
-        pass
+
+@attr.s(kw_only=True)
+class Environment:
+    """
+    Represents random "environmental" (i.e., non-genetic) effects on traits.
+    These are all *additive*, but may depend on time and/or population.
+
+    TODO: should this be public?
+
+    :ivar traits: List of trait IDs.
+    :vartype traits: list
+    :ivar distribution_type: A str abbreviation for the distribution
+        of environmental efffects (see TODO WHERE).
+    :vartype distribution_type: str
+    :ivar distribution_type: A str abbreviation for the distribution
+        of environmental efffects (see TODO WHERE).
+    :vartype distribution_type: str
+    """
+
+    traits = attr.ib()  # list of trait IDs
+    distribution_type = attr.ib()
+    distribution_args = attr.ib()
+    ## TODO: add later
+    # start_time = attr.ib(default=None)
+    # end_time = attr.ib(default=None)
+    # populations = attr.ib(default=None)
+
 
 class FitnessFunction(object):
     """
