@@ -6,7 +6,7 @@ import attr
 import numpy as np
 
 
-#TODO: somewhere we need to check that the number of traits
+# TODO: somewhere we need to check that the number of traits
 # is consistent between the MultivariateMutationTypes, EffectSizeDistributions,
 # Environments, and FitnessFunctions
 
@@ -15,6 +15,8 @@ import numpy as np
 # this would break backward compatibility, but
 # I believe this method is no longer used
 # anywhere in dfe.py, and it's private so this should be chill
+# PLR: thanks for thinking about this, but moving/changing/deleting
+# private methods doesn't break backwards compatibility; they're private
 def _copy_converter(x):
     if isinstance(x, list):
         x = x.copy()
@@ -22,27 +24,52 @@ def _copy_converter(x):
 
 
 class Traits(object):
-    def __init__(self, model, environments, genetic_val_transform, fitness_functions, num_traits):
+    def __init__(self, phenotypes):
         """
-        environments: list of tuples (start_time, [pop_indices], Environment object)
-        fitness_functions: list of tuples (start_time, [pop_indices], FitnessFunction object)
+        A collection of genetically determined traits,
+        which are a list of ``phenotypes``,
+        linked together by possibly shared effects of ``environments``
+        and by ``fitness_functions`` that depend on their values.
+
+        On initialization ``environments`` and ``fitness_functions``
+        will be empty; add these with :meth:`.add_environment`
+        and :meth:`.add_fitness_function`.
+
+        :ivar phenotypes: List of :class:`Phenotype` objects.
+        :vartype phenotypes: list
         """
-        self.demographic_model = model
-        self.num_traits = num_traits
+        self.phenotypes = phenotypes
+        self.environments = []
+        self.fitness_functions = []
 
-        assert self.check_model_params(environments)
-        assert self.is_valid_g2p(genetic_val_transform)
-        assert self.check_model_params(fitness_functions)
+    def add_fitness_function(
+        self, traits, distribution_type, distribution_args, spatiotemporal=None
+    ):
+        new_fitness = FitnessFunction(
+            traits, distribution_type, distribution_args, spacetime=spatiotemporal
+        )
+        self._fitness_functions.append(new_fitness)
 
-        # make these attributes
-        self._genetic_val_transform = genetic_val_transform
-        self._fitness_function = fitness_functions
+    def add_environment(self, *, phenotype_ids, distribution_type, distribution_args):
+        """
+        Add random "environmental" (i.e., non-genetic) effects to the specified ``traits``.
+        See :class:`Environment` more more detail.
+        """
+        pids = [p.id for p in self.phenotypes]
+        for pid in phenotype_ids:
+            if pid not in pids:
+                raise ValueError(f"Phenotype {pid} not in phenotypes.")
+        env = Environment(
+            phenotype_ids=phenotype_ids,
+            distribution_type=distribution_type,
+            distribution_args=distribution_args,
+        )
+        self.environments.append(env)
 
-    def is_valid_g2p(self, genetic_val_transform):
-        # check that provided transform is valid
-        return
-
-    def check_model_params(self, params):
+    def check_model_params(self, model, params):
+        # Check for consistency with a given demographic model.
+        # TODO: is this where we want to do this?
+        #
         # sort elements by epoch start time (which is the backwards-in-time generation time)
         # tuples should look like (epoch_start, [list of applicable pops], distribution params...)
         # check populations and generation times make sense?
@@ -50,18 +77,6 @@ class Traits(object):
         # so to apply the same distribution everywhere, use the tuple (0, "all", ...)
         # also check that num_traits matches distribution params
         pass
-
-    # TODO check g2p against fitness_functions -- traits with binary fitness fn should have binary phenos
-
-    def add_fitness_function(self, traits, distribution_type, distribution_args, spatiotemporal=None):
-        new_fitness = FitnessFunction(traits, distribution_type, distribution_args, spacetime=spatiotemporal)
-        self._fitness_functions.extend(new_fitness)
-
-    def add_environment(self, *, traits, distribution_type, distribution_args):
-        """
-        Add random "environmental" (i.e., non-genetic) effects to the specified ``traits``.
-        See :class:`Environment` more more detail.
-        """
 
 
 @attr.s(kw_only=True)
@@ -72,8 +87,8 @@ class Environment:
 
     TODO: should this be public?
 
-    :ivar traits: List of trait IDs.
-    :vartype traits: list
+    :ivar phenotype_ids: List of phenotype IDs.
+    :vartype phenotype_ids: list
     :ivar distribution_type: A str abbreviation for the distribution
         of environmental efffects (see TODO WHERE).
     :vartype distribution_type: str
@@ -82,7 +97,7 @@ class Environment:
     :vartype distribution_type: str
     """
 
-    traits = attr.ib()  # list of trait IDs
+    phenotype_ids = attr.ib()  # list of phenotype IDs
     distribution_type = attr.ib()
     distribution_args = attr.ib()
     ## TODO: add later
@@ -93,23 +108,24 @@ class Environment:
 
 class FitnessFunction(object):
     """
-    Class to store a fitness function. 
-    
+    Class to store a fitness function.
+
     :ivar traits: List of trait names or indices, as initialized in Traits object.
     :vartype traits: list
     :ivar function_type: One-letter string corresponding to fitness function type
     :vartype function_type: str
     :ivar function_args: Tuple containing parameters for the fitness function
     :vartype function_args: str
-    :ivar spacetime: Generations and populations for which this fitness function applies 
+    :ivar spacetime: Generations and populations for which this fitness function applies
     :vartype spacetime: list of tuples (?)
     """
+
     # TODO check function_args depending on function_type
-    # TODO check dimensions of traits against dimensions of function_args, 
-    # depending on function_type - plus check dimensions >=1 
+    # TODO check dimensions of traits against dimensions of function_args,
+    # depending on function_type - plus check dimensions >=1
     # TODO much later - check spacetime is formatted correctly
 
-    supported_function_types = [] # TODO
+    supported_function_types = []  # TODO
 
     traits = attr.ib(type=list)
     function_type = attr.ib(type=str)
@@ -118,13 +134,9 @@ class FitnessFunction(object):
 
     def __attrs_post_init__(self):
         if len(self.traits) < 1:
-            raise ValueError(
-                "At least one trait must be specified."
-            )
+            raise ValueError("At least one trait must be specified.")
         if self.function_type not in self.supported_function_types:
-            raise ValueError(
-                "Proposed fitness function not supported at this time."
-            )
+            raise ValueError("Proposed fitness function not supported at this time.")
 
 
 @attr.s(kw_only=True)
@@ -156,43 +168,27 @@ def _check_multivariate_distribution(distribution_type, distribution_args):
                 "that are not zero."
             )
         if not isinstance(distribution_args[0], np.ndarray):
-            raise ValueError(
-                "mvn mean vector must be specified as numpy array."
-            )
+            raise ValueError("mvn mean vector must be specified as numpy array.")
         if not isinstance(distribution_args[1], np.ndarray):
-            raise ValueError(
-                "mvn covariance matrix must be specified as numpy array."
-            )
+            raise ValueError("mvn covariance matrix must be specified as numpy array.")
         if len(distribution_args[0].shape) != 1:
-            raise ValueError(
-                "mvn mean vector must be 1 dimensional."
-            )
+            raise ValueError("mvn mean vector must be 1 dimensional.")
         if len(distribution_args[1].shape) != 2:
-            raise ValueError(
-                "mvn covariance matrix must be 2 dimensional."
-            )
+            raise ValueError("mvn covariance matrix must be 2 dimensional.")
         if distribution_args[0].shape[0] != distribution_args[1].shape[0]:
-            raise ValueError(
-                "mvn mean vector and covariance matrix must be conformal."
-            )
+            raise ValueError("mvn mean vector and covariance matrix must be conformal.")
         if distribution_args[1].shape[0] != distribution_args[1].shape[1]:
-            raise ValueError(
-                "mvn covariance matrix must be square."
-            )
+            raise ValueError("mvn covariance matrix must be square.")
         if len(supported_indices) != distribution_args[0].shape[0]:
             raise ValueError(
                 "mvn dimensions must match the number of supported indices."
             )
         if not np.allclose(distribution_args[1], distribution_args[1].T):
-            raise ValueError(
-                "mvn covariance matrix must be symmetric."
-            )
+            raise ValueError("mvn covariance matrix must be symmetric.")
         try:
             np.linalg.cholesky(distribution_args[1])
         except np.LinAlgError:
-            raise ValueError(
-                "mvn covariance matrix is not positive definite."
-            )
+            raise ValueError("mvn covariance matrix is not positive definite.")
 
         supported_indices = distribution_args[2]
         # TODO: check dtype of supported_indices
@@ -204,15 +200,10 @@ def _check_multivariate_distribution(distribution_type, distribution_args):
                 )
         # Make sure all indices are unique
         if len(supported_indices) != len(np.unique(supported_indices)):
-            raise ValueError(
-                "cannot have repeated indices in supported_indices."
-            )
+            raise ValueError("cannot have repeated indices in supported_indices.")
 
     else:
-        raise ValueError(
-            f"{distribution_type} is not a supported distribution type."
-        )
-
+        raise ValueError(f"{distribution_type} is not a supported distribution type.")
 
     pass
 
@@ -297,16 +288,11 @@ def _check_univariate_distribution(distribution_type, distribution_args):
         logmean = distribution_args[0]
         logsd = distribution_args[1]
         sign = "" if distribution_type == "lp" else "-1 *"
-        distribution_args = [
-            f"return {sign}rlnorm(1, {logmean} + log(Q), {logsd});"
-        ]
+        distribution_args = [f"return {sign}rlnorm(1, {logmean} + log(Q), {logsd});"]
         distribution_type = "s"
     elif distribution_type == "u":
         # Uniform
-        if (
-            len(distribution_args) != 2
-            or distribution_args[0] > distribution_args[1]
-        ):
+        if len(distribution_args) != 2 or distribution_args[0] > distribution_args[1]:
             raise ValueError(
                 "Uniformly-distributed sel. coefs. (distribution_type='u') "
                 "use a (min, max) parameterisation, with min <= max."
@@ -315,9 +301,7 @@ def _check_univariate_distribution(distribution_type, distribution_args):
         distribution_args = [f"return runif(1, Q * {umin}, Q * {umax});"]
         distribution_type = "s"
     else:
-        raise ValueError(
-            f"{distribution_type} is not a supported distribution type."
-        )
+        raise ValueError(f"{distribution_type} is not a supported distribution type.")
 
 
 @attr.s(kw_only=True)
@@ -373,17 +357,24 @@ class MultivariateMutationType(object):
         if self.fitness_dominance_coeff_list is not None:
             # disallow the inefficient and annoying length-one case
             if len(self.fitness_dominance_coeff_list) < 2:
-                raise ValueError("fitness_dominance_coeff_list must have at least 2 elements.")
+                raise ValueError(
+                    "fitness_dominance_coeff_list must have at least 2 elements."
+                )
             for h in self.fitness_dominance_coeff_list:
                 if not isinstance(h, (float, int)):
-                    raise ValueError("fitness_dominance_coeff_list must be a list of numbers.")
+                    raise ValueError(
+                        "fitness_dominance_coeff_list must be a list of numbers."
+                    )
                 if not np.isfinite(h):
                     raise ValueError(f"Invalid fitness dominance coefficient {h}.")
             if self.fitness_dominance_coeff_breaks is None:
                 raise ValueError(
                     "A list of fitness dominance coefficients provided but no breaks."
                 )
-            if len(self.fitness_dominance_coeff_list) != len(self.fitness_dominance_coeff_breaks) + 1:
+            if (
+                len(self.fitness_dominance_coeff_list)
+                != len(self.fitness_dominance_coeff_breaks) + 1
+            ):
                 raise ValueError(
                     "len(fitness_dominance_coeff_list) must be equal "
                     "to len(fitness_dominance_coeff_breaks) + 1"
@@ -395,22 +386,24 @@ class MultivariateMutationType(object):
                         "fitness_dominance_coeff_breaks must be a list of numbers."
                     )
                 if not np.isfinite(b):
-                    raise ValueError(f"Invalid fitness dominance coefficient break {b}.")
+                    raise ValueError(
+                        f"Invalid fitness dominance coefficient break {b}."
+                    )
                 if b < lb:
-                    raise ValueError("fitness_dominance_coeff_breaks must be nondecreasing.")
+                    raise ValueError(
+                        "fitness_dominance_coeff_breaks must be nondecreasing."
+                    )
                 lb = b
 
         _check_univariate_distribution(
-            self.fitness_distribution_type,
-            self.fitness_distribution_args
+            self.fitness_distribution_type, self.fitness_distribution_args
         )
 
         if not isinstance(self.convert_to_substitution, bool):
             raise ValueError("convert_to_substitution must be bool.")
 
         _check_multivariate_distribution(
-            self.trait_distribution_type,
-            self.trait_distribution_args
+            self.trait_distribution_type, self.trait_distribution_args
         )
 
         # The index(s) of the param in the distribution_args list that should be
@@ -431,7 +424,11 @@ class MultivariateMutationType(object):
         be of type "f" and with fitness effect 0.0, and so excludes other situations
         that also produce only neutral mutations (e.g., exponential with mean 0).
         """
-        return self.fitness_distribution_type == "f" and self.fitness_distribution_args[0] == 0
+        return (
+            self.fitness_distribution_type == "f"
+            and self.fitness_distribution_args[0] == 0
+        )
+
 
 # superclass of DFE
 class EffectSizeDistribution(object):
