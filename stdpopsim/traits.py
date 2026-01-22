@@ -7,9 +7,8 @@ import numpy as np
 
 
 # TODO: somewhere we need to check that the number of traits
-# is consistent between the MultivariateMutationTypes, EffectSizeDistributions,
-# Environments, and FitnessFunctions
-
+# is consistent between Phenotypes, Environments, FitnessFunctions,
+# MultivariateMutationTypes, DistributionofMutationEffects (DMEs), etc.
 
 # TODO: this was moved from dfe.py so technically
 # this would break backward compatibility, but
@@ -32,7 +31,7 @@ class Traits(object):
         and by ``fitness_functions`` that depend on their values.
 
         On initialization ``environments`` and ``fitness_functions``
-        will be empty; add these with :meth:`.add_environment`
+        are empty and can be added with :meth:`.add_environment`
         and :meth:`.add_fitness_function`.
 
         :ivar phenotypes: List of :class:`Phenotype` objects.
@@ -93,22 +92,26 @@ class Traits(object):
 class Phenotype:
     """
     Represents a single phenotype, i.e., something that can be measured.
-    This only defines how the underlying (TODO WHAT IS THIS CALLED)
-    "additive value" (genetic value plus environmental deviation)
+    This only defines how the underlying (latent) value,
+    which is a sum of genetic value and environmental deviation,
     is mapped to the observed value.
 
-    Options for "transform" are:
+    Options for "transform" (link function) are:
 
-    "identity": the phenotype is equal to the additive value.
+    "identity": the phenotype is equal to the latent value.
 
-    "threshold" (parameters: x): the phenotype is equal to 1 if the additive
+    "threshold" (parameters: x): the phenotype is equal to 1 if the latent
         value is less than x, and is equal to 0 otherwise.
 
     "liability" (parameters center, slope): the phenotype whose
-        additive value is z is equal to 1 with probability
-        1 / (1 + exp((z - center) * slope)), and is equal to 0 otherwise.
+        latent value is z is equal to 1 with probability
+        1 / (1 + exp((x - center) * slope)), and is equal to 0 otherwise.
 
-    :ivar id: ID of the phenotype (think of this as the 'name').
+    TODO: Add "exponential" transform to get log-normal phenotypes?
+
+    TODO: Add Poisson (count) phenotypes?
+
+    :ivar id: ID of the trait (think of this as the 'name').
     :vartype id: str
     :ivar transform: Type of transformation.
     :vartype transform: str
@@ -142,7 +145,7 @@ class Phenotype:
 class Environment:
     """
     Represents random "environmental" (i.e., non-genetic) effects on traits.
-    These are all *additive*, but may depend on time and/or population.
+    These are all added to genetic values and may depend on time and/or population.
 
     TODO: should this be public?
 
@@ -494,8 +497,8 @@ class MultivariateMutationType(object):
         )
 
 
-# superclass of DFE
-class EffectSizeDistribution(object):
+# superclass of DFE --> DME
+class DistributionOfMutationEffects(object):
     # Remember to make sure none of the components MutationTypes are converting
     # to substitutions unless they only affect fitness
     pass
