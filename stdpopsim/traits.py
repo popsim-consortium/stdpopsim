@@ -164,14 +164,7 @@ class Environment:
         dim = len(self.phenotype_ids)
         if dim < 1:
             raise ValueError("Must have at least one phenotype.")
-        elif dim == 1:
-            _check_univariate_distribution(
-                self.distribution_type, self.distribution_args
-            )
-        else:
-            _check_multivariate_distribution(
-                self.distribution_type, self.distribution_args, dim
-            )
+        _check_distribution(self.distribution_type, self.distribution_args, dim)
 
 
 class FitnessFunction(object):
@@ -215,58 +208,6 @@ class FitnessFunction(object):
 
 
 def _check_distribution(distribution_type, distribution_args, dim):
-    if dim > 1:
-        _check_multivariate_distribution(distribution_type, distribution_args, dim)
-    else:
-        _check_univariate_distribution(distribution_type, distribution_args)
-
-
-def _check_multivariate_distribution(distribution_type, distribution_args, dim):
-    if not isinstance(distribution_type, str):
-        raise ValueError("distribution_type must be str.")
-
-    if not isinstance(distribution_args, list):
-        raise ValueError("distribution_args must be list.")
-
-    if distribution_type == "mvn":
-        _check_multivariate_normal_args(distribution_args, dim)
-    else:
-        raise ValueError(f"{distribution_type} is not a supported distribution type.")
-
-
-def _check_multivariate_normal_args(distribution_args, dim):
-    # Multivariate Normal distribution with
-    #   (mean, covariance, indices) parameterization.
-    if len(distribution_args) != 3:
-        raise ValueError(
-            "multivariate normal requires three parameters "
-            "in distribution_args: "
-            "a mean vector, covariance matrix, and list of dimensions "
-            "that are not zero."
-        )
-    if not isinstance(distribution_args[0], np.ndarray):
-        raise ValueError(
-            "mvn mean vector must be a numpy array" f"of length equal to {dim}."
-        )
-    if not isinstance(distribution_args[1], np.ndarray):
-        raise ValueError("mvn covariance matrix must be specified as numpy array.")
-    if len(distribution_args[0].shape) != 1 or distribution_args[0].shape[0] != dim:
-        raise ValueError("mvn mean vector must be 1 dimensional " f"of length {dim}.")
-    if len(distribution_args[1].shape) != 2:
-        raise ValueError("mvn covariance matrix must be 2 dimensional.")
-    if distribution_args[1].shape != (dim, dim):
-        raise ValueError(
-            "mvn covariance matrix must be square, " f"with dimensions ({dim}, {dim})."
-        )
-    if not np.allclose(distribution_args[1], distribution_args[1].T):
-        raise ValueError("mvn covariance matrix must be symmetric.")
-    try:
-        np.linalg.cholesky(distribution_args[1])
-    except np.LinAlgError:
-        raise ValueError("mvn covariance matrix is not positive definite.")
-
-
-def _check_univariate_distribution(distribution_type, distribution_args):
     if not isinstance(distribution_type, str):
         raise ValueError("distribution_type must be str.")
 
@@ -279,14 +220,21 @@ def _check_univariate_distribution(distribution_type, distribution_args):
         if not np.isfinite(distribution_args[i]):
             raise ValueError(f"distribution_args[{i}] is an invalid parameter.")
 
+    # shortcut, so we don't have to validate dim in all sub-cases below
+    if (dim > 1) and (distribution_type not in ["f", "mvn"]):
+        raise ValueError(
+            f"Distribution type '{distribution_type}' is not "
+            " implemented as a multivariate distribution."
+        )
+
     # To add a new distribution type: validate the
     # distribution_args here, and add unit tests.
     if distribution_type == "f":
         # Fixed-value (non-random)
-        if len(distribution_args) != 1:
+        if len(distribution_args) != dim:
             raise ValueError(
-                "Fixed-value mutation types (distribution_type='f') "
-                "take a single selection-coefficient parameter."
+                "Fixed-value mutation type argument must be a list of "
+                "length equal to number of phenotypes."
             )
     elif distribution_type == "g":
         # Gamma distribution with (mean, shape)
@@ -358,6 +306,38 @@ def _check_univariate_distribution(distribution_type, distribution_args):
         umin, umax = distribution_args
         distribution_args = [f"return runif(1, Q * {umin}, Q * {umax});"]
         distribution_type = "s"
+    elif distribution_type == "mvn":
+        # Multivariate Normal distribution with
+        #   (mean, covariance, indices) parameterization.
+        if len(distribution_args) != 2:
+            raise ValueError(
+                "multivariate normal requires two parameters "
+                "in distribution_args: "
+                "a mean vector and a covariance matrix."
+            )
+        if not isinstance(distribution_args[0], np.ndarray):
+            raise ValueError(
+                "mvn mean vector must be a numpy array" f"of length equal to {dim}."
+            )
+        if not isinstance(distribution_args[1], np.ndarray):
+            raise ValueError("mvn covariance matrix must be specified as numpy array.")
+        if len(distribution_args[0].shape) != 1 or distribution_args[0].shape[0] != dim:
+            raise ValueError(
+                "mvn mean vector must be 1 dimensional " f"of length {dim}."
+            )
+        if len(distribution_args[1].shape) != 2:
+            raise ValueError("mvn covariance matrix must be 2 dimensional.")
+        if distribution_args[1].shape != (dim, dim):
+            raise ValueError(
+                "mvn covariance matrix must be square, "
+                f"with dimensions ({dim}, {dim})."
+            )
+        if not np.allclose(distribution_args[1], distribution_args[1].T):
+            raise ValueError("mvn covariance matrix must be symmetric.")
+        try:
+            np.linalg.cholesky(distribution_args[1])
+        except np.LinAlgError:
+            raise ValueError("mvn covariance matrix is not positive definite.")
     else:
         raise ValueError(f"{distribution_type} is not a supported distribution type.")
 
@@ -432,9 +412,7 @@ class MutationType(object):
 
     phenotype_ids = attr.ib(default=None, type=list, converter=_copy_converter)
     distribution_type = attr.ib(default="f", type=str)
-    distribution_args = attr.ib(
-        factory=lambda: [0], type=list, converter=_copy_converter
-    )
+    distribution_args = attr.ib(default=None, type=list, converter=_copy_converter)
     dominance_coeff = attr.ib(default=None, type=float)
     convert_to_substitution = attr.ib(default=True, type=bool)
     dominance_coeff_list = attr.ib(default=None, type=list, converter=_copy_converter)
@@ -444,21 +422,25 @@ class MutationType(object):
         if self.phenotype_ids is None:
             self.phenotype_ids = ["fitness"]
 
-        if not (
-            (len(self.phenotype_ids) > 0)
-            and (len(set(self.phenotype_ids)) == len(self.phenotype_ids))
-        ):
+        if not isinstance(self.phenotype_ids, list):
             # Note: it'd be nice to also accept tuples, but note we can't
             # just check for being a collections.abc.Sequence since
             # then `phenotype_id = "fitness"` would pass and be interpreted
             # as seven phenotype IDs, named "f", "i", "t", etcetera.
             # So, just require a list.
-            raise ValueError("Phenotype IDs must be a nonempty list of unique strings.")
+            raise ValueError("Phenotype IDs must be a list.")
         for pid in self.phenotype_ids:
             if not (isinstance(pid, str) and (len(pid) > 0)):
                 raise ValueError(
                     "Each phenotype ID must be a nonempty string; " f"found {pid}."
                 )
+        if (len(self.phenotype_ids) == 0) or (
+            len(set(self.phenotype_ids)) != len(self.phenotype_ids)
+        ):
+            raise ValueError("Phenotype IDs must be a nonempty list of unique strings.")
+
+        if self.distribution_args is None:
+            self.distribution_args = [0 for _ in self.phenotype_ids]
 
         if self.dominance_coeff is None and self.dominance_coeff_list is None:
             self.dominance_coeff = 0.5
@@ -525,8 +507,10 @@ class MutationType(object):
             "n": [0, 1],  # mean and sd
             "w": [0],  # scale
             "s": [],  # script types should just printout arguments
+            "lp": [],  # lognormal adds log(Q) to the logmean, happens separately
+            "ln": [],  # ditto
         }
-        # assert self.distribution_type in scaling_factor_index_lookup
+        assert self.distribution_type in scaling_factor_index_lookup
         self.fitness_Q_scaled_index = scaling_factor_index_lookup[
             self.distribution_type
         ]
