@@ -375,7 +375,28 @@ class MultivariateMutationType(object):
     fitness and/or trait(s). This design closely mirrors SLiM's MutationType
     class.
 
-    TODO: write a good docstring
+    :ivar distribution_type: A str abbreviation for the distribution of
+        effects that each new mutation of this type draws from (see above).
+    :vartype distribution_type: str
+    :ivar distribution_args: Arguments for the distribution type.
+    :vartype distribution_type: list
+    :ivar dominance_coeff: The dominance coefficient (negative = underdominance,
+        0 = recessive, 0.5 = additive, 1.0 = completely dominant, > 1.0 = overdominant)
+        Default: 0.5.
+    :vartype dominance_coeff: float
+    :ivar convert_to_substitution: Whether to retain any fixed mutations in the
+        simulation: if not, we cannot ask about their frequency once fixed.
+        (Either way, they will remain in the tree sequence).
+    :vartype convert_to_substitution: bool
+    :ivar dominance_coeff_list: Either None (the default) or a list of floats describing
+        a list of dominance coefficients, to apply to different selection coefficients
+        (see details). Cannot be specified along with dominance_coeff.
+    :vartype dominance_coeff_list: list of floats
+    :ivar dominance_coeff_breaks: Either None (the default) or a list of floats
+        describing the intervals of selection coefficient over which each of the entries
+        of dominance_coeff_list applies (see details). Must be of length one shorter than
+        dominance_coeff_list.
+    :vartype dominance_coeff_breaks: list of floats
     """
 
     trait_distribution_type = attr.ib(default=None, type=str)

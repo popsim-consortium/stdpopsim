@@ -9,7 +9,7 @@ import numpy as np
 from traits import MultivariateMutationType
 
 
-#TODO: need to add trait index to get passed up to MultivariateMutationType
+# TODO: need to add trait index to get passed up to MultivariateMutationType
 # and also do all of the subclassing stuff.
 # Default index should probably be 0 to keep
 class MutationType(MultivariateMutationType):
@@ -49,7 +49,7 @@ class MutationType(MultivariateMutationType):
     list of dominance coefficients.
 
     :ivar distribution_type: A str abbreviation for the distribution of
-        fitness effects that each new mutation of this type draws from (see below).
+        fitness effects that each new mutation of this type draws from (see above).
     :vartype distribution_type: str
     :ivar distribution_args: Arguments for the distribution type.
     :vartype distribution_type: list
@@ -76,13 +76,13 @@ class MutationType(MultivariateMutationType):
     def __init__(self, **kwargs):
         super_kwargs = {}
         for k, v in kwargs.items():
-            if k != 'convert_to_substitution':
-                super_kwargs['fitness_' + k] = v
+            if k != "convert_to_substitution":
+                super_kwargs["fitness_" + k] = v
             else:
                 super_kwargs[k] = v
         super().__init__(**super_kwargs)
 
-    #TODO: we have broken everything in here by appending fitness_ in front of
+    # TODO: we have broken everything in here by appending fitness_ in front of
     # the name in the superclass (MultivariateMutationType) maybe we can add
     # accessors here to keep back compatibility
 
