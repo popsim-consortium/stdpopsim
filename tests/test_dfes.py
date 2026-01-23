@@ -16,6 +16,9 @@ IS_WINDOWS = sys.platform.startswith("win")
 class TestCreateMutationType:
     """
     Tests for creating a MutationType instance.
+
+    TODO: move this to `tests/test_traits.py`; I'm leaving it here
+    for now so that the diff is cleaner.
     """
 
     def test_default_mutation_type(self):
@@ -24,6 +27,26 @@ class TestCreateMutationType:
         assert mt.distribution_type == "f"
         assert mt.distribution_args == [0]
         assert mt.convert_to_substitution is True
+
+    def test_default_phenotype_ids(self):
+        mt = dfe.MutationType()
+        assert mt.phenotype_ids == ["fitness"]
+
+    def test_bad_phenotype_ids(self):
+        for bad_list in ("foo", 123, ("a", "bc"), []):
+            with pytest.raises(ValueError, match="Phenotype IDs must be"):
+                stdpopsim.MutationType(phenotype_ids=bad_list)
+        for bad_list in (["a", "a"], ["c", "abc", "d", "abc"]):
+            with pytest.raises(ValueError, match="Phenotype IDs must be"):
+                stdpopsim.MutationType(phenotype_ids=bad_list)
+
+        pids = ["fitness", "height", "number_of_nostrils"]
+        mt = stdpopsim.MutationType(phenotype_ids=pids)
+        assert mt.phenotype_ids == pids
+        for bad_value in (123, None, ["xyz", "abc"], ""):
+            pids[1] = bad_value
+            with pytest.raises(ValueError, match="Each phenotype ID must be"):
+                stdpopsim.MutationType(phenotype_ids=pids)
 
     def test_Q_scaled_index(self):
         mut_params = {

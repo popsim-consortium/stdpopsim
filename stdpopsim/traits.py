@@ -9,12 +9,6 @@ import collections.abc
 import numpy as np
 
 
-# TODO: this was moved from dfe.py so technically
-# this would break backward compatibility, but
-# I believe this method is no longer used
-# anywhere in dfe.py, and it's private so this should be chill
-# PLR: thanks for thinking about this, but moving/changing/deleting
-# private methods doesn't break backwards compatibility; they're private
 def _copy_converter(x):
     if isinstance(x, list):
         x = x.copy()
@@ -436,8 +430,8 @@ class MutationType(object):
     :vartype dominance_coeff_breaks: list of floats
     """
 
-    phenotype_ids = attr.ib()
-    distribution_type = attr.ib(default=None, type=str)
+    phenotype_ids = attr.ib(default=None, type=list, converter=_copy_converter)
+    distribution_type = attr.ib(default="f", type=str)
     distribution_args = attr.ib(
         factory=lambda: [0], type=list, converter=_copy_converter
     )
@@ -447,6 +441,25 @@ class MutationType(object):
     dominance_coeff_breaks = attr.ib(default=None, type=list, converter=_copy_converter)
 
     def __attrs_post_init__(self):
+        if self.phenotype_ids is None:
+            self.phenotype_ids = ["fitness"]
+
+        if not (
+            (len(self.phenotype_ids) > 0)
+            and (len(set(self.phenotype_ids)) == len(self.phenotype_ids))
+        ):
+            # Note: it'd be nice to also accept tuples, but note we can't
+            # just check for being a collections.abc.Sequence since
+            # then `phenotype_id = "fitness"` would pass and be interpreted
+            # as seven phenotype IDs, named "f", "i", "t", etcetera.
+            # So, just require a list.
+            raise ValueError("Phenotype IDs must be a nonempty list of unique strings.")
+        for pid in self.phenotype_ids:
+            if not (isinstance(pid, str) and (len(pid) > 0)):
+                raise ValueError(
+                    "Each phenotype ID must be a nonempty string; " f"found {pid}."
+                )
+
         if self.dominance_coeff is None and self.dominance_coeff_list is None:
             self.dominance_coeff = 0.5
 
@@ -513,7 +526,7 @@ class MutationType(object):
             "w": [0],  # scale
             "s": [],  # script types should just printout arguments
         }
-        assert self.distribution_type in scaling_factor_index_lookup
+        # assert self.distribution_type in scaling_factor_index_lookup
         self.fitness_Q_scaled_index = scaling_factor_index_lookup[
             self.distribution_type
         ]
