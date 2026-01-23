@@ -3,12 +3,14 @@ TODO: docstring goes here (preferably, descriptive)
 """
 
 import attr
+import collections.abc
 import numpy as np
 
 
 # TODO: somewhere we need to check that the number of traits
 # is consistent between Phenotypes, Environments, FitnessFunctions,
 # MultivariateMutationTypes, DistributionofMutationEffects (DMEs), etc.
+
 
 # TODO: this was moved from dfe.py so technically
 # this would break backward compatibility, but
@@ -22,7 +24,7 @@ def _copy_converter(x):
     return x
 
 
-class Traits(object):
+class TraitsModel(object):
     def __init__(self, phenotypes):
         """
         A collection of genetically determined traits,
@@ -183,24 +185,32 @@ class Environment:
 
 class FitnessFunction(object):
     """
-    Class to store a fitness function.
+    TODO WRITE THIS BETTER
+    Class to store a model of a component of fitness:
+    each such component maps a collection of phenotypes
+    to a value that multiplies the fitness.
+    Also contained here is when and where this component applies.
 
-    :ivar traits: List of trait names or indices, as initialized in Traits object.
+    Options for ``function_type``, and corresponding ``function_args``, are:
+
+    TODO
+
+    :ivar traits: List of phenotype IDs.
     :vartype traits: list
-    :ivar function_type: One-letter string corresponding to fitness function type
+    :ivar function_type: String corresponding to fitness function type
     :vartype function_type: str
     :ivar function_args: Tuple containing parameters for the fitness function
     :vartype function_args: str
-    :ivar spacetime: Generations and populations for which this fitness function applies
-    :vartype spacetime: list of tuples (?)
     """
+
+    # :ivar spacetime: Generations and populations
+    #    for which this fitness function applies
+    # :vartype spacetime: list of tuples (?)
 
     # TODO check function_args depending on function_type
     # TODO check dimensions of traits against dimensions of function_args,
     # depending on function_type - plus check dimensions >=1
     # TODO much later - check spacetime is formatted correctly
-
-    supported_function_types = []  # TODO
 
     traits = attr.ib(type=list)
     function_type = attr.ib(type=str)
@@ -210,20 +220,14 @@ class FitnessFunction(object):
     def __attrs_post_init__(self):
         if len(self.traits) < 1:
             raise ValueError("At least one trait must be specified.")
-        if self.function_type not in self.supported_function_types:
-            raise ValueError("Proposed fitness function not supported at this time.")
+        # _check_function_types(self.function_type, self.function_args, len(self.traits))
 
 
-@attr.s(kw_only=True)
-class MultivariateEffectSizeDistribution:
-    def __attrs_post_init__(self):
-        # Make sure fitness is not affected
-        if 0 in self.supported_indices:
-            raise ValueError(
-                "distributions cannot simultaneously directly affect fitness "
-                "and traits. that is, if 0 (fitness) is a supported index "
-                "no other index can also be supported in supported_indices."
-            )
+def _check_distribution(distribution_type, distribution_args, dim):
+    if dim > 1:
+        _check_multivariate_distribution(distribution_type, distribution_args, dim)
+    else:
+        _check_univariate_distribution(distribution_type, distribution_args)
 
 
 def _check_multivariate_distribution(distribution_type, distribution_args, dim):
@@ -240,7 +244,6 @@ def _check_multivariate_distribution(distribution_type, distribution_args, dim):
 
 
 def _check_multivariate_normal_args(distribution_args, dim):
-    # TODO: I don't think we need the "list of dimensions that are not zero"
     # Multivariate Normal distribution with
     #   (mean, covariance, indices) parameterization.
     if len(distribution_args) != 3:
@@ -372,9 +375,13 @@ def _check_univariate_distribution(distribution_type, distribution_args):
 class MultivariateMutationType(object):
     """
     Class representing a "type" of mutation, allowing the mutation to affect
-    fitness and/or trait(s). This design closely mirrors SLiM's MutationType
-    class.
+    fitness and/or trait(s). This design closely mirrors :class: MutationType.
 
+    TODO: is "dominance_coeff_list" still the way we want to do things?
+    SLiM is more flexible in this now.
+
+    :ivar phenotype_ids: A list of IDs of phenotypes this mutation type affects.
+    :vartype phenotype_ids: list
     :ivar distribution_type: A str abbreviation for the distribution of
         effects that each new mutation of this type draws from (see above).
     :vartype distribution_type: str
@@ -399,114 +406,93 @@ class MultivariateMutationType(object):
     :vartype dominance_coeff_breaks: list of floats
     """
 
-    trait_distribution_type = attr.ib(default=None, type=str)
-    trait_distribution_args = attr.ib(
+    phenotype_ids = attr.ib()
+    distribution_type = attr.ib(default=None, type=str)
+    distribution_args = attr.ib(
         factory=lambda: [0], type=list, converter=_copy_converter
     )
-
-    fitness_dominance_coeff = attr.ib(default=None, type=float)
-    fitness_distribution_type = attr.ib(default="f", type=str)
-    fitness_distribution_args = attr.ib(
-        factory=lambda: [0], type=list, converter=_copy_converter
-    )
-    # TODO: is this okay if something affects traits
+    dominance_coeff = attr.ib(default=None, type=float)
     convert_to_substitution = attr.ib(default=True, type=bool)
-    fitness_dominance_coeff_list = attr.ib(
-        default=None, type=list, converter=_copy_converter
-    )
-    fitness_dominance_coeff_breaks = attr.ib(
-        default=None, type=list, converter=_copy_converter
-    )
+    dominance_coeff_list = attr.ib(default=None, type=list, converter=_copy_converter)
+    dominance_coeff_breaks = attr.ib(default=None, type=list, converter=_copy_converter)
 
     def __attrs_post_init__(self):
-        if (
-            self.fitness_dominance_coeff is None
-            and self.fitness_dominance_coeff_list is None
-        ):
-            self.fitness_dominance_coeff = 0.5
+        if self.dominance_coeff is None and self.dominance_coeff_list is None:
+            self.dominance_coeff = 0.5
 
-        if self.fitness_dominance_coeff is not None:
-            if (self.fitness_dominance_coeff_list is not None) or (
-                self.fitness_dominance_coeff_breaks is not None
+        if self.dominance_coeff is not None:
+            if (self.dominance_coeff_list is not None) or (
+                self.dominance_coeff_breaks is not None
             ):
                 raise ValueError(
                     "Cannot specify both fitness_dominance_coeff "
                     "and fitness_dominance_coeff_list."
                 )
-            if not isinstance(self.fitness_dominance_coeff, (float, int)):
-                raise ValueError("fitness_dominance_coeff must be a number.")
-            if not np.isfinite(self.fitness_dominance_coeff):
+            if not isinstance(self.dominance_coeff, (float, int)):
+                raise ValueError("dominance_coeff must be a number.")
+            if not np.isfinite(self.dominance_coeff):
                 raise ValueError(
-                    "Invalid fitness dominance "
-                    f"coefficient {self.fitness_dominance_coeff}."
+                    f"Invalid dominance coefficient {self.dominance_coeff}."
                 )
 
-        if self.fitness_dominance_coeff_list is not None:
+        if self.dominance_coeff_list is not None:
             # disallow the inefficient and annoying length-one case
-            if len(self.fitness_dominance_coeff_list) < 2:
-                raise ValueError(
-                    "fitness_dominance_coeff_list must have at least 2 elements."
-                )
-            for h in self.fitness_dominance_coeff_list:
+            if len(self.dominance_coeff_list) < 2:
+                raise ValueError("dominance_coeff_list must have at least 2 elements.")
+            for h in self.dominance_coeff_list:
                 if not isinstance(h, (float, int)):
-                    raise ValueError(
-                        "fitness_dominance_coeff_list must be a list of numbers."
-                    )
+                    raise ValueError("dominance_coeff_list must be a list of numbers.")
                 if not np.isfinite(h):
-                    raise ValueError(f"Invalid fitness dominance coefficient {h}.")
-            if self.fitness_dominance_coeff_breaks is None:
+                    raise ValueError(f"Invalid dominance coefficient {h}.")
+            if self.dominance_coeff_breaks is None:
                 raise ValueError(
-                    "A list of fitness dominance coefficients provided but no breaks."
+                    "A list of dominance coefficients provided but no breaks."
                 )
-            if (
-                len(self.fitness_dominance_coeff_list)
-                != len(self.fitness_dominance_coeff_breaks) + 1
-            ):
+            if len(self.dominance_coeff_list) != len(self.dominance_coeff_breaks) + 1:
                 raise ValueError(
-                    "len(fitness_dominance_coeff_list) must be equal "
-                    "to len(fitness_dominance_coeff_breaks) + 1"
+                    "len(dominance_coeff_list) must be equal "
+                    "to len(dominance_coeff_breaks) + 1"
                 )
             lb = -1 * np.inf
-            for b in self.fitness_dominance_coeff_breaks:
+            for b in self.dominance_coeff_breaks:
                 if not isinstance(b, (float, int)):
                     raise ValueError(
-                        "fitness_dominance_coeff_breaks must be a list of numbers."
+                        "dominance_coeff_breaks must be a list of numbers."
                     )
                 if not np.isfinite(b):
-                    raise ValueError(
-                        f"Invalid fitness dominance coefficient break {b}."
-                    )
+                    raise ValueError(f"Invalid dominance coefficient break {b}.")
                 if b < lb:
-                    raise ValueError(
-                        "fitness_dominance_coeff_breaks must be nondecreasing."
-                    )
+                    raise ValueError("dominance_coeff_breaks must be nondecreasing.")
                 lb = b
-
-        _check_univariate_distribution(
-            self.fitness_distribution_type, self.fitness_distribution_args
-        )
 
         if not isinstance(self.convert_to_substitution, bool):
             raise ValueError("convert_to_substitution must be bool.")
 
-        _check_multivariate_distribution(
-            self.trait_distribution_type, self.trait_distribution_args
+        _check_distribution(
+            self.distribution_type, self.distribution_args, len(self.phenotype_ids)
         )
 
+        # TODO
         # The index(s) of the param in the distribution_args list that should be
         # multiplied by Q when using --slim-scaling-factor Q.
-        self.fitness_Q_scaled_index = {
+        scaling_factor_index_lookup = {
             "e": [0],  # mean
             "f": [0],  # fixed value
             "g": [0],  # mean
             "n": [0, 1],  # mean and sd
             "w": [0],  # scale
             "s": [],  # script types should just printout arguments
-        }[self.fitness_distribution_type]
+        }
+        assert self.distribution_type in scaling_factor_index_lookup
+        self.fitness_Q_scaled_index = scaling_factor_index_lookup[
+            self.distribution_type
+        ]
 
     @property
     def directly_affects_fitness(self):
         """
+        TODO: do we need this?
+
         Tests whether the mutation type has direct effects on fitness. This is
         defined here to be of type "f" and with fitness effect 0.0, and so
         excludes other situations that also produce only neutral mutations
@@ -518,8 +504,82 @@ class MultivariateMutationType(object):
         )
 
 
-# superclass of DFE --> DME
+# at least conceptually a superclass of DFE, so we call it DME
 class DistributionOfMutationEffects(object):
+    """
+    Class representing all mutations that affect a given segment of genome,
+    and hence contains a list of :class:`.MultivariateMutationType`
+    and corresponding list of proportions,
+    that gives the proportions of mutations falling in this region
+    that are of the corresponding mutation type.
+
+    ``proportions`` and ``mutation_types`` must be lists of the same length,
+    and ``proportions`` should be nonnegative numbers summing to 1.
+
+    TODO: do we want id, description, long_description?
+
+    :ivar ~.mutation_types: A list of :class:`.MultivariateMutationType`
+        objects associated with the DFE. Defaults to an empty list.
+    :vartype ~.mutation_types: list
+    :ivar ~.proportions: A list of the proportions of new mutations that
+        fall in to each of the mutation types (must sum to 1).
+    :vartype ~.proportions: list
+    :ivar ~.id: The unique identifier for this model. DFE IDs should be
+        short and memorable, and conform to the stdpopsim
+        :ref:`naming conventions <sec_development_naming_conventions>`
+        for DFE models.
+    :vartype ~.id: str
+    :ivar ~.description: A short description of this model as it would be used in
+        written text, e.g., "Lognormal DFE". This should
+        describe the DFE itself and not contain author or year information.
+    :vartype ~.description: str
+    :ivar long_description: A concise, but detailed, summary of the DFE model.
+    :vartype long_description: str
+    """
+
+    # TODO: what's this note about?
     # Remember to make sure none of the components MutationTypes are converting
     # to substitutions unless they only affect fitness
-    pass
+
+    id = attr.ib()
+    description = attr.ib()
+    long_description = attr.ib()
+    mutation_types = attr.ib(default=None)
+    proportions = attr.ib(default=None)
+    # citations = attr.ib(default=None)
+    # qc_dfe = attr.ib(default=None)
+
+    # TODO: repetition here with DFE
+    def __attrs_post_init__(self):
+        self.mutation_types = [] if self.mutation_types is None else self.mutation_types
+        if self.proportions is None and len(self.mutation_types) == 0:
+            self.proportions = []
+        elif self.proportions is None:
+            # will error below if this doesn't make sense
+            self.proportions = [1]
+
+        if not (isinstance(self.proportions, (collections.abc.Sequence, np.ndarray))):
+            raise ValueError("proportions must be a list or numpy array.")
+
+        if not (isinstance(self.mutation_types, list)):
+            raise ValueError("mutation_types must be a list.")
+
+        if not (len(self.proportions) == len(self.mutation_types)):
+            raise ValueError(
+                "proportions and mutation_types must be lists of the same length."
+            )
+
+        for p in self.proportions:
+            if not isinstance(p, (float, int)) or p < 0:
+                raise ValueError("proportions must be nonnegative numbers.")
+
+        if len(self.proportions) > 0:
+            sum_p = sum(self.proportions)
+            if not np.isclose(sum_p, 1):
+                raise ValueError("proportions must sum to 1.0.")
+
+        for m in self.mutation_types:
+            if not isinstance(m, MultivariateMutationType):
+                raise ValueError(
+                    "mutation_types must be a list of MultivariateMutationType objects."
+                )
