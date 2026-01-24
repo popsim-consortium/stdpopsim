@@ -104,34 +104,44 @@ class Trait:
 
     TODO: Add Poisson (count) traits?
 
+    TODO: Add "logistic" traits?
+
     :ivar id: ID of the trait (think of this as the 'name').
     :vartype id: str
     :ivar transform: Type of transformation.
     :vartype transform: str
-    :ivar params: Parameters given to the transformation.
-    :vartype params: tuple
+    :ivar transform_args: A list of parameters given to the transformation.
+    :vartype transform_args: list
     """
 
     id = attr.ib()
-    transform = attr.ib(default="identity")
-    params = attr.ib(default=())
+    transform = attr.ib(default="identity", type=str)
+    transform_args = attr.ib(default=None, type=list, converter=_copy_converter)
 
     def __attrs_post_init__(self):
+        if self.transform_args is None:
+            self.transform_args = []
+        if not isinstance(self.transform, str):
+            raise ValueError("transform must be a str")
+        if not isinstance(self.transform_args, list):
+            raise ValueError("transform_args must be a list")
         if self.transform == "identity":
-            if len(self.params) != 0:
+            if len(self.transform_args) != 0:
                 raise ValueError("identity transform takes no parameters.")
         elif self.transform == "threshold":
-            if len(self.params) != 1:
+            if len(self.transform_args) != 1:
                 raise ValueError(
                     "threshold transform requires one parameter (the threshold)"
                 )
         elif self.transform == "liability":
-            if len(self.params) != 2:
+            if len(self.transform_args) != 2:
                 raise ValueError(
-                    "threshold transform requires two parameters " "(center and slope)"
+                    "liability transform requires two parameters (center and slope)"
                 )
+            if self.transform_args[1] <= 0:
+                raise ValueError("slope for liability transform must be positive")
         else:
-            raise ValueError(f"Transform {self.transform} unknown.")
+            raise ValueError(f"Transform '{self.transform}' unknown.")
 
 
 @attr.s(kw_only=True)
@@ -152,9 +162,9 @@ class Environment:
     :vartype distribution_type: str
     """
 
-    trait_ids = attr.ib(converter=_copy_converter)  # list of trait IDs
-    distribution_type = attr.ib()
-    distribution_args = attr.ib()
+    trait_ids = attr.ib(type=list, converter=_copy_converter)  # list of trait IDs
+    distribution_type = attr.ib(type=str)
+    distribution_args = attr.ib(type=list)
     # TODO: add later
     # start_time = attr.ib(default=None)
     # end_time = attr.ib(default=None)
@@ -167,7 +177,8 @@ class Environment:
         _check_distribution(self.distribution_type, self.distribution_args, dim)
 
 
-class FitnessFunction(object):
+@attr.s(kw_only=True)
+class FitnessFunction:
     """
     TODO WRITE THIS BETTER
     Class to store a model of a component of fitness:
@@ -179,8 +190,8 @@ class FitnessFunction(object):
 
     TODO
 
-    :ivar traits: List of trait IDs.
-    :vartype traits: list
+    :ivar trait_ids: List of trait IDs.
+    :vartype trait_ids: list
     :ivar function_type: String corresponding to fitness function type
     :vartype function_type: str
     :ivar function_args: Tuple containing parameters for the fitness function
@@ -196,15 +207,16 @@ class FitnessFunction(object):
     # depending on function_type - plus check dimensions >=1
     # TODO much later - check spacetime is formatted correctly
 
-    traits = attr.ib(type=list)
+    trait_ids = attr.ib(type=list)
     function_type = attr.ib(type=str)
     function_args = attr.ib(type=tuple)
     # spacetime = attr.ib(type=list)
 
     def __attrs_post_init__(self):
-        if len(self.traits) < 1:
+        if len(self.trait_ids) < 1:
             raise ValueError("At least one trait must be specified.")
-        # _check_function_types(self.function_type, self.function_args, len(self.traits))
+        # _check_function_types(self.function_type, self.function_args,
+        # len(self.trait_ids))
 
 
 def _check_distribution(distribution_type, distribution_args, dim):
