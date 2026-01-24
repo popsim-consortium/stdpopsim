@@ -28,25 +28,25 @@ class TestCreateMutationType:
         assert mt.distribution_args == [0]
         assert mt.convert_to_substitution is True
 
-    def test_default_phenotype_ids(self):
+    def test_default_trait_ids(self):
         mt = dfe.MutationType()
-        assert mt.phenotype_ids == ["fitness"]
+        assert mt.trait_ids == ["fitness"]
 
-    def test_bad_phenotype_ids(self):
+    def test_bad_trait_ids(self):
         for bad_list in ("foo", 123, ("a", "bc"), []):
-            with pytest.raises(ValueError, match="Phenotype IDs must be"):
-                stdpopsim.MutationType(phenotype_ids=bad_list)
+            with pytest.raises(ValueError, match="Trait IDs must be"):
+                stdpopsim.MutationType(trait_ids=bad_list)
         for bad_list in (["a", "a"], ["c", "abc", "d", "abc"]):
-            with pytest.raises(ValueError, match="Phenotype IDs must be"):
-                stdpopsim.MutationType(phenotype_ids=bad_list)
+            with pytest.raises(ValueError, match="Trait IDs must be"):
+                stdpopsim.MutationType(trait_ids=bad_list)
 
         pids = ["fitness", "height", "number_of_nostrils"]
-        mt = stdpopsim.MutationType(phenotype_ids=pids)
-        assert mt.phenotype_ids == pids
+        mt = stdpopsim.MutationType(trait_ids=pids)
+        assert mt.trait_ids == pids
         for bad_value in (123, None, ["xyz", "abc"], ""):
             pids[1] = bad_value
-            with pytest.raises(ValueError, match="Each phenotype ID must be"):
-                stdpopsim.MutationType(phenotype_ids=pids)
+            with pytest.raises(ValueError, match="Each trait ID must be"):
+                stdpopsim.MutationType(trait_ids=pids)
 
     def test_Q_scaled_index(self):
         mut_params = {
@@ -123,7 +123,7 @@ class TestCreateMutationType:
             )
 
         # fixed-value selection coefficient
-        with pytest.raises(ValueError, match="take a single"):
+        with pytest.raises(ValueError, match="must be a list of length"):
             dfe.MutationType(
                 distribution_type="f",
                 distribution_args=[1, 2],
@@ -514,121 +514,6 @@ class TestCreateDFE:
                 id="test", description="test", long_description="test", proportions=1
             )
 
-        with pytest.raises(ValueError, match="mutation_types must be a list."):
-            # mutation_types must be a list
-            dfe.DFE(
-                id="test",
-                description="test",
-                long_description="test",
-                mutation_types=dfe.MutationType(),
-                proportions=[0.5, 0.5],
-            )
-
-        with pytest.raises(
-            ValueError,
-            match="proportions and mutation_types must be lists of the same length.",
-        ):
-            # proportions and mutation_types must be the same length
-            dfe.DFE(
-                id="test",
-                description="test",
-                long_description="test",
-                mutation_types=[dfe.MutationType(), dfe.MutationType()],
-                proportions=[1.0],
-            )
-
-        with pytest.raises(
-            ValueError, match="proportions must be nonnegative numbers."
-        ):
-            # proportions must be numbers
-            dfe.DFE(
-                id="test",
-                description="test",
-                long_description="test",
-                mutation_types=[dfe.MutationType(), dfe.MutationType()],
-                proportions=[True, "666"],
-            )
-
-        with pytest.raises(
-            ValueError, match="proportions must be nonnegative numbers."
-        ):
-            # proportions must be positive
-            dfe.DFE(
-                id="test",
-                description="test",
-                long_description="test",
-                mutation_types=[dfe.MutationType(), dfe.MutationType()],
-                proportions=[-1, 0],
-            )
-
-        with pytest.raises(ValueError, match="proportions must sum to 1.0."):
-            # proportions must sum 1.0
-            dfe.DFE(
-                id="test",
-                description="test",
-                long_description="test",
-                mutation_types=[dfe.MutationType(), dfe.MutationType()],
-                proportions=[1, 1],
-            )
-
-        with pytest.raises(
-            ValueError, match="mutation_types must be a list of MutationType objects."
-        ):
-            # mutation_types must be a list of MutationType objects
-            dfe.DFE(
-                id="test",
-                description="test",
-                long_description="test",
-                mutation_types=["neutral"],
-            )
-
-    def test_dfe_errors(self):
-        m1 = stdpopsim.MutationType()
-        m2 = stdpopsim.MutationType()
-        with pytest.raises(ValueError, match="must be lists of the same length"):
-            _ = stdpopsim.DFE(
-                id="abc",
-                description="test test",
-                long_description="test test test test",
-                proportions=[],
-                mutation_types=[m1],
-            )
-        for bad_props in [
-            ["abc"],
-            [1.25, -0.25],
-            1.0,
-            [1.0],
-            [0.2, 0.4, 0.4],
-            [-0.1, -0.1],
-            [0.8, 0.8],
-        ]:
-            with pytest.raises(ValueError):
-                _ = stdpopsim.DFE(
-                    id="abc",
-                    description="test test",
-                    long_description="test test test test",
-                    proportions=bad_props,
-                    mutation_types=[m1, m2],
-                )
-        for bad_mut_types in ["abc", {}, [1.0, 2.0], [m1], m1, ["a", "b"]]:
-            with pytest.raises(ValueError):
-                _ = stdpopsim.DFE(
-                    id="abc",
-                    description="test test",
-                    long_description="test test test test",
-                    proportions=[0.6, 0.4],
-                    mutation_types=bad_mut_types,
-                )
-        for bad_sums in [[-0.4, 0.5], [0.6, 0.8], [139487135987, 0.0], [0.2, 0.3]]:
-            with pytest.raises(ValueError):
-                _ = stdpopsim.DFE(
-                    id="abc",
-                    description="test test",
-                    long_description="test test test test",
-                    proportions=bad_sums,
-                    mutation_types=[m1, m2],
-                )
-
     def test_dfe_is_neutral(self):
         d = dfe.DFE(
             id="test",
@@ -704,6 +589,124 @@ class TestCreateDFE:
                 contig,
                 samples,
             )
+
+
+class TestCreateDME:
+    """
+    Tests for DistributionOfMutationEffects.
+    """
+
+    def test_default_dme(self):
+        dme = stdpopsim.DistributionOfMutationEffects()
+        assert dme.mutation_types == []
+        assert dme.proportions == []
+
+    def test_create_dme(self):
+        mt1 = stdpopsim.MutationType()
+        mt2 = stdpopsim.MutationType(
+            trait_ids=["abc", "xyz"],
+        )
+        mt3 = stdpopsim.MutationType(
+            trait_ids=["abc", "xyz"],
+            distribution_type="f",
+            distribution_args=[1, 2],
+        )
+        for mts, props in [
+            ([mt1], [1]),
+            ([mt1, mt2, mt3], [0.5, 0.25, 0.25]),
+            ([mt1, mt2, mt3], [1 / 3, 2 / 3, 0]),
+        ]:
+            dme = stdpopsim.DistributionOfMutationEffects(
+                mutation_types=mts, proportions=props
+            )
+            assert dme.mutation_types == mts
+            assert dme.proportions == props
+
+    def test_mutation_types_proportions_errors(self):
+        with pytest.raises(ValueError, match="mutation_types must be a list."):
+            # mutation_types must be a list
+            stdpopsim.DistributionOfMutationEffects(
+                mutation_types=stdpopsim.MutationType(),
+                proportions=[0.5, 0.5],
+            )
+
+        with pytest.raises(
+            ValueError,
+            match="proportions and mutation_types must be lists of the same length.",
+        ):
+            # proportions and mutation_types must be the same length
+            stdpopsim.DistributionOfMutationEffects(
+                mutation_types=[stdpopsim.MutationType(), stdpopsim.MutationType()],
+                proportions=[1.0],
+            )
+
+        with pytest.raises(
+            ValueError, match="proportions must be nonnegative numbers."
+        ):
+            # proportions must be numbers
+            stdpopsim.DistributionOfMutationEffects(
+                mutation_types=[stdpopsim.MutationType(), stdpopsim.MutationType()],
+                proportions=[True, "666"],
+            )
+
+        with pytest.raises(
+            ValueError, match="proportions must be nonnegative numbers."
+        ):
+            # proportions must be positive
+            stdpopsim.DistributionOfMutationEffects(
+                mutation_types=[stdpopsim.MutationType(), stdpopsim.MutationType()],
+                proportions=[-1, 0],
+            )
+
+        with pytest.raises(ValueError, match="proportions must sum to 1.0."):
+            # proportions must sum 1.0
+            stdpopsim.DistributionOfMutationEffects(
+                mutation_types=[stdpopsim.MutationType(), stdpopsim.MutationType()],
+                proportions=[1, 1],
+            )
+
+        with pytest.raises(
+            ValueError, match="mutation_types must be a list of MutationType objects."
+        ):
+            # mutation_types must be a list of MutationType objects
+            stdpopsim.DistributionOfMutationEffects(
+                mutation_types=["neutral"],
+                proportions=[1],
+            )
+
+        m1 = stdpopsim.MutationType()
+        m2 = stdpopsim.MutationType()
+        with pytest.raises(ValueError, match="must be lists of the same length"):
+            stdpopsim.DistributionOfMutationEffects(
+                proportions=[],
+                mutation_types=[m1],
+            )
+        for bad_props in [
+            ["abc"],
+            [1.25, -0.25],
+            1.0,
+            [1.0],
+            [0.2, 0.4, 0.4],
+            [-0.1, -0.1],
+            [0.8, 0.8],
+        ]:
+            with pytest.raises(ValueError):
+                stdpopsim.DistributionOfMutationEffects(
+                    proportions=bad_props,
+                    mutation_types=[m1, m2],
+                )
+        for bad_mut_types in ["abc", {}, [1.0, 2.0], [m1], m1, ["a", "b"]]:
+            with pytest.raises(ValueError):
+                stdpopsim.DistributionOfMutationEffects(
+                    proportions=[0.6, 0.4],
+                    mutation_types=bad_mut_types,
+                )
+        for bad_sums in [[-0.4, 0.5], [0.6, 0.8], [139487135987, 0.0], [0.2, 0.3]]:
+            with pytest.raises(ValueError):
+                stdpopsim.DistributionOfMutationEffects(
+                    proportions=bad_sums,
+                    mutation_types=[m1, m2],
+                )
 
 
 class TestCreateNeutralDFE:

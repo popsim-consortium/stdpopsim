@@ -16,10 +16,10 @@ def _copy_converter(x):
 
 
 class TraitsModel(object):
-    def __init__(self, phenotypes):
+    def __init__(self, traits):
         """
         A collection of genetically determined traits,
-        which are a list of ``phenotypes``,
+        which are a list of ``traits``,
         linked together by possibly shared effects of ``environments``
         and by ``fitness_functions`` that depend on their values.
 
@@ -27,14 +27,14 @@ class TraitsModel(object):
         are empty and can be added with :meth:`.add_environment`
         and :meth:`.add_fitness_function`.
 
-        :ivar phenotypes: List of :class:`Phenotype` objects.
-        :vartype phenotypes: list
+        :ivar traits: List of :class:`Trait` objects.
+        :vartype traits: list
         """
-        pids = [p.id for p in phenotypes]
+        pids = [p.id for p in traits]
         if len(set(pids)) != len(pids):
-            raise ValueError("Phenotype IDs must be unique.")
+            raise ValueError("Trait IDs must be unique.")
 
-        self.phenotypes = phenotypes
+        self.traits = traits
         self.environments = []
         self.fitness_functions = []
         # We *could* take in Environment and FitnessFunction objects
@@ -49,17 +49,17 @@ class TraitsModel(object):
         )
         self._fitness_functions.append(new_fitness)
 
-    def add_environment(self, *, phenotype_ids, distribution_type, distribution_args):
+    def add_environment(self, *, trait_ids, distribution_type, distribution_args):
         """
         Add random "environmental" (i.e., non-genetic) effects to the specified
-        ``phenotypes``.  See :class:`Environment` more more detail.
+        ``traits``.  See :class:`Environment` more more detail.
         """
-        pids = [p.id for p in self.phenotypes]
-        for pid in phenotype_ids:
+        pids = [p.id for p in self.traits]
+        for pid in trait_ids:
             if pid not in pids:
-                raise ValueError(f"Phenotype {pid} not in phenotypes.")
+                raise ValueError(f"trait {pid} not in traits.")
         env = Environment(
-            phenotype_ids=phenotype_ids,
+            trait_ids=trait_ids,
             distribution_type=distribution_type,
             distribution_args=distribution_args,
         )
@@ -82,27 +82,27 @@ class TraitsModel(object):
 
 
 @attr.s(kw_only=True)
-class Phenotype:
+class Trait:
     """
-    Represents a single phenotype, i.e., something that can be measured.
+    Represents a single trait, i.e., something that can be measured.
     This only defines how the underlying (latent) value,
     which is a sum of genetic value and environmental deviation,
     is mapped to the observed value.
 
     Options for "transform" (link function) are:
 
-    "identity": the phenotype is equal to the latent value.
+    "identity": the trait is equal to the latent value.
 
-    "threshold" (parameters: x): the phenotype is equal to 1 if the latent
+    "threshold" (parameters: x): the trait is equal to 1 if the latent
         value is less than x, and is equal to 0 otherwise.
 
-    "liability" (parameters center, slope): the phenotype whose
+    "liability" (parameters center, slope): the trait whose
         latent value is z is equal to 1 with probability
         1 / (1 + exp((x - center) * slope)), and is equal to 0 otherwise.
 
-    TODO: Add "exponential" transform to get log-normal phenotypes?
+    TODO: Add "exponential" transform to get log-normal traits?
 
-    TODO: Add Poisson (count) phenotypes?
+    TODO: Add Poisson (count) traits?
 
     :ivar id: ID of the trait (think of this as the 'name').
     :vartype id: str
@@ -142,8 +142,8 @@ class Environment:
 
     TODO: should this be public?
 
-    :ivar phenotype_ids: List of phenotype IDs.
-    :vartype phenotype_ids: list
+    :ivar trait_ids: List of trait IDs.
+    :vartype trait_ids: list
     :ivar distribution_type: A str abbreviation for the distribution
         of environmental efffects (see TODO WHERE).
     :vartype distribution_type: str
@@ -152,7 +152,7 @@ class Environment:
     :vartype distribution_type: str
     """
 
-    phenotype_ids = attr.ib()  # list of phenotype IDs
+    trait_ids = attr.ib()  # list of trait IDs
     distribution_type = attr.ib()
     distribution_args = attr.ib()
     # TODO: add later
@@ -161,9 +161,9 @@ class Environment:
     # populations = attr.ib(default=None)
 
     def __attrs_post_init__(self):
-        dim = len(self.phenotype_ids)
+        dim = len(self.trait_ids)
         if dim < 1:
-            raise ValueError("Must have at least one phenotype.")
+            raise ValueError("Must have at least one trait.")
         _check_distribution(self.distribution_type, self.distribution_args, dim)
 
 
@@ -171,7 +171,7 @@ class FitnessFunction(object):
     """
     TODO WRITE THIS BETTER
     Class to store a model of a component of fitness:
-    each such component maps a collection of phenotypes
+    each such component maps a collection of traits
     to a value that multiplies the fitness.
     Also contained here is when and where this component applies.
 
@@ -179,7 +179,7 @@ class FitnessFunction(object):
 
     TODO
 
-    :ivar traits: List of phenotype IDs.
+    :ivar traits: List of trait IDs.
     :vartype traits: list
     :ivar function_type: String corresponding to fitness function type
     :vartype function_type: str
@@ -234,7 +234,7 @@ def _check_distribution(distribution_type, distribution_args, dim):
         if len(distribution_args) != dim:
             raise ValueError(
                 "Fixed-value mutation type argument must be a list of "
-                "length equal to number of phenotypes."
+                "length equal to number of traits."
             )
     elif distribution_type == "g":
         # Gamma distribution with (mean, shape)
@@ -289,13 +289,6 @@ def _check_distribution(distribution_type, distribution_args, dim):
             )
         if distribution_args[1] < 0:
             raise ValueError("The sdlog parameter must be nonnegative.")
-        # dealing with lognormal distribution
-        # (adding instead of multiplying the mean):
-        logmean = distribution_args[0]
-        logsd = distribution_args[1]
-        sign = "" if distribution_type == "lp" else "-1 *"
-        distribution_args = [f"return {sign}rlnorm(1, {logmean} + log(Q), {logsd});"]
-        distribution_type = "s"
     elif distribution_type == "u":
         # Uniform
         if len(distribution_args) != 2 or distribution_args[0] > distribution_args[1]:
@@ -303,9 +296,6 @@ def _check_distribution(distribution_type, distribution_args, dim):
                 "Uniformly-distributed sel. coefs. (distribution_type='u') "
                 "use a (min, max) parameterisation, with min <= max."
             )
-        umin, umax = distribution_args
-        distribution_args = [f"return runif(1, Q * {umin}, Q * {umax});"]
-        distribution_type = "s"
     elif distribution_type == "mvn":
         # Multivariate Normal distribution with
         #   (mean, covariance, indices) parameterization.
@@ -384,8 +374,8 @@ class MutationType(object):
     TODO: is "dominance_coeff_list" still the way we want to do things?
     SLiM is more flexible in this now.
 
-    :ivar phenotype_ids: A list of IDs of phenotypes this mutation type affects.
-    :vartype phenotype_ids: list
+    :ivar trait_ids: A list of IDs of traits this mutation type affects.
+    :vartype trait_ids: list
     :ivar distribution_type: A str abbreviation for the distribution of
         effects that each new mutation of this type draws from (see above).
     :vartype distribution_type: str
@@ -410,7 +400,7 @@ class MutationType(object):
     :vartype dominance_coeff_breaks: list of floats
     """
 
-    phenotype_ids = attr.ib(default=None, type=list, converter=_copy_converter)
+    trait_ids = attr.ib(default=None, type=list, converter=_copy_converter)
     distribution_type = attr.ib(default="f", type=str)
     distribution_args = attr.ib(default=None, type=list, converter=_copy_converter)
     dominance_coeff = attr.ib(default=None, type=float)
@@ -419,28 +409,28 @@ class MutationType(object):
     dominance_coeff_breaks = attr.ib(default=None, type=list, converter=_copy_converter)
 
     def __attrs_post_init__(self):
-        if self.phenotype_ids is None:
-            self.phenotype_ids = ["fitness"]
+        if self.trait_ids is None:
+            self.trait_ids = ["fitness"]
 
-        if not isinstance(self.phenotype_ids, list):
+        if not isinstance(self.trait_ids, list):
             # Note: it'd be nice to also accept tuples, but note we can't
             # just check for being a collections.abc.Sequence since
-            # then `phenotype_id = "fitness"` would pass and be interpreted
-            # as seven phenotype IDs, named "f", "i", "t", etcetera.
+            # then `trait_id = "fitness"` would pass and be interpreted
+            # as seven trait IDs, named "f", "i", "t", etcetera.
             # So, just require a list.
-            raise ValueError("Phenotype IDs must be a list.")
-        for pid in self.phenotype_ids:
+            raise ValueError("Trait IDs must be a list.")
+        for pid in self.trait_ids:
             if not (isinstance(pid, str) and (len(pid) > 0)):
                 raise ValueError(
-                    "Each phenotype ID must be a nonempty string; " f"found {pid}."
+                    "Each trait ID must be a nonempty string; " f"found {pid}."
                 )
-        if (len(self.phenotype_ids) == 0) or (
-            len(set(self.phenotype_ids)) != len(self.phenotype_ids)
+        if (len(self.trait_ids) == 0) or (
+            len(set(self.trait_ids)) != len(self.trait_ids)
         ):
-            raise ValueError("Phenotype IDs must be a nonempty list of unique strings.")
+            raise ValueError("Trait IDs must be a nonempty list of unique strings.")
 
         if self.distribution_args is None:
-            self.distribution_args = [0 for _ in self.phenotype_ids]
+            self.distribution_args = [0 for _ in self.trait_ids]
 
         if self.dominance_coeff is None and self.dominance_coeff_list is None:
             self.dominance_coeff = 0.5
@@ -450,8 +440,7 @@ class MutationType(object):
                 self.dominance_coeff_breaks is not None
             ):
                 raise ValueError(
-                    "Cannot specify both fitness_dominance_coeff "
-                    "and fitness_dominance_coeff_list."
+                    "Cannot specify both dominance_coeff " "and dominance_coeff_list."
                 )
             if not isinstance(self.dominance_coeff, (float, int)):
                 raise ValueError("dominance_coeff must be a number.")
@@ -494,51 +483,61 @@ class MutationType(object):
             raise ValueError("convert_to_substitution must be bool.")
 
         _check_distribution(
-            self.distribution_type, self.distribution_args, len(self.phenotype_ids)
+            self.distribution_type, self.distribution_args, len(self.trait_ids)
         )
 
-        # TODO
+        # rewrite some of these for Eidos
+        # TODO: this should probably happen downstream, in slim_engine.py?
+        if self.distribution_type in ("lp", "ln"):
+            # lognormal distribution:
+            logmean, logsd = self.distribution_args
+            sign = "" if self.distribution_type == "lp" else "-1 *"
+            self.distribution_args = [
+                f"return {sign}rlnorm(1, {logmean} + log(Q), {logsd});"
+            ]
+            self.distribution_type = "s"
+        elif self.distribution_type == "u":
+            umin, umax = self.distribution_args
+            self.distribution_args = [f"return runif(1, Q * {umin}, Q * {umax});"]
+            self.distribution_type = "s"
+
         # The index(s) of the param in the distribution_args list that should be
         # multiplied by Q when using --slim-scaling-factor Q.
+        # Note that "u", "lp", and "ln" got remapped to "s" above,
+        # which is why they do not appear here.
         scaling_factor_index_lookup = {
-            "e": [0],  # mean
             "f": [0],  # fixed value
             "g": [0],  # mean
+            "e": [0],  # mean
             "n": [0, 1],  # mean and sd
             "w": [0],  # scale
             "s": [],  # script types should just printout arguments
-            "lp": [],  # lognormal adds log(Q) to the logmean, happens separately
-            "ln": [],  # ditto
         }
         assert self.distribution_type in scaling_factor_index_lookup
-        self.fitness_Q_scaled_index = scaling_factor_index_lookup[
-            self.distribution_type
-        ]
-
-    @property
-    def directly_affects_fitness(self):
-        """
-        TODO: do we need this?
-
-        Tests whether the mutation type has direct effects on fitness. This is
-        defined here to be of type "f" and with fitness effect 0.0, and so
-        excludes other situations that also produce only neutral mutations
-        (e.g., exponential with mean 0).
-        """
-        return (
-            self.fitness_distribution_type == "f"
-            and self.fitness_distribution_args[0] == 0
-        )
+        self.Q_scaled_index = scaling_factor_index_lookup[self.distribution_type]
 
     @property
     def is_neutral(self):
         """
-        TODO check this
         Tests whether the mutation type is strictly neutral. This is defined here to
-        be of type "f" and with fitness effect 0.0, and so excludes other situations
-        that also produce only neutral mutations (e.g., exponential with mean 0).
+        be:
+        - only affecting "fitness";
+        - of type "f";
+        - and with fitness effect 0.0,
+        and so excludes other situations that also produce only neutral
+        mutations (e.g., exponential with mean 0, or affecting some other trait
+        with no effect on fitness).
+
+        TODO: make a TraitsModel method that looks at whether a trait affects
+        fitness and so can decide whether additional mutation types are neutral.
         """
-        return self.directly_affects_fitness()
+        neutral = (
+            (len(self.trait_ids) == 1)
+            and (self.trait_ids[0] == "fitness")
+            and (self.distribution_type == "f")
+            and (self.distribution_args[0] == 0)
+        )
+        return neutral
 
 
 # at least conceptually a superclass of DFE, so we call it DME
@@ -576,7 +575,6 @@ class DistributionOfMutationEffects(object):
     mutation_types = attr.ib(default=None)
     proportions = attr.ib(default=None)
 
-    # TODO: repetition here with DFE
     def __attrs_post_init__(self):
         self.mutation_types = [] if self.mutation_types is None else self.mutation_types
         if self.proportions is None and len(self.mutation_types) == 0:
