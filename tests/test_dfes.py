@@ -374,6 +374,21 @@ class TestCreateMutationType:
                 dominance_coeff_breaks=list(reversed(dcb)),
             )
 
+    def test_copies(self):
+        # making an mutation type should take a copy of its arguments;
+        # test we aren't still referring to the original list
+        args = [1, 2, 3]
+        mt = stdpopsim.MutationType(
+            trait_ids=["a", "b", "c"],
+            distribution_type="f",
+            distribution_args=args,
+        )
+        assert mt.distribution_args == args
+        orig_args = args.copy()
+        args[0] = 99
+        assert mt.distribution_args == orig_args
+        assert mt.distribution_args != args
+
 
 class TestAllDFEs:
     """

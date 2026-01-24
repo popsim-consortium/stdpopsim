@@ -152,7 +152,7 @@ class Environment:
     :vartype distribution_type: str
     """
 
-    trait_ids = attr.ib()  # list of trait IDs
+    trait_ids = attr.ib(converter=_copy_converter)  # list of trait IDs
     distribution_type = attr.ib()
     distribution_args = attr.ib()
     # TODO: add later
