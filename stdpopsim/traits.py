@@ -188,7 +188,17 @@ class FitnessFunction:
 
     Options for ``function_type``, and corresponding ``function_args``, are:
 
-    TODO
+    "gaussian", arguments (m, s): fitness is given by the Gaussian density
+        with mean m and (co)variance s; so if there is a single trait in ``trait_id``,
+        then this is f(x) = exp((x - m)**2 / s) / sqrt(2*pi*s),
+        while if there is more than one trait then it is the multivariate
+        Gaussian density.
+
+    "threshold", arguments (a, b): fitness is one of two values, either
+        :math:`f(x) = a` if :math:`x <= 0`, and :math:`f(x) = b` if
+        :math:`x > 0`. In particular, assigns fitness ``a`` to trait value 0,
+        and fitness ``b`` to trait value 1.
+
 
     :ivar trait_ids: List of trait IDs.
     :vartype trait_ids: list
@@ -209,139 +219,24 @@ class FitnessFunction:
 
     trait_ids = attr.ib(type=list)
     function_type = attr.ib(type=str)
-    function_args = attr.ib(type=tuple)
+    function_args = attr.ib(type=tuple, converter=_copy_converter)
     # spacetime = attr.ib(type=list)
 
     def __attrs_post_init__(self):
-        if len(self.trait_ids) < 1:
+        num_traits = len(self.trait_ids)
+        if num_traits < 1:
             raise ValueError("At least one trait must be specified.")
-        # _check_function_types(self.function_type, self.function_args,
-        # len(self.trait_ids))
-
-
-def _check_distribution(distribution_type, distribution_args, dim):
-    if not isinstance(distribution_type, str):
-        raise ValueError("distribution_type must be str.")
-
-    if not isinstance(distribution_args, list):
-        raise ValueError("distribution_args must be list.")
-
-    for i in range(len(distribution_args)):
-        if not isinstance(distribution_args[i], (float, int)):
-            raise ValueError(f"distribution_args[{i}] is not a number.")
-        if not np.isfinite(distribution_args[i]):
-            raise ValueError(f"distribution_args[{i}] is an invalid parameter.")
-
-    # shortcut, so we don't have to validate dim in all sub-cases below
-    if (dim > 1) and (distribution_type not in ["f", "mvn"]):
-        raise ValueError(
-            f"Distribution type '{distribution_type}' is not "
-            " implemented as a multivariate distribution."
+        if not isinstance(self.function_type, str):
+            raise ValueError("function_type must be a str")
+        _check_args_list(
+            "function_args",
+            self.function_args,
+            num_traits,
+            arrays=(self.function_type == "gaussian"),
         )
 
-    # To add a new distribution type: validate the
-    # distribution_args here, and add unit tests.
-    if distribution_type == "f":
-        # Fixed-value (non-random)
-        if len(distribution_args) != dim:
-            raise ValueError(
-                "Fixed-value mutation type argument must be a list of "
-                "length equal to number of traits."
-            )
-    elif distribution_type == "g":
-        # Gamma distribution with (mean, shape)
-        # parameterization. A negative value for the mean is permitted,
-        # and indicates a reflection of the horizontal axis.
-        # See Eidos documentation for rgamma().
-        if len(distribution_args) != 2:
-            raise ValueError(
-                "Gamma-distributed sel. coefs. (distribution_type='g') "
-                "use a (mean, shape) parameterisation."
-            )
-        if distribution_args[1] <= 0:
-            raise ValueError("The shape parameter must be positive.")
-    elif distribution_type == "e":
-        # An exponential distribution(mean).
-        # See Eidos documentation for rexp().
-        if len(distribution_args) != 1:
-            raise ValueError(
-                "Exponentially-distributed sel. coefs. (distribution_type='e') "
-                "use a (mean) parameterisation."
-            )
-    elif distribution_type == "n":
-        # A normal distribution (mean, standard deviation).
-        # See Eidos documentation for rnorm().
-        if len(distribution_args) != 2:
-            raise ValueError(
-                "Normally-distributed sel. coefs. (distribution_type='n') "
-                "use a (mean, sd) parameterisation."
-            )
-        if distribution_args[1] < 0:
-            raise ValueError("The sd parameter must be nonnegative.")
-    elif distribution_type == "w":
-        # A Weibull-distributed fitness effect (scale, shape).
-        # See Eidos documentation for rweibull().
-        if len(distribution_args) != 2:
-            raise ValueError(
-                "Weibull-distributed sel. coef. (distribution_type='w') "
-                "use a (scale, shape) parameterisation."
-            )
-        if distribution_args[0] <= 0:
-            raise ValueError("The scale parameter must be positive.")
-        if distribution_args[1] <= 0:
-            raise ValueError("The shape parameter must be positive.")
-    elif distribution_type in ("lp", "ln"):
-        # A lognormal distribution (meanlog, sdlog),
-        # either positive or negative.
-        # See Eidos documentation for rlnorm().
-        if len(distribution_args) != 2:
-            raise ValueError(
-                "Lognormally-distributed sel. coefs. (distribution_type='lp'/'ln') "
-                "use a (meanlog, sdlog) parameterisation, requiring sdlog > 0."
-            )
-        if distribution_args[1] < 0:
-            raise ValueError("The sdlog parameter must be nonnegative.")
-    elif distribution_type == "u":
-        # Uniform
-        if len(distribution_args) != 2 or distribution_args[0] > distribution_args[1]:
-            raise ValueError(
-                "Uniformly-distributed sel. coefs. (distribution_type='u') "
-                "use a (min, max) parameterisation, with min <= max."
-            )
-    elif distribution_type == "mvn":
-        # Multivariate Normal distribution with
-        #   (mean, covariance, indices) parameterization.
-        if len(distribution_args) != 2:
-            raise ValueError(
-                "multivariate normal requires two parameters "
-                "in distribution_args: "
-                "a mean vector and a covariance matrix."
-            )
-        if not isinstance(distribution_args[0], np.ndarray):
-            raise ValueError(
-                "mvn mean vector must be a numpy array" f"of length equal to {dim}."
-            )
-        if not isinstance(distribution_args[1], np.ndarray):
-            raise ValueError("mvn covariance matrix must be specified as numpy array.")
-        if len(distribution_args[0].shape) != 1 or distribution_args[0].shape[0] != dim:
-            raise ValueError(
-                "mvn mean vector must be 1 dimensional " f"of length {dim}."
-            )
-        if len(distribution_args[1].shape) != 2:
-            raise ValueError("mvn covariance matrix must be 2 dimensional.")
-        if distribution_args[1].shape != (dim, dim):
-            raise ValueError(
-                "mvn covariance matrix must be square, "
-                f"with dimensions ({dim}, {dim})."
-            )
-        if not np.allclose(distribution_args[1], distribution_args[1].T):
-            raise ValueError("mvn covariance matrix must be symmetric.")
-        try:
-            np.linalg.cholesky(distribution_args[1])
-        except np.LinAlgError:
-            raise ValueError("mvn covariance matrix is not positive definite.")
-    else:
-        raise ValueError(f"{distribution_type} is not a supported distribution type.")
+        if self.function_type == "gaussian":
+            _check_gaussian_args(self.function_args, num_traits)
 
 
 @attr.s(kw_only=True)
@@ -716,3 +611,141 @@ def neutral_dfe(convert_to_substitution=True):
         mutation_types=[neutral],
         proportions=[1.0],
     )
+
+
+def _check_args_list(argname, args, dim, arrays):
+    # TODO: do we really want to require arrays?
+    if not isinstance(args, list):
+        raise ValueError(f"{argname} must be list.")
+    for i in range(len(args)):
+        if not arrays:
+            if not isinstance(args[i], (float, int)):
+                raise ValueError(f"{argname}[{i}] is not a number.")
+            if not np.isfinite(args[i]):
+                raise ValueError(f"{argname}[{i}] is an invalid parameter.")
+        else:
+            if not isinstance(args[i], np.ndarray):
+                raise ValueError(f"{argname}[{i}] is not a numpy array.")
+            # TODO: check that entries are finite numbers
+
+
+def _check_gaussian_args(args, dim):
+    if len(args) != 2:
+        raise ValueError(
+            "Normal distribution requires two parameters: "
+            "a mean (or mean vector) and a variance (or covariance matrix)."
+        )
+    if len(args[0].shape) != 1 or args[0].shape[0] != dim:
+        raise ValueError(
+            f"multivariate normal mean vector must be 1 dimensional of length {dim}."
+        )
+    if len(args[1].shape) != 2:
+        raise ValueError(
+            "multivariate normal covariance matrix " "must be 2 dimensional."
+        )
+    if args[1].shape != (dim, dim):
+        raise ValueError(
+            "multivariate normal covariance matrix must be square, "
+            f"with dimensions ({dim}, {dim})."
+        )
+    if not np.allclose(args[1], args[1].T):
+        raise ValueError("multivariate normal covariance matrix must be symmetric.")
+    try:
+        np.linalg.cholesky(args[1])
+    except np.LinAlgError:
+        raise ValueError(
+            "multivariate normal covariance matrix " "is not positive definite."
+        )
+
+
+def _check_distribution(distribution_type, distribution_args, dim):
+    if not isinstance(distribution_type, str):
+        raise ValueError("distribution_type must be str.")
+
+    _check_args_list(
+        "distribution_args", distribution_args, dim, arrays=(distribution_type == "mvn")
+    )
+
+    # shortcut, so we don't have to validate dim in all sub-cases below
+    if (dim > 1) and (distribution_type not in ["f", "mvn"]):
+        raise ValueError(
+            f"Distribution type '{distribution_type}' is not "
+            " implemented as a multivariate distribution."
+        )
+
+    # To add a new distribution type: validate the
+    # distribution_args here, and add unit tests.
+    if distribution_type == "f":
+        # Fixed-value (non-random)
+        if len(distribution_args) != dim:
+            raise ValueError(
+                "Fixed-value mutation type argument must be a list of "
+                "length equal to number of traits."
+            )
+    elif distribution_type == "g":
+        # Gamma distribution with (mean, shape)
+        # parameterization. A negative value for the mean is permitted,
+        # and indicates a reflection of the horizontal axis.
+        # See Eidos documentation for rgamma().
+        if len(distribution_args) != 2:
+            raise ValueError(
+                "Gamma distribution (distribution_type='g') "
+                "uses a (mean, shape) parameterisation."
+            )
+        if distribution_args[1] <= 0:
+            raise ValueError("The shape parameter must be positive.")
+    elif distribution_type == "e":
+        # An exponential distribution(mean).
+        # See Eidos documentation for rexp().
+        if len(distribution_args) != 1:
+            raise ValueError(
+                "Exponential distribution (distribution_type='e') "
+                "uses a (mean) parameterisation."
+            )
+    elif distribution_type == "n":
+        # A normal distribution (mean, standard deviation).
+        # See Eidos documentation for rnorm().
+        # TODO: combine with _check_gaussian_args?
+        if len(distribution_args) != 2:
+            raise ValueError(
+                "Normal distribution (distribution_type='n') "
+                "uses a (mean, sd) parameterisation."
+            )
+        if distribution_args[1] < 0:
+            raise ValueError("The sd parameter must be nonnegative.")
+    elif distribution_type == "w":
+        # A Weibull-distributed fitness effect (scale, shape).
+        # See Eidos documentation for rweibull().
+        if len(distribution_args) != 2:
+            raise ValueError(
+                "Weibull distribution (distribution_type='w') "
+                "uses a (scale, shape) parameterisation."
+            )
+        if distribution_args[0] <= 0:
+            raise ValueError("The scale parameter must be positive.")
+        if distribution_args[1] <= 0:
+            raise ValueError("The shape parameter must be positive.")
+    elif distribution_type in ("lp", "ln"):
+        # A lognormal distribution (meanlog, sdlog),
+        # either positive or negative.
+        # See Eidos documentation for rlnorm().
+        if len(distribution_args) != 2:
+            raise ValueError(
+                "Lognormal distribution (distribution_type='lp'/'ln') "
+                "uses a (meanlog, sdlog) parameterisation, requiring sdlog > 0."
+            )
+        if distribution_args[1] < 0:
+            raise ValueError("The sdlog parameter must be nonnegative.")
+    elif distribution_type == "u":
+        # Uniform
+        if len(distribution_args) != 2 or distribution_args[0] > distribution_args[1]:
+            raise ValueError(
+                "Uniform distribution (distribution_type='u') "
+                "uses a (min, max) parameterisation, with min <= max."
+            )
+    elif distribution_type == "mvn":
+        # Multivariate Normal distribution with
+        #   (mean, covariance, indices) parameterization.
+        _check_gaussian_args(distribution_args, dim)
+    else:
+        raise ValueError(f"{distribution_type} is not a supported distribution type.")

@@ -130,7 +130,7 @@ class TestCreateMutationType:
             )
 
         # gamma-distributed selection coefficient
-        with pytest.raises(ValueError, match="use a .mean, shape."):
+        with pytest.raises(ValueError, match="uses a .mean, shape."):
             dfe.MutationType(
                 distribution_type="g",
                 distribution_args=[1],
@@ -143,14 +143,14 @@ class TestCreateMutationType:
             )
 
         # exponentially-distributed selection coefficients
-        with pytest.raises(ValueError, match="use a .mean"):
+        with pytest.raises(ValueError, match="uses a .mean"):
             dfe.MutationType(
                 distribution_type="e",
                 distribution_args=[1, 2],
             )
 
         # normally-distributed selection coefficients
-        with pytest.raises(ValueError, match="use a .mean, sd."):
+        with pytest.raises(ValueError, match="uses a .mean, sd."):
             dfe.MutationType(
                 distribution_type="n",
                 distribution_args=[1, 2, 3],
@@ -163,7 +163,7 @@ class TestCreateMutationType:
             )
 
         # Weibull-distributed selection coefficients
-        with pytest.raises(ValueError, match="use a .scale, shape. parameterisation."):
+        with pytest.raises(ValueError, match="uses a .scale, shape. parameterisation."):
             dfe.MutationType(
                 distribution_type="w",
                 distribution_args=[1, 2, 3, 4],
@@ -183,7 +183,7 @@ class TestCreateMutationType:
 
         # Uniformly-distributed selection coefficients
         for bad_args in ([0], [1, 2, 3], [3, -2]):
-            with pytest.raises(ValueError, match="use a .min, max"):
+            with pytest.raises(ValueError, match="uses a .min, max"):
                 dfe.MutationType(
                     distribution_type="u",
                     distribution_args=bad_args,
@@ -192,7 +192,7 @@ class TestCreateMutationType:
         # Lognormally-distributed selection coefficients
         for dt in ["lp", "ln"]:
             with pytest.raises(
-                ValueError, match="use a .meanlog, sdlog. parameterisation"
+                ValueError, match="uses a .meanlog, sdlog. parameterisation"
             ):
                 dfe.MutationType(
                     distribution_type=dt,
