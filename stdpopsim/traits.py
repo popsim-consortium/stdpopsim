@@ -25,7 +25,7 @@ class TraitsModel(object):
 
         On initialization ``environments`` and ``fitness_functions``
         are empty and can be added with :meth:`.add_environment`
-        and :meth:`.add_fitness_function`.
+        and :meth:`.add_fitness_function`. These must all have unique IDs.
 
         :ivar traits: List of :class:`Trait` objects.
         :vartype traits: list
@@ -44,12 +44,22 @@ class TraitsModel(object):
     def add_fitness_function(
         self, traits, distribution_type, distribution_args, spatiotemporal=None
     ):
+        fids = [f.id for f in self.fitness_functions]
+        if id in fids:
+            raise ValueError(
+                "FitnessFunction IDs must be unique; "
+                f" fitness function with ID `{id}` already exists."
+            )
         new_fitness = FitnessFunction(
-            traits, distribution_type, distribution_args, spacetime=spatiotemporal
+            id=id,
+            traits=traits,
+            distribution_type=distribution_type,
+            distribution_args=distribution_args,
+            # spacetime=spatiotemporal
         )
-        self._fitness_functions.append(new_fitness)
+        self.fitness_functions.append(new_fitness)
 
-    def add_environment(self, *, trait_ids, distribution_type, distribution_args):
+    def add_environment(self, *, id, trait_ids, distribution_type, distribution_args):
         """
         Add random "environmental" (i.e., non-genetic) effects to the specified
         ``traits``.  See :class:`Environment` more more detail.
@@ -58,7 +68,14 @@ class TraitsModel(object):
         for pid in trait_ids:
             if pid not in pids:
                 raise ValueError(f"trait {pid} not in traits.")
+        eids = [e.id for e in self.environments]
+        if id in eids:
+            raise ValueError(
+                "Environment IDs must be unique; "
+                f" environment with ID `{id}` already exists."
+            )
         env = Environment(
+            id=id,
             trait_ids=trait_ids,
             distribution_type=distribution_type,
             distribution_args=distribution_args,
@@ -80,6 +97,17 @@ class TraitsModel(object):
         # also check that num_traits matches distribution params
         pass
 
+    def print(model):
+        """
+        Prints how the TraitsModel maps on a demographic model.
+
+        Note: this is why environments and fitness functions have IDs:
+        both need to be uniquely specified so we can show things like
+        "this environment applies to these populations for this time period".
+        """
+        # TODO
+        pass
+
 
 @attr.s(kw_only=True)
 class Trait:
@@ -88,6 +116,10 @@ class Trait:
     This only defines how the underlying (latent) value,
     which is a sum of genetic value and environmental deviation,
     is mapped to the observed value.
+
+    The ``type`` can be either "additive" or "multiplicative",
+    and determines whether the per-site effects are added together
+    or multiplied.
 
     Options for "transform" (link function) are:
 
@@ -108,19 +140,26 @@ class Trait:
 
     :ivar id: ID of the trait (think of this as the 'name').
     :vartype id: str
+    :ivar type: Type of the trait (additive or multiplicative).
+    :vartype type: str
     :ivar transform: Type of transformation.
     :vartype transform: str
     :ivar transform_args: A list of parameters given to the transformation.
     :vartype transform_args: list
     """
 
-    id = attr.ib()
+    id = attr.ib(type=str)
+    type = attr.ib(type=str)
     transform = attr.ib(default="identity", type=str)
     transform_args = attr.ib(default=None, type=list, converter=_copy_converter)
 
     def __attrs_post_init__(self):
         if self.transform_args is None:
             self.transform_args = []
+        if not (
+            isinstance(self.type, str) and self.type in ("multiplicative", "additive")
+        ):
+            raise ValueError("Unknown trait type '{self.type}'.")
         if not isinstance(self.transform, str):
             raise ValueError("transform must be a str")
         if not isinstance(self.transform_args, list):
@@ -150,8 +189,13 @@ class Environment:
     Represents random "environmental" (i.e., non-genetic) effects on traits.
     These are all added to genetic values and may depend on time and/or population.
 
+    Each environment has an ``id``; this is for debugging purposes, and so each
+    environment used in the same :class:`.TraitsModel` should have a unique name.
+
     TODO: should this be public?
 
+    :ivar id: An ID (i.e., a name) for this environment.
+    :vartype id: str
     :ivar trait_ids: List of trait IDs.
     :vartype trait_ids: list
     :ivar distribution_type: A str abbreviation for the distribution
@@ -162,6 +206,7 @@ class Environment:
     :vartype distribution_type: str
     """
 
+    id = attr.ib(type=str)
     trait_ids = attr.ib(type=list, converter=_copy_converter)  # list of trait IDs
     distribution_type = attr.ib(type=str)
     distribution_args = attr.ib(type=list)
@@ -194,10 +239,9 @@ class FitnessFunction:
         while if there is more than one trait then it is the multivariate
         Gaussian density.
 
-    "threshold", arguments (a, b): fitness is one of two values, either
-        :math:`f(x) = a` if :math:`x <= 0`, and :math:`f(x) = b` if
-        :math:`x > 0`. In particular, assigns fitness ``a`` to trait value 0,
-        and fitness ``b`` to trait value 1.
+    "threshold", arguments (q, a, b): fitness is one of two values, either
+        :math:`f(x) = a` if the quantile of :math:`x` among the values in the
+        population is less than :math:`q`, and :math:`f(x) = b` otherwise.
 
 
     :ivar trait_ids: List of trait IDs.
@@ -237,6 +281,21 @@ class FitnessFunction:
 
         if self.function_type == "gaussian":
             _check_gaussian_args(self.function_args, num_traits)
+        elif self.function_type == "threshold":
+            if len(self.function_args) != 3:
+                raise ValueError(
+                    "threshold function take three arguments: "
+                    "(quantile, low_fitness, high_fitness)"
+                )
+            if self.function_args[0] < 0 or self.function_args[0] > 1:
+                raise ValueError(
+                    "quantile argument to threshold function "
+                    "must be between 0 and 1."
+                )
+            if self.function_args[1] < 0 or self.function_args[0] < 0:
+                raise ValueError(
+                    "fitness arguments to threshold function " "must be nonnegative"
+                )
 
 
 @attr.s(kw_only=True)
