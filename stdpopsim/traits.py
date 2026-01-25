@@ -192,8 +192,6 @@ class Environment:
     Each environment has an ``id``; this is for debugging purposes, and so each
     environment used in the same :class:`.TraitsModel` should have a unique name.
 
-    TODO: should this be public?
-
     :ivar id: An ID (i.e., a name) for this environment.
     :vartype id: str
     :ivar trait_ids: List of trait IDs.
@@ -316,7 +314,7 @@ class MutationType(object):
     - ``u``: Uniform, two parameters (min, max)
     - ``lp``: positive logNormal, two parameters (mean and sd on log scale; see rlnorm)
     - ``ln``: negative logNormal, two parameters (mean and sd on log scale; see rlnorm)
-    - ``mvn``: TODO
+    - ``mvn``: TODO, note it is (mean, VAR)
 
     Type "lp" is always positive, and type "ln" is always negative: both use
     the same log-normal distribution, but "ln" is multiplied by -1.  For

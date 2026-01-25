@@ -19,6 +19,7 @@ from .cache import *  # NOQA
 from .citations import *  # NOQA
 from .engines import *  # NOQA
 from .warning_categories import *  # NOQA
+from .dfe import *  # NOQA
 
 # We import catalog here, but the internal functions
 # defined are not part of the external API.
