@@ -92,31 +92,32 @@ class TraitsModel(object):
             )
         self.environments.append(env)
 
-    def check_model_params(self, model, params):
-        # Check for consistency with a given demographic model.
-        # TODO: is this where we want to do this?
-        #
-        # sort elements by epoch start time
-        # (which is the backwards-in-time generation time)
-        # tuples should look like
-        # (epoch_start, [list of applicable pops], distribution params...)
-        # check populations and generation times make sense?
-        # distributions should propagate backwards in time
-        # so to apply the same distribution everywhere, use the tuple
-        # (0, "all", ...)
-        # also check that num_traits matches distribution params
-        pass
 
-    def print(model):
-        """
-        Prints how the TraitsModel maps on a demographic model.
-
-        Note: this is why environments and fitness functions have IDs:
-        both need to be uniquely specified so we can show things like
-        "this environment applies to these populations for this time period".
-        """
-        # TODO
-        pass
+#     def check_model_params(self, model, params):
+#         # Check for consistency with a given demographic model.
+#         # TODO: is this where we want to do this?
+#         #
+#         # sort elements by epoch start time
+#         # (which is the backwards-in-time generation time)
+#         # tuples should look like
+#         # (epoch_start, [list of applicable pops], distribution params...)
+#         # check populations and generation times make sense?
+#         # distributions should propagate backwards in time
+#         # so to apply the same distribution everywhere, use the tuple
+#         # (0, "all", ...)
+#         # also check that num_traits matches distribution params
+#         pass
+#
+#     def print(model):
+#         """
+#         Prints how the TraitsModel maps on a demographic model.
+#
+#         Note: this is why environments and fitness functions have IDs:
+#         both need to be uniquely specified so we can show things like
+#         "this environment applies to these populations for this time period".
+#         """
+#         # TODO
+#         pass
 
 
 @attr.s(kw_only=True)
@@ -288,7 +289,7 @@ class FitnessFunction:
         elif self.function_type == "threshold":
             if len(self.function_args) != 3:
                 raise ValueError(
-                    "threshold function take three arguments: "
+                    "threshold function takes three arguments: "
                     "(quantile, low_fitness, high_fitness)"
                 )
             if self.function_args[0] < 0 or self.function_args[0] > 1:
@@ -296,9 +297,9 @@ class FitnessFunction:
                     "quantile argument to threshold function "
                     "must be between 0 and 1."
                 )
-            if self.function_args[1] < 0 or self.function_args[0] < 0:
+            if self.function_args[1] < 0 or self.function_args[2] < 0:
                 raise ValueError(
-                    "fitness arguments to threshold function " "must be nonnegative"
+                    "fitness arguments to threshold function must be nonnegative"
                 )
 
 
@@ -394,7 +395,7 @@ class MutationType(object):
                 self.dominance_coeff_breaks is not None
             ):
                 raise ValueError(
-                    "Cannot specify both dominance_coeff " "and dominance_coeff_list."
+                    "Cannot specify both dominance_coeff and dominance_coeff_list."
                 )
             if not isinstance(self.dominance_coeff, (float, int)):
                 raise ValueError("dominance_coeff must be a number.")
@@ -684,24 +685,22 @@ def _check_gaussian_args(args, dim):
         )
     if len(args[0].shape) != 1 or args[0].shape[0] != dim:
         raise ValueError(
-            f"multivariate normal mean vector must be 1 dimensional of length {dim}."
+            f"Multivariate normal mean vector must be 1 dimensional of length {dim}."
         )
     if len(args[1].shape) != 2:
-        raise ValueError(
-            "multivariate normal covariance matrix " "must be 2 dimensional."
-        )
+        raise ValueError("Multivariate normal covariance matrix must be 2 dimensional.")
     if args[1].shape != (dim, dim):
         raise ValueError(
-            "multivariate normal covariance matrix must be square, "
+            "Multivariate normal covariance matrix must be square, "
             f"with dimensions ({dim}, {dim})."
         )
     if not np.allclose(args[1], args[1].T):
-        raise ValueError("multivariate normal covariance matrix must be symmetric.")
+        raise ValueError("Multivariate normal covariance matrix must be symmetric.")
     try:
         np.linalg.cholesky(args[1])
-    except np.LinAlgError:
+    except np.linalg.LinAlgError as ve:
         raise ValueError(
-            "multivariate normal covariance matrix " "is not positive definite."
+            "Problem with multivariate normal covariance matrix: " + str(ve)
         )
 
 
@@ -717,7 +716,7 @@ def _check_distribution(distribution_type, distribution_args, dim):
     if (dim > 1) and (distribution_type not in ["f", "mvn"]):
         raise ValueError(
             f"Distribution type '{distribution_type}' is not "
-            " implemented as a multivariate distribution."
+            "implemented as a multivariate distribution."
         )
 
     # To add a new distribution type: validate the
@@ -727,7 +726,7 @@ def _check_distribution(distribution_type, distribution_args, dim):
         if len(distribution_args) != dim:
             raise ValueError(
                 "Fixed-value mutation type argument must be a list of "
-                "length equal to number of traits."
+                f"length {dim}, the number of traits."
             )
     elif distribution_type == "g":
         # Gamma distribution with (mean, shape)

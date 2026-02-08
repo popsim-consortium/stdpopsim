@@ -188,6 +188,30 @@ class TestEnvironment:
         }
         check_trait_ids_errors(stdpopsim.Environment, args)
 
+    def test_distribution_errors(self):
+        args = {
+            "id": "abc",
+            "trait_ids": ["height", "boop", "num_nostrils"],
+            "distribution_type": "f",
+            "distribution_args": [1, 2, 3],
+        }
+
+        bad_args = args.copy()
+        bad_args["distribution_type"] = 123
+        with pytest.raises(ValueError, match="distribution_type must be str"):
+            stdpopsim.Environment(**bad_args)
+
+        bad_args = args.copy()
+        bad_args["distribution_type"] = "e"
+        with pytest.raises(ValueError, match="not implemented as a multivariate"):
+            stdpopsim.Environment(**bad_args)
+
+        bad_args = args.copy()
+        for b in ([1, 2, 3, 4], []):
+            bad_args["distribution_args"] = b
+            with pytest.raises(ValueError, match="must be a list of length 3"):
+                stdpopsim.Environment(**bad_args)
+
 
 class TestTrait:
 
@@ -306,6 +330,16 @@ class TestFitnessFunction:
     def test_make_fitness_function_errors(self):
         with pytest.raises(TypeError, match="required keyword-only arg"):
             stdpopsim.FitnessFunction()
+        args = {
+            "id": "foo",
+            "trait_ids": ["fitness"],
+            "function_type": "gaussian",
+            "function_args": [np.array([0]), np.array([[1]])],
+        }
+        for bad_arg in [0, [], None, id]:
+            args["function_type"] = bad_arg
+            with pytest.raises(ValueError, match="must be a str"):
+                stdpopsim.FitnessFunction(**args)
 
     def test_trait_ids_errors(self):
         args = {
@@ -324,3 +358,92 @@ class TestFitnessFunction:
         }
         check_arg_copies(stdpopsim.FitnessFunction, args, "trait_ids")
         check_arg_copies(stdpopsim.FitnessFunction, args, "function_args")
+
+    def test_threshold_errors(self):
+        args = {
+            "id": "foo",
+            "trait_ids": ["trait1"],
+            "function_type": "threshold",
+            "function_args": [0.1, 0, 2],
+        }
+        f = stdpopsim.FitnessFunction(**args)
+        assert f.id == "foo"
+        assert f.trait_ids == ["trait1"]
+        assert f.function_type == "threshold"
+        args["function_args"] = [2, 3]
+        with pytest.raises(ValueError, match="takes three arguments"):
+            stdpopsim.FitnessFunction(**args)
+        for bad_val in [-1, 10]:
+            args["function_args"] = [bad_val, 5, 3]
+            with pytest.raises(ValueError, match="must be between 0 and 1"):
+                stdpopsim.FitnessFunction(**args)
+        for bad_val in [
+            -1,
+        ]:
+            args["function_args"] = [0.5, bad_val, 3]
+            with pytest.raises(ValueError, match="must be nonnegative"):
+                stdpopsim.FitnessFunction(**args)
+            args["function_args"] = [0.5, 2, bad_val]
+            with pytest.raises(ValueError, match="must be nonnegative"):
+                stdpopsim.FitnessFunction(**args)
+
+    def test_gaussian_errors(self):
+        args = {
+            "id": "foo",
+            "trait_ids": ["trait1", "trait2", "trait3"],
+            "function_type": "gaussian",
+            "function_args": [
+                np.array([0, 1, 2]),
+                np.array([[1, 0.5, 0], [0.5, 2, 0], [0, 0, 3]]),
+            ],
+        }
+        f = stdpopsim.FitnessFunction(**args)
+        assert f.id == "foo"
+        assert f.trait_ids == ["trait1", "trait2", "trait3"]
+        assert f.function_type == "gaussian"
+
+        bad_args = args.copy()
+        bad_args["function_args"] = [np.array([0]), np.array([1]), np.array([2])]
+        with pytest.raises(ValueError, match="requires two parameters"):
+            stdpopsim.FitnessFunction(**bad_args)
+
+        bad_args = args.copy()
+        bad_args["function_args"] = [np.array([0, 1]), args["function_args"][1]]
+        with pytest.raises(ValueError, match="must be 1 dimensional of length 3"):
+            stdpopsim.FitnessFunction(**bad_args)
+
+        bad_args = args.copy()
+        bad_args["function_args"] = [args["function_args"][0], np.array([0, 1, 2])]
+        with pytest.raises(ValueError, match="must be 2 dimensional"):
+            stdpopsim.FitnessFunction(**bad_args)
+
+        # do we really want to require this?
+        bad_args = args.copy()
+        bad_args["function_args"] = [
+            args["function_args"][0],
+            list(args["function_args"][1]),
+        ]
+        with pytest.raises(ValueError, match="is not a numpy array"):
+            stdpopsim.FitnessFunction(**bad_args)
+
+        bad_args = args.copy()
+        bad_args["function_args"] = [
+            args["function_args"][0],
+            np.array([[1, 1, 0], [1, 1, 1]]),
+        ]
+        with pytest.raises(ValueError, match="must be square.* with dimensions .3, 3."):
+            stdpopsim.FitnessFunction(**bad_args)
+
+        bad_args = args.copy()
+        S = args["function_args"][1]
+        S[1, 2] = 10
+        bad_args["function_args"] = [args["function_args"][0], S]
+        with pytest.raises(ValueError, match="must be symmetric"):
+            stdpopsim.FitnessFunction(**bad_args)
+
+        bad_args = args.copy()
+        S = args["function_args"][1]
+        S[1, 2] = S[2, 1] = 10
+        bad_args["function_args"] = [args["function_args"][0], S]
+        with pytest.raises(ValueError, match="is not positive definite"):
+            stdpopsim.FitnessFunction(**bad_args)
