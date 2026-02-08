@@ -15,6 +15,19 @@ def _copy_converter(x):
     return x
 
 
+def _check_trait_ids(trait_ids):
+    # this might be too strict but we want to avoid things like trait_ids="foo"
+    # which might then be interpreted as three trait IDs: "f", "o", and "o"
+    # if we just iterate over it
+    if not isinstance(trait_ids, list):
+        raise ValueError("Trait IDs must be a list.")
+    for tid in trait_ids:
+        if not (isinstance(tid, str) and (len(tid) > 0)):
+            raise ValueError(f"Each trait ID must be a nonempty string; found {tid}.")
+    if (len(trait_ids) == 0) or (len(set(trait_ids)) != len(trait_ids)):
+        raise ValueError("Trait IDs must be a nonempty list of unique strings.")
+
+
 class TraitsModel(object):
     def __init__(self, traits):
         """
@@ -41,45 +54,42 @@ class TraitsModel(object):
         # to the construtor here, but no need;
         # we'll just add them with the add_X functions.
 
-    def add_fitness_function(
-        self, traits, distribution_type, distribution_args, spatiotemporal=None
-    ):
+    def _check_traits_defined(self, trait_ids):
+        tids = [t.id for t in self.traits]
+        for tid in trait_ids:
+            if tid not in tids:
+                raise ValueError(f"Unknown trait ID `{tid}'.")
+
+    def add_fitness_function(self, **kwargs):
+        """
+        Adds a :class:`.FitnessFunction` to the :class:`TraitsModel`.
+        The arguments are passed directly to :class:`FitnessFunction`;
+        see that documentation for more information.
+        """
+        ff = FitnessFunction(**kwargs)
+        self._check_traits_defined(ff.trait_ids)
         fids = [f.id for f in self.fitness_functions]
-        if id in fids:
+        if ff.id in fids:
             raise ValueError(
                 "FitnessFunction IDs must be unique; "
-                f" fitness function with ID `{id}` already exists."
+                f" fitness function with ID `{ff.id}` already exists."
             )
-        new_fitness = FitnessFunction(
-            id=id,
-            traits=traits,
-            distribution_type=distribution_type,
-            distribution_args=distribution_args,
-            # spacetime=spatiotemporal
-        )
-        self.fitness_functions.append(new_fitness)
+        self.fitness_functions.append(ff)
 
-    def add_environment(self, *, id, trait_ids, distribution_type, distribution_args):
+    def add_environment(self, **kwargs):
         """
         Add random "environmental" (i.e., non-genetic) effects to the specified
-        ``traits``.  See :class:`Environment` for more detail.
+        traits. The arguments are passed directly to :class:`Environment`;
+        see that documentation for more information.
         """
-        pids = [p.id for p in self.traits]
-        for pid in trait_ids:
-            if pid not in pids:
-                raise ValueError(f"trait {pid} not in traits.")
+        env = Environment(**kwargs)
+        self._check_traits_defined(env.trait_ids)
         eids = [e.id for e in self.environments]
-        if id in eids:
+        if env.id in eids:
             raise ValueError(
                 "Environment IDs must be unique; "
-                f" environment with ID `{id}` already exists."
+                f" environment with ID `{env.id}` already exists."
             )
-        env = Environment(
-            id=id,
-            trait_ids=trait_ids,
-            distribution_type=distribution_type,
-            distribution_args=distribution_args,
-        )
         self.environments.append(env)
 
     def check_model_params(self, model, params):
@@ -159,7 +169,7 @@ class Trait:
         if not (
             isinstance(self.type, str) and self.type in ("multiplicative", "additive")
         ):
-            raise ValueError("Unknown trait type '{self.type}'.")
+            raise ValueError(f"Unknown trait type '{self.type}'.")
         if not isinstance(self.transform, str):
             raise ValueError("transform must be a str")
         if not isinstance(self.transform_args, list):
@@ -199,25 +209,24 @@ class Environment:
     :ivar distribution_type: A str abbreviation for the distribution
         of environmental efffects (see TODO WHERE).
     :vartype distribution_type: str
-    :ivar distribution_type: A str abbreviation for the distribution
-        of environmental efffects (see TODO WHERE).
-    :vartype distribution_type: str
+    :ivar distribution_args: Arguments to the distribution.
+    :vartype distribution_args: list
     """
 
     id = attr.ib(type=str)
     trait_ids = attr.ib(type=list, converter=_copy_converter)  # list of trait IDs
     distribution_type = attr.ib(type=str)
-    distribution_args = attr.ib(type=list)
+    distribution_args = attr.ib(type=list, converter=_copy_converter)
     # TODO: add later
     # start_time = attr.ib(default=None)
     # end_time = attr.ib(default=None)
     # populations = attr.ib(default=None)
 
     def __attrs_post_init__(self):
-        dim = len(self.trait_ids)
-        if dim < 1:
-            raise ValueError("Must have at least one trait.")
-        _check_distribution(self.distribution_type, self.distribution_args, dim)
+        _check_trait_ids(self.trait_ids)
+        _check_distribution(
+            self.distribution_type, self.distribution_args, len(self.trait_ids)
+        )
 
 
 @attr.s(kw_only=True)
@@ -242,6 +251,8 @@ class FitnessFunction:
         population is less than :math:`q`, and :math:`f(x) = b` otherwise.
 
 
+    :ivar id: An ID (i.e., a name) for this fitness function.
+    :vartype id: str
     :ivar trait_ids: List of trait IDs.
     :vartype trait_ids: list
     :ivar function_type: String corresponding to fitness function type
@@ -254,20 +265,15 @@ class FitnessFunction:
     #    for which this fitness function applies
     # :vartype spacetime: list of tuples (?)
 
-    # TODO check function_args depending on function_type
-    # TODO check dimensions of traits against dimensions of function_args,
-    # depending on function_type - plus check dimensions >=1
-    # TODO much later - check spacetime is formatted correctly
-
-    trait_ids = attr.ib(type=list)
+    id = attr.ib(type=str)
+    trait_ids = attr.ib(type=list, converter=_copy_converter)
     function_type = attr.ib(type=str)
     function_args = attr.ib(type=tuple, converter=_copy_converter)
     # spacetime = attr.ib(type=list)
 
     def __attrs_post_init__(self):
+        _check_trait_ids(self.trait_ids)
         num_traits = len(self.trait_ids)
-        if num_traits < 1:
-            raise ValueError("At least one trait must be specified.")
         if not isinstance(self.function_type, str):
             raise ValueError("function_type must be a str")
         _check_args_list(
@@ -375,23 +381,7 @@ class MutationType(object):
     def __attrs_post_init__(self):
         if self.trait_ids is None:
             self.trait_ids = ["fitness"]
-
-        if not isinstance(self.trait_ids, list):
-            # Note: it'd be nice to also accept tuples, but note we can't
-            # just check for being a collections.abc.Sequence since
-            # then `trait_id = "fitness"` would pass and be interpreted
-            # as seven trait IDs, named "f", "i", "t", etcetera.
-            # So, just require a list.
-            raise ValueError("Trait IDs must be a list.")
-        for pid in self.trait_ids:
-            if not (isinstance(pid, str) and (len(pid) > 0)):
-                raise ValueError(
-                    "Each trait ID must be a nonempty string; " f"found {pid}."
-                )
-        if (len(self.trait_ids) == 0) or (
-            len(set(self.trait_ids)) != len(self.trait_ids)
-        ):
-            raise ValueError("Trait IDs must be a nonempty list of unique strings.")
+        _check_trait_ids(self.trait_ids)
 
         if self.distribution_args is None:
             self.distribution_args = [0 for _ in self.trait_ids]

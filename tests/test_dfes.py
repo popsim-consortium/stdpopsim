@@ -10,6 +10,8 @@ import numpy as np
 from stdpopsim import dfe
 from stdpopsim import utils
 
+from .test_traits import check_trait_ids_errors
+
 IS_WINDOWS = sys.platform.startswith("win")
 
 
@@ -33,20 +35,7 @@ class TestCreateMutationType:
         assert mt.trait_ids == ["fitness"]
 
     def test_bad_trait_ids(self):
-        for bad_list in ("foo", 123, ("a", "bc"), []):
-            with pytest.raises(ValueError, match="Trait IDs must be"):
-                stdpopsim.MutationType(trait_ids=bad_list)
-        for bad_list in (["a", "a"], ["c", "abc", "d", "abc"]):
-            with pytest.raises(ValueError, match="Trait IDs must be"):
-                stdpopsim.MutationType(trait_ids=bad_list)
-
-        pids = ["fitness", "height", "number_of_nostrils"]
-        mt = stdpopsim.MutationType(trait_ids=pids)
-        assert mt.trait_ids == pids
-        for bad_value in (123, None, ["xyz", "abc"], ""):
-            pids[1] = bad_value
-            with pytest.raises(ValueError, match="Each trait ID must be"):
-                stdpopsim.MutationType(trait_ids=pids)
+        check_trait_ids_errors(stdpopsim.MutationType, {})
 
     def test_Q_scaled_index(self):
         mut_params = {
