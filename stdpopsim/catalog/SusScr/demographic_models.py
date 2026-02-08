@@ -7,11 +7,10 @@ _species = stdpopsim.get_species("SusScr")
 
 def _WildBoar_4Z22():
     id = "WildBoar_4Z22"
-    description = "Piecewise size model for wild boar (Zhang et al. 2022)"
+    description = "Piecewise size model for wild boar (pig) (Zhang et al. 2022)"
     long_description = """
     This demographic model is a piecewise size model for wild boar
-    from Zhang et al. (2022). Effective population sizes were estimated by
-    PSMC with parameters Tmax = 20, n = 64 (4 + 50*1 + 4 + 6)
+    from Zhang et al. (2022).
     """
     populations = [
         stdpopsim.Population(id="EUW", description="European wild boar"),
@@ -1316,7 +1315,7 @@ def _WildBoar_4Z22():
 _species.add_demographic_model(_WildBoar_4Z22())
 
 _WangEtAl = stdpopsim.Citation(
-    doi="https://doi.org/10.1101/2025.02.05.636574",
+    doi="https://www.sciencedirect.com/science/article/pii/S2666979X25002101?via%3Dihub",
     year=2025,
     author="Wang et al.",
     reasons={stdpopsim.CiteReason.DEM_MODEL},
@@ -1330,7 +1329,7 @@ def _WildBoar_13W25():
     long_description = """
     This demographic model is a piecewise size model for wild boar
     from Wang et al. (2025). Effective population sizes were estimated by
-    MSMC with parameters n = 64 (4 + 50*1 + 4 + 6), generation time (g) = 5 years, and
+    MSMC with parameters n = 64 (4 + 50 + 4 + 6), generation time (g) = 5 years, and
     mutation rate (u) = 2.5e-8 per generation.
     """
     populations = [
