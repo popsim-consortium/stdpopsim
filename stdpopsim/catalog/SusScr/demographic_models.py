@@ -580,13 +580,14 @@ def _WildBoar_4Z22():
         )
 
     citations = [
-    stdpopsim.Citation(
-    doi="https://doi.org/10.1016/j.gpb.2022.02.001",
-    year=2022,
-    author="Zhang et al.",
-    reasons={stdpopsim.CiteReason.DEM_MODEL},
-    # Figure 3A Demographic history of four wild boar populations using PSMC.
-    )]
+        stdpopsim.Citation(
+            doi="https://doi.org/10.1016/j.gpb.2022.02.001",
+            year=2022,
+            author="Zhang et al.",
+            reasons={stdpopsim.CiteReason.DEM_MODEL},
+            # Figure 3A Demographic history of four wild boar populations using PSMC.
+        )
+    ]
 
     return stdpopsim.DemographicModel(
         id=id,
