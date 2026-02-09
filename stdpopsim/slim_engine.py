@@ -68,8 +68,9 @@ def _escape_eidos(s):
     return "\\\\".join(s.split("\\"))
 
 
+# this is the start of the initialize() block,
+# right after optional initialization calls that must come first
 _slim_upper = """
-initialize() {
     if (!exists("dry_run"))
         defineConstant("dry_run", F);
     if (!exists("verbosity"))
@@ -1197,6 +1198,9 @@ def slim_makescript(
 
     pop_names_str = ", ".join(map(lambda x: f'"{x}"', pop_names))
 
+    printsc("initialize() {\n")
+    if contig.species.separate_sexes:
+        printsc("    initializeSex();\n")
     printsc(
         string.Template(_slim_upper).substitute(
             scaling_factor=scaling_factor,
@@ -1591,6 +1595,13 @@ class _SLiMEngine(stdpopsim.Engine):
         Simulate the demographic model using SLiM.
         See :meth:`.Engine.simulate()` for definitions of the
         ``demographic_model``, ``contig``, and ``samples`` parameters.
+
+        The SLiM engine can also adjust aspects of the simulation to match
+        the life history of the species. At present, this is only:
+
+        * ``separate_sexes``: if the species has separate sexes, SLiM
+            will use a two-sex Wright-Fisher model (instead of the default
+            hermaphroditic WF model)
 
         :param seed: The seed for the random number generator.
         :type seed: int

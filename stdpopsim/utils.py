@@ -89,6 +89,10 @@ def download(url, filename):
         # Amend the error message to include the url.
         e.msg += f": {url}"
         raise e
+    except urllib.error.URLError as e:
+        # URLError can occur for DNS failures, connection errors, etc.
+        # Wrap it with additional context about the URL.
+        raise OSError(f"Failed to download {url}: {e.reason}") from e
 
 
 def sha256(filename):

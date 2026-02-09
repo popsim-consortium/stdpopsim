@@ -15,6 +15,7 @@ If you use ``stdpopsim`` in your work, please cite our papers:
 
 * [Adrion, et al. (2020)](https://doi.org/10.7554/eLife.54967)
 * [Lauterbur, et al. (2023)](https://doi.org/10.7554/eLife.84874)
+* [Gower, et al. (2025)](https://doi.org/10.1093/molbev/msaf236)
 
 See [here](https://popsim-consortium.github.io/stdpopsim-docs/stable/introduction.html#citations)
 for full citation details.

@@ -150,6 +150,7 @@ _species = stdpopsim.Species(
     ensembl_id="canis_lupus_familiaris",
     name="Canis familiaris",
     common_name="Dog",
+    separate_sexes=True,
     genome=_genome,
     population_size=13000,  # ancestral dog size
     generation_time=3,

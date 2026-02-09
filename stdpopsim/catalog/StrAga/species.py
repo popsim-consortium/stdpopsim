@@ -96,6 +96,7 @@ _species = stdpopsim.Species(
     ensembl_id="streptococcus_agalactiae_GCA_001017915",
     name="Streptococcus agalactiae",
     common_name="Group B Streptococcus",
+    separate_sexes=False,
     genome=_genome,
     generation_time=1 / 365,  # year / generations
     population_size=140000,

@@ -102,6 +102,7 @@ class SpeciesCatalogDirective(SphinxDirective):
                 ],
             ),
             ("Ploidy", species.ploidy, None),
+            ("Separate sexes", species.separate_sexes, None),
             (
                 "Population size",
                 species.population_size,

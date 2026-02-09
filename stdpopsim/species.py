@@ -118,6 +118,10 @@ class Species:
         Where no common name for the species exist, use the most common
         abbreviation, e.g., "E. Coli".
     :vartype common_name: str
+    :ivar separate_sexes: Whether the species has two separate sexes or
+        not (if not, it is hermaphroditic). Note that at present,
+        haplodiploid species have this set to False.
+    :vartype separate_sexes: bool
     :ivar genome: The :class:`.Genome` instance describing the details
         of this species' genome.
     :vartype genome: stdpopsim.Genome
@@ -153,6 +157,7 @@ class Species:
     id = attr.ib(type=str, kw_only=True)
     name = attr.ib(type=str, kw_only=True)
     common_name = attr.ib(type=str, kw_only=True)
+    separate_sexes = attr.ib(type=bool, kw_only=True)
     genome = attr.ib(type=int, kw_only=True)
     generation_time = attr.ib(default=0, kw_only=True)
     ploidy = attr.ib(default=2, type=int, kw_only=True)

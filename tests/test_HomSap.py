@@ -15,6 +15,7 @@ class TestSpecies(test_species.SpeciesTestBase):
     def test_basic_attributes(self):
         assert self.species.population_size == 10**4
         assert self.species.generation_time == 30
+        assert self.species.separate_sexes is True
 
 
 class TestGenome(test_species.GenomeTestBase):

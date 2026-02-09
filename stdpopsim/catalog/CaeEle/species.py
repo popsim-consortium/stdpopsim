@@ -124,6 +124,7 @@ _species = stdpopsim.Species(
     ensembl_id="caenorhabditis_elegans",
     name="Caenorhabditis elegans",
     common_name="C. elegans",
+    separate_sexes=False,
     genome=_genome,
     generation_time=0.01,  # One of the estimates reported
     # by the paper is ~150 generations per year (0.00666).
