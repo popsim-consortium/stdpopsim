@@ -530,22 +530,22 @@ def _WildBoar_4Z22():
 
     demographic_events = []
     population_configurations = [
-        stdpopsim.PopulationConfiguration(
+        msprime.PopulationConfiguration(
             # EUW
             initial_size=sizes_EUW[0],
             metadata=populations[0].asdict(),
         ),
-        stdpopsim.PopulationConfiguration(
+        msprime.PopulationConfiguration(
             # NCW
             initial_size=sizes_NCW[0],
             metadata=populations[1].asdict(),
         ),
-        stdpopsim.PopulationConfiguration(
+        msprime.PopulationConfiguration(
             # SCW
             initial_size=sizes_SCW[0],
             metadata=populations[2].asdict(),
         ),
-        stdpopsim.PopulationConfiguration(
+        msprime.PopulationConfiguration(
             # SMW
             initial_size=sizes_SMW[0],
             metadata=populations[3].asdict(),
@@ -1566,67 +1566,67 @@ def _WildBoar_13W25():
     demographic_events = []
     population_configurations = (
         [
-            stdpopsim.PopulationConfiguration(
+            msprime.PopulationConfiguration(
                 # FJW
                 initial_size=sizes_FJW[0],
                 metadata=populations[0].asdict(),
             ),
-            stdpopsim.PopulationConfiguration(
+            msprime.PopulationConfiguration(
                 # HBW
                 initial_size=sizes_HBW[0],
                 metadata=populations[1].asdict(),
             ),
-            stdpopsim.PopulationConfiguration(
+            msprime.PopulationConfiguration(
                 # HW
                 initial_size=sizes_HW[0],
                 metadata=populations[2].asdict(),
             ),
-            stdpopsim.PopulationConfiguration(
+            msprime.PopulationConfiguration(
                 # JLW
                 initial_size=sizes_JLW[0],
                 metadata=populations[3].asdict(),
             ),
-            stdpopsim.PopulationConfiguration(
+            msprime.PopulationConfiguration(
                 # JXW
                 initial_size=sizes_JXW[0],
                 metadata=populations[4].asdict(),
             ),
-            stdpopsim.PopulationConfiguration(
+            msprime.PopulationConfiguration(
                 # HLJW
                 initial_size=sizes_HLJW[0],
                 metadata=populations[5].asdict(),
             ),
-            stdpopsim.PopulationConfiguration(
+            msprime.PopulationConfiguration(
                 # LNW
                 initial_size=sizes_LNW[0],
                 metadata=populations[6].asdict(),
             ),
-            stdpopsim.PopulationConfiguration(
+            msprime.PopulationConfiguration(
                 # IMW
                 initial_size=sizes_IMW[0],
                 metadata=populations[7].asdict(),
             ),
-            stdpopsim.PopulationConfiguration(
+            msprime.PopulationConfiguration(
                 # NW
                 initial_size=sizes_NW[0],
                 metadata=populations[8].asdict(),
             ),
-            stdpopsim.PopulationConfiguration(
+            msprime.PopulationConfiguration(
                 # SXW
                 initial_size=sizes_SXW[0],
                 metadata=populations[9].asdict(),
             ),
-            stdpopsim.PopulationConfiguration(
+            msprime.PopulationConfiguration(
                 # XJW
                 initial_size=sizes_XJW[0],
                 metadata=populations[10].asdict(),
             ),
-            stdpopsim.PopulationConfiguration(
+            msprime.PopulationConfiguration(
                 # YNW
                 initial_size=sizes_YNW[0],
                 metadata=populations[11].asdict(),
             ),
-            stdpopsim.PopulationConfiguration(
+            msprime.PopulationConfiguration(
                 # SCW
                 initial_size=sizes_SCW[0],
                 metadata=populations[12].asdict(),
