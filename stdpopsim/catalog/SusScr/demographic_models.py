@@ -2,8 +2,6 @@ import msprime
 import stdpopsim
 import numpy as np
 
-from . import species
-
 _species = stdpopsim.get_species("SusScr")
 
 
