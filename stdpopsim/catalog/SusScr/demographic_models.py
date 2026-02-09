@@ -1570,8 +1570,7 @@ def _WildBoar_13W25():
     )
 
     demographic_events = []
-    population_configurations = (
-        [
+    population_configurations = [
             msprime.PopulationConfiguration(
                 # FJW
                 initial_size=sizes_FJW[0],
@@ -1637,8 +1636,7 @@ def _WildBoar_13W25():
                 initial_size=sizes_SCW[0],
                 metadata=populations[12].asdict(),
             ),
-        ],
-    )
+        ]
 
     for i, t in enumerate(times_FJW):
         curr_time = t
