@@ -579,7 +579,14 @@ def _WildBoar_4Z22():
             )
         )
 
-    citations = [species._ZhangEtAl]
+    citations = [
+    stdpopsim.Citation(
+    doi="https://doi.org/10.1016/j.gpb.2022.02.001",
+    year=2022,
+    author="Zhang et al.",
+    reasons={stdpopsim.CiteReason.DEM_MODEL},
+    # Figure 3A Demographic history of four wild boar populations using PSMC.
+    )]
 
     return stdpopsim.DemographicModel(
         id=id,
@@ -598,7 +605,7 @@ def _WildBoar_4Z22():
 _species.add_demographic_model(_WildBoar_4Z22())
 
 _WangEtAl = stdpopsim.Citation(
-    doi="https://www.sciencedirect.com/science/article/pii/S2666979X25002101?via%3Dihub",
+    doi="https://doi.org/10.1016/j.xgen.2025.100954",
     year=2025,
     author="Wang et al.",
     reasons={stdpopsim.CiteReason.DEM_MODEL},
