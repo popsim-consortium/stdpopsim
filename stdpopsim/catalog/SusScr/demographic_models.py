@@ -578,6 +578,7 @@ def _WildBoar_4Z22():
                 time=curr_time, initial_size=sizes_SMW[i + 1], population_id=3
             )
         )
+    demographic_events.sort(key=lambda x: x.time)
 
     citations = [
         stdpopsim.Citation(
@@ -600,7 +601,7 @@ def _WildBoar_4Z22():
         recombination_rate=recombination_rate,
         population_configurations=population_configurations,
         demographic_events=demographic_events,
-    )
+    ).sort_events()
 
 
 _species.add_demographic_model(_WildBoar_4Z22())
@@ -1729,6 +1730,7 @@ def _WildBoar_13W25():
                 time=curr_time, initial_size=sizes_SCW[i + 1], population_id=12
             )
         )
+    demographic_events.sort(key=lambda x: x.time)
     citations = [
         _WangEtAl,
     ]
