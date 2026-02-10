@@ -1,2 +1,2 @@
-msprime==1.3.4
+msprime==1.4.0
 slim==5.1
