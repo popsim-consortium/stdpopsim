@@ -601,7 +601,7 @@ def _WildBoar_4Z22():
         recombination_rate=recombination_rate,
         population_configurations=population_configurations,
         demographic_events=demographic_events,
-    ).sort_events()
+    )
 
 
 _species.add_demographic_model(_WildBoar_4Z22())
