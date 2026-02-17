@@ -212,6 +212,61 @@ class TestEnvironment:
             with pytest.raises(ValueError, match="must be a list of length 3"):
                 stdpopsim.Environment(**bad_args)
 
+    def test_mvn_errors(self):
+        args = {
+            "id": "abc",
+            "trait_ids": ["trait1", "trait2", "trait3"],
+            "distribution_type": "mvn",
+            "distribution_args": [
+                np.array([0, 1, 2]),
+                np.array([[1, 0.5, 0], [0.5, 2, 0], [0, 0, 3]]),
+            ],
+        }
+        f = stdpopsim.Environment(**args)
+        assert f.id == "abc"
+        assert f.trait_ids == ["trait1", "trait2", "trait3"]
+        assert f.distribution_type == "mvn"
+
+        bad_args = args.copy()
+        bad_args["distribution_args"] = [np.array([0]), np.array([1]), np.array([2])]
+        with pytest.raises(ValueError, match="requires two parameters"):
+            stdpopsim.Environment(**bad_args)
+
+        bad_args = args.copy()
+        bad_args["distribution_args"] = [np.array([0, 1]), args["distribution_args"][1]]
+        with pytest.raises(ValueError, match="must be 1 dimensional of length 3"):
+            stdpopsim.Environment(**bad_args)
+
+        bad_args = args.copy()
+        bad_args["distribution_args"] = [
+            args["distribution_args"][0],
+            np.array([0, 1, 2]),
+        ]
+        with pytest.raises(ValueError, match="must be 2 dimensional"):
+            stdpopsim.Environment(**bad_args)
+
+        bad_args = args.copy()
+        bad_args["distribution_args"] = [
+            args["distribution_args"][0],
+            np.array([[1, 1, 0], [1, 1, 1]]),
+        ]
+        with pytest.raises(ValueError, match="must be square.* with dimensions .3, 3."):
+            stdpopsim.Environment(**bad_args)
+
+        bad_args = args.copy()
+        S = args["distribution_args"][1]
+        S[1, 2] = 10
+        bad_args["distribution_args"] = [args["distribution_args"][0], S]
+        with pytest.raises(ValueError, match="must be symmetric"):
+            stdpopsim.Environment(**bad_args)
+
+        bad_args = args.copy()
+        S = args["distribution_args"][1]
+        S[1, 2] = S[2, 1] = 10
+        bad_args["distribution_args"] = [args["distribution_args"][0], S]
+        with pytest.raises(ValueError, match="is not positive definite"):
+            stdpopsim.Environment(**bad_args)
+
 
 class TestTrait:
 
@@ -330,6 +385,10 @@ class TestFitnessFunction:
     def test_make_fitness_function_errors(self):
         with pytest.raises(TypeError, match="required keyword-only arg"):
             stdpopsim.FitnessFunction()
+        with pytest.raises(ValueError, match="Unknown function type foo."):
+            stdpopsim.FitnessFunction(
+                id="ff", trait_ids=["fitness"], function_type="foo", function_args=[0]
+            )
         args = {
             "id": "foo",
             "trait_ids": ["fitness"],

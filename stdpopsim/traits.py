@@ -301,6 +301,8 @@ class FitnessFunction:
                 raise ValueError(
                     "fitness arguments to threshold function must be nonnegative"
                 )
+        else:
+            raise ValueError(f"Unknown function type {self.function_type}.")
 
 
 @attr.s(kw_only=True)
