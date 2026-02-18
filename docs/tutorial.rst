@@ -38,7 +38,7 @@ using both CLI and Python interfaces.
     maps of recombination rates that vary across and along chromosomes.
     In the ``stdpopsim`` code and documentation, we use the term
     **genetic map** to refer specifically to a "crossing-over rate map" and
-    **recombination map** to refer to a "crossing-over and gene conversion rate map.""
+    **recombination map** to refer to a "crossing-over and gene conversion rate map."
     See :ref:`further details <sec_api_gene_conversion>` on this distinction.
 
 .. _sec_cli_tute:
