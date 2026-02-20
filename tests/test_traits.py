@@ -304,7 +304,7 @@ class TestTrait:
             with pytest.raises(ValueError, match="Unknown trait type"):
                 stdpopsim.Trait(id="foo", type=bad_type)
         for bad_transform in (123, [], None):
-            with pytest.raises(ValueError, match=f"Transform .{bad_transform}."):
+            with pytest.raises(ValueError, match="Transform .* unknown"):
                 stdpopsim.Trait(
                     id="foo",
                     type="additive",
