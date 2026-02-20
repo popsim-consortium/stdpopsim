@@ -31,16 +31,16 @@ def _check_trait_ids(trait_ids):
 class TraitsModel(object):
     def __init__(self, traits):
         """
-        A collection of genetically determined traits,
-        which are a list of ``traits``,
+        A list of genetically determined ``traits``,
         linked together by possibly shared effects of ``environments``
         and by ``fitness_functions`` that depend on their values.
 
         On initialization ``environments`` and ``fitness_functions``
         are empty and can be added with :meth:`.add_environment`
-        and :meth:`.add_fitness_function`. These must all have unique IDs.
+        and :meth:`.add_fitness_function`.
+        These must all have unique IDs.
 
-        :ivar traits: List of :class:`Trait` objects.
+        :ivar traits: List of :class:`Trait` objects, with unique IDs.
         :vartype traits: list
         """
         pids = [p.id for p in traits]
@@ -65,6 +65,8 @@ class TraitsModel(object):
         Adds a :class:`.FitnessFunction` to the :class:`TraitsModel`.
         The arguments are passed directly to :class:`FitnessFunction`;
         see that documentation for more information.
+        The IDs of all traits referred to by this fitness function
+        must be present in the :class:`TraitsModel`.
         """
         ff = FitnessFunction(**kwargs)
         self._check_traits_defined(ff.trait_ids)
@@ -81,6 +83,8 @@ class TraitsModel(object):
         Add random "environmental" (i.e., non-genetic) effects to the specified
         traits. The arguments are passed directly to :class:`Environment`;
         see that documentation for more information.
+        The IDs of all traits referred to by this environment
+        must be present in the :class:`TraitsModel`.
         """
         env = Environment(**kwargs)
         self._check_traits_defined(env.trait_ids)
@@ -127,12 +131,24 @@ class Trait:
     This class defines how the underlying (latent) value,
     which is a sum of genetic value and environmental deviation(s),
     is "transformed" to the observed value (the phenotype).
+    The `transform` is thus analogous to an inverse link function
+    from generalized linear models.
 
     The ``type`` can be either "additive" or "multiplicative",
-    and determines whether the per-site effects are added together
-    or multiplied.
+    and determines whether the per-site genetic effects are added together
+    or multiplied to produce the genetic value
+    (in other words, the genetic component of the latent value):
+    for additive traits, the genetic value is the sum of :math:`s_i`,
+    where :math:`s_i` is the effect at site :math:`i` (including effects
+    of dominance); for multiplicative traits, the genetic value
+    is the product of :math:`1+s_i`.
 
-    Options for "transform" (link function) are:
+    The genetic effects themselves, including dominance, are specified through
+    :class:`DistributionOfMutationEffects`,
+    while environmental deviations are specified through
+    :class:`Environment`s.
+
+    Options for "transform" are:
 
     "identity": the observed value is equal to the latent value.
 
@@ -151,9 +167,9 @@ class Trait:
 
     :ivar id: ID of the trait (think of this as the 'name').
     :vartype id: str
-    :ivar type: Type of the trait (additive or multiplicative).
+    :ivar type: Type of the trait ("additive" or "multiplicative").
     :vartype type: str
-    :ivar transform: Type of transformation.
+    :ivar transform: Type of transformation. (default: "identity")
     :vartype transform: str
     :ivar transform_args: A list of parameters given to the transformation.
     :vartype transform_args: list
@@ -171,8 +187,6 @@ class Trait:
             isinstance(self.type, str) and self.type in ("multiplicative", "additive")
         ):
             raise ValueError(f"Unknown trait type '{self.type}'.")
-        if not isinstance(self.transform, str):
-            raise ValueError("transform must be a str")
         if not isinstance(self.transform_args, list):
             raise ValueError("transform_args must be a list")
         if self.transform == "identity":
@@ -198,10 +212,16 @@ class Trait:
 class Environment:
     """
     Represents random "environmental" (i.e., non-genetic) effects on traits.
-    These are all added to genetic values and may depend on time and/or population.
+    These are added to genetic values to produce the latent values
+    for a :class:`Trait`.
+    The Environment may be restricted to apply only to a given
+    span of time and/or set of populations.
 
     Each environment has an ``id``; this is for debugging purposes, and so each
     environment used in the same :class:`.TraitsModel` should have a unique name.
+
+    TODO: does this accept all of the distribution types? Right now it shares code
+    with MutationType so it does.
 
     :ivar id: An ID (i.e., a name) for this environment.
     :vartype id: str
@@ -233,11 +253,13 @@ class Environment:
 @attr.s(kw_only=True)
 class FitnessFunction:
     """
-    TODO WRITE THIS BETTER
-    Class to store a model of a component of fitness:
-    each such component maps a collection of traits
-    to a value that multiplies the fitness.
-    Also contained here is when and where this component applies.
+    A function that computes a component of fitness:
+    the total fitness is obtained by multiplying together
+    all fitness functions in the :class:`TraitsModel`.
+    Each fitness function operates on a collection of traits
+    (the ``trait_ids``), and returns a value that multiplies the fitness.
+    The Fitness Function may be restricted to apply only to a given
+    span of time and/or set of populations.
 
     Options for ``function_type``, and corresponding ``function_args``, are:
 
@@ -251,6 +273,9 @@ class FitnessFunction:
         :math:`f(x) = a` if the quantile of :math:`x` among the values in the
         population is less than :math:`q`, and :math:`f(x) = b` otherwise.
 
+
+    Each fitness function has an ``id``; this is for debugging purposes, and so each
+    fitness function used in the same :class:`.TraitsModel` should have a unique name.
 
     :ivar id: An ID (i.e., a name) for this fitness function.
     :vartype id: str
@@ -308,12 +333,12 @@ class FitnessFunction:
 @attr.s(kw_only=True)
 class MutationType(object):
     """
-    Class representing a "type" of mutation, allowing the mutation to affect
-    fitness and/or trait(s).
+    Class representing a "type" of mutation, that affects fitness and/or
+    a collection of other traits.
 
-    The main thing that mutation types carry is a way of drawing an effect
+    The main thing that mutation types carry is a way of drawing an *effect*
     for each new mutation from a distribution. This ``distribution_type`` should
-    be one of (see the SLiM manual for more information on these):
+    be one of:
 
     - ``f``: fixed, one parameter (an single value)
     - ``e``: exponential, one parameter (mean)
@@ -330,24 +355,21 @@ class MutationType(object):
     exponential and gamma, a negative mean can be provided, obtaining always
     negative values.
 
-    TODO: Revise the below paragraph to cover traits and fitness more generally.
     Instead of a single dominance coefficient (which would be specified with
     `dominance_coeff`), a discretized relationship between dominance and
-    selection coefficient can be implemented: if dominance_coeff_list is
-    provided, mutations with selection coefficient s for which
-    dominance_coeff_breaks[k-1] <= s <= dominance_coeff_breaks[k] will have
-    dominance coefficient dominance_coeff[k]. In other words, the first entry
-    of dominance_coeff_list applies to any mutations with selection coefficient
-    below the first entry of dominance_coeff_breaks; the second entry of
-    dominance_coeff_list applies to mutations with selection coefficient
-    between the first and second entries of dominance_coeff_breaks, and so
+    effect can be implemented: if dominance_coeff_list is
+    provided, mutations with effect ``s`` for which
+    ``dominance_coeff_breaks[k-1] <= s <= dominance_coeff_breaks[k]`` will have
+    ``dominance coefficient dominance_coeff[k]``. In other words, the first entry
+    of ``dominance_coeff_list`` applies to any mutations with effect
+    below the first entry of ``dominance_coeff_breaks``; the second entry of
+    ``dominance_coeff_list`` applies to mutations with effect
+    between the first and second entries of ``dominance_coeff_breaks``, and so
     forth. The list of breaks must therefore be of length one less than the
     list of dominance coefficients.
 
-    TODO: is "dominance_coeff_list" still the way we want to do things?
-    SLiM is more flexible in this now.
-
     :ivar trait_ids: A list of trait IDs this mutation type affects.
+        (default: ["fitness"])
     :vartype trait_ids: list
     :ivar distribution_type: A str abbreviation for the distribution of
         effects that each new mutation of this type draws from (see above).
@@ -363,7 +385,7 @@ class MutationType(object):
         (Either way, they will remain in the tree sequence).  Default: True.
     :vartype convert_to_substitution: bool
     :ivar dominance_coeff_list: Either None (the default) or a list of floats describing
-        a list of dominance coefficients, to apply to different selection coefficients
+        a list of dominance coefficients, to apply to different effects
         (see details). Cannot be specified along with dominance_coeff.
     :vartype dominance_coeff_list: list of floats
     :ivar dominance_coeff_breaks: Either None (the default) or a list of floats
