@@ -62,25 +62,25 @@ def _dog_wolf_admixture():
     N_ancDW = 44993  # (dog, wolf)
     N_root = 18169  # ((dog, wolf), golden jackal)root
 
-    # Estimated (calibrated) divergence times, from Table S12
-    T_ancDOG1 = 12102  # (Boxer, Basenji)
-    T_ancDOG = 12795  # ((Boxer, Basenji), Dingo)
-    T_ancWLF1 = 13389  # (Israeli, Croatian) wolf
-    T_ancWLF = 13455  # ((Israeli, Croatian), Chinese) wolf
-    T_ancDW = 14874  # (dog, wolf)
-    T_ancroot = 398262  # ((dog, wolf), golden jackal)root
+    # Estimated (calibrated) divergence times in years, from Table S12
+    T_ancDOG1 = 12102 / generation_time  # (Boxer, Basenji)
+    T_ancDOG = 12795 / generation_time  # ((Boxer, Basenji), Dingo)
+    T_ancWLF1 = 13389 / generation_time  # (Israeli, Croatian) wolf
+    T_ancWLF = 13455 / generation_time  # ((Israeli, Croatian), Chinese) wolf
+    T_ancDW = 14874 / generation_time  # (dog, wolf)
+    T_ancroot = 398262 / generation_time  # ((dog, wolf), golden jackal)root
 
     # Migration rates, from Table S12
     # migration is constant continuous geneflow from the start and end times of
     # the two populations that define it. See section S9.2.3 in S9.
-    m_ISW_BSJ = 0.18
-    m_BSJ_ISW = 0.07
-    m_CHW_DNG = 0.03
-    m_DNG_CHW = 0.04
-    m_GLJ_ISW = 0
-    m_ISW_GLJ = 0.05
-    m_GLJ_ancDW = 0.02
-    m_ancDW_GLJ = 0.99
+    m_ISW_BSJ = 0.18 / T_ancDOG1
+    m_BSJ_ISW = 0.07 / T_ancDOG1
+    m_CHW_DNG = 0.03 / T_ancDOG
+    m_DNG_CHW = 0.04 / T_ancDOG
+    m_GLJ_ISW = 0 / T_ancWLF1
+    m_ISW_GLJ = 0.05 / T_ancWLF1
+    m_GLJ_ancDW = 0.02 / (T_ancroot - T_ancDW)
+    m_ancDW_GLJ = 0.99 / (T_ancroot - T_ancDW)
 
     model = msprime.Demography()
     model.add_population(
