@@ -803,11 +803,11 @@ def _WildBoar_6W25():
     N_OUT = 1158
     N_NEW = 81722
     # Estimated divergence times, from Figure S11B
-    T1 = 3_662_321  # (OUT,(SCW,NAW,CAW,EUW,NEW))
-    T2 = 1_826_091  # ((SCW,NAW),(CAW,EUW,NEW))
-    T3 = 1_064_310  # (SCW,NAW)
-    T4 = 948_246  # (CAW,(EUW,NEW))
-    T5 = 682571.5  # (CAW,EUW)
+    T1 = 3_662_321  # SCW branches off from OUT (Sus Cebifrons)
+    T2 = 1_826_091  # CAW branches off from SCW
+    T3 = 1_064_310  # NAW branches off from SCW
+    T4 = 948_246  # NEW branches off from CAW
+    T5 = 682571.5  # EUW branches off from CAW
 
     # Migration rates, from Figure S11B
     # migration is bidirectional.
