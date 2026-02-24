@@ -162,7 +162,7 @@ def _WildBoar_4Z22_SMW():
         msprime.PopulationConfiguration(
             # SMW
             initial_size=sizes_SMW[0],
-            metadata=populations[3].asdict(),
+            metadata=populations[0].asdict(),
         )
     ]
 
@@ -342,7 +342,7 @@ def _WildBoar_4Z22_SCW():
         msprime.PopulationConfiguration(
             # SCW
             initial_size=sizes_SCW[0],
-            metadata=populations[2].asdict(),
+            metadata=populations[0].asdict(),
         )
     ]
 
@@ -522,7 +522,7 @@ def _WildBoar_4Z22_NCW():
         msprime.PopulationConfiguration(
             # NCW
             initial_size=sizes_NCW[0],
-            metadata=populations[1].asdict(),
+            metadata=populations[0].asdict(),
         )
     ]
 
