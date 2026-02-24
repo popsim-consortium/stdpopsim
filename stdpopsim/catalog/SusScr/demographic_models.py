@@ -4,19 +4,564 @@ import numpy as np
 
 _species = stdpopsim.get_species("SusScr")
 
+_ZhangEtAl = stdpopsim.Citation(
+    doi="https://doi.org/10.1016/j.gpb.2022.02.001",
+    year=2022,
+    author="Zhang et al.",
+    reasons={stdpopsim.CiteReason.DEM_MODEL},
+    # Figure 3A Demographic history of four wild boar populations using PSMC.
+)
 
-def _WildBoar_4Z22():
-    id = "WildBoar_4Z22"
-    description = "Piecewise size model for wild boar (pig) (Zhang et al. 2022)"
+
+def _WildBoar_4Z22_SMW():
+    id = "WildBoar_4Z22_SMW"
+    description = "Piecewise size model for Sumatran wild boar (Zhang et al. 2022)"
     long_description = """
-    This demographic model is a piecewise size model for wild boar
+    This demographic model is a piecewise size model for Sumatran wild boar
+    from Zhang et al. (2022).
+    """
+    populations = [
+        stdpopsim.Population(id="SMW", description="Sumatran wild boar"),
+    ]
+
+    # Recombination rate used in simulations by Zhang et al. (2022).
+    recombination_rate = 1.0e-8
+
+    # Mutation rate as reported by Zhang et al. (2022, p. 1042).
+    mutation_rate = 3.6e-9
+
+    # Arrays of time intervals and effective population sizes (Ne)
+    # extracted from Figure 3A of Zhang et al. (2022).
+    times_SMW = np.array(
+        [
+            2.73927358e02,
+            5.78023037e02,
+            9.15644600e02,
+            1.29042319e03,
+            1.70646249e03,
+            2.16836360e03,
+            2.68112557e03,
+            3.25034434e03,
+            3.88228734e03,
+            4.58381894e03,
+            5.36262421e03,
+            6.22720899e03,
+            7.18699932e03,
+            8.25254043e03,
+            9.43542214e03,
+            1.07485773e04,
+            1.22063812e04,
+            1.38247512e04,
+            1.56213455e04,
+            1.76158620e04,
+            1.98300377e04,
+            2.22880719e04,
+            2.50168500e04,
+            2.80461921e04,
+            3.14091764e04,
+            3.51425621e04,
+            3.92871621e04,
+            4.38882663e04,
+            4.89961137e04,
+            5.46665891e04,
+            6.09615960e04,
+            6.79499271e04,
+            7.57079856e04,
+            8.43205313e04,
+            9.38817004e04,
+            1.04495925e05,
+            1.16279229e05,
+            1.29360367e05,
+            1.43882272e05,
+            1.60003671e05,
+            1.77900673e05,
+            1.97768912e05,
+            2.19825486e05,
+            2.44311369e05,
+            2.71494220e05,
+            3.01670997e05,
+            3.35171512e05,
+            3.72361864e05,
+            4.13648392e05,
+            4.59482304e05,
+            5.10364447e05,
+            5.66850835e05,
+            6.29558737e05,
+            6.99173418e05,
+            7.76455553e05,
+            8.62249706e05,
+            9.57493383e05,
+        ]
+    )
+
+    sizes_SMW = np.array(
+        [
+            1779489.40969792,
+            1779489.40969792,
+            13416.26015625,
+            13416.26015625,
+            4897.87538542,
+            4407.55934167,
+            4602.38501458,
+            4882.16945417,
+            5175.03595208,
+            5521.00167917,
+            5931.53208958,
+            6379.94077917,
+            6835.21381875,
+            7291.75527083,
+            7769.6234625,
+            8299.03645625,
+            8915.17404583,
+            9670.28985208,
+            10648.26076042,
+            11973.82643542,
+            13810.97271667,
+            16361.98652708,
+            19850.04628958,
+            24476.4067875,
+            30345.97319583,
+            37379.65626458,
+            45251.64807708,
+            53429.50139792,
+            61330.81592292,
+            68519.9417,
+            74824.37462917,
+            80318.72721042,
+            85281.27919792,
+            90121.39207292,
+            95327.01915,
+            101382.3458125,
+            108697.15634583,
+            117580.74443333,
+            128223.79475417,
+            140717.28481667,
+            155055.94200417,
+            171127.08900625,
+            188647.94444792,
+            207099.76492292,
+            225653.40658958,
+            243141.8429,
+            258150.88096458,
+            269176.84263542,
+            274910.67647083,
+            274517.54320833,
+            267869.51971667,
+            255602.00604583,
+            238998.64808125,
+            219719.2630625,
+            177796.99883125,
+            177796.99883125,
+            177796.99883125,
+            177796.99883125,
+        ]
+    )
+
+    demographic_events = []
+    population_configurations = [
+        msprime.PopulationConfiguration(
+            # SMW
+            initial_size=sizes_SMW[0],
+            metadata=populations[3].asdict(),
+        )
+    ]
+
+    for i, t in enumerate(times_SMW):
+        curr_time = t
+        demographic_events.append(
+            msprime.PopulationParametersChange(
+                time=curr_time, initial_size=sizes_SMW[i + 1], population_id=3
+            )
+        )
+    citations = [
+        _ZhangEtAl,
+    ]
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=3,
+        mutation_rate=mutation_rate,
+        recombination_rate=recombination_rate,
+        population_configurations=population_configurations,
+        demographic_events=demographic_events,
+    )
+
+
+_species.add_demographic_model(_WildBoar_4Z22_SMW())
+
+
+def _WildBoar_4Z22_SCW():
+    id = "WildBoar_4Z22_SCW"
+    description = "Piecewise size model for South Chinese wild boar (Zhang et al. 2022)"
+    long_description = """
+    This demographic model is a piecewise size model for South Chinese wild boar
+    from Zhang et al. (2022).
+    """
+    populations = [
+        stdpopsim.Population(id="SCW", description="South Chinese wild boar"),
+    ]
+
+    # Recombination rate used in simulations by Zhang et al. (2022).
+    recombination_rate = 1.0e-8
+
+    # Mutation rate as reported by Zhang et al. (2022, p. 1042).
+    mutation_rate = 3.6e-9
+
+    # Arrays of time intervals and effective population sizes (Ne)
+    # extracted from Figure 3A of Zhang et al. (2022).
+    times_SCW = np.array(
+        [
+            1.99403694e03,
+            4.16635167e03,
+            6.53298917e03,
+            9.11155438e03,
+            1.19207665e04,
+            1.49813502e04,
+            1.83158132e04,
+            2.19486686e04,
+            2.59064353e04,
+            3.02185290e04,
+            3.49163713e04,
+            4.00345035e04,
+            4.56105867e04,
+            5.16856248e04,
+            5.83041873e04,
+            6.55148549e04,
+            7.33708880e04,
+            8.19297812e04,
+            9.12546004e04,
+            1.01413760e05,
+            1.12481913e05,
+            1.24540399e05,
+            1.37677688e05,
+            1.51990497e05,
+            1.67584008e05,
+            1.84572766e05,
+            2.03081788e05,
+            2.23246787e05,
+            2.45215958e05,
+            2.69151087e05,
+            2.95227777e05,
+            3.23637678e05,
+            3.54589597e05,
+            3.88310839e05,
+            4.25049432e05,
+            4.65075467e05,
+            5.08682658e05,
+            5.56191680e05,
+            6.07951735e05,
+            6.64343225e05,
+            7.25780199e05,
+            7.92714367e05,
+            8.65637555e05,
+            9.45085710e05,
+            1.03164269e06,
+            1.12594450e06,
+            1.22868398e06,
+            1.34061613e06,
+            1.46256370e06,
+            1.59542276e06,
+            1.74016939e06,
+            1.89786767e06,
+            2.06967619e06,
+            2.25685739e06,
+            2.46078689e06,
+            2.68296356e06,
+            2.92501955e06,
+        ]
+    )
+
+    sizes_SCW = np.array(
+        [
+            33850.15878472,
+            33850.15878472,
+            42415.73746528,
+            42415.73746528,
+            122471.26215278,
+            133968.84173611,
+            137971.28927083,
+            143358.39802083,
+            153983.53072917,
+            170674.89909722,
+            188417.32638889,
+            202479.8775,
+            214028.48909722,
+            222119.29177083,
+            223082.21461806,
+            216006.36961806,
+            203076.21666667,
+            187279.35704861,
+            171195.58163194,
+            156701.04118056,
+            144929.35951389,
+            136399.5478125,
+            131158.73826389,
+            129003.69420139,
+            129664.10194444,
+            132892.7125,
+            138474.47829861,
+            146157.35913194,
+            155600.39875,
+            166325.92413194,
+            177722.21965278,
+            189072.05152778,
+            199623.53322917,
+            208686.39548611,
+            215704.30020833,
+            220336.06829861,
+            222488.32677083,
+            222294.56111111,
+            220072.32861111,
+            216231.4453125,
+            211220.05697917,
+            205477.84118056,
+            199411.93979167,
+            193390.05072917,
+            187720.14885417,
+            182639.90072917,
+            178297.72260417,
+            174756.79166667,
+            172003.29138889,
+            169978.50152778,
+            168579.8009375,
+            167699.88868056,
+            167230.23815972,
+            167076.80784722,
+            167462.11069444,
+            167462.11069444,
+            167462.11069444,
+            167462.11069444,
+        ]
+    )
+
+    demographic_events = []
+    population_configurations = [
+        msprime.PopulationConfiguration(
+            # SCW
+            initial_size=sizes_SCW[0],
+            metadata=populations[2].asdict(),
+        )
+    ]
+
+    for i, t in enumerate(times_SCW):
+        curr_time = t
+        demographic_events.append(
+            msprime.PopulationParametersChange(
+                time=curr_time, initial_size=sizes_SCW[i + 1], population_id=2
+            )
+        )
+    citations = [
+        _ZhangEtAl,
+    ]
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=3,
+        mutation_rate=mutation_rate,
+        recombination_rate=recombination_rate,
+        population_configurations=population_configurations,
+        demographic_events=demographic_events,
+    )
+
+
+_species.add_demographic_model(_WildBoar_4Z22_SCW())
+
+
+def _WildBoar_4Z22_NCW():
+    id = "WildBoar_4Z22_NCW"
+    description = "Piecewise size model for North Chinese wild boar (Zhang et al. 2022)"
+    long_description = """
+    This demographic model is a piecewise size model for North Chinese wild boar
+    from Zhang et al. (2022).
+    """
+    populations = [
+        stdpopsim.Population(id="NCW", description="North Chinese wild boar")
+    ]
+
+    # Recombination rate used in simulations by Zhang et al. (2022).
+    recombination_rate = 1.0e-8
+
+    # Mutation rate as reported by Zhang et al. (2022, p. 1042).
+    mutation_rate = 3.6e-9
+
+    # Arrays of time intervals and effective population sizes (Ne)
+    # extracted from Figure 3A of Zhang et al. (2022).
+
+    times_NCW = np.array(
+        [
+            1.65039886e03,
+            3.45249869e03,
+            5.42012314e03,
+            7.56889111e03,
+            9.91496011e03,
+            1.24768215e04,
+            1.52742233e04,
+            1.83287089e04,
+            2.16639760e04,
+            2.53058765e04,
+            2.92825963e04,
+            3.36248347e04,
+            3.83663428e04,
+            4.35437444e04,
+            4.91968946e04,
+            5.53699572e04,
+            6.21103276e04,
+            6.94704279e04,
+            7.75071684e04,
+            8.62826658e04,
+            9.58647814e04,
+            1.06327840e05,
+            1.17752808e05,
+            1.30228014e05,
+            1.43850043e05,
+            1.58724278e05,
+            1.74965977e05,
+            1.92700628e05,
+            2.12065572e05,
+            2.33210892e05,
+            2.56299960e05,
+            2.81511584e05,
+            3.09040912e05,
+            3.39100864e05,
+            3.71924286e05,
+            4.07765032e05,
+            4.46900652e05,
+            4.89633828e05,
+            5.36295431e05,
+            5.87246671e05,
+            6.42881612e05,
+            7.03631119e05,
+            7.69965196e05,
+            8.42397294e05,
+            9.21487897e05,
+            1.00784920e06,
+            1.10214957e06,
+            1.20511881e06,
+            1.31755382e06,
+            1.44032479e06,
+            1.57438195e06,
+            1.72076280e06,
+            1.88060015e06,
+            2.05513113e06,
+            2.24570651e06,
+            2.45380111e06,
+            2.68102546e06,
+        ]
+    )
+    sizes_NCW = np.array(
+        [
+            96756.31630556,
+            96756.31630556,
+            23458.80495833,
+            23458.80495833,
+            29425.85947222,
+            33474.83920833,
+            37881.70756944,
+            44466.247875,
+            54119.27695833,
+            66767.63725,
+            82821.19066667,
+            102492.677625,
+            124769.92051389,
+            147268.88020833,
+            167371.86218056,
+            183211.86730556,
+            193154.92351389,
+            195884.55361111,
+            191547.07273611,
+            181982.01226389,
+            169846.56283333,
+            157649.26608333,
+            147192.93995833,
+            139407.98716667,
+            134604.18288889,
+            132773.80743056,
+            133793.61497222,
+            137496.10609722,
+            143635.95609722,
+            151873.229125,
+            161743.12776389,
+            172654.01822222,
+            183895.50908333,
+            194696.07972222,
+            204305.66308333,
+            212105.24738889,
+            217677.25102778,
+            220830.11786111,
+            221589.25106944,
+            220150.69498611,
+            216828.44369444,
+            212005.34018056,
+            206099.23534722,
+            199534.26356944,
+            192720.28676389,
+            186032.24869444,
+            179786.74659722,
+            174219.32091667,
+            169471.61906944,
+            165602.61593056,
+            162594.35872222,
+            160382.21744444,
+            158874.45340278,
+            157958.32315278,
+            157604.38413889,
+            157604.38413889,
+            157604.38413889,
+            157604.38413889,
+        ]
+    )
+
+    demographic_events = []
+    population_configurations = [
+        msprime.PopulationConfiguration(
+            # NCW
+            initial_size=sizes_NCW[0],
+            metadata=populations[1].asdict(),
+        )
+    ]
+
+    for i, t in enumerate(times_NCW):
+        curr_time = t
+        demographic_events.append(
+            msprime.PopulationParametersChange(
+                time=curr_time, initial_size=sizes_NCW[i + 1], population_id=1
+            )
+        )
+    citations = [
+        _ZhangEtAl,
+    ]
+    return stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        populations=populations,
+        citations=citations,
+        generation_time=3,
+        mutation_rate=mutation_rate,
+        recombination_rate=recombination_rate,
+        population_configurations=population_configurations,
+        demographic_events=demographic_events,
+    )
+
+
+_species.add_demographic_model(_WildBoar_4Z22_NCW())
+
+
+def _WildBoar_4Z22_EUW():
+    id = "WildBoar_4Z22_EUW"
+    description = "Piecewise size model for European wild boar (Zhang et al. 2022)"
+    long_description = """
+    This demographic model is a piecewise size model for European wild boar
     from Zhang et al. (2022).
     """
     populations = [
         stdpopsim.Population(id="EUW", description="European wild boar"),
-        stdpopsim.Population(id="NCW", description="North Chinese wild boar"),
-        stdpopsim.Population(id="SCW", description="South Chinese wild boar"),
-        stdpopsim.Population(id="SMW", description="Sumatran wild boar"),
     ]
 
     # Recombination rate used in simulations by Zhang et al. (2022).
@@ -152,402 +697,13 @@ def _WildBoar_4Z22():
         ]
     )
 
-    times_NCW = np.array(
-        [
-            1.65039886e03,
-            3.45249869e03,
-            5.42012314e03,
-            7.56889111e03,
-            9.91496011e03,
-            1.24768215e04,
-            1.52742233e04,
-            1.83287089e04,
-            2.16639760e04,
-            2.53058765e04,
-            2.92825963e04,
-            3.36248347e04,
-            3.83663428e04,
-            4.35437444e04,
-            4.91968946e04,
-            5.53699572e04,
-            6.21103276e04,
-            6.94704279e04,
-            7.75071684e04,
-            8.62826658e04,
-            9.58647814e04,
-            1.06327840e05,
-            1.17752808e05,
-            1.30228014e05,
-            1.43850043e05,
-            1.58724278e05,
-            1.74965977e05,
-            1.92700628e05,
-            2.12065572e05,
-            2.33210892e05,
-            2.56299960e05,
-            2.81511584e05,
-            3.09040912e05,
-            3.39100864e05,
-            3.71924286e05,
-            4.07765032e05,
-            4.46900652e05,
-            4.89633828e05,
-            5.36295431e05,
-            5.87246671e05,
-            6.42881612e05,
-            7.03631119e05,
-            7.69965196e05,
-            8.42397294e05,
-            9.21487897e05,
-            1.00784920e06,
-            1.10214957e06,
-            1.20511881e06,
-            1.31755382e06,
-            1.44032479e06,
-            1.57438195e06,
-            1.72076280e06,
-            1.88060015e06,
-            2.05513113e06,
-            2.24570651e06,
-            2.45380111e06,
-            2.68102546e06,
-        ]
-    )
-    sizes_NCW = np.array(
-        [
-            96756.31630556,
-            96756.31630556,
-            23458.80495833,
-            23458.80495833,
-            29425.85947222,
-            33474.83920833,
-            37881.70756944,
-            44466.247875,
-            54119.27695833,
-            66767.63725,
-            82821.19066667,
-            102492.677625,
-            124769.92051389,
-            147268.88020833,
-            167371.86218056,
-            183211.86730556,
-            193154.92351389,
-            195884.55361111,
-            191547.07273611,
-            181982.01226389,
-            169846.56283333,
-            157649.26608333,
-            147192.93995833,
-            139407.98716667,
-            134604.18288889,
-            132773.80743056,
-            133793.61497222,
-            137496.10609722,
-            143635.95609722,
-            151873.229125,
-            161743.12776389,
-            172654.01822222,
-            183895.50908333,
-            194696.07972222,
-            204305.66308333,
-            212105.24738889,
-            217677.25102778,
-            220830.11786111,
-            221589.25106944,
-            220150.69498611,
-            216828.44369444,
-            212005.34018056,
-            206099.23534722,
-            199534.26356944,
-            192720.28676389,
-            186032.24869444,
-            179786.74659722,
-            174219.32091667,
-            169471.61906944,
-            165602.61593056,
-            162594.35872222,
-            160382.21744444,
-            158874.45340278,
-            157958.32315278,
-            157604.38413889,
-            157604.38413889,
-            157604.38413889,
-            157604.38413889,
-        ]
-    )
-
-    times_SCW = np.array(
-        [
-            1.99403694e03,
-            4.16635167e03,
-            6.53298917e03,
-            9.11155438e03,
-            1.19207665e04,
-            1.49813502e04,
-            1.83158132e04,
-            2.19486686e04,
-            2.59064353e04,
-            3.02185290e04,
-            3.49163713e04,
-            4.00345035e04,
-            4.56105867e04,
-            5.16856248e04,
-            5.83041873e04,
-            6.55148549e04,
-            7.33708880e04,
-            8.19297812e04,
-            9.12546004e04,
-            1.01413760e05,
-            1.12481913e05,
-            1.24540399e05,
-            1.37677688e05,
-            1.51990497e05,
-            1.67584008e05,
-            1.84572766e05,
-            2.03081788e05,
-            2.23246787e05,
-            2.45215958e05,
-            2.69151087e05,
-            2.95227777e05,
-            3.23637678e05,
-            3.54589597e05,
-            3.88310839e05,
-            4.25049432e05,
-            4.65075467e05,
-            5.08682658e05,
-            5.56191680e05,
-            6.07951735e05,
-            6.64343225e05,
-            7.25780199e05,
-            7.92714367e05,
-            8.65637555e05,
-            9.45085710e05,
-            1.03164269e06,
-            1.12594450e06,
-            1.22868398e06,
-            1.34061613e06,
-            1.46256370e06,
-            1.59542276e06,
-            1.74016939e06,
-            1.89786767e06,
-            2.06967619e06,
-            2.25685739e06,
-            2.46078689e06,
-            2.68296356e06,
-            2.92501955e06,
-        ]
-    )
-
-    sizes_SCW = np.array(
-        [
-            33850.15878472,
-            33850.15878472,
-            42415.73746528,
-            42415.73746528,
-            122471.26215278,
-            133968.84173611,
-            137971.28927083,
-            143358.39802083,
-            153983.53072917,
-            170674.89909722,
-            188417.32638889,
-            202479.8775,
-            214028.48909722,
-            222119.29177083,
-            223082.21461806,
-            216006.36961806,
-            203076.21666667,
-            187279.35704861,
-            171195.58163194,
-            156701.04118056,
-            144929.35951389,
-            136399.5478125,
-            131158.73826389,
-            129003.69420139,
-            129664.10194444,
-            132892.7125,
-            138474.47829861,
-            146157.35913194,
-            155600.39875,
-            166325.92413194,
-            177722.21965278,
-            189072.05152778,
-            199623.53322917,
-            208686.39548611,
-            215704.30020833,
-            220336.06829861,
-            222488.32677083,
-            222294.56111111,
-            220072.32861111,
-            216231.4453125,
-            211220.05697917,
-            205477.84118056,
-            199411.93979167,
-            193390.05072917,
-            187720.14885417,
-            182639.90072917,
-            178297.72260417,
-            174756.79166667,
-            172003.29138889,
-            169978.50152778,
-            168579.8009375,
-            167699.88868056,
-            167230.23815972,
-            167076.80784722,
-            167462.11069444,
-            167462.11069444,
-            167462.11069444,
-            167462.11069444,
-        ]
-    )
-
-    times_SMW = np.array(
-        [
-            2.73927358e02,
-            5.78023037e02,
-            9.15644600e02,
-            1.29042319e03,
-            1.70646249e03,
-            2.16836360e03,
-            2.68112557e03,
-            3.25034434e03,
-            3.88228734e03,
-            4.58381894e03,
-            5.36262421e03,
-            6.22720899e03,
-            7.18699932e03,
-            8.25254043e03,
-            9.43542214e03,
-            1.07485773e04,
-            1.22063812e04,
-            1.38247512e04,
-            1.56213455e04,
-            1.76158620e04,
-            1.98300377e04,
-            2.22880719e04,
-            2.50168500e04,
-            2.80461921e04,
-            3.14091764e04,
-            3.51425621e04,
-            3.92871621e04,
-            4.38882663e04,
-            4.89961137e04,
-            5.46665891e04,
-            6.09615960e04,
-            6.79499271e04,
-            7.57079856e04,
-            8.43205313e04,
-            9.38817004e04,
-            1.04495925e05,
-            1.16279229e05,
-            1.29360367e05,
-            1.43882272e05,
-            1.60003671e05,
-            1.77900673e05,
-            1.97768912e05,
-            2.19825486e05,
-            2.44311369e05,
-            2.71494220e05,
-            3.01670997e05,
-            3.35171512e05,
-            3.72361864e05,
-            4.13648392e05,
-            4.59482304e05,
-            5.10364447e05,
-            5.66850835e05,
-            6.29558737e05,
-            6.99173418e05,
-            7.76455553e05,
-            8.62249706e05,
-            9.57493383e05,
-        ]
-    )
-
-    sizes_SMW = np.array(
-        [
-            1779489.40969792,
-            1779489.40969792,
-            13416.26015625,
-            13416.26015625,
-            4897.87538542,
-            4407.55934167,
-            4602.38501458,
-            4882.16945417,
-            5175.03595208,
-            5521.00167917,
-            5931.53208958,
-            6379.94077917,
-            6835.21381875,
-            7291.75527083,
-            7769.6234625,
-            8299.03645625,
-            8915.17404583,
-            9670.28985208,
-            10648.26076042,
-            11973.82643542,
-            13810.97271667,
-            16361.98652708,
-            19850.04628958,
-            24476.4067875,
-            30345.97319583,
-            37379.65626458,
-            45251.64807708,
-            53429.50139792,
-            61330.81592292,
-            68519.9417,
-            74824.37462917,
-            80318.72721042,
-            85281.27919792,
-            90121.39207292,
-            95327.01915,
-            101382.3458125,
-            108697.15634583,
-            117580.74443333,
-            128223.79475417,
-            140717.28481667,
-            155055.94200417,
-            171127.08900625,
-            188647.94444792,
-            207099.76492292,
-            225653.40658958,
-            243141.8429,
-            258150.88096458,
-            269176.84263542,
-            274910.67647083,
-            274517.54320833,
-            267869.51971667,
-            255602.00604583,
-            238998.64808125,
-            219719.2630625,
-            177796.99883125,
-            177796.99883125,
-            177796.99883125,
-            177796.99883125,
-        ]
-    )
-
     demographic_events = []
     population_configurations = [
         msprime.PopulationConfiguration(
             # EUW
             initial_size=sizes_EUW[0],
             metadata=populations[0].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # NCW
-            initial_size=sizes_NCW[0],
-            metadata=populations[1].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # SCW
-            initial_size=sizes_SCW[0],
-            metadata=populations[2].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # SMW
-            initial_size=sizes_SMW[0],
-            metadata=populations[3].asdict(),
-        ),
+        )
     ]
 
     for i, t in enumerate(times_EUW):
@@ -557,39 +713,9 @@ def _WildBoar_4Z22():
                 time=curr_time, initial_size=sizes_EUW[i + 1], population_id=0
             )
         )
-    for i, t in enumerate(times_NCW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_NCW[i + 1], population_id=1
-            )
-        )
-    for i, t in enumerate(times_SCW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_SCW[i + 1], population_id=2
-            )
-        )
-    for i, t in enumerate(times_SMW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_SMW[i + 1], population_id=3
-            )
-        )
-    demographic_events.sort(key=lambda x: x.time)
-
     citations = [
-        stdpopsim.Citation(
-            doi="https://doi.org/10.1016/j.gpb.2022.02.001",
-            year=2022,
-            author="Zhang et al.",
-            reasons={stdpopsim.CiteReason.DEM_MODEL},
-            # Figure 3A Demographic history of four wild boar populations using PSMC.
-        )
+        _ZhangEtAl,
     ]
-
     return stdpopsim.DemographicModel(
         id=id,
         description=description,
@@ -604,7 +730,7 @@ def _WildBoar_4Z22():
     )
 
 
-_species.add_demographic_model(_WildBoar_4Z22())
+_species.add_demographic_model(_WildBoar_4Z22_EUW())
 
 _WangEtAl = stdpopsim.Citation(
     doi="https://doi.org/10.1016/j.xgen.2025.100954",
@@ -615,1122 +741,136 @@ _WangEtAl = stdpopsim.Citation(
 )
 
 
-def _WildBoar_13W25():
-    id = "WildBoar_13W25"
-    description = "Piecewise size model for wild boar (Wang et al. 2025)"
+def _WildBoar_6W25():
+    id = "WildBoar_6W25"
+    description = "The demographic model for wild boar (Wang et al. 2025)"
     long_description = """
-    This demographic model is a piecewise size model for wild boar
-    from Wang et al. (2025). Effective population sizes were estimated by
-    MSMC with parameters n = 64 (4 + 50 + 4 + 6), generation time (g) = 5 years, and
-    mutation rate (u) = 2.5e-8 per generation.
+    This demographic model of wild boar with Sus Cebifrons (outgroup) and 5 wild boar
+    populations including Central Asian wild boars (CAW), European wild boars (EUW),
+    Southern Chinese wild boar (NAW), Northeast Asian wild boars (SCW),
+    and Near East wild boars (NEW), from Wang et al. (2025).
+    SVDquartets estimated the branching pattern among the five populations
+    (SAW, SCW, NAW, CAW, and EUW).
+    Fastsimcoal2 analysed more recent demographic fluctuations and respective
+    divergence times based on the species tree.
+    Model parameters were a generation interval of 6.5 years (Figure S11) and
+    a mutation rate of 2.5e-8 (page e2).
+    Estimated effective population sizes, divergence times,
+    and migration rates are given in Figure S11.
     """
-    populations = [
-        stdpopsim.Population(id="FJW", description="FuJian wild boar"),
-        stdpopsim.Population(id="HBW", description="Hubei wild boar"),
-        stdpopsim.Population(id="HW", description="Hungary wild boar"),
-        stdpopsim.Population(id="JLW", description="Jilin wild boar"),
-        stdpopsim.Population(id="JXW", description="Jiangxi wild boar"),
-        stdpopsim.Population(id="HLJW", description="HeiLongJiang wild boar"),
-        stdpopsim.Population(id="LNW", description="Liaoning wild boar"),
-        stdpopsim.Population(id="IMW", description="Inner Mongolia wild boar"),
-        stdpopsim.Population(id="NW", description="Netherland wild boar"),
-        stdpopsim.Population(id="SXW", description="Shaanxi wild boar"),
-        stdpopsim.Population(id="XJW", description="XinJiang wild boar"),
-        stdpopsim.Population(id="YNW", description="Yunnan wild boar"),
-        stdpopsim.Population(id="SCW", description="Sichuan wild boar"),
-    ]
-
     # Mutation rate used by Wang et al. (2025).
     mutation_rate = 2.5e-8
+    # generation time declaimed in Figure S11 by Wang et al. (2025).
+    generation_time = 6.5
 
-    # Arrays of time intervals and effective population sizes (Ne)
-    # from Figure 2B of wang et al. (2025).
+    # Estimated effective population sizes. from Figure S11D
+    N_CAW = 87338
+    N_EUW = 87275
+    N_NAW = 85535
+    N_SCW = 88237
+    N_OUT = 1158
+    N_NEW = 81722
+    # Estimated divergence times, from Figure S11B
+    T1 = 3_662_321  # (OUT,(SCW,NAW,CAW,EUW,NEW))
+    T2 = 1_826_091  # ((SCW,NAW),(CAW,EUW,NEW))
+    T3 = 1_064_310  # (SCW,NAW)
+    T4 = 948_246  # (CAW,(EUW,NEW))
+    T5 = 682571.5  # (CAW,EUW)
 
-    times_FJW = np.array(
-        [
-            6.540000e02,
-            1.462000e03,
-            2.462000e03,
-            3.698000e03,
-            5.228000e03,
-            7.120000e03,
-            9.461000e03,
-            1.235500e04,
-            1.593600e04,
-            2.036400e04,
-            2.584200e04,
-            3.261800e04,
-            4.099900e04,
-            5.136500e04,
-            6.418700e04,
-            8.004600e04,
-            9.966300e04,
-            1.239270e05,
-            1.539390e05,
-            1.910610e05,
-            2.369770e05,
-            2.937710e05,
-            3.640190e05,
-            4.509080e05,
-            5.583840e05,
-            6.913200e05,
-            8.557480e05,
-            1.059128e06,
-            1.310692e06,
-            1.621852e06,
-            2.006724e06,
-        ]
+    # Migration rates, from Figure S11B
+    # migration is bidirectional.
+    m_OUT_SCW = 1.29e-2
+    m_SCW_NAW = 4e-4
+    m_NAW_CAW = 1.01e-1
+    m_CAW_EUW = 5.8e-3
+    m_CAW_NEW = 1e-4
+    m_EUW_NEW = 2.48e-2
+
+    model = msprime.Demography()
+    model.add_population(
+        initial_size=N_CAW,
+        name="CAW",
+        description="Central Asian wild boars",
     )
-    sizes_FJW = np.array(
-        [
-            29181.70132237,
-            29181.70132237,
-            10149.39915557,
-            9230.66982356,
-            10026.52014579,
-            11542.54582391,
-            13979.36645511,
-            17792.48623306,
-            22898.75316289,
-            28211.41066927,
-            32962.12487042,
-            37325.89801445,
-            41888.93985377,
-            47822.74976029,
-            55348.91958909,
-            62616.81950389,
-            66300.24729992,
-            63675.00278578,
-            54931.92561119,
-            43695.59897927,
-            34221.14387596,
-            28649.47793489,
-            26770.60801405,
-            27672.88983838,
-            30313.4103496,
-            34391.44340888,
-            39719.02759877,
-            46250.04625005,
-            46250.04625005,
-            50311.80742653,
-            50311.80742653,
-            50311.80742653,
-        ]
+    model.add_population(
+        initial_size=N_EUW,
+        name="EUW",
+        description="European wild boars",
     )
-    times_HBW = np.array(
-        [
-            5.190000e02,
-            1.162000e03,
-            1.956000e03,
-            2.939000e03,
-            4.155000e03,
-            5.659000e03,
-            7.519000e03,
-            9.819000e03,
-            1.266500e04,
-            1.618400e04,
-            2.053800e04,
-            2.592300e04,
-            3.258300e04,
-            4.082100e04,
-            5.101100e04,
-            6.361500e04,
-            7.920500e04,
-            9.848800e04,
-            1.223400e05,
-            1.518420e05,
-            1.883330e05,
-            2.334690e05,
-            2.892970e05,
-            3.583520e05,
-            4.437640e05,
-            5.494120e05,
-            6.800880e05,
-            8.417240e05,
-            1.041648e06,
-            1.288936e06,
-            1.594804e06,
-        ]
+    model.add_population(
+        initial_size=N_NAW,
+        name="NAW",
+        description="Northeast Asian wild boars",
     )
-    sizes_HBW = np.array(
-        [
-            122440.23386085,
-            122440.23386085,
-            15583.60604644,
-            10614.58443902,
-            11810.14018636,
-            14705.44983971,
-            17962.8348946,
-            22598.02741819,
-            29704.04376,
-            39308.63964591,
-            46987.07150727,
-            48346.19745071,
-            45711.98705437,
-            44650.53145295,
-            48088.94531325,
-            55654.96150068,
-            64661.51314407,
-            70504.45940706,
-            68972.65234335,
-            59468.76551763,
-            45961.37406124,
-            34138.60615485,
-            27039.41400182,
-            23650.55827143,
-            22930.73084825,
-            24326.25398799,
-            27050.8244415,
-            32548.6928445,
-            32548.6928445,
-            47873.00249897,
-            47873.00249897,
-            47873.00249897,
-        ]
+    model.add_population(
+        initial_size=N_SCW,
+        name="SCW",
+        description="Southern Chinese wild boar",
     )
-    times_HW = np.array(
-        [
-            2.43000e02,
-            5.44000e02,
-            9.16000e02,
-            1.37700e03,
-            1.94600e03,
-            2.65100e03,
-            3.52200e03,
-            4.60000e03,
-            5.93300e03,
-            7.58100e03,
-            9.62100e03,
-            1.21430e04,
-            1.52630e04,
-            1.91220e04,
-            2.38960e04,
-            2.98000e04,
-            3.71030e04,
-            4.61360e04,
-            5.73080e04,
-            7.11280e04,
-            8.82220e04,
-            1.09365e05,
-            1.35517e05,
-            1.67864e05,
-            2.07875e05,
-            2.57364e05,
-            3.18578e05,
-            3.94293e05,
-            4.87944e05,
-            6.03784e05,
-            7.47064e05,
-        ]
+    model.add_population(
+        initial_size=N_OUT,
+        name="OUT",
+        description="Sus Cebifrons",
     )
-    sizes_HW = np.array(
-        [
-            26924.71311718,
-            26924.71311718,
-            4435.02248556,
-            3300.60780693,
-            3314.72117394,
-            3976.00876312,
-            5197.20805983,
-            6140.65791009,
-            6407.64816885,
-            6407.87399557,
-            7112.40082646,
-            9937.24628968,
-            17226.38047907,
-            31222.72889773,
-            48107.10566004,
-            59596.35389507,
-            64567.57480961,
-            69362.7986502,
-            80290.00750712,
-            95366.61310242,
-            108946.10980678,
-            109678.58690109,
-            89326.38969531,
-            58610.97842237,
-            32522.1760588,
-            20192.55621608,
-            15234.8451378,
-            11981.06990954,
-            11981.06990954,
-            181.48820327,
-            181.48820327,
-            181.48820327,
-        ]
-    )
-    times_JLW = np.array(
-        [
-            2.16000e02,
-            4.83000e02,
-            8.14000e02,
-            1.22300e03,
-            1.72900e03,
-            2.35400e03,
-            3.12800e03,
-            4.08500e03,
-            5.26900e03,
-            6.73300e03,
-            8.54400e03,
-            1.07840e04,
-            1.35550e04,
-            1.69820e04,
-            2.12220e04,
-            2.64650e04,
-            3.29510e04,
-            4.09730e04,
-            5.08960e04,
-            6.31690e04,
-            7.83500e04,
-            9.71270e04,
-            1.20352e05,
-            1.49080e05,
-            1.84614e05,
-            2.28565e05,
-            2.82929e05,
-            3.50171e05,
-            4.33344e05,
-            5.36220e05,
-            6.63464e05,
-        ]
-    )
-    sizes_JLW = np.array(
-        [
-            3.26891394e06,
-            3.26891394e06,
-            2.24717334e03,
-            8.54171560e03,
-            8.78738483e03,
-            8.42861177e03,
-            1.00753130e04,
-            1.43869367e04,
-            2.13874693e04,
-            3.03016989e04,
-            3.86448040e04,
-            4.38000004e04,
-            4.46662870e04,
-            4.26035906e04,
-            4.00826504e04,
-            3.86588473e04,
-            3.88533597e04,
-            4.06251396e04,
-            4.31201759e04,
-            4.45707282e04,
-            4.30817217e04,
-            3.82455979e04,
-            3.18334474e04,
-            2.63360613e04,
-            2.29177242e04,
-            2.10284820e04,
-            2.00393171e04,
-            1.99992000e04,
-            1.99992000e04,
-            2.08554271e04,
-            2.08554271e04,
-            2.08554271e04,
-        ]
-    )
-    times_JXW = np.array(
-        [
-            6.180000e02,
-            1.383000e03,
-            2.328000e03,
-            3.498000e03,
-            4.945000e03,
-            6.735000e03,
-            8.948000e03,
-            1.168600e04,
-            1.507300e04,
-            1.926100e04,
-            2.444300e04,
-            3.085100e04,
-            3.877800e04,
-            4.858300e04,
-            6.071000e04,
-            7.571100e04,
-            9.426500e04,
-            1.172140e05,
-            1.456010e05,
-            1.807120e05,
-            2.241410e05,
-            2.778590e05,
-            3.443020e05,
-            4.264840e05,
-            5.281400e05,
-            6.538760e05,
-            8.093960e05,
-            1.001760e06,
-            1.239700e06,
-            1.534004e06,
-            1.898028e06,
-        ]
-    )
-    sizes_JXW = np.array(
-        [
-            65893.73317651,
-            65893.73317651,
-            10934.69798364,
-            9776.31784765,
-            10284.30974284,
-            11635.21280804,
-            14079.54945442,
-            18153.103273,
-            23430.75450544,
-            28981.60103059,
-            34042.49524682,
-            37705.75559506,
-            40586.39219443,
-            44889.44851068,
-            51770.28489188,
-            59890.10166345,
-            65818.91899007,
-            65086.15780139,
-            56381.38624914,
-            43681.85630417,
-            32467.32164077,
-            25639.80939366,
-            22371.8651424,
-            21600.06825622,
-            23261.00710856,
-            27237.82571332,
-            32287.12292676,
-            37983.96317075,
-            37983.96317075,
-            42030.93476799,
-            42030.93476799,
-            42030.93476799,
-        ]
-    )
-    times_HLJW = np.array(
-        [
-            6.310000e02,
-            1.413000e03,
-            2.379000e03,
-            3.574000e03,
-            5.052000e03,
-            6.880000e03,
-            9.141000e03,
-            1.193800e04,
-            1.539800e04,
-            1.967700e04,
-            2.497000e04,
-            3.151700e04,
-            3.961500e04,
-            4.963100e04,
-            6.202000e04,
-            7.734400e04,
-            9.629900e04,
-            1.197440e05,
-            1.487420e05,
-            1.846110e05,
-            2.289780e05,
-            2.838540e05,
-            3.517310e05,
-            4.356880e05,
-            5.395360e05,
-            6.679840e05,
-            8.268600e05,
-            1.023376e06,
-            1.266448e06,
-            1.567104e06,
-            1.938984e06,
-        ]
-    )
-    sizes_HLJW = np.array(
-        [
-            24816.9440167,
-            24816.9440167,
-            9042.32713331,
-            9811.28002865,
-            11282.86133363,
-            13187.74067627,
-            15720.9221893,
-            19339.55422328,
-            23784.29546755,
-            28008.9684717,
-            31718.89446965,
-            35526.18724077,
-            40272.40253072,
-            46178.17850175,
-            53306.32479544,
-            61254.42946093,
-            66642.00912329,
-            64785.09165471,
-            55031.98734264,
-            41885.60622085,
-            31061.68851339,
-            24907.56181123,
-            21939.615596,
-            21006.10857637,
-            21762.73827478,
-            24110.76485374,
-            28036.17788394,
-            34467.18895947,
-            34467.18895947,
-            38471.97028425,
-            38471.97028425,
-            38471.97028425,
-        ]
-    )
-    times_LNW = np.array(
-        [
-            5.760000e02,
-            1.288000e03,
-            2.169000e03,
-            3.259000e03,
-            4.607000e03,
-            6.274000e03,
-            8.337000e03,
-            1.088700e04,
-            1.404300e04,
-            1.794500e04,
-            2.277200e04,
-            2.874300e04,
-            3.612800e04,
-            4.526300e04,
-            5.656100e04,
-            7.053700e04,
-            8.782300e04,
-            1.092040e05,
-            1.356500e05,
-            1.683620e05,
-            2.088230e05,
-            2.588700e05,
-            3.207720e05,
-            3.973400e05,
-            4.920440e05,
-            6.091880e05,
-            7.540800e05,
-            9.333000e05,
-            1.154976e06,
-            1.429168e06,
-            1.768316e06,
-        ]
-    )
-    sizes_LNW = np.array(
-        [
-            42760.35174665,
-            42760.35174665,
-            10543.40720747,
-            9537.93475099,
-            10704.11680332,
-            12946.74357032,
-            16007.81181216,
-            21565.64420353,
-            29731.37700873,
-            37805.39672038,
-            42720.80246755,
-            45062.60322153,
-            47061.37038004,
-            50237.62396134,
-            56282.22157185,
-            65128.9716461,
-            73958.47970949,
-            76746.55983546,
-            68771.53408661,
-            52668.30816227,
-            36044.60880786,
-            25076.38894984,
-            19793.74913402,
-            17975.75071229,
-            18016.07033474,
-            19149.93441147,
-            21743.8573603,
-            28649.06754447,
-            28649.06754447,
-            44198.89502762,
-            44198.89502762,
-            44198.89502762,
-        ]
-    )
-    times_IMW = np.array(
-        [
-            5.130000e02,
-            1.147000e03,
-            1.931000e03,
-            2.901000e03,
-            4.101000e03,
-            5.586000e03,
-            7.422000e03,
-            9.693000e03,
-            1.250200e04,
-            1.597600e04,
-            2.027300e04,
-            2.558900e04,
-            3.216300e04,
-            4.029600e04,
-            5.035400e04,
-            6.279600e04,
-            7.818500e04,
-            9.722000e04,
-            1.207650e05,
-            1.498870e05,
-            1.859080e05,
-            2.304620e05,
-            2.855720e05,
-            3.537370e05,
-            4.380520e05,
-            5.423360e05,
-            6.713320e05,
-            8.308840e05,
-            1.028232e06,
-            1.272336e06,
-            1.574268e06,
-        ]
-    )
-    sizes_IMW = np.array(
-        [
-            475403.79609931,
-            475403.79609931,
-            17332.37427529,
-            10851.16541517,
-            12282.22087118,
-            17598.81735947,
-            28472.58801589,
-            42425.28377212,
-            53361.0810955,
-            59229.24977271,
-            62775.03311383,
-            61628.34410802,
-            57202.34758434,
-            55381.56513841,
-            58253.3320906,
-            66091.6691451,
-            76658.01708707,
-            83892.61744966,
-            81435.54580139,
-            67792.24388938,
-            48709.44329977,
-            32856.04452651,
-            24603.03010919,
-            21448.41120894,
-            21353.4454318,
-            23923.67391076,
-            28908.50170127,
-            35324.08077911,
-            35324.08077911,
-            33548.32216454,
-            33548.32216454,
-            33548.32216454,
-        ]
-    )
-    times_NW = np.array(
-        [
-            1.87000e02,
-            4.19000e02,
-            7.05000e02,
-            1.05900e03,
-            1.49700e03,
-            2.03900e03,
-            2.70900e03,
-            3.53800e03,
-            4.56300e03,
-            5.83100e03,
-            7.39900e03,
-            9.33900e03,
-            1.17390e04,
-            1.47070e04,
-            1.83780e04,
-            2.29190e04,
-            2.85360e04,
-            3.54830e04,
-            4.40760e04,
-            5.47050e04,
-            6.78520e04,
-            8.41140e04,
-            1.04227e05,
-            1.29106e05,
-            1.59878e05,
-            1.97941e05,
-            2.45021e05,
-            3.03254e05,
-            3.75282e05,
-            4.64376e05,
-            5.74572e05,
-        ]
-    )
-    sizes_NW = np.array(
-        [
-            14409.94862853,
-            14409.94862853,
-            3577.39515549,
-            2638.50850391,
-            2688.94186104,
-            3014.38161468,
-            3851.4792569,
-            4771.97134908,
-            5151.61193938,
-            5124.49972071,
-            5386.7991101,
-            6947.67704418,
-            11343.59172145,
-            20032.99434168,
-            32805.92343754,
-            47107.0389693,
-            58610.11962325,
-            66264.66105626,
-            71951.50468584,
-            78095.10421792,
-            85281.66401583,
-            92375.76614151,
-            94208.08682217,
-            84847.14786312,
-            66174.32965404,
-            45770.98943148,
-            30535.19028004,
-            22397.26932492,
-            22397.26932492,
-            23136.98134118,
-            23136.98134118,
-            23136.98134118,
-        ]
-    )
-    times_SXW = np.array(
-        [
-            6.280000e02,
-            1.404000e03,
-            2.364000e03,
-            3.552000e03,
-            5.021000e03,
-            6.839000e03,
-            9.086000e03,
-            1.186700e04,
-            1.530500e04,
-            1.955900e04,
-            2.482000e04,
-            3.132800e04,
-            3.937700e04,
-            4.933300e04,
-            6.164800e04,
-            7.688000e04,
-            9.572100e04,
-            1.190250e05,
-            1.478500e05,
-            1.835030e05,
-            2.276030e05,
-            2.821500e05,
-            3.496200e05,
-            4.330720e05,
-            5.362960e05,
-            6.639720e05,
-            8.218960e05,
-            1.017236e06,
-            1.258848e06,
-            1.557696e06,
-            1.927344e06,
-        ]
-    )
-    sizes_SXW = np.array(
-        [
-            56807.36905191,
-            56807.36905191,
-            11527.44396221,
-            9426.66993458,
-            10144.76580808,
-            11731.30616363,
-            14329.2136844,
-            18143.05801243,
-            23561.0389947,
-            30528.2920947,
-            37101.75899439,
-            41195.91748458,
-            43624.30746412,
-            47277.41203447,
-            53750.29226721,
-            62296.95087574,
-            69008.35001035,
-            68371.15967742,
-            58981.73925353,
-            45438.74516361,
-            33828.81267633,
-            27119.41628168,
-            24178.82660155,
-            24094.55667823,
-            26648.65217779,
-            31281.6726936,
-            37780.25868143,
-            48919.01212947,
-            48919.01212947,
-            71862.57002109,
-            71862.57002109,
-            71862.57002109,
-        ]
-    )
-    times_XJW = np.array(
-        [
-            4.140000e02,
-            9.270000e02,
-            1.561000e03,
-            2.345000e03,
-            3.315000e03,
-            4.515000e03,
-            5.999000e03,
-            7.835000e03,
-            1.010500e04,
-            1.291300e04,
-            1.638700e04,
-            2.068300e04,
-            2.599800e04,
-            3.257100e04,
-            4.070100e04,
-            5.075800e04,
-            6.319700e04,
-            7.858300e04,
-            9.761400e04,
-            1.211530e05,
-            1.502690e05,
-            1.862820e05,
-            2.308270e05,
-            2.859240e05,
-            3.540750e05,
-            4.383720e05,
-            5.426360e05,
-            6.716000e05,
-            8.311200e05,
-            1.028428e06,
-            1.272476e06,
-        ]
-    )
-    sizes_XJW = np.array(
-        [
-            32182.9018679,
-            32182.9018679,
-            7911.83056024,
-            6585.0558742,
-            6870.7744737,
-            8063.83330444,
-            9721.24334702,
-            10870.15598674,
-            13108.99473674,
-            19161.30948389,
-            29815.67946952,
-            39991.20193557,
-            44415.72227737,
-            45482.14484699,
-            48548.87415161,
-            55380.18496982,
-            64930.42704742,
-            74475.13647569,
-            78971.78732898,
-            73258.73152506,
-            57620.94636642,
-            39265.65374369,
-            25963.64051782,
-            19153.05203884,
-            15756.84043836,
-            14418.88296914,
-            14936.51979089,
-            18123.00080647,
-            18123.00080647,
-            23769.03156646,
-            23769.03156646,
-            23769.03156646,
-        ]
-    )
-    times_YNW = np.array(
-        [
-            6.210000e02,
-            1.388000e03,
-            2.338000e03,
-            3.513000e03,
-            4.965000e03,
-            6.762000e03,
-            8.985000e03,
-            1.173400e04,
-            1.513500e04,
-            1.934100e04,
-            2.454400e04,
-            3.097900e04,
-            3.893900e04,
-            4.878400e04,
-            6.096200e04,
-            7.602400e04,
-            9.465600e04,
-            1.177000e05,
-            1.462040e05,
-            1.814610e05,
-            2.250700e05,
-            2.790110e05,
-            3.457290e05,
-            4.282520e05,
-            5.303280e05,
-            6.565840e05,
-            8.127520e05,
-            1.005916e06,
-            1.244840e06,
-            1.540364e06,
-            1.905896e06,
-        ]
-    )
-    sizes_YNW = np.array(
-        [
-            65330.22796983,
-            65330.22796983,
-            10536.13102733,
-            9339.55347595,
-            10421.38885849,
-            12366.36595787,
-            14871.76817888,
-            18485.48427347,
-            23740.02770461,
-            29474.39780121,
-            34178.74458053,
-            37964.20734531,
-            41980.55880322,
-            47134.57155853,
-            53964.64775925,
-            61821.12675186,
-            67232.99257412,
-            65379.98849312,
-            55363.62831074,
-            41940.23935295,
-            30985.79765964,
-            24828.37386565,
-            22164.15214361,
-            22088.58627526,
-            24609.8417218,
-            30050.87613329,
-            37758.432874,
-            47873.11709046,
-            47873.11709046,
-            66348.19532909,
-            66348.19532909,
-            66348.19532909,
-        ]
-    )
-    times_SCW = np.array(
-        [
-            5.840000e02,
-            1.307000e03,
-            2.201000e03,
-            3.307000e03,
-            4.674000e03,
-            6.366000e03,
-            8.458000e03,
-            1.104600e04,
-            1.424800e04,
-            1.820700e04,
-            2.310500e04,
-            2.916300e04,
-            3.665600e04,
-            4.592400e04,
-            5.738800e04,
-            7.156700e04,
-            8.910600e04,
-            1.107990e05,
-            1.376320e05,
-            1.708220e05,
-            2.118740e05,
-            2.626510e05,
-            3.254580e05,
-            4.031440e05,
-            4.992320e05,
-            6.180880e05,
-            7.650960e05,
-            9.469360e05,
-            1.171848e06,
-            1.450044e06,
-            1.794148e06,
-        ]
-    )
-    sizes_SCW = np.array(
-        [
-            51760.37019017,
-            51760.37019017,
-            11188.24786444,
-            9883.08312661,
-            11182.1175576,
-            13164.21702528,
-            16184.24140414,
-            20373.79807325,
-            25202.02573883,
-            30145.04287379,
-            34073.93020637,
-            36220.40114094,
-            38334.81241818,
-            42224.5586478,
-            48756.10975,
-            56966.4239897,
-            64192.88678622,
-            66432.60246399,
-            61044.09825658,
-            49929.84856277,
-            37914.76381946,
-            28990.00279754,
-            23837.50449933,
-            21373.93811604,
-            20910.2438239,
-            22117.5814867,
-            24984.97778211,
-            31521.67745759,
-            31521.67745759,
-            42066.29648326,
-            42066.29648326,
-            42066.29648326,
-        ]
+    model.add_population(
+        initial_size=N_NEW,
+        name="NEW",
+        description="Near East wild boars",
     )
 
-    demographic_events = []
-    population_configurations = [
-        msprime.PopulationConfiguration(
-            # FJW
-            initial_size=sizes_FJW[0],
-            metadata=populations[0].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # HBW
-            initial_size=sizes_HBW[0],
-            metadata=populations[1].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # HW
-            initial_size=sizes_HW[0],
-            metadata=populations[2].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # JLW
-            initial_size=sizes_JLW[0],
-            metadata=populations[3].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # JXW
-            initial_size=sizes_JXW[0],
-            metadata=populations[4].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # HLJW
-            initial_size=sizes_HLJW[0],
-            metadata=populations[5].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # LNW
-            initial_size=sizes_LNW[0],
-            metadata=populations[6].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # IMW
-            initial_size=sizes_IMW[0],
-            metadata=populations[7].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # NW
-            initial_size=sizes_NW[0],
-            metadata=populations[8].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # SXW
-            initial_size=sizes_SXW[0],
-            metadata=populations[9].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # XJW
-            initial_size=sizes_XJW[0],
-            metadata=populations[10].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # YNW
-            initial_size=sizes_YNW[0],
-            metadata=populations[11].asdict(),
-        ),
-        msprime.PopulationConfiguration(
-            # SCW
-            initial_size=sizes_SCW[0],
-            metadata=populations[12].asdict(),
-        ),
-    ]
+    model.set_migration_rate(rate=m_OUT_SCW, source="OUT", dest="SCW")
+    model.set_migration_rate(rate=m_OUT_SCW, source="SCW", dest="OUT")
+    model.set_migration_rate(rate=m_SCW_NAW, source="SCW", dest="NAW")
+    model.set_migration_rate(rate=m_SCW_NAW, source="NAW", dest="SCW")
+    model.set_migration_rate(rate=m_NAW_CAW, source="NAW", dest="CAW")
+    model.set_migration_rate(rate=m_NAW_CAW, source="CAW", dest="NAW")
+    model.set_migration_rate(rate=m_CAW_EUW, source="CAW", dest="EUW")
+    model.set_migration_rate(rate=m_CAW_EUW, source="EUW", dest="CAW")
+    model.set_migration_rate(rate=m_CAW_NEW, source="CAW", dest="NEW")
+    model.set_migration_rate(rate=m_CAW_NEW, source="NEW", dest="CAW")
+    model.set_migration_rate(rate=m_EUW_NEW, source="EUW", dest="NEW")
+    model.set_migration_rate(rate=m_EUW_NEW, source="NEW", dest="EUW")
 
-    for i, t in enumerate(times_FJW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_FJW[i + 1], population_id=0
-            )
-        )
-    for i, t in enumerate(times_HBW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_HBW[i + 1], population_id=1
-            )
-        )
-    for i, t in enumerate(times_HW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_HW[i + 1], population_id=2
-            )
-        )
-    for i, t in enumerate(times_JLW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_JLW[i + 1], population_id=3
-            )
-        )
-    for i, t in enumerate(times_JXW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_JXW[i + 1], population_id=4
-            )
-        )
-    for i, t in enumerate(times_HLJW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_HLJW[i + 1], population_id=5
-            )
-        )
-    for i, t in enumerate(times_LNW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_LNW[i + 1], population_id=6
-            )
-        )
-    for i, t in enumerate(times_IMW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_IMW[i + 1], population_id=7
-            )
-        )
-    for i, t in enumerate(times_NW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_NW[i + 1], population_id=8
-            )
-        )
-    for i, t in enumerate(times_SXW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_SXW[i + 1], population_id=9
-            )
-        )
-    for i, t in enumerate(times_XJW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_XJW[i + 1], population_id=10
-            )
-        )
-    for i, t in enumerate(times_YNW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_YNW[i + 1], population_id=11
-            )
-        )
-    for i, t in enumerate(times_SCW):
-        curr_time = t
-        demographic_events.append(
-            msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_SCW[i + 1], population_id=12
-            )
-        )
-    demographic_events.sort(key=lambda x: x.time)
+    # model.add_population_split(
+    #     time=T1, derived=["OUT", "ancWB"], ancestral="root"
+    # )
+    # model.add_population_split(
+    #     time=T2, derived=["ancSCW_NAW", "ancEUW_NEW_CAW"], ancestral="ancWB"
+    # )
+    # model.add_population_split(
+    #     time=T3, derived=["SCW", "NAW"], ancestral="ancSCW_NAW"
+    # )
+    # model.add_population_split(
+    #     time=T4, derived=["CAW", "ancEUW_NEW"], ancestral="ancEUW_NEW_CAW"
+    # )
+    # model.add_population_split(
+    #     time=T5, derived=["EUW", "NEW"], ancestral="ancEUW_NEW"
+    # )
+
+    # Modeling Strategy: Budding vs. Bifurcating
+    # Although Figures 2C and S11A depict a standard tree structure, Figure 2D and the
+    # main text (Wang et al. 2025) suggest a "budding" or "successive divergence" model
+    # where lineages emerge from a central ancestral trunk.
+
+    # Assumption on Ancestral Ne:
+    # Since the authors did not report ancestral population
+    # for internal nodes, we treat the 'ancestral' labels in the split events as
+    # persistent lineages. This approach assumes the ancestral trunk maintains
+    # the Ne of the source population (e.g., OUT or CAW) until the next
+    # divergence event.
+
+    # From figure 2D and main text (Wang et al. 2025), Asian wild boars and Southeast
+    # Asian Suids split ∼3.6 million years ago (mya),
+    # with Central Asian and Southern Chinese ancestors diverging ∼1.8 mya.
+    # The split between Central Asian and European-Near East ancestors occurred ∼0.9 mya,
+    # followed by a European-Near East divergence ∼0.6 mya.
+
+    model.add_population_split(time=T1, derived=["SCW"], ancestral="OUT")
+    model.add_population_split(time=T2, derived=["CAW"], ancestral="SCW")
+    model.add_population_split(time=T3, derived=["NAW"], ancestral="SCW")
+    model.add_population_split(time=T4, derived=["EUW"], ancestral="CAW")
+    model.add_population_split(time=T5, derived=["NEW"], ancestral="CAW")
+
     citations = [
         _WangEtAl,
     ]
@@ -1738,13 +878,11 @@ def _WildBoar_13W25():
         id=id,
         description=description,
         long_description=long_description,
-        populations=populations,
         citations=citations,
-        generation_time=5,
+        generation_time=generation_time,
         mutation_rate=mutation_rate,
-        population_configurations=population_configurations,
-        demographic_events=demographic_events,
+        model=model,
     )
 
 
-_species.add_demographic_model(_WildBoar_13W25())
+_species.add_demographic_model(_WildBoar_6W25())
