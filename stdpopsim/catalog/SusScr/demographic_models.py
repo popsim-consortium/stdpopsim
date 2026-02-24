@@ -791,6 +791,7 @@ def _WildBoar_6W25():
         initial_size=N_CAW,
         name="CAW",
         description="Central Asian wild boars",
+        initially_active=True,
     )
     model.add_population(
         initial_size=N_EUW,
@@ -806,11 +807,13 @@ def _WildBoar_6W25():
         initial_size=N_SCW,
         name="SCW",
         description="Southern Chinese wild boar",
+        initially_active=True,
     )
     model.add_population(
         initial_size=N_OUT,
         name="OUT",
         description="Sus Cebifrons",
+        initially_active=True,
     )
     model.add_population(
         initial_size=N_NEW,
@@ -818,54 +821,24 @@ def _WildBoar_6W25():
         description="Near East wild boars",
     )
 
-    model.set_migration_rate(rate=m_OUT_SCW, source="OUT", dest="SCW")
-    model.set_migration_rate(rate=m_OUT_SCW, source="SCW", dest="OUT")
-    model.set_migration_rate(rate=m_SCW_NAW, source="SCW", dest="NAW")
-    model.set_migration_rate(rate=m_SCW_NAW, source="NAW", dest="SCW")
-    model.set_migration_rate(rate=m_NAW_CAW, source="NAW", dest="CAW")
-    model.set_migration_rate(rate=m_NAW_CAW, source="CAW", dest="NAW")
-    model.set_migration_rate(rate=m_CAW_EUW, source="CAW", dest="EUW")
-    model.set_migration_rate(rate=m_CAW_EUW, source="EUW", dest="CAW")
-    model.set_migration_rate(rate=m_CAW_NEW, source="CAW", dest="NEW")
-    model.set_migration_rate(rate=m_CAW_NEW, source="NEW", dest="CAW")
-    model.set_migration_rate(rate=m_EUW_NEW, source="EUW", dest="NEW")
-    model.set_migration_rate(rate=m_EUW_NEW, source="NEW", dest="EUW")
+    model.set_symmetric_migration_rate(populations=["OUT", "SCW"], rate=m_OUT_SCW)
+    model.set_symmetric_migration_rate(rate=m_SCW_NAW, populations=["SCW", "NAW"])
+    model.set_symmetric_migration_rate(rate=m_NAW_CAW, populations=["NAW", "CAW"])
+    model.set_symmetric_migration_rate(rate=m_CAW_EUW, populations=["CAW", "EUW"])
+    model.set_symmetric_migration_rate(rate=m_CAW_NEW, populations=["CAW", "NEW"])
+    model.set_symmetric_migration_rate(rate=m_EUW_NEW, populations=["EUW", "NEW"])
 
-    # model.add_population_split(
-    #     time=T1, derived=["OUT", "ancWB"], ancestral="root"
-    # )
-    # model.add_population_split(
-    #     time=T2, derived=["ancSCW_NAW", "ancEUW_NEW_CAW"], ancestral="ancWB"
-    # )
-    # model.add_population_split(
-    #     time=T3, derived=["SCW", "NAW"], ancestral="ancSCW_NAW"
-    # )
-    # model.add_population_split(
-    #     time=T4, derived=["CAW", "ancEUW_NEW"], ancestral="ancEUW_NEW_CAW"
-    # )
-    # model.add_population_split(
-    #     time=T5, derived=["EUW", "NEW"], ancestral="ancEUW_NEW"
-    # )
-
-    # Modeling Strategy: Budding vs. Bifurcating
+    # Modeling Strategy:
     # Although Figures 2C and S11A depict a standard tree structure, Figure 2D and the
     # main text (Wang et al. 2025) suggest a "budding" or "successive divergence" model
     # where lineages emerge from a central ancestral trunk.
-
-    # Assumption on Ancestral Ne:
-    # Since the authors did not report ancestral population
-    # for internal nodes, we treat the 'ancestral' labels in the split events as
-    # persistent lineages. This approach assumes the ancestral trunk maintains
-    # the Ne of the source population (e.g., OUT or CAW) until the next
-    # divergence event.
-
     # From figure 2D and main text (Wang et al. 2025), Asian wild boars and Southeast
     # Asian Suids split ∼3.6 million years ago (mya),
     # with Central Asian and Southern Chinese ancestors diverging ∼1.8 mya.
     # The split between Central Asian and European-Near East ancestors occurred ∼0.9 mya,
     # followed by a European-Near East divergence ∼0.6 mya.
 
-    model.add_population_split(time=T1, derived=["SCW"], ancestral="OUT")
+    model.add_population_split(time=T1, derived=["SCW", "OUT"], ancestral="OUT")
     model.add_population_split(time=T2, derived=["CAW"], ancestral="SCW")
     model.add_population_split(time=T3, derived=["NAW"], ancestral="SCW")
     model.add_population_split(time=T4, derived=["EUW"], ancestral="CAW")
