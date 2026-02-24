@@ -19,6 +19,11 @@ def _WildBoar_4Z22_SMW():
     long_description = """
     This demographic model is a piecewise size model for Sumatran wild boar
     from Zhang et al. (2022).
+    Use the following assumptions:
+    a generation interval of 3 years (page 1042),
+    a mutation rate of 3.6e-9 (pages 1042), and
+    a recombination rate of 1.0e-8.
+    Effective population sizes are given in Figure 3A of Zhang et al. (2022),
     """
     populations = [
         stdpopsim.Population(id="SMW", description="Sumatran wild boar"),
@@ -202,6 +207,11 @@ def _WildBoar_4Z22_SCW():
     long_description = """
     This demographic model is a piecewise size model for South Chinese wild boar
     from Zhang et al. (2022).
+    Use the following assumptions:
+    a generation interval of 3 years (page 1042),
+    a mutation rate of 3.6e-9 (pages 1042), and
+    a recombination rate of 1.0e-8.
+    Effective population sizes are given in Figure 3A of Zhang et al. (2022),
     """
     populations = [
         stdpopsim.Population(id="SCW", description="South Chinese wild boar"),
@@ -385,6 +395,11 @@ def _WildBoar_4Z22_NCW():
     long_description = """
     This demographic model is a piecewise size model for North Chinese wild boar
     from Zhang et al. (2022).
+    Use the following assumptions:
+    a generation interval of 3 years (page 1042),
+    a mutation rate of 3.6e-9 (pages 1042), and
+    a recombination rate of 1.0e-8.
+    Effective population sizes are given in Figure 3A of Zhang et al. (2022),
     """
     populations = [
         stdpopsim.Population(id="NCW", description="North Chinese wild boar")
@@ -568,6 +583,11 @@ def _WildBoar_4Z22_EUW():
     long_description = """
     This demographic model is a piecewise size model for European wild boar
     from Zhang et al. (2022).
+    Use the following assumptions:
+    a generation interval of 3 years (page 1042),
+    a mutation rate of 3.6e-9 (pages 1042), and
+    a recombination rate of 1.0e-8.
+    Effective population sizes are given in Figure 3A of Zhang et al. (2022),
     """
     populations = [
         stdpopsim.Population(id="EUW", description="European wild boar"),
