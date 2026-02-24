@@ -14,7 +14,7 @@ _ZhangEtAl = stdpopsim.Citation(
 
 
 def _WildBoar_4Z22_SMW():
-    id = "WildBoar_4Z22_SMW"
+    id = "SMW_4Z22"
     description = "Piecewise size model for Sumatran wild boar (Zhang et al. 2022)"
     long_description = """
     This demographic model is a piecewise size model for Sumatran wild boar
@@ -170,7 +170,7 @@ def _WildBoar_4Z22_SMW():
         curr_time = t
         demographic_events.append(
             msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_SMW[i + 1], population_id=3
+                time=curr_time, initial_size=sizes_SMW[i + 1], population_id=0
             )
         )
     citations = [
@@ -194,7 +194,7 @@ _species.add_demographic_model(_WildBoar_4Z22_SMW())
 
 
 def _WildBoar_4Z22_SCW():
-    id = "WildBoar_4Z22_SCW"
+    id = "SCW_4Z22"
     description = "Piecewise size model for South Chinese wild boar (Zhang et al. 2022)"
     long_description = """
     This demographic model is a piecewise size model for South Chinese wild boar
@@ -350,7 +350,7 @@ def _WildBoar_4Z22_SCW():
         curr_time = t
         demographic_events.append(
             msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_SCW[i + 1], population_id=2
+                time=curr_time, initial_size=sizes_SCW[i + 1], population_id=0
             )
         )
     citations = [
@@ -370,11 +370,11 @@ def _WildBoar_4Z22_SCW():
     )
 
 
-_species.add_demographic_model(_WildBoar_4Z22_SCW())
+# _species.add_demographic_model(_WildBoar_4Z22_SCW())
 
 
 def _WildBoar_4Z22_NCW():
-    id = "WildBoar_4Z22_NCW"
+    id = "NCW_4Z22"
     description = "Piecewise size model for North Chinese wild boar (Zhang et al. 2022)"
     long_description = """
     This demographic model is a piecewise size model for North Chinese wild boar
@@ -530,7 +530,7 @@ def _WildBoar_4Z22_NCW():
         curr_time = t
         demographic_events.append(
             msprime.PopulationParametersChange(
-                time=curr_time, initial_size=sizes_NCW[i + 1], population_id=1
+                time=curr_time, initial_size=sizes_NCW[i + 1], population_id=0
             )
         )
     citations = [
@@ -550,11 +550,11 @@ def _WildBoar_4Z22_NCW():
     )
 
 
-_species.add_demographic_model(_WildBoar_4Z22_NCW())
+# _species.add_demographic_model(_WildBoar_4Z22_NCW())
 
 
 def _WildBoar_4Z22_EUW():
-    id = "WildBoar_4Z22_EUW"
+    id = "EUW_4Z22"
     description = "Piecewise size model for European wild boar (Zhang et al. 2022)"
     long_description = """
     This demographic model is a piecewise size model for European wild boar
@@ -870,7 +870,7 @@ def _WildBoar_6W25():
     model.add_population_split(time=T3, derived=["NAW"], ancestral="SCW")
     model.add_population_split(time=T4, derived=["EUW"], ancestral="CAW")
     model.add_population_split(time=T5, derived=["NEW"], ancestral="CAW")
-
+    model.sort_events()
     citations = [
         _WangEtAl,
     ]
