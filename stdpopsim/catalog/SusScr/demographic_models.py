@@ -838,7 +838,7 @@ def _WildBoar_6W25():
     # The split between Central Asian and European-Near East ancestors occurred ∼0.9 mya,
     # followed by a European-Near East divergence ∼0.6 mya.
 
-    model.add_population_split(time=T1, derived=["SCW", "OUT"], ancestral="OUT")
+    model.add_population_split(time=T1, derived=["SCW"], ancestral="OUT")
     model.add_population_split(time=T2, derived=["CAW"], ancestral="SCW")
     model.add_population_split(time=T3, derived=["NAW"], ancestral="SCW")
     model.add_population_split(time=T4, derived=["EUW"], ancestral="CAW")
