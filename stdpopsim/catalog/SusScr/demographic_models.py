@@ -30,6 +30,9 @@ def _WildBoar_4Z22_SMW():
     # Mutation rate as reported by Zhang et al. (2022, p. 1042).
     mutation_rate = 3.6e-9
 
+    # generation time as reported by Zhang et al. (2022, p. 1042).
+    generation_time = 3
+
     # Arrays of time intervals and effective population sizes (Ne)
     # extracted from Figure 3A of Zhang et al. (2022).
     times_SMW = np.array(
@@ -182,7 +185,7 @@ def _WildBoar_4Z22_SMW():
         long_description=long_description,
         populations=populations,
         citations=citations,
-        generation_time=3,
+        generation_time=generation_time,
         mutation_rate=mutation_rate,
         recombination_rate=recombination_rate,
         population_configurations=population_configurations,
@@ -209,6 +212,9 @@ def _WildBoar_4Z22_SCW():
 
     # Mutation rate as reported by Zhang et al. (2022, p. 1042).
     mutation_rate = 3.6e-9
+
+    # generation time as reported by Zhang et al. (2022, p. 1042).
+    generation_time = 3
 
     # Arrays of time intervals and effective population sizes (Ne)
     # extracted from Figure 3A of Zhang et al. (2022).
@@ -362,7 +368,7 @@ def _WildBoar_4Z22_SCW():
         long_description=long_description,
         populations=populations,
         citations=citations,
-        generation_time=3,
+        generation_time=generation_time,
         mutation_rate=mutation_rate,
         recombination_rate=recombination_rate,
         population_configurations=population_configurations,
@@ -370,7 +376,7 @@ def _WildBoar_4Z22_SCW():
     )
 
 
-# _species.add_demographic_model(_WildBoar_4Z22_SCW())
+_species.add_demographic_model(_WildBoar_4Z22_SCW())
 
 
 def _WildBoar_4Z22_NCW():
@@ -389,6 +395,9 @@ def _WildBoar_4Z22_NCW():
 
     # Mutation rate as reported by Zhang et al. (2022, p. 1042).
     mutation_rate = 3.6e-9
+
+    # generation time as reported by Zhang et al. (2022, p. 1042).
+    generation_time = 3
 
     # Arrays of time intervals and effective population sizes (Ne)
     # extracted from Figure 3A of Zhang et al. (2022).
@@ -542,7 +551,7 @@ def _WildBoar_4Z22_NCW():
         long_description=long_description,
         populations=populations,
         citations=citations,
-        generation_time=3,
+        generation_time=generation_time,
         mutation_rate=mutation_rate,
         recombination_rate=recombination_rate,
         population_configurations=population_configurations,
@@ -550,7 +559,7 @@ def _WildBoar_4Z22_NCW():
     )
 
 
-# _species.add_demographic_model(_WildBoar_4Z22_NCW())
+_species.add_demographic_model(_WildBoar_4Z22_NCW())
 
 
 def _WildBoar_4Z22_EUW():
@@ -569,6 +578,9 @@ def _WildBoar_4Z22_EUW():
 
     # Mutation rate as reported by Zhang et al. (2022, p. 1042).
     mutation_rate = 3.6e-9
+
+    # generation time as reported by Zhang et al. (2022, p. 1042).
+    generation_time = 3
 
     # Arrays of time intervals and effective population sizes (Ne)
     # extracted from Figure 3A of Zhang et al. (2022).
@@ -722,7 +734,7 @@ def _WildBoar_4Z22_EUW():
         long_description=long_description,
         populations=populations,
         citations=citations,
-        generation_time=3,
+        generation_time=generation_time,
         mutation_rate=mutation_rate,
         recombination_rate=recombination_rate,
         population_configurations=population_configurations,

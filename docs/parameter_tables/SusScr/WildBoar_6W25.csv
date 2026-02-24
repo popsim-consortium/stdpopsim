@@ -1,0 +1,19 @@
+Population size,"87,338",CAW pop. size
+Population size,"87,275",EUW pop. size
+Population size,"85,535",NAW pop. size
+Population size,"88,237",SCW pop. size
+Population size,"1,158",OUT (Sus Cebifrons) pop. size
+Population size,"81,722",NEW pop. size
+Migration rate,"1.29e-2",OUT-SCW migration rate (per gen.)
+Migration rate,"4.0e-4",SCW-NAW migration rate (per gen.)
+Migration rate,"1.01e-1",NAW-CAW migration rate (per gen.)
+Migration rate,"5.8e-3",CAW-EUW migration rate (per gen.)
+Migration rate,"1.0e-4",CAW-NEW migration rate (per gen.)
+Migration rate,"2.48e-2",EUW-NEW migration rate (per gen.)
+Epoch Time (gen.),"3,662,321",T1: Time of split between OUT and Asian wild boars
+Epoch Time (gen.),"1,826,091",T2: Time of divergence between (SCW,NAW) and (CAW,EUW,NEW)
+Epoch Time (gen.),"1,064,310",T3: Time of split between SCW and NAW
+Epoch Time (gen.),"948,246",T4: Time of split between CAW and (EUW,NEW)
+Epoch Time (gen.),"682,571.5",T5: Time of divergence between EUW and NEW
+Generation time (yrs.),6.5,Generation time
+Mutation rate,2.5e-8,Per-base per-generation mutation rate
