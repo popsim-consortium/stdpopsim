@@ -29,8 +29,9 @@ def _dog_wolf_admixture():
     Estimated (calibrated) effective population sizes, divergence times,
     and migration rates are given in Table S12.
     Migration is continuous gene flow between the start and end
-    times of the two populations that define each migration band
-    (Section S9.2.3 in S9).
+    times of the two populations that define each migration band,
+    and are reported as reverse-time migration rates
+    (in the sense of msprime's migration rates; Section S9.2.3 in S9).
     The values reported in Table S12 are total migration rates inferred by
     G-PhoCS, equal to the per-generation migration rate multiplied by the
     duration of the migration band.
