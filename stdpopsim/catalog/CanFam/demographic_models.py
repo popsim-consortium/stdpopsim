@@ -28,7 +28,7 @@ def _dog_wolf_admixture():
     a mutation rate of 1e-8 (page 3).
     Estimated (calibrated) effective population sizes, divergence times,
     and migration rates are given in Table S12.
-    Migration is modeled as continuous gene flow between the start and end
+    Migration is continuous gene flow between the start and end
     times of the two populations that define each migration band
     (Section S9.2.3 in S9).
     The values reported in Table S12 are total migration rates inferred by
