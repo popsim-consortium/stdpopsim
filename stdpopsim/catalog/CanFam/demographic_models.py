@@ -28,8 +28,15 @@ def _dog_wolf_admixture():
     a mutation rate of 1e-8 (page 3).
     Estimated (calibrated) effective population sizes, divergence times,
     and migration rates are given in Table S12.
-    Migration is constant continuous geneflow from the start and
-    end times of the two populations that define it (section S9.2.3 in S9).
+    Migration is modeled as continuous gene flow between the start and end
+    times of the two populations that define each migration band
+    (Section S9.2.3 in S9).
+    The values reported in Table S12 are total migration rates inferred by
+    G-PhoCS, equal to the per-generation migration rate multiplied by the
+    duration of the migration band.
+    In the model implementation, we divide each total migration rate by the
+    time span of the corresponding migration band to compute the
+    per-generation migration rate.
     While Boxer reference genome was used, no Boxer-specific parameters
     were estimated in the model, hence Boxer was removed from this model
     implementation. Thence the ancestral Basenji population with its specific
@@ -63,6 +70,7 @@ def _dog_wolf_admixture():
     N_root = 18169  # ((dog, wolf), golden jackal)root
 
     # Estimated (calibrated) divergence times in years, from Table S12
+    # so divide by the generation time to convert to generations
     T_ancDOG1 = 12102 / generation_time  # (Boxer, Basenji)
     T_ancDOG = 12795 / generation_time  # ((Boxer, Basenji), Dingo)
     T_ancWLF1 = 13389 / generation_time  # (Israeli, Croatian) wolf
@@ -70,9 +78,12 @@ def _dog_wolf_admixture():
     T_ancDW = 14874 / generation_time  # (dog, wolf)
     T_ancroot = 398262 / generation_time  # ((dog, wolf), golden jackal)root
 
-    # Migration rates, from Table S12
-    # migration is constant continuous geneflow from the start and end times of
-    # the two populations that define it. See section S9.2.3 in S9.
+    # Total migration rates, from Table S12
+    # migration is constant continuous gene flow from the start and end times of
+    # the two populations that define it, see section S9.2.3 in S9, where
+    # total migration rate = per-gen migration rate * duration of migration band
+    # so, total migration rate / duration of migration band, equals the
+    # per-gen migration rate
     m_ISW_BSJ = 0.18 / T_ancDOG1
     m_BSJ_ISW = 0.07 / T_ancDOG1
     m_CHW_DNG = 0.03 / T_ancDOG
