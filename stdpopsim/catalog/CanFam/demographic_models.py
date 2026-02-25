@@ -35,10 +35,7 @@ def _dog_wolf_admixture():
     The values reported in Table S12 are total migration rates inferred by
     G-PhoCS, equal to the per-generation migration rate multiplied by the
     duration of the migration band.
-    In the model implementation, we divide each total migration rate by the
-    time span of the corresponding migration band to compute the
-    per-generation migration rate.
-    While Boxer reference genome was used, no Boxer-specific parameters
+   While Boxer reference genome was used, no Boxer-specific parameters
     were estimated in the model, hence Boxer was removed from this model
     implementation. Thence the ancestral Basenji population with its specific
     Ne is for the Ancestral (Boxer, Basenji) population.
