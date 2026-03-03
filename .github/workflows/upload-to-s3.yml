@@ -27,6 +27,11 @@ on:
         description: "Resource ID as defined in the catalog (e.g. HapMapII_GRCh38)"
         required: true
         type: string
+      dry_run:
+        description: "If true, run all validation but skip the actual S3 upload"
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: s3-upload
@@ -187,6 +192,7 @@ jobs:
           echo "SHA256 verified."
 
       - name: Check if S3 object already exists
+        if: ${{ inputs.dry_run != true }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -201,6 +207,7 @@ jobs:
           echo "Confirmed: s3://stdpopsim/$DEST does not exist yet."
 
       - name: Upload to S3
+        if: ${{ inputs.dry_run != true }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -213,6 +220,20 @@ jobs:
           echo "Upload complete."
           echo "S3 URL: https://stdpopsim.s3-us-west-2.amazonaws.com/$DEST"
           echo "SHA256: ${{ inputs.expected_sha256 }}"
+
+      - name: Dry run summary
+        if: ${{ inputs.dry_run == true }}
+        run: |
+          echo "=== DRY RUN COMPLETE ==="
+          echo "All validation passed. Skipped S3 upload."
+          echo ""
+          echo "  Species:  ${{ inputs.species_id }}"
+          echo "  Type:     ${{ inputs.resource_type }}"
+          echo "  Resource: ${{ inputs.resource_id }}"
+          echo "  S3 dest:  s3://stdpopsim/${{ inputs.s3_destination }}"
+          echo "  SHA256:   ${{ inputs.expected_sha256 }}"
+          echo ""
+          echo "To perform the actual upload, re-run without --dry-run."
 
       - name: Clean up draft release
         if: always()

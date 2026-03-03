@@ -3,15 +3,20 @@
 # Upload a tarball to the stdpopsim S3 bucket via GitHub Actions.
 #
 # Usage:
-#   ./maintenance/upload_to_s3.sh <local-file> <species-id> <genetic_map|annotation> <resource-id>
+#   ./maintenance/upload_to_s3.sh [--dry-run] <local-file> <species-id> <genetic_map|annotation> <resource-id>
 #
 # Examples:
 #   ./maintenance/upload_to_s3.sh data/HapMapII_GRCh38.tar.gz HomSap genetic_map HapMapII_GRCh38
 #   ./maintenance/upload_to_s3.sh data/ensembl_havana_104_exons_v1.tar.gz HomSap annotation ensembl_havana_104_exons
+#   ./maintenance/upload_to_s3.sh --dry-run data/test.tar.gz HomSap genetic_map HapMapII_GRCh38
 #
 # The script looks up the resource in the stdpopsim catalog to find the
 # expected S3 URL and SHA256, verifies the local file matches, then uploads
 # via a GitHub Actions workflow.
+#
+# Options:
+#   --dry-run  Run all validation (local + remote) but skip the actual S3 upload.
+#              The workflow will still run to verify everything end-to-end.
 #
 # Prerequisites:
 #   - GitHub CLI (gh) installed and authenticated
@@ -22,16 +27,24 @@ set -euo pipefail
 
 REPO="popsim-consortium/stdpopsim"
 WORKFLOW="upload-to-s3.yml"
+DRY_RUN=false
 
 die() { echo "ERROR: $*" >&2; exit 1; }
 
+# --- Parse --dry-run flag ---
+if [ "${1:-}" = "--dry-run" ]; then
+    DRY_RUN=true
+    shift
+fi
+
 # --- Validate arguments ---
 if [ $# -ne 4 ]; then
-    echo "Usage: $0 <local-file> <species-id> <genetic_map|annotation> <resource-id>" >&2
+    echo "Usage: $0 [--dry-run] <local-file> <species-id> <genetic_map|annotation> <resource-id>" >&2
     echo "" >&2
     echo "Examples:" >&2
     echo "  $0 data/HapMapII_GRCh38.tar.gz HomSap genetic_map HapMapII_GRCh38" >&2
     echo "  $0 data/exons_v1.tar.gz HomSap annotation ensembl_havana_104_exons" >&2
+    echo "  $0 --dry-run data/test.tar.gz HomSap genetic_map HapMapII_GRCh38" >&2
     exit 1
 fi
 
@@ -39,6 +52,11 @@ LOCAL_FILE="$1"
 SPECIES_ID="$2"
 RESOURCE_TYPE="$3"
 RESOURCE_ID="$4"
+
+if [ "$DRY_RUN" = true ]; then
+    echo "*** DRY RUN MODE — will validate but skip S3 upload ***"
+    echo ""
+fi
 
 [ -f "$LOCAL_FILE" ] || die "File not found: $LOCAL_FILE"
 
@@ -174,10 +192,15 @@ gh workflow run "$WORKFLOW" \
     --field "expected_sha256=$SHA256" \
     --field "species_id=$SPECIES_ID" \
     --field "resource_type=$RESOURCE_TYPE" \
-    --field "resource_id=$RESOURCE_ID"
+    --field "resource_id=$RESOURCE_ID" \
+    --field "dry_run=$DRY_RUN"
 
 echo ""
-echo "Workflow triggered successfully."
+if [ "$DRY_RUN" = true ]; then
+    echo "Dry-run workflow triggered. It will validate everything but skip the S3 upload."
+else
+    echo "Workflow triggered successfully."
+fi
 echo ""
 echo "Monitor the upload with:"
 echo "  gh run list --repo $REPO --workflow $WORKFLOW --limit 3"
