@@ -164,6 +164,14 @@ class TestEnvironment:
     def test_make_envionment_errors(self):
         with pytest.raises(TypeError, match="required keyword-only"):
             stdpopsim.Environment()
+        for bad_id in (123, [], None):
+            with pytest.raises(ValueError, match="id must be a nonempty string"):
+                stdpopsim.Environment(
+                    id=bad_id,
+                    trait_ids=["foo"],
+                    distribution_type="f",
+                    distribution_args=[0],
+                )
         with pytest.raises(TypeError, match="required keyword-only"):
             stdpopsim.Environment(
                 id="abc",
@@ -300,6 +308,9 @@ class TestTrait:
     def test_make_trait_errors(self):
         with pytest.raises(TypeError, match="required .* argument"):
             stdpopsim.Trait()
+        for bad_id in (123, [], None):
+            with pytest.raises(ValueError, match="id must be a nonempty string"):
+                stdpopsim.Trait(id=bad_id, type="additive")
         for bad_type in (123, [], None):
             with pytest.raises(ValueError, match="Unknown trait type"):
                 stdpopsim.Trait(id="foo", type=bad_type)
@@ -398,6 +409,11 @@ class TestFitnessFunction:
         for bad_arg in [0, [], None, id]:
             args["function_type"] = bad_arg
             with pytest.raises(ValueError, match="must be a str"):
+                stdpopsim.FitnessFunction(**args)
+        args["function_type"] = "gaussian"
+        for bad_id in (123, [], None):
+            args["id"] = bad_id
+            with pytest.raises(ValueError, match="id must be a nonempty string"):
                 stdpopsim.FitnessFunction(**args)
 
     def test_trait_ids_errors(self):

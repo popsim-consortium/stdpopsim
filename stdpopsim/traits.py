@@ -181,6 +181,8 @@ class Trait:
     transform_args = attr.ib(default=None, type=list, converter=_copy_converter)
 
     def __attrs_post_init__(self):
+        if not (isinstance(self.id, str) and self.id != ""):
+            raise ValueError("id must be a nonempty string")
         if self.transform_args is None:
             self.transform_args = []
         if not (
@@ -244,6 +246,8 @@ class Environment:
     # populations = attr.ib(default=None)
 
     def __attrs_post_init__(self):
+        if not (isinstance(self.id, str) and self.id != ""):
+            raise ValueError("id must be a nonempty string")
         _check_trait_ids(self.trait_ids)
         _check_distribution(
             self.distribution_type, self.distribution_args, len(self.trait_ids)
@@ -298,6 +302,8 @@ class FitnessFunction:
     # spacetime = attr.ib(type=list)
 
     def __attrs_post_init__(self):
+        if not (isinstance(self.id, str) and self.id != ""):
+            raise ValueError("id must be a nonempty string")
         _check_trait_ids(self.trait_ids)
         num_traits = len(self.trait_ids)
         if not isinstance(self.function_type, str):
@@ -340,7 +346,7 @@ class MutationType(object):
     for each new mutation from a distribution. This ``distribution_type`` should
     be one of:
 
-    - ``f``: fixed, one parameter (an single value)
+    - ``f``: fixed, one parameter per trait (a single value for each)
     - ``e``: exponential, one parameter (mean)
     - ``g``: gamma, two parameters (mean, shape)
     - ``n``: normal, two parameters (mean, sd)
@@ -349,6 +355,8 @@ class MutationType(object):
     - ``lp``: positive logNormal, two parameters (mean and sd on log scale; see rlnorm)
     - ``ln``: negative logNormal, two parameters (mean and sd on log scale; see rlnorm)
     - ``mvn``: TODO
+
+    Currently, only "fixed" and "mvn" can apply to more than one trait.
 
     Type "lp" is always positive, and type "ln" is always negative: both use
     the same log-normal distribution, but "ln" is multiplied by -1.  For
