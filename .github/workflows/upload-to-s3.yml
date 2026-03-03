@@ -1,0 +1,132 @@
+name: Upload to S3
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag of the draft release holding the file to upload"
+        required: true
+        type: string
+      s3_destination:
+        description: "S3 path within the stdpopsim bucket (e.g. annotations/HomSap/file.tar.gz)"
+        required: true
+        type: string
+      expected_sha256:
+        description: "Expected SHA256 checksum of the file"
+        required: true
+        type: string
+
+concurrency:
+  group: s3-upload
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    environment: s3-upload
+    permissions:
+      contents: write  # needed to download release assets and delete releases
+    steps:
+      - name: Validate S3 destination
+        run: |
+          DEST="${{ inputs.s3_destination }}"
+
+          # Must start with genetic_maps/ or annotations/
+          if [[ ! "$DEST" =~ ^(genetic_maps|annotations)/ ]]; then
+            echo "ERROR: S3 destination must start with 'genetic_maps/' or 'annotations/'"
+            exit 1
+          fi
+
+          # Must end with .tar.gz
+          if [[ ! "$DEST" =~ \.tar\.gz$ ]]; then
+            echo "ERROR: S3 destination must end with .tar.gz"
+            exit 1
+          fi
+
+          # Must match pattern: {genetic_maps,annotations}/{SpeciesID}/filename.tar.gz
+          if [[ ! "$DEST" =~ ^(genetic_maps|annotations)/[A-Z][a-z]{2}[A-Z][a-z]{2}/.+\.tar\.gz$ ]]; then
+            echo "ERROR: S3 destination must match {genetic_maps,annotations}/{SpeciesID}/filename.tar.gz"
+            echo "       SpeciesID must be 6-letter CamelCase (e.g. HomSap, DroMel)"
+            exit 1
+          fi
+
+          echo "S3 destination validated: $DEST"
+
+      - name: Download asset from draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Downloading asset from release: ${{ inputs.release_tag }}"
+          gh release download "${{ inputs.release_tag }}" \
+            --repo "${{ github.repository }}" \
+            --dir ./download
+
+          # Expect exactly one file
+          FILE_COUNT=$(find ./download -type f | wc -l)
+          if [ "$FILE_COUNT" -ne 1 ]; then
+            echo "ERROR: Expected exactly 1 asset, found $FILE_COUNT"
+            exit 1
+          fi
+
+          DOWNLOADED_FILE=$(find ./download -type f)
+          echo "Downloaded: $DOWNLOADED_FILE"
+          echo "DOWNLOADED_FILE=$DOWNLOADED_FILE" >> "$GITHUB_ENV"
+
+      - name: Verify SHA256
+        run: |
+          ACTUAL_SHA256=$(sha256sum "$DOWNLOADED_FILE" | awk '{print $1}')
+          EXPECTED="${{ inputs.expected_sha256 }}"
+
+          echo "Expected SHA256: $EXPECTED"
+          echo "Actual SHA256:   $ACTUAL_SHA256"
+
+          if [ "$ACTUAL_SHA256" != "$EXPECTED" ]; then
+            echo "ERROR: SHA256 mismatch!"
+            exit 1
+          fi
+
+          echo "SHA256 verified."
+
+      - name: Check if S3 object already exists
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-west-2
+        run: |
+          DEST="${{ inputs.s3_destination }}"
+          if aws s3api head-object --bucket stdpopsim --key "$DEST" 2>/dev/null; then
+            echo "ERROR: s3://stdpopsim/$DEST already exists. Refusing to overwrite."
+            echo "If you need to replace this file, delete it from S3 first."
+            exit 1
+          fi
+          echo "Confirmed: s3://stdpopsim/$DEST does not exist yet."
+
+      - name: Upload to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-west-2
+        run: |
+          DEST="${{ inputs.s3_destination }}"
+          echo "Uploading to s3://stdpopsim/$DEST"
+          aws s3 cp "$DOWNLOADED_FILE" "s3://stdpopsim/$DEST"
+          echo ""
+          echo "Upload complete."
+          echo "S3 URL: https://stdpopsim.s3-us-west-2.amazonaws.com/$DEST"
+          echo "SHA256: ${{ inputs.expected_sha256 }}"
+
+      - name: Clean up draft release
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ inputs.release_tag }}"
+          echo "Cleaning up draft release: $TAG"
+
+          # Delete the release
+          gh release delete "$TAG" \
+            --repo "${{ github.repository }}" \
+            --yes \
+            --cleanup-tag 2>/dev/null || echo "Warning: could not delete release $TAG"
+
+          echo "Cleanup complete."
