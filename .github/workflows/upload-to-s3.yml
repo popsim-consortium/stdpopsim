@@ -15,6 +15,18 @@ on:
         description: "Expected SHA256 checksum of the file"
         required: true
         type: string
+      species_id:
+        description: "Species ID (e.g. HomSap)"
+        required: true
+        type: string
+      resource_type:
+        description: "Resource type: genetic_map or annotation"
+        required: true
+        type: string
+      resource_id:
+        description: "Resource ID as defined in the catalog (e.g. HapMapII_GRCh38)"
+        required: true
+        type: string
 
 concurrency:
   group: s3-upload
@@ -27,30 +39,117 @@ jobs:
     permissions:
       contents: write  # needed to download release assets and delete releases
     steps:
-      - name: Validate S3 destination
+      - name: Validate inputs
         run: |
           DEST="${{ inputs.s3_destination }}"
+          TYPE="${{ inputs.resource_type }}"
 
-          # Must start with genetic_maps/ or annotations/
+          # Resource type must be genetic_map or annotation
+          if [[ "$TYPE" != "genetic_map" && "$TYPE" != "annotation" ]]; then
+            echo "ERROR: resource_type must be 'genetic_map' or 'annotation', got: $TYPE"
+            exit 1
+          fi
+
+          # S3 destination must start with genetic_maps/ or annotations/
           if [[ ! "$DEST" =~ ^(genetic_maps|annotations)/ ]]; then
             echo "ERROR: S3 destination must start with 'genetic_maps/' or 'annotations/'"
             exit 1
           fi
 
-          # Must end with .tar.gz
-          if [[ ! "$DEST" =~ \.tar\.gz$ ]]; then
-            echo "ERROR: S3 destination must end with .tar.gz"
+          # S3 destination must end with .tar.gz or .tgz
+          if [[ ! "$DEST" =~ \.(tar\.gz|tgz)$ ]]; then
+            echo "ERROR: S3 destination must end with .tar.gz or .tgz"
             exit 1
           fi
 
-          # Must match pattern: {genetic_maps,annotations}/{SpeciesID}/filename.tar.gz
-          if [[ ! "$DEST" =~ ^(genetic_maps|annotations)/[A-Z][a-z]{2}[A-Z][a-z]{2}/.+\.tar\.gz$ ]]; then
-            echo "ERROR: S3 destination must match {genetic_maps,annotations}/{SpeciesID}/filename.tar.gz"
-            echo "       SpeciesID must be 6-letter CamelCase (e.g. HomSap, DroMel)"
-            exit 1
-          fi
+          echo "Input validation passed."
+          echo "  Species:     ${{ inputs.species_id }}"
+          echo "  Type:        ${{ inputs.resource_type }}"
+          echo "  Resource:    ${{ inputs.resource_id }}"
+          echo "  S3 dest:     $DEST"
 
-          echo "S3 destination validated: $DEST"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install stdpopsim
+        run: |
+          pip install -e .
+
+      - name: Validate against catalog
+        run: |
+          python3 << 'PYEOF'
+          import stdpopsim
+          import sys
+          import re
+
+          species_id = "${{ inputs.species_id }}"
+          resource_type = "${{ inputs.resource_type }}"
+          resource_id = "${{ inputs.resource_id }}"
+          s3_dest = "${{ inputs.s3_destination }}"
+          expected_sha256 = "${{ inputs.expected_sha256 }}"
+
+          # Verify species exists
+          try:
+              species = stdpopsim.get_species(species_id)
+          except (ValueError, KeyError):
+              available = [s.id for s in stdpopsim.all_species()]
+              print(f"ERROR: Species '{species_id}' not found in catalog.")
+              print(f"Available species: {available}")
+              sys.exit(1)
+
+          # Verify resource exists and extract expected URL/SHA256
+          if resource_type == "genetic_map":
+              resources = {gm.id: gm for gm in species.genetic_maps}
+              if resource_id not in resources:
+                  print(f"ERROR: Genetic map '{resource_id}' not found for {species_id}.")
+                  print(f"Available genetic maps: {list(resources.keys())}")
+                  sys.exit(1)
+              resource = resources[resource_id]
+              catalog_url = resource.url
+              catalog_sha256 = resource.sha256
+
+          elif resource_type == "annotation":
+              resources = {a.id: a for a in species.annotations}
+              if resource_id not in resources:
+                  print(f"ERROR: Annotation '{resource_id}' not found for {species_id}.")
+                  print(f"Available annotations: {list(resources.keys())}")
+                  sys.exit(1)
+              resource = resources[resource_id]
+              catalog_url = resource.intervals_url
+              catalog_sha256 = resource.intervals_sha256
+
+          # Verify the S3 destination matches what the catalog expects
+          m = re.match(r"https://stdpopsim\.s3[.-]us-west-2\.amazonaws\.com/(.*)", catalog_url)
+          if not m:
+              print(f"ERROR: Could not parse S3 URL from catalog: {catalog_url}")
+              sys.exit(1)
+
+          catalog_s3_dest = m.group(1)
+          if catalog_s3_dest != s3_dest:
+              print(f"ERROR: S3 destination mismatch!")
+              print(f"  Provided:        {s3_dest}")
+              print(f"  Catalog expects: {catalog_s3_dest}")
+              sys.exit(1)
+
+          # Verify SHA256 matches what the catalog expects
+          if catalog_sha256 != expected_sha256:
+              print(f"ERROR: SHA256 mismatch with catalog!")
+              print(f"  Provided:        {expected_sha256}")
+              print(f"  Catalog expects: {catalog_sha256}")
+              sys.exit(1)
+
+          print("Catalog validation passed!")
+          print(f"  Species:  {species_id} ({species.name})")
+          print(f"  Type:     {resource_type}")
+          print(f"  Resource: {resource_id}")
+          print(f"  URL:      {catalog_url}")
+          print(f"  SHA256:   {catalog_sha256}")
+          PYEOF
 
       - name: Download asset from draft release
         env:
