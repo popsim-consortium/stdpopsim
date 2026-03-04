@@ -222,7 +222,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "tskit": ("https://tskit.dev/tskit/docs/stable", None),
     "msprime": ("https://tskit.dev/msprime/docs/stable", None),
-    "pyslim": ("https://tskit.dev/pyslim/docs/latest", None),
+    "pyslim": ("https://tskit.dev/pyslim/docs/stable", None),
 }
 
 # -- Options for todo extension ----------------------------------------------
