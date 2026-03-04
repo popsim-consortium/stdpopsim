@@ -1577,9 +1577,9 @@ def _ooa_4pop():
     long_description = """
         Demographic model for a four population out-of-Africa history,
         taken from Jouganous et al. (2017). Parameter values were taken
-        from table 4 in the main text. The model was fitted to the joint
-        allele frequency spectrum (AFS) estimated from 1000 Genomes exome
-        data for the YRI, CEU, CHB, and JPT populations. The demography
+        from table 4 in the main text. The model was fit using the joint
+        allele frequency spectrum (AFS) from 1000 Genomes exome
+        data for the YRI, CEU, CHB, and JPT samples. The demography
         follows the previous three-populations out-of-Africa models
         with an additional population split in Asia leading to the
         Japanese (JPT) population. Parameter values were estimated with
