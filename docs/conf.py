@@ -101,6 +101,10 @@ html_theme = "sphinx_rtd_theme"
 #
 html_context = {
     "display_github": True,
+    "github_user": "popsim-consortium",
+    "github_repo": "stdpopsim",  # or "stdpopsim-docs" if .rst live there
+    "github_version": "main",  # the branch/tag to link to
+    "conf_py_path": "/docs/",  # path in the repo to the docs root (relative)
     "version": version,
     "release": release,
 }
