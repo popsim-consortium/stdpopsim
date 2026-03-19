@@ -28,9 +28,14 @@ def _dog_wolf_admixture():
     a mutation rate of 1e-8 (page 3).
     Estimated (calibrated) effective population sizes, divergence times,
     and migration rates are given in Table S12.
-    Migration is constant continuous geneflow from the start and
-    end times of the two populations that define it (section S9.2.3 in S9).
-    While Boxer reference genome was used, no Boxer-specific parameters
+    Migration is continuous gene flow between the start and end
+    times of the two populations that define each migration band,
+    and are reported as reverse-time migration rates
+    (in the sense of msprime's migration rates; Section S9.2.3 in S9).
+    The values reported in Table S12 are total migration rates inferred by
+    G-PhoCS, equal to the per-generation migration rate multiplied by the
+    duration of the migration band.
+   While Boxer reference genome was used, no Boxer-specific parameters
     were estimated in the model, hence Boxer was removed from this model
     implementation. Thence the ancestral Basenji population with its specific
     Ne is for the Ancestral (Boxer, Basenji) population.
@@ -62,25 +67,29 @@ def _dog_wolf_admixture():
     N_ancDW = 44993  # (dog, wolf)
     N_root = 18169  # ((dog, wolf), golden jackal)root
 
-    # Estimated (calibrated) divergence times, from Table S12
-    T_ancDOG1 = 12102  # (Boxer, Basenji)
-    T_ancDOG = 12795  # ((Boxer, Basenji), Dingo)
-    T_ancWLF1 = 13389  # (Israeli, Croatian) wolf
-    T_ancWLF = 13455  # ((Israeli, Croatian), Chinese) wolf
-    T_ancDW = 14874  # (dog, wolf)
-    T_ancroot = 398262  # ((dog, wolf), golden jackal)root
+    # Estimated (calibrated) divergence times in years, from Table S12
+    # so divide by the generation time to convert to generations
+    T_ancDOG1 = 12102 / generation_time  # (Boxer, Basenji)
+    T_ancDOG = 12795 / generation_time  # ((Boxer, Basenji), Dingo)
+    T_ancWLF1 = 13389 / generation_time  # (Israeli, Croatian) wolf
+    T_ancWLF = 13455 / generation_time  # ((Israeli, Croatian), Chinese) wolf
+    T_ancDW = 14874 / generation_time  # (dog, wolf)
+    T_ancroot = 398262 / generation_time  # ((dog, wolf), golden jackal)root
 
-    # Migration rates, from Table S12
-    # migration is constant continuous geneflow from the start and end times of
-    # the two populations that define it. See section S9.2.3 in S9.
-    m_ISW_BSJ = 0.18
-    m_BSJ_ISW = 0.07
-    m_CHW_DNG = 0.03
-    m_DNG_CHW = 0.04
-    m_GLJ_ISW = 0
-    m_ISW_GLJ = 0.05
-    m_GLJ_ancDW = 0.02
-    m_ancDW_GLJ = 0.99
+    # Total migration rates, from Table S12
+    # migration is constant continuous gene flow from the start and end times of
+    # the two populations that define it, see section S9.2.3 in S9, where
+    # total migration rate = per-gen migration rate * duration of migration band
+    # so, total migration rate / duration of migration band, equals the
+    # per-gen migration rate
+    m_ISW_BSJ = 0.18 / T_ancDOG1
+    m_BSJ_ISW = 0.07 / T_ancDOG1
+    m_CHW_DNG = 0.03 / T_ancDOG
+    m_DNG_CHW = 0.04 / T_ancDOG
+    m_GLJ_ISW = 0 / T_ancWLF1
+    m_ISW_GLJ = 0.05 / T_ancWLF1
+    m_GLJ_ancDW = 0.02 / (T_ancroot - T_ancDW)
+    m_ancDW_GLJ = 0.99 / (T_ancroot - T_ancDW)
 
     model = msprime.Demography()
     model.add_population(
