@@ -1,0 +1,27 @@
+# # File generated from averaged phased haplotypes FASTAs. Do not edit.
+# Genome assembly Castanera et al. 2024 https://doi.org/10.1093/hr/uhae106
+# https://zenodo.org/records/10829948
+# https://www.ebi.ac.uk/ena/browser/view/ERP158378
+
+# Mitochondrial and chloroplast assembly
+# D'Amico-Willman et al. 2022
+# https://doi.org/10.1093/g3journal/jkac065
+
+data = {
+    "assembly_accession": "PRJEB73607",
+    "assembly_name": "Texas v.3.0",
+    "chromosomes": {
+        "1": {"length": 50452767, "synonyms": []},
+        "2": {"length": 30972344, "synonyms": []},
+        "3": {"length": 30498384, "synonyms": []},
+        "4": {"length": 28068711, "synonyms": []},
+        "5": {"length": 22241271, "synonyms": []},
+        "6": {"length": 32371708, "synonyms": []},
+        "7": {"length": 24859559, "synonyms": []},
+        "8": {"length": 27108964, "synonyms": []},
+        "MT": {"length": 444092, "synonyms": []},
+        "Pt": {"length": 142856, "synonyms": []},
+    },
+    "assembly_source": "manual",
+    "assembly_build_version": "3",
+}
