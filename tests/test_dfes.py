@@ -580,9 +580,9 @@ class TestCreateDFE:
             mutation_rate=1e-6,
             ploidy=2,
         )
-        contig.add_dfe(
+        contig.add_dme(
             intervals=np.array([[0, contig.length / 2]], dtype="int"),
-            DFE=d,
+            DME=d,
         )
         model = stdpopsim.PiecewiseConstantSize(1000)
         samples = {"pop_0": 1}
@@ -784,10 +784,10 @@ class DFETestMixin:
             mutation_rate=1e-8,  # Ne=1e3 and length=1e6 so theta=40
             ploidy=2,
         )
-        contig.clear_dfes()
-        contig.add_dfe(
+        contig.clear_dmes()
+        contig.add_dme(
             intervals=np.array([[0, contig.length / 2]], dtype="int"),
-            DFE=self.dfe,
+            DME=self.dfe,
         )
 
         model = stdpopsim.PiecewiseConstantSize(1000)
