@@ -785,7 +785,7 @@ class Contig:
                 "add_dfe is deprecated. Please use add_dme."
             )
         )
-        self.add_dme(self, intervals, DFE)
+        self.add_dme(intervals, DFE)
 
     def add_dme(self, intervals, DME):
         """

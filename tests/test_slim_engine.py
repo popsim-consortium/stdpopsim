@@ -211,7 +211,7 @@ class TestAPI:
                 # need selected mutations so that SLiM produces some
                 contig.add_dme(
                     intervals=np.array([[0, contig.length / 2]], dtype="int"),
-                    DFE=stdpopsim.DFE(
+                    DME=stdpopsim.DFE(
                         id="test",
                         description="test",
                         long_description="test",
@@ -391,7 +391,7 @@ class TestAPI:
         contig = species.get_contig("5", left=0, right=100000)
         contig.add_dme(
             intervals=[[0, contig.length // 2]],
-            DFE=stdpopsim.DFE(
+            DME=stdpopsim.DFE(
                 id="test",
                 description="test",
                 long_description="test",
@@ -1723,7 +1723,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         )
         contig.add_dme(
             intervals=np.array([[0, contig.length]], dtype="int"),
-            DFE=stdpopsim.DFE(
+            DME=stdpopsim.DFE(
                 id="neutral_sel",
                 description="neutral with some selected",
                 long_description="test",
@@ -2057,7 +2057,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         )
         contig.add_dme(
             intervals=np.array([[100, 101]], dtype="int"),
-            DFE=dfe,
+            DME=dfe,
         )
         engine = stdpopsim.get_engine("slim")
         with pytest.raises(ValueError, match="must contain a single mutation type"):
@@ -2120,7 +2120,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         )
         contig.add_dme(
             intervals=np.array([[100, 101], [103, 104]], dtype="int"),
-            DFE=dfe,
+            DME=dfe,
         )
         engine = stdpopsim.get_engine("slim")
         with pytest.raises(ValueError, match="refers to a DFE with intervals"):
@@ -2156,7 +2156,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         )
         contig.add_dme(
             intervals=np.array([[100, 102]], dtype="int"),
-            DFE=dfe,
+            DME=dfe,
         )
         engine = stdpopsim.get_engine("slim")
         with pytest.raises(ValueError, match="refers to a DFE with intervals"):
@@ -3035,7 +3035,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
         contig = get_test_contig()
         contig.add_dme(
             intervals=np.array([[0, contig.length // 2]], dtype="int"),
-            DFE=stdpopsim.DFE(
+            DME=stdpopsim.DFE(
                 id="BGS",
                 description="deleterious",
                 long_description="mutations",

@@ -19,10 +19,18 @@ class TestContig(object):
     )
 
     def test_dfe_list_aliasing(self):
+        chr_id = "chr2"
+        species = stdpopsim.get_species("HomSap")
+        genmap = "HapMapII_GRCh38"
+        chrom = species.get_contig(chr_id, genetic_map=genmap)
         with pytest.warns(
             stdpopsim.DeprecatedFeatureWarning
         ):
-            contig = stdpopsim.Contig(dfe_list=[self.example_dfe])
+            contig = stdpopsim.Contig(
+                recombination_map=chrom.recombination_map,
+                mutation_rate=1e-8,
+                dfe_list=[self.example_dfe],
+            )
         assert contig.dme_list[0].id == self.example_dfe.id
         with pytest.warns(
             stdpopsim.DeprecatedFeatureWarning
@@ -35,7 +43,7 @@ class TestContig(object):
             stdpopsim.DeprecatedFeatureWarning
         ):
             contig.dfe_list = ['a']
-        assert len(contig.dme_list) == 0 and contig.dme_list[0] == 'a'
+        assert len(contig.dme_list) == 1 and contig.dme_list[0] == 'a'
 
     def test_dfe_breakpoints(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
@@ -420,7 +428,7 @@ class TestContig(object):
         # Correctly specified coordinate system
         contig.add_dme(
             intervals=original_dme_interval,
-            DFE=self.example_dfe,
+            DME=self.example_dfe,
         )
         # Coordinate system mismatch. Shifted DFE intervals all fall outside of
         # `contig.origin` so the added DFE is empty: throw a warning
