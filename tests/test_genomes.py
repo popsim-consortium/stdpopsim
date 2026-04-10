@@ -38,7 +38,11 @@ class TestContig(object):
             contig.dfe_list[0].id = "def"
         assert contig.dme_list[0].id == "def"
         contig.dme_list[0].id = "abc"
-        assert contig.dfe_list[0].id == "abc"
+        with pytest.warns(
+            stdpopsim.DeprecatedFeatureWarning
+        ):
+            dfe_id = contig.dfe_list[0].id
+        assert dfe_id == "abc"
         with pytest.warns(
             stdpopsim.DeprecatedFeatureWarning
         ):
