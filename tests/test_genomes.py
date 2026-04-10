@@ -18,6 +18,19 @@ class TestContig(object):
         mutation_types=[stdpopsim.MutationType() for _ in range(2)],
     )
 
+    def test_dfe_and_dme_initalization(self):
+        chr_id = "chr2"
+        species = stdpopsim.get_species("HomSap")
+        genmap = "HapMapII_GRCh38"
+        chrom = species.get_contig(chr_id, genetic_map=genmap)
+        with pytest.raises(ValueError):
+            stdpopsim.Contig(
+                recombination_map=chrom.recombination_map,
+                mutation_rate=1e-8,
+                dfe_list=[self.example_dfe],
+                dme_list=[self.example_dfe],
+            )
+
     def test_dfe_list_aliasing(self):
         chr_id = "chr2"
         species = stdpopsim.get_species("HomSap")
