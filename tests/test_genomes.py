@@ -18,14 +18,75 @@ class TestContig(object):
         mutation_types=[stdpopsim.MutationType() for _ in range(2)],
     )
 
-    def verify_dfe_breakpoints(self, contig):
-        breaks, dfe_labels = contig.dfe_breakpoints()
+    def test_dfe_list_aliasing(self):
+        with pytests.warns(
+            stdpopsim.DeprecatedFeatureWarning
+        ):
+            contig = stdpopsim.Contig(dfe_list=[self.example_dfe])
+        assert contig.dme_list[0].id == self.example_dfe.id
+        with pytest.warns(
+            stdpopsim.DeprecatedFeatureWarning
+        ):
+            contig.dfe_list[0].id = "def"
+        assert contig.dme_list[0].id == "def"
+        contig.dme_list[0].id = "abc"
+        assert contig.dfe_list[0].id == "abc"
+        with pytest.warns(
+            stdpopsim.DeprecatedFeatureWarning
+        ):
+            contig.dfe_list = ['a']
+        assert len(contig.dme_list) == 0 and contig.dme_list[0] == 'a'
+
+    def test_dfe_breakpoints(self):
+        contig = stdpopsim.Contig.basic_contig(length=100)
+        with pytest.warns(
+            stdpopsim.DeprecatedFeatureWarning
+        ):
+            dfe_res1, dfe_res2 = contig.dfe_breakpoints()
+        dme_res1, dme_res2 = contig.dme_breakpoints()
+        assert np.allclose(dfe_res1, dme_res1)
+        assert np.allclose(dfe_res2, dme_res2)
+
+    def test_clear_dfes(self):
+        contig = stdpopsim.Contig.basic_contig(length=100)
+        contif.add_dme(
+            intervals=np.array([[10, 30], [50, 100]]),
+            self.example_dfe
+        )
+        assert len(contig.dme_list) > 0
+        assert len(contig.interval_list) > 0
+        with pytest.warns(
+            stdpopsim.DeprecatedFeatureWarning
+        ):
+            contig.clear_dfes()
+        assert len(contig.dme_list) == 0
+        assert len(contig.interval_list) == 0
+
+    def test_add_dfe():
+        contig = stdpopsim.Contig.basic_contig(length=100)
+        with pytest.warns(
+            stdpopsim.DeprecatedFeatureWarning
+        ):
+            contig.add_dfe(
+                intervals=np.array([[10, 30], [50, 100]]),
+                self.example_dfe
+            )
+        contig_dme = stdpopsim.Contig.basic_contig(length=100)
+        contig_dme.add_dme(
+            intervals=np.array([[10, 30], [50, 100]]),
+            self.example_dfe
+        )
+        assert np.allclose(contig.interval_list, contig_dme.interval_list)
+        assert contig.dme_list[0].id == contig_dme.dme_list[0].id
+
+    def verify_dme_breakpoints(self, contig):
+        breaks, dme_labels = contig.dme_breakpoints()
         for j, intervals in enumerate(contig.interval_list):
             for left, right in intervals:
                 assert left in breaks
                 assert right in breaks
                 k = np.searchsorted(breaks, left)
-                assert dfe_labels[k] == j
+                assert dme_labels[k] == j
 
     def test_default_gc(self):
         contig = stdpopsim.Contig.basic_contig(length=42)
@@ -82,49 +143,49 @@ class TestContig(object):
         with pytest.raises(ValueError, match="shorter than the gene conv"):
             _ = sp.get_contig(length=100000)
 
-    def test_default_dfe(self):
+    def test_default_dme(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
-        assert len(contig.dfe_list) == 1
+        assert len(contig.dme_list) == 1
         assert len(contig.interval_list) == 1
-        assert contig.dfe_list[0].id == "neutral"
+        assert contig.dme_list[0].id == "neutral"
         assert np.all(contig.interval_list[0] == np.array([[0, contig.length]]))
 
-    def test_add_dfe_errors(self):
+    def test_add_dme_errors(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
         # bad intervals
         with pytest.raises(ValueError):
-            contig.add_dfe(np.array([10, 20]), self.example_dfe)
+            contig.add_dme(np.array([10, 20]), self.example_dfe)
         with pytest.raises(ValueError):
-            contig.add_dfe("abc", self.example_dfe)
+            contig.add_dme("abc", self.example_dfe)
 
-    def test_dfe_breakpoints(self):
+    def test_dme_breakpoints(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
-        contig.clear_dfes()
+        contig.clear_dmes()
         mt = stdpopsim.MutationType()
         for j in range(3):
-            dfe = stdpopsim.DFE(
+            dme = stdpopsim.DFE(
                 id=str(j),
                 description="test",
                 long_description="test test",
                 mutation_types=[mt],
             )
-            contig.add_dfe(
+            contig.add_dme(
                 np.array(
                     [[(j + 1) * 5, (j + 1) * 10], [(j + 1) * 20, (j + 1) * 20 + 1]],
                     dtype="int",
                 ),
-                dfe,
+                dme,
             )
-        self.verify_dfe_breakpoints(contig)
+        self.verify_dme_breakpoints(contig)
 
-    def test_add_dfe(self):
+    def test_add_dme(self):
         for clear in (True, False):
             contig = stdpopsim.Contig.basic_contig(length=100)
             if clear:
-                contig.clear_dfes()
+                contig.clear_dmes()
             props = [0.3, 0.7]
             mt = [stdpopsim.MutationType() for _ in props]
-            dfes = [
+            dmes = [
                 stdpopsim.DFE(
                     id=str(j),
                     description="test",
@@ -134,34 +195,34 @@ class TestContig(object):
                 )
                 for j in range(3)
             ]
-            contig.add_dfe(
+            contig.add_dme(
                 intervals=np.array([[10, 30], [50, 100]]),
-                DFE=dfes[0],
+                DME=dmes[0],
             )
-            contig.add_dfe(intervals=np.array([[30, 40]]), DFE=dfes[1])
-            contig.add_dfe(intervals=np.array([[20, 60]]), DFE=dfes[2])
-            assert len(contig.dfe_list) == 4 - clear
+            contig.add_dme(intervals=np.array([[30, 40]]), DME=dmes[1])
+            contig.add_dme(intervals=np.array([[20, 60]]), DME=dmes[2])
+            assert len(contig.dme_list) == 4 - clear
             assert len(contig.mutation_types()) == 7 - clear
             if clear:
-                dfe_ids = []
+                dme_ids = []
                 true_ints = []
-            else:
+            mlse:
                 true_ints = [np.array([[0, 10]])]
-                dfe_ids = ["neutral"]
-            dfe_ids += [dfe.id for dfe in dfes]
+                dme_ids = ["neutral"]
+            dme_ids += [dme.id for dme in dmes]
             true_ints += [
                 np.array([[10, 20], [60, 100]]),
                 np.empty((0, 2)),
                 np.array([[20, 60]]),
             ]
-            for d, i in zip(contig.dfe_list, dfe_ids):
+            for d, i in zip(contig.dme_list, dme_ids):
                 assert d.id == i
             for a1, a2 in zip(contig.interval_list, true_ints):
                 assert np.all(a1.shape == a2.shape)
                 assert np.all(a1 == a2)
-            self.verify_dfe_breakpoints(contig)
+            self.verify_dme_breakpoints(contig)
 
-    def test_add_dfe_interval_formats(self):
+    def test_add_dme_interval_formats(self):
         L = 50818
         for intervals in (
             [[0, L]],
@@ -169,7 +230,7 @@ class TestContig(object):
             ([0, int(0.2 * L)], [int(0.6 * L), L]),
         ):
             contig = stdpopsim.Contig.basic_contig(length=L)
-            contig.add_dfe(intervals=intervals, DFE=self.example_dfe)
+            contig.add_dme(intervals=intervals, DME=self.example_dfe)
             np.testing.assert_array_equal(intervals, contig.interval_list[1])
         with pytest.raises(ValueError, match="must be a numpy array"):
             stdpopsim.utils._check_intervals_validity([[0, 1]])
@@ -178,7 +239,7 @@ class TestContig(object):
         for neutral in (True, False):
             for dist in ("f", "e"):
                 contig = stdpopsim.Contig.basic_contig(length=100)
-                contig.clear_dfes()
+                contig.clear_dmes()
                 props = [0.3, 0.7]
                 if neutral:
                     s = 0
@@ -190,7 +251,7 @@ class TestContig(object):
                     )
                     for _ in props
                 ]
-                dfes = [
+                dmes = [
                     stdpopsim.DFE(
                         id=str(j),
                         description="test",
@@ -200,11 +261,11 @@ class TestContig(object):
                     )
                     for j in range(2)
                 ]
-                contig.add_dfe(
+                contig.add_dme(
                     intervals=np.array([[10, 30], [50, 100]]),
-                    DFE=dfes[0],
+                    DME=dmes[0],
                 )
-                contig.add_dfe(intervals=np.array([[30, 40]]), DFE=dfes[1])
+                contig.add_dme(intervals=np.array([[30, 40]]), DME=dmes[1])
                 # exponential with mean zero doesn't count as neutral!
                 assert contig.is_neutral is (neutral and dist == "f")
 
@@ -347,48 +408,48 @@ class TestContig(object):
         assert x == ox
         assert y == oy
 
-    def test_add_dfe_coordinate_system(self):
+    def test_add_dme_coordinate_system(self):
         chrom = "chr2"
         species = stdpopsim.get_species("HomSap")
         contig_interval = [200000, 300000]
-        original_dfe_interval = np.array([[190000, 210000], [290000, 310000]])
-        bad_dfe_interval = np.array([[0, 10000], [90000, 100000]])
+        original_dme_interval = np.array([[190000, 210000], [290000, 310000]])
+        bad_dme_interval = np.array([[0, 10000], [90000, 100000]])
         contig = species.get_contig(
             chrom, left=contig_interval[0], right=contig_interval[1]
         )
         # Correctly specified coordinate system
-        contig.add_dfe(
-            intervals=original_dfe_interval,
+        contig.add_dme(
+            intervals=original_dme_interval,
             DFE=self.example_dfe,
         )
         # Coordinate system mismatch. Shifted DFE intervals all fall outside of
         # `contig.origin` so the added DFE is empty: throw a warning
         with pytest.warns(UserWarning, match="No intervals remain"):
-            contig.add_dfe(
-                intervals=bad_dfe_interval,
-                DFE=self.example_dfe,
+            contig.add_dme(
+                intervals=bad_dme_interval,
+                DME=self.example_dfe,
             )
 
-    def test_dfe_breakpoints_coordinate_system(self):
+    def test_dme_breakpoints_coordinate_system(self):
         chrom = "chr2"
         species = stdpopsim.get_species("HomSap")
         contig_interval = [200000, 300000]
-        dfe_interval = [[190000, 210000], [290000, 310000]]
+        dme_interval = [[190000, 210000], [290000, 310000]]
         contig = species.get_contig(
             chrom, left=contig_interval[0], right=contig_interval[1]
         )
-        contig.add_dfe(
-            intervals=dfe_interval,
-            DFE=self.example_dfe,
+        contig.add_dme(
+            intervals=dme_interval,
+            DME=self.example_dfe,
         )
-        breakpoints, _ = contig.dfe_breakpoints()
+        breakpoints, _ = contig.dme_breakpoints()
         for x, y in zip(breakpoints, [0, 200000, 210000, 290000, 300000]):
             assert x == y
 
         with pytest.warns(
             stdpopsim.DeprecatedFeatureWarning, match="relative_coordinates argument"
         ):
-            ob, _ = contig.dfe_breakpoints(relative_coordinates=True)
+            ob, _ = contig.dme_breakpoints(relative_coordinates=True)
         for x, y in zip(breakpoints, ob):
             assert x == y
 

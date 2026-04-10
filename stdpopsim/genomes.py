@@ -348,6 +348,18 @@ class Contig:
     species = attr.ib(default=None, kw_only=True)
 
     def __attrs_post_init__(self):
+        if self._dfe_list and self.dme_list:
+            raise ValueError(
+                "Cannot specify both dme_list and dfe_list."
+            )
+        if len(self._dfe_list) > 0:
+            warnings.warn(
+                stdpopsim.DeprecatedFeatureWarning(
+                    "Use of dfe_list is deprecated. Please use dme_list."
+                )
+            )
+            self.dme_list = self._dfe_list
+
         if self.coordinates is None:
             self.coordinates = (None, 0, int(self.length))
         _, left, right = self.coordinates
@@ -364,17 +376,6 @@ class Contig:
                 genome=None,
                 ensembl_id="none",
             )
-        if self._dfe_list and self.dme_list:
-            raise ValueError(
-                "Cannot specify both dme_list and dfe_list."
-            )
-        if len(self._dfe_list) > 0:
-            warnings.warn(
-                stdpopsim.DeprecatedFeatureWarning(
-                    "Use of dfe_list is deprecated. Please use dme_list."
-                )
-            )
-            self.dme_list = self._dfe_list
 
     @staticmethod
     def basic_contig(
