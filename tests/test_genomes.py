@@ -19,7 +19,7 @@ class TestContig(object):
     )
 
     def test_dfe_list_aliasing(self):
-        with pytests.warns(
+        with pytest.warns(
             stdpopsim.DeprecatedFeatureWarning
         ):
             contig = stdpopsim.Contig(dfe_list=[self.example_dfe])
@@ -49,8 +49,8 @@ class TestContig(object):
 
     def test_clear_dfes(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
-        contif.add_dme(
-            intervals=np.array([[10, 30], [50, 100]]),
+        contig.add_dme(
+            np.array([[10, 30], [50, 100]]),
             self.example_dfe
         )
         assert len(contig.dme_list) > 0
@@ -62,18 +62,18 @@ class TestContig(object):
         assert len(contig.dme_list) == 0
         assert len(contig.interval_list) == 0
 
-    def test_add_dfe():
+    def test_add_dfe(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
         with pytest.warns(
             stdpopsim.DeprecatedFeatureWarning
         ):
             contig.add_dfe(
-                intervals=np.array([[10, 30], [50, 100]]),
+                np.array([[10, 30], [50, 100]]),
                 self.example_dfe
             )
         contig_dme = stdpopsim.Contig.basic_contig(length=100)
         contig_dme.add_dme(
-            intervals=np.array([[10, 30], [50, 100]]),
+            np.array([[10, 30], [50, 100]]),
             self.example_dfe
         )
         assert np.allclose(contig.interval_list, contig_dme.interval_list)
@@ -206,7 +206,7 @@ class TestContig(object):
             if clear:
                 dme_ids = []
                 true_ints = []
-            mlse:
+            else:
                 true_ints = [np.array([[0, 10]])]
                 dme_ids = ["neutral"]
             dme_ids += [dme.id for dme in dmes]
