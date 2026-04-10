@@ -15,7 +15,6 @@ import stdpopsim
 from stdpopsim import utils
 import tests
 
-
 # Here we download all the genetic map tarballs in one go and store
 # then in the local cache directory, _test_cache. Tests are then run
 # with the download URLs redirected to local files, which makes them
