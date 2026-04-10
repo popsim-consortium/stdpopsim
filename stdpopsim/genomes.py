@@ -349,9 +349,7 @@ class Contig:
 
     def __attrs_post_init__(self):
         if self._dfe_list and self.dme_list:
-            raise ValueError(
-                "Cannot specify both dme_list and dfe_list."
-            )
+            raise ValueError("Cannot specify both dme_list and dfe_list.")
         if len(self._dfe_list) > 0:
             warnings.warn(
                 stdpopsim.DeprecatedFeatureWarning(
