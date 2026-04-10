@@ -761,7 +761,7 @@ def get_slim_mutation_rate_map(contig):
     """
     Returns a tuple with the breakpoints and rates of mutations for SLiM.
     """
-    breaks, dfe_labels = contig.dfe_breakpoints()  # beware -1 labels
+    breaks, dfe_labels = contig.dme_breakpoints()  # beware -1 labels
     slim_fractions = np.array(
         [
             sum(
@@ -771,7 +771,7 @@ def get_slim_mutation_rate_map(contig):
                     if (not mt.is_neutral)
                 ]
             )
-            for d in contig.dfe_list
+            for d in contig.dme_list
         ]
         + [0]
     )  # append 0 for the -1 labels
@@ -805,16 +805,16 @@ def _enum_dfe_and_intervals(contig):
     function we can ensure these two steps assigns numeric ids to the DFEs in the
     same way.
     """
-    assert len(contig.dfe_list) == len(contig.interval_list)
-    for i, (d, ints) in enumerate(zip(contig.dfe_list, contig.interval_list)):
+    assert len(contig.dme_list) == len(contig.interval_list)
+    for i, (d, ints) in enumerate(zip(contig.dme_list, contig.interval_list)):
         yield i, d, ints
 
 
 def _dfe_to_mtypes(contig):
     """
     Assigns mutation type ids to each of the mutation types contained in this
-    `Contig`. This function will return a dictionary with `len(contig.dfe_list)`
-    elements, in which the position of the DFE in `contig.dfe_list` is the key.
+    `Contig`. This function will return a dictionary with `len(contig.dme_list)`
+    elements, in which the position of the DFE in `contig.dme_list` is the key.
     For each DFE, the dictionary holds a list of tuples that contain the
     assigned mutation type ids (used in SLiM) and the `MutationType` object.
     This is necessary so that we use the same numeric ids to the mutation types
@@ -863,7 +863,7 @@ def _add_dfes_to_metadata(ts, contig):
     schema = tables.metadata_schema.asdict()
     metadata = tables.metadata
     schema["properties"].update(_raw_stdpopsim_top_level_schema)
-    dfes = _get_json(contig.dfe_list)
+    dfes = _get_json(contig.dme_list)
     dfe_to_mtypes = _dfe_to_mtypes(contig)
     for i, d, ints in _enum_dfe_and_intervals(contig):
         dfes[i]["intervals"] = ints.tolist()
@@ -1048,7 +1048,7 @@ def slim_makescript(
         coordinate = None
         if hasattr(ee, "single_site_id"):
             dfe_index = [
-                i for i, x in enumerate(contig.dfe_list) if x.id == ee.single_site_id
+                i for i, x in enumerate(contig.dme_list) if x.id == ee.single_site_id
             ]
             if len(dfe_index) != 1:
                 raise ValueError(
@@ -1640,7 +1640,7 @@ class _SLiMEngine(stdpopsim.Engine):
             raise ValueError("slim_scaling_factor must be positive")
         if slim_burn_in < 0:
             raise ValueError("slim_burn_in must be non-negative")
-        if len(contig.dfe_list) == 0:
+        if len(contig.dme_list) == 0:
             raise ValueError("SLiM requires at least one DFE.")
 
         if slim_scaling_factor != 1:
@@ -1923,7 +1923,7 @@ class _SLiMEngine(stdpopsim.Engine):
         ts = self._simplify_remembered(ts)
 
         # Adding neutral mutations to simulation and recapitation periods
-        breaks, dfe_labels = contig.dfe_breakpoints()  # beware -1 labels
+        breaks, dfe_labels = contig.dme_breakpoints()  # beware -1 labels
         for i, dfe in enumerate(ts.metadata["stdpopsim"]["DFEs"]):
             assert len(dfe["proportions"]) == len(dfe["mutation_types"])
             for prop, mt in zip(dfe["proportions"], dfe["mutation_types"]):

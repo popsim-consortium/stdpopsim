@@ -209,9 +209,9 @@ class TestAPI:
             for proportion, seed in zip((0, 1), (1234, 2345)):
                 contig = species.get_contig(length=50818)
                 # need selected mutations so that SLiM produces some
-                contig.add_dfe(
+                contig.add_dme(
                     intervals=np.array([[0, contig.length / 2]], dtype="int"),
-                    DFE=stdpopsim.DFE(
+                    DME=stdpopsim.DFE(
                         id="test",
                         description="test",
                         long_description="test",
@@ -389,9 +389,9 @@ class TestAPI:
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("AraTha")
         contig = species.get_contig("5", left=0, right=100000)
-        contig.add_dfe(
+        contig.add_dme(
             intervals=[[0, contig.length // 2]],
-            DFE=stdpopsim.DFE(
+            DME=stdpopsim.DFE(
                 id="test",
                 description="test",
                 long_description="test",
@@ -1216,7 +1216,7 @@ class TestRecombinationMap(PiecewiseConstantSizeMixin):
         dfe = species.get_dfe("GammaAdditive_H18")
         exons = species.get_annotations("araport_11_exons")
         exon_intervals = exons.get_chromosome_annotations("1")
-        contig.add_dfe(intervals=exon_intervals, DFE=dfe)
+        contig.add_dme(intervals=exon_intervals, DME=dfe)
 
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
@@ -1317,7 +1317,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         for j, dfe in enumerate(dfes):
             interval = [breaks[j], breaks[j + 1]]
             print(j, interval)
-            contig.add_dfe(intervals=np.array([interval], dtype="int"), DFE=dfe)
+            contig.add_dme(intervals=np.array([interval], dtype="int"), DME=dfe)
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
             demographic_model=self.model,
@@ -1373,7 +1373,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         slim_ends = mut_rate_metadata["ends"]
         Q = self.slim_metadata_key0(ts.metadata["SLiM"]["user_metadata"], "Q")
 
-        for dfe, intervals in zip(contig.dfe_list, contig.interval_list):
+        for dfe, intervals in zip(contig.dme_list, contig.interval_list):
             prop_nonneutral = 0.0
             for mt, p in zip(dfe.mutation_types, dfe.proportions):
                 if not mt.is_neutral:
@@ -1444,8 +1444,8 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         slim_mt_info = ts.metadata["SLiM"]["user_metadata"]["mutationTypes"][0]
         has_recap = metadata_ids[-1] == "recapitation"
         slim_to_mt_map = {}
-        assert len(contig.dfe_list) + has_recap == len(ts.metadata["stdpopsim"]["DFEs"])
-        for dfe, ts_metadata in zip(contig.dfe_list, ts.metadata["stdpopsim"]["DFEs"]):
+        assert len(contig.dme_list) + has_recap == len(ts.metadata["stdpopsim"]["DFEs"])
+        for dfe, ts_metadata in zip(contig.dme_list, ts.metadata["stdpopsim"]["DFEs"]):
             assert dfe.id == ts_metadata["id"]
             assert len(dfe.mutation_types) == len(ts_metadata["mutation_types"])
             for mt, md in zip(dfe.mutation_types, ts_metadata["mutation_types"]):
@@ -1473,9 +1473,9 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         )
         self.verify_dfes_metadata(ts, ge_types)
         self.verify_discretized_dominance(contig, ts)
-        assert len(contig.dfe_list) == len(ge_types)
+        assert len(contig.dme_list) == len(ge_types)
         for j, (dfe, intervals) in enumerate(
-            zip(contig.dfe_list, contig.interval_list)
+            zip(contig.dme_list, contig.interval_list)
         ):
             assert str(j) in ge_types
             ge = self.slim_metadata_key0(ge_types, str(j))
@@ -1535,8 +1535,8 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
 
     def test_no_dfe(self):
         contig = get_test_contig()
-        contig.clear_dfes()
-        assert len(contig.dfe_list) == 0
+        contig.clear_dmes()
+        assert len(contig.dme_list) == 0
         engine = stdpopsim.get_engine("slim")
         with pytest.raises(ValueError):
             _ = engine.simulate(
@@ -1547,7 +1547,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
 
     def test_default_dfe(self):
         contig = get_test_contig()
-        assert len(contig.dfe_list) == 1
+        assert len(contig.dme_list) == 1
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
             demographic_model=self.model,
@@ -1564,10 +1564,10 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         L = contig.length
         example_dfes = self.get_example_dfes()
         for j, dfe in enumerate(example_dfes):
-            contig.add_dfe(
+            contig.add_dme(
                 np.array([[10 * (j + 1), 100 * (10 - j)], [L / 2, L]], dtype="int"), dfe
             )
-        assert len(contig.dfe_list) == 1 + len(example_dfes)
+        assert len(contig.dme_list) == 1 + len(example_dfes)
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
             demographic_model=self.model,
@@ -1583,9 +1583,9 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         # test that even if a DFE ends up being unused then it'll still be there
         contig = get_test_contig()
         example_dfes = self.get_example_dfes()
-        contig.add_dfe(np.array([[0, contig.length]], dtype="int"), example_dfes[0])
-        contig.add_dfe(np.array([[0, contig.length]], dtype="int"), example_dfes[3])
-        assert len(contig.dfe_list) == 3
+        contig.add_dme(np.array([[0, contig.length]], dtype="int"), example_dfes[0])
+        contig.add_dme(np.array([[0, contig.length]], dtype="int"), example_dfes[3])
+        assert len(contig.dme_list) == 3
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
             demographic_model=self.model,
@@ -1616,11 +1616,11 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             proportions=[0.2, 0.8],
             mutation_types=[m for _, m in self.example_mut_types[7:9]],
         )
-        contig.add_dfe(np.array([[0, 0.5 * L]], dtype="int"), dfe0)
-        contig.add_dfe(np.array([[0.2 * L, 0.4 * L]], dtype="int"), dfe0)
-        contig.add_dfe(np.array([[0.45 * L, L]], dtype="int"), dfe1)
-        contig.add_dfe(np.array([[0.7 * L, 0.9 * L]], dtype="int"), dfe0)
-        assert len(contig.dfe_list) == 5
+        contig.add_dme(np.array([[0, 0.5 * L]], dtype="int"), dfe0)
+        contig.add_dme(np.array([[0.2 * L, 0.4 * L]], dtype="int"), dfe0)
+        contig.add_dme(np.array([[0.45 * L, L]], dtype="int"), dfe1)
+        contig.add_dme(np.array([[0.7 * L, 0.9 * L]], dtype="int"), dfe0)
+        assert len(contig.dme_list) == 5
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
             demographic_model=self.model,
@@ -1648,7 +1648,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             ],
             proportions=[0.5, 0.5],
         )
-        contig.add_dfe(np.array([[0, contig.length]], dtype="int"), dfe)
+        contig.add_dme(np.array([[0, contig.length]], dtype="int"), dfe)
         ts = engine.simulate(
             demographic_model=self.model,
             contig=contig,
@@ -1679,12 +1679,12 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         assert ts.num_sites == 0
         self.verify_genomic_elements(contig, ts)
         self.verify_mutation_rates(contig, ts)
-        assert len(ts.metadata["stdpopsim"]["DFEs"]) == len(contig.dfe_list)
+        assert len(ts.metadata["stdpopsim"]["DFEs"]) == len(contig.dme_list)
 
-        contig.dfe_list[0].mutation_types = [
+        contig.dme_list[0].mutation_types = [
             stdpopsim.MutationType() for i in range(10)
         ]
-        contig.dfe_list[0].proportions = [1 / 10 for i in range(10)]
+        contig.dme_list[0].proportions = [1 / 10 for i in range(10)]
         ts = engine.simulate(
             demographic_model=self.model,
             contig=contig,
@@ -1721,9 +1721,9 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         assert np.allclose(
             ts.metadata["SLiM"]["user_metadata"]["mutationRates"][0]["rates"], [0.0 * Q]
         )
-        contig.add_dfe(
+        contig.add_dme(
             intervals=np.array([[0, contig.length]], dtype="int"),
-            DFE=stdpopsim.DFE(
+            DME=stdpopsim.DFE(
                 id="neutral_sel",
                 description="neutral with some selected",
                 long_description="test",
@@ -1771,7 +1771,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             proportions=[0.5, 0.5],
         )
         with pytest.warns(UserWarning, match="No intervals remain"):
-            contig.add_dfe(np.array([[1e6, 1.1e6]], dtype="int"), dfe)
+            contig.add_dme(np.array([[1e6, 1.1e6]], dtype="int"), dfe)
         assert contig.interval_list[1].shape[0] == 0
 
     def test_chromosomal_segment(self):
@@ -1782,12 +1782,12 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         L = contig.length
         example_dfes = self.get_example_dfes()
         for j, dfe in enumerate(example_dfes):
-            contig.add_dfe(
+            contig.add_dme(
                 left
                 + np.array([[10 * (j + 1), 100 * (10 - j)], [L / 2, L]], dtype="int"),
                 dfe,
             )
-        assert len(contig.dfe_list) == 1 + len(example_dfes)
+        assert len(contig.dme_list) == 1 + len(example_dfes)
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
             demographic_model=self.model,
@@ -1807,15 +1807,15 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
 
         # check that default DFE is clipped to [left, right]
         contig = homsap.get_contig("chr22", left=left, right=right)
-        dfe_breaks, dfe_type = contig.dfe_breakpoints()
+        dfe_breaks, dfe_type = contig.dme_breakpoints()
         assert dfe_breaks.size == 4 and dfe_type.size == 3
         assert dfe_breaks[1] == left and dfe_breaks[2] == right
         assert dfe_type[0] == dfe_type[2] == -1 and dfe_type[1] == 0
 
         # check that added DFE is clipped to [left, right]
         dfe = homsap.get_dfe("Gamma_K17")
-        contig.add_dfe(np.array([[0, contig.length]], dtype="int"), dfe)
-        dfe_breaks, dfe_type = contig.dfe_breakpoints()
+        contig.add_dme(np.array([[0, contig.length]], dtype="int"), dfe)
+        dfe_breaks, dfe_type = contig.dme_breakpoints()
         assert dfe_breaks.size == 4 and dfe_type.size == 3
         assert dfe_breaks[1] == left and dfe_breaks[2] == right
         assert dfe_type[0] == dfe_type[2] == -1 and dfe_type[1] == 1
@@ -1863,11 +1863,11 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             proportions=[0.2, 0.7, 0.1],
             mutation_types=emts,
         )
-        contig.add_dfe(np.array([[0, 0.5 * L]], dtype="int"), dfe0)
-        contig.add_dfe(np.array([[0.2 * L, 0.4 * L]], dtype="int"), dfe0)
-        contig.add_dfe(np.array([[0.45 * L, L]], dtype="int"), dfe1)
-        contig.add_dfe(np.array([[0.7 * L, 0.9 * L]], dtype="int"), dfe0)
-        assert len(contig.dfe_list) == 5
+        contig.add_dme(np.array([[0, 0.5 * L]], dtype="int"), dfe0)
+        contig.add_dme(np.array([[0.2 * L, 0.4 * L]], dtype="int"), dfe0)
+        contig.add_dme(np.array([[0.45 * L, L]], dtype="int"), dfe1)
+        contig.add_dme(np.array([[0.7 * L, 0.9 * L]], dtype="int"), dfe0)
+        assert len(contig.dme_list) == 5
         engine = stdpopsim.get_engine("slim")
         contig.mutation_rate *= 10
         ts = engine.simulate(
@@ -1877,7 +1877,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             verbosity=3,  # to get metadata output
             seed=260,
         )
-        assert len(ts.metadata["stdpopsim"]["DFEs"]) == len(contig.dfe_list) + 1
+        assert len(ts.metadata["stdpopsim"]["DFEs"]) == len(contig.dme_list) + 1
         # slim mutation type IDs with dominance coeff lists:
         mut_id_haslist = {}
         for dfe in ts.metadata["stdpopsim"]["DFEs"]:
@@ -2022,7 +2022,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
         ]
         contig = get_test_contig()
         contig.add_single_site(id=self.mut_id, coordinate=100)
-        contig.dfe_list[1].mutation_types = []
+        contig.dme_list[1].mutation_types = []
         engine = stdpopsim.get_engine("slim")
         with pytest.raises(ValueError, match="must contain a single mutation type"):
             engine.simulate(
@@ -2055,9 +2055,9 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             description="test test",
             long_description="test test test",
         )
-        contig.add_dfe(
+        contig.add_dme(
             intervals=np.array([[100, 101]], dtype="int"),
-            DFE=dfe,
+            DME=dfe,
         )
         engine = stdpopsim.get_engine("slim")
         with pytest.raises(ValueError, match="must contain a single mutation type"):
@@ -2085,7 +2085,7 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             distribution_args=[1.0, 2.0],
             convert_to_substitution=False,
         )
-        contig.dfe_list[1].mutation_types[0] = mt
+        contig.dme_list[1].mutation_types[0] = mt
         engine = stdpopsim.get_engine("slim")
         with pytest.raises(ValueError, match="instead of a fixed fitness coefficient"):
             engine.simulate(
@@ -2118,9 +2118,9 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             description="test test",
             long_description="test test test",
         )
-        contig.add_dfe(
+        contig.add_dme(
             intervals=np.array([[100, 101], [103, 104]], dtype="int"),
-            DFE=dfe,
+            DME=dfe,
         )
         engine = stdpopsim.get_engine("slim")
         with pytest.raises(ValueError, match="refers to a DFE with intervals"):
@@ -2154,9 +2154,9 @@ class TestDrawMutation(PiecewiseConstantSizeMixin):
             description="test test",
             long_description="test test test",
         )
-        contig.add_dfe(
+        contig.add_dme(
             intervals=np.array([[100, 102]], dtype="int"),
-            DFE=dfe,
+            DME=dfe,
         )
         engine = stdpopsim.get_engine("slim")
         with pytest.raises(ValueError, match="refers to a DFE with intervals"):
@@ -3033,9 +3033,9 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
         engine = stdpopsim.get_engine("slim")
         model = self._get_island_model()
         contig = get_test_contig()
-        contig.add_dfe(
+        contig.add_dme(
             intervals=np.array([[0, contig.length // 2]], dtype="int"),
-            DFE=stdpopsim.DFE(
+            DME=stdpopsim.DFE(
                 id="BGS",
                 description="deleterious",
                 long_description="mutations",
@@ -3108,7 +3108,7 @@ class TestSelectionCoeffFromMutation:
     def test_stacked(self):
         engine = stdpopsim.get_engine("slim")
         contig = self.species.get_contig(length=20, mutation_rate=1e-2)
-        contig.add_dfe(np.array([[0, contig.length // 2]]), self.dfe)
+        contig.add_dme(np.array([[0, contig.length // 2]]), self.dfe)
         while True:
             ts = engine.simulate(
                 demographic_model=self.model,

@@ -829,9 +829,9 @@ def add_simulate_species_parser(parser, species):
                 intervals_summary_str = f"[{left}, {right})"
 
             dfe = species.get_dfe(args.dfe)
-            contig.add_dfe(
+            contig.add_dme(
                 intervals=intervals,
-                DFE=dfe,
+                DME=dfe,
             )
             logger.info(
                 f"Applying selection under the DFE model {dfe.id} "
