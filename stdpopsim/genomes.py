@@ -302,8 +302,8 @@ class Contig:
     :vartype exclude: bool
     :ivar interval_list: A list of :class:`np.array` objects containing integers.
         These specify where each DME provided in dme_list is applied.
-        By default, the inital interval list spans the whole chromosome with
-        DME where variants have no effects on traits or fitness.
+        By default, the initial interval list spans the whole chromosome with
+        a DME whose variants have no effects on traits or fitness.
     :ivar dme_list: A list of :class:`.DME` objects.
         By default, the only DME is completely neutral and affects no traits.
     :vartype dme_list: list
@@ -348,14 +348,9 @@ class Contig:
     species = attr.ib(default=None, kw_only=True)
 
     def __attrs_post_init__(self):
-        if self._dfe_list and self.dme_list:
+        if len(self._dfe_list) > 0 and len(self.dme_list) > 0:
             raise ValueError("Cannot specify both dme_list and dfe_list.")
         if len(self._dfe_list) > 0:
-            warnings.warn(
-                stdpopsim.DeprecatedFeatureWarning(
-                    "Use of dfe_list is deprecated. Please use dme_list."
-                )
-            )
             self.dme_list = self._dfe_list
 
         if self.coordinates is None:
@@ -694,11 +689,6 @@ class Contig:
             return f"{chromosome}:{left}-{right}"
 
     def dfe_breakpoints(self, *, relative_coordinates=None):
-        warnings.warn(
-            stdpopsim.DeprecatedFeatureWarning(
-                "dfe_breakpoints is deprecated. Please use dme_breakpoints."
-            )
-        )
         return self.dme_breakpoints(relative_coordinates=relative_coordinates)
 
     def dme_breakpoints(self, *, relative_coordinates=None):
@@ -744,13 +734,6 @@ class Contig:
         return breaks, dme_labels
 
     def clear_dfes(self):
-        warnings.warn(
-            stdpopsim.DeprecatedFeatureWarning(
-                "The original_coordinates property is deprecated, "
-                "since contigs are no longer shifted to be relative to their "
-                "left endpoint: use Contig.coordinates instead."
-            )
-        )
         self.clear_dmes()
 
     def clear_dmes(self):
@@ -763,28 +746,13 @@ class Contig:
 
     @property
     def dfe_list(self):
-        warnings.warn(
-            stdpopsim.DeprecatedFeatureWarning(
-                "contig.dfe_list is deprecated. Please use contig.dme_list"
-            )
-        )
         return self.dme_list
 
     @dfe_list.setter
     def dfe_list(self, value):
-        warnings.warn(
-            stdpopsim.DeprecatedFeatureWarning(
-                "contig.dfe_list is deprecated. Please use contig.dme_list"
-            )
-        )
         self.dme_list = value
 
     def add_dfe(self, intervals, DFE):
-        warnings.warn(
-            stdpopsim.DeprecatedFeatureWarning(
-                "add_dfe is deprecated. Please use add_dme."
-            )
-        )
         self.add_dme(intervals, DFE)
 
     def add_dme(self, intervals, DME):

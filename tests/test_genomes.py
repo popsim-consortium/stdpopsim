@@ -36,28 +36,23 @@ class TestContig(object):
         species = stdpopsim.get_species("HomSap")
         genmap = "HapMapII_GRCh38"
         chrom = species.get_contig(chr_id, genetic_map=genmap)
-        with pytest.warns(stdpopsim.DeprecatedFeatureWarning):
-            contig = stdpopsim.Contig(
-                recombination_map=chrom.recombination_map,
-                mutation_rate=1e-8,
-                dfe_list=[self.example_dfe],
-            )
+        contig = stdpopsim.Contig(
+            recombination_map=chrom.recombination_map,
+            mutation_rate=1e-8,
+            dfe_list=[self.example_dfe],
+        )
         assert contig.dme_list[0].id == self.example_dfe.id
-        with pytest.warns(stdpopsim.DeprecatedFeatureWarning):
-            contig.dfe_list[0].id = "def"
+        contig.dfe_list[0].id = "def"
         assert contig.dme_list[0].id == "def"
         contig.dme_list[0].id = "abc"
-        with pytest.warns(stdpopsim.DeprecatedFeatureWarning):
-            dfe_id = contig.dfe_list[0].id
+        dfe_id = contig.dfe_list[0].id
         assert dfe_id == "abc"
-        with pytest.warns(stdpopsim.DeprecatedFeatureWarning):
-            contig.dfe_list = ["a"]
+        contig.dfe_list = ["a"]
         assert len(contig.dme_list) == 1 and contig.dme_list[0] == "a"
 
     def test_dfe_breakpoints(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
-        with pytest.warns(stdpopsim.DeprecatedFeatureWarning):
-            dfe_res1, dfe_res2 = contig.dfe_breakpoints()
+        dfe_res1, dfe_res2 = contig.dfe_breakpoints()
         dme_res1, dme_res2 = contig.dme_breakpoints()
         assert np.allclose(dfe_res1, dme_res1)
         assert np.allclose(dfe_res2, dme_res2)
@@ -67,15 +62,13 @@ class TestContig(object):
         contig.add_dme(np.array([[10, 30], [50, 100]]), self.example_dfe)
         assert len(contig.dme_list) > 0
         assert len(contig.interval_list) > 0
-        with pytest.warns(stdpopsim.DeprecatedFeatureWarning):
-            contig.clear_dfes()
+        contig.clear_dfes()
         assert len(contig.dme_list) == 0
         assert len(contig.interval_list) == 0
 
     def test_add_dfe(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
-        with pytest.warns(stdpopsim.DeprecatedFeatureWarning):
-            contig.add_dfe(np.array([[10, 30], [50, 100]]), self.example_dfe)
+        contig.add_dfe(np.array([[10, 30], [50, 100]]), self.example_dfe)
         contig_dme = stdpopsim.Contig.basic_contig(length=100)
         contig_dme.add_dme(np.array([[10, 30], [50, 100]]), self.example_dfe)
         assert np.allclose(contig.interval_list, contig_dme.interval_list)
