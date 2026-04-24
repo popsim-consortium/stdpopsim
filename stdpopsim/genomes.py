@@ -250,12 +250,13 @@ class Contig:
     """
     Class representing a contiguous region of genome that is to be simulated.
     This contains the information about mutation rates, distributions of
-    fitness effects (DFEs), gene conversion rates and recombination rates
+    mutational effects (DMEs), gene conversion rates and recombination rates
     that are needed to simulate this region.
 
-    Information about targets of selection are contained in the ``dfe_list``
-    and ``interval_list``. These must be of the same length, and the k-th DFE
-    applies to the k-th interval; see :meth:`.add_dfe` for more information.
+    Information about variants that affect traits
+    or fitness are contained in the ``dme_list``
+    and ``interval_list``. These must be of the same length, and the k-th DME
+    applies to the k-th interval; see :meth:`.add_dme` for more information.
 
     One attribute of the Contig is ``species``, which is necessary to pass
     on aspects of life history important for simulation. However, generic
@@ -299,12 +300,13 @@ class Contig:
     :ivar exclude: If True, ``mask_intervals`` specify regions to exclude. If False,
         ``mask_intervals`` specify regions in keep.
     :vartype exclude: bool
-    :ivar dfe_list: A list of :class:`.DFE` objects.
-        By default, the only DFE is completely neutral.
-    :vartype dfe_list: list
     :ivar interval_list: A list of :class:`np.array` objects containing integers.
-        By default, the inital interval list spans the whole chromosome with the
-        neutral DFE.
+        These specify where each DME provided in dme_list is applied.
+        By default, the initial interval list spans the whole chromosome with
+        a DME whose variants have no effects on traits or fitness.
+    :ivar dme_list: A list of :class:`.DME` objects.
+        By default, the only DME is completely neutral and affects no traits.
+    :vartype dme_list: list
     :ivar coordinates: The location of the contig on a named chromosome,
         as a tuple of the form `(chromosome, left, right)`. If `None`, the contig
         is assumed to be generic (i.e. it does not inherit a coordinate system
@@ -339,18 +341,24 @@ class Contig:
     genetic_map = attr.ib(default=None)
     inclusion_mask = attr.ib(default=None)
     exclusion_mask = attr.ib(default=None)
-    dfe_list = attr.ib(factory=list)
+    dme_list = attr.ib(factory=list)
+    _dfe_list = attr.ib(factory=list, alias="dfe_list")
     interval_list = attr.ib(factory=list)
     coordinates = attr.ib(default=None, type=tuple)
     species = attr.ib(default=None, kw_only=True)
 
     def __attrs_post_init__(self):
+        if len(self._dfe_list) > 0 and len(self.dme_list) > 0:
+            raise ValueError("Cannot specify both dme_list and dfe_list.")
+        if len(self._dfe_list) > 0:
+            self.dme_list = self._dfe_list
+
         if self.coordinates is None:
             self.coordinates = (None, 0, int(self.length))
         _, left, right = self.coordinates
-        self.add_dfe(
+        self.add_dme(
             np.array([[left, right]]),
-            stdpopsim.dfe.neutral_dfe(),
+            stdpopsim.traits.neutral_dfe(),
         )
         if self.species is None:
             self.species = stdpopsim.species.Species(
@@ -681,29 +689,32 @@ class Contig:
             return f"{chromosome}:{left}-{right}"
 
     def dfe_breakpoints(self, *, relative_coordinates=None):
+        return self.dme_breakpoints(relative_coordinates=relative_coordinates)
+
+    def dme_breakpoints(self, *, relative_coordinates=None):
         """
         Returns two things: the sorted vector of endpoints of all intervals across
-        all DFEs in the contig, and a vector of integer labels for these intervals,
-        saying which DFE goes with which interval.
+        all DMEs in the contig, and a vector of integer labels for these intervals,
+        saying which DME goes with which interval.
         This provides a complementary method to tell which bit of the contig
-        has which DFE attached, which may be more convenient than the list of two-column
+        has which DME attached, which may be more convenient than the list of two-column
         arrays provided by interval_list.
 
-        Suppose there are n+1 unique interval endpoints across all the DFE intervals
+        Suppose there are n+1 unique interval endpoints across all the DME intervals
         in :attr:`.interval_list`.  (If the intervals in that list
         cover the whole genome, the number of intervals is n.)
-        This method returns a tuple of two things: ``breaks, dfe_labels``.
+        This method returns a tuple of two things: ``breaks, dme_labels``.
         "breaks" is the array containing those n+1 unique endpoints, in increasing order,
-        and "dfe" is the array of length n containing the index of the DFE
+        and "dme" is the array of length n containing the index of the DME
         the applies to that interval. So, ``breaks[0]`` is always 0, and
         ``breaks[n+1]`` is always the length of the contig, and
-        ``dfe_labels[k] = j`` if
+        ``dme_labels[k] = j`` if
         ``[breaks[k], breaks[k+1]]`` is an interval in ``contig.interval_list[j]``,
-        i.e., if ``contig.dfe_list[j]`` applies to the interval starting at
-        ``breaks[k]``.  Some intervals may not be covered by a DFE, in which
+        i.e., if ``contig.dme_list[j]`` applies to the interval starting at
+        ``breaks[k]``.  Some intervals may not be covered by a DME, in which
         case they will have the label ``-1`` (beware of python indexing!).
 
-        :return: A tuple (breaks, dfe_labels).
+        :return: A tuple (breaks, dme_labels).
         """
         if relative_coordinates is not None:
             warnings.warn(
@@ -717,27 +728,41 @@ class Contig:
         breaks = np.unique(
             np.vstack(self.interval_list + [[[0, int(self.length)]]])  # also sorted
         )
-        dfe_labels = np.full(len(breaks) - 1, -1, dtype="int")
+        dme_labels = np.full(len(breaks) - 1, -1, dtype="int")
         for j, intervals in enumerate(self.interval_list):
-            dfe_labels[np.isin(breaks[:-1], intervals[:, 0], assume_unique=True)] = j
-        return breaks, dfe_labels
+            dme_labels[np.isin(breaks[:-1], intervals[:, 0], assume_unique=True)] = j
+        return breaks, dme_labels
 
     def clear_dfes(self):
+        self.clear_dmes()
+
+    def clear_dmes(self):
         """
-        Removes all DFEs from the contig (as well as the corresponding list of
+        Removes all DMEs from the contig (as well as the corresponding list of
         intervals).
         """
-        self.dfe_list = []
+        self.dme_list = []
         self.interval_list = []
 
+    @property
+    def dfe_list(self):
+        return self.dme_list
+
+    @dfe_list.setter
+    def dfe_list(self, value):
+        self.dme_list = value
+
     def add_dfe(self, intervals, DFE):
+        self.add_dme(intervals, DFE)
+
+    def add_dme(self, intervals, DME):
         """
-        Adds the provided DFE to the contig, applying to the regions of the
+        Adds the provided DME to the contig, applying to the regions of the
         contig specified in ``intervals``. These intervals are also *removed*
-        from the intervals of any previously-present DFEs - in other words,
-        more recently-added DFEs take precedence. Each DFE added in this way
+        from the intervals of any previously-present DMEs - in other words,
+        more recently-added DMEs take precedence. Each DME added in this way
         carries its own MutationTypes: no mutation types are shared between
-        DFEs added by different calls to ``add_dfe( )``, even if the same DFE
+        DMEs added by different calls to ``add_dme( )``, even if the same DME
         object is added more than once.
 
         For instance, if we do
@@ -746,26 +771,26 @@ class Contig:
 
             a1 = np.array([[0, 100]])
             a2 = np.array([[50, 120]])
-            contig.add_dfe(a1, dfe1)
-            contig.add_dfe(a2, dfe2)
+            contig.add_dme(a1, dme1)
+            contig.add_dme(a2, dme2)
 
-        then ``dfe1`` applies to the region from 0 to 50 (including 0 but not
-        50) and ``dfe2`` applies to the region from 50 to 120 (including 50 but
+        then ``dme1`` applies to the region from 0 to 50 (including 0 but not
+        50) and ``dme2`` applies to the region from 50 to 120 (including 50 but
         not 120).
 
         Any of the ``intervals`` that fall outside of the contig will be
         clipped to the contig boundaries. If no ``intervals`` overlap the
-        contig, an "empty" DFE will be added with a warning.
+        contig, an "empty" DME will be added with a warning.
 
         :param array intervals: A valid set of intervals.
-        :param DFE dfe: A DFE object.
+        :param DME dme: A DME object.
         """
         _, left, right = self.coordinates
         intervals = stdpopsim.utils.clip_intervals(intervals, left, right)
         stdpopsim.utils._check_intervals_validity(intervals, start=left, end=right)
         for j, ints in enumerate(self.interval_list):
             self.interval_list[j] = stdpopsim.utils.mask_intervals(ints, intervals)
-        self.dfe_list.append(DFE)
+        self.dme_list.append(DME)
         self.interval_list.append(intervals)
 
     def add_single_site(
@@ -828,9 +853,9 @@ class Contig:
             description=description,
             long_description=long_description,
         )
-        self.add_dfe(
+        self.add_dme(
             intervals=np.array([[coordinate, coordinate + 1]], dtype="int"),
-            DFE=dfe,
+            DME=dfe,
         )
 
     @property
@@ -838,43 +863,43 @@ class Contig:
         """
         Returns True if the contig has no non-neutral mutation types.
         """
-        return all(mt.is_neutral for d in self.dfe_list for mt in d.mutation_types)
+        return all(mt.is_neutral for d in self.dme_list for mt in d.mutation_types)
 
     def mutation_types(self):
         """
         Provides information about the MutationTypes assigned to this Contig,
-        along with information about which DFE they correspond to. This is
+        along with information about which DME they correspond to. This is
         useful because when simulating with SLiM, the mutation types are
         assigned numeric IDs in the order provided here (e.g., in the order
-        encountered when iterating over the DFEs); this method provides an easy
-        way to map back from their numeric ID to the DFE that each MutationType
+        encountered when iterating over the DMEs); this method provides an easy
+        way to map back from their numeric ID to the DME that each MutationType
         corresponds to.
 
         This method returns a list of dictionaries of length equal to the
-        number of MutationTypes in all DFEs of the contig, each dictionary
-        containing three things: ``"dfe_id"``: the ID of the DFE this
+        number of MutationTypes in all DMEs of the contig, each dictionary
+        containing three things: ``"dme_id"``: the ID of the DME this
         MutationType comes from; ``mutation_type``: the mutation type; and
         ``id``: the index in the list.
 
         For instance, if ``muts`` is a list of mutation objects in a SLiM tree
-        sequence, then the following code will print the IDs of the DFEs that
+        sequence, then the following code will print the IDs of the DMEs that
         each comes from:
 
         .. code-block:: python
 
             mut_types = contig.mutation_types()
             for m in muts:
-                dfe_ids = [mut_types[k]["dfe_id"] for md in m.metadata["muation_list"]]
-                print(f"Mutation {m.id} has mutations from DFE(s) {','.join(dfe_ids)}")
+                dme_ids = [mut_types[k]["dme_id"] for md in m.metadata["muation_list"]]
+                print(f"Mutation {m.id} has mutations from DME(s) {','.join(dme_ids)}")
 
         """
         id = 0
         mut_types = []
-        for d in self.dfe_list:
+        for d in self.dme_list:
             for mt in d.mutation_types:
                 mut_types.append(
                     {
-                        "dfe_id": d.id,
+                        "dme_id": d.id,
                         "mutation_type": mt,
                         "id": id,
                     }
@@ -888,7 +913,7 @@ class Contig:
             "Contig(length={:.2G}, mutation_rate={:.2G}, "
             "recombination_rate={:.2G}, bacterial_recombination={}, "
             "gene_conversion_fraction={}, gene_conversion_length={}, "
-            "genetic_map={}, origin={}, dfe_list={}, "
+            "genetic_map={}, origin={}, dme_list={}, "
             "interval_list={}, species={})"
         ).format(
             self.length,
@@ -899,7 +924,7 @@ class Contig:
             self.gene_conversion_length,
             gmap,
             self.origin,
-            self.dfe_list,
+            self.dme_list,
             self.interval_list,
             self.species.id,
         )
