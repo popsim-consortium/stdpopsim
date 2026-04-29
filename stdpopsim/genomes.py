@@ -702,7 +702,9 @@ class Contig:
             return f"{chromosome}:{left}-{right}"
 
     def dfe_breakpoints(self, *, relative_coordinates=None):
-        """Alias for :meth:`dme_breakpoints`, see there for more details."""
+        """
+        Alias for :meth:`dme_breakpoints`, see there for more details.
+        """
         return self.dme_breakpoints(relative_coordinates=relative_coordinates)
 
     def dme_breakpoints(self, *, relative_coordinates=None):
