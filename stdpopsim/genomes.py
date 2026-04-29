@@ -314,7 +314,7 @@ class Contig:
     :ivar dme_list: A list of :class:`.DME` objects.
         By default, the only DME is completely neutral and affects no traits.
     :vartype dme_list: list
-    :ivar dfe_list: Alias of the `dme_list` keyword argument. Note that only
+    :ivar dfe_list: Alias of the `dme_list` keyword argument. Only
         one of `dme_list` or `dfe_list` may be specified.
     :vartype dfe_list: list
     :ivar coordinates: The location of the contig on a named chromosome,
