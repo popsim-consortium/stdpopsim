@@ -772,7 +772,9 @@ class Contig:
         self.dme_list = value
 
     def add_dfe(self, intervals, DFE):
-        """Alias for :meth:`add_dme`, see there for more details."""
+        """
+        Alias for :meth:`add_dme`, see there for more details.
+        """
         self.add_dme(intervals, DFE)
 
     def add_dme(self, intervals, DME):
