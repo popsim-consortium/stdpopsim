@@ -81,6 +81,8 @@ class TestContig(object):
             contig.dfe_list = ["a"]
             assert len(contig.dme_list) == 1 and contig.dme_list[0] == "a"
             assert contig.dfe_list == contig.dme_list
+            with pytest.raises(AttributeError):
+                contig._dfe_list
 
     def test_dfe_breakpoints(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
