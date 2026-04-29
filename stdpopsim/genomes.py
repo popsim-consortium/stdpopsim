@@ -259,6 +259,7 @@ class Contig:
     have an aliased version with `dfe` instead of `dme`. For example,
     ``dfe_list`` is an alias of ``dme_list``, :meth:`.add_dfe` is an alias of
     :meth:`.add_dme`, and so on.
+    We encourage new code to use `dme` rather than `dfe`, however.
 
     Information about variants that affect traits
     or fitness are contained in the ``dme_list``
