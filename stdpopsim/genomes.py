@@ -748,7 +748,9 @@ class Contig:
         return breaks, dme_labels
 
     def clear_dfes(self):
-        """Alias for :meth:`clear_dmes`, see there for more details."""
+        """
+        Alias for :meth:`clear_dmes`, see there for more details.
+        """
         self.clear_dmes()
 
     def clear_dmes(self):
