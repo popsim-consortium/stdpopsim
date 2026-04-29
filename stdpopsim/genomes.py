@@ -253,6 +253,13 @@ class Contig:
     mutational effects (DMEs), gene conversion rates and recombination rates
     that are needed to simulate this region.
 
+    Note that distributions of fitness effects (DFEs) are a special case
+    of DMEs, and so DFEs are supported and can be can be used anywhere that
+    calls for a DME. Additionally, all functions and attributes based on DMEs
+    have an aliased version with `dfe` instead of `dme`. For example,
+    ``dfe_list`` is an alias of ``dme_list``, :meth:`.add_dfe` is an alias of
+    :meth:`.add_dme`, and so on.
+
     Information about variants that affect traits
     or fitness are contained in the ``dme_list``
     and ``interval_list``. These must be of the same length, and the k-th DME
@@ -307,6 +314,9 @@ class Contig:
     :ivar dme_list: A list of :class:`.DME` objects.
         By default, the only DME is completely neutral and affects no traits.
     :vartype dme_list: list
+    :ivar dfe_list: Alias of the `dme_list` keyword argument. Note that only
+        one of `dme_list` or `dfe_list` may be specified.
+    :vartype dfe_list: list
     :ivar coordinates: The location of the contig on a named chromosome,
         as a tuple of the form `(chromosome, left, right)`. If `None`, the contig
         is assumed to be generic (i.e. it does not inherit a coordinate system
@@ -342,16 +352,19 @@ class Contig:
     inclusion_mask = attr.ib(default=None)
     exclusion_mask = attr.ib(default=None)
     dme_list = attr.ib(factory=list)
-    _dfe_list = attr.ib(factory=list, alias="dfe_list")
     interval_list = attr.ib(factory=list)
     coordinates = attr.ib(default=None, type=tuple)
     species = attr.ib(default=None, kw_only=True)
+    # _dfe_list only gets used in the initialization and subsequently
+    # gets deleted. It should not be used anywhere else.
+    _dfe_list = attr.ib(factory=list, alias="dfe_list")
 
     def __attrs_post_init__(self):
-        if len(self._dfe_list) > 0 and len(self.dme_list) > 0:
-            raise ValueError("Cannot specify both dme_list and dfe_list.")
         if len(self._dfe_list) > 0:
+            if len(self.dme_list) > 0:
+                raise ValueError("Cannot specify both dme_list and dfe_list.")
             self.dme_list = self._dfe_list
+        del self._dfe_list
 
         if self.coordinates is None:
             self.coordinates = (None, 0, int(self.length))
@@ -689,6 +702,7 @@ class Contig:
             return f"{chromosome}:{left}-{right}"
 
     def dfe_breakpoints(self, *, relative_coordinates=None):
+        """Alias for :meth:`dme_breakpoints`, see there for more details."""
         return self.dme_breakpoints(relative_coordinates=relative_coordinates)
 
     def dme_breakpoints(self, *, relative_coordinates=None):
@@ -734,6 +748,7 @@ class Contig:
         return breaks, dme_labels
 
     def clear_dfes(self):
+        """Alias for :meth:`clear_dmes`, see there for more details."""
         self.clear_dmes()
 
     def clear_dmes(self):
@@ -753,6 +768,7 @@ class Contig:
         self.dme_list = value
 
     def add_dfe(self, intervals, DFE):
+        """Alias for :meth:`add_dme`, see there for more details."""
         self.add_dme(intervals, DFE)
 
     def add_dme(self, intervals, DME):
