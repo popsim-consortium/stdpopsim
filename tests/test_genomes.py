@@ -88,8 +88,8 @@ class TestContig(object):
         contig = stdpopsim.Contig.basic_contig(length=100)
         dfe_res1, dfe_res2 = contig.dfe_breakpoints()
         dme_res1, dme_res2 = contig.dme_breakpoints()
-        assert all(dfe_res1 == dme_res1)
-        assert all(dfe_res2 == dme_res2)
+        np.testing.assert_equal(dfe_res1, dme_res1, strict=True)
+        np.testing.assert_equal(dfe_res2, dme_res2, strict=True)
 
     def test_clear_dfes(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
