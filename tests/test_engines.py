@@ -2,10 +2,11 @@
 Tests for simulation engine infrastructure.
 """
 
-import stdpopsim
 import msprime
-import pytest
 import numpy as np
+import pytest
+
+import stdpopsim
 
 
 class TestEngineAPI:
@@ -167,3 +168,35 @@ class TestBehaviour:
                 contig=contig,
                 samples=samples,
             )
+
+    def test_msprime_ancestry_model(self):
+        engine = stdpopsim.get_engine("msprime")
+        species = stdpopsim.get_species("HomSap")
+        model = species.get_demographic_model("AshkSub_7G19")
+        good_kwargs = dict(
+            demographic_model=model,
+            contig=species.get_contig("chr1"),
+            samples={"YRI": 5, "CHB": 5, "CEU": 5},
+            dry_run=True,
+        )
+        import msprime
+
+        # Valid `msprime.AncestryModel`
+        engine.simulate(**good_kwargs, msprime_model=msprime.StandardCoalescent())
+        # TODO: here we should test we are adding the citation
+        engine.simulate(**good_kwargs, msprime_model=msprime.DiscreteTimeWrightFisher())
+        engine.simulate(**good_kwargs, msprime_model=msprime.SMCK(k=1))
+        engine.simulate(
+            **good_kwargs,
+            msprime_model=[
+                msprime.DiscreteTimeWrightFisher(duration=10),
+                msprime.SMCK(k=1),
+            ],
+        )
+
+        # Fail if provided an invalid `msprime.AncestryModel`
+        class MyClass:
+            pass
+
+        with pytest.raises(ValueError):
+            engine.simulate(**good_kwargs, msprime_model=MyClass())

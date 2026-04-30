@@ -1,11 +1,12 @@
 import logging
+import math
 import warnings
 
 import attr
 import msprime
-import stdpopsim
 import numpy as np
-import math
+
+import stdpopsim
 
 logger = logging.getLogger(__name__)
 
@@ -168,28 +169,47 @@ class _MsprimeEngine(Engine):
     def supported_models(self):
         return list(self.model_class_map.keys())
 
-    def _convert_model_spec(self, model_str, model_changes):
+    def _convert_model_spec(self, model, model_changes):
         """
         Convert the specified model specification into a form suitable
-        for sim_ancestry. The model param is a string or None. The
-        model_changes is either None or list of (time, model_str) tuples.
-        Also return the appropriate extra citations.
+        for sim_ancestry. The model param is a string, msprime.AncestryModel
+        instance, or None. The model_changes is either None or list of
+        (time, string) tuples or a list of msprime.AncestryModel instances
+        with `duration`. Also return the appropriate extra citations.
         """
         citations = []
-        if model_str is None:
-            model_str = "hudson"
+        if model is None:
+            model = "hudson"
         else:
-            if model_str not in self.model_class_map:
-                raise ValueError(f"Unrecognised model '{model_str}'")
-            if model_str in self.model_citations:
-                citations.extend(self.model_citations[model_str])
+            if isinstance(model, msprime.AncestryModel):
+                model = [model]
+            if isinstance(model, str):
+                if model not in self.model_class_map:
+                    raise ValueError(f"Unrecognised model '{model}'")
+                if model in self.model_citations:
+                    citations.extend(self.model_citations[model])
+            elif isinstance(model, list) and all(
+                isinstance(m, msprime.AncestryModel) for m in model
+            ):
+                for m in model:
+                    if str(m.name) in self.model_citations:
+                        citations.extend(self.model_citations[str(m.name)])
+            else:
+                raise ValueError(
+                    "`model` must be a string, msprime.AncestryModel instance,"
+                    " or a list of msprime.AncestryModel instances"
+                )
 
         if model_changes is None:
-            model = model_str
+            model = model
         else:
             model_list = []
             last_t = 0
-            last_model = model_str
+            if not isinstance(model, str):
+                raise ValueError(
+                    "`model` must be a string when `model_changes` is not None"
+                )
+            last_model = model
             for t, model in model_changes:
                 if model not in self.supported_models:
                     raise ValueError(f"Unrecognised model '{model}'")
@@ -222,11 +242,16 @@ class _MsprimeEngine(Engine):
         for all engines.
 
         :param msprime_model: The msprime simulation model to be used.
-            One of ``hudson``, ``dtwf``, ``smc``, or ``smc_prime``.
+            One of ``hudson``, ``dtwf``, ``smc``, or ``smc_prime``, a
+            msprime.AncestryModel instance, or a list of msprime.AncestryModel
+            instances (to specify different models at different times).
             See msprime API documentation for details.
-        :type msprime_model: str
+        :type msprime_model: str or msprime.AncestryModel or list of
+            msprime.AncestryModel instances
         :param msprime_change_model: A list of (time, model) tuples, which
-            changes the simulation model to the new model at the time specified.
+            changes the simulation model to the new model at the time
+            specified. Cannot be used with `msprime.AncestryModel` (but pass
+            a list of `msprime.AncestryModel` instances instead).
         :type msprime_change_model: list of (float, str) tuples
         :param dry_run: If True, ``end_time=0`` is passed to :meth:`msprime.simulate()`
             to initialise the simulation and then immediately return.
