@@ -31,6 +31,38 @@ class TestContig(object):
                 dme_list=[self.example_dfe],
             )
 
+    def test_dfe_list_deletion_upon_initalization(self):
+        chr_id = "chr2"
+        species = stdpopsim.get_species("HomSap")
+        genmap = "HapMapII_GRCh38"
+        chrom = species.get_contig(chr_id, genetic_map=genmap)
+        contig = stdpopsim.Contig(
+            recombination_map=chrom.recombination_map,
+            mutation_rate=1e-8,
+            dfe_list=[self.example_dfe],
+        )
+        with pytest.raises(AttributeError):
+                contig._dfe_list
+
+    def test_dfe_list_setter(self):
+        chr_id = "chr2"
+        species = stdpopsim.get_species("HomSap")
+        genmap = "HapMapII_GRCh38"
+        chrom = species.get_contig(chr_id, genetic_map=genmap)
+        contig = stdpopsim.Contig(
+            recombination_map=chrom.recombination_map,
+            mutation_rate=1e-8,
+            dfe_list=[self.example_dfe],
+        )
+        contig.dfe_list[0].id = "def"
+        assert contig.dme_list[0].id == "def"
+        contig.dme_list[0].id = "abc"
+        dfe_id = contig.dfe_list[0].id
+        assert dfe_id == "abc"
+        contig.dfe_list = ["a"]
+        assert len(contig.dme_list) == 1 and contig.dme_list[0] == "a"
+        assert contig.dme_list == contig.dfe_list
+
     def test_dfe_list_aliasing(self):
         chr_id = "chr2"
         species = stdpopsim.get_species("HomSap")
@@ -44,45 +76,20 @@ class TestContig(object):
             mutation_types=[stdpopsim.MutationType() for _ in range(2)],
         )
 
-        contig1 = stdpopsim.Contig(
-            recombination_map=chrom.recombination_map,
-            mutation_rate=1e-8,
-            dfe_list=[self.example_dfe],
-        )
-        assert contig1.dme_list[0].id == self.example_dfe.id
-        assert len(contig1.dfe_list) == 2
-        assert len(contig1.dme_list) == 2
+        list_of_dfe_lists = [
+            [],
+            [self.example_dfe],
+            [self.example_dfe, example_dfe2]
+        ]
 
-        contig2 = stdpopsim.Contig(
-            recombination_map=chrom.recombination_map,
-            mutation_rate=1e-8,
-            dfe_list=[],
-        )
-        assert len(contig2.dfe_list) == 1
-        assert len(contig2.dme_list) == 1
+        for dfe_list in list_of_dfe_lists:
 
-        contig3 = stdpopsim.Contig(
-            recombination_map=chrom.recombination_map,
-            mutation_rate=1e-8,
-            dfe_list=[self.example_dfe, example_dfe2],
-        )
-        assert len(contig3.dfe_list) == 3
-        assert len(contig3.dme_list) == 3
-        assert contig3.dfe_list[0].id == "abc"
-        assert contig3.dfe_list[1].id == "abc2"
-
-        for contig in [contig1, contig2, contig3]:
+            contig = stdpopsim.Contig(
+                recombination_map=chrom.recombination_map,
+                mutation_rate=1e-8,
+                dfe_list=dfe_list,
+            )
             assert contig.dfe_list == contig.dme_list
-            contig.dfe_list[0].id = "def"
-            assert contig.dme_list[0].id == "def"
-            contig.dme_list[0].id = "abc"
-            dfe_id = contig.dfe_list[0].id
-            assert dfe_id == "abc"
-            contig.dfe_list = ["a"]
-            assert len(contig.dme_list) == 1 and contig.dme_list[0] == "a"
-            assert contig.dfe_list == contig.dme_list
-            with pytest.raises(AttributeError):
-                contig._dfe_list
 
     def test_dfe_breakpoints(self):
         contig = stdpopsim.Contig.basic_contig(length=100)
