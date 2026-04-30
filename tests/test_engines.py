@@ -2,10 +2,13 @@
 Tests for simulation engine infrastructure.
 """
 
-import stdpopsim
+import json
+
 import msprime
-import pytest
 import numpy as np
+import pytest
+
+import stdpopsim
 
 
 class TestEngineAPI:
@@ -166,4 +169,164 @@ class TestBehaviour:
                 demographic_model=model,
                 contig=contig,
                 samples=samples,
+            )
+
+    def check_execution_order(self, expected, msprime_model, msprime_change_model=None):
+        """
+        Run a short simulation and verify that the model execution order
+        recorded in the tree sequence provenance matches `expected`.
+        Each entry in `expected` is a (ClassName, duration) tuple.
+        """
+        species = stdpopsim.get_species("AraTha")
+        engine = stdpopsim.get_engine("msprime")
+        kwargs = dict(
+            demographic_model=stdpopsim.PiecewiseConstantSize(species.population_size),
+            contig=species.get_contig(length=100),
+            samples={"pop_0": 5},
+            msprime_model=msprime_model,
+        )
+        if msprime_change_model is not None:
+            kwargs["msprime_change_model"] = msprime_change_model
+        ts = engine.simulate(**kwargs)
+        prov = ts.provenance(0)
+        record = json.loads(prov.record)
+        models = record["parameters"]["model"]
+        # Flexible provenance parsing
+        if isinstance(models, dict):
+            models = [models]
+        actual = []
+        for model in models:
+            name = model["__class__"].replace("msprime.ancestry.", "")
+            duration = model["duration"]
+            actual.append((name, duration))
+        assert expected == actual
+
+    def test_msprime_ancestry_model(self):
+        engine = stdpopsim.get_engine("msprime")
+        species = stdpopsim.get_species("HomSap")
+        kwargs = dict(
+            demographic_model=species.get_demographic_model("AshkSub_7G19"),
+            contig=species.get_contig("chr1"),
+            samples={"YRI": 5, "CHB": 5, "CEU": 5},
+            dry_run=True,
+        )
+        # Valid single None, string or `msprime.AncestryModel`
+        self.check_execution_order([("StandardCoalescent", None)], None)
+        self.check_execution_order([("StandardCoalescent", None)], "hudson")
+        self.check_execution_order(
+            [("StandardCoalescent", None)], msprime.StandardCoalescent()
+        )
+        self.check_execution_order([("SMCK", None)], msprime.SMCK(k=1))
+
+        # Fail if provided an invalid `msprime.AncestryModel` subclass
+        class MyClass:
+            pass
+
+        with pytest.raises(TypeError):
+            engine.simulate(**kwargs, msprime_model=MyClass())
+
+        # Fail if msprime_model is a list — passing a list is not supported;
+        # use msprime_change_model instead.
+        with pytest.raises(TypeError):
+            engine.simulate(
+                **kwargs,
+                # Note: this is valid input for `msprime`
+                msprime_model=[
+                    msprime.DiscreteTimeWrightFisher(duration=10),
+                    msprime.SMCK(k=1),
+                ],
+            )
+
+        # Test that we do not mutate the input model
+        model = msprime.SMCK(k=1, duration=10)
+        engine.simulate(
+            **kwargs,
+            msprime_model=model,
+            msprime_change_model=[(12, model), (99, model)],
+        )
+        assert model.duration == 10
+        model = msprime.SMCK(k=1, duration=10)
+        engine.simulate(**kwargs, msprime_model=model)
+        assert model.duration == 10, "model should not be mutated"
+
+    def test_msprime_change_model(self):
+        expected = [
+            ("DiscreteTimeWrightFisher", 20),
+            ("StandardCoalescent", None),
+        ]
+        self.check_execution_order(expected, "dtwf", [(20, "hudson")])
+        self.check_execution_order(
+            expected,
+            msprime.DiscreteTimeWrightFisher(),
+            [(20, msprime.StandardCoalescent())],
+        )
+
+        model_changes = [
+            (20, msprime.SMCK(k=1)),
+            (21, msprime.SMCK(k=0)),
+            (100, "hudson"),
+        ]
+        expected = [
+            ("DiscreteTimeWrightFisher", 20),
+            ("SMCK", 21 - 20),
+            ("SMCK", 100 - 21),
+            ("StandardCoalescent", None),
+        ]
+        self.check_execution_order(expected, "dtwf", model_changes)
+
+    def test_msprime_change_model_errors(self):
+        engine = stdpopsim.get_engine("msprime")
+        species = stdpopsim.get_species("HomSap")
+        kwargs = dict(
+            demographic_model=species.get_demographic_model("AshkSub_7G19"),
+            contig=species.get_contig("chr1"),
+            samples={"YRI": 5, "CHB": 5, "CEU": 5},
+        )
+        with pytest.raises(
+            ValueError,
+            match=r"`model_changes` must be a list of \(time, model\) tuples",
+        ):
+            engine.simulate(
+                **kwargs,
+                msprime_model="dtwf",
+                msprime_change_model=[
+                    ("hudson"),
+                ],
+            )
+
+        invalid_models = ["notvalid", None, 100]
+        for invalid in invalid_models:
+            with pytest.raises((TypeError, ValueError)):
+                engine.simulate(
+                    **kwargs,
+                    msprime_model="dtwf",
+                    msprime_change_model=[
+                        (10, invalid),
+                    ],
+                )
+
+        invalid_times = [-1, None, "hudson", np.inf]
+        for invalid in invalid_times:
+            with pytest.raises(
+                ValueError,
+                match=r"Specified time .* is not a valid non-negative number",
+            ):
+                engine.simulate(
+                    **kwargs,
+                    msprime_model="dtwf",
+                    msprime_change_model=[
+                        (invalid, "hudson"),
+                    ],
+                )
+        with pytest.raises(
+            ValueError,
+            match=r"Tuples in `model_changes` must be sorted",
+        ):
+            engine.simulate(
+                **kwargs,
+                msprime_model="dtwf",
+                msprime_change_model=[
+                    (2, "hudson"),
+                    (1, "dtwf"),
+                ],
             )
