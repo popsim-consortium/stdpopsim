@@ -603,7 +603,7 @@ class DFE(DistributionOfMutationEffects):
     Class representing a "Distribution of Fitness Effects", i.e., a DFE.
     The class records the different *mutation types*, and the *proportions*
     with which they occur. The overall rate of mutations will be determined
-    by the Contig to which the DFE is applied (see :meth:`.Contig.add_dfe`).
+    by the Contig to which the DFE is applied (see :meth:`.Contig.add_dme`).
 
     This is a specialization of :class:`.DistributionOfMutationEffects`
     to distributions that only affect fitness, and have associated publications

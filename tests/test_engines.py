@@ -124,7 +124,7 @@ class TestBehaviour:
                 mutation_types=mt,
             )
         ]
-        contig.add_dfe(intervals=np.array([[0, 50]]), DFE=dfes[0])
+        contig.add_dme(intervals=np.array([[0, 50]]), DME=dfes[0])
         engine = stdpopsim.get_engine("msprime")
         with pytest.raises(ValueError):
             engine.simulate(model, contig, samples, seed=1)
@@ -141,7 +141,7 @@ class TestBehaviour:
                 mutation_types=mt,
             )
         ]
-        contig.add_dfe(intervals=np.array([[0, 50]]), DFE=dfes[0])
+        contig.add_dme(intervals=np.array([[0, 50]]), DME=dfes[0])
         engine = stdpopsim.get_engine("msprime")
         engine.simulate(model, contig, samples, seed=1)
 
