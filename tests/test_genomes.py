@@ -42,7 +42,7 @@ class TestContig(object):
             dfe_list=[self.example_dfe],
         )
         with pytest.raises(AttributeError):
-                contig._dfe_list
+            contig._dfe_list
 
     def test_dfe_list_setter(self):
         chr_id = "chr2"
@@ -76,11 +76,7 @@ class TestContig(object):
             mutation_types=[stdpopsim.MutationType() for _ in range(2)],
         )
 
-        list_of_dfe_lists = [
-            [],
-            [self.example_dfe],
-            [self.example_dfe, example_dfe2]
-        ]
+        list_of_dfe_lists = [[], [self.example_dfe], [self.example_dfe, example_dfe2]]
 
         for dfe_list in list_of_dfe_lists:
 
