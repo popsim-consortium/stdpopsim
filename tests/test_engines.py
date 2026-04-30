@@ -172,22 +172,18 @@ class TestBehaviour:
     def test_msprime_ancestry_model(self):
         engine = stdpopsim.get_engine("msprime")
         species = stdpopsim.get_species("HomSap")
-        model = species.get_demographic_model("AshkSub_7G19")
-        good_kwargs = dict(
-            demographic_model=model,
+        kwargs = dict(
+            demographic_model=species.get_demographic_model("AshkSub_7G19"),
             contig=species.get_contig("chr1"),
             samples={"YRI": 5, "CHB": 5, "CEU": 5},
             dry_run=True,
         )
-        import msprime
-
         # Valid `msprime.AncestryModel`
-        engine.simulate(**good_kwargs, msprime_model=msprime.StandardCoalescent())
-        # TODO: here we should test we are adding the citation
-        engine.simulate(**good_kwargs, msprime_model=msprime.DiscreteTimeWrightFisher())
-        engine.simulate(**good_kwargs, msprime_model=msprime.SMCK(k=1))
+        engine.simulate(**kwargs, msprime_model=msprime.StandardCoalescent())
+        engine.simulate(**kwargs, msprime_model=msprime.DiscreteTimeWrightFisher())
+        engine.simulate(**kwargs, msprime_model=msprime.SMCK(k=1))
         engine.simulate(
-            **good_kwargs,
+            **kwargs,
             msprime_model=[
                 msprime.DiscreteTimeWrightFisher(duration=10),
                 msprime.SMCK(k=1),
@@ -199,4 +195,15 @@ class TestBehaviour:
             pass
 
         with pytest.raises(ValueError):
-            engine.simulate(**good_kwargs, msprime_model=MyClass())
+            engine.simulate(**kwargs, msprime_model=MyClass())
+
+        # TODO: handle model_changes later but, at the moment
+        # code should panic if `msprime_change_model` is provided
+        # together with `msprime_model` of type `msprime.AncestryModel`
+
+        with pytest.raises(ValueError):
+            engine.simulate(
+                **kwargs,
+                msprime_model=msprime.DiscreteTimeWrightFisher(),
+                msprime_change_model=[(100, "hudson")],
+            )

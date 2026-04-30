@@ -200,9 +200,7 @@ class _MsprimeEngine(Engine):
                     " or a list of msprime.AncestryModel instances"
                 )
 
-        if model_changes is None:
-            model = model
-        else:
+        if model_changes is not None:
             model_list = []
             last_t = 0
             if not isinstance(model, str):
