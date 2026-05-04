@@ -2,10 +2,11 @@
 Tests for simulation engine infrastructure.
 """
 
-import stdpopsim
 import msprime
-import pytest
 import numpy as np
+import pytest
+
+import stdpopsim
 
 
 class TestEngineAPI:
@@ -166,4 +167,80 @@ class TestBehaviour:
                 demographic_model=model,
                 contig=contig,
                 samples=samples,
+            )
+
+    def test_msprime_ancestry_model(self):
+        engine = stdpopsim.get_engine("msprime")
+        species = stdpopsim.get_species("HomSap")
+        kwargs = dict(
+            demographic_model=species.get_demographic_model("AshkSub_7G19"),
+            contig=species.get_contig("chr1"),
+            samples={"YRI": 5, "CHB": 5, "CEU": 5},
+            dry_run=True,
+        )
+        # Valid single None, string or `msprime.AncestryModel`
+        engine.simulate(**kwargs, msprime_model=None)
+        engine.simulate(**kwargs, msprime_model="hudson")
+        engine.simulate(**kwargs, msprime_model=msprime.StandardCoalescent())
+        engine.simulate(**kwargs, msprime_model=msprime.SMCK(k=1))
+
+        # Fail if provided an invalid `msprime.AncestryModel` subclass
+        class MyClass:
+            pass
+
+        with pytest.raises(TypeError):
+            engine.simulate(**kwargs, msprime_model=MyClass())
+
+        # Test model changes
+        engine.simulate(
+            **kwargs,
+            msprime_model="dtwf",
+            msprime_change_model=[(100, msprime.SMCK(k=1))],
+        )
+        engine.simulate(
+            **kwargs,
+            msprime_model=msprime.SMCK(k=1),
+            msprime_change_model=[(1000, msprime.SMCK(k=0)), (2000, "hudson")],
+        )
+
+        # Verify model_changes produces the correct model order
+        def _check_model_order(initial, changes, expected_names):
+            engine_obj = stdpopsim.get_engine("msprime")
+            model_list, _ = engine_obj._convert_model_spec(initial, changes)
+            names = [m.name for m in model_list]
+            assert names == expected_names, f"Expected {expected_names}, got {names}"
+            # First N-1 segments should have finite duration
+            for m in model_list[:-1]:
+                assert m.duration is not None and m.duration > 0
+            # Last segment should run indefinitely
+            assert model_list[-1].duration is None
+
+        _check_model_order("dtwf", [(100, "hudson")], ["dtwf", "hudson"])
+        _check_model_order("dtwf", [(100, msprime.SMCK(k=1))], ["dtwf", "smc_k"])
+        _check_model_order(
+            msprime.DiscreteTimeWrightFisher(),
+            [(100, "hudson")],
+            ["dtwf", "hudson"],
+        )
+        _check_model_order(
+            msprime.DiscreteTimeWrightFisher(),
+            [(100, msprime.SMCK(k=1))],
+            ["dtwf", "smc_k"],
+        )
+        _check_model_order(
+            msprime.SMCK(k=1),
+            [(100, "dtwf"), (200, msprime.StandardCoalescent())],
+            ["smc_k", "dtwf", "hudson"],
+        )
+
+        # Fail if msprime_model is a list — passing a list is not supported;
+        # use msprime_change_model instead.
+        with pytest.raises(TypeError):
+            engine.simulate(
+                **kwargs,
+                # Note: this is valid input for `msprime`
+                msprime_model=[
+                    msprime.DiscreteTimeWrightFisher(duration=10),
+                    msprime.SMCK(k=1),
+                ],
             )
