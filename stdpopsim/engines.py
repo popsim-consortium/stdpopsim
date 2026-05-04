@@ -146,7 +146,7 @@ class _MsprimeEngine(Engine):
         )
     ]
 
-    # We default to the first model in the list.
+    # We default to ``hudson`` if no model is specified.
     model_class_map = {
         "hudson": msprime.StandardCoalescent,
         "dtwf": msprime.DiscreteTimeWrightFisher,
