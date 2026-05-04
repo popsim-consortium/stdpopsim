@@ -1,6 +1,7 @@
 import logging
 import math
 import warnings
+from copy import deepcopy
 
 import attr
 import msprime
@@ -167,6 +168,9 @@ class _MsprimeEngine(Engine):
 
     @property
     def supported_models(self):
+        # NOTE: this list does not include models without a string alias.
+        # Only msprime models with a string alias are supported in the CLI
+        # (and this method is only referenced in the CLI logic).
         return list(self.model_class_map.keys())
 
     def _convert_model_spec(self, model, model_changes):
@@ -174,50 +178,43 @@ class _MsprimeEngine(Engine):
         Convert the specified model specification into a form suitable
         for sim_ancestry. The model param is a string, msprime.AncestryModel
         instance, or None. The model_changes is either None or list of
-        (time, string) tuples or a list of msprime.AncestryModel instances
-        with `duration`. Also return the appropriate extra citations.
+        (time, string | msprime.AncestryModel) tuples.
+        Also return the appropriate extra citations.
         """
-        citations = []
-        if model is None:
-            model = "hudson"
-        else:
-            if isinstance(model, msprime.AncestryModel):
-                model = [model]
-            if isinstance(model, str):
+
+        def _from_model_spec(model):
+            # We default to the Hudson model if no model is specified
+            if model is None:
+                return _from_model_spec("hudson")
+            elif isinstance(model, str):
                 if model not in self.model_class_map:
                     raise ValueError(f"Unrecognised model '{model}'")
-                if model in self.model_citations:
-                    citations.extend(self.model_citations[model])
-            elif isinstance(model, list) and all(
-                isinstance(m, msprime.AncestryModel) for m in model
-            ):
-                for m in model:
-                    if str(m.name) in self.model_citations:
-                        citations.extend(self.model_citations[str(m.name)])
-            else:
-                raise ValueError(
-                    "`model` must be a string, msprime.AncestryModel instance,"
-                    " or a list of msprime.AncestryModel instances"
-                )
+                return self.model_class_map[model](duration=None)
+            elif isinstance(model, msprime.AncestryModel):
+                model = deepcopy(model)
+                model.duration = None
+                return model
+            raise TypeError("`model` must be a string, msprime.AncestryModel, or None")
+
+        citations = []
+        model = _from_model_spec(model)
+        if model.name in self.model_citations:
+            citations.extend(self.model_citations[model.name])
 
         if model_changes is not None:
+            # Note: one could validate that times in model_changes are
             model_list = []
             last_t = 0
-            if not isinstance(model, str):
-                raise ValueError(
-                    "`model` must be a string when `model_changes` is not None"
-                )
             last_model = model
-            for t, model in model_changes:
-                if model not in self.supported_models:
-                    raise ValueError(f"Unrecognised model '{model}'")
-                if model in self.model_citations:
-                    citations.extend(self.model_citations[model])
+            for t, next_model in model_changes:
                 duration = t - last_t
-                model_list.append(self.model_class_map[last_model](duration=duration))
-                last_model = model
+                last_model.duration = duration
+                model_list.append(last_model)
+                last_model = _from_model_spec(next_model)
+                if last_model.name in self.model_citations:
+                    citations.extend(self.model_citations[last_model.name])
                 last_t = t
-            model_list.append(self.model_class_map[last_model](duration=None))
+            model_list.append(last_model)
             model = model_list
 
         return model, citations
@@ -240,17 +237,15 @@ class _MsprimeEngine(Engine):
         for all engines.
 
         :param msprime_model: The msprime simulation model to be used.
-            One of ``hudson``, ``dtwf``, ``smc``, or ``smc_prime``, a
-            msprime.AncestryModel instance, or a list of msprime.AncestryModel
-            instances (to specify different models at different times).
+            One of ``hudson``, ``dtwf``, ``smc``, or ``smc_prime``, or a
+            ``msprime.AncestryModel`` instance.
             See msprime API documentation for details.
-        :type msprime_model: str or msprime.AncestryModel or list of
-            msprime.AncestryModel instances
+        :type msprime_model: str or msprime.AncestryModel
         :param msprime_change_model: A list of (time, model) tuples, which
             changes the simulation model to the new model at the time
-            specified. Cannot be used with `msprime.AncestryModel` (but pass
-            a list of `msprime.AncestryModel` instances instead).
-        :type msprime_change_model: list of (float, str) tuples
+            specified. Each model may be a string or a
+            ``msprime.AncestryModel`` instance.
+        :type msprime_change_model: list of (float, str or msprime.AncestryModel) tuples
         :param dry_run: If True, ``end_time=0`` is passed to :meth:`msprime.simulate()`
             to initialise the simulation and then immediately return.
         :type dry_run: bool
