@@ -1,6 +1,6 @@
 queue_rules:
   - name: default
-    conditions:
+    merge_conditions:
       - base=main
       - check-success=build-deploy-docs
       - check-success=pre-commit
