@@ -35,20 +35,18 @@ jobs:
         uses: actions/cache@v4.2.0
         env:
           # Increase this to reset the cache if the key hasn't changed.
-          CACHE_NUM: 0
+          CACHE_NUM: 1
         with:
           path: ${{ env.CONDA }}/envs
           key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.python}}-conda-${{ env.CACHE_NUM }}-${{ hashFiles('requirements/CI/*') }}
 
       - name: Install Conda
-        uses: conda-incubator/setup-miniconda@v3.1.0
-        if: steps.cache.outputs.cache-hit != 'true'
+        uses: mamba-org/setup-micromamba@v3
         with:
-          activate-environment: anaconda-client-env
-          python-version: ${{ matrix.python }}
-          channels: conda-forge
-          channel-priority: strict
-          auto-update-conda: true
+          environment-name: anaconda-client-env
+          init-shell: bash
+          create-args: |
+            python=${{ matrix.python }}
 
       - name: Fix windows .profile
         if: steps.cache.outputs.cache-hit != 'true' && matrix.os == 'windows-latest'
@@ -59,7 +57,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         shell: bash -l {0} #We need a login shell to get conda
         run: |
-          conda install --yes --file=requirements/CI/conda.txt
+          micromamba install --yes --file=requirements/CI/conda.txt
 
       - name: Install pip deps
         if: steps.cache.outputs.cache-hit != 'true'
@@ -68,9 +66,9 @@ jobs:
             pip install -r requirements/CI/requirements.txt
 
       - name: run test suite
+        shell: bash -l {0}
         run: |
-          source ~/.profile
-          conda activate anaconda-client-env
+          micromamba activate anaconda-client-env
           python -m pytest \
             -n 0 \
             -v \
@@ -87,4 +85,5 @@ jobs:
           env_vars: OS,PYTHON
           # Use upload token to avoid upload failures.
           # https://github.com/codecov/codecov-action/issues/837
-          token: 8ae76ade-9d0e-4a2d-b9ef-1180235be07f
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
