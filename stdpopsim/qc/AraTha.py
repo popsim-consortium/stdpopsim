@@ -222,7 +222,7 @@ def HuberDFE():
     negative = stdpopsim.MutationType(
         dominance_coeff=h,
         distribution_type="g",
-        distribution_args=[-2 * gamma_mean, gamma_shape],
+        distribution_args=[2 * gamma_mean, gamma_shape],
     )
     return stdpopsim.DFE(
         id=id,

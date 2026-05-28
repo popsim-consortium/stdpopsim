@@ -38,7 +38,7 @@ def _HuberDFE():
         distribution_type="g",  # gamma distribution
         # extra factor of 2 is to convert dadi to SLiM
         # (1+s for homozygote in SLiM versus 1+2s in dadi)
-        distribution_args=[-2 * gamma_mean, gamma_shape],
+        distribution_args=[2 * gamma_mean, gamma_shape],
     )
 
     return stdpopsim.DFE(
