@@ -4,6 +4,10 @@ Upcoming
 
 **Bug fixes**:
 
+- Due to a sign error, the GammaAdditive_H18 DFE for AraTha was positive
+    (beneficial mutations) instead of negative (deleterious).
+    (:user:`petrelharp`, :pr:`1834`)
+
 - The 'positive' and 'negative' proportions were swapped in the PosNeg_R24 DFE.
     (:user:`bhaller`, :user:`petrelharp`, :pr:`1736`)
 
