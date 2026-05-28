@@ -546,7 +546,6 @@ class TestErrors:
 
     IS_WINDOWS = sys.platform.startswith("win")
 
-    @pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
     def test_browning_america_dfe(self):
         self.verify_bad_samples(
             "HomSap -d AmericanAdmixture_4B18 --dfe Gamma_K17 2 3 4 5 6"

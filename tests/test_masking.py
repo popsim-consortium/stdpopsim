@@ -2,15 +2,11 @@
 Tests for the genetic maps management.
 """
 
-import sys
-
 import numpy as np
 import msprime
 import pytest
 
 import stdpopsim.utils
-
-IS_WINDOWS = sys.platform.startswith("win")
 
 
 class TestMasking:
@@ -121,7 +117,6 @@ class TestMasking:
         assert np.all(np.logical_and(100 <= positions, positions < 200))
 
 
-@pytest.mark.skipif(IS_WINDOWS, reason="SLiM not available on windows")
 class TestSimulate:
     @pytest.mark.filterwarnings("ignore::msprime.IncompletePopulationMetadataWarning")
     def test_simulate_with_mask(self):

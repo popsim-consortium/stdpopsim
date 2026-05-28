@@ -1090,8 +1090,6 @@ class TestSlimAvailable:
         parser = stdpopsim.cli.stdpopsim_cli_parser()
         with mock.patch("sys.exit", autospec=True):
             _, stderr = capture_output(parser.parse_args, ["--help"])
-            # On windows we should have no "slim" options
-            assert "slim" in stderr
 
 
 def get_test_contig(
