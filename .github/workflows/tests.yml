@@ -65,10 +65,26 @@ jobs:
         run: |
             pip install -r requirements/CI/requirements.txt
 
+      - name: Install development SLiM
+      # This should be COMMENTED OUT for release versions,
+      # since this builds SLiM from github head.
+        if: (matrix.os == 'macos-latest' || matrix.os == 'ubuntu-24.04') && steps.cache.outputs.cache-hit != 'true'
+        # If we want to re-build slim from a new commit to the slim repo
+        # we may need to bump the cache key above.
+        shell: bash -l {0}
+        run: |
+          git clone https://github.com/messerlab/SLiM.git
+          mkdir -p SLiM/Release
+          cd SLiM/Release
+          cmake -DCMAKE_BUILD_TYPE=Release ..
+          make -j 2
+
       - name: run test suite
         shell: bash -l {0}
         run: |
           micromamba activate anaconda-client-env
+          export PATH=$PWD/SLiM/Release:$PATH
+          slim -v
           python -m pytest \
             -n 0 \
             -v \
