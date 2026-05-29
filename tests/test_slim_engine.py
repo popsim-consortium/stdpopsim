@@ -3386,3 +3386,28 @@ class TestSpeciesProperties:
         contig2 = stdpopsim.Contig.basic_contig(length=1000, ploidy=2)
         ts = engine.simulate(model, contig2, samples={"pop_0": 3}, seed=7)
         assert ts.metadata["SLiM"]["separate_sexes"] is False
+
+
+class TestTraits:
+
+    def test_traits_defined(self):
+        traits = [
+            stdpopsim.Trait(id="add", type="additive"),
+            stdpopsim.Trait(id="mult", type="multiplicative"),
+        ]
+        tm = stdpopsim.TraitsModel(
+            traits=traits,
+        )
+        model = stdpopsim.PiecewiseConstantSize(10)
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("AnaPla")
+        contig = species.get_contig("chr1", left=1e7, right=1e7 + 1e4)
+        ts = engine.simulate(
+            model, contig, samples={"pop_0": 3}, traits_model=tm, seed=7
+        )
+        slim_traits = ts.metadata["SLiM"]["user_metadata"]["traits"]
+        assert len(traits) == len(slim_traits)
+        for t, tid in zip(traits, slim_traits):
+            assert t.id == tid
+            st = slim_traits[tid]
+            assert t.type == st["type"]

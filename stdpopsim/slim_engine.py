@@ -698,6 +698,22 @@ _slim_debug_output = """
     }
 }
 
+// Save trait information in tree sequence metadata
+// This is for development purposes, and the format of this metadata
+// is subject to change or may even be removed!
+1 first() {
+    if (verbosity >= 3) {
+        trait_dict = Dictionary();
+        for (t in sim.traits) {
+            trait_dict.setValue(t.name,
+                Dictionary("type", t.type)
+            );
+        }
+        metadata.setValue(
+            "traits", trait_dict
+        );
+    }
+}
 """
 
 _raw_stdpopsim_top_level_schema = {
@@ -916,6 +932,7 @@ def slim_makescript(
     demographic_model,
     contig,
     samples,
+    traits_model,
     extended_events,
     scaling_factor,
     burn_in,
@@ -1248,6 +1265,13 @@ def slim_makescript(
 
         return "".join(s)
 
+    # Traits
+    for t in traits_model.traits:
+        printsc(
+            f'initializeTrait("{t.id}T", "{t.type}", '
+            f"directFitnessEffect = {'T' if t.id == 'fitness' else 'F'});"
+        )
+
     # Genomic element types.
     mutation_callbacks = {}
     dfe_mtypes = _dfe_to_mtypes(contig)
@@ -1533,6 +1557,7 @@ def slim_makescript(
         )
     printsc(_slim_debug_output)
 
+    # TODO REMOVE THIS MONKEY PATCH MAYBE???
     return epochs[0]
 
 
@@ -1578,6 +1603,7 @@ class _SLiMEngine(stdpopsim.Engine):
         contig,
         samples,
         *,
+        traits_model=None,
         seed=None,
         extended_events=None,
         slim_path=None,
@@ -1603,6 +1629,7 @@ class _SLiMEngine(stdpopsim.Engine):
             will use a two-sex Wright-Fisher model (instead of the default
             hermaphroditic WF model)
 
+        TODO: document ``traits_model``, a TraitsModel
         :param seed: The seed for the random number generator.
         :type seed: int
         :param extended_events: A list of :class:`ExtendedEvents` to be
@@ -1704,6 +1731,7 @@ class _SLiMEngine(stdpopsim.Engine):
                 demographic_model,
                 contig,
                 sample_sets,
+                traits_model,
                 extended_events,
                 slim_scaling_factor,
                 slim_burn_in,
@@ -2000,6 +2028,7 @@ class _SLiMEngine(stdpopsim.Engine):
         demographic_model,
         contig,
         samples,
+        traits_model=None,
         extended_events=None,
         slim_scaling_factor=1.0,
         seed=None,
@@ -2050,6 +2079,7 @@ class _SLiMEngine(stdpopsim.Engine):
                 demographic_model,
                 contig,
                 sample_sets,
+                traits_model,
                 extended_events,
                 slim_scaling_factor,
                 1,
