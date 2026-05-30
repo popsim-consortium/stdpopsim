@@ -25,7 +25,7 @@ Requirements
 Library requirements for ``stdpopsim`` should be installed automatically when using
 either conda or pip.
 
-``stdpopsim`` requires Python 3.10 or later.
+``stdpopsim`` requires Python 3.11 or later.
 
 
 .. _sec_installation_conda:
