@@ -47,7 +47,10 @@ class TraitsModel(object):
         if len(set(pids)) != len(pids):
             raise ValueError("Trait IDs must be unique.")
 
-        self.traits = traits
+        # let's put fitness first, BUT NOT RELY ON THIS
+        self.traits = [Trait(id="fitness", type="multiplicative")]
+        self.traits.extend(traits)
+        # TODO: check that the names of traits are unique!!
         self.environments = []
         self.fitness_functions = []
         # We *could* take in Environment and FitnessFunction objects
@@ -499,6 +502,7 @@ class MutationType(object):
             "n": [0, 1],  # mean and sd
             "w": [0],  # scale
             "s": [],  # script types should just printout arguments
+            "mvn": [],  # TODO
         }
         assert self.distribution_type in scaling_factor_index_lookup
         self.Q_scaled_index = scaling_factor_index_lookup[self.distribution_type]
@@ -559,6 +563,7 @@ class DistributionOfMutationEffects(object):
     :vartype long_description: str
     """
 
+    # TODO: what about id and description and stuff???
     mutation_types = attr.ib(default=None)
     proportions = attr.ib(default=None)
 
@@ -595,6 +600,11 @@ class DistributionOfMutationEffects(object):
                 raise ValueError(
                     "mutation_types must be a list of MutationType objects."
                 )
+
+    @property
+    def is_neutral(self):
+        # TODO
+        return False
 
 
 @attr.s(kw_only=True)
