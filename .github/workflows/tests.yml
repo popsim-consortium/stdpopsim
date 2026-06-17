@@ -95,7 +95,7 @@ jobs:
             tests
 
       - name: upload coverage report to codecov
-        uses: codecov/codecov-action@v5.1.1
+        uses: codecov/codecov-action@v7.0.0
         with:
           fail_ci_if_error: true
           env_vars: OS,PYTHON
