@@ -878,7 +878,7 @@ def _add_dfes_to_metadata(ts, contig):
     tables = ts.dump_tables()
     schema = tables.metadata_schema.asdict()
     metadata = tables.metadata
-    schema["properties"].update(_raw_stdpopsim_top_level_schema)
+    schema["json"]["properties"].update(_raw_stdpopsim_top_level_schema)
     dfes = _get_json(contig.dme_list)
     dfe_to_mtypes = _dfe_to_mtypes(contig)
     for i, d, ints in _enum_dfe_and_intervals(contig):
@@ -946,6 +946,9 @@ def slim_makescript(
     logfile=None,
     logfile_interval=1,
 ):
+
+    if traits_model is None:
+        traits_model = stdpopsim.TraitsModel()
 
     _check_traits_model_contig_consistency(contig, traits_model)
 

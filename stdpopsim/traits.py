@@ -29,27 +29,33 @@ def _check_trait_ids(trait_ids):
 
 
 class TraitsModel(object):
-    def __init__(self, traits):
+    def __init__(self, traits=None):
         """
         A list of genetically determined ``traits``,
         linked together by possibly shared effects of ``environments``
         and by ``fitness_functions`` that depend on their values.
+
+        A TraitsModel always includes a multiplicative trait called "fitness". This is
+        automatically included, so this should *not* be included in ``traits``.
 
         On initialization ``environments`` and ``fitness_functions``
         are empty and can be added with :meth:`.add_environment`
         and :meth:`.add_fitness_function`.
         These must all have unique IDs.
 
-        :ivar traits: List of :class:`Trait` objects, with unique IDs.
+        :ivar traits: List of :class:`Trait` objects, with unique IDs,
+            or ``None``.
         :vartype traits: list
         """
-        pids = [p.id for p in traits]
+        # we'll put fitness first, BUT DO NOT RELY ON THIS
+        self.traits = [Trait(id="fitness", type="multiplicative")]
+        if traits is not None:
+            self.traits.extend(traits)
+
+        pids = [p.id for p in self.traits]
         if len(set(pids)) != len(pids):
             raise ValueError("Trait IDs must be unique.")
 
-        # let's put fitness first, BUT NOT RELY ON THIS
-        self.traits = [Trait(id="fitness", type="multiplicative")]
-        self.traits.extend(traits)
         # TODO: check that the names of traits are unique!!
         self.environments = []
         self.fitness_functions = []
