@@ -1279,9 +1279,10 @@ def slim_makescript(
     # Traits
     for t in traits_model.traits:
         printsc(
-            f'initializeTrait("{t.id}T", "{t.type}", '
+            f'    initializeTrait("{t.id}T", "{t.type}", '
             f"directFitnessEffect = {'T' if t.id == 'fitness' else 'F'});"
         )
+    printsc()
 
     # Genomic element types.
     mutation_callbacks = {}
@@ -1346,7 +1347,7 @@ def slim_makescript(
                 # printsc(f"    mt{mid}.mutationStackPolicy = 'l';")
                 if len(mt.trait_ids) == 1:  # this only applies to ONE trait
                     printsc(
-                        f"m{mid}.setEffectSizeDistributionForTrait("
+                        f"    m{mid}.setEffectSizeDistributionForTrait("
                         f'"{mt.trait_ids[0]}T", '
                         f'"{mt.distribution_type}", {distrib_args});'
                     )
@@ -1577,8 +1578,9 @@ def slim_makescript(
         effect_means = map(str, mt.distribution_args[0])
         effect_covar = mt.distribution_args[1]
         printsc(f"mutation(m{mid}) {{")
-        printsc("    effects = rmvnorm(1, c(" + ", ".join(effect_means) + "), ")
-        printsc(f"                         {matrix2str(effect_covar)});")
+        printsc("    effects = rmvnorm(")
+        printsc("        1, c(" + ", ".join(effect_means) + "), ")
+        printsc(f"        {matrix2str(effect_covar, indent=3)});")
         for j, tid in enumerate(mt.trait_ids):
             printsc(f'    mut.setEffectSizeForTrait("{tid}T", effects[{j}]);')
         printsc("    return T;")
@@ -1588,19 +1590,21 @@ def slim_makescript(
     printsc(_slim_main)
 
     # print out the trait stuff
-    printsc("late() {" "inds = sim.subpopulations.individuals;")
+    printsc("late() {")
+    printsc("    inds = sim.subpopulations.individuals;")
+    printsc()
     for t in traits_model.traits:
-        printsc(f'sim.demandPhenotype(NULL, "{t.id}T");')
-        printsc(f'x = inds.phenotypeForTrait("{t.id}T");')
+        printsc(f'    sim.demandPhenotype(NULL, "{t.id}T");')
+        printsc(f'    x = inds.phenotypeForTrait("{t.id}T");')
         if t.transform == "threshold":
             thresh = t.transform_args[0]
             printsc(
-                f'inds.setPhenotypeForTrait("{t.id}T", ifelse(x > {thresh}, 1, 0));'
+                f'    inds.setPhenotypeForTrait("{t.id}T", ifelse(x > {thresh}, 1, 0));'
             )
         elif t.transform == "liability":
             center, slope = t.transform_args
-            printsc(f"p = 1 / (1 + exp(-(x - {center}) * {slope}));")
-            printsc(f'inds.setPhenotypeForTrait("{t.id}T", rbinom(size(x), 1, p));')
+            printsc(f"    p = 1 / (1 + exp(-(x - {center}) * {slope}));")
+            printsc(f'    inds.setPhenotypeForTrait("{t.id}T", rbinom(size(x), 1, p));')
         else:
             assert t.transform == "identity"
     printsc("}")
