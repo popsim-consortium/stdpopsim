@@ -68,6 +68,7 @@ jobs:
       - name: Install development SLiM
       # This should be COMMENTED OUT for release versions,
       # since this builds SLiM from github head.
+      # Also note that this checks out the multitrait branch!!
         if: (matrix.os == 'macos-latest' || matrix.os == 'ubuntu-24.04') && steps.cache.outputs.cache-hit != 'true'
         # If we want to re-build slim from a new commit to the slim repo
         # we may need to bump the cache key above.
@@ -76,6 +77,7 @@ jobs:
           git clone https://github.com/messerlab/SLiM.git
           mkdir -p SLiM/Release
           cd SLiM/Release
+          git checkout multitrait
           cmake -DCMAKE_BUILD_TYPE=Release ..
           make -j 2
 
