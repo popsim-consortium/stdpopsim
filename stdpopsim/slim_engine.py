@@ -1589,7 +1589,7 @@ def slim_makescript(
     printsc(_slim_functions)
     printsc(_slim_main)
 
-    # print out the trait stuff
+    # print block describing phenotype transformations
     printsc("late() {")
     printsc("    inds = sim.subpopulations.individuals;")
     printsc()
