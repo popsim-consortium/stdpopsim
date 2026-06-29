@@ -4,9 +4,9 @@ from . import genome_data
 # correction to the recombination rate to account for selfing
 # (See: Nordborg 2000 Genetics)
 _sigma = 0.97
-_selfing_correction = 1-_sigma/(2-_sigma)
+_selfing_correction = 1 - _sigma / (2 - _sigma)
 
-# Mean recombination rates calculated from the original Salome2012 map 
+# Mean recombination rates calculated from the original Salome2012 map
 # and then adjusted for selfing
 # (See: `msprime.RateMap.mean_rate`)
 _recombination_rate = {

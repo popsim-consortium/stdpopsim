@@ -11,14 +11,16 @@ _genetic_map_citation = stdpopsim.Citation(
     reasons={stdpopsim.CiteReason.GEN_MAP},
 )
 
+
 # create a subclass to handle the selfing rate correction
 class _AraThaGeneticMap(stdpopsim.GeneticMap):
     def get_chromosome_map(self, id):
-        rate_map = super().get_chromosome_map(id) 
+        rate_map = super().get_chromosome_map(id)
         return msprime.RateMap(
             position=rate_map.position,
             rate=rate_map.rate * _selfing_correction,
         )
+
 
 _gm = _AraThaGeneticMap(
     species=_species,
