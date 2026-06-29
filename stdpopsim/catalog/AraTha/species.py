@@ -16,7 +16,7 @@ _recombination_rate = {
     "4": 4.120387533470309e-08 * _selfing_correction,
     "5": 3.620293882068822e-08 * _selfing_correction,
     "Mt": 0.0,
-    "Pt": 0.0 # JK Is this correct??
+    "Pt": 0.0,
 }
 
 # genome-wide average mutation rate from Ossowski 2010 Science
