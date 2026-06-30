@@ -1,5 +1,5 @@
 /*
- * stdpopsim 0.3.1.dev54+gccb30781a.d20260630
+ * stdpopsim 0.3.1.dev55+gf49ef1a5c.d20260630
  *
  * Demographic model: PiecewiseConstant
  * Piecewise constant size population model over multiple epochs.
@@ -21,7 +21,7 @@ initialize() {
 
     defineConstant("burn_in", 10.0);
     defineConstant("generation_time", 1);
-    defineConstant("trees_file", "/var/folders/lr/bq1yt55n7z97zchjxn12pyr40000gp/T/stdpopsim_o2acl0mp/42b68f.trees");
+    defineConstant("trees_file", "/var/folders/lr/bq1yt55n7z97zchjxn12pyr40000gp/T/stdpopsim_o2acl0mp/c30ec0.trees");
     defineConstant("pop_names", c("pop_0"));
 
     _recombination_rates = c(
@@ -584,44 +584,45 @@ function (void)restore(void) {
 }
 
 
+// Late block incorporating environmental effects
+// and phenotype transformations.
 late() {
     inds = sim.subpopulations.individuals;
 
-    sim.demandPhenotype(NULL, "fitnessT");
-    sim.demandPhenotype(NULL, "add1T");
-    sim.demandPhenotype(NULL, "add2T");
-    sim.demandPhenotype(NULL, "multT");
+    sim.demandPhenotype(NULL, NULL);
+
+    // Adding environment env1
+    // Add environmental effects if relevant
     add_env = F;
     add_env = add_env | (sim.cycle > G0 - 10.0 & sim.cycle <= G0 - 0.0);
     if(add_env){
-    env_effects = rmvnorm(
-        1, c(0.0, 0.0), 
-        array(c(
+        env_effects = rmvnorm(
+            1, c(0.0, 0.0), 
+            array(c(
             c(1.0, 0.0),
             c(0.0, 1.0)
         ), c(2, 2)));
-    affected_inds = c();
-    affected_inds = c(affected_inds, sim.subpopulations[0].individuals);
-    x = affected_inds.phenotypeForTrait("add1T");
-    inds.setPhenotypeForTrait("add1T", x + env_effects[0]);
-    x = affected_inds.phenotypeForTrait("add2T");
-    inds.setPhenotypeForTrait("add2T", x + env_effects[1]);
-}
+        affected_inds = c();
+        affected_inds = c(affected_inds, sim.subpopulations[0].individuals);
+        x = affected_inds.phenotypeForTrait("add1T");
+        inds.setPhenotypeForTrait("add1T", x + env_effects[0]);
+        x = affected_inds.phenotypeForTrait("add2T");
+        inds.setPhenotypeForTrait("add2T", x + env_effects[1]);
+    }
+
+    // Adding environment env2
     env_effects = rmvnorm(
         1, c(0.0, 0.0), 
         array(c(
-            c(2.0, 0.0),
-            c(0.0, 2.0)
-        ), c(2, 2)));
+        c(2.0, 0.0),
+        c(0.0, 2.0)
+    ), c(2, 2)));
     affected_inds = inds;
     x = affected_inds.phenotypeForTrait("add1T");
     inds.setPhenotypeForTrait("add1T", x + env_effects[0]);
     x = affected_inds.phenotypeForTrait("add2T");
     inds.setPhenotypeForTrait("add2T", x + env_effects[1]);
-    x = inds.phenotypeForTrait("fitnessT");
-    x = inds.phenotypeForTrait("add1T");
-    x = inds.phenotypeForTrait("add2T");
-    x = inds.phenotypeForTrait("multT");
+
 }
 
 

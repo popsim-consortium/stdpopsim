@@ -1590,34 +1590,54 @@ def slim_makescript(
     printsc(_slim_main)
 
     # print block describing phenotype transformations
+    printsc("// Late block incorporating environmental effects")
+    printsc("// and phenotype transformations.")
+
     printsc("late() {")
     printsc("    inds = sim.subpopulations.individuals;")
     printsc()
 
-    # demand the phenotypes!
-    for t in traits_model.traits:
-        printsc(f'    sim.demandPhenotype(NULL, "{t.id}T");')
+    # demand all of the phenotypes in every population!
+    # TODO: could potentially be more efficient if we only demand
+    # the ones we actually end up needing.
+    printsc('    sim.demandPhenotype(NULL, NULL);')
+    printsc()
 
     # loop through environments, adding where needed
     for env in traits_model.environments:
+        printsc(f"    // Adding environment {env.id}")
         # check if current time is in interval
+        env_code_spacing = "    "
         if env.time_intervals is not None:
-            printsc("    add_env = F;")
+            printsc(env_code_spacing + "// Add environmental effects if relevant")
+            printsc(env_code_spacing + "add_env = F;")
             for interval in env.time_intervals:
                 start = interval[1]/scaling_factor
                 end = interval[0]/scaling_factor
                 printsc(
-                    "    add_env = add_env | "
-                    f"(sim.cycle > G0 - {start} & sim.cycle <= G0 - {end});"
+                    env_code_spacing + "add_env = add_env | "
+                    + f"(sim.cycle > G0 - {start} & sim.cycle <= G0 - {end});"
                 )
-            printsc("    if(add_env){")
+            printsc(env_code_spacing + "if(add_env){")
+
+            # makes sure that if we start this conditional block because of a
+            # temporary environmental effect, then all of the subsequent code
+            # will be properly indented.
+            env_code_spacing = "        "
+
         # draw effects
         if env.distribution_type == "mvn":
             env_effect_means = map(str, env.distribution_args[0])
             env_effect_covar = env.distribution_args[1]
-            printsc("    env_effects = rmvnorm(")
-            printsc("        1, c(" + ", ".join(env_effect_means) + "), ")
-            printsc(f"        {matrix2str(env_effect_covar, indent=3)});")
+            printsc(env_code_spacing + "env_effects = rmvnorm(")
+            printsc(env_code_spacing + "    1, c(" + ", ".join(env_effect_means) + "), ")
+            mat_string = matrix2str(
+                env_effect_covar, indent=len(env_code_spacing)//4 + 1
+            )
+            printsc(
+                env_code_spacing
+                + f"    {mat_string});"
+            )
         elif env.distribution_type == "f":
             # TODO: implement this
             assert False
@@ -1628,27 +1648,37 @@ def slim_makescript(
             assert False
 
         if env.population_list is None:
-            printsc('    affected_inds = inds;')
+            printsc(env_code_spacing + 'affected_inds = inds;')
         else:
-            printsc('    affected_inds = c();')
+            printsc(env_code_spacing + 'affected_inds = c();')
             for pop_id in env.population_list:
                 printsc(
-                    '    affected_inds = c(affected_inds, '
-                    f'sim.subpopulations[{pop_id}].individuals);'
+                    env_code_spacing
+                    + 'affected_inds = c(affected_inds, '
+                    + f'sim.subpopulations[{pop_id}].individuals);'
                 )
         for idx, t in enumerate(env.trait_ids):
-            printsc(f'    x = affected_inds.phenotypeForTrait("{t}T");')
             printsc(
-                f'    inds.setPhenotypeForTrait("{t}T", x + env_effects[{idx}]);'
+                env_code_spacing
+                + f'x = affected_inds.phenotypeForTrait("{t}T");'
+            )
+            printsc(
+                env_code_spacing
+                + f'inds.setPhenotypeForTrait("{t}T", x + env_effects[{idx}]);'
             )
 
         # Close if block opened by checking if this falls in the proper
         # interval
         if env.time_intervals is not None:
-            printsc('}')
+            printsc('    }')
+        printsc()
 
     for t in traits_model.traits:
-        printsc(f'    x = inds.phenotypeForTrait("{t.id}T");')
+        # x only gets used if we are actually performing some kind of
+        # transformation
+        if t.transform != "identity":
+            printsc(f'    x = inds.phenotypeForTrait("{t.id}T");')
+
         if t.transform == "threshold":
             thresh = t.transform_args[0]
             printsc(
