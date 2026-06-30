@@ -15,6 +15,32 @@ def _copy_converter(x):
     return x
 
 
+def _check_nonoverlapping_intervals(intervals):
+    if not isinstance(intervals, list):
+        raise ValueError("Intervals must a list.")
+    prev_end = -float('inf')
+    for interval in sorted(intervals):
+        if len(interval) != 2:
+            raise ValueError(
+                "Each interval in time_interval must be of the form "
+                "(start, end), specified backward in time."
+            )
+        if not isinstance(interval[0], (int, float)):
+            raise ValueError("Intervals must be numeric.")
+        if not isinstance(interval[1], (int, float)):
+            raise ValueError("Intervals must be numeric.")
+        if interval[0] > interval[1]:
+            raise ValueError(
+                "Intervals must be specified as (lower, upper)."
+            )
+        if interval[0] < prev_end:
+            raise ValueError(
+                "Intervals must be non-overlapping."
+            )
+        prev_end = interval[1]
+    return True
+
+
 def _check_trait_ids(trait_ids):
     # this might be too strict but we want to avoid things like trait_ids="foo"
     # which might then be interpreted as three trait IDs: "f", "o", and "o"
@@ -242,16 +268,20 @@ class Environment:
     :vartype distribution_type: str
     :ivar distribution_args: Arguments to the distribution.
     :vartype distribution_args: list
+    :ivar time_intervals: List of tuples defining when (backward-in-time) this
+        environment applies. Units are generations. Defaults to applying for all of time.
+    :vartype time_intervals: list
+    :ivar population_list: List of population ids specifying the populations this
+        environment applies to. Defaults to applying to all populations.
+    :vartype population_list: list
     """
 
     id = attr.ib(type=str)
     trait_ids = attr.ib(type=list, converter=_copy_converter)  # list of trait IDs
     distribution_type = attr.ib(type=str)
     distribution_args = attr.ib(type=list, converter=_copy_converter)
-    # TODO: add later
-    # start_time = attr.ib(default=None)
-    # end_time = attr.ib(default=None)
-    # populations = attr.ib(default=None)
+    time_intervals = attr.ib(default=None)
+    population_list = attr.ib(default=None)
 
     def __attrs_post_init__(self):
         if not (isinstance(self.id, str) and self.id != ""):
@@ -260,6 +290,11 @@ class Environment:
         _check_distribution(
             self.distribution_type, self.distribution_args, len(self.trait_ids)
         )
+        if self.population_list is not None:
+            if len(self.population_list) != len(set(self.population_list)):
+                raise ValueError("population_list contains repeated entries")
+        if self.time_intervals is not None:
+            _check_nonoverlapping_intervals(self.time_intervals)
 
 
 @attr.s(kw_only=True)

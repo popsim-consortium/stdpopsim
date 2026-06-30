@@ -1422,7 +1422,7 @@ def slim_makescript(
     # Migration rates.
     printsc("    // Migration rates for each epoch.")
     printsc("    // Migrations involving a population with size=0 are ignored.")
-    printsc("    // XXX: document what the rows & cols correspond to.")
+    printsc("    // TODO: document what the rows & cols correspond to.")
     printsc('    defineConstant("migration_matrices", array(c(')
     for i in range(len(migration_matrices)):
         epoch_str = f"INF:_T[{i}]" if i == 0 else f"_T[{i}]:_T[{i+1}]"
@@ -1593,8 +1593,61 @@ def slim_makescript(
     printsc("late() {")
     printsc("    inds = sim.subpopulations.individuals;")
     printsc()
+
+    # demand the phenotypes!
     for t in traits_model.traits:
         printsc(f'    sim.demandPhenotype(NULL, "{t.id}T");')
+
+    # loop through environments, adding where needed
+    for env in traits_model.environments:
+        # check if current time is in interval
+        if env.time_intervals is not None:
+            printsc("    add_env = F;")
+            for interval in env.time_intervals:
+                start = interval[1]/scaling_factor
+                end = interval[0]/scaling_factor
+                printsc(
+                    "    add_env = add_env | "
+                    f"(sim.cycle > G0 - {start} & sim.cycle <= G0 - {end});"
+                )
+            printsc("    if(add_env){")
+        # draw effects
+        if env.distribution_type == "mvn":
+            env_effect_means = env.distribution_args[0]
+            env_effect_covar = env.distribution_args[1]
+            printsc("    env_effects = rmvnorm(")
+            printsc("        1, c(" + ", ".join(env_effect_means) + "), ")
+            printsc(f"        {matrix2str(env_effect_covar, indent=3)});")
+        elif env.distribution_type == "f":
+            # TODO: implement this
+            assert False
+        else:
+            # TODO: do we want other distributions? currently in traits.py
+            # it would be allowed for this to be of type "g", "e", "n", "w",
+            # "lp", "ln", "u". Do we want to implement those here?
+            assert False
+
+        if env.population_list is None:
+            printsc('    affected_inds = inds;')
+        else:
+            printsc('    affected_inds = c();')
+            for pop_id in env.population_list:
+                printsc(
+                    '    affected_inds = c(affected_inds,'
+                    f'sim.subpopulations[{pop_id}].individuals;'
+                )
+        for idx, t in enumerate(env.trait_ids):
+            printsc(f'    x = affected_inds.phenotypeForTrait("{t.id}T");')
+            printsc(
+                f'    inds.setPhenotypeForTrait("x + env_effects[{idx}]");'
+            )
+
+        # Close if block opened by checking if this falls in the proper
+        # interval
+        if env.time_intervals is not None:
+            printsc('}')
+
+    for ti in traits_model.traits:
         printsc(f'    x = inds.phenotypeForTrait("{t.id}T");')
         if t.transform == "threshold":
             thresh = t.transform_args[0]
