@@ -14,11 +14,11 @@ tm = stdpopsim.TraitsModel(
 
 tm.add_environment(
     id="env1",
-    trait_ids=["add1"],
+    trait_ids=["add1", "add2"],
     distribution_type="mvn",
-    distribution_args=[np.zeros(1), np.eye(1)],
+    distribution_args=[np.zeros(2), np.eye(2)],
     time_intervals=[(0, 10)],
-    population_list=['pop_0']
+    population_list=[0]
 )
 
 
@@ -26,7 +26,7 @@ tm.add_environment(
     id="env2",
     trait_ids=["add1", "add2"],
     distribution_type="mvn",
-    distribution_args=[np.zeros(2), np.eye(2)]
+    distribution_args=[2*np.zeros(2), 2*np.eye(2)]
 )
 
 

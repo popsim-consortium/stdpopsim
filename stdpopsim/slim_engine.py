@@ -1335,7 +1335,7 @@ def slim_makescript(
                 p = d.proportions[mt_index] if use_prop else 0.0
                 mut_props_list.append(p)
                 printsc(
-                    f"    initializeMutationType({mid}, {h}, '"f", 0.0);'"
+                    f"    initializeMutationType({mid}, {h}, 'f', 0.0);"
                 )
                 if not mt.convert_to_substitution:
                     # T is the default for WF simulations.
@@ -1613,7 +1613,7 @@ def slim_makescript(
             printsc("    if(add_env){")
         # draw effects
         if env.distribution_type == "mvn":
-            env_effect_means = env.distribution_args[0]
+            env_effect_means = map(str, env.distribution_args[0])
             env_effect_covar = env.distribution_args[1]
             printsc("    env_effects = rmvnorm(")
             printsc("        1, c(" + ", ".join(env_effect_means) + "), ")
@@ -1633,13 +1633,13 @@ def slim_makescript(
             printsc('    affected_inds = c();')
             for pop_id in env.population_list:
                 printsc(
-                    '    affected_inds = c(affected_inds,'
-                    f'sim.subpopulations[{pop_id}].individuals;'
+                    '    affected_inds = c(affected_inds, '
+                    f'sim.subpopulations[{pop_id}].individuals);'
                 )
         for idx, t in enumerate(env.trait_ids):
-            printsc(f'    x = affected_inds.phenotypeForTrait("{t.id}T");')
+            printsc(f'    x = affected_inds.phenotypeForTrait("{t}T");')
             printsc(
-                f'    inds.setPhenotypeForTrait("x + env_effects[{idx}]");'
+                f'    inds.setPhenotypeForTrait("{t}T", x + env_effects[{idx}]);'
             )
 
         # Close if block opened by checking if this falls in the proper
@@ -1647,7 +1647,7 @@ def slim_makescript(
         if env.time_intervals is not None:
             printsc('}')
 
-    for ti in traits_model.traits:
+    for t in traits_model.traits:
         printsc(f'    x = inds.phenotypeForTrait("{t.id}T");')
         if t.transform == "threshold":
             thresh = t.transform_args[0]
