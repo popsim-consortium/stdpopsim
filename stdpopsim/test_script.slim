@@ -1,5 +1,5 @@
 /*
- * stdpopsim 0.3.1.dev50+gba99d9e56.d20260624
+ * stdpopsim 0.3.1.dev53+gff7ed4200.d20260630
  *
  * Demographic model: PiecewiseConstant
  * Piecewise constant size population model over multiple epochs.
@@ -21,7 +21,7 @@ initialize() {
 
     defineConstant("burn_in", 10.0);
     defineConstant("generation_time", 1);
-    defineConstant("trees_file", "/var/folders/lr/bq1yt55n7z97zchjxn12pyr40000gp/T/stdpopsim_cylb1utc/563e48.trees");
+    defineConstant("trees_file", "/var/folders/lr/bq1yt55n7z97zchjxn12pyr40000gp/T/stdpopsim_ibs41b38/5ec4b5.trees");
     defineConstant("pop_names", c("pop_0"));
 
     _recombination_rates = c(
@@ -80,7 +80,7 @@ initialize() {
 
     // Migration rates for each epoch.
     // Migrations involving a population with size=0 are ignored.
-    // XXX: document what the rows & cols correspond to.
+    // TODO: document what the rows & cols correspond to.
     defineConstant("migration_matrices", array(c(
 
         // INF:_T[0]
@@ -588,138 +588,10 @@ late() {
     inds = sim.subpopulations.individuals;
 
     sim.demandPhenotype(NULL, "fitnessT");
-    x = inds.phenotypeForTrait("fitnessT");
     sim.demandPhenotype(NULL, "add1T");
-    x = inds.phenotypeForTrait("add1T");
     sim.demandPhenotype(NULL, "add2T");
-    x = inds.phenotypeForTrait("add2T");
     sim.demandPhenotype(NULL, "multT");
-    x = inds.phenotypeForTrait("multT");
-}
-
-
-///
-/// Debugging output
-///
-
-// Print out selection coefficients for every new mutation:
-// this is for development purposes, and the format of this output
-// is subject to change or may even be removed!
-// Header:
-1 late() {
-    if (verbosity >= 3) {
-        dbg(paste(c("dbg_selection_coeff:",
-                    "selectionCoeff",
-                    "id",
-                    "position"),
-                  sep="	"));
-    }
-}
-
-// Content:
-1: late() {
-    // Print out selection coefficients for every new mutation:
-    // this is for development purposes, and the format of this output
-    // is subject to change or may even be removed!
-    if (verbosity >= 3) {
-        new = (sim.mutations.originTick == community.tick);
-        for (mut in sim.mutations[new]) {
-            dbg(paste(c("dbg_selection_coeff:",
-                        mut.selectionCoeff,
-                        mut.id,
-                        mut.position),
-                      sep="	"));
-        }
-    }
-}
-
-// Save genomic element type information in tree sequence metadata
-// This is for development purposes, and the format of this metadata
-// is subject to change or may even be removed!
-1 early() {
-    if (verbosity >= 3) {
-        // recombination map
-        metadata.setValue(
-            "recombination_rates",
-            sim.chromosome.recombinationRates
-        );
-        metadata.setValue(
-            "recombination_ends",
-            sim.chromosome.recombinationEndPositions
-        );
-        // mutationTypes
-        muts = Dictionary();
-        for (mt in sim.mutationTypes) {
-            mut_info = Dictionary(
-                "distributionParams", mt.distributionParams,
-                "distributionType", mt.distributionType,
-                "dominanceCoeff", mt.dominanceCoeff
-            );
-            muts.setValue(asString(mt.id), mut_info);
-        }
-        metadata.setValue("mutationTypes", muts);
-        // genomicElementTypes
-        ge_starts = sim.chromosome.genomicElements.startPosition;
-        ge_ends= sim.chromosome.genomicElements.endPosition;
-        ge_types= sim.chromosome.genomicElements.genomicElementType.id;
-        ges = Dictionary();
-        for (gt in sim.genomicElementTypes) {
-            gt_info = Dictionary(
-                "mutationTypes", gt.mutationTypes.id,
-                "mutationFractions", gt.mutationFractions,
-                "intervalStarts", ge_starts[ge_types == gt.id],
-                "intervalEnds", ge_ends[ge_types == gt.id]
-            );
-            ges.setValue(asString(gt.id), gt_info);
-        }
-        metadata.setValue("genomicElementTypes", ges);
-        // mutation rates
-        mr = Dictionary(
-            "rates", sim.chromosome.mutationRates,
-            "ends", sim.chromosome.mutationEndPositions
-        );
-        metadata.setValue("mutationRates", mr);
-    }
-}
-
-// Save populations size information in tree sequence metadata
-// This is for development purposes, and the format of this metadata
-// is subject to change or may even be removed!
-1 first() {
-    if (verbosity >= 3) {
-        metadata.setValue("population_sizes", Dictionary());
-    }
-}
-
-1: late() {
-    if (verbosity >= 3) {
-        popsizes = metadata.getValue("population_sizes");
-        for (pop in sim.subpopulations) {
-            traj = popsizes.getValue(pop.name);
-            if (isNULL(traj)) {
-                traj = Dictionary();
-                popsizes.setValue(pop.name, traj);
-            }
-            traj.setValue("t", c(traj.getValue("t"), community.tick));
-            traj.setValue("N", c(traj.getValue("N"), pop.individualCount));
-        }
-    }
-}
-
-// Save trait information in tree sequence metadata
-// TODO: This is for development purposes, and the format of this metadata
-// is subject to change or may even be removed!
-1 first() {
-    if (verbosity >= 3) {
-        trait_dict = Dictionary();
-        for (t in sim.traits) {
-            trait_dict.setValue(t.name,
-                Dictionary("type", t.type)
-            );
-        }
-        metadata.setValue(
-            "traits", trait_dict
-        );
-    }
-}
-
+    add_env = F;
+    add_env = add_env | (sim.cycle > G0 - 10.0 & sim.cycle <= G0 - 0.0);
+    if(add_env){
+    env_effects = rmvnorm(
