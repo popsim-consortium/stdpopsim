@@ -1,15 +1,26 @@
 import stdpopsim
 from . import genome_data
 
+# correction to the recombination rate to account for selfing
+# sigma = selfing rate, which here is 0.97 (Platt et al. 2010 PLOS Genetics)
+# the correction is derived in Nordborg 2000 Genetics
+# Nordborg does not include equation numbers, but the relevant equation is in
+# the "Recombination and selfing" section (bottom left of page 925)
+_sigma = 0.97
+_selfing_correction = 1 - _sigma / (2 - _sigma)
 
-# genome-wide recombination rate from Huber et al 2014 MBE
-# associated with all recombining chromosomes
-_rho = 200 / 1e6  # 200/Mb
-_Ne = 124000
-_mean_recombination_rate = _rho / (2 * _Ne)
-_recombination_rate = {str(j): _mean_recombination_rate for j in range(1, 6)}
-_recombination_rate["Mt"] = 0
-_recombination_rate["Pt"] = 0  # JK Is this correct??
+# Mean recombination rates were calculated from the Salome2012 map for F2
+# populations by taking a weighted average over non-missing windows,
+# using `msprime.RateMap.mean_rate` .
+_recombination_rate = {
+    "1": 3.5104764967290516e-08 * _selfing_correction,
+    "2": 3.8175441963038173e-08 * _selfing_correction,
+    "3": 3.6035582336992566e-08 * _selfing_correction,
+    "4": 4.120387533470309e-08 * _selfing_correction,
+    "5": 3.620293882068822e-08 * _selfing_correction,
+    "Mt": 0.0,
+    "Pt": 0.0,
+}
 
 # genome-wide average mutation rate from Ossowski 2010 Science
 # associated with all chromosomes
@@ -37,9 +48,9 @@ _genome = stdpopsim.Genome.from_data(
             reasons={stdpopsim.CiteReason.MUT_RATE},
         ),
         stdpopsim.Citation(
-            author="Huber et al.",
-            year=2014,
-            doi="https://doi.org/10.1093/molbev/msu247",
+            doi="https://doi.org/10.1038/hdy.2011.95",
+            author="Salomé et al.",
+            year=2012,
             reasons={stdpopsim.CiteReason.REC_RATE},
         ),
         stdpopsim.Citation(
