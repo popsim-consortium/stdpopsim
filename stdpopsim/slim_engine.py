@@ -1698,10 +1698,12 @@ def slim_makescript(
     printsc("}")
 
     # Now apply all of the fitness functions in fitnessEffect() blocks
-    for fit_func in traits_model.fitness_functions:
+    if len(traits_model.fitness_functions) > 0:
         printsc()
-        printsc(f"// Adding fitness function {fit_func.id}")
         printsc("fitnessEffect(){")
+        printsc("    total_fitness = 1.0;")
+    for fit_func in traits_model.fitness_functions:
+        printsc(f"    // Adding fitness function {fit_func.id}")
         fit_code_spacing = "    "
 
         # Check if we're in the right subpopulation
@@ -1709,17 +1711,18 @@ def slim_makescript(
             pops = "c(" + ", ".join(map(str, fit_func.population_list)) + ")"
             printsc(
                 fit_code_spacing
-                + "// if individual is not in relevant subpopulation,"
+                + "// fitness effect only if individual is in a "
             )
             printsc(
                 fit_code_spacing
-                + "// no effect on fitness."
+                + "// relevant subpopulation."
             )
             printsc(
                 fit_code_spacing
-                + f"if !(individual.subpopulation.id %in% {pops}) return 1.0;"
+                + f"if (match(individual.subpopulation.id, {pops}) != -1)"
+                + "{"
             )
-            printsc()
+            fit_code_spacing += "    "
 
         # Check if we're in the right time interval
         if fit_func.time_intervals is not None:
@@ -1731,7 +1734,7 @@ def slim_makescript(
                 fit_code_spacing, fit_func.time_intervals
             )
             printsc(fit_code_spacing + "if(in_interval){")
-            fit_code_spacing = "        "
+            fit_code_spacing += "    "
 
         # determine fitness effects
         if fit_func.function_type == "gaussian":
@@ -1739,13 +1742,14 @@ def slim_makescript(
                 printsc(
                     fit_code_spacing
                     + "trait_val = "
-                    + f"phenotypeForTrait(trait={fit_func.trait_ids[0]});"
+                    + "individual.phenotypeForTrait("
+                    + f'trait="{fit_func.trait_ids[0]}T");'
                 )
                 printsc(
                     fit_code_spacing
                     + "fitness = dnorm(trait_val, "
-                    + f"{fit_func.function_args[0]},"
-                    + f"{fit_func.function_args[1]});"
+                    + f"{fit_func.function_args[0][0]},"
+                    + f"{np.sqrt(fit_func.function_args[1][0, 0])});"
                 )
                 printsc(
                     fit_code_spacing
@@ -1754,13 +1758,19 @@ def slim_makescript(
                 printsc(
                     fit_code_spacing
                     + "fitness = fitness / dnorm("
-                    + f"{fit_func.function_args[0]},"
-                    + f"{fit_func.function_args[0]},"
-                    + f"{fit_func.function_args[1]});"
+                    + f"{fit_func.function_args[0][0]},"
+                    + f"{fit_func.function_args[0][0]},"
+                    + f"{np.sqrt(fit_func.function_args[1][0, 0])});"
                 )
-                printsc(fit_code_spacing + "return fitness;")
+                printsc(
+                    fit_code_spacing
+                    + "total_fitness = total_fitness * fitness;"
+                )
             if len(fit_func.trait_ids) > 1:
-                trait_str = "c(" + ", ".join(fit_func.trait_ids) + ")"
+                comma_traits = ", ".join(
+                    ['"' + s + "T" + '"' for s in fit_func.trait_ids]
+                )
+                trait_str = "c(" + comma_traits + ")"
                 fit_effect_means = map(str, fit_func.function_args[0])
                 fit_effect_covar = fit_func.function_args[1]
                 mean_string = "c(" + ", ".join(fit_effect_means) + ")"
@@ -1769,7 +1779,7 @@ def slim_makescript(
                 )
                 printsc(
                     fit_code_spacing
-                    + f"trait_vals = phenotypeForTrait(trait={trait_str});"
+                    + f"trait_vals = individual.phenotypeForTrait(trait={trait_str});"
                 )
                 printsc(fit_code_spacing + "fitness = dmvnorm(")
                 printsc(fit_code_spacing + "    trait_vals,")
@@ -1796,8 +1806,10 @@ def slim_makescript(
                     + f"    {mat_string}"
                 )
                 printsc(fit_code_spacing + ");")
-                printsc(fit_code_spacing + "return fitness;")
-
+                printsc(
+                    fit_code_spacing
+                    + "total_fitness = total_fitness * fitness;"
+                )
         elif fit_func.function_type == "threshold":
             # TODO: implement this...
             # the tricky bit will be, I think, getting the value corresponding
@@ -1807,6 +1819,17 @@ def slim_makescript(
             )
         else:
             raise ValueError(f"Unknown function type {fit_func.function_type}.")
+
+        # close if block checking if we're in relevant time interval
+        if fit_func.time_intervals is not None:
+            printsc(fit_code_spacing[:-4] + "}")
+        # close if block checking if we're in relevant population
+        if fit_func.population_list is not None:
+            printsc("    }")
+
+    # close the fitnessEffect() block
+    if len(traits_model.fitness_functions) > 0:
+        printsc("    return total_fitness;")
         printsc("}")
 
     if logfile is not None:

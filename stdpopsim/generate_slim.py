@@ -30,6 +30,22 @@ tm.add_environment(
 )
 
 
+tm.add_fitness_function(
+    id="fit1",
+    trait_ids=["add1", "add2"],
+    function_type="gaussian",
+    function_args=[np.zeros(2), np.eye(2)],
+    time_intervals=[(0, 10)],
+    population_list=[0]
+)
+
+tm.add_fitness_function(
+    id="fit2",
+    trait_ids=["add1"],
+    function_type="gaussian",
+    function_args=[np.array([0.3]), np.array([[2.0]])],
+)
+
 model = stdpopsim.PiecewiseConstantSize(10)
 engine = stdpopsim.get_engine("slim")
 species = stdpopsim.get_species("AnaPla")
