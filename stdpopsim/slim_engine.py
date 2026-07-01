@@ -1241,6 +1241,17 @@ def slim_makescript(
         )
     )
 
+    def print_check_if_in_interval(code_spacing, intervals):
+        printsc(code_spacing + "in_interval = F;")
+        for interval in intervals:
+            start = interval[1]/scaling_factor
+            end = interval[0]/scaling_factor
+            # TODO: should this by community.tick instead of sim.cycle?
+            printsc(
+                code_spacing + "in_interval = in_interval | "
+                + f"(sim.cycle > G0 - {start} & sim.cycle <= G0 - {end});"
+            )
+
     def matrix2str(
         matrix, row_comments=None, col_comment=None, indent=2, fmt="", dim=(None, None)
     ):
@@ -1610,15 +1621,8 @@ def slim_makescript(
         env_code_spacing = "    "
         if env.time_intervals is not None:
             printsc(env_code_spacing + "// Add environmental effects if relevant")
-            printsc(env_code_spacing + "add_env = F;")
-            for interval in env.time_intervals:
-                start = interval[1]/scaling_factor
-                end = interval[0]/scaling_factor
-                printsc(
-                    env_code_spacing + "add_env = add_env | "
-                    + f"(sim.cycle > G0 - {start} & sim.cycle <= G0 - {end});"
-                )
-            printsc(env_code_spacing + "if(add_env){")
+            print_check_if_in_interval(env_code_spacing, env.time_intervals)
+            printsc(env_code_spacing + "if(in_interval){")
 
             # makes sure that if we start this conditional block because of a
             # temporary environmental effect, then all of the subsequent code
@@ -1630,14 +1634,15 @@ def slim_makescript(
             env_effect_means = map(str, env.distribution_args[0])
             env_effect_covar = env.distribution_args[1]
             printsc(env_code_spacing + "env_effects = rmvnorm(")
-            printsc(env_code_spacing + "    1, c(" + ", ".join(env_effect_means) + "), ")
+            printsc(env_code_spacing + "    1, c(" + ", ".join(env_effect_means) + "),")
             mat_string = matrix2str(
                 env_effect_covar, indent=len(env_code_spacing)//4 + 1
             )
             printsc(
                 env_code_spacing
-                + f"    {mat_string});"
+                + f"    {mat_string}"
             )
+            printsc(env_code_spacing + ");")
         elif env.distribution_type == "f":
             # TODO: implement this
             assert False
@@ -1691,6 +1696,118 @@ def slim_makescript(
         else:
             assert t.transform == "identity"
     printsc("}")
+
+    # Now apply all of the fitness functions in fitnessEffect() blocks
+    for fit_func in traits_model.fitness_functions:
+        printsc()
+        printsc(f"// Adding fitness function {fit_func.id}")
+        printsc("fitnessEffect(){")
+        fit_code_spacing = "    "
+
+        # Check if we're in the right subpopulation
+        if fit_func.population_list is not None:
+            pops = "c(" + ", ".join(map(str, fit_func.population_list)) + ")"
+            printsc(
+                fit_code_spacing
+                + "// if individual is not in relevant subpopulation,"
+            )
+            printsc(
+                fit_code_spacing
+                + "// no effect on fitness."
+            )
+            printsc(
+                fit_code_spacing
+                + f"if !(individual.subpopulation.id %in% {pops}) return 1.0;"
+            )
+            printsc()
+
+        # Check if we're in the right time interval
+        if fit_func.time_intervals is not None:
+            printsc(
+                fit_code_spacing
+                + "// Apply fitness function if time is right"
+            )
+            print_check_if_in_interval(
+                fit_code_spacing, fit_func.time_intervals
+            )
+            printsc(fit_code_spacing + "if(in_interval){")
+            fit_code_spacing = "        "
+
+        # determine fitness effects
+        if fit_func.function_type == "gaussian":
+            if len(fit_func.trait_ids) == 1:
+                printsc(
+                    fit_code_spacing
+                    + "trait_val = "
+                    + f"phenotypeForTrait(trait={fit_func.trait_ids[0]});"
+                )
+                printsc(
+                    fit_code_spacing
+                    + "fitness = dnorm(trait_val, "
+                    + f"{fit_func.function_args[0]},"
+                    + f"{fit_func.function_args[1]});"
+                )
+                printsc(
+                    fit_code_spacing
+                    + "// normalize by maximum fitness"
+                )
+                printsc(
+                    fit_code_spacing
+                    + "fitness = fitness / dnorm("
+                    + f"{fit_func.function_args[0]},"
+                    + f"{fit_func.function_args[0]},"
+                    + f"{fit_func.function_args[1]});"
+                )
+                printsc(fit_code_spacing + "return fitness;")
+            if len(fit_func.trait_ids) > 1:
+                trait_str = "c(" + ", ".join(fit_func.trait_ids) + ")"
+                fit_effect_means = map(str, fit_func.function_args[0])
+                fit_effect_covar = fit_func.function_args[1]
+                mean_string = "c(" + ", ".join(fit_effect_means) + ")"
+                mat_string = matrix2str(
+                    fit_effect_covar, indent=len(fit_code_spacing)//4+1
+                )
+                printsc(
+                    fit_code_spacing
+                    + f"trait_vals = phenotypeForTrait(trait={trait_str});"
+                )
+                printsc(fit_code_spacing + "fitness = dmvnorm(")
+                printsc(fit_code_spacing + "    trait_vals,")
+                printsc(
+                    fit_code_spacing + mean_string + ","
+                )
+                printsc(
+                    fit_code_spacing
+                    + f"    {mat_string}"
+                )
+                printsc(fit_code_spacing + ");")
+                printsc(
+                    fit_code_spacing
+                    + "// normalize by maximum fitness"
+                )
+                printsc(fit_code_spacing + "fitness = fitness / dmvnorm(")
+                # evaluate the gaussian at the mean
+                printsc(fit_code_spacing + "    " + mean_string + ",")
+                # specify the mean
+                printsc(fit_code_spacing + "    " + mean_string + ",")
+                # specify the covariance matrix
+                printsc(
+                    fit_code_spacing
+                    + f"    {mat_string}"
+                )
+                printsc(fit_code_spacing + ");")
+                printsc(fit_code_spacing + "return fitness;")
+
+        elif fit_func.function_type == "threshold":
+            # TODO: implement this...
+            # the tricky bit will be, I think, getting the value corresponding
+            # to the quantile out
+            raise NotImplementedError(
+                "threshold fitness function is not implemented."
+            )
+        else:
+            raise ValueError(f"Unknown function type {fit_func.function_type}.")
+        printsc("}")
 
     if logfile is not None:
         printsc(

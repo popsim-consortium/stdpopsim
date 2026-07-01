@@ -69,6 +69,12 @@ class TraitsModel(object):
         and :meth:`.add_fitness_function`.
         These must all have unique IDs.
 
+        If multiple environments are added that overlap in time or space, then
+        their effects will combine additively.
+
+        If multiple fitness functions are added that overlap in time or space,
+        then their effects will combine multiplicatively.
+
         :ivar traits: List of :class:`Trait` objects, with unique IDs.
             or ``None``.
         :vartype traits: list
@@ -332,6 +338,14 @@ class FitnessFunction:
     :vartype function_type: str
     :ivar function_args: Tuple containing parameters for the fitness function
     :vartype function_args: str
+    :ivar time_intervals: List of tuples defining when (backward-in-time) this
+        fitness function applies. Units are generations. Defaults to applying for all of
+        time.
+    :vartype time_intervals: list
+    :ivar population_list: List of population ids specifying the populations this
+        fitness function applies to. Defaults to applying to all populations.
+    :vartype population_list: list
+
     """
 
     # :ivar spacetime: Generations and populations
@@ -342,7 +356,8 @@ class FitnessFunction:
     trait_ids = attr.ib(type=list, converter=_copy_converter)
     function_type = attr.ib(type=str)
     function_args = attr.ib(type=tuple, converter=_copy_converter)
-    # spacetime = attr.ib(type=list)
+    time_intervals = attr.ib(default=None)
+    population_list = attr.ib(default=None)
 
     def __attrs_post_init__(self):
         if not (isinstance(self.id, str) and self.id != ""):
@@ -357,6 +372,12 @@ class FitnessFunction:
             num_traits,
             arrays=(self.function_type == "gaussian"),
         )
+
+        if self.population_list is not None:
+            if len(self.population_list) != len(set(self.population_list)):
+                raise ValueError("population_list contains repeated entries")
+        if self.time_intervals is not None:
+            _check_nonoverlapping_intervals(self.time_intervals)
 
         if self.function_type == "gaussian":
             _check_gaussian_args(self.function_args, num_traits)
@@ -480,6 +501,11 @@ class MutationType(object):
                 )
 
         if self.dominance_coeff_list is not None:
+            if len(self.trait_ids) != 1 or self.trait_ids[0] != "fitness":
+                raise ValueError(
+                    "Cannot specify dominance_coeff_list for non-fitness "
+                    "traits."
+                )
             # disallow the inefficient and annoying length-one case
             if len(self.dominance_coeff_list) < 2:
                 raise ValueError("dominance_coeff_list must have at least 2 elements.")
