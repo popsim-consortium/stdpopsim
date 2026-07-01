@@ -12,16 +12,26 @@ _genetic_map_citation = stdpopsim.Citation(
 )
 
 
-# create a subclass to handle the selfing rate correction
+# define a new subclass to handle the selfing rate correction
+# The new class inherits all attributes from the original class
+# with the exception of the `get_chromosome_map` method
+# which is redefined to account for selfing.
+# Below, the `get_chromosome_map` method is redefined for the new class.
+# For a given chromosome `id` we retrieve the original map with the superclass method.
+# Then, we return a new map with the same position array but with the rate array
+# multiplied by the selfing correction factor.
+# Details of the selfing correction from Nordborg 2000 Genetics
+# are outlined in `species.py`.
 class _AraThaGeneticMap(stdpopsim.GeneticMap):
-    def get_chromosome_map(self, id):
-        rate_map = super().get_chromosome_map(id)
+    def get_chromosome_map(self, id):  # redefine this method for the new class
+        rate_map = super().get_chromosome_map(id)  # retrieve the original map
         return msprime.RateMap(
-            position=rate_map.position,
-            rate=rate_map.rate * _selfing_correction,
+            position=rate_map.position,  # copy the position array
+            rate=rate_map.rate * _selfing_correction,  # apply selfing correction
         )
 
 
+# Here, we use the `_AraThaGeneticMap` subclass in place of `stdpopsim.GeneticMap`
 _gm = _AraThaGeneticMap(
     species=_species,
     id="SalomeAveraged_TAIR10",  # ID for genetic map, see naming conventions
@@ -33,6 +43,9 @@ _gm = _AraThaGeneticMap(
         populations. To get a single map for each chromosome, the Haldane map
         function distances were converted to recombination rates (cM/Mb) for
         each cross and then averaged across the 17 populations using loess.
+        To account for the high selfing rate in A. thaliana, the recombination
+        rates were adjusted following Nordborg 2000 Genetics, section
+        'Recombination and selfing' (bottom left of page 925).
         The map was constructed on genome version TAIR7, and lifted to TAIR10.
         """,
     url=(

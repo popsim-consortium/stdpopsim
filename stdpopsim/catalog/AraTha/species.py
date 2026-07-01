@@ -2,13 +2,17 @@ import stdpopsim
 from . import genome_data
 
 # correction to the recombination rate to account for selfing
-# (See: Nordborg 2000 Genetics)
+# sigma = selfing rate, which here is 0.97 (Platt et al. 2010 PLOS Genetics)
+# the correction is derived in Nordborg 2000 Genetics
+# Nordborg does not include equation numbers, but the relevant equation is in
+# the "Recombination and selfing" section (bottom left of page 925)
 _sigma = 0.97
 _selfing_correction = 1 - _sigma / (2 - _sigma)
 
-# Mean recombination rates calculated from the original Salome2012 map
-# and then adjusted for selfing
-# (See: `msprime.RateMap.mean_rate`)
+# Mean recombination rates were calculated from the Salome2012 map for F2
+# populations by taking a weighted average over non-missing windows.
+# (See: `msprime.RateMap.mean_rate` for details).
+# Then, the selfing correction is applied to each non-zero recombination rate.
 _recombination_rate = {
     "1": 3.5104764967290516e-08 * _selfing_correction,
     "2": 3.8175441963038173e-08 * _selfing_correction,
