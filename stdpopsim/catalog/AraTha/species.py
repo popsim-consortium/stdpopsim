@@ -48,9 +48,9 @@ _genome = stdpopsim.Genome.from_data(
             reasons={stdpopsim.CiteReason.MUT_RATE},
         ),
         stdpopsim.Citation(
-            author="Huber et al.",
-            year=2014,
-            doi="https://doi.org/10.1093/molbev/msu247",
+            doi="https://doi.org/10.1038/hdy.2011.95",
+            author="Salomé et al.",
+            year=2012,
             reasons={stdpopsim.CiteReason.REC_RATE},
         ),
         stdpopsim.Citation(

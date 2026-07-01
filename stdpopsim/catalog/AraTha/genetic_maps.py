@@ -12,26 +12,22 @@ _genetic_map_citation = stdpopsim.Citation(
 )
 
 
-# define a new subclass to handle the selfing rate correction
-# The new class inherits all attributes from the original class
-# with the exception of the `get_chromosome_map` method
-# which is redefined to account for selfing.
-# Below, the `get_chromosome_map` method is redefined for the new class.
-# For a given chromosome `id` we retrieve the original map with the superclass method.
-# Then, we return a new map with the same position array but with the rate array
-# multiplied by the selfing correction factor.
-# Details of the selfing correction from Nordborg 2000 Genetics
-# are outlined in `species.py`.
+# define a subclass to correct recombination rates for selfing
+# The original rate map in "SalomeAveraged_TAIR10" is calculated for
+# a set of outcrossing F2 populations, but A. thaliana is highly selfing.
+# The selfing correction is derived in Nordborg 2000 Genetics
+# and is equal to 1 - σ/(2 - σ), where σ is the selfing rate.
+# We use σ = 0.97 from Platt et al. 2010 PLOS Genetics.
 class _AraThaGeneticMap(stdpopsim.GeneticMap):
-    def get_chromosome_map(self, id):  # redefine this method for the new class
-        rate_map = super().get_chromosome_map(id)  # retrieve the original map
+    def get_chromosome_map(self, id):
+        rate_map = super().get_chromosome_map(id)
         return msprime.RateMap(
-            position=rate_map.position,  # copy the position array
-            rate=rate_map.rate * _selfing_correction,  # apply selfing correction
+            position=rate_map.position,
+            rate=rate_map.rate * _selfing_correction,
         )
 
 
-# Here, we use the `_AraThaGeneticMap` subclass in place of `stdpopsim.GeneticMap`
+# Here, we use `_AraThaGeneticMap` in place of `stdpopsim.GeneticMap`
 _gm = _AraThaGeneticMap(
     species=_species,
     id="SalomeAveraged_TAIR10",  # ID for genetic map, see naming conventions
@@ -46,6 +42,7 @@ _gm = _AraThaGeneticMap(
         To account for the high selfing rate in A. thaliana, the recombination
         rates were adjusted following Nordborg 2000 Genetics, section
         'Recombination and selfing' (bottom left of page 925).
+        A selfing rate of 0.97 was used from Platt et al. 2010 PLOS Genetics.
         The map was constructed on genome version TAIR7, and lifted to TAIR10.
         """,
     url=(
