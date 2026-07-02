@@ -296,7 +296,15 @@ _slim_main = """
     // tick G_start. All remaining events are relative to this tick.
     N_max = asInteger(round(max(N[0,0:(num_populations-1)])));
     G_start = 1 + asInteger(round(burn_in * N_max));
-    defineConstant("G0", asInteger(max(_T) / generation_time / Q + G_start));
+    defineConstant(
+        "G0",
+        asInteger(
+            max(c(
+                _oldest_traits_model_time / generation_time / Q,
+                max(_T) / generation_time / Q
+            ))
+            + G_start)
+    );
     G = time_to_tick(_T);
     G_end = max(G);
 
@@ -932,6 +940,15 @@ def _check_traits_model_contig_consistency(contig, traits_model):
     assert True
 
 
+def _check_traits_model_demography_consistency(
+    traits_model, demographic_model
+):
+    # TODO: check that the environments and fitness functions defined in the
+    # traits model for time intervals and populations correspond to actual
+    # things in the demographic model.
+    assert True
+
+
 def slim_makescript(
     script_file,
     trees_file,
@@ -951,6 +968,7 @@ def slim_makescript(
         traits_model = stdpopsim.TraitsModel()
 
     _check_traits_model_contig_consistency(contig, traits_model)
+    _check_traits_model_demography_consistency(traits_model, demographic_model)
 
     pop_names = [pop.name for pop in demographic_model.model.populations]
     # Use copies of these so that the time frobbing below doesn't have
@@ -1392,6 +1410,30 @@ def slim_makescript(
     mut_rates = slim_array_string(slim_rate_map[1], indent)
     printsc(f"    initializeMutationRate(Q*{mut_rates}, {mut_breaks});")
     printsc()
+
+    # Oldest traits model time
+    # In principle, if fitness functions or environments start applying
+    # more anciently than the most ancient time in the demographic model, we
+    # would want to do our burn-in before even that time. I.e., we don't want
+    # these things to start applying in the middle of burn-in.
+    max_tm_time = [0]
+    for condition in (
+        traits_model.fitness_functions + traits_model.environments
+    ):
+        if condition.time_intervals is None:
+            continue
+        for interval in condition.time_intervals:
+            if np.isfinite(interval[1]):
+                # We multiply by the generation time to convert this to year
+                # here to be consistent with the demography times that we put
+                # into SLiM.
+                max_tm_time.append(
+                    interval[1] * demographic_model.generation_time
+                )
+    max_tm_time = max(max_tm_time)
+    printsc("    // Time at which the oldest fitness function that does not")
+    printsc("    // persist back to INF starts, in years before present.")
+    printsc(f'    defineConstant("_oldest_traits_model_time", {max_tm_time});')
 
     # Epoch times.
     printsc("    // Time of epoch boundaries, in years before present.")

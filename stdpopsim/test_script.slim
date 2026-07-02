@@ -1,5 +1,5 @@
 /*
- * stdpopsim 0.3.1.dev59+g7c242222e.d20260702
+ * stdpopsim 0.3.1.dev60+g735a6454d.d20260702
  *
  * Demographic model: PiecewiseConstant
  * Piecewise constant size population model over multiple epochs.
@@ -56,6 +56,9 @@ initialize() {
         0.0, 4.83e-09, 0.0), c(
         9999999, 10009999, 208326428));
 
+    // Time at which the oldest fitness function that does not
+    // persist back to INF starts, in years before present.
+    defineConstant("_oldest_traits_model_time", 10);
     // Time of epoch boundaries, in years before present.
     // The first epoch spans from INF to _T[0].
     defineConstant("_T", c(0));
@@ -316,7 +319,15 @@ function (void)restore(void) {
     // tick G_start. All remaining events are relative to this tick.
     N_max = asInteger(round(max(N[0,0:(num_populations-1)])));
     G_start = 1 + asInteger(round(burn_in * N_max));
-    defineConstant("G0", asInteger(max(_T) / generation_time / Q + G_start));
+    defineConstant(
+        "G0",
+        asInteger(
+            max(c(
+                _oldest_traits_model_time / generation_time / Q,
+                max(_T) / generation_time / Q
+            ))
+            + G_start)
+    );
     G = time_to_tick(_T);
     G_end = max(G);
 
