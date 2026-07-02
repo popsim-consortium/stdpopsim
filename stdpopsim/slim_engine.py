@@ -1795,7 +1795,8 @@ def slim_makescript(
                             fit_code_spacing
                             + "fitness = dnorm(trait_val, "
                             + f"{fit_func.function_args[0][0]},"
-                            + f"{np.sqrt(fit_func.function_args[1][0, 0])});"
+                            + f"{np.sqrt(fit_func.function_args[1][0, 0])}"
+                            + "/ sqrt(Q));"  # scales strength of selection
                         )
                         printsc(
                             fit_code_spacing
@@ -1806,7 +1807,8 @@ def slim_makescript(
                             + "fitness = fitness / dnorm("
                             + f"{fit_func.function_args[0][0]},"
                             + f"{fit_func.function_args[0][0]},"
-                            + f"{np.sqrt(fit_func.function_args[1][0, 0])});"
+                            + f"{np.sqrt(fit_func.function_args[1][0, 0])}"
+                            + "/ sqrt(Q));"  # scales stregnth of selection
                         )
                         printsc(
                             fit_code_spacing
@@ -1835,7 +1837,7 @@ def slim_makescript(
                         )
                         printsc(
                             fit_code_spacing
-                            + f"    {mat_string}"
+                            + f"    {mat_string} / Q"  # incorporates scaling
                         )
                         printsc(fit_code_spacing + ");")
                         printsc(
@@ -1850,7 +1852,7 @@ def slim_makescript(
                         # specify the covariance matrix
                         printsc(
                             fit_code_spacing
-                            + f"    {mat_string}"
+                            + f"    {mat_string} / Q"  # incorporates scaling
                         )
                         printsc(fit_code_spacing + ");")
                         printsc(

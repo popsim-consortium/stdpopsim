@@ -1,5 +1,5 @@
 /*
- * stdpopsim 0.3.1.dev60+g735a6454d.d20260702
+ * stdpopsim 0.3.1.dev61+gdd443fc52.d20260702
  *
  * Demographic model: PiecewiseConstant
  * Piecewise constant size population model over multiple epochs.
@@ -666,7 +666,7 @@ late() {
         array(c(
             c(1.0, 0.0),
             c(0.0, 1.0)
-        ), c(2, 2))
+        ), c(2, 2)) / Q
     );
     // normalize by maximum fitness
     fitness = fitness / dmvnorm(
@@ -675,7 +675,7 @@ late() {
         array(c(
             c(1.0, 0.0),
             c(0.0, 1.0)
-        ), c(2, 2))
+        ), c(2, 2)) / Q
     );
     return fitness;
 }
@@ -683,18 +683,18 @@ late() {
 // Adding fitness function fit2
 fitnessEffect(){
     trait_val = individual.phenotypeForTrait(trait="add1T");
-    fitness = dnorm(trait_val, 0.3,1.4142135623730951);
+    fitness = dnorm(trait_val, 0.3,1.4142135623730951/ sqrt(Q));
     // normalize by maximum fitness
-    fitness = fitness / dnorm(0.3,0.3,1.4142135623730951);
+    fitness = fitness / dnorm(0.3,0.3,1.4142135623730951/ sqrt(Q));
     return fitness;
 }
 
 // Adding fitness function fit3
 1:(G0-10) fitnessEffect(){
     trait_val = individual.phenotypeForTrait(trait="add1T");
-    fitness = dnorm(trait_val, 0.3,1.4142135623730951);
+    fitness = dnorm(trait_val, 0.3,1.4142135623730951/ sqrt(Q));
     // normalize by maximum fitness
-    fitness = fitness / dnorm(0.3,0.3,1.4142135623730951);
+    fitness = fitness / dnorm(0.3,0.3,1.4142135623730951/ sqrt(Q));
     return fitness;
 }
 
