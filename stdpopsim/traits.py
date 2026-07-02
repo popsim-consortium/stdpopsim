@@ -275,7 +275,10 @@ class Environment:
     :ivar distribution_args: Arguments to the distribution.
     :vartype distribution_args: list
     :ivar time_intervals: List of tuples defining when (backward-in-time) this
-        environment applies. Units are generations. Defaults to applying for all of time.
+        environment applies. Setting an upper limit of float('inf') will cause
+        this environment to apply from the beginning of the simulation
+        (including the burn-in). Units are generations.
+        Defaults to applying for all of time.
     :vartype time_intervals: list
     :ivar population_list: List of population ids specifying the populations this
         environment applies to. Defaults to applying to all populations.
@@ -339,8 +342,10 @@ class FitnessFunction:
     :ivar function_args: Tuple containing parameters for the fitness function
     :vartype function_args: str
     :ivar time_intervals: List of tuples defining when (backward-in-time) this
-        fitness function applies. Units are generations. Defaults to applying for all of
-        time.
+        fitness function applies. Units are generations. Setting an upper limit
+        of float('inf') will cause this fitness function to apply from the
+        beginning of the simulation (including the burn-in).
+        Defaults to applying for all of time.
     :vartype time_intervals: list
     :ivar population_list: List of population ids specifying the populations this
         fitness function applies to. Defaults to applying to all populations.

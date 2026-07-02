@@ -30,6 +30,15 @@ tm.add_environment(
 )
 
 
+tm.add_environment(
+    id="env3",
+    trait_ids=["add1", "add2"],
+    distribution_type="mvn",
+    distribution_args=[2*np.zeros(2), 2*np.eye(2)],
+    time_intervals=[(10, float('inf'))]
+)
+
+
 tm.add_fitness_function(
     id="fit1",
     trait_ids=["add1", "add2"],
@@ -44,6 +53,14 @@ tm.add_fitness_function(
     trait_ids=["add1"],
     function_type="gaussian",
     function_args=[np.array([0.3]), np.array([[2.0]])],
+)
+
+tm.add_fitness_function(
+    id="fit3",
+    trait_ids=["add1"],
+    function_type="gaussian",
+    function_args=[np.array([0.3]), np.array([[2.0]])],
+    time_intervals=[(10, float('inf'))]
 )
 
 model = stdpopsim.PiecewiseConstantSize(10)

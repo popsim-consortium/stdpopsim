@@ -1244,12 +1244,14 @@ def slim_makescript(
     def print_check_if_in_interval(code_spacing, intervals):
         printsc(code_spacing + "in_interval = F;")
         for interval in intervals:
-            start = interval[1]/scaling_factor
-            end = interval[0]/scaling_factor
-            # TODO: should this by community.tick instead of sim.cycle?
+            if np.isinf(interval[1]):
+                lower_check = ""
+            else:
+                lower_check = f"sim.cycle > G0 - {interval[1]/scaling_factor} & "
+            upper_check = f"sim.cycle <= G0 - {interval[0]/scaling_factor}"
             printsc(
                 code_spacing + "in_interval = in_interval | "
-                + f"(sim.cycle > G0 - {start} & sim.cycle <= G0 - {end});"
+                + f"({lower_check}{upper_check});"
             )
 
     def matrix2str(
@@ -1636,7 +1638,7 @@ def slim_makescript(
             printsc(env_code_spacing + "env_effects = rmvnorm(")
             printsc(env_code_spacing + "    1, c(" + ", ".join(env_effect_means) + "),")
             mat_string = matrix2str(
-                env_effect_covar, indent=len(env_code_spacing)//4 + 1
+                env_effect_covar, indent=len(env_code_spacing)//4 + 2
             )
             printsc(
                 env_code_spacing
@@ -1717,12 +1719,23 @@ def slim_makescript(
                 if interval is None:
                     interval_str = ""
                 else:
-                    generation_time = demographic_model.generation_time
-                    N_max = int(round(max(N[0, :])))
-                    G_start = 1 + int(round(burn_in*N_max))
-                    G0 = int(max(T) / generation_time / scaling_factor + G_start)
-                    start = G0 - int(np.ceil(interval[1]/scaling_factor))
-                    end = G0 - int(interval[0]/scaling_factor)
+                    # this ensures that if the upper end of the interval is
+                    # infinity, then we apply this from the beginning of the
+                    # simulation on (including burn-in).
+                    if np.isinf(interval[1]):
+                        start = "1"
+                    else:
+                        start = int(interval[1]/scaling_factor)
+                        # these are half-open intervals by specification, so if
+                        # it just happens to end (going backward in time)
+                        # at a particular generation, we
+                        # don't want to apply this fitness function. With intervals
+                        # of the form [a, b), [b, c), this prevents two fitness
+                        # functions from being applied simultaneously
+                        if start == interval[1]/scaling_factor:
+                            start -= 1
+                        start = f"(G0-{start})"
+                    end = f"(G0-{int(interval[0]/scaling_factor)})"
                     interval_str = f"{start}:{end} "
                 printsc(f"{interval_str}fitnessEffect({population})" + "{")
                 fit_code_spacing = "    "
@@ -1766,7 +1779,7 @@ def slim_makescript(
                         fit_effect_covar = fit_func.function_args[1]
                         mean_string = "c(" + ", ".join(fit_effect_means) + ")"
                         mat_string = matrix2str(
-                            fit_effect_covar, indent=len(fit_code_spacing)//4+1
+                            fit_effect_covar, indent=len(fit_code_spacing)//4+2
                         )
                         printsc(
                             fit_code_spacing

@@ -1,5 +1,5 @@
 /*
- * stdpopsim 0.3.1.dev58+ga2957e591.d20260702
+ * stdpopsim 0.3.1.dev59+g7c242222e.d20260702
  *
  * Demographic model: PiecewiseConstant
  * Piecewise constant size population model over multiple epochs.
@@ -599,9 +599,9 @@ late() {
         env_effects = rmvnorm(
             1, c(0.0, 0.0),
             array(c(
-            c(1.0, 0.0),
-            c(0.0, 1.0)
-        ), c(2, 2))
+                c(1.0, 0.0),
+                c(0.0, 1.0)
+            ), c(2, 2))
         );
         affected_inds = c();
         affected_inds = c(affected_inds, sim.subpopulations[0].individuals);
@@ -615,9 +615,9 @@ late() {
     env_effects = rmvnorm(
         1, c(0.0, 0.0),
         array(c(
-        c(2.0, 0.0),
-        c(0.0, 2.0)
-    ), c(2, 2))
+            c(2.0, 0.0),
+            c(0.0, 2.0)
+        ), c(2, 2))
     );
     affected_inds = inds;
     x = affected_inds.phenotypeForTrait("add1T");
@@ -625,33 +625,61 @@ late() {
     x = affected_inds.phenotypeForTrait("add2T");
     inds.setPhenotypeForTrait("add2T", x + env_effects[1]);
 
+    // Adding environment env3
+    // Add environmental effects if relevant
+    in_interval = F;
+    in_interval = in_interval | (sim.cycle <= G0 - 10.0);
+    if(in_interval){
+        env_effects = rmvnorm(
+            1, c(0.0, 0.0),
+            array(c(
+                c(2.0, 0.0),
+                c(0.0, 2.0)
+            ), c(2, 2))
+        );
+        affected_inds = inds;
+        x = affected_inds.phenotypeForTrait("add1T");
+        inds.setPhenotypeForTrait("add1T", x + env_effects[0]);
+        x = affected_inds.phenotypeForTrait("add2T");
+        inds.setPhenotypeForTrait("add2T", x + env_effects[1]);
+    }
+
 }
 
 // Adding fitness function fit1
-91:101 fitnessEffect(p0){
+(G0-9):(G0-0) fitnessEffect(p0){
     trait_vals = individual.phenotypeForTrait(trait=c("add1T", "add2T"));
     fitness = dmvnorm(
         trait_vals,
     c(0.0, 0.0),
         array(c(
-        c(1.0, 0.0),
-        c(0.0, 1.0)
-    ), c(2, 2))
+            c(1.0, 0.0),
+            c(0.0, 1.0)
+        ), c(2, 2))
     );
     // normalize by maximum fitness
     fitness = fitness / dmvnorm(
         c(0.0, 0.0),
         c(0.0, 0.0),
         array(c(
-        c(1.0, 0.0),
-        c(0.0, 1.0)
-    ), c(2, 2))
+            c(1.0, 0.0),
+            c(0.0, 1.0)
+        ), c(2, 2))
     );
     return fitness;
 }
 
 // Adding fitness function fit2
 fitnessEffect(){
+    trait_val = individual.phenotypeForTrait(trait="add1T");
+    fitness = dnorm(trait_val, 0.3,1.4142135623730951);
+    // normalize by maximum fitness
+    fitness = fitness / dnorm(0.3,0.3,1.4142135623730951);
+    return fitness;
+}
+
+// Adding fitness function fit3
+1:(G0-10) fitnessEffect(){
     trait_val = individual.phenotypeForTrait(trait="add1T");
     fitness = dnorm(trait_val, 0.3,1.4142135623730951);
     // normalize by maximum fitness
