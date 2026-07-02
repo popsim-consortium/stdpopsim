@@ -1698,139 +1698,122 @@ def slim_makescript(
     printsc("}")
 
     # Now apply all of the fitness functions in fitnessEffect() blocks
-    if len(traits_model.fitness_functions) > 0:
-        printsc()
-        printsc("fitnessEffect(){")
-        printsc("    total_fitness = 1.0;")
     for fit_func in traits_model.fitness_functions:
-        printsc(f"    // Adding fitness function {fit_func.id}")
-        fit_code_spacing = "    "
+        printsc()
+        printsc(f"// Adding fitness function {fit_func.id}")
 
-        # Check if we're in the right subpopulation
-        if fit_func.population_list is not None:
-            pops = "c(" + ", ".join(map(str, fit_func.population_list)) + ")"
-            printsc(
-                fit_code_spacing
-                + "// fitness effect only if individual is in a "
-            )
-            printsc(
-                fit_code_spacing
-                + "// relevant subpopulation."
-            )
-            printsc(
-                fit_code_spacing
-                + f"if (match(individual.subpopulation.id, {pops}) != -1)"
-                + "{"
-            )
-            fit_code_spacing += "    "
-
-        # Check if we're in the right time interval
-        if fit_func.time_intervals is not None:
-            printsc(
-                fit_code_spacing
-                + "// Apply fitness function if time is right"
-            )
-            print_check_if_in_interval(
-                fit_code_spacing, fit_func.time_intervals
-            )
-            printsc(fit_code_spacing + "if(in_interval){")
-            fit_code_spacing += "    "
-
-        # determine fitness effects
-        if fit_func.function_type == "gaussian":
-            if len(fit_func.trait_ids) == 1:
-                printsc(
-                    fit_code_spacing
-                    + "trait_val = "
-                    + "individual.phenotypeForTrait("
-                    + f'trait="{fit_func.trait_ids[0]}T");'
-                )
-                printsc(
-                    fit_code_spacing
-                    + "fitness = dnorm(trait_val, "
-                    + f"{fit_func.function_args[0][0]},"
-                    + f"{np.sqrt(fit_func.function_args[1][0, 0])});"
-                )
-                printsc(
-                    fit_code_spacing
-                    + "// normalize by maximum fitness"
-                )
-                printsc(
-                    fit_code_spacing
-                    + "fitness = fitness / dnorm("
-                    + f"{fit_func.function_args[0][0]},"
-                    + f"{fit_func.function_args[0][0]},"
-                    + f"{np.sqrt(fit_func.function_args[1][0, 0])});"
-                )
-                printsc(
-                    fit_code_spacing
-                    + "total_fitness = total_fitness * fitness;"
-                )
-            if len(fit_func.trait_ids) > 1:
-                comma_traits = ", ".join(
-                    ['"' + s + "T" + '"' for s in fit_func.trait_ids]
-                )
-                trait_str = "c(" + comma_traits + ")"
-                fit_effect_means = map(str, fit_func.function_args[0])
-                fit_effect_covar = fit_func.function_args[1]
-                mean_string = "c(" + ", ".join(fit_effect_means) + ")"
-                mat_string = matrix2str(
-                    fit_effect_covar, indent=len(fit_code_spacing)//4+1
-                )
-                printsc(
-                    fit_code_spacing
-                    + f"trait_vals = individual.phenotypeForTrait(trait={trait_str});"
-                )
-                printsc(fit_code_spacing + "fitness = dmvnorm(")
-                printsc(fit_code_spacing + "    trait_vals,")
-                printsc(
-                    fit_code_spacing + mean_string + ","
-                )
-                printsc(
-                    fit_code_spacing
-                    + f"    {mat_string}"
-                )
-                printsc(fit_code_spacing + ");")
-                printsc(
-                    fit_code_spacing
-                    + "// normalize by maximum fitness"
-                )
-                printsc(fit_code_spacing + "fitness = fitness / dmvnorm(")
-                # evaluate the gaussian at the mean
-                printsc(fit_code_spacing + "    " + mean_string + ",")
-                # specify the mean
-                printsc(fit_code_spacing + "    " + mean_string + ",")
-                # specify the covariance matrix
-                printsc(
-                    fit_code_spacing
-                    + f"    {mat_string}"
-                )
-                printsc(fit_code_spacing + ");")
-                printsc(
-                    fit_code_spacing
-                    + "total_fitness = total_fitness * fitness;"
-                )
-        elif fit_func.function_type == "threshold":
-            # TODO: implement this...
-            # the tricky bit will be, I think, getting the value corresponding
-            # to the quantile out
-            raise NotImplementedError(
-                "threshold fitness function is not implemented."
-            )
+        pop_list = fit_func.population_list
+        if pop_list is not None:
+            pop_list = ["p" + pop_name for pop_name in map(str, pop_list)]
         else:
-            raise ValueError(f"Unknown function type {fit_func.function_type}.")
+            pop_list = [""]
 
-        # close if block checking if we're in relevant time interval
-        if fit_func.time_intervals is not None:
-            printsc(fit_code_spacing[:-4] + "}")
-        # close if block checking if we're in relevant population
-        if fit_func.population_list is not None:
-            printsc("    }")
+        interval_list = fit_func.time_intervals
+        if interval_list is None:
+            interval_list = [None]
 
-    # close the fitnessEffect() block
-    if len(traits_model.fitness_functions) > 0:
-        printsc("    return total_fitness;")
-        printsc("}")
+        for population in pop_list:
+            for interval in interval_list:
+                if interval is None:
+                    interval_str = ""
+                else:
+                    generation_time = demographic_model.generation_time
+                    N_max = int(round(max(N[0, :])))
+                    G_start = 1 + int(round(burn_in*N_max))
+                    G0 = int(max(T) / generation_time / scaling_factor + G_start)
+                    start = G0 - int(np.ceil(interval[1]/scaling_factor))
+                    end = G0 - int(interval[0]/scaling_factor)
+                    interval_str = f"{start}:{end} "
+                printsc(f"{interval_str}fitnessEffect({population})" + "{")
+                fit_code_spacing = "    "
+
+                # determine fitness effects
+                if fit_func.function_type == "gaussian":
+                    if len(fit_func.trait_ids) == 1:
+                        printsc(
+                            fit_code_spacing
+                            + "trait_val = "
+                            + "individual.phenotypeForTrait("
+                            + f'trait="{fit_func.trait_ids[0]}T");'
+                        )
+                        printsc(
+                            fit_code_spacing
+                            + "fitness = dnorm(trait_val, "
+                            + f"{fit_func.function_args[0][0]},"
+                            + f"{np.sqrt(fit_func.function_args[1][0, 0])});"
+                        )
+                        printsc(
+                            fit_code_spacing
+                            + "// normalize by maximum fitness"
+                        )
+                        printsc(
+                            fit_code_spacing
+                            + "fitness = fitness / dnorm("
+                            + f"{fit_func.function_args[0][0]},"
+                            + f"{fit_func.function_args[0][0]},"
+                            + f"{np.sqrt(fit_func.function_args[1][0, 0])});"
+                        )
+                        printsc(
+                            fit_code_spacing
+                            + "return fitness;"
+                        )
+                    if len(fit_func.trait_ids) > 1:
+                        comma_traits = ", ".join(
+                            ['"' + s + "T" + '"' for s in fit_func.trait_ids]
+                        )
+                        trait_str = "c(" + comma_traits + ")"
+                        fit_effect_means = map(str, fit_func.function_args[0])
+                        fit_effect_covar = fit_func.function_args[1]
+                        mean_string = "c(" + ", ".join(fit_effect_means) + ")"
+                        mat_string = matrix2str(
+                            fit_effect_covar, indent=len(fit_code_spacing)//4+1
+                        )
+                        printsc(
+                            fit_code_spacing
+                            + "trait_vals = "
+                            + f"individual.phenotypeForTrait(trait={trait_str});"
+                        )
+                        printsc(fit_code_spacing + "fitness = dmvnorm(")
+                        printsc(fit_code_spacing + "    trait_vals,")
+                        printsc(
+                            fit_code_spacing + mean_string + ","
+                        )
+                        printsc(
+                            fit_code_spacing
+                            + f"    {mat_string}"
+                        )
+                        printsc(fit_code_spacing + ");")
+                        printsc(
+                            fit_code_spacing
+                            + "// normalize by maximum fitness"
+                        )
+                        printsc(fit_code_spacing + "fitness = fitness / dmvnorm(")
+                        # evaluate the gaussian at the mean
+                        printsc(fit_code_spacing + "    " + mean_string + ",")
+                        # specify the mean
+                        printsc(fit_code_spacing + "    " + mean_string + ",")
+                        # specify the covariance matrix
+                        printsc(
+                            fit_code_spacing
+                            + f"    {mat_string}"
+                        )
+                        printsc(fit_code_spacing + ");")
+                        printsc(
+                            fit_code_spacing
+                            + "return fitness;"
+                        )
+                elif fit_func.function_type == "threshold":
+                    # TODO: implement this...
+                    # the tricky bit will be, I think, getting the value corresponding
+                    # to the quantile out
+                    raise NotImplementedError(
+                        "threshold fitness function is not implemented."
+                    )
+                else:
+                    raise ValueError(f"Unknown function type {fit_func.function_type}.")
+
+                # close the fitnessEffect() block
+                printsc("}")
 
     if logfile is not None:
         printsc(
