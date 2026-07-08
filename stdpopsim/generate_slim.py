@@ -17,7 +17,7 @@ tm.add_environment(
     trait_ids=["add1", "add2"],
     distribution_type="mvn",
     distribution_args=[np.zeros(2), np.eye(2)],
-    time_intervals=[(0, 10)],
+    time_intervals=[(0, 10), (10, 20)],
     population_list=[0]
 )
 
@@ -44,7 +44,7 @@ tm.add_fitness_function(
     trait_ids=["add1", "add2"],
     function_type="gaussian",
     function_args=[np.zeros(2), np.eye(2)],
-    time_intervals=[(0, 10)],
+    time_intervals=[(0, 10), (10, 15)],
     population_list=[0]
 )
 

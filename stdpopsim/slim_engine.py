@@ -1805,9 +1805,8 @@ def slim_makescript(
                         if start == interval[1]/scaling_factor:
                             start -= 1
                         start = f"(G0-{start})"
-                    # TODO: think about whether this is correct. Roshni's
-                    # example: [0, 3), [3 10)
-                    end = f"(G0-{int(interval[0]/scaling_factor)})"
+                    end = f"(G0-{int(np.ceil(interval[0]/scaling_factor))})"
+
                     interval_str = f"{start}:{end} "
                 printsc(f"{interval_str}fitnessEffect({population})" + "{")
                 fit_code_spacing = "    "

@@ -1,5 +1,5 @@
 /*
- * stdpopsim 0.3.1.dev62+g515ea75ed.d20260708
+ * stdpopsim 0.3.1.dev63+g45451facb.d20260708
  *
  * Demographic model: PiecewiseConstant
  * Piecewise constant size population model over multiple epochs.
@@ -58,7 +58,7 @@ initialize() {
 
     // Time at which the oldest fitness function that does not
     // persist back to INF starts, in years before present.
-    defineConstant("_oldest_traits_model_time", 10);
+    defineConstant("_oldest_traits_model_time", 20);
     // Time of epoch boundaries, in years before present.
     // The first epoch spans from INF to _T[0].
     defineConstant("_T", c(0));
@@ -606,6 +606,7 @@ late() {
     // Add environmental effects if relevant
     in_interval = F;
     in_interval = in_interval | (sim.cycle > G0 - 10.0 & sim.cycle <= G0 - 0.0);
+    in_interval = in_interval | (sim.cycle > G0 - 20.0 & sim.cycle <= G0 - 10.0);
     if(in_interval){
         affected_inds = c(sim.subpopulations[0].individuals);
         env_effects = rmvnorm(
@@ -658,6 +659,27 @@ late() {
 
 // Adding fitness function fit1
 (G0-9):(G0-0) fitnessEffect(p0){
+    trait_vals = individual.phenotypeForTrait(trait=c("add1T", "add2T"));
+    fitness = dmvnorm(
+        trait_vals,
+        c(0.0, 0.0),
+        array(c(
+            c(1.0, 0.0),
+            c(0.0, 1.0)
+        ), c(2, 2)) / Q
+    );
+    // normalize by maximum fitness
+    fitness = fitness / dmvnorm(
+        c(0.0, 0.0),
+        c(0.0, 0.0),
+        array(c(
+            c(1.0, 0.0),
+            c(0.0, 1.0)
+        ), c(2, 2)) / Q
+    );
+    return fitness;
+}
+(G0-14):(G0-10) fitnessEffect(p0){
     trait_vals = individual.phenotypeForTrait(trait=c("add1T", "add2T"));
     fitness = dmvnorm(
         trait_vals,
