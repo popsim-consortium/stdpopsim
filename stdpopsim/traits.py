@@ -17,7 +17,7 @@ def _copy_converter(x):
 
 def _check_nonoverlapping_intervals(intervals):
     if not isinstance(intervals, list):
-        raise ValueError("Intervals must a list.")
+        raise ValueError("Intervals must be a list.")
     prev_end = -float('inf')
     for interval in sorted(intervals):
         if len(interval) != 2:
@@ -29,6 +29,10 @@ def _check_nonoverlapping_intervals(intervals):
             raise ValueError("Intervals must be numeric.")
         if not isinstance(interval[1], (int, float)):
             raise ValueError("Intervals must be numeric.")
+        if interval[0] < 0:
+            raise ValueError(
+                "Intervals must start at the present or some more ancient time."
+            )
         if interval[0] > interval[1]:
             raise ValueError(
                 "Intervals must be specified as (lower, upper)."
@@ -38,7 +42,6 @@ def _check_nonoverlapping_intervals(intervals):
                 "Intervals must be non-overlapping."
             )
         prev_end = interval[1]
-    return True
 
 
 def _check_trait_ids(trait_ids):
@@ -281,7 +284,9 @@ class Environment:
         Defaults to applying for all of time.
     :vartype time_intervals: list
     :ivar population_list: List of population ids specifying the populations this
-        environment applies to. Defaults to applying to all populations.
+        environment applies to. Defaults to applying to all populations. These
+        can be specified either as integers (representing population indices)
+        or strings with the names of populations.
     :vartype population_list: list
     """
 
@@ -302,6 +307,13 @@ class Environment:
         if self.population_list is not None:
             if len(self.population_list) != len(set(self.population_list)):
                 raise ValueError("population_list contains repeated entries")
+            for pid in self.population_list:
+                if not isinstance(pid, (int, str)):
+                    raise ValueError(
+                        "population_list entries must be integers "
+                        "representing population indices or must be "
+                        "strings with population names."
+                    )
         if self.time_intervals is not None:
             _check_nonoverlapping_intervals(self.time_intervals)
 
@@ -348,14 +360,13 @@ class FitnessFunction:
         Defaults to applying for all of time.
     :vartype time_intervals: list
     :ivar population_list: List of population ids specifying the populations this
-        fitness function applies to. Defaults to applying to all populations.
+        fitness function applies to. Defaults to applying to all populations. These
+        can be specified either as integers (representing population indices)
+        or strings with the names of populations.
+
     :vartype population_list: list
 
     """
-
-    # :ivar spacetime: Generations and populations
-    #    for which this fitness function applies
-    # :vartype spacetime: list of tuples (?)
 
     id = attr.ib(type=str)
     trait_ids = attr.ib(type=list, converter=_copy_converter)
@@ -381,6 +392,14 @@ class FitnessFunction:
         if self.population_list is not None:
             if len(self.population_list) != len(set(self.population_list)):
                 raise ValueError("population_list contains repeated entries")
+            for pid in self.population_list:
+                if not isinstance(pid, (int, str)):
+                    raise ValueError(
+                        "population_list entries must be integers "
+                        "representing population indices or must be "
+                        "strings with population names."
+                    )
+
         if self.time_intervals is not None:
             _check_nonoverlapping_intervals(self.time_intervals)
 
@@ -403,6 +422,8 @@ class FitnessFunction:
                 )
         else:
             raise ValueError(f"Unknown function type {self.function_type}.")
+        # TODO: convert strings to integers in population_list and check that
+        # they're legit. Does this happen here? Check data types
 
 
 @attr.s(kw_only=True)

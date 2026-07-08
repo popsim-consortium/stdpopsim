@@ -964,13 +964,38 @@ def slim_makescript(
     logfile_interval=1,
 ):
 
+    pop_names = [pop.name for pop in demographic_model.model.populations]
+
     if traits_model is None:
         traits_model = stdpopsim.TraitsModel()
+    else:
+        # Copy the traits model so that messing with population IDs doesn't
+        # mess with the user's traits_model.
+        traits_model = copy.deepcopy(traits_model)
+        for event in traits_model.environments + traits_model.fitness_functions:
+            if event.population_list is not None:
+                pop_id_list = []
+                for population in event.population_list:
+                    if isinstance(population, int):
+                        if population > len(pop_names):
+                            raise ValueError("TODO")
+                        pop_id_list.append(population)
+                    elif isinstance(population, str):
+                        try:
+                            pop_names.index(population)
+                        except ValueError:
+                            raise ValueError(
+                                "Population label supplied not in"
+                                "demographic model."
+                            )
+                    else:
+                        # this should not happen given the checks in traits.py
+                        assert False
+            event.population_list = pop_id_list
 
     _check_traits_model_contig_consistency(contig, traits_model)
     _check_traits_model_demography_consistency(traits_model, demographic_model)
 
-    pop_names = [pop.name for pop in demographic_model.model.populations]
     # Use copies of these so that the time frobbing below doesn't have
     # side-effects in the caller's model.
     demographic_events = copy.deepcopy(demographic_model.model.events)
@@ -1430,6 +1455,7 @@ def slim_makescript(
                 max_tm_time.append(
                     interval[1] * demographic_model.generation_time
                 )
+            max_tm_time.append(interval[0] * demographic_model.generation_time)
     max_tm_time = max(max_tm_time)
     printsc("    // Time at which the oldest fitness function that does not")
     printsc("    // persist back to INF starts, in years before present.")
@@ -1653,8 +1679,6 @@ def slim_makescript(
     printsc()
 
     # demand all of the phenotypes in every population!
-    # TODO: could potentially be more efficient if we only demand
-    # the ones we actually end up needing.
     printsc('    sim.demandPhenotype(NULL, NULL);')
     printsc()
 
@@ -1673,12 +1697,25 @@ def slim_makescript(
             # will be properly indented.
             env_code_spacing = "        "
 
+        if env.population_list is None:
+            printsc(env_code_spacing + 'affected_inds = inds;')
+        else:
+            pop_ind_str = []
+            for pop_id in env.population_list:
+                pop_ind_str.append(f'sim.subpopulations[{pop_id}].individuals')
+            pop_ind_str = ", ".join(pop_ind_str)
+            printsc(env_code_spacing + f'affected_inds = c({pop_ind_str});')
+
         # draw effects
         if env.distribution_type == "mvn":
             env_effect_means = map(str, env.distribution_args[0])
             env_effect_covar = env.distribution_args[1]
             printsc(env_code_spacing + "env_effects = rmvnorm(")
-            printsc(env_code_spacing + "    1, c(" + ", ".join(env_effect_means) + "),")
+            printsc(
+                env_code_spacing
+                + "    length(affected_inds), c("
+                + ", ".join(env_effect_means) + "),"
+            )
             mat_string = matrix2str(
                 env_effect_covar, indent=len(env_code_spacing)//4 + 2
             )
@@ -1696,16 +1733,6 @@ def slim_makescript(
             # "lp", "ln", "u". Do we want to implement those here?
             assert False
 
-        if env.population_list is None:
-            printsc(env_code_spacing + 'affected_inds = inds;')
-        else:
-            printsc(env_code_spacing + 'affected_inds = c();')
-            for pop_id in env.population_list:
-                printsc(
-                    env_code_spacing
-                    + 'affected_inds = c(affected_inds, '
-                    + f'sim.subpopulations[{pop_id}].individuals);'
-                )
         for idx, t in enumerate(env.trait_ids):
             printsc(
                 env_code_spacing
@@ -1713,7 +1740,8 @@ def slim_makescript(
             )
             printsc(
                 env_code_spacing
-                + f'inds.setPhenotypeForTrait("{t}T", x + env_effects[{idx}]);'
+                + "affected_inds.setPhenotypeForTrait("
+                + f'"{t}T", x + env_effects[, {idx}]);'
             )
 
         # Close if block opened by checking if this falls in the proper
@@ -1777,6 +1805,8 @@ def slim_makescript(
                         if start == interval[1]/scaling_factor:
                             start -= 1
                         start = f"(G0-{start})"
+                    # TODO: think about whether this is correct. Roshni's
+                    # example: [0, 3), [3 10)
                     end = f"(G0-{int(interval[0]/scaling_factor)})"
                     interval_str = f"{start}:{end} "
                 printsc(f"{interval_str}fitnessEffect({population})" + "{")
@@ -1808,7 +1838,7 @@ def slim_makescript(
                             + f"{fit_func.function_args[0][0]},"
                             + f"{fit_func.function_args[0][0]},"
                             + f"{np.sqrt(fit_func.function_args[1][0, 0])}"
-                            + "/ sqrt(Q));"  # scales stregnth of selection
+                            + "/ sqrt(Q));"  # scales strength of selection
                         )
                         printsc(
                             fit_code_spacing
@@ -1833,7 +1863,7 @@ def slim_makescript(
                         printsc(fit_code_spacing + "fitness = dmvnorm(")
                         printsc(fit_code_spacing + "    trait_vals,")
                         printsc(
-                            fit_code_spacing + mean_string + ","
+                            fit_code_spacing + "    " + mean_string + ","
                         )
                         printsc(
                             fit_code_spacing
