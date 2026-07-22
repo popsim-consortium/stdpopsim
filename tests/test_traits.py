@@ -23,6 +23,37 @@ def check_trait_ids_errors(fun, args):
             fun(trait_ids=tids, **args)
 
 
+def check_nonoverlapping_intervals_errors():
+    bad_intervals = [
+        [(1, 2, 3)],
+        [[]],
+        [],
+        [["foo", 2]],
+        [(1, "bar")],
+        [(-1, 3)],
+        [(3, 1)],
+        [(1, 3), (2, 5)]
+    ]
+
+    for bad_int in bad_intervals:
+        with pytest.raises(ValueError, match="nterval"):
+            stdpopsim.Environment(
+                id="abc",
+                trait_ids=["height"],
+                distribution_type="g",
+                distribution_args=[1, 2],
+                time_intervals=bad_int
+            )
+        with pytest.raises(ValueError, match="nterval"):
+            stdpopsim.FitnessFunction(
+                id="foo",
+                trait_ids=["fitness"],
+                function_type="gaussian",
+                function_args=[np.array([0]), np.array([[1]])],
+                time_intervals=bad_int
+            )
+
+
 def check_arg_copies(fun, args, check_arg):
     # To avoid gotchas, several of these methods should take a copy of their
     # arguments; test we aren't still referring to the original list
@@ -161,7 +192,7 @@ class TestEnvironment:
         check_arg_copies(stdpopsim.Environment, args, "trait_ids")
         check_arg_copies(stdpopsim.Environment, args, "distribution_args")
 
-    def test_make_envionment_errors(self):
+    def test_make_environment_errors(self):
         with pytest.raises(TypeError, match="required keyword-only"):
             stdpopsim.Environment()
         for bad_id in (123, [], None):

@@ -19,6 +19,10 @@ def _check_nonoverlapping_intervals(intervals):
     if not isinstance(intervals, list):
         raise ValueError("Intervals must be a list.")
     prev_end = -float('inf')
+    if len(intervals) < 1:
+        raise ValueError(
+            "Cannot supply an empty list of intervals."
+        )
     for interval in sorted(intervals):
         if len(interval) != 2:
             raise ValueError(
@@ -422,8 +426,6 @@ class FitnessFunction:
                 )
         else:
             raise ValueError(f"Unknown function type {self.function_type}.")
-        # TODO: convert strings to integers in population_list and check that
-        # they're legit. Does this happen here? Check data types
 
 
 @attr.s(kw_only=True)
