@@ -935,8 +935,6 @@ def msprime_rm_to_slim_rm(recombination_map):
 
 
 def _check_traits_model_contig_consistency(contig, traits_model):
-    # TODO: check that all traits utilized in the mutation types
-    # are actually defined in the traits model
     mt_traits = []
     for dme in contig.dme_list:
         for mt in dme.mutation_types:
