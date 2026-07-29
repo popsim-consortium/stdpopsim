@@ -1024,6 +1024,23 @@ class TestCreateMutationType:
                 dominance_coeff_list=dcl,
                 dominance_coeff_breaks=list(reversed(dcb)),
             )
+        # must only affect fitness
+        with pytest.raises(ValueError, match="non-fitness traits."):
+            dfe.MutationType(
+                trait_ids=["height"],
+                distribution_type="f",
+                distribution_args=[1.],
+                dominance_coeff_list=dcl,
+                dominance_coeff_breaks=dcb
+            )
+        with pytest.raises(ValueError, match="non-fitness traits."):
+            dfe.MutationType(
+                trait_ids=["fitness", "height"],
+                distribution_type="f",
+                distribution_args=[1., 2.],
+                dominance_coeff_list=dcl,
+                dominance_coeff_breaks=dcb
+            )
 
     def test_copies(self):
         # making an mutation type should take a copy of its arguments;
