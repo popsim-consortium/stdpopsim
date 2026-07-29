@@ -7,7 +7,6 @@ import stdpopsim
 import numpy as np
 import copy
 import textwrap
-from stdpopsim import dfe
 
 
 def check_trait_ids_errors(fun, args):
@@ -684,7 +683,7 @@ class TestCreateMutationType:
     """
 
     def test_default_mutation_type(self):
-        mt = dfe.MutationType()
+        mt = stdpopsim.MutationType()
         assert mt.dominance_coeff == 0.5
         assert mt.distribution_type == "f"
         assert mt.distribution_args == [0]
@@ -693,7 +692,7 @@ class TestCreateMutationType:
         assert mt.dominance_coeff_breaks is None
 
     def test_default_trait_ids(self):
-        mt = dfe.MutationType()
+        mt = stdpopsim.MutationType()
         assert mt.trait_ids == ["fitness"]
 
     def test_bad_trait_ids(self):
@@ -711,11 +710,11 @@ class TestCreateMutationType:
         }
         for t in mut_params:
             if t == "f":
-                mt = dfe.MutationType(
+                mt = stdpopsim.MutationType(
                     distribution_type=t,
                 )
             else:
-                mt = dfe.MutationType(
+                mt = stdpopsim.MutationType(
                     distribution_type=t, distribution_args=mut_params[t][0]
                 )
             assert mt.Q_scaled_index == mut_params[t][1]
@@ -723,37 +722,37 @@ class TestCreateMutationType:
     def test_create_bad_mutation_type_message(self):
         # dominance_coeff must be a number
         with pytest.raises(ValueError, match="dominance_coeff must be a number."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 dominance_coeff="abc",
             )
 
         # distribution_type must be str
         with pytest.raises(ValueError, match="distribution_type must be str."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 distribution_type=1,
             )
 
         # distribution_args must be list
         with pytest.raises(ValueError, match="distribution_args must be list."):
-            dfe.MutationType(distribution_args=dict())
+            stdpopsim.MutationType(distribution_args=dict())
 
         # elements in distribution_args must be numbers
         with pytest.raises(ValueError, match="is not a number."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 distribution_type="g",
                 distribution_args=[0.5, "1"],
             )
 
         # elements in distribution_args must be valid.
         with pytest.raises(ValueError, match="is an invalid parameter."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 distribution_type="n",
                 distribution_args=[1, np.inf],
             )
 
         # convert_to_substitution must be bool
         with pytest.raises(ValueError, match="convert_to_substitution must be bool."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 convert_to_substitution=1,
             )
 
@@ -761,7 +760,7 @@ class TestCreateMutationType:
             with pytest.raises(
                 ValueError, match=f"Invalid dominance coefficient {dc}."
             ):
-                dfe.MutationType(
+                stdpopsim.MutationType(
                     dominance_coeff=dc,
                 )
 
@@ -769,65 +768,65 @@ class TestCreateMutationType:
         with pytest.raises(
             ValueError, match="abc is not a supported distribution type."
         ):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 distribution_type="abc",
             )
 
         # fixed-value selection coefficient
         with pytest.raises(ValueError, match="must be a list of length"):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 distribution_type="f",
                 distribution_args=[1, 2],
             )
 
         # gamma-distributed selection coefficient
         with pytest.raises(ValueError, match="uses a .mean, shape."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 distribution_type="g",
                 distribution_args=[1],
             )
 
         with pytest.raises(ValueError, match="The shape parameter must be positive."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 distribution_type="g",
                 distribution_args=[1, -1],
             )
 
         # exponentially-distributed selection coefficients
         with pytest.raises(ValueError, match="uses a .mean"):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 distribution_type="e",
                 distribution_args=[1, 2],
             )
 
         # normally-distributed selection coefficients
         with pytest.raises(ValueError, match="uses a .mean, sd."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 distribution_type="n",
                 distribution_args=[1, 2, 3],
             )
 
         with pytest.raises(ValueError, match="The sd parameter must be nonnegative."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 distribution_type="n",
                 distribution_args=[1, -1],
             )
 
         # Weibull-distributed selection coefficients
         with pytest.raises(ValueError, match="uses a .scale, shape. parameterisation."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 distribution_type="w",
                 distribution_args=[1, 2, 3, 4],
             )
 
         with pytest.raises(ValueError, match="The scale parameter must be positive."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 distribution_type="w",
                 distribution_args=[-1, 2],
             )
 
         with pytest.raises(ValueError, match="The shape parameter must be positive."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 distribution_type="w",
                 distribution_args=[1, -2],
             )
@@ -835,7 +834,7 @@ class TestCreateMutationType:
         # Uniformly-distributed selection coefficients
         for bad_args in ([0], [1, 2, 3], [3, -2]):
             with pytest.raises(ValueError, match="uses a .min, max"):
-                dfe.MutationType(
+                stdpopsim.MutationType(
                     distribution_type="u",
                     distribution_args=bad_args,
                 )
@@ -845,7 +844,7 @@ class TestCreateMutationType:
             with pytest.raises(
                 ValueError, match="uses a .meanlog, sdlog. parameterisation"
             ):
-                dfe.MutationType(
+                stdpopsim.MutationType(
                     distribution_type=dt,
                     distribution_args=[1, 2, 3, 4],
                 )
@@ -853,28 +852,28 @@ class TestCreateMutationType:
             with pytest.raises(
                 ValueError, match="The sdlog parameter must be nonnegative."
             ):
-                dfe.MutationType(
+                stdpopsim.MutationType(
                     distribution_type=dt,
                     distribution_args=[1, -2],
                 )
 
     def test_mutation_type_is_neutral(self):
-        mt = dfe.MutationType()
+        mt = stdpopsim.MutationType()
         assert mt.is_neutral is True
 
-        mt = dfe.MutationType(
+        mt = stdpopsim.MutationType(
             distribution_type="g",
             distribution_args=[0.014, 0.19],
         )
         assert mt.is_neutral is False
 
-        mt = dfe.MutationType(
+        mt = stdpopsim.MutationType(
             distribution_type="f",
             distribution_args=[1],
         )
         assert not mt.is_neutral
 
-        mt = dfe.MutationType(
+        mt = stdpopsim.MutationType(
             distribution_type="e",
             distribution_args=[1],
         )
@@ -893,7 +892,7 @@ class TestCreateMutationType:
         }
         for t in mut_params:
             for p in mut_params[t]:
-                mt = dfe.MutationType(distribution_type=t, distribution_args=p)
+                mt = stdpopsim.MutationType(distribution_type=t, distribution_args=p)
                 if t in ("lp", "ln", "u"):
                     assert mt.distribution_type == "s"
                 else:
@@ -917,20 +916,20 @@ class TestCreateMutationType:
             for p in bad_mut_params[t]:
                 print(t, p)
                 with pytest.raises(ValueError):
-                    dfe.MutationType(distribution_type=t, distribution_args=p)
+                    stdpopsim.MutationType(distribution_type=t, distribution_args=p)
 
     def test_convert_to_substitution(self):
-        mt = dfe.MutationType()
+        mt = stdpopsim.MutationType()
         assert mt.convert_to_substitution is True
         for c in (True, False):
-            mt = dfe.MutationType(convert_to_substitution=c)
+            mt = stdpopsim.MutationType(convert_to_substitution=c)
             assert mt.convert_to_substitution == c
 
     def test_dominance_coeff(self):
-        mt = dfe.MutationType()
+        mt = stdpopsim.MutationType()
         assert mt.dominance_coeff == 0.5
         for dominance_coeff in (-10, 0, 0.5, 1, 50):
-            mt = dfe.MutationType(dominance_coeff=dominance_coeff)
+            mt = stdpopsim.MutationType(dominance_coeff=dominance_coeff)
             assert mt.dominance_coeff == dominance_coeff
 
     def test_dominance_coeff_list(self):
@@ -938,7 +937,10 @@ class TestCreateMutationType:
             ([-0.1, 0.7, 1.2], [-2.1, 1.0]),
             ([-0.1, -0.7], [-2.1]),
         ):
-            mt = dfe.MutationType(dominance_coeff_list=dcl, dominance_coeff_breaks=dcb)
+            mt = stdpopsim.MutationType(
+                dominance_coeff_list=dcl,
+                dominance_coeff_breaks=dcb
+            )
             assert np.allclose(dcl, mt.dominance_coeff_list)
             assert np.allclose(dcb, mt.dominance_coeff_breaks)
 
@@ -947,86 +949,89 @@ class TestCreateMutationType:
         # we can't post-hoc modify them (and thus bypass validation)
         val = 0.5
         x = [val]
-        mt = dfe.MutationType(distribution_args=x)
+        mt = stdpopsim.MutationType(distribution_args=x)
         x[0] = 2 * val + 1
         assert mt.distribution_args[0] == val
         x = [val, val]
-        mt = dfe.MutationType(dominance_coeff_list=x, dominance_coeff_breaks=[0.0])
+        mt = stdpopsim.MutationType(dominance_coeff_list=x, dominance_coeff_breaks=[0.0])
         x[0] = 2 * val + 1
         assert mt.dominance_coeff_list[0] == val
         x = [val]
-        mt = dfe.MutationType(dominance_coeff_list=[0.0, 0.0], dominance_coeff_breaks=x)
+        mt = stdpopsim.MutationType(
+            dominance_coeff_list=[0.0, 0.0],
+            dominance_coeff_breaks=x
+        )
         x[0] = 2 * val + 1
         assert mt.dominance_coeff_breaks[0] == val
 
     def test_bad_dominance_coeff(self):
         for dominance_coeff in (np.inf, np.nan, "abc", [], {}):
             with pytest.raises(ValueError, match="dominance.coeff"):
-                dfe.MutationType(dominance_coeff=dominance_coeff)
+                stdpopsim.MutationType(dominance_coeff=dominance_coeff)
 
     def test_bad_distribution_type(self):
         for distribution_type in (1, {}, None, "~", "!", "F"):
             with pytest.raises(ValueError):
-                dfe.MutationType(distribution_type=distribution_type)
+                stdpopsim.MutationType(distribution_type=distribution_type)
 
     def test_bad_dominance_coeff_list(self):
         dcl = [-0.1, 0.7, 1.2]
         dcb = [-2.1, 1.0]
         # can't specify both dominance_coeff and list
         with pytest.raises(ValueError, match="both dominance_coeff and"):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 dominance_coeff=0.5,
                 dominance_coeff_list=dcl,
                 dominance_coeff_breaks=dcb,
             )
         with pytest.raises(ValueError, match="both dominance_coeff and"):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 dominance_coeff=0.5,
                 dominance_coeff_list=dcl,
             )
         with pytest.raises(ValueError, match="both dominance_coeff and"):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 dominance_coeff=0.5,
                 dominance_coeff_breaks=dcb,
             )
         # must have both coeffs and breaks
         with pytest.raises(ValueError, match="dominance.*no breaks"):
-            dfe.MutationType(dominance_coeff_list=dcl)
+            stdpopsim.MutationType(dominance_coeff_list=dcl)
         # must have at least 2 bins
         with pytest.raises(ValueError, match="dominance.*at least 2"):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 dominance_coeff_list=[0.2],
                 dominance_coeff_breaks=[],
             )
         # list must be one longer than breaks
         for x in ([], [0.0], dcl):
             with pytest.raises(ValueError, match="dominance.*equal to"):
-                dfe.MutationType(
+                stdpopsim.MutationType(
                     dominance_coeff_list=dcl,
                     dominance_coeff_breaks=x,
                 )
         # bad coefficients
         for x in (np.inf, np.nan, "abc", [], {}):
             with pytest.raises(ValueError, match="dominance.coeff"):
-                dfe.MutationType(
+                stdpopsim.MutationType(
                     dominance_coeff_list=[x] + dcl[1:],
                     dominance_coeff_breaks=dcb,
                 )
         # bad breaks
         for x in (np.inf, np.nan, "abc", [], {}):
             with pytest.raises(ValueError, match="dominance.*break"):
-                dfe.MutationType(
+                stdpopsim.MutationType(
                     dominance_coeff_list=dcl,
                     dominance_coeff_breaks=[x] + dcb[1:],
                 )
         with pytest.raises(ValueError, match="nondecreasing"):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 dominance_coeff_list=dcl,
                 dominance_coeff_breaks=list(reversed(dcb)),
             )
         # must only affect fitness
         with pytest.raises(ValueError, match="non-fitness traits."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 trait_ids=["height"],
                 distribution_type="f",
                 distribution_args=[1.],
@@ -1034,7 +1039,7 @@ class TestCreateMutationType:
                 dominance_coeff_breaks=dcb
             )
         with pytest.raises(ValueError, match="non-fitness traits."):
-            dfe.MutationType(
+            stdpopsim.MutationType(
                 trait_ids=["fitness", "height"],
                 distribution_type="f",
                 distribution_args=[1., 2.],
@@ -1064,11 +1069,11 @@ class TestDFEOutput:
     """
 
     def test_str(self):
-        d = dfe.DFE(
+        d = stdpopsim.DFE(
             id="xyz",
             description="abc",
             long_description="ABC",
-            mutation_types=[dfe.MutationType(convert_to_substitution=True)],
+            mutation_types=[stdpopsim.MutationType(convert_to_substitution=True)],
             proportions=[1.0],
         )
         ds = str(d)
@@ -1077,11 +1082,11 @@ class TestDFEOutput:
         assert "ABC" in ds
 
     def test_wrap_long_lines(self):
-        d = dfe.DFE(
+        d = stdpopsim.DFE(
             id="xyz",
             description="abc",
             long_description="ABC " * 10,
-            mutation_types=[dfe.MutationType(convert_to_substitution=True)],
+            mutation_types=[stdpopsim.MutationType(convert_to_substitution=True)],
             proportions=[1.0],
         )
         ds = str(d)
@@ -1101,7 +1106,7 @@ class TestCreateDFE:
     """
 
     def test_default_dfe(self):
-        d = dfe.DFE(
+        d = stdpopsim.DFE(
             id="test",
             description="test",
             long_description="test",
@@ -1116,8 +1121,8 @@ class TestCreateDFE:
         desc = "test test"
         long_desc = "test test 🐢"
         for props in ([0.4, 0.6], [1.0, 0.0], [1.0], [1 / 3, 1 / 3, 1 / 3]):
-            mt = [dfe.MutationType() for _ in props]
-            d = dfe.DFE(
+            mt = [stdpopsim.MutationType() for _ in props]
+            d = stdpopsim.DFE(
                 id="test",
                 description=desc,
                 long_description=long_desc,
@@ -1138,17 +1143,17 @@ class TestCreateDFE:
             assert d.is_neutral is True
 
     def test_create_dfe_without_citations(self):
-        d = dfe.DFE(
+        d = stdpopsim.DFE(
             id="test",
             description="test",
             long_description="test",
-            mutation_types=[dfe.MutationType(), dfe.MutationType()],
+            mutation_types=[stdpopsim.MutationType(), stdpopsim.MutationType()],
             proportions=[0.5, 0.5],
         )
         assert d.citations == []
 
     def test_create_dfe_without_mutation_types(self):
-        d = dfe.DFE(
+        d = stdpopsim.DFE(
             id="test",
             description="test",
             long_description="test",
@@ -1157,38 +1162,38 @@ class TestCreateDFE:
         assert d.mutation_types == []
 
     def test_create_dfe_without_proportions(self):
-        d = dfe.DFE(
+        d = stdpopsim.DFE(
             id="test",
             description="test",
             long_description="test",
-            mutation_types=[dfe.MutationType()],
+            mutation_types=[stdpopsim.MutationType()],
         )
         assert d.proportions == [1]
 
     def test_create_bad_dfes_message(self):
         with pytest.raises(TypeError, match="required .* arguments"):
             # id, description, long_description are required
-            dfe.DFE()
+            stdpopsim.DFE()
 
         with pytest.raises(
             ValueError, match="proportions must be a list or numpy array."
         ):
             # proportions must be a list
-            dfe.DFE(
+            stdpopsim.DFE(
                 id="test", description="test", long_description="test", proportions=1
             )
 
     def test_dfe_is_neutral(self):
-        d = dfe.DFE(
+        d = stdpopsim.DFE(
             id="test",
             description="test",
             long_description="test",
-            mutation_types=[dfe.MutationType(), dfe.MutationType()],
+            mutation_types=[stdpopsim.MutationType(), stdpopsim.MutationType()],
             proportions=[0.5, 0.5],
         )
         assert d.is_neutral is True
 
-        d = dfe.DFE(
+        d = stdpopsim.DFE(
             id="test",
             description="test",
             long_description="test",
@@ -1221,14 +1226,14 @@ class TestCreateDFE:
 
     def test_no_msprime_dfe(self):
         # test we cannot simulate a non-neutral DFE with msprime
-        m1 = dfe.MutationType(
+        m1 = stdpopsim.MutationType(
             dominance_coeff=0.2,
             distribution_type="e",
             distribution_args=[0.1],
         )
         desc = "test test"
         long_desc = "test test 🐢"
-        d = dfe.DFE(
+        d = stdpopsim.DFE(
             id="abc",
             description=desc,
             long_description=long_desc,
@@ -1378,8 +1383,8 @@ class TestCreateNeutralDFE:
     """
 
     def test_create_neutral_dfe(self):
-        nd = dfe.neutral_dfe()
-        assert isinstance(nd, dfe.DFE)
+        nd = stdpopsim.neutral_dfe()
+        assert isinstance(nd, stdpopsim.DFE)
         assert nd.id == "neutral"
         assert nd.description == "neutral DFE"
         assert nd.long_description == "strictly neutral mutations"
