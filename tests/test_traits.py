@@ -72,12 +72,16 @@ class TestTraitsModel:
 
     def test_make_traits_model(self):
         tm = stdpopsim.TraitsModel([])
-        assert tm.traits == []
+        assert len(tm.traits) == 1
+        assert tm.traits[0].id == "fitness"
+        assert tm.traits[0].type == "multiplicative"
         assert tm.environments == []
         assert tm.fitness_functions == []
         traits = [stdpopsim.Trait(id=u, type="additive") for u in "abc"]
         tm = stdpopsim.TraitsModel(traits=traits)
-        assert tm.traits == traits
+        assert len(tm.traits) == 4
+        for i in range(3):
+            assert tm.traits[i+1] == traits[i]
         assert tm.environments == []
         assert tm.fitness_functions == []
 
