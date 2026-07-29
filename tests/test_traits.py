@@ -37,6 +37,8 @@ def check_nonoverlapping_intervals_errors():
 
     for bad_int in bad_intervals:
         with pytest.raises(ValueError, match="nterval"):
+            stdpopsim._check_nonoverlapping_intervals(bad_int)
+        with pytest.raises(ValueError, match="nterval"):
             stdpopsim.Environment(
                 id="abc",
                 trait_ids=["height"],
@@ -79,8 +81,8 @@ class TestTraitsModel:
         assert tm.fitness_functions == []
         traits = [stdpopsim.Trait(id=u, type="additive") for u in "abc"]
         tm = stdpopsim.TraitsModel(traits=traits)
-        assert len(tm.traits) == 4
-        for i in range(3):
+        assert len(tm.traits) == len(traits) + 1
+        for i in range(len(traits)):
             assert tm.traits[i+1] == traits[i]
         assert tm.environments == []
         assert tm.fitness_functions == []
@@ -99,16 +101,20 @@ class TestTraitsModel:
                 "trait_ids": [u],
                 "function_type": "gaussian",
                 "function_args": [np.array([0]), np.array([[1]])],
+                "population_list": [u + "_pop"],
+                "time_intervals": [(0, end)]
             }
-            for u in "abc"
+            for u, end in zip("abc", [1, 2, 3])
         ]
         for f in fl:
             tm.add_fitness_function(**f)
-        for u, ff in zip("abc", tm.fitness_functions):
+        for (u, end), ff in zip(zip("abc", [1, 2, 3]), tm.fitness_functions):
             assert ff.id == u
             assert ff.trait_ids == [u]
             assert ff.function_type == "gaussian"
             assert ff.function_args == [0, 1]
+            assert ff.time_intervals == [(0, end)]
+            assert ff.population_list == [u + "_pop"]
 
     def test_add_fitness_function_errors(self):
         traits = [stdpopsim.Trait(id=u, type="additive") for u in "abc"]
@@ -134,16 +140,20 @@ class TestTraitsModel:
                 "trait_ids": [u],
                 "distribution_type": "n",
                 "distribution_args": [0, 1],
+                "population_list": [u + "_pop"],
+                "time_intervals": [(0, end)]
             }
-            for u in "abc"
+            for u, end in zip("abc", [1, 2, 3])
         ]
         for e in el:
             tm.add_environment(**e)
-        for u, env in zip("abc", tm.environments):
+        for (u, end), env in zip(zip("abc", [1, 2, 3]), tm.environments):
             assert env.id == u
             assert env.trait_ids == [u]
             assert env.distribution_type == "n"
             assert env.distribution_args == [0, 1]
+            assert env.time_intervals == [(0, end)]
+            assert env.population_list == [u + "_pop"]
 
     def test_add_environments_errors(self):
         traits = [stdpopsim.Trait(id=u, type="additive") for u in "abc"]
@@ -171,6 +181,8 @@ class TestEnvironment:
         assert env.trait_ids == ["height"]
         assert env.distribution_type == "g"
         assert env.distribution_args == [1, 2]
+        assert env.population_list is None
+        assert env.time_intervals is None
         # three traits
         tids = ["height", "boop", "num_nostrils"]
         env = stdpopsim.Environment(
@@ -183,6 +195,37 @@ class TestEnvironment:
         assert env.trait_ids == tids
         assert env.distribution_type == "f"
         assert env.distribution_args == [1, 2, 3]
+        assert env.population_list is None
+        assert env.time_intervals is None
+        # population_list
+        env = stdpopsim.Environment(
+            id="abc",
+            trait_ids=["height"],
+            distribution_type="n",
+            distribution_args=[1, 2],
+            population_list=[0, 1, "pop_2"]
+        )
+        assert env.id == "abc"
+        assert env.trait_ids == ["height"]
+        assert env.distribution_type == "n"
+        assert env.distribution_args == [1, 2]
+        assert env.population_list == [0, 1, "pop_2"]
+        assert env.time_intervals is None
+        # time_intervals
+        env = stdpopsim.Environment(
+            id="abc",
+            trait_ids=["height"],
+            distribution_type="n",
+            distribution_args=[1, 2],
+            population_list=[0, 1, "pop_2"],
+            time_intervals=[(0, 1), (1, 2.2), (4, float('inf'))]
+        )
+        assert env.id == "abc"
+        assert env.trait_ids == ["height"]
+        assert env.distribution_type == "n"
+        assert env.distribution_args == [1, 2]
+        assert env.population_list == [0, 1, "pop_2"]
+        assert env.time_intervals == [(0, 1), (1, 2.2), (4, float('inf'))]
 
     def test_make_environment_copies(self):
         # making an environment should take a copy of its arguments;
@@ -192,9 +235,13 @@ class TestEnvironment:
             "trait_ids": ["height", "boop", "num_nostrils"],
             "distribution_type": "f",
             "distribution_args": [1, 2, 3],
+            "population_list": [1, 2, "pop_3"],
+            "time_intervals": [(0, 1), (1, 2.2), (4, float('inf'))]
         }
         check_arg_copies(stdpopsim.Environment, args, "trait_ids")
         check_arg_copies(stdpopsim.Environment, args, "distribution_args")
+        check_arg_copies(stdpopsim.Environment, args, "population_list")
+        check_arg_copies(stdpopsim.Environment, args, "time_intervals")
 
     def test_make_environment_errors(self):
         with pytest.raises(TypeError, match="required keyword-only"):
@@ -222,6 +269,23 @@ class TestEnvironment:
                 distribution_type="f",
                 distribution_args=[0],
             )
+        with pytest.raises(ValueError, match="population_list contains"):
+            stdpopsim.Environment(
+                id="abc",
+                trait_ids=["foo"],
+                distribution_type="f",
+                distribution_args=[0],
+                population_list=[0, 1, 0]
+            )
+        for bad_pop in [2.2, [], set([]), ["pop"]]:
+            with pytest.raises(ValueError, match="entries must be integers"):
+                stdpopsim.Environment(
+                    id="abc",
+                    trait_ids=["foo"],
+                    distribution_type="f",
+                    distribution_args=[0],
+                    population_list=[0, 1, bad_pop]
+                )
 
     def test_trait_ids_errors(self):
         args = {
@@ -427,6 +491,35 @@ class TestFitnessFunction:
         assert f.trait_ids == ["fitness"]
         assert f.function_type == "gaussian"
         assert f.function_args == [0, 1]
+        # population_list
+        f = stdpopsim.FitnessFunction(
+            id="foo",
+            trait_ids=["height"],
+            function_type="gaussian",
+            function_args=[np.array([0]), np.array([[1]])],
+            population_list=[0, 1, "pop_2"]
+        )
+        assert f.id == "foo"
+        assert f.trait_ids == ["height"]
+        assert f.function_type == "gaussian"
+        assert f.function_args == [0, 1]
+        assert f.population_list == [0, 1, "pop_2"]
+        assert f.time_intervals is None
+        # time_intervals
+        f = stdpopsim.FitnessFunction(
+            id="foo",
+            trait_ids=["height"],
+            function_type="gaussian",
+            function_args=[np.array([0]), np.array([[1]])],
+            population_list=[0, 1, "pop_2"],
+            time_intervals=[(0, 1), (1, 2.2), (4, float('inf'))]
+        )
+        assert f.id == "foo"
+        assert f.trait_ids == ["height"]
+        assert f.function_type == "gaussian"
+        assert f.function_args == [0, 1]
+        assert f.population_list == [0, 1, "pop_2"]
+        assert f.time_intervals == [(0, 1), (1, 2.2), (4, float('inf'))]
 
     def test_make_fitness_function_errors(self):
         with pytest.raises(TypeError, match="required keyword-only arg"):
@@ -450,6 +543,23 @@ class TestFitnessFunction:
             args["id"] = bad_id
             with pytest.raises(ValueError, match="id must be a nonempty string"):
                 stdpopsim.FitnessFunction(**args)
+        with pytest.raises(ValueError, match="population_list contains"):
+            stdpopsim.FitnessFunction(
+                id="abc",
+                trait_ids=["foo"],
+                function_type="gaussian",
+                function_args=[np.ones(1), np.ones(1)],
+                population_list=[0, 1, 0]
+            )
+        for bad_pop in [2.2, [], set([]), ["pop"]]:
+            with pytest.raises(ValueError, match="entries must be integers"):
+                stdpopsim.FitnessFunction(
+                    id="abc",
+                    trait_ids=["foo"],
+                    function_type="gaussian",
+                    function_args=[np.ones(1), np.ones(1)],
+                    population_list=[0, 1, bad_pop]
+                )
 
     def test_trait_ids_errors(self):
         args = {
@@ -465,9 +575,13 @@ class TestFitnessFunction:
             "trait_ids": ["abc"],
             "function_type": "threshold",
             "function_args": [1, 2, 3],
+            "population_list": [1, 2, "pop_3"],
+            "time_intervals": [(0, 1), (1, 2.2), (4, float('inf'))]
         }
         check_arg_copies(stdpopsim.FitnessFunction, args, "trait_ids")
         check_arg_copies(stdpopsim.FitnessFunction, args, "function_args")
+        check_arg_copies(stdpopsim.FitnessFunction, args, "population_list")
+        check_arg_copies(stdpopsim.FitnessFunction, args, "time_intervals")
 
     def test_threshold_errors(self):
         args = {

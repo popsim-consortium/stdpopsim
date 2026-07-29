@@ -987,12 +987,14 @@ def slim_makescript(
                 pop_id_list = []
                 for population in event.population_list:
                     if isinstance(population, int):
-                        if population > len(pop_names):
-                            raise ValueError("TODO")
+                        if population >= len(pop_names) or population < 0:
+                            raise ValueError(
+                                "Population index out of bounds."
+                            )
                         pop_id_list.append(population)
                     elif isinstance(population, str):
                         try:
-                            pop_names.index(population)
+                            pop_id_list.append(pop_names.index(population))
                         except ValueError:
                             raise ValueError(
                                 "Population label supplied not in"
@@ -1001,6 +1003,8 @@ def slim_makescript(
                     else:
                         # this should not happen given the checks in traits.py
                         assert False
+                if len(pop_id_list) != len(set(pop_id_list)):
+                    raise ValueError("Repeated population indices.")
             event.population_list = pop_id_list
 
     _check_traits_model_contig_consistency(contig, traits_model)

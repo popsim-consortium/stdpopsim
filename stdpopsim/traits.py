@@ -298,8 +298,8 @@ class Environment:
     trait_ids = attr.ib(type=list, converter=_copy_converter)  # list of trait IDs
     distribution_type = attr.ib(type=str)
     distribution_args = attr.ib(type=list, converter=_copy_converter)
-    time_intervals = attr.ib(default=None)
-    population_list = attr.ib(default=None)
+    time_intervals = attr.ib(default=None, converter=_copy_converter)
+    population_list = attr.ib(default=None, converter=_copy_converter)
 
     def __attrs_post_init__(self):
         if not (isinstance(self.id, str) and self.id != ""):
@@ -309,8 +309,6 @@ class Environment:
             self.distribution_type, self.distribution_args, len(self.trait_ids)
         )
         if self.population_list is not None:
-            if len(self.population_list) != len(set(self.population_list)):
-                raise ValueError("population_list contains repeated entries")
             for pid in self.population_list:
                 if not isinstance(pid, (int, str)):
                     raise ValueError(
@@ -318,6 +316,9 @@ class Environment:
                         "representing population indices or must be "
                         "strings with population names."
                     )
+            if len(self.population_list) != len(set(self.population_list)):
+                raise ValueError("population_list contains repeated entries")
+
         if self.time_intervals is not None:
             _check_nonoverlapping_intervals(self.time_intervals)
 
@@ -376,8 +377,8 @@ class FitnessFunction:
     trait_ids = attr.ib(type=list, converter=_copy_converter)
     function_type = attr.ib(type=str)
     function_args = attr.ib(type=tuple, converter=_copy_converter)
-    time_intervals = attr.ib(default=None)
-    population_list = attr.ib(default=None)
+    time_intervals = attr.ib(default=None, converter=_copy_converter)
+    population_list = attr.ib(default=None, converter=_copy_converter)
 
     def __attrs_post_init__(self):
         if not (isinstance(self.id, str) and self.id != ""):
@@ -394,8 +395,6 @@ class FitnessFunction:
         )
 
         if self.population_list is not None:
-            if len(self.population_list) != len(set(self.population_list)):
-                raise ValueError("population_list contains repeated entries")
             for pid in self.population_list:
                 if not isinstance(pid, (int, str)):
                     raise ValueError(
@@ -403,6 +402,8 @@ class FitnessFunction:
                         "representing population indices or must be "
                         "strings with population names."
                     )
+            if len(self.population_list) != len(set(self.population_list)):
+                raise ValueError("population_list contains repeated entries")
 
         if self.time_intervals is not None:
             _check_nonoverlapping_intervals(self.time_intervals)
