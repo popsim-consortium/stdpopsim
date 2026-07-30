@@ -951,10 +951,68 @@ def _check_traits_model_contig_consistency(contig, traits_model):
 def _check_traits_model_demography_consistency(
     traits_model, demographic_model
 ):
-    # TODO: check that the environments and fitness functions defined in the
-    # traits model for time intervals and populations correspond to actual
-    # things in the demographic model.
-    assert True
+    # First, figure out when populations are around
+    # TODO: this might be wrong if there's a population that's not active at
+    # the present.
+    accessible_demes = demographic_model.model.debug().possible_lineage_locations(
+        [
+            msprime.SampleSet(1, population=p.id, time=0)
+            for p in demographic_model.populations
+        ]
+    )
+    valid_times = {}
+    for population in demographic_model.populations:
+        valid_times[population.id] = []
+    for interval, mask in accessible_demes.items():
+        for i, active in enumerate(mask):
+            if active:
+                valid_times[i].append(list(interval))
+    # merge adjacent intervals for convenience for later
+    for k in valid_times:
+        valid_times[k] = list(sorted(valid_times[k]))
+        cleaned_intervals = [valid_times[k][0]]
+        for interval in valid_times[k][1:]:
+            if interval[0] == cleaned_intervals[-1][1]:
+                assert interval[1] >= cleaned_intervals[-1][1]
+                cleaned_intervals[-1][1] = interval[1]
+            else:
+                cleaned_intervals.append(interval)
+        valid_times[k] = cleaned_intervals
+    # Now, loop through environments and fitness functions to make sure that
+    # they're only being applied when populations exist
+    for condition in (
+        traits_model.environments
+        + traits_model.fitness_functions
+    ):
+        if condition.population_list is None:
+            continue
+        for p in condition.population_list:
+            if p < 0 or p >= len(demographic_model.populations):
+                raise ValueError("Population index out of bounds.")
+            if condition.time_intervals is None:
+                continue
+            # check if each interval is contained in the above
+            for interval in condition.time_intervals:
+                to_check = list(copy.deepcopy(interval))
+                # if users specify float('inf') for the time frame then we take
+                # that to mean from the start until when the lineage becomes
+                # inactive.  We only want to check that the end time is in
+                # bounds if it is finite.
+                if to_check[1] == float('inf'):
+                    to_check[1] = to_check[0]
+                interval_is_valid = False
+                for demo_interval in valid_times[p]:
+                    if (
+                        to_check[0] >= demo_interval[0]
+                        and to_check[1] <= demo_interval[1]
+                    ):
+                        interval_is_valid = True
+                if not interval_is_valid:
+                    raise ValueError(
+                        "An environment of a fitness function was "
+                        "specified for a population with a time interval "
+                        "during which that population does not exist."
+                    )
 
 
 def slim_makescript(
