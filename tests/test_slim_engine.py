@@ -3435,7 +3435,7 @@ class TestTraits:
             trait_ids=["add", "also_add"],
             distribution_type="mvn",
             distribution_args=[np.zeros(2), np.eye(2)],
-            time_intervals=[(0, 1)],
+            time_intervals=[(0, float('inf'))],
             population_list=pops_env
         )
         engine = stdpopsim.get_engine("slim")
