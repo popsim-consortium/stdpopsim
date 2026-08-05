@@ -3411,3 +3411,27 @@ class TestTraits:
             assert t.id == tid
             st = slim_traits[tid]
             assert t.type == st["type"]
+
+    def test_traits_deepcopy(self):
+        traits = [
+            stdpopsim.Trait(id="add", type="additive"),
+            stdpopsim.Trait(id="mult", type="multiplicative"),
+        ]
+        tm = stdpopsim.TraitsModel(
+            traits=traits,
+        )
+        pops = ["CEU", "YRI"]
+        tm.add_environment(id="main", 
+                           trait_ids="add",
+                           distribution_type="n",
+                           distribution_args=(0, 1),
+                           time_intervals=None,
+                           population_list=pops)
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("HomSap")
+        model = species.get_model("OutOfAfrica_3G09")
+        contig = species.get_contig("chr22")
+        engine.simulate(
+            model, contig, samples={"CEU": 3}, traits_model=tm, seed=7
+        )
+        assert tm.environments[0].population_list == pops
