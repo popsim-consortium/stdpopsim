@@ -934,6 +934,7 @@ def msprime_rm_to_slim_rm(recombination_map):
     return rates, ends[1:]
 
 
+# TODO: write tests for this in test_slim_engine.py
 def _check_traits_model_contig_consistency(contig, traits_model):
     mt_traits = []
     for dme in contig.dme_list:
@@ -948,6 +949,7 @@ def _check_traits_model_contig_consistency(contig, traits_model):
         )
 
 
+# TODO: write tests for this in test_slim_engine.py
 def _check_traits_model_demography_consistency(
     traits_model, demographic_model
 ):

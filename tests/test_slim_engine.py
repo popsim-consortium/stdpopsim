@@ -3415,23 +3415,43 @@ class TestTraits:
     def test_traits_deepcopy(self):
         traits = [
             stdpopsim.Trait(id="add", type="additive"),
-            stdpopsim.Trait(id="mult", type="multiplicative"),
+            stdpopsim.Trait(id="also_add", type="additive")
         ]
         tm = stdpopsim.TraitsModel(
             traits=traits,
         )
-        pops = ["CEU", "YRI"]
-        tm.add_environment(id="main", 
-                           trait_ids="add",
-                           distribution_type="n",
-                           distribution_args=(0, 1),
-                           time_intervals=None,
-                           population_list=pops)
+        pops_fit = ["CEU", "YRI"]
+        tm.add_fitness_function(
+            id="main",
+            trait_ids=["add"],
+            function_type="gaussian",
+            function_args=[np.zeros(1), np.eye(1)],
+            time_intervals=[(0, 1)],
+            population_list=pops_fit
+        )
+        pops_env = ["CHB", "YRI", "CEU"]
+        tm.add_environment(
+            id="env1",
+            trait_ids=["add", "also_add"],
+            distribution_type="mvn",
+            distribution_args=[np.zeros(2), np.eye(2)],
+            time_intervals=[(0, 1)],
+            population_list=pops_env
+        )
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
-        model = species.get_model("OutOfAfrica_3G09")
+
+        # TODO: choose a different demographic model that would be faster to
+        # simulate
+        model = species.get_demographic_model("OutOfAfrica_3G09")
         contig = species.get_contig("chr22")
         engine.simulate(
-            model, contig, samples={"CEU": 3}, traits_model=tm, seed=7
+            model,
+            contig,
+            samples={"CEU": 3},
+            traits_model=tm,
+            seed=7,
+            slim_scaling_factor=250
         )
-        assert tm.environments[0].population_list == pops
+        assert tm.fitness_functions[0].population_list == pops_fit
+        assert tm.environments[0].population_list == pops_env
