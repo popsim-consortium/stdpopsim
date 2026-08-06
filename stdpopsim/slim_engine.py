@@ -1727,7 +1727,7 @@ def slim_makescript(
 
     # do callbacks for multivariate traits
     for mid, mt in multivar_muts.items():
-        assert mt.distribution_type == "mvn"  # for now
+        assert mt.distribution_type == "mvn"  # TODO: just for now
         effect_means = map(str, mt.distribution_args[0])
         effect_covar = mt.distribution_args[1]
         printsc(f"mutation(m{mid}) {{")
