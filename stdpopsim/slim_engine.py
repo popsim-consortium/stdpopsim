@@ -949,10 +949,7 @@ def _check_traits_model_contig_consistency(contig, traits_model):
         )
 
 
-# TODO: write tests for this in test_slim_engine.py
-def _check_traits_model_demography_consistency(
-    traits_model, demographic_model
-):
+def _collect_valid_population_intervals(demographic_model):
     # First, figure out when populations are around
     # TODO: this might be wrong if there's a population that's not active at
     # the present.
@@ -962,13 +959,22 @@ def _check_traits_model_demography_consistency(
             for p in demographic_model.populations
         ]
     )
-    valid_times = {}
-    for population in demographic_model.populations:
-        valid_times[population.id] = []
+    # Collect valid population intervals and record simulation start
+    valid_times = {population.id: [] for population in demographic_model.populations}
+    oldest_time = 0
     for interval, mask in accessible_demes.items():
+        oldest_time = max(oldest_time, interval[1])
         for i, active in enumerate(mask):
             if active:
                 valid_times[i].append(list(interval))
+
+    # Replace simulation start time with infinity (ensures that initial
+    # populations are allowed to have condition intervals ending at infinity)
+    for intervals in valid_times.values():
+        for interval in intervals:
+            if interval[1] == oldest_time:
+                interval[1] = float('inf')
+
     # merge adjacent intervals for convenience for later
     for k in valid_times:
         valid_times[k] = list(sorted(valid_times[k]))
@@ -980,41 +986,76 @@ def _check_traits_model_demography_consistency(
             else:
                 cleaned_intervals.append(interval)
         valid_times[k] = cleaned_intervals
-    # Now, loop through environments and fitness functions to make sure that
-    # they're only being applied when populations exist
-    for condition in (
-        traits_model.environments
-        + traits_model.fitness_functions
-    ):
-        if condition.population_list is None:
-            continue
-        for p in condition.population_list:
-            if p < 0 or p >= len(demographic_model.populations):
-                raise ValueError("Population index out of bounds.")
-            if condition.time_intervals is None:
-                continue
-            # check if each interval is contained in the above
-            for interval in condition.time_intervals:
-                to_check = list(copy.deepcopy(interval))
-                # if users specify float('inf') for the time frame then we take
-                # that to mean from the start until when the lineage becomes
-                # inactive.  We only want to check that the end time is in
-                # bounds if it is finite.
-                if to_check[1] == float('inf'):
-                    to_check[1] = to_check[0]
-                interval_is_valid = False
-                for demo_interval in valid_times[p]:
+    return valid_times
+
+
+def _standardize_condition(condition, valid_intervals):
+    new_conditions = []
+    if condition.population_list is None:
+        new_conditions.append(copy.deepcopy(condition))
+    standardized = {}
+    for p in condition.population_list:
+        if p not in valid_intervals:
+            raise ValueError("Population index out of bounds.")
+        standardized[p] = []
+        if condition.time_intervals is None:
+            standardized[p].extend(valid_intervals[p])
+        for interval in condition.time_intervals:
+            is_valid = False
+            if interval[1] != float('inf'):
+                # If interval is finite, we must identify
+                # a model interval that contains it
+                for demo_interval in valid_intervals[p]:
                     if (
-                        to_check[0] >= demo_interval[0]
-                        and to_check[1] <= demo_interval[1]
+                        interval[0] >= demo_interval[0]
+                        and interval[1] <= demo_interval[1]
                     ):
-                        interval_is_valid = True
-                if not interval_is_valid:
-                    raise ValueError(
-                        "An environment of a fitness function was "
-                        "specified for a population with a time interval "
-                        "during which that population does not exist."
-                    )
+                        is_valid = True
+                        standardized[p].append(interval)
+            else:
+                # If interval is infinite, we must identify
+                # all overlapping model intervals
+                for demo_interval in valid_intervals[p]:
+                    if (interval[0] < demo_interval[0]):
+                        standardized[p].append(demo_interval)
+                        is_valid = True
+                    elif (
+                        interval[0] >= demo_interval[0]
+                        and interval[0] < demo_interval[1]
+                    ):
+                        standardized[p].append([interval[0], demo_interval[1]])
+                        is_valid = True
+            if not is_valid:
+                raise ValueError(
+                    "An environment of a fitness function was "
+                    "specified for a population with a time interval "
+                    "during which that population does not exist."
+                )
+        p_copy = copy.deepcopy(condition)
+        p_copy.population_list = [p]
+        p_copy.time_intervals = standardized[p]
+        new_conditions.append(p_copy)
+
+    return new_conditions
+
+
+# TODO: write tests for this in test_slim_engine.py
+def _align_traits_model_demography(
+    traits_model, demographic_model
+):
+    valid_intervals = _collect_valid_population_intervals(demographic_model)
+
+    # Loop through environments & fitness functions and rewrite time intervals
+    # to be consistent with the demographic model
+    new_env = []
+    for env in traits_model.environments:
+        new_env.extend(_standardize_condition(env, valid_intervals))
+    traits_model.environments = new_env
+
+    new_ff = []
+    for ff in traits_model.fitness_functions:
+        new_ff.extend(_standardize_condition(ff, valid_intervals))
+    traits_model.fitness_functions = new_ff
 
 
 def slim_makescript(
@@ -1066,7 +1107,7 @@ def slim_makescript(
             event.population_list = pop_id_list
 
     _check_traits_model_contig_consistency(contig, traits_model)
-    _check_traits_model_demography_consistency(traits_model, demographic_model)
+    _align_traits_model_demography(traits_model, demographic_model)
 
     # Use copies of these so that the time frobbing below doesn't have
     # side-effects in the caller's model.
