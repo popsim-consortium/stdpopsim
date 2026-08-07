@@ -1,8 +1,9 @@
 /*
- * stdpopsim 0.3.1.dev72+g907b018b7.d20260730
+ * stdpopsim 0.3.1.dev79+gc18f12c78.d20260807
  *
- * Demographic model: PiecewiseConstant
- * Piecewise constant size population model over multiple epochs.
+ * Demographic model: OutOfAfrica_3G09
+ * Three population out-of-Africa
+ * Gutenkunst et al., 2009: https://doi.org/10.1371/journal.pgen.1000695
  */
 initialize() {
 
@@ -17,20 +18,20 @@ initialize() {
     // Scaling factor to speed up simulation.
     // See SLiM manual:
     // `5.5 Rescaling population sizes to improve simulation performance`.
-    defineConstant("Q", 1.0);
+    defineConstant("Q", 250);
 
     defineConstant("burn_in", 10.0);
-    defineConstant("generation_time", 1);
+    defineConstant("generation_time", 25);
     defineConstant("trees_file", "/var/folders/lr/bq1yt55n7z97zchjxn12pyr40000gp/T/stdpopsim_o2acl0mp/c30ec0.trees");
-    defineConstant("pop_names", c("pop_0"));
+    defineConstant("pop_names", c("YRI", "CEU", "CHB"));
 
     _recombination_rates = c(
-        0.0, 1.52e-08, 0.0);
+        2.1057233894035443e-08);
     if (Q != 1) {
         _recombination_rates = (1-(1-2*_recombination_rates)^Q)/2;
     }
     _recombination_ends = c(
-        9999999, 10009999, 208326428);
+        50818467);
     defineConstant("recombination_rates", _recombination_rates);
     defineConstant("recombination_ends", _recombination_ends);
     // whatever is in this dictionary will be saved out in the .trees file
@@ -45,6 +46,9 @@ initialize() {
     m0.setEffectSizeDistributionForTrait("fitnessT", "f", Q * 0);
     initializeGenomicElementType(0, c(0), c(1.0));
     // Note: genomic element type 0 is entirely neutral, so will not be simulated by SLiM.
+    initializeGenomicElement(0, c(
+        0, 10010000), c(
+        9999999, 50818467));
     initializeMutationType(1, 0.5, 'f', 0.0);
     initializeMutationType(2, 0.5, 'f', 0.0);
     m2.setEffectSizeDistributionForTrait("multT", "e", Q * 1.0);
@@ -53,22 +57,24 @@ initialize() {
         10000000), c(
         10009999));
     initializeMutationRate(Q*c(
-        0.0, 4.83e-09, 0.0), c(
-        9999999, 10009999, 208326428));
+        0.0, 1.29e-08, 0.0), c(
+        9999999, 10009999, 50818467));
 
     // Time at which the oldest fitness function that does not
     // persist back to INF starts, in years before present.
-    defineConstant("_oldest_traits_model_time", 20);
+    defineConstant("_oldest_traits_model_time", 140000.0);
     // Time of epoch boundaries, in years before present.
     // The first epoch spans from INF to _T[0].
-    defineConstant("_T", c(0));
+    defineConstant("_T", c(220000, 140000, 21200, 0));
 
     // Population sizes at the beginning of each epoch
     // (will be rounded).
     _N = array(c(
         // INF:_T[0], _T[0]:_T[1], etc.
-        c(10.0) // pop_0
-    ), c(1, 1));
+        c(7300.0, 12300.0, 12300.0, 12300.0), // YRI
+        c(0.0, 0.0, 2100.0, 1000.0), // CEU
+        c(0.0, 0.0, 0.0, 510.0) // CHB
+    ), c(4, 3));
 
     defineConstant("num_epochs", length(_T));
     defineConstant("num_populations", ncol(_N));
@@ -76,7 +82,9 @@ initialize() {
     // Population growth rates for each epoch.
     defineConstant("growth_rates", array(c(
         // INF:_T[0], _T[0]:_T[1], etc.
-        c(0.0) // pop_0
+        c(0.0, 0.0, 0.0, 0.0), // YRI
+        c(0.0, 0.0, 0.0, 0.004), // CEU
+        c(0.0, 0.0, 0.0, 0.0055) // CHB
     ), c(num_epochs, num_populations)));
 
     no_migration = rep(0, num_populations*num_populations);
@@ -87,12 +95,33 @@ initialize() {
     defineConstant("migration_matrices", array(c(
 
         // INF:_T[0]
-        no_migration
+        no_migration,
+
+        // _T[1]:_T[2]
+        no_migration,
+
+        // _T[2]:_T[3]
+        array(c(
+            c(0, 0.00025, 0),
+            c(0.00025, 0, 0),
+            c(0, 0, 0)
+        ), c(num_populations, num_populations)),
+
+        // _T[3]:_T[4]
+        array(c(
+            c(0, 3e-05, 1.9e-05),
+            c(3e-05, 0, 9.6e-05),
+            c(1.9e-05, 9.6e-05, 0)
+        ), c(num_populations, num_populations))
 
     ), c(num_populations, num_populations, num_epochs)));
 
     // Population splits, one row for each event.
-    defineConstant("subpopulation_splits", c());
+    defineConstant("subpopulation_splits", array(c(
+        // time, newpop, size, oldpop
+        c(_T[1], 1, _N[2,1], 0),
+        c(_T[2], 2, _N[3,2], 1)
+    ), c(4, 2)));
 
     // Admixture pulses, one row for each pulse.
     defineConstant("admixture_pulses", c());
@@ -112,7 +141,7 @@ initialize() {
     // One row for each sampling episode.
     defineConstant("sampling_episodes", array(c(
         // pop, n_inds, time
-        c(0, 3, 0)
+        c(1, 3, 0)
     ), c(3, 1)));
 
     // Note: these are floats because rounding causes error in population
@@ -141,8 +170,8 @@ mutation(m1) {
     effects = rmvnorm(
         1, c(0.0, 0.0), 
         array(c(
-            c(1.0, 0.0),
-            c(0.0, 1.0)
+            c(1e-08, 0.0),
+            c(0.0, 1e-08)
         ), c(2, 2)));
     mut.setEffectSizeForTrait("add1T", effects[0]);
     mut.setEffectSizeForTrait("add2T", effects[1]);
@@ -384,7 +413,7 @@ function (void)restore(void) {
             size = asInteger(round(subpopulation_splits[2,i] / Q));
             oldpop = asInteger(subpopulation_splits[3,i]);
             check_size(newpop, size, g);
-            community.registerLateEvent(NULL,
+            community.registerEarlyEvent(NULL,
                 "{dbg(self.source); " +
                 "p = sim.addSubpopSplit("+newpop+","+size+","+oldpop+"); " +
                 "p.name = '"+pop_names[newpop]+"';}",
@@ -602,11 +631,68 @@ late() {
 
     sim.demandPhenotype(NULL, NULL);
 
+    // Adding environment env_demo
+    // Add environmental effects if relevant
+    in_interval = F;
+    in_interval = in_interval | (sim.cycle > G0 - 3.392 & sim.cycle <= G0 - 0.0);
+    if(in_interval){
+        affected_inds = c(sim.subpopulations[2].individuals);
+        env_effects = rmvnorm(
+            length(affected_inds), c(0.0, 0.0),
+            array(c(
+                c(1.0, 0.0),
+                c(0.0, 1.0)
+            ), c(2, 2))
+        );
+        x = affected_inds.phenotypeForTrait("add1T");
+        affected_inds.setPhenotypeForTrait("add1T", x + env_effects[, 0]);
+        x = affected_inds.phenotypeForTrait("add2T");
+        affected_inds.setPhenotypeForTrait("add2T", x + env_effects[, 1]);
+    }
+
+    // Adding environment env_demo
+    // Add environmental effects if relevant
+    in_interval = F;
+    in_interval = in_interval | (sim.cycle <= G0 - 0.0);
+    if(in_interval){
+        affected_inds = c(sim.subpopulations[0].individuals);
+        env_effects = rmvnorm(
+            length(affected_inds), c(0.0, 0.0),
+            array(c(
+                c(1.0, 0.0),
+                c(0.0, 1.0)
+            ), c(2, 2))
+        );
+        x = affected_inds.phenotypeForTrait("add1T");
+        affected_inds.setPhenotypeForTrait("add1T", x + env_effects[, 0]);
+        x = affected_inds.phenotypeForTrait("add2T");
+        affected_inds.setPhenotypeForTrait("add2T", x + env_effects[, 1]);
+    }
+
+    // Adding environment env_demo
+    // Add environmental effects if relevant
+    in_interval = F;
+    in_interval = in_interval | (sim.cycle > G0 - 22.4 & sim.cycle <= G0 - 0.0);
+    if(in_interval){
+        affected_inds = c(sim.subpopulations[1].individuals);
+        env_effects = rmvnorm(
+            length(affected_inds), c(0.0, 0.0),
+            array(c(
+                c(1.0, 0.0),
+                c(0.0, 1.0)
+            ), c(2, 2))
+        );
+        x = affected_inds.phenotypeForTrait("add1T");
+        affected_inds.setPhenotypeForTrait("add1T", x + env_effects[, 0]);
+        x = affected_inds.phenotypeForTrait("add2T");
+        affected_inds.setPhenotypeForTrait("add2T", x + env_effects[, 1]);
+    }
+
     // Adding environment env1
     // Add environmental effects if relevant
     in_interval = F;
-    in_interval = in_interval | (sim.cycle > G0 - 10.0 & sim.cycle <= G0 - 0.0);
-    in_interval = in_interval | (sim.cycle > G0 - 20.0 & sim.cycle <= G0 - 10.0);
+    in_interval = in_interval | (sim.cycle > G0 - 0.04 & sim.cycle <= G0 - 0.0);
+    in_interval = in_interval | (sim.cycle > G0 - 0.08 & sim.cycle <= G0 - 0.04);
     if(in_interval){
         affected_inds = c(sim.subpopulations[0].individuals);
         env_effects = rmvnorm(
@@ -623,23 +709,28 @@ late() {
     }
 
     // Adding environment env2
-    affected_inds = c(sim.subpopulations[0].individuals);
-    env_effects = rmvnorm(
-        length(affected_inds), c(0.0, 0.0),
-        array(c(
-            c(2.0, 0.0),
-            c(0.0, 2.0)
-        ), c(2, 2))
-    );
-    x = affected_inds.phenotypeForTrait("add1T");
-    affected_inds.setPhenotypeForTrait("add1T", x + env_effects[, 0]);
-    x = affected_inds.phenotypeForTrait("add2T");
-    affected_inds.setPhenotypeForTrait("add2T", x + env_effects[, 1]);
+    // Add environmental effects if relevant
+    in_interval = F;
+    in_interval = in_interval | (sim.cycle <= G0 - 0.0);
+    if(in_interval){
+        affected_inds = c(sim.subpopulations[0].individuals);
+        env_effects = rmvnorm(
+            length(affected_inds), c(0.0, 0.0),
+            array(c(
+                c(2.0, 0.0),
+                c(0.0, 2.0)
+            ), c(2, 2))
+        );
+        x = affected_inds.phenotypeForTrait("add1T");
+        affected_inds.setPhenotypeForTrait("add1T", x + env_effects[, 0]);
+        x = affected_inds.phenotypeForTrait("add2T");
+        affected_inds.setPhenotypeForTrait("add2T", x + env_effects[, 1]);
+    }
 
     // Adding environment env3
     // Add environmental effects if relevant
     in_interval = F;
-    in_interval = in_interval | (sim.cycle <= G0 - 10.0);
+    in_interval = in_interval | (sim.cycle <= G0 - 0.04);
     if(in_interval){
         affected_inds = c(sim.subpopulations[0].individuals);
         env_effects = rmvnorm(
@@ -657,29 +748,26 @@ late() {
 
 }
 
-// Adding fitness function fit1
-(G0-9):(G0-0) fitnessEffect(p0){
-    trait_vals = individual.phenotypeForTrait(trait=c("add1T", "add2T"));
-    fitness = dmvnorm(
-        trait_vals,
-        c(0.0, 0.0),
-        array(c(
-            c(1.0, 0.0),
-            c(0.0, 1.0)
-        ), c(2, 2)) / Q
-    );
+// Adding fitness function fit_demo
+(G0-22):(G0-0) fitnessEffect(p1){
+    trait_val = individual.phenotypeForTrait(trait="add1T");
+    fitness = dnorm(trait_val, 0.0,1.0/ sqrt(Q));
     // normalize by maximum fitness
-    fitness = fitness / dmvnorm(
-        c(0.0, 0.0),
-        c(0.0, 0.0),
-        array(c(
-            c(1.0, 0.0),
-            c(0.0, 1.0)
-        ), c(2, 2)) / Q
-    );
+    fitness = fitness / dnorm(0.0,0.0,1.0/ sqrt(Q));
     return fitness;
 }
-(G0-14):(G0-10) fitnessEffect(p0){
+
+// Adding fitness function fit_demo
+1:(G0-0) fitnessEffect(p0){
+    trait_val = individual.phenotypeForTrait(trait="add1T");
+    fitness = dnorm(trait_val, 0.0,1.0/ sqrt(Q));
+    // normalize by maximum fitness
+    fitness = fitness / dnorm(0.0,0.0,1.0/ sqrt(Q));
+    return fitness;
+}
+
+// Adding fitness function fit1
+(G0-0):(G0-0) fitnessEffect(p0){
     trait_vals = individual.phenotypeForTrait(trait=c("add1T", "add2T"));
     fitness = dmvnorm(
         trait_vals,
@@ -702,7 +790,7 @@ late() {
 }
 
 // Adding fitness function fit2
-fitnessEffect(p0){
+1:(G0-0) fitnessEffect(p0){
     trait_val = individual.phenotypeForTrait(trait="add1T");
     fitness = dnorm(trait_val, 0.3,1.4142135623730951/ sqrt(Q));
     // normalize by maximum fitness
@@ -711,7 +799,7 @@ fitnessEffect(p0){
 }
 
 // Adding fitness function fit3
-1:(G0-10) fitnessEffect(p0){
+1:(G0-1) fitnessEffect(p0){
     trait_val = individual.phenotypeForTrait(trait="add1T");
     fitness = dnorm(trait_val, 0.3,1.4142135623730951/ sqrt(Q));
     // normalize by maximum fitness

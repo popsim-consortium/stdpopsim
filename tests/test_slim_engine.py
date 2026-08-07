@@ -3402,6 +3402,21 @@ class TestTraits:
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("AnaPla")
         contig = species.get_contig("chr1", left=1e7, right=1e7 + 1e4)
+        mt1 = stdpopsim.MutationType(
+            trait_ids=["add"],
+            distribution_type='n',
+            distribution_args=[0, 1e-4]
+        )
+        mt2 = stdpopsim.MutationType(
+            trait_ids=["mult"],
+            distribution_type='e',
+            distribution_args=[1]
+        )
+        dme = stdpopsim.DistributionOfMutationEffects(
+            mutation_types=[mt1, mt2],
+            proportions=[0.3, 0.7]
+        )
+        contig.add_dme(intervals=np.array([[1e7, 1e7+1e4]]), DME=dme)
         ts = engine.simulate(
             model, contig, samples={"pop_0": 3}, traits_model=tm, seed=7
         )
@@ -3445,6 +3460,22 @@ class TestTraits:
         # simulate
         model = species.get_demographic_model("OutOfAfrica_3G09")
         contig = species.get_contig("chr22")
+        mt1 = stdpopsim.MutationType(
+            trait_ids=["add"],
+            distribution_type='n',
+            distribution_args=[0, 1e-4]
+        )
+        mt2 = stdpopsim.MutationType(
+            trait_ids=["also_add"],
+            distribution_type='e',
+            distribution_args=[1]
+        )
+        dme = stdpopsim.DistributionOfMutationEffects(
+            mutation_types=[mt1, mt2],
+            proportions=[0.3, 0.7]
+        )
+        contig.add_dme(intervals=np.array([[1e7, 1e7+1e4]]), DME=dme)
+
         engine.simulate(
             model,
             contig,

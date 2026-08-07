@@ -11,6 +11,32 @@ tm = stdpopsim.TraitsModel(
     traits=traits,
 )
 
+pops_fit = ["CEU", "YRI"]
+tm.add_fitness_function(
+    id="fit_demo",
+    trait_ids=["add1"],
+    function_type="gaussian",
+    function_args=[np.zeros(1), np.eye(1)],
+    time_intervals=[(0, float('inf'))],
+    population_list=pops_fit
+)
+pops_env = ["CHB", "YRI", "CEU"]
+tm.add_environment(
+    id="env_demo",
+    trait_ids=["add1", "add2"],
+    distribution_type="mvn",
+    distribution_args=[np.zeros(2), np.eye(2)],
+    time_intervals=[(0, float('inf'))],
+    population_list=pops_env
+)
+engine = stdpopsim.get_engine("slim")
+species = stdpopsim.get_species("HomSap")
+
+# TODO: choose a different demographic model that would be faster to
+# simulate
+model = species.get_demographic_model("OutOfAfrica_3G09")
+contig = species.get_contig("chr22")
+
 
 tm.add_environment(
     id="env1",
@@ -63,15 +89,11 @@ tm.add_fitness_function(
     time_intervals=[(10, float('inf'))]
 )
 
-model = stdpopsim.PiecewiseConstantSize(10)
-engine = stdpopsim.get_engine("slim")
-species = stdpopsim.get_species("AnaPla")
-contig = species.get_contig("chr1", left=1e7, right=1e7 + 1e4)
 
 mt1 = stdpopsim.MutationType(
     trait_ids=['add1', 'add2'],
     distribution_type='mvn',
-    distribution_args=[np.zeros(2), np.eye(2)],
+    distribution_args=[np.zeros(2), 1e-8*np.eye(2)],
 )
 
 mt2 = stdpopsim.MutationType(
@@ -87,6 +109,7 @@ dme = stdpopsim.DistributionOfMutationEffects(
 contig.add_dme(intervals=np.array([[1e7, 1e7+1e4]]), DME=dme)
 
 ts = engine.simulate(
-    model, contig, samples={"pop_0": 3}, traits_model=tm, seed=7,
+    model, contig, samples={"CEU": 3}, traits_model=tm, seed=7,
+    slim_scaling_factor=250,
     slim_script=True
 )

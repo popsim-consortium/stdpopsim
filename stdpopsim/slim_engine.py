@@ -251,6 +251,14 @@ function (void)restore(void) {
 """
 
 
+# TODO: I switched population splits from registerLateEvent() to
+# registerEarlyEvent(). This fundamentally changes the model (probably in an
+# inconsequential way though), but it's necessary to get the traits stuff
+# working as it is currently implemented.  The issue is essentially that
+# these registered late events don't get called until after our hard-coded
+# late() blocks. This means that we might ask for phenotypes or fitnesses of
+# populations that won't exist until later in the same SLiM tick.  registering
+# population splits as early events solves this problem.
 _slim_main = """
 1 early() {
     // save/restore bookkeeping
@@ -361,7 +369,7 @@ _slim_main = """
             size = asInteger(round(subpopulation_splits[2,i] / Q));
             oldpop = asInteger(subpopulation_splits[3,i]);
             check_size(newpop, size, g);
-            community.registerLateEvent(NULL,
+            community.registerEarlyEvent(NULL,
                 "{dbg(self.source); " +
                 "p = sim.addSubpopSplit("+newpop+","+size+","+oldpop+"); " +
                 "p.name = '"+pop_names[newpop]+"';}",
@@ -947,6 +955,15 @@ def _check_traits_model_contig_consistency(contig, traits_model):
             "MutationTypes contain trait IDs that are not "
             "defined in the TraitsModel."
         )
+    tm_ids = [t.id for t in traits_model.traits]
+    # TODO: this might be a bit draconian
+    tm_set = set(tm_ids) - set(["fitness"])
+    mt_traits = set(mt_traits) - set(["fitness"])
+    if frozenset(tm_set) != frozenset(mt_traits):
+        raise ValueError(
+            "There is a trait in the TraitsModel "
+            "that is not affected by any MutationType."
+        )
 
 
 def _collect_valid_population_intervals(demographic_model):
@@ -993,47 +1010,47 @@ def _standardize_condition(condition, valid_intervals):
     new_conditions = []
     if condition.population_list is None:
         new_conditions.append(copy.deepcopy(condition))
-    standardized = {}
     for p in condition.population_list:
         if p not in valid_intervals:
             raise ValueError("Population index out of bounds.")
-        standardized[p] = []
+        standardized = []
         if condition.time_intervals is None:
-            standardized[p].extend(valid_intervals[p])
-        for interval in condition.time_intervals:
-            is_valid = False
-            if interval[1] != float('inf'):
-                # If interval is finite, we must identify
-                # a model interval that contains it
-                for demo_interval in valid_intervals[p]:
-                    if (
-                        interval[0] >= demo_interval[0]
-                        and interval[1] <= demo_interval[1]
-                    ):
-                        is_valid = True
-                        standardized[p].append(interval)
-            else:
-                # If interval is infinite, we must identify
-                # all overlapping model intervals
-                for demo_interval in valid_intervals[p]:
-                    if (interval[0] < demo_interval[0]):
-                        standardized[p].append(demo_interval)
-                        is_valid = True
-                    elif (
-                        interval[0] >= demo_interval[0]
-                        and interval[0] < demo_interval[1]
-                    ):
-                        standardized[p].append([interval[0], demo_interval[1]])
-                        is_valid = True
-            if not is_valid:
-                raise ValueError(
-                    "An environment of a fitness function was "
-                    "specified for a population with a time interval "
-                    "during which that population does not exist."
-                )
+            standardized.extend(valid_intervals[p])
+        else:
+            for interval in condition.time_intervals:
+                is_valid = False
+                if interval[1] != float('inf'):
+                    # If interval is finite, we must identify
+                    # a model interval that contains it
+                    for demo_interval in valid_intervals[p]:
+                        if (
+                            interval[0] >= demo_interval[0]
+                            and interval[1] <= demo_interval[1]
+                        ):
+                            is_valid = True
+                            standardized.append(interval)
+                else:
+                    # If interval is infinite, we must identify
+                    # all overlapping model intervals
+                    for demo_interval in valid_intervals[p]:
+                        if (interval[0] < demo_interval[0]):
+                            standardized.append(demo_interval)
+                            is_valid = True
+                        elif (
+                            interval[0] >= demo_interval[0]
+                            and interval[0] < demo_interval[1]
+                        ):
+                            standardized.append([interval[0], demo_interval[1]])
+                            is_valid = True
+                if not is_valid:
+                    raise ValueError(
+                        "An environment or a fitness function was "
+                        "specified for a population with a time interval "
+                        "during which that population does not exist."
+                    )
         p_copy = copy.deepcopy(condition)
         p_copy.population_list = [p]
-        p_copy.time_intervals = standardized[p]
+        p_copy.time_intervals = standardized
         new_conditions.append(p_copy)
 
     return new_conditions
@@ -1917,6 +1934,26 @@ def slim_makescript(
                         # functions from being applied simultaneously
                         if start == interval[1]/scaling_factor:
                             start -= 1
+
+                        # It's possible that an interval falls entirely between
+                        # one generation and the next (e.g., with scaling) and
+                        # that can cause the start to come after the end.
+                        # In that case we drop a warning, but just don't apply
+                        # this interval
+                        if start < int(np.ceil(interval[0]/scaling_factor)):
+                            warnings.warn(
+                                # TODO: is this the right warning category?
+                                stdpopsim.SLiMScalingFactorWarning(
+                                    "An interval in a fitness function is "
+                                    "falling entirely between two generations "
+                                    "(possible after scaling). This means "
+                                    "that this fitness function will never "
+                                    "be applied."
+                                )
+                            )
+
+                            continue
+
                         start = f"(G0-{start})"
                     end = f"(G0-{int(np.ceil(interval[0]/scaling_factor))})"
 
