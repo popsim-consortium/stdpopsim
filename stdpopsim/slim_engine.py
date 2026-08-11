@@ -1808,10 +1808,6 @@ def slim_makescript(
     printsc("    inds = sim.subpopulations.individuals;")
     printsc()
 
-    # demand all of the phenotypes in every population!
-    printsc('    sim.demandPhenotype(NULL, NULL);')
-    printsc()
-
     # loop through environments, adding where needed
     for env in traits_model.environments:
         printsc(f"    // Adding environment {env.id}")
@@ -1866,11 +1862,11 @@ def slim_makescript(
         for idx, t in enumerate(env.trait_ids):
             printsc(
                 env_code_spacing
-                + f'x = affected_inds.phenotypeForTrait("{t}T");'
+                + f'x = affected_inds.offsetForTrait("{t}T");'
             )
             printsc(
                 env_code_spacing
-                + "affected_inds.setPhenotypeForTrait("
+                + "affected_inds.setOffsetForTrait("
                 + f'"{t}T", x + env_effects[, {idx}]);'
             )
 
@@ -1881,6 +1877,8 @@ def slim_makescript(
         printsc()
 
     for t in traits_model.traits:
+        # make sure this phenotype is computed
+        printsc(f'    sim.demandPhenotype(NULL, "{t.id}T");')
         # x only gets used if we are actually performing some kind of
         # transformation
         if t.transform != "identity":

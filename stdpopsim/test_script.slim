@@ -1,5 +1,5 @@
 /*
- * stdpopsim 0.3.1.dev79+gc18f12c78.d20260807
+ * stdpopsim 0.3.1.dev80+gfa968350b.d20260811
  *
  * Demographic model: OutOfAfrica_3G09
  * Three population out-of-Africa
@@ -629,8 +629,6 @@ function (void)restore(void) {
 late() {
     inds = sim.subpopulations.individuals;
 
-    sim.demandPhenotype(NULL, NULL);
-
     // Adding environment env_demo
     // Add environmental effects if relevant
     in_interval = F;
@@ -644,10 +642,10 @@ late() {
                 c(0.0, 1.0)
             ), c(2, 2))
         );
-        x = affected_inds.phenotypeForTrait("add1T");
-        affected_inds.setPhenotypeForTrait("add1T", x + env_effects[, 0]);
-        x = affected_inds.phenotypeForTrait("add2T");
-        affected_inds.setPhenotypeForTrait("add2T", x + env_effects[, 1]);
+        x = affected_inds.offsetForTrait("add1T");
+        affected_inds.setOffsetForTrait("add1T", x + env_effects[, 0]);
+        x = affected_inds.offsetForTrait("add2T");
+        affected_inds.setOffsetForTrait("add2T", x + env_effects[, 1]);
     }
 
     // Adding environment env_demo
@@ -663,10 +661,10 @@ late() {
                 c(0.0, 1.0)
             ), c(2, 2))
         );
-        x = affected_inds.phenotypeForTrait("add1T");
-        affected_inds.setPhenotypeForTrait("add1T", x + env_effects[, 0]);
-        x = affected_inds.phenotypeForTrait("add2T");
-        affected_inds.setPhenotypeForTrait("add2T", x + env_effects[, 1]);
+        x = affected_inds.offsetForTrait("add1T");
+        affected_inds.setOffsetForTrait("add1T", x + env_effects[, 0]);
+        x = affected_inds.offsetForTrait("add2T");
+        affected_inds.setOffsetForTrait("add2T", x + env_effects[, 1]);
     }
 
     // Adding environment env_demo
@@ -682,10 +680,10 @@ late() {
                 c(0.0, 1.0)
             ), c(2, 2))
         );
-        x = affected_inds.phenotypeForTrait("add1T");
-        affected_inds.setPhenotypeForTrait("add1T", x + env_effects[, 0]);
-        x = affected_inds.phenotypeForTrait("add2T");
-        affected_inds.setPhenotypeForTrait("add2T", x + env_effects[, 1]);
+        x = affected_inds.offsetForTrait("add1T");
+        affected_inds.setOffsetForTrait("add1T", x + env_effects[, 0]);
+        x = affected_inds.offsetForTrait("add2T");
+        affected_inds.setOffsetForTrait("add2T", x + env_effects[, 1]);
     }
 
     // Adding environment env1
@@ -702,10 +700,10 @@ late() {
                 c(0.0, 1.0)
             ), c(2, 2))
         );
-        x = affected_inds.phenotypeForTrait("add1T");
-        affected_inds.setPhenotypeForTrait("add1T", x + env_effects[, 0]);
-        x = affected_inds.phenotypeForTrait("add2T");
-        affected_inds.setPhenotypeForTrait("add2T", x + env_effects[, 1]);
+        x = affected_inds.offsetForTrait("add1T");
+        affected_inds.setOffsetForTrait("add1T", x + env_effects[, 0]);
+        x = affected_inds.offsetForTrait("add2T");
+        affected_inds.setOffsetForTrait("add2T", x + env_effects[, 1]);
     }
 
     // Adding environment env2
@@ -721,10 +719,10 @@ late() {
                 c(0.0, 2.0)
             ), c(2, 2))
         );
-        x = affected_inds.phenotypeForTrait("add1T");
-        affected_inds.setPhenotypeForTrait("add1T", x + env_effects[, 0]);
-        x = affected_inds.phenotypeForTrait("add2T");
-        affected_inds.setPhenotypeForTrait("add2T", x + env_effects[, 1]);
+        x = affected_inds.offsetForTrait("add1T");
+        affected_inds.setOffsetForTrait("add1T", x + env_effects[, 0]);
+        x = affected_inds.offsetForTrait("add2T");
+        affected_inds.setOffsetForTrait("add2T", x + env_effects[, 1]);
     }
 
     // Adding environment env3
@@ -740,12 +738,16 @@ late() {
                 c(0.0, 2.0)
             ), c(2, 2))
         );
-        x = affected_inds.phenotypeForTrait("add1T");
-        affected_inds.setPhenotypeForTrait("add1T", x + env_effects[, 0]);
-        x = affected_inds.phenotypeForTrait("add2T");
-        affected_inds.setPhenotypeForTrait("add2T", x + env_effects[, 1]);
+        x = affected_inds.offsetForTrait("add1T");
+        affected_inds.setOffsetForTrait("add1T", x + env_effects[, 0]);
+        x = affected_inds.offsetForTrait("add2T");
+        affected_inds.setOffsetForTrait("add2T", x + env_effects[, 1]);
     }
 
+    sim.demandPhenotype(NULL, "fitnessT");
+    sim.demandPhenotype(NULL, "add1T");
+    sim.demandPhenotype(NULL, "add2T");
+    sim.demandPhenotype(NULL, "multT");
 }
 
 // Adding fitness function fit_demo
