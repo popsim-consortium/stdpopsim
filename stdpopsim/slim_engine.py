@@ -698,6 +698,22 @@ _slim_debug_output = """
     }
 }
 
+// Save trait information in tree sequence metadata
+// This is for development purposes, and the format of this metadata
+// is subject to change or may even be removed!
+1 first() {
+    if (verbosity >= 3) {
+        trait_dict = Dictionary();
+        for (t in sim.traits) {
+            trait_dict.setValue(t.name,
+                Dictionary("type", t.type)
+            );
+        }
+        metadata.setValue(
+            "traits", trait_dict
+        );
+    }
+}
 """
 
 _raw_stdpopsim_top_level_schema = {
@@ -862,7 +878,7 @@ def _add_dfes_to_metadata(ts, contig):
     tables = ts.dump_tables()
     schema = tables.metadata_schema.asdict()
     metadata = tables.metadata
-    schema["properties"].update(_raw_stdpopsim_top_level_schema)
+    schema["json"]["properties"].update(_raw_stdpopsim_top_level_schema)
     dfes = _get_json(contig.dme_list)
     dfe_to_mtypes = _dfe_to_mtypes(contig)
     for i, d, ints in _enum_dfe_and_intervals(contig):
@@ -910,12 +926,19 @@ def msprime_rm_to_slim_rm(recombination_map):
     return rates, ends[1:]
 
 
+def _check_traits_model_contig_consistency(contig, traits_model):
+    # TODO: check that all traits utilized in the mutation types
+    # are actually defined in the traits model
+    assert True
+
+
 def slim_makescript(
     script_file,
     trees_file,
     demographic_model,
     contig,
     samples,
+    traits_model,
     extended_events,
     scaling_factor,
     burn_in,
@@ -923,6 +946,11 @@ def slim_makescript(
     logfile=None,
     logfile_interval=1,
 ):
+
+    if traits_model is None:
+        traits_model = stdpopsim.TraitsModel()
+
+    _check_traits_model_contig_consistency(contig, traits_model)
 
     pop_names = [pop.name for pop in demographic_model.model.populations]
     # Use copies of these so that the time frobbing below doesn't have
@@ -1248,8 +1276,16 @@ def slim_makescript(
 
         return "".join(s)
 
+    # Traits
+    for t in traits_model.traits:
+        printsc(
+            f'initializeTrait("{t.id}T", "{t.type}", '
+            f"directFitnessEffect = {'T' if t.id == 'fitness' else 'F'});"
+        )
+
     # Genomic element types.
     mutation_callbacks = {}
+    multivar_muts = {}
     dfe_mtypes = _dfe_to_mtypes(contig)
     for j, d, ints in _enum_dfe_and_intervals(contig):
         # Mutation types and proportions.
@@ -1297,7 +1333,8 @@ def slim_makescript(
                 mut_props_list.append(p)
                 printsc(
                     f"    initializeMutationType({mid}, {h}, "
-                    f'"{mt.distribution_type}", {distrib_args});'
+                    # f'"{mt.distribution_type}", {distrib_args});'
+                    '"f", 0.0);'  # TODO: set direct effects to zero always??
                 )
                 if not mt.convert_to_substitution:
                     # T is the default for WF simulations.
@@ -1307,6 +1344,15 @@ def slim_makescript(
                 # and individual
                 # printsc(f"    mt{mid}.mutationStackGroup = 0;")
                 # printsc(f"    mt{mid}.mutationStackPolicy = 'l';")
+                if len(mt.trait_ids) == 1:  # this only applies to ONE trait
+                    printsc(
+                        f"m{mid}.setEffectSizeDistributionForTrait("
+                        f'"{mt.trait_ids[0]}T", '
+                        f'"{mt.distribution_type}", {distrib_args});'
+                    )
+                else:
+                    # add multivariate mutations to a list to deal with later
+                    multivar_muts[mid] = mt
                 first_mt = False
         mut_types = ", ".join([str(mt) for mt in mut_type_list])
         mut_props = ", ".join(map(str, mut_props_list))
@@ -1521,9 +1567,46 @@ def slim_makescript(
         + ");"
     )
 
+    # finish the initialize() block
     printsc(_slim_lower)
+
+    # do the callbacks
+    for mid, mt in multivar_muts.items():
+        assert mt.distribution_type == "mvn"  # for now
+        effect_means = map(str, mt.distribution_args[0])
+        effect_covar = mt.distribution_args[1]
+        printsc(f"mutation(m{mid}) {{")
+        printsc("    effects = rmvnorm(1, c(" + ", ".join(effect_means) + "), ")
+        printsc(f"                         {matrix2str(effect_covar)});")
+        for j, tid in enumerate(mt.trait_ids):
+            printsc(f'    mut.setEffectSizeForTrait("{tid}T", effects[{j}]);')
+        printsc("    return T;")
+        printsc("}")
+
+    # print out other things
     printsc(_slim_functions)
     printsc(_slim_main)
+
+    # print out the trait stuff
+    printsc("late() {" "inds = sim.subpopulations.individuals;")
+    for t in traits_model.traits:
+        printsc(f'sim.demandPhenotype(NULL, "{t.id}T");')
+        printsc(f'x = inds.phenotypeForTrait("{t.id}T");')
+        if t.transform == "threshold":
+            thresh = t.transform_args[0]
+            printsc(
+                f'inds.setPhenotypeForTrait("{t.id}T", ifelse(x > {thresh}, 1, 0));'
+            )
+        elif t.transform == "liability":
+            center, slope = t.transform_args
+            printsc(f"p = 1 / (1 + exp(-(x - {center}) * {slope}));")
+            printsc(f'inds.setPhenotypeForTrait("{t.id}T", rbinom(size(x), 1, p));')
+        else:
+            assert t.transform == "identity"
+
+    # END print out the trait stuff
+    printsc("}")
+
     if logfile is not None:
         printsc(
             string.Template(_slim_logfile).substitute(
@@ -1533,6 +1616,7 @@ def slim_makescript(
         )
     printsc(_slim_debug_output)
 
+    # TODO REMOVE THIS MONKEY PATCH MAYBE???
     return epochs[0]
 
 
@@ -1578,6 +1662,7 @@ class _SLiMEngine(stdpopsim.Engine):
         contig,
         samples,
         *,
+        traits_model=None,
         seed=None,
         extended_events=None,
         slim_path=None,
@@ -1603,6 +1688,7 @@ class _SLiMEngine(stdpopsim.Engine):
             will use a two-sex Wright-Fisher model (instead of the default
             hermaphroditic WF model)
 
+        TODO: document ``traits_model``, a TraitsModel
         :param seed: The seed for the random number generator.
         :type seed: int
         :param extended_events: A list of :class:`ExtendedEvents` to be
@@ -1699,15 +1785,16 @@ class _SLiMEngine(stdpopsim.Engine):
             script_file, script_filename, ts_filename = st
 
             recap_epoch = slim_makescript(
-                script_file,
-                ts_filename,
-                demographic_model,
-                contig,
-                sample_sets,
-                extended_events,
-                slim_scaling_factor,
-                slim_burn_in,
-                slim_rate_map,
+                script_file=script_file,
+                trees_file=ts_filename,
+                demographic_model=demographic_model,
+                contig=contig,
+                samples=sample_sets,
+                traits_model=traits_model,
+                extended_events=extended_events,
+                scaling_factor=slim_scaling_factor,
+                burn_in=slim_burn_in,
+                slim_rate_map=slim_rate_map,
                 logfile=logfile,
                 logfile_interval=logfile_interval,
             )
@@ -2000,6 +2087,7 @@ class _SLiMEngine(stdpopsim.Engine):
         demographic_model,
         contig,
         samples,
+        traits_model=None,
         extended_events=None,
         slim_scaling_factor=1.0,
         seed=None,
@@ -2050,6 +2138,7 @@ class _SLiMEngine(stdpopsim.Engine):
                 demographic_model,
                 contig,
                 sample_sets,
+                traits_model,
                 extended_events,
                 slim_scaling_factor,
                 1,
