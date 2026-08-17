@@ -73,7 +73,7 @@ jobs:
         # we may need to bump the cache key above.
         shell: bash -l {0}
         run: |
-          git clone https://github.com/messerlab/SLiM.git
+          git clone -b multitrait https://github.com/messerlab/SLiM.git
           mkdir -p SLiM/Release
           cd SLiM/Release
           cmake -DCMAKE_BUILD_TYPE=Release ..
