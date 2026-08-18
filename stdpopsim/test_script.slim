@@ -1,5 +1,5 @@
 /*
- * stdpopsim 0.3.1.dev80+gfa968350b.d20260811
+ * stdpopsim 0.3.1.dev81+g65b15f12a.d20260818
  *
  * Demographic model: OutOfAfrica_3G09
  * Three population out-of-Africa
@@ -56,6 +56,19 @@ initialize() {
     initializeGenomicElement(1, c(
         10000000), c(
         10009999));
+
+    // MutationTypes that affect multiple traits
+    defineConstant("multivar_mut_types", c(1));
+    defineConstant("multivar_mut_means", Dictionary());
+    defineConstant("multivar_mut_covs", Dictionary());
+    defineConstant("multivar_mut_traits", Dictionary());
+
+    multivar_mut_means.setValue(1, c(0.0, 0.0));
+    multivar_mut_covs.setValue(1, array(c(
+        c(1e-08, 0.0),
+        c(0.0, 1e-08)
+    ), c(2, 2)));
+    multivar_mut_traits.setValue(1, c("add1T", "add2T"));
     initializeMutationRate(Q*c(
         0.0, 1.29e-08, 0.0), c(
         9999999, 10009999, 50818467));
@@ -166,17 +179,6 @@ function (void)dbg(string$ s, [integer$ debug_level = 2]) {
     }
 }
 
-mutation(m1) {
-    effects = rmvnorm(
-        1, c(0.0, 0.0), 
-        array(c(
-            c(1e-08, 0.0),
-            c(0.0, 1e-08)
-        ), c(2, 2)));
-    mut.setEffectSizeForTrait("add1T", effects[0]);
-    mut.setEffectSizeForTrait("add2T", effects[1]);
-    return T;
-}
 
 
 // Check that sizes aren't dangerously low or zero (e.g. due to scaling).
@@ -525,7 +527,7 @@ function (void)restore(void) {
         }
     }
 
-    // Setup fitness callbacks.
+    // Set up fitness callbacks.
     if (length(fitness_callbacks) > 0) {
         for (i in 0:(ncol(fitness_callbacks)-1)) {
             g_start = time_to_tick(fitness_callbacks[0,i]);
@@ -573,7 +575,31 @@ function (void)restore(void) {
         }
     }
 
-    // Setup mutation callbacks.
+    // Set up trait mutation callbacks
+    for (i in seqAlong(multivar_mut_types)) {
+        mid = multivar_mut_types[i];
+        mt = sim.mutationTypes[mid];
+        sim.registerMutationCallback(NULL,
+            "{ effects = rmvnorm("
+            + "1,"
+            + "multivar_mut_means.getValue(" + mid + "),"
+            + "multivar_mut_covs.getValue(" + mid + "));"
+            + "for (j in seqAlong(multivar_mut_traits.getValue(" + mid+ "))) {"
+            + "    trait = multivar_mut_traits.getValue(" + mid + ")[j];"
+            + "    mut.setEffectSizeForTrait(trait, effects[j]);}"
+            + "return T;"
+            + " }",
+            mt
+        );
+    }
+
+    // Set up environment callbacks
+
+    // Set up trait transformation callbacks
+
+    // Set up trait fitness callbacks
+
+    // Set up mutation callbacks.
     // For each stdpopsim mutation type with an h-s relationship
     // we have a sequence of assigned SLiM mutation types;
     // the first is the one that gets produced by mutation,

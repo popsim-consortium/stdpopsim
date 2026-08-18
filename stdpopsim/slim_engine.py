@@ -481,7 +481,7 @@ _slim_main = """
         }
     }
 
-    // Setup fitness callbacks.
+    // Set up fitness callbacks.
     if (length(fitness_callbacks) > 0) {
         for (i in 0:(ncol(fitness_callbacks)-1)) {
             g_start = time_to_tick(fitness_callbacks[0,i]);
@@ -529,7 +529,31 @@ _slim_main = """
         }
     }
 
-    // Setup mutation callbacks.
+    // Set up trait mutation callbacks
+    for (i in seqAlong(multivar_mut_types)) {
+        mid = multivar_mut_types[i];
+        mt = sim.mutationTypes[mid];
+        sim.registerMutationCallback(NULL,
+            "{ effects = rmvnorm("
+            + "1,"
+            + "multivar_mut_means.getValue(" + mid + "),"
+            + "multivar_mut_covs.getValue(" + mid + "));"
+            + "for (j in seqAlong(multivar_mut_traits.getValue(" + mid+ "))) {"
+            + "    trait = multivar_mut_traits.getValue(" + mid + ")[j];"
+            + "    mut.setEffectSizeForTrait(trait, effects[j]);}"
+            + "return T;"
+            + " }",
+            mt
+        );
+    }
+
+    // Set up environment callbacks
+
+    // Set up trait transformation callbacks
+
+    // Set up trait fitness callbacks
+
+    // Set up mutation callbacks.
     // For each stdpopsim mutation type with an h-s relationship
     // we have a sequence of assigned SLiM mutation types;
     // the first is the one that gets produced by mutation,
@@ -1560,6 +1584,42 @@ def slim_makescript(
             printsc(
                 f"    initializeGenomicElement({j}, {element_starts}, {element_ends});"
             )
+
+    # Now we deal with the multivariate mutation types. Here we print out the
+    # information that we will need later to generate mutation callbacks.
+    if len(multivar_muts) > 0:
+        printsc()
+        printsc("    // MutationTypes that affect multiple traits")
+        printsc(
+            '    defineConstant("multivar_mut_types", c('
+            + ', '.join(map(str, multivar_muts.keys()))
+            + '));'
+        )
+        printsc('    defineConstant("multivar_mut_means", Dictionary());')
+        printsc('    defineConstant("multivar_mut_covs", Dictionary());')
+        printsc('    defineConstant("multivar_mut_traits", Dictionary());')
+        printsc("")
+        for mid, mt in multivar_muts.items():
+            assert mt.distribution_type == "mvn"  # TODO: just for now
+            printsc(
+                "    multivar_mut_means.setValue("
+                + f'{mid}, c('
+                + ", ".join(map(str, mt.distribution_args[0]))
+                + '));'  # this sad winky face is how I feel
+            )
+            printsc(
+                "    multivar_mut_covs.setValue("
+                + f'{mid}, '
+                + matrix2str(mt.distribution_args[1])
+                + ');'
+            )
+            printsc(
+                "    multivar_mut_traits.setValue("
+                + f'{mid}, c('
+                + ", ".join([f'"{tid}T"' for tid in mt.trait_ids])
+                + '));'
+            )
+
     # Mutation rate map.
     mut_breaks = slim_array_string(map(int, slim_rate_map[0]), indent)
     mut_rates = slim_array_string(slim_rate_map[1], indent)
@@ -1782,21 +1842,6 @@ def slim_makescript(
 
     # finish the initialize() block
     printsc(_slim_lower)
-
-    # do callbacks for multivariate traits
-    for mid, mt in multivar_muts.items():
-        assert mt.distribution_type == "mvn"  # TODO: just for now
-        effect_means = map(str, mt.distribution_args[0])
-        effect_covar = mt.distribution_args[1]
-        printsc(f"mutation(m{mid}) {{")
-        printsc("    effects = rmvnorm(")
-        printsc("        1, c(" + ", ".join(effect_means) + "), ")
-        printsc(f"        {matrix2str(effect_covar, indent=3)});")
-        for j, tid in enumerate(mt.trait_ids):
-            printsc(f'    mut.setEffectSizeForTrait("{tid}T", effects[{j}]);')
-        printsc("    return T;")
-        printsc("}")
-
     printsc(_slim_functions)
     printsc(_slim_main)
 
