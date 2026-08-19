@@ -1,5 +1,5 @@
 /*
- * stdpopsim 0.3.1.dev81+g65b15f12a.d20260818
+ * stdpopsim 0.3.1.dev82+g62902b805.d20260819
  *
  * Demographic model: OutOfAfrica_3G09
  * Three population out-of-Africa
@@ -63,12 +63,15 @@ initialize() {
     defineConstant("multivar_mut_covs", Dictionary());
     defineConstant("multivar_mut_traits", Dictionary());
 
+    // Mean, variance, and affected traits for
+    // MutationType m1
     multivar_mut_means.setValue(1, c(0.0, 0.0));
     multivar_mut_covs.setValue(1, array(c(
         c(1e-08, 0.0),
         c(0.0, 1e-08)
     ), c(2, 2)));
     multivar_mut_traits.setValue(1, c("add1T", "add2T"));
+
     initializeMutationRate(Q*c(
         0.0, 1.29e-08, 0.0), c(
         9999999, 10009999, 50818467));
@@ -142,6 +145,9 @@ initialize() {
     // Drawn mutations, one row for each mutation.
     defineConstant("drawn_mutations", c());
 
+    // Trait transformations
+    defineConstant("trait_transforms", c("identity", "identity", "identity", "identity"));
+    defineConstant("trait_transform_params", Dictionary());
     // Fitness callbacks, one row for each callback.
     defineConstant("fitness_callbacks", c());
 
@@ -596,6 +602,28 @@ function (void)restore(void) {
     // Set up environment callbacks
 
     // Set up trait transformation callbacks
+    for (i in seqAlong(sim.traits)){
+        community.registerLateEvent(NULL,
+            "{ sim.demandPhenotype(NULL, " + i + ");"
+            + "if (trait_transforms[" + i + "] != 'identity'){ "
+            + "inds = sim.subpopulations.individuals;"
+            + "x = inds.phenotypeForTrait(" + i + ");"
+            + "}"
+            + "if (trait_transforms[" + i + "] == 'threshold'){"
+            + "inds.setPhenotypeForTrait(" + i + ","
+            + "ifelse(x > trait_transform_params.getValue(" + i + "), 1, 0)"
+            + ");"
+            + "}"
+            + "if (trait_transforms[" + i + "] == 'liability'){"
+            + "center = trait_transform_params.getValue(" + i + ")[0];"
+            + "slope = trait_transform_params.getValue(" + i + ")[1];"
+            + "p = 1 / (1 + exp(-(x - center) * slope));"
+            + "inds.setPhenotypeForTrait(" + i + ","
+            + "rbinom(size(x), 1, p));"
+            + "}"
+            + "}"
+        );
+    }
 
     // Set up trait fitness callbacks
 
@@ -770,10 +798,6 @@ late() {
         affected_inds.setOffsetForTrait("add2T", x + env_effects[, 1]);
     }
 
-    sim.demandPhenotype(NULL, "fitnessT");
-    sim.demandPhenotype(NULL, "add1T");
-    sim.demandPhenotype(NULL, "add2T");
-    sim.demandPhenotype(NULL, "multT");
 }
 
 // Adding fitness function fit_demo

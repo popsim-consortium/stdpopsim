@@ -550,6 +550,28 @@ _slim_main = """
     // Set up environment callbacks
 
     // Set up trait transformation callbacks
+    for (i in seqAlong(sim.traits)){
+        community.registerLateEvent(NULL,
+            "{ sim.demandPhenotype(NULL, " + i + ");"
+            + "if (trait_transforms[" + i + "] != 'identity'){ "
+            + "inds = sim.subpopulations.individuals;"
+            + "x = inds.phenotypeForTrait(" + i + ");"
+            + "}"
+            + "if (trait_transforms[" + i + "] == 'threshold'){"
+            + "inds.setPhenotypeForTrait(" + i + ","
+            + "ifelse(x > trait_transform_params.getValue(" + i + "), 1, 0)"
+            + ");"
+            + "}"
+            + "if (trait_transforms[" + i + "] == 'liability'){"
+            + "center = trait_transform_params.getValue(" + i + ")[0];"
+            + "slope = trait_transform_params.getValue(" + i + ")[1];"
+            + "p = 1 / (1 + exp(-(x - center) * slope));"
+            + "inds.setPhenotypeForTrait(" + i + ","
+            + "rbinom(size(x), 1, p));"
+            + "}"
+            + "}"
+        );
+    }
 
     // Set up trait fitness callbacks
 
@@ -1587,6 +1609,11 @@ def slim_makescript(
 
     # Now we deal with the multivariate mutation types. Here we print out the
     # information that we will need later to generate mutation callbacks.
+    # TODO: this set up is (probably) fine for now, but assumes that everything
+    # is multivariate normal. I think this should probably mimic what we do
+    # with transformations below, where we store the transformation type in a
+    # SLiM list and then store the relevant parameters in a SLiM Dictionary()
+    # That would "futureproof" us to implementing new mutation types
     if len(multivar_muts) > 0:
         printsc()
         printsc("    // MutationTypes that affect multiple traits")
@@ -1598,9 +1625,11 @@ def slim_makescript(
         printsc('    defineConstant("multivar_mut_means", Dictionary());')
         printsc('    defineConstant("multivar_mut_covs", Dictionary());')
         printsc('    defineConstant("multivar_mut_traits", Dictionary());')
-        printsc("")
         for mid, mt in multivar_muts.items():
+            printsc()
             assert mt.distribution_type == "mvn"  # TODO: just for now
+            printsc("    // Mean, variance, and affected traits for")
+            printsc(f"    // MutationType m{mid}")
             printsc(
                 "    multivar_mut_means.setValue("
                 + f'{mid}, c('
@@ -1619,6 +1648,7 @@ def slim_makescript(
                 + ", ".join([f'"{tid}T"' for tid in mt.trait_ids])
                 + '));'
             )
+        printsc()
 
     # Mutation rate map.
     mut_breaks = slim_array_string(map(int, slim_rate_map[0]), indent)
@@ -1749,6 +1779,23 @@ def slim_makescript(
         + ");"
     )
     printsc()
+
+    # XXX Environment callbacks
+
+    # Trait transformation callbacks
+    if len(traits_model.traits) > 0:
+        printsc("    // Trait transformations")
+        transforms = ', '.join([f'"{t.transform}"' for t in traits_model.traits])
+        printsc(f'    defineConstant("trait_transforms", c({transforms}));')
+        printsc('    defineConstant("trait_transform_params", Dictionary());')
+        for t_idx, t in enumerate(traits_model.traits):
+            if t.transform != "identity":
+                params = ', '.join(map(str, t.transform_args))
+                printsc(
+                    f"    trait_transform_params.setValue({t_idx}, c({params}));"
+                )
+
+    # XXX Trait fitness effect callbacks
 
     # Fitness callbacks.
     printsc("    // Fitness callbacks, one row for each callback.")
@@ -1920,26 +1967,6 @@ def slim_makescript(
         if env.time_intervals is not None:
             printsc('    }')
         printsc()
-
-    for t in traits_model.traits:
-        # make sure this phenotype is computed
-        printsc(f'    sim.demandPhenotype(NULL, "{t.id}T");')
-        # x only gets used if we are actually performing some kind of
-        # transformation
-        if t.transform != "identity":
-            printsc(f'    x = inds.phenotypeForTrait("{t.id}T");')
-
-        if t.transform == "threshold":
-            thresh = t.transform_args[0]
-            printsc(
-                f'    inds.setPhenotypeForTrait("{t.id}T", ifelse(x > {thresh}, 1, 0));'
-            )
-        elif t.transform == "liability":
-            center, slope = t.transform_args
-            printsc(f"    p = 1 / (1 + exp(-(x - {center}) * {slope}));")
-            printsc(f'    inds.setPhenotypeForTrait("{t.id}T", rbinom(size(x), 1, p));')
-        else:
-            assert t.transform == "identity"
     printsc("}")
 
     # Now apply all of the fitness functions in fitnessEffect() blocks
