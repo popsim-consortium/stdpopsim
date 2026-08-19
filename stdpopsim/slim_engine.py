@@ -248,17 +248,19 @@ function (void)restore(void) {
     sim.setValue("restore_function", F);
 }
 
+// Check if the current tick is contained in the set of intervals
+function (logical)check_if_in_interval(float intervals){
+    if (isNULL(intervals)) {
+        return(T);
+    }
+    return(any(
+        sim.cycle > G0 - intervals[, 1]/Q
+        & sim.cycle <= G0 - intervals[, 0]/Q
+    ));
+}
 """
 
 
-# TODO: I switched population splits from registerLateEvent() to
-# registerEarlyEvent(). This fundamentally changes the model (probably in an
-# inconsequential way though), but it's necessary to get the traits stuff
-# working as it is currently implemented.  The issue is essentially that
-# these registered late events don't get called until after our hard-coded
-# late() blocks. This means that we might ask for phenotypes or fitnesses of
-# populations that won't exist until later in the same SLiM tick.  registering
-# population splits as early events solves this problem.
 _slim_main = """
 1 early() {
     // save/restore bookkeeping
@@ -369,7 +371,7 @@ _slim_main = """
             size = asInteger(round(subpopulation_splits[2,i] / Q));
             oldpop = asInteger(subpopulation_splits[3,i]);
             check_size(newpop, size, g);
-            community.registerEarlyEvent(NULL,
+            community.registerLateEvent(NULL,
                 "{dbg(self.source); " +
                 "p = sim.addSubpopSplit("+newpop+","+size+","+oldpop+"); " +
                 "p.name = '"+pop_names[newpop]+"';}",
@@ -548,27 +550,64 @@ _slim_main = """
     }
 
     // Set up environment callbacks
+    // note that these must be registered _before_ the trait transformations below
+    for (i in seqAlong(env_pops)){
+        population_id = env_pops[i];
+        distribution = env_dist[i];
+        community.registerLateEvent(NULL,
+            "{ if(check_if_in_interval( env_intervals.getValue(" + i + "))){"
+            +     "if (isNULL(" + population_id + ")) {"
+            +         "affected_inds = sim.subpopulations.individuals;"
+            +     "} else {"
+            +         "affected_inds = p" + population_id + ".individuals;"
+            +     "}"
+            +     "if (env_dist[" + i + "] == 'mvn') {"
+            +         "dparams = env_params.getValue(" + i + ");"
+            +         "env_effect_means = dparams.getValue('means');"
+            +         "env_effect_covar = dparams.getValue('covar');"
+            +         "env_effects = rmvnorm("
+            +             "length(affected_inds), "
+            +             "env_effect_means,"
+            +             "env_effect_covar"
+            +         ");"
+            +     "} else if (env_dist[" + i + "] == 'f') {"
+                      // TODO: implement this
+            +         "assert(F);"
+            +     "} else { "
+                      // TODO: implement other distribution types
+            +         "assert(F);"
+            +     "}"
+            +     "traits = env_traits.getValue(" + i + ");"
+            +     "for (j in seqAlong(traits)){"
+            +         "x = affected_inds.offsetForTrait(traits[j]);"
+            +         "affected_inds.setOffsetForTrait(traits[j],"
+            +             "x + env_effects[, j]);"
+            +     "}"
+            + "}"
+            + "}"
+        );
+    }
 
     // Set up trait transformation callbacks
     for (i in seqAlong(sim.traits)){
         community.registerLateEvent(NULL,
             "{ sim.demandPhenotype(NULL, " + i + ");"
-            + "if (trait_transforms[" + i + "] != 'identity'){ "
-            + "inds = sim.subpopulations.individuals;"
-            + "x = inds.phenotypeForTrait(" + i + ");"
-            + "}"
-            + "if (trait_transforms[" + i + "] == 'threshold'){"
-            + "inds.setPhenotypeForTrait(" + i + ","
-            + "ifelse(x > trait_transform_params.getValue(" + i + "), 1, 0)"
-            + ");"
-            + "}"
-            + "if (trait_transforms[" + i + "] == 'liability'){"
-            + "center = trait_transform_params.getValue(" + i + ")[0];"
-            + "slope = trait_transform_params.getValue(" + i + ")[1];"
-            + "p = 1 / (1 + exp(-(x - center) * slope));"
-            + "inds.setPhenotypeForTrait(" + i + ","
-            + "rbinom(size(x), 1, p));"
-            + "}"
+                + "if (trait_transforms[" + i + "] != 'identity'){ "
+                    + "inds = sim.subpopulations.individuals;"
+                    + "x = inds.phenotypeForTrait(" + i + ");"
+                + "}"
+                + "if (trait_transforms[" + i + "] == 'threshold'){"
+                    + "inds.setPhenotypeForTrait(" + i + ","
+                        + "ifelse(x > trait_transform_params.getValue(" + i + "), 1, 0)"
+                    + ");"
+                + "}"
+                + "if (trait_transforms[" + i + "] == 'liability'){"
+                    + "center = trait_transform_params.getValue(" + i + ")[0];"
+                    + "slope = trait_transform_params.getValue(" + i + ")[1];"
+                    + "p = 1 / (1 + exp(-(x - center) * slope));"
+                    + "inds.setPhenotypeForTrait(" + i + ","
+                    + "rbinom(size(x), 1, p));"
+                + "}"
             + "}"
         );
     }
@@ -1460,19 +1499,6 @@ def slim_makescript(
         )
     )
 
-    def print_check_if_in_interval(code_spacing, intervals):
-        printsc(code_spacing + "in_interval = F;")
-        for interval in intervals:
-            if np.isinf(interval[1]):
-                lower_check = ""
-            else:
-                lower_check = f"sim.cycle > G0 - {interval[1]/scaling_factor} & "
-            upper_check = f"sim.cycle <= G0 - {interval[0]/scaling_factor}"
-            printsc(
-                code_spacing + "in_interval = in_interval | "
-                + f"({lower_check}{upper_check});"
-            )
-
     def matrix2str(
         matrix, row_comments=None, col_comment=None, indent=2, fmt="", dim=(None, None)
     ):
@@ -1506,7 +1532,7 @@ def slim_makescript(
             dim = (dim[0], len(matrix))
         s.append(f"), c({dim[0]}, {dim[1]}))")
 
-        return "".join(s)
+        return ("".join(s)).replace("inf", "INF")
 
     # Traits
     for t in traits_model.traits:
@@ -1614,41 +1640,40 @@ def slim_makescript(
     # with transformations below, where we store the transformation type in a
     # SLiM list and then store the relevant parameters in a SLiM Dictionary()
     # That would "futureproof" us to implementing new mutation types
-    if len(multivar_muts) > 0:
+    printsc()
+    printsc("    // MutationTypes that affect multiple traits")
+    printsc(
+        '    defineConstant("multivar_mut_types", c('
+        + ', '.join(map(str, multivar_muts.keys()))
+        + '));'
+    )
+    printsc('    defineConstant("multivar_mut_means", Dictionary());')
+    printsc('    defineConstant("multivar_mut_covs", Dictionary());')
+    printsc('    defineConstant("multivar_mut_traits", Dictionary());')
+    for mid, mt in multivar_muts.items():
         printsc()
-        printsc("    // MutationTypes that affect multiple traits")
+        assert mt.distribution_type == "mvn"  # TODO: just for now
+        printsc("    // Mean, variance, and affected traits for")
+        printsc(f"    // MutationType m{mid}")
         printsc(
-            '    defineConstant("multivar_mut_types", c('
-            + ', '.join(map(str, multivar_muts.keys()))
+            "    multivar_mut_means.setValue("
+            + f'{mid}, c('
+            + ", ".join(map(str, mt.distribution_args[0]))
+            + '));'  # this sad winky face is how I feel
+        )
+        printsc(
+            "    multivar_mut_covs.setValue("
+            + f'{mid}, '
+            + matrix2str(mt.distribution_args[1])
+            + ');'
+        )
+        printsc(
+            "    multivar_mut_traits.setValue("
+            + f'{mid}, c('
+            + ", ".join([f'"{tid}T"' for tid in mt.trait_ids])
             + '));'
         )
-        printsc('    defineConstant("multivar_mut_means", Dictionary());')
-        printsc('    defineConstant("multivar_mut_covs", Dictionary());')
-        printsc('    defineConstant("multivar_mut_traits", Dictionary());')
-        for mid, mt in multivar_muts.items():
-            printsc()
-            assert mt.distribution_type == "mvn"  # TODO: just for now
-            printsc("    // Mean, variance, and affected traits for")
-            printsc(f"    // MutationType m{mid}")
-            printsc(
-                "    multivar_mut_means.setValue("
-                + f'{mid}, c('
-                + ", ".join(map(str, mt.distribution_args[0]))
-                + '));'  # this sad winky face is how I feel
-            )
-            printsc(
-                "    multivar_mut_covs.setValue("
-                + f'{mid}, '
-                + matrix2str(mt.distribution_args[1])
-                + ');'
-            )
-            printsc(
-                "    multivar_mut_traits.setValue("
-                + f'{mid}, c('
-                + ", ".join([f'"{tid}T"' for tid in mt.trait_ids])
-                + '));'
-            )
-        printsc()
+    printsc()
 
     # Mutation rate map.
     mut_breaks = slim_array_string(map(int, slim_rate_map[0]), indent)
@@ -1781,19 +1806,54 @@ def slim_makescript(
     printsc()
 
     # XXX Environment callbacks
+    printsc("    // Environmental effects")
+    env_pops = []
+    env_dist = []
+    for e in traits_model.environments:
+        assert len(e.population_list) == 1
+        env_pops.append(e.population_list[0])
+        env_dist.append(e.distribution_type)
+    env_pops = ", ".join(map(str, env_pops))
+    env_dist = ", ".join([f'"{ed}"' for ed in env_dist])
+    printsc(f'    defineConstant("env_pops", c({env_pops}));')
+    printsc(f'    defineConstant("env_dist", c({env_dist}));')
+    printsc('    defineConstant("env_intervals", Dictionary());')
+    printsc('    defineConstant("env_params", Dictionary());')
+    printsc('    defineConstant("env_traits", Dictionary());')
+    for idx, e in enumerate(traits_model.environments):
+        intervals = np.array(e.time_intervals)
+        printsc(
+            f'    env_intervals.setValue({idx},'
+            + matrix2str(intervals.astype(float), dim=intervals.shape)
+            + ');'
+        )
+        if e.distribution_type == 'mvn':
+            printsc('    x = Dictionary();')
+            means = ', '.join(map(str, e.distribution_args[0]))
+            printsc(f'    x.setValue("means", c({means}));')
+            covar = matrix2str(e.distribution_args[1])
+            printsc(f'    x.setValue("covar", {covar});')
+            printsc(f'    env_params.setValue({idx}, x);')
+        else:
+            # TODO: implement other distribution types
+            assert False
+        these_traits = ', '.join([f'"{tid}T"' for tid in e.trait_ids])
+        printsc(
+            f"    env_traits.setValue({idx}, c({these_traits}));"
+        )
 
     # Trait transformation callbacks
-    if len(traits_model.traits) > 0:
-        printsc("    // Trait transformations")
-        transforms = ', '.join([f'"{t.transform}"' for t in traits_model.traits])
-        printsc(f'    defineConstant("trait_transforms", c({transforms}));')
-        printsc('    defineConstant("trait_transform_params", Dictionary());')
-        for t_idx, t in enumerate(traits_model.traits):
-            if t.transform != "identity":
-                params = ', '.join(map(str, t.transform_args))
-                printsc(
-                    f"    trait_transform_params.setValue({t_idx}, c({params}));"
-                )
+    printsc("    // Trait transformations")
+    transforms = ', '.join([f'"{t.transform}"' for t in traits_model.traits])
+    printsc(f'    defineConstant("trait_transforms", c({transforms}));')
+    printsc('    defineConstant("trait_transform_params", Dictionary());')
+    for t_idx, t in enumerate(traits_model.traits):
+        if t.transform != "identity":
+            params = ', '.join(map(str, t.transform_args))
+            printsc(
+                f"    trait_transform_params.setValue({t_idx}, c({params}));"
+            )
+    printsc()
 
     # XXX Trait fitness effect callbacks
 
@@ -1891,83 +1951,6 @@ def slim_makescript(
     printsc(_slim_lower)
     printsc(_slim_functions)
     printsc(_slim_main)
-
-    # print block describing phenotype transformations
-    printsc("// Late block incorporating environmental effects")
-    printsc("// and phenotype transformations.")
-
-    printsc("late() {")
-    printsc("    inds = sim.subpopulations.individuals;")
-    printsc()
-
-    # loop through environments, adding where needed
-    for env in traits_model.environments:
-        printsc(f"    // Adding environment {env.id}")
-        # check if current time is in interval
-        env_code_spacing = "    "
-        if env.time_intervals is not None:
-            printsc(env_code_spacing + "// Add environmental effects if relevant")
-            print_check_if_in_interval(env_code_spacing, env.time_intervals)
-            printsc(env_code_spacing + "if(in_interval){")
-
-            # makes sure that if we start this conditional block because of a
-            # temporary environmental effect, then all of the subsequent code
-            # will be properly indented.
-            env_code_spacing = "        "
-
-        if env.population_list is None:
-            printsc(env_code_spacing + 'affected_inds = inds;')
-        else:
-            pop_ind_str = []
-            for pop_id in env.population_list:
-                pop_ind_str.append(f'sim.subpopulations[{pop_id}].individuals')
-            pop_ind_str = ", ".join(pop_ind_str)
-            printsc(env_code_spacing + f'affected_inds = c({pop_ind_str});')
-
-        # draw effects
-        if env.distribution_type == "mvn":
-            env_effect_means = map(str, env.distribution_args[0])
-            env_effect_covar = env.distribution_args[1]
-            printsc(env_code_spacing + "env_effects = rmvnorm(")
-            printsc(
-                env_code_spacing
-                + "    length(affected_inds), c("
-                + ", ".join(env_effect_means) + "),"
-            )
-            mat_string = matrix2str(
-                env_effect_covar, indent=len(env_code_spacing)//4 + 2
-            )
-            printsc(
-                env_code_spacing
-                + f"    {mat_string}"
-            )
-            printsc(env_code_spacing + ");")
-        elif env.distribution_type == "f":
-            # TODO: implement this
-            assert False
-        else:
-            # TODO: do we want other distributions? currently in traits.py
-            # it would be allowed for this to be of type "g", "e", "n", "w",
-            # "lp", "ln", "u". Do we want to implement those here?
-            assert False
-
-        for idx, t in enumerate(env.trait_ids):
-            printsc(
-                env_code_spacing
-                + f'x = affected_inds.offsetForTrait("{t}T");'
-            )
-            printsc(
-                env_code_spacing
-                + "affected_inds.setOffsetForTrait("
-                + f'"{t}T", x + env_effects[, {idx}]);'
-            )
-
-        # Close if block opened by checking if this falls in the proper
-        # interval
-        if env.time_intervals is not None:
-            printsc('    }')
-        printsc()
-    printsc("}")
 
     # Now apply all of the fitness functions in fitnessEffect() blocks
     for fit_func in traits_model.fitness_functions:

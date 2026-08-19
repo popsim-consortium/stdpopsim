@@ -1,5 +1,5 @@
 /*
- * stdpopsim 0.3.1.dev82+g62902b805.d20260819
+ * stdpopsim 0.3.1.dev83+g3da5910d3.d20260819
  *
  * Demographic model: OutOfAfrica_3G09
  * Three population out-of-Africa
@@ -145,9 +145,83 @@ initialize() {
     // Drawn mutations, one row for each mutation.
     defineConstant("drawn_mutations", c());
 
+    // Environmental effects
+    defineConstant("env_pops", c(2, 0, 1, 0, 0, 0));
+    defineConstant("env_dist", c("mvn", "mvn", "mvn", "mvn", "mvn", "mvn"));
+    defineConstant("env_intervals", Dictionary());
+    defineConstant("env_params", Dictionary());
+    defineConstant("env_traits", Dictionary());
+    env_intervals.setValue(0,array(c(
+        c(0.0, 848.0)
+    ), c(1, 2)));
+    x = Dictionary();
+    x.setValue("means", c(0.0, 0.0));
+    x.setValue("covar", array(c(
+        c(1.0, 0.0),
+        c(0.0, 1.0)
+    ), c(2, 2)));
+    env_params.setValue(0, x);
+    env_traits.setValue(0, c("add1T", "add2T"));
+    env_intervals.setValue(1,array(c(
+        c(0.0, INF)
+    ), c(1, 2)));
+    x = Dictionary();
+    x.setValue("means", c(0.0, 0.0));
+    x.setValue("covar", array(c(
+        c(1.0, 0.0),
+        c(0.0, 1.0)
+    ), c(2, 2)));
+    env_params.setValue(1, x);
+    env_traits.setValue(1, c("add1T", "add2T"));
+    env_intervals.setValue(2,array(c(
+        c(0.0, 5600.0)
+    ), c(1, 2)));
+    x = Dictionary();
+    x.setValue("means", c(0.0, 0.0));
+    x.setValue("covar", array(c(
+        c(1.0, 0.0),
+        c(0.0, 1.0)
+    ), c(2, 2)));
+    env_params.setValue(2, x);
+    env_traits.setValue(2, c("add1T", "add2T"));
+    env_intervals.setValue(3,array(c(
+        c(0.0, 10.0),
+        c(10.0, 20.0)
+    ), c(2, 2)));
+    x = Dictionary();
+    x.setValue("means", c(0.0, 0.0));
+    x.setValue("covar", array(c(
+        c(1.0, 0.0),
+        c(0.0, 1.0)
+    ), c(2, 2)));
+    env_params.setValue(3, x);
+    env_traits.setValue(3, c("add1T", "add2T"));
+    env_intervals.setValue(4,array(c(
+        c(0.0, INF)
+    ), c(1, 2)));
+    x = Dictionary();
+    x.setValue("means", c(0.0, 0.0));
+    x.setValue("covar", array(c(
+        c(2.0, 0.0),
+        c(0.0, 2.0)
+    ), c(2, 2)));
+    env_params.setValue(4, x);
+    env_traits.setValue(4, c("add1T", "add2T"));
+    env_intervals.setValue(5,array(c(
+        c(10.0, INF)
+    ), c(1, 2)));
+    x = Dictionary();
+    x.setValue("means", c(0.0, 0.0));
+    x.setValue("covar", array(c(
+        c(2.0, 0.0),
+        c(0.0, 2.0)
+    ), c(2, 2)));
+    env_params.setValue(5, x);
+    env_traits.setValue(5, c("add1T", "add2T"));
     // Trait transformations
     defineConstant("trait_transforms", c("identity", "identity", "identity", "identity"));
     defineConstant("trait_transform_params", Dictionary());
+
     // Fitness callbacks, one row for each callback.
     defineConstant("fitness_callbacks", c());
 
@@ -310,6 +384,16 @@ function (void)restore(void) {
     sim.setValue("restore_function", F);
 }
 
+// Check if the current tick is contained in the set of intervals
+function (logical)check_if_in_interval(float intervals){
+    if (isNULL(intervals)) {
+        return(T);
+    }
+    return(any(
+        sim.cycle > G0 - intervals[, 1]/Q
+        & sim.cycle <= G0 - intervals[, 0]/Q
+    ));
+}
 
 
 1 early() {
@@ -421,7 +505,7 @@ function (void)restore(void) {
             size = asInteger(round(subpopulation_splits[2,i] / Q));
             oldpop = asInteger(subpopulation_splits[3,i]);
             check_size(newpop, size, g);
-            community.registerEarlyEvent(NULL,
+            community.registerLateEvent(NULL,
                 "{dbg(self.source); " +
                 "p = sim.addSubpopSplit("+newpop+","+size+","+oldpop+"); " +
                 "p.name = '"+pop_names[newpop]+"';}",
@@ -600,27 +684,64 @@ function (void)restore(void) {
     }
 
     // Set up environment callbacks
+    // note that these must be registered _before_ the trait transformations below
+    for (i in seqAlong(env_pops)){
+        population_id = env_pops[i];
+        distribution = env_dist[i];
+        community.registerLateEvent(NULL,
+            "{ if(check_if_in_interval( env_intervals.getValue(" + i + "))){"
+            +     "if (isNULL(" + population_id + ")) {"
+            +         "affected_inds = sim.subpopulations.individuals;"
+            +     "} else {"
+            +         "affected_inds = p" + population_id + ".individuals;"
+            +     "}"
+            +     "if (env_dist[" + i + "] == 'mvn') {"
+            +         "dparams = env_params.getValue(" + i + ");"
+            +         "env_effect_means = dparams.getValue('means');"
+            +         "env_effect_covar = dparams.getValue('covar');"
+            +         "env_effects = rmvnorm("
+            +             "length(affected_inds), "
+            +             "env_effect_means,"
+            +             "env_effect_covar"
+            +         ");"
+            +     "} else if (env_dist[" + i + "] == 'f') {"
+                      // TODO: implement this
+            +         "assert(F);"
+            +     "} else { "
+                      // TODO: implement other distribution types
+            +         "assert(F);"
+            +     "}"
+            +     "traits = env_traits.getValue(" + i + ");"
+            +     "for (j in seqAlong(traits)){"
+            +         "x = affected_inds.offsetForTrait(traits[j]);"
+            +         "affected_inds.setOffsetForTrait(traits[j],"
+            +             "x + env_effects[, j]);"
+            +     "}"
+            + "}"
+            + "}"
+        );
+    }
 
     // Set up trait transformation callbacks
     for (i in seqAlong(sim.traits)){
         community.registerLateEvent(NULL,
             "{ sim.demandPhenotype(NULL, " + i + ");"
-            + "if (trait_transforms[" + i + "] != 'identity'){ "
-            + "inds = sim.subpopulations.individuals;"
-            + "x = inds.phenotypeForTrait(" + i + ");"
-            + "}"
-            + "if (trait_transforms[" + i + "] == 'threshold'){"
-            + "inds.setPhenotypeForTrait(" + i + ","
-            + "ifelse(x > trait_transform_params.getValue(" + i + "), 1, 0)"
-            + ");"
-            + "}"
-            + "if (trait_transforms[" + i + "] == 'liability'){"
-            + "center = trait_transform_params.getValue(" + i + ")[0];"
-            + "slope = trait_transform_params.getValue(" + i + ")[1];"
-            + "p = 1 / (1 + exp(-(x - center) * slope));"
-            + "inds.setPhenotypeForTrait(" + i + ","
-            + "rbinom(size(x), 1, p));"
-            + "}"
+                + "if (trait_transforms[" + i + "] != 'identity'){ "
+                    + "inds = sim.subpopulations.individuals;"
+                    + "x = inds.phenotypeForTrait(" + i + ");"
+                + "}"
+                + "if (trait_transforms[" + i + "] == 'threshold'){"
+                    + "inds.setPhenotypeForTrait(" + i + ","
+                        + "ifelse(x > trait_transform_params.getValue(" + i + "), 1, 0)"
+                    + ");"
+                + "}"
+                + "if (trait_transforms[" + i + "] == 'liability'){"
+                    + "center = trait_transform_params.getValue(" + i + ")[0];"
+                    + "slope = trait_transform_params.getValue(" + i + ")[1];"
+                    + "p = 1 / (1 + exp(-(x - center) * slope));"
+                    + "inds.setPhenotypeForTrait(" + i + ","
+                    + "rbinom(size(x), 1, p));"
+                + "}"
             + "}"
         );
     }
@@ -678,127 +799,6 @@ function (void)restore(void) {
 }
 
 
-// Late block incorporating environmental effects
-// and phenotype transformations.
-late() {
-    inds = sim.subpopulations.individuals;
-
-    // Adding environment env_demo
-    // Add environmental effects if relevant
-    in_interval = F;
-    in_interval = in_interval | (sim.cycle > G0 - 3.392 & sim.cycle <= G0 - 0.0);
-    if(in_interval){
-        affected_inds = c(sim.subpopulations[2].individuals);
-        env_effects = rmvnorm(
-            length(affected_inds), c(0.0, 0.0),
-            array(c(
-                c(1.0, 0.0),
-                c(0.0, 1.0)
-            ), c(2, 2))
-        );
-        x = affected_inds.offsetForTrait("add1T");
-        affected_inds.setOffsetForTrait("add1T", x + env_effects[, 0]);
-        x = affected_inds.offsetForTrait("add2T");
-        affected_inds.setOffsetForTrait("add2T", x + env_effects[, 1]);
-    }
-
-    // Adding environment env_demo
-    // Add environmental effects if relevant
-    in_interval = F;
-    in_interval = in_interval | (sim.cycle <= G0 - 0.0);
-    if(in_interval){
-        affected_inds = c(sim.subpopulations[0].individuals);
-        env_effects = rmvnorm(
-            length(affected_inds), c(0.0, 0.0),
-            array(c(
-                c(1.0, 0.0),
-                c(0.0, 1.0)
-            ), c(2, 2))
-        );
-        x = affected_inds.offsetForTrait("add1T");
-        affected_inds.setOffsetForTrait("add1T", x + env_effects[, 0]);
-        x = affected_inds.offsetForTrait("add2T");
-        affected_inds.setOffsetForTrait("add2T", x + env_effects[, 1]);
-    }
-
-    // Adding environment env_demo
-    // Add environmental effects if relevant
-    in_interval = F;
-    in_interval = in_interval | (sim.cycle > G0 - 22.4 & sim.cycle <= G0 - 0.0);
-    if(in_interval){
-        affected_inds = c(sim.subpopulations[1].individuals);
-        env_effects = rmvnorm(
-            length(affected_inds), c(0.0, 0.0),
-            array(c(
-                c(1.0, 0.0),
-                c(0.0, 1.0)
-            ), c(2, 2))
-        );
-        x = affected_inds.offsetForTrait("add1T");
-        affected_inds.setOffsetForTrait("add1T", x + env_effects[, 0]);
-        x = affected_inds.offsetForTrait("add2T");
-        affected_inds.setOffsetForTrait("add2T", x + env_effects[, 1]);
-    }
-
-    // Adding environment env1
-    // Add environmental effects if relevant
-    in_interval = F;
-    in_interval = in_interval | (sim.cycle > G0 - 0.04 & sim.cycle <= G0 - 0.0);
-    in_interval = in_interval | (sim.cycle > G0 - 0.08 & sim.cycle <= G0 - 0.04);
-    if(in_interval){
-        affected_inds = c(sim.subpopulations[0].individuals);
-        env_effects = rmvnorm(
-            length(affected_inds), c(0.0, 0.0),
-            array(c(
-                c(1.0, 0.0),
-                c(0.0, 1.0)
-            ), c(2, 2))
-        );
-        x = affected_inds.offsetForTrait("add1T");
-        affected_inds.setOffsetForTrait("add1T", x + env_effects[, 0]);
-        x = affected_inds.offsetForTrait("add2T");
-        affected_inds.setOffsetForTrait("add2T", x + env_effects[, 1]);
-    }
-
-    // Adding environment env2
-    // Add environmental effects if relevant
-    in_interval = F;
-    in_interval = in_interval | (sim.cycle <= G0 - 0.0);
-    if(in_interval){
-        affected_inds = c(sim.subpopulations[0].individuals);
-        env_effects = rmvnorm(
-            length(affected_inds), c(0.0, 0.0),
-            array(c(
-                c(2.0, 0.0),
-                c(0.0, 2.0)
-            ), c(2, 2))
-        );
-        x = affected_inds.offsetForTrait("add1T");
-        affected_inds.setOffsetForTrait("add1T", x + env_effects[, 0]);
-        x = affected_inds.offsetForTrait("add2T");
-        affected_inds.setOffsetForTrait("add2T", x + env_effects[, 1]);
-    }
-
-    // Adding environment env3
-    // Add environmental effects if relevant
-    in_interval = F;
-    in_interval = in_interval | (sim.cycle <= G0 - 0.04);
-    if(in_interval){
-        affected_inds = c(sim.subpopulations[0].individuals);
-        env_effects = rmvnorm(
-            length(affected_inds), c(0.0, 0.0),
-            array(c(
-                c(2.0, 0.0),
-                c(0.0, 2.0)
-            ), c(2, 2))
-        );
-        x = affected_inds.offsetForTrait("add1T");
-        affected_inds.setOffsetForTrait("add1T", x + env_effects[, 0]);
-        x = affected_inds.offsetForTrait("add2T");
-        affected_inds.setOffsetForTrait("add2T", x + env_effects[, 1]);
-    }
-
-}
 
 // Adding fitness function fit_demo
 (G0-22):(G0-0) fitnessEffect(p1){
