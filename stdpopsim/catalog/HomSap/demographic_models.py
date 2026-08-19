@@ -1957,3 +1957,325 @@ def _ancient_europe():
 
 
 _species.add_demographic_model(_ancient_europe())
+
+
+def _latin_american_admixture():
+    id = "LatinAmericanAdmixture_8M23"
+    description = "Demographic model of admixed Latin American populations"
+    long_description = """
+        Demographic model of four admixed Latin American populations
+        (MXL, CLM, PEL, and PUR) and their African (YRI), European (IBS),
+        East Asian (CHB), and Indigenous American (MXB) source
+        populations, from Medina-Munoz et al. (2023). The out-of-Africa
+        backbone (ancestral/AMH/OOA/YRI/IBS/CHB) and the Indigenous
+        American branch (MXB), including continuous symmetric migration
+        between the source populations, were inferred from the joint
+        site frequency spectrum using moments, in two steps: a
+        three-population Africa/Europe/East Asia out-of-Africa model
+        followed by the Indigenous American branch splitting from the
+        ancestors of East Asians. Each admixed population is founded by
+        an instantaneous admixture event between its immediate source
+        populations, whose timing and proportions were inferred from
+        the distribution of ancestry tract lengths using tracts,
+        followed by continuous gene flow with those sources until 58
+        years ago, and (except PUR) a discrete post-colonial admixture
+        pulse with European and/or East Asian ancestry, timed and sized
+        from local-ancestry-inference estimates. The moments and tracts
+        fits were combined into a single model using demes. Parameters
+        correspond to the model fit to intronic regions of the genome.
+        The mutation rate used here is the stdpopsim HomSap default
+        (1.25e-8). The original study did not assume a single
+        literature mutation rate; instead, the authors themselves
+        estimated region-specific scaled mutation rates directly from
+        triplet-context counts in the retained genomic regions,
+        weighted by the gnomAD mutation model.
+    """
+
+    populations = [
+        stdpopsim.Population(
+            id="YRI",
+            description=(
+                "Yoruba in Ibadan, Nigeria. Representative of African ancestries."
+            ),
+        ),
+        stdpopsim.Population(
+            id="IBS",
+            description=(
+                "Iberian populations in Spain. Representative of "
+                "European ancestries."
+            ),
+        ),
+        stdpopsim.Population(
+            id="CHB",
+            description=(
+                "Han Chinese in Beijing, China. Representative of East "
+                "Asian ancestries."
+            ),
+        ),
+        stdpopsim.Population(
+            id="MXB",
+            description=(
+                "Indigenous American in Mexico. Proxy for Indigenous "
+                "American ancestry."
+            ),
+        ),
+        stdpopsim.Population(
+            id="MXL",
+            description=(
+                "Mexicans in Los Angeles. Representative of the Mexican population."
+            ),
+        ),
+        stdpopsim.Population(
+            id="CLM",
+            description=(
+                "Colombians in Medellin. Representative of the Colombian population."
+            ),
+        ),
+        stdpopsim.Population(
+            id="PEL",
+            description="Peruvians in Lima. Representative of the Peruvian population.",
+        ),
+        stdpopsim.Population(
+            id="PUR",
+            description="Puerto Ricans in Puerto Rico.",
+        ),
+    ]
+
+    citations = [
+        stdpopsim.Citation(
+            author="Medina-Munoz et al.",
+            year=2023,
+            doi="https://doi.org/10.1016/j.ajhg.2023.08.015",
+            reasons={stdpopsim.CiteReason.DEM_MODEL},
+        ),
+        stdpopsim.Citation(
+            author="Fenner",
+            year=2005,
+            doi="https://doi.org/10.1002/ajpa.20188",
+            reasons={stdpopsim.CiteReason.GEN_TIME},
+        ),
+        stdpopsim.Citation(
+            author="Karczewski et al.",
+            year=2020,
+            doi="https://doi.org/10.1038/s41586-020-2308-7",
+            reasons={stdpopsim.CiteReason.MUT_RATE},
+        ),
+    ]
+
+    generation_time = 29
+    mutation_rate = 1.25e-8
+
+    # All times below are given in years in the original moments-LD /
+    # demes export and are converted to generations here.
+    T_ancestral = 483457.24308765423 / generation_time
+    T_AMH = 88347.64825867464 / generation_time
+    T_OOA = 51166.128542006336 / generation_time
+    T_MXB = 32555.12765744615 / generation_time
+    T_MXL = 466 / generation_time
+    T_CLM = 390 / generation_time
+    T_PEL = 412 / generation_time
+    T_PUR = 407 / generation_time
+    # end of the continuous post-founding migration into each admixed
+    # population (2 years before present, ~58 years ago)
+    T_recent_migration_end = 58 / generation_time
+    T_mxl_pulse = 380 / generation_time
+    T_clm_pulse = 275 / generation_time
+    T_pel_pulse_yri = 225 / generation_time
+    T_pel_pulse_chb = 141 / generation_time
+
+    N_ancestral = 13580.373657849503
+    N_AMH = 27142.07281765073
+    N_OOA = 1834.8116479610317
+    N_YRI = 27142.07281765073  # constant size, equal to N_AMH
+    N_IBS_present, N_IBS_split = 26462.05884107293, 2761.3347067250797
+    N_CHB_present, N_CHB_split = 15363.53634144032, 1954.52946761033
+    N_MXB_present, N_MXB_split = 38461.62164227266, 1312.8044812722449
+    N_admixed = 20000  # MXL, CLM, PEL, PUR at founding
+
+    # exponential growth rates, computed so that each population has
+    # size N_*_split at its (more ancient) branch/split time and size
+    # N_*_present at time 0
+    r_IBS = math.log(N_IBS_present / N_IBS_split) / T_OOA
+    r_CHB = math.log(N_CHB_present / N_CHB_split) / T_OOA
+    r_MXB = math.log(N_MXB_present / N_MXB_split) / T_MXB
+
+    de = msprime.Demography()
+    # sampling populations must come first: all populations with
+    # allow_samples=True are required to be listed before any
+    # population with allow_samples=False (see the ancestral/AMH/OOA
+    # ghost populations added at the end, below).
+    de.add_population(
+        name="YRI", description=populations[0].description, initial_size=N_YRI
+    )
+    de.add_population(
+        name="IBS",
+        description=populations[1].description,
+        initial_size=N_IBS_present,
+        growth_rate=r_IBS,
+    )
+    de.add_population(
+        name="CHB",
+        description=populations[2].description,
+        initial_size=N_CHB_present,
+        growth_rate=r_CHB,
+        # CHB is also the "ancestral" side of the CHB -> MXB branch
+        # event below, which otherwise causes msprime to infer that
+        # CHB itself is not active at time 0 (it would only become
+        # active once the MXB branch event runs, deep in the past).
+        initially_active=True,
+        default_sampling_time=0,
+    )
+    de.add_population(
+        name="MXB",
+        description=populations[3].description,
+        initial_size=N_MXB_present,
+        growth_rate=r_MXB,
+    )
+    de.add_population(
+        name="MXL", description=populations[4].description, initial_size=N_admixed
+    )
+    de.add_population(
+        name="CLM", description=populations[5].description, initial_size=N_admixed
+    )
+    de.add_population(
+        name="PEL", description=populations[6].description, initial_size=N_admixed
+    )
+    de.add_population(
+        name="PUR", description=populations[7].description, initial_size=N_admixed
+    )
+    # ghost/ancestral populations, not sampled; must be added last (see
+    # note above), and are marked allow_samples=False further below.
+    de.add_population(
+        name="ancestral",
+        description="Equilibrium/root population",
+        initial_size=N_ancestral,
+    )
+    de.add_population(
+        name="AMH", description="Anatomically modern humans", initial_size=N_AMH
+    )
+    de.add_population(
+        name="OOA",
+        description="Bottleneck out-of-Africa population",
+        initial_size=N_OOA,
+    )
+
+    # continuous symmetric background migration between source
+    # populations, for as long as both populations coexist
+    de.set_symmetric_migration_rate(["YRI", "IBS"], 2.501606466512543e-05)
+    de.set_symmetric_migration_rate(["YRI", "CHB"], 3.2948319408915263e-06)
+    de.set_symmetric_migration_rate(["IBS", "CHB"], 6.62400743683469e-05)
+    # OOA does not exist at time 0, so this rate must be switched on
+    # exactly when OOA is created by the OOA/IBS/CHB population split
+    # below (at T_OOA), rather than being part of the initial (time 0)
+    # migration matrix.
+    de.add_symmetric_migration_rate_change(
+        time=T_OOA, populations=["YRI", "OOA"], rate=0.00015859499514691533
+    )
+
+    # continuous post-founding migration into each admixed population,
+    # active between T_recent_migration_end and each population's
+    # founding time. demes specifies these edges as forward-time
+    # "source -> dest"; msprime's set/add_migration_rate uses the
+    # opposite, backwards-time convention, so source and dest are
+    # swapped below (a lineage currently in "dest" moves to "source").
+    de.add_migration_rate_change(
+        time=T_recent_migration_end, source="MXL", dest="MXB", rate=0.0503
+    )
+    de.add_migration_rate_change(
+        time=T_recent_migration_end, source="MXL", dest="IBS", rate=0.0576
+    )
+    de.add_migration_rate_change(
+        time=T_recent_migration_end, source="CLM", dest="IBS", rate=0.0618
+    )
+    de.add_migration_rate_change(
+        time=T_recent_migration_end, source="CLM", dest="MXB", rate=0.0084
+    )
+    de.add_migration_rate_change(
+        time=T_recent_migration_end, source="PEL", dest="MXB", rate=0.1246
+    )
+    de.add_migration_rate_change(
+        time=T_recent_migration_end, source="PEL", dest="IBS", rate=0.0103
+    )
+    de.add_migration_rate_change(
+        time=T_recent_migration_end, source="PUR", dest="YRI", rate=0.0105
+    )
+    # add_admixture (below) documents that migration to/from the
+    # derived population is zeroed out at the time of the admixture
+    # event, but this does not reliably apply to rates that were
+    # switched on afterwards via add_migration_rate_change above, so
+    # each edge is explicitly zeroed at its population's founding time.
+    de.add_migration_rate_change(time=T_MXL, source="MXL", dest="MXB", rate=0)
+    de.add_migration_rate_change(time=T_MXL, source="MXL", dest="IBS", rate=0)
+    de.add_migration_rate_change(time=T_CLM, source="CLM", dest="IBS", rate=0)
+    de.add_migration_rate_change(time=T_CLM, source="CLM", dest="MXB", rate=0)
+    de.add_migration_rate_change(time=T_PEL, source="PEL", dest="MXB", rate=0)
+    de.add_migration_rate_change(time=T_PEL, source="PEL", dest="IBS", rate=0)
+    de.add_migration_rate_change(time=T_PUR, source="PUR", dest="YRI", rate=0)
+
+    # founding admixture events
+    de.add_admixture(
+        time=T_MXL,
+        derived="MXL",
+        ancestral=["MXB", "IBS"],
+        proportions=[0.7545, 0.2455],
+    )
+    de.add_admixture(
+        time=T_CLM,
+        derived="CLM",
+        ancestral=["IBS", "MXB"],
+        proportions=[0.4387, 0.5613],
+    )
+    de.add_admixture(
+        time=T_PEL,
+        derived="PEL",
+        ancestral=["IBS", "MXB"],
+        proportions=[0.909, 0.091],
+    )
+    de.add_admixture(
+        time=T_PUR,
+        derived="PUR",
+        ancestral=["IBS", "MXB", "YRI"],
+        proportions=[0.8484, 0.141, 0.0106],
+    )
+
+    # discrete post-colonial admixture pulses, sequential proportions
+    # adjusted so that each source contributes its stated fraction of
+    # the *original* (pre-pulse) population
+    de.add_mass_migration(time=T_mxl_pulse, source="MXL", dest="YRI", proportion=0.1175)
+    de.add_mass_migration(
+        time=T_mxl_pulse, source="MXL", dest="CHB", proportion=0.0067 / (1 - 0.1175)
+    )
+    de.add_mass_migration(time=T_clm_pulse, source="CLM", dest="YRI", proportion=0.1194)
+    de.add_mass_migration(
+        time=T_pel_pulse_chb, source="PEL", dest="CHB", proportion=0.0105
+    )
+    de.add_mass_migration(
+        time=T_pel_pulse_yri, source="PEL", dest="YRI", proportion=0.0542
+    )
+
+    # out-of-Africa backbone splits, and the MXB branch off CHB
+    de.add_population_split(time=T_MXB, derived=["MXB"], ancestral="CHB")
+    de.add_population_split(time=T_OOA, derived=["IBS", "CHB"], ancestral="OOA")
+    de.add_population_split(time=T_AMH, derived=["YRI", "OOA"], ancestral="AMH")
+    de.add_population_split(time=T_ancestral, derived=["AMH"], ancestral="ancestral")
+
+    de.sort_events()
+
+    # ancestral/AMH/OOA are ghost populations only used to carry
+    # lineages between the sampled populations; they are not intended
+    # to be sampled from directly.
+    dm = stdpopsim.DemographicModel(
+        id=id,
+        description=description,
+        long_description=long_description,
+        model=de,
+        citations=citations,
+        generation_time=generation_time,
+        mutation_rate=mutation_rate,
+    )
+    for name in ["ancestral", "AMH", "OOA"]:
+        dm.model[name].allow_samples = False
+    return dm
+
+
+_species.add_demographic_model(_latin_american_admixture())
