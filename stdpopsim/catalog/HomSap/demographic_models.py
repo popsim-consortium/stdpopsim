@@ -2054,6 +2054,12 @@ def _latin_american_admixture():
             doi="https://doi.org/10.1002/ajpa.20188",
             reasons={stdpopsim.CiteReason.GEN_TIME},
         ),
+        stdpopsim.Citation(
+            author="Karczewski et al.",
+            year=2020,
+            doi="https://doi.org/10.1038/s41586-020-2308-7",
+            reasons={stdpopsim.CiteReason.MUT_RATE},
+        ),
     ]
 
     generation_time = 29
