@@ -1983,13 +1983,19 @@ def _latin_american_admixture():
         from local-ancestry-inference estimates. The moments and tracts
         fits were combined into a single model using demes. Parameters
         correspond to the model fit to intronic regions of the genome.
+        The mutation rate used here is the stdpopsim HomSap default
+        (1.25e-8). The original study did not assume a single
+        literature mutation rate; instead, the authors themselves
+        estimated region-specific scaled mutation rates directly from
+        triplet-context counts in the retained genomic regions,
+        weighted by the gnomAD mutation model.
     """
 
     populations = [
         stdpopsim.Population(
             id="YRI",
             description=(
-                "Yoruba in Ibadan, Nigeria. Representative of African " "ancestries."
+                "Yoruba in Ibadan, Nigeria. Representative of African ancestries."
             ),
         ),
         stdpopsim.Population(
@@ -2016,20 +2022,18 @@ def _latin_american_admixture():
         stdpopsim.Population(
             id="MXL",
             description=(
-                "Mexicans in Los Angeles. Representative of the " "Mexican population."
+                "Mexicans in Los Angeles. Representative of the Mexican population."
             ),
         ),
         stdpopsim.Population(
             id="CLM",
             description=(
-                "Colombians in Medellin. Representative of the " "Colombian population."
+                "Colombians in Medellin. Representative of the Colombian population."
             ),
         ),
         stdpopsim.Population(
             id="PEL",
-            description=(
-                "Peruvians in Lima. Representative of the Peruvian " "population."
-            ),
+            description="Peruvians in Lima. Representative of the Peruvian population.",
         ),
         stdpopsim.Population(
             id="PUR",
@@ -2043,7 +2047,13 @@ def _latin_american_admixture():
             year=2023,
             doi="https://doi.org/10.1016/j.ajhg.2023.08.015",
             reasons={stdpopsim.CiteReason.DEM_MODEL},
-        )
+        ),
+        stdpopsim.Citation(
+            author="Fenner",
+            year=2005,
+            doi="https://doi.org/10.1002/ajpa.20188",
+            reasons={stdpopsim.CiteReason.GEN_TIME},
+        ),
     ]
 
     generation_time = 29
