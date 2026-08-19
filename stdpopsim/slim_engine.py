@@ -553,7 +553,6 @@ _slim_main = """
     // note that these must be registered _before_ the trait transformations below
     for (i in seqAlong(env_pops)){
         population_id = env_pops[i];
-        distribution = env_dist[i];
         community.registerLateEvent(NULL,
             "{ if(check_if_in_interval( env_intervals.getValue(" + i + "))){"
             +     "if (isNULL(" + population_id + ")) {"
@@ -613,6 +612,37 @@ _slim_main = """
     }
 
     // Set up trait fitness callbacks
+    for (i in seqAlong(fit_func_pops)){
+        population_id = fit_func_pops[i];
+        sim.registerFitnessEffectCallback(NULL,
+        "{"
+        + "if (! check_if_in_interval(fit_func_intervals.getValue(" + i + "))){"
+        +     "return 1.0;"
+        + "}"
+        + "if (individual.subpopulation.id != " + population_id + ") {"
+        +     "return 1.0;"
+        + "}"
+        + "traits = fit_func_traits.getValue(" + i + ");"
+        + "trait_vals = individual.phenotypeForTrait(traits);"
+        + "if (fit_func_types[" + i + "] == 'gaussian') {"
+        +     "params = fit_func_params.getValue(" + i + ");"
+        +     "means = params.getValue('means');"
+        +     "covar = params.getValue('covar');"
+        +     "if (length(traits) == 1) {"
+        +         "fitness = dnorm(trait_vals, means, sqrt(covar/Q));"
+        +         "fitness = fitness / dnorm(means, means, sqrt(covar/Q));"
+        +     "} else {"
+        +         "fitness = dmvnorm(trait_vals, means, covar/Q);"
+        +         "fitness = fitness / dmvnorm(means, means, covar/Q);"
+        +     "}"
+        + "} else {"
+              // TODO: implement other fitness functions
+        +     "assert(F);"
+        + "}"
+        + "return fitness;"
+        + "}"
+        );
+    }
 
     // Set up mutation callbacks.
     // For each stdpopsim mutation type with an h-s relationship
@@ -1805,7 +1835,7 @@ def slim_makescript(
     )
     printsc()
 
-    # XXX Environment callbacks
+    # Environment callbacks
     printsc("    // Environmental effects")
     env_pops = []
     env_dist = []
@@ -1855,7 +1885,42 @@ def slim_makescript(
             )
     printsc()
 
-    # XXX Trait fitness effect callbacks
+    # Trait fitness effect callbacks
+    printsc("    // Trait fitness callbacks")
+    fit_func_pops = []
+    fit_func_types = []
+    for ff in traits_model.fitness_functions:
+        assert len(ff.population_list) == 1
+        fit_func_pops.append(ff.population_list[0])
+        fit_func_types.append(ff.function_type)
+    fit_func_pops = ", ".join(map(str, fit_func_pops))
+    fit_func_types = ", ".join([f'"{ft}"' for ft in fit_func_types])
+    printsc(f'    defineConstant("fit_func_pops", c({fit_func_pops}));')
+    printsc(f'    defineConstant("fit_func_types", c({fit_func_types}));')
+    printsc('    defineConstant("fit_func_intervals", Dictionary());')
+    printsc('    defineConstant("fit_func_params", Dictionary());')
+    printsc('    defineConstant("fit_func_traits", Dictionary());')
+    for idx, ff in enumerate(traits_model.fitness_functions):
+        intervals = np.array(ff.time_intervals)
+        printsc(
+            f'    fit_func_intervals.setValue({idx},'
+            + matrix2str(intervals.astype(float), dim=intervals.shape)
+            + ');'
+        )
+        if ff.function_type == 'gaussian':
+            printsc('    x = Dictionary();')
+            means = ', '.join(map(str, ff.function_args[0]))
+            printsc(f'    x.setValue("means", c({means}));')
+            covar = matrix2str(ff.function_args[1])
+            printsc(f'    x.setValue("covar", {covar});')
+            printsc(f'    fit_func_params.setValue({idx}, x);')
+        else:
+            # TODO: implement other function types
+            assert False
+        these_traits = ', '.join([f'"{tid}T"' for tid in ff.trait_ids])
+        printsc(
+            f"    fit_func_traits.setValue({idx}, c({these_traits}));"
+        )
 
     # Fitness callbacks.
     printsc("    // Fitness callbacks, one row for each callback.")
@@ -1951,158 +2016,6 @@ def slim_makescript(
     printsc(_slim_lower)
     printsc(_slim_functions)
     printsc(_slim_main)
-
-    # Now apply all of the fitness functions in fitnessEffect() blocks
-    for fit_func in traits_model.fitness_functions:
-        printsc()
-        printsc(f"// Adding fitness function {fit_func.id}")
-
-        pop_list = fit_func.population_list
-        if pop_list is not None:
-            pop_list = ["p" + pop_name for pop_name in map(str, pop_list)]
-        else:
-            pop_list = [""]
-
-        interval_list = fit_func.time_intervals
-        if interval_list is None:
-            interval_list = [None]
-
-        for population in pop_list:
-            for interval in interval_list:
-                if interval is None:
-                    interval_str = ""
-                else:
-                    # this ensures that if the upper end of the interval is
-                    # infinity, then we apply this from the beginning of the
-                    # simulation on (including burn-in).
-                    if np.isinf(interval[1]):
-                        start = "1"
-                    else:
-                        start = int(interval[1]/scaling_factor)
-                        # these are half-open intervals by specification, so if
-                        # it just happens to end (going backward in time)
-                        # at a particular generation, we
-                        # don't want to apply this fitness function. With intervals
-                        # of the form [a, b), [b, c), this prevents two fitness
-                        # functions from being applied simultaneously
-                        if start == interval[1]/scaling_factor:
-                            start -= 1
-
-                        # It's possible that an interval falls entirely between
-                        # one generation and the next (e.g., with scaling) and
-                        # that can cause the start to come after the end.
-                        # In that case we drop a warning, but just don't apply
-                        # this interval
-                        if start < int(np.ceil(interval[0]/scaling_factor)):
-                            warnings.warn(
-                                # TODO: is this the right warning category?
-                                stdpopsim.SLiMScalingFactorWarning(
-                                    "An interval in a fitness function is "
-                                    "falling entirely between two generations "
-                                    "(possible after scaling). This means "
-                                    "that this fitness function will never "
-                                    "be applied."
-                                )
-                            )
-
-                            continue
-
-                        start = f"(G0-{start})"
-                    end = f"(G0-{int(np.ceil(interval[0]/scaling_factor))})"
-
-                    interval_str = f"{start}:{end} "
-                printsc(f"{interval_str}fitnessEffect({population})" + "{")
-                fit_code_spacing = "    "
-
-                # determine fitness effects
-                if fit_func.function_type == "gaussian":
-                    if len(fit_func.trait_ids) == 1:
-                        printsc(
-                            fit_code_spacing
-                            + "trait_val = "
-                            + "individual.phenotypeForTrait("
-                            + f'trait="{fit_func.trait_ids[0]}T");'
-                        )
-                        printsc(
-                            fit_code_spacing
-                            + "fitness = dnorm(trait_val, "
-                            + f"{fit_func.function_args[0][0]},"
-                            + f"{np.sqrt(fit_func.function_args[1][0, 0])}"
-                            + "/ sqrt(Q));"  # scales strength of selection
-                        )
-                        printsc(
-                            fit_code_spacing
-                            + "// normalize by maximum fitness"
-                        )
-                        printsc(
-                            fit_code_spacing
-                            + "fitness = fitness / dnorm("
-                            + f"{fit_func.function_args[0][0]},"
-                            + f"{fit_func.function_args[0][0]},"
-                            + f"{np.sqrt(fit_func.function_args[1][0, 0])}"
-                            + "/ sqrt(Q));"  # scales strength of selection
-                        )
-                        printsc(
-                            fit_code_spacing
-                            + "return fitness;"
-                        )
-                    if len(fit_func.trait_ids) > 1:
-                        comma_traits = ", ".join(
-                            ['"' + s + "T" + '"' for s in fit_func.trait_ids]
-                        )
-                        trait_str = "c(" + comma_traits + ")"
-                        fit_effect_means = map(str, fit_func.function_args[0])
-                        fit_effect_covar = fit_func.function_args[1]
-                        mean_string = "c(" + ", ".join(fit_effect_means) + ")"
-                        mat_string = matrix2str(
-                            fit_effect_covar, indent=len(fit_code_spacing)//4+2
-                        )
-                        printsc(
-                            fit_code_spacing
-                            + "trait_vals = "
-                            + f"individual.phenotypeForTrait(trait={trait_str});"
-                        )
-                        printsc(fit_code_spacing + "fitness = dmvnorm(")
-                        printsc(fit_code_spacing + "    trait_vals,")
-                        printsc(
-                            fit_code_spacing + "    " + mean_string + ","
-                        )
-                        printsc(
-                            fit_code_spacing
-                            + f"    {mat_string} / Q"  # incorporates scaling
-                        )
-                        printsc(fit_code_spacing + ");")
-                        printsc(
-                            fit_code_spacing
-                            + "// normalize by maximum fitness"
-                        )
-                        printsc(fit_code_spacing + "fitness = fitness / dmvnorm(")
-                        # evaluate the gaussian at the mean
-                        printsc(fit_code_spacing + "    " + mean_string + ",")
-                        # specify the mean
-                        printsc(fit_code_spacing + "    " + mean_string + ",")
-                        # specify the covariance matrix
-                        printsc(
-                            fit_code_spacing
-                            + f"    {mat_string} / Q"  # incorporates scaling
-                        )
-                        printsc(fit_code_spacing + ");")
-                        printsc(
-                            fit_code_spacing
-                            + "return fitness;"
-                        )
-                elif fit_func.function_type == "threshold":
-                    # TODO: implement this...
-                    # the tricky bit will be, I think, getting the value corresponding
-                    # to the quantile out
-                    raise NotImplementedError(
-                        "threshold fitness function is not implemented."
-                    )
-                else:
-                    raise ValueError(f"Unknown function type {fit_func.function_type}.")
-
-                # close the fitnessEffect() block
-                printsc("}")
 
     if logfile is not None:
         printsc(

@@ -1,5 +1,5 @@
 /*
- * stdpopsim 0.3.1.dev83+g3da5910d3.d20260819
+ * stdpopsim 0.3.1.dev84+gf10b81d0f.d20260819
  *
  * Demographic model: OutOfAfrica_3G09
  * Three population out-of-Africa
@@ -222,6 +222,64 @@ initialize() {
     defineConstant("trait_transforms", c("identity", "identity", "identity", "identity"));
     defineConstant("trait_transform_params", Dictionary());
 
+    // Trait fitness callbacks
+    defineConstant("fit_func_pops", c(1, 0, 0, 0, 0));
+    defineConstant("fit_func_types", c("gaussian", "gaussian", "gaussian", "gaussian", "gaussian"));
+    defineConstant("fit_func_intervals", Dictionary());
+    defineConstant("fit_func_params", Dictionary());
+    defineConstant("fit_func_traits", Dictionary());
+    fit_func_intervals.setValue(0,array(c(
+        c(0.0, 5600.0)
+    ), c(1, 2)));
+    x = Dictionary();
+    x.setValue("means", c(0.0));
+    x.setValue("covar", array(c(
+        c(1.0)
+    ), c(1, 1)));
+    fit_func_params.setValue(0, x);
+    fit_func_traits.setValue(0, c("add1T"));
+    fit_func_intervals.setValue(1,array(c(
+        c(0.0, INF)
+    ), c(1, 2)));
+    x = Dictionary();
+    x.setValue("means", c(0.0));
+    x.setValue("covar", array(c(
+        c(1.0)
+    ), c(1, 1)));
+    fit_func_params.setValue(1, x);
+    fit_func_traits.setValue(1, c("add1T"));
+    fit_func_intervals.setValue(2,array(c(
+        c(0.0, 10.0),
+        c(10.0, 15.0)
+    ), c(2, 2)));
+    x = Dictionary();
+    x.setValue("means", c(0.0, 0.0));
+    x.setValue("covar", array(c(
+        c(1.0, 0.0),
+        c(0.0, 1.0)
+    ), c(2, 2)));
+    fit_func_params.setValue(2, x);
+    fit_func_traits.setValue(2, c("add1T", "add2T"));
+    fit_func_intervals.setValue(3,array(c(
+        c(0.0, INF)
+    ), c(1, 2)));
+    x = Dictionary();
+    x.setValue("means", c(0.3));
+    x.setValue("covar", array(c(
+        c(2.0)
+    ), c(1, 1)));
+    fit_func_params.setValue(3, x);
+    fit_func_traits.setValue(3, c("add1T"));
+    fit_func_intervals.setValue(4,array(c(
+        c(10.0, INF)
+    ), c(1, 2)));
+    x = Dictionary();
+    x.setValue("means", c(0.3));
+    x.setValue("covar", array(c(
+        c(2.0)
+    ), c(1, 1)));
+    fit_func_params.setValue(4, x);
+    fit_func_traits.setValue(4, c("add1T"));
     // Fitness callbacks, one row for each callback.
     defineConstant("fitness_callbacks", c());
 
@@ -687,7 +745,6 @@ function (logical)check_if_in_interval(float intervals){
     // note that these must be registered _before_ the trait transformations below
     for (i in seqAlong(env_pops)){
         population_id = env_pops[i];
-        distribution = env_dist[i];
         community.registerLateEvent(NULL,
             "{ if(check_if_in_interval( env_intervals.getValue(" + i + "))){"
             +     "if (isNULL(" + population_id + ")) {"
@@ -747,6 +804,37 @@ function (logical)check_if_in_interval(float intervals){
     }
 
     // Set up trait fitness callbacks
+    for (i in seqAlong(fit_func_pops)){
+        population_id = fit_func_pops[i];
+        sim.registerFitnessEffectCallback(NULL,
+        "{"
+        + "if (! check_if_in_interval(fit_func_intervals.getValue(" + i + "))){"
+        +     "return 1.0;"
+        + "}"
+        + "if (individual.subpopulation.id != " + population_id + ") {"
+        +     "return 1.0;"
+        + "}"
+        + "traits = fit_func_traits.getValue(" + i + ");"
+        + "trait_vals = individual.phenotypeForTrait(traits);"
+        + "if (fit_func_types[" + i + "] == 'gaussian') {"
+        +     "params = fit_func_params.getValue(" + i + ");"
+        +     "means = params.getValue('means');"
+        +     "covar = params.getValue('covar');"
+        +     "if (length(traits) == 1) {"
+        +         "fitness = dnorm(trait_vals, means, sqrt(covar/Q));"
+        +         "fitness = fitness / dnorm(means, means, sqrt(covar/Q));"
+        +     "} else {"
+        +         "fitness = dmvnorm(trait_vals, means, covar/Q);"
+        +         "fitness = fitness / dmvnorm(means, means, covar/Q);"
+        +     "}"
+        + "} else {"
+              // TODO: implement other fitness functions
+        +     "assert(F);"
+        + "}"
+        + "return fitness;"
+        + "}"
+        );
+    }
 
     // Set up mutation callbacks.
     // For each stdpopsim mutation type with an h-s relationship
@@ -799,65 +887,6 @@ function (logical)check_if_in_interval(float intervals){
 }
 
 
-
-// Adding fitness function fit_demo
-(G0-22):(G0-0) fitnessEffect(p1){
-    trait_val = individual.phenotypeForTrait(trait="add1T");
-    fitness = dnorm(trait_val, 0.0,1.0/ sqrt(Q));
-    // normalize by maximum fitness
-    fitness = fitness / dnorm(0.0,0.0,1.0/ sqrt(Q));
-    return fitness;
-}
-
-// Adding fitness function fit_demo
-1:(G0-0) fitnessEffect(p0){
-    trait_val = individual.phenotypeForTrait(trait="add1T");
-    fitness = dnorm(trait_val, 0.0,1.0/ sqrt(Q));
-    // normalize by maximum fitness
-    fitness = fitness / dnorm(0.0,0.0,1.0/ sqrt(Q));
-    return fitness;
-}
-
-// Adding fitness function fit1
-(G0-0):(G0-0) fitnessEffect(p0){
-    trait_vals = individual.phenotypeForTrait(trait=c("add1T", "add2T"));
-    fitness = dmvnorm(
-        trait_vals,
-        c(0.0, 0.0),
-        array(c(
-            c(1.0, 0.0),
-            c(0.0, 1.0)
-        ), c(2, 2)) / Q
-    );
-    // normalize by maximum fitness
-    fitness = fitness / dmvnorm(
-        c(0.0, 0.0),
-        c(0.0, 0.0),
-        array(c(
-            c(1.0, 0.0),
-            c(0.0, 1.0)
-        ), c(2, 2)) / Q
-    );
-    return fitness;
-}
-
-// Adding fitness function fit2
-1:(G0-0) fitnessEffect(p0){
-    trait_val = individual.phenotypeForTrait(trait="add1T");
-    fitness = dnorm(trait_val, 0.3,1.4142135623730951/ sqrt(Q));
-    // normalize by maximum fitness
-    fitness = fitness / dnorm(0.3,0.3,1.4142135623730951/ sqrt(Q));
-    return fitness;
-}
-
-// Adding fitness function fit3
-1:(G0-1) fitnessEffect(p0){
-    trait_val = individual.phenotypeForTrait(trait="add1T");
-    fitness = dnorm(trait_val, 0.3,1.4142135623730951/ sqrt(Q));
-    // normalize by maximum fitness
-    fitness = fitness / dnorm(0.3,0.3,1.4142135623730951/ sqrt(Q));
-    return fitness;
-}
 
 
 ///
