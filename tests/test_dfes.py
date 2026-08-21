@@ -5,6 +5,7 @@ tests/test_traits.py
 
 import sys
 import pytest
+import pyslim
 import stdpopsim
 import numpy as np
 from stdpopsim import dfe
@@ -92,17 +93,26 @@ class DFETestMixin:
         samples = {"pop_0": 1}
         engine = stdpopsim.get_engine("slim")
         ts = engine.simulate(
-            model, contig, samples, slim_scaling_factor=10, slim_burn_in=10, seed=42
+            model,
+            contig,
+            samples,
+            slim_scaling_factor=10,
+            slim_burn_in=10,
+            seed=42,
+            keep_mutation_ids_as_alleles=True
         )
 
         mut_info = {}
         nonneutral = np.repeat(False, ts.num_mutations)
+
+        mut_metadata = pyslim.mutation_metadata(ts)
+        assert ts.metadata["SLiM"]["traits"][0]["name"] == "fitnessT"
         for mut in ts.mutations():
-            for j, md in zip(
-                mut.derived_state.split(","), mut.metadata["mutation_list"]
-            ):
+            for j in mut.derived_state.split(","):
+                md = mut_metadata[int(j)]
                 uid = f"{mut.id}_{j}"
-                if md["selection_coeff"] != 0.0:
+                sel_coeff = md["per_trait"][0]["effect_size"]
+                if sel_coeff != 0.0:
                     nonneutral[mut.id] = True
                 if uid not in mut_info:
                     mut_info[uid] = md

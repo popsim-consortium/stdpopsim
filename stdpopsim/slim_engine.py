@@ -652,7 +652,7 @@ _slim_main = """
     for (i in seqAlong(mut_types_with_callbacks)) {
         mt = mut_types_with_callbacks[i];
         sim.registerMutationCallback(NULL,
-            "{s = mut.selectionCoeff; "
+            "{s = mut.effectSizeForTrait('fitnessT');"
             + "k = findInterval(s, dominance_coeff_breaks_" + mt + "); "
             + "mut.setMutationType(dominance_coeff_types_" + mt + "[k]); "
             + "return T;}",
@@ -748,7 +748,7 @@ _slim_debug_output = """
         new = (sim.mutations.originTick == community.tick);
         for (mut in sim.mutations[new]) {
             dbg(paste(c("dbg_selection_coeff:",
-                        mut.selectionCoeff,
+                        mut.effectSizeForTrait("fitnessT"),
                         mut.id,
                         mut.position),
                       sep="\t"));
@@ -773,10 +773,27 @@ _slim_debug_output = """
         // mutationTypes
         muts = Dictionary();
         for (mt in sim.mutationTypes) {
+            params_dict = Dictionary();
+            distr_type_dict = Dictionary();
+            dominance_dict = Dictionary();
+            for (t in sim.traits) {
+                params_dict.setValue(
+                    t.name,
+                    mt.effectSizeDistributionParamsForTrait(t)
+                );
+                distr_type_dict.setValue(
+                    t.name,
+                    mt.effectSizeDistributionTypeForTrait(t)
+                );
+                dominance_dict.setValue(
+                    t.name,
+                    mt.defaultDominanceForTrait(t)
+                );
+            }
             mut_info = Dictionary(
-                "distributionParams", mt.distributionParams,
-                "distributionType", mt.distributionType,
-                "dominanceCoeff", mt.dominanceCoeff
+                "distributionParams", params_dict,
+                "distributionType", distr_type_dict,
+                "dominanceCoeff", dominance_dict
             );
             muts.setValue(asString(mt.id), mut_info);
         }
@@ -2245,7 +2262,6 @@ class _SLiMEngine(stdpopsim.Engine):
                 )
             if contig.exclusion_mask is not None:
                 ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
-
         return ts
 
     def _run_slim(
@@ -2475,7 +2491,10 @@ class _SLiMEngine(stdpopsim.Engine):
                         keep=True,
                         random_seed=mut_seed,
                     )
-
+                    ts = pyslim.add_mutation_metadata(
+                        ts,
+                        mutation_type=mt["slim_mutation_type_id"][0]
+                    )
         if not keep_mutation_ids_as_alleles:
             nuc_seed = rng.randrange(1, 2**32)
             ts = pyslim.convert_alleles(
