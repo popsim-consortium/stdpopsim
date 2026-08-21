@@ -18,11 +18,9 @@ def _copy_converter(x):
 def _check_nonoverlapping_intervals(intervals):
     if not isinstance(intervals, list):
         raise ValueError("Intervals must be a list.")
-    prev_end = -float('inf')
+    prev_end = -float("inf")
     if len(intervals) < 1:
-        raise ValueError(
-            "Cannot supply an empty list of intervals."
-        )
+        raise ValueError("Cannot supply an empty list of intervals.")
     for interval in sorted(intervals):
         if len(interval) != 2:
             raise ValueError(
@@ -38,13 +36,9 @@ def _check_nonoverlapping_intervals(intervals):
                 "Intervals must start at the present or some more ancient time."
             )
         if interval[0] > interval[1]:
-            raise ValueError(
-                "Intervals must be specified as (lower, upper)."
-            )
+            raise ValueError("Intervals must be specified as (lower, upper).")
         if interval[0] < prev_end:
-            raise ValueError(
-                "Intervals must be non-overlapping."
-            )
+            raise ValueError("Intervals must be non-overlapping.")
         prev_end = interval[1]
 
 
@@ -532,8 +526,7 @@ class MutationType(object):
         if self.dominance_coeff_list is not None:
             if len(self.trait_ids) != 1 or self.trait_ids[0] != "fitness":
                 raise ValueError(
-                    "Cannot specify dominance_coeff_list for non-fitness "
-                    "traits."
+                    "Cannot specify dominance_coeff_list for non-fitness traits."
                 )
             # disallow the inefficient and annoying length-one case
             if len(self.dominance_coeff_list) < 2:
@@ -597,7 +590,7 @@ class MutationType(object):
             "n": [0, 1],  # mean and sd
             "w": [0],  # scale
             "s": [],  # script types should just printout arguments
-            "mvn": [],   # TODO: how to do scaling for multivariate traits
+            "mvn": [],  # TODO: how to do scaling for multivariate traits
         }
         assert self.distribution_type in scaling_factor_index_lookup
         self.Q_scaled_index = scaling_factor_index_lookup[self.distribution_type]

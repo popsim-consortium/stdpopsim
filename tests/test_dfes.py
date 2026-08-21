@@ -99,7 +99,7 @@ class DFETestMixin:
             slim_scaling_factor=10,
             slim_burn_in=10,
             seed=42,
-            keep_mutation_ids_as_alleles=True
+            keep_mutation_ids_as_alleles=True,
         )
 
         mut_info = {}

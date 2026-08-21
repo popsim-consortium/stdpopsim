@@ -26,10 +26,8 @@ slim_path = os.environ.get("SLIM", "slim")
 
 def count_mut_types(ts):
     assert ts.metadata["SLiM"]["traits"][0]["name"] == "fitnessT"
-    muts = ts.metadata['SLiM_mutation_list']
-    selection_coeffs = [
-        m['per_trait'][0]['effect_size'] for m in muts
-    ]
+    muts = ts.metadata["SLiM_mutation_list"]
+    selection_coeffs = [m["per_trait"][0]["effect_size"] for m in muts]
     num_neutral = sum([s == 0 for s in selection_coeffs])
     return [num_neutral, abs(len(selection_coeffs) - num_neutral)]
 
@@ -1326,7 +1324,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             samples=self.samples,
             seed=124,
             verbosity=3,
-            keep_mutation_ids_as_alleles=True
+            keep_mutation_ids_as_alleles=True,
         )
         for j, (t, mt) in enumerate(self.example_mut_types):
             sites = np.where(
@@ -1517,9 +1515,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                 slim_mt = self.slim_metadata_key0(mut_types, str(mt_id))
                 if mt.dominance_coeff_list is None:
                     assert mt.dominance_coeff == self.slim_metadata_key0(
-                        self.slim_metadata_key0(
-                            slim_mt, "dominanceCoeff"
-                        ), "fitnessT"
+                        self.slim_metadata_key0(slim_mt, "dominanceCoeff"), "fitnessT"
                     )
                 else:
                     assert 0.5 == self.slim_metadata_key0(slim_mt, "dominanceCoeff")
@@ -1532,18 +1528,13 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                             h, self.slim_metadata_key0(slim_mt, "dominanceCoeff")
                         )
                 assert mt.distribution_type == self.slim_metadata_key0(
-                    self.slim_metadata_key0(
-                        slim_mt, "distributionType"
-                    ),
-                    "fitnessT"
+                    self.slim_metadata_key0(slim_mt, "distributionType"), "fitnessT"
                 )
-                assert (
-                    len(mt.distribution_args)
-                    == len(slim_mt["distributionParams"][0]["fitnessT"])
+                assert len(mt.distribution_args) == len(
+                    slim_mt["distributionParams"][0]["fitnessT"]
                 )
                 for a, b in zip(
-                    mt.distribution_args,
-                    slim_mt["distributionParams"][0]["fitnessT"]
+                    mt.distribution_args, slim_mt["distributionParams"][0]["fitnessT"]
                 ):
                     assert a == b
             assert ge_index == len(ge["mutationTypes"])
@@ -1891,7 +1882,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             samples=self.samples,
             verbosity=3,  # to get metadata output
             seed=260,
-            keep_mutation_ids_as_alleles=True
+            keep_mutation_ids_as_alleles=True,
         )
         assert len(ts.metadata["stdpopsim"]["DFEs"]) == len(contig.dme_list) + 1
         # slim mutation type IDs with dominance coeff lists:
@@ -3146,9 +3137,7 @@ class TestSelectionCoeffFromMutation:
                 break
         assert ts.metadata["SLiM"]["traits"][0]["name"] == "fitnessT"
         mut_list = ts.metadata["SLiM_mutation_list"]
-        selection_coeffs = [
-            m['per_trait'][0]['effect_size'] for m in mut_list
-        ]
+        selection_coeffs = [m["per_trait"][0]["effect_size"] for m in mut_list]
         assert np.all(
             np.logical_or(
                 np.isclose(selection_coeffs, -0.01),
@@ -3432,26 +3421,22 @@ class TestTraits:
         species = stdpopsim.get_species("AnaPla")
         contig = species.get_contig("chr1", left=1e7, right=1e7 + 1e4)
         mt1 = stdpopsim.MutationType(
-            trait_ids=["add"],
-            distribution_type='n',
-            distribution_args=[0, 1e-4]
+            trait_ids=["add"], distribution_type="n", distribution_args=[0, 1e-4]
         )
         mt2 = stdpopsim.MutationType(
-            trait_ids=["mult"],
-            distribution_type='e',
-            distribution_args=[1]
+            trait_ids=["mult"], distribution_type="e", distribution_args=[1]
         )
         dme = stdpopsim.DistributionOfMutationEffects(
-            mutation_types=[mt1, mt2],
-            proportions=[0.3, 0.7]
+            mutation_types=[mt1, mt2], proportions=[0.3, 0.7]
         )
-        contig.add_dme(intervals=np.array([[1e7, 1e7+1e4]]), DME=dme)
+        contig.add_dme(intervals=np.array([[1e7, 1e7 + 1e4]]), DME=dme)
         ts = engine.simulate(
             model, contig, samples={"pop_0": 3}, traits_model=tm, seed=7
         )
         slim_traits = ts.metadata["SLiM"]["traits"]
-        assert ([stdpopsim.Trait(id="fitness", type="multiplicative")] + traits
-                == tm.traits)
+        assert [
+            stdpopsim.Trait(id="fitness", type="multiplicative")
+        ] + traits == tm.traits
         assert len(tm.traits) == len(slim_traits)
         for t, slim_t in zip(tm.traits, slim_traits):
             print(slim_t)
@@ -3461,7 +3446,7 @@ class TestTraits:
     def test_traits_deepcopy(self):
         traits = [
             stdpopsim.Trait(id="add", type="additive"),
-            stdpopsim.Trait(id="also_add", type="additive")
+            stdpopsim.Trait(id="also_add", type="additive"),
         ]
         tm = stdpopsim.TraitsModel(
             traits=traits,
@@ -3473,7 +3458,7 @@ class TestTraits:
             function_type="gaussian",
             function_args=[np.zeros(1), np.eye(1)],
             time_intervals=[(0, 1)],
-            population_list=pops_fit
+            population_list=pops_fit,
         )
         pops_env = ["CHB", "YRI", "CEU"]
         tm.add_environment(
@@ -3481,8 +3466,8 @@ class TestTraits:
             trait_ids=["add", "also_add"],
             distribution_type="mvn",
             distribution_args=[np.zeros(2), np.eye(2)],
-            time_intervals=[(0, float('inf'))],
-            population_list=pops_env
+            time_intervals=[(0, float("inf"))],
+            population_list=pops_env,
         )
         engine = stdpopsim.get_engine("slim")
         species = stdpopsim.get_species("HomSap")
@@ -3490,20 +3475,15 @@ class TestTraits:
         model = species.get_demographic_model("OutOfAfrica_3G09")
         contig = species.get_contig("chr22")
         mt1 = stdpopsim.MutationType(
-            trait_ids=["add"],
-            distribution_type='n',
-            distribution_args=[0, 1e-4]
+            trait_ids=["add"], distribution_type="n", distribution_args=[0, 1e-4]
         )
         mt2 = stdpopsim.MutationType(
-            trait_ids=["also_add"],
-            distribution_type='e',
-            distribution_args=[1]
+            trait_ids=["also_add"], distribution_type="e", distribution_args=[1]
         )
         dme = stdpopsim.DistributionOfMutationEffects(
-            mutation_types=[mt1, mt2],
-            proportions=[0.3, 0.7]
+            mutation_types=[mt1, mt2], proportions=[0.3, 0.7]
         )
-        contig.add_dme(intervals=np.array([[1e7, 1e7+1e4]]), DME=dme)
+        contig.add_dme(intervals=np.array([[1e7, 1e7 + 1e4]]), DME=dme)
 
         engine.simulate(
             model,
@@ -3511,7 +3491,7 @@ class TestTraits:
             samples={"CEU": 3},
             traits_model=tm,
             seed=7,
-            slim_scaling_factor=250
+            slim_scaling_factor=250,
         )
         assert tm.fitness_functions[0].population_list == pops_fit
         assert tm.environments[0].population_list == pops_env

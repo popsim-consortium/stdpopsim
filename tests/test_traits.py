@@ -33,7 +33,7 @@ def check_nonoverlapping_intervals_errors():
         [(1, "bar")],
         [(-1, 3)],
         [(3, 1)],
-        [(1, 3), (2, 5)]
+        [(1, 3), (2, 5)],
     ]
 
     for bad_int in bad_intervals:
@@ -45,7 +45,7 @@ def check_nonoverlapping_intervals_errors():
                 trait_ids=["height"],
                 distribution_type="g",
                 distribution_args=[1, 2],
-                time_intervals=bad_int
+                time_intervals=bad_int,
             )
         with pytest.raises(ValueError, match="nterval"):
             stdpopsim.FitnessFunction(
@@ -53,7 +53,7 @@ def check_nonoverlapping_intervals_errors():
                 trait_ids=["fitness"],
                 function_type="gaussian",
                 function_args=[np.array([0]), np.array([[1]])],
-                time_intervals=bad_int
+                time_intervals=bad_int,
             )
 
 
@@ -84,7 +84,7 @@ class TestTraitsModel:
         tm = stdpopsim.TraitsModel(traits=traits)
         assert len(tm.traits) == len(traits) + 1
         for i in range(len(traits)):
-            assert tm.traits[i+1] == traits[i]
+            assert tm.traits[i + 1] == traits[i]
         assert tm.environments == []
         assert tm.fitness_functions == []
 
@@ -103,7 +103,7 @@ class TestTraitsModel:
                 "function_type": "gaussian",
                 "function_args": [np.array([0]), np.array([[1]])],
                 "population_list": [u + "_pop"],
-                "time_intervals": [(0, end)]
+                "time_intervals": [(0, end)],
             }
             for u, end in zip("abc", [1, 2, 3])
         ]
@@ -142,7 +142,7 @@ class TestTraitsModel:
                 "distribution_type": "n",
                 "distribution_args": [0, 1],
                 "population_list": [u + "_pop"],
-                "time_intervals": [(0, end)]
+                "time_intervals": [(0, end)],
             }
             for u, end in zip("abc", [1, 2, 3])
         ]
@@ -204,7 +204,7 @@ class TestEnvironment:
             trait_ids=["height"],
             distribution_type="n",
             distribution_args=[1, 2],
-            population_list=[0, 1, "pop_2"]
+            population_list=[0, 1, "pop_2"],
         )
         assert env.id == "abc"
         assert env.trait_ids == ["height"]
@@ -219,14 +219,14 @@ class TestEnvironment:
             distribution_type="n",
             distribution_args=[1, 2],
             population_list=[0, 1, "pop_2"],
-            time_intervals=[(0, 1), (1, 2.2), (4, float('inf'))]
+            time_intervals=[(0, 1), (1, 2.2), (4, float("inf"))],
         )
         assert env.id == "abc"
         assert env.trait_ids == ["height"]
         assert env.distribution_type == "n"
         assert env.distribution_args == [1, 2]
         assert env.population_list == [0, 1, "pop_2"]
-        assert env.time_intervals == [(0, 1), (1, 2.2), (4, float('inf'))]
+        assert env.time_intervals == [(0, 1), (1, 2.2), (4, float("inf"))]
 
     def test_make_environment_copies(self):
         # making an environment should take a copy of its arguments;
@@ -237,7 +237,7 @@ class TestEnvironment:
             "distribution_type": "f",
             "distribution_args": [1, 2, 3],
             "population_list": [1, 2, "pop_3"],
-            "time_intervals": [(0, 1), (1, 2.2), (4, float('inf'))]
+            "time_intervals": [(0, 1), (1, 2.2), (4, float("inf"))],
         }
         check_arg_copies(stdpopsim.Environment, args, "trait_ids")
         check_arg_copies(stdpopsim.Environment, args, "distribution_args")
@@ -276,7 +276,7 @@ class TestEnvironment:
                 trait_ids=["foo"],
                 distribution_type="f",
                 distribution_args=[0],
-                population_list=[0, 1, 0]
+                population_list=[0, 1, 0],
             )
         for bad_pop in [2.2, [], set([]), ["pop"]]:
             with pytest.raises(ValueError, match="entries must be integers"):
@@ -285,7 +285,7 @@ class TestEnvironment:
                     trait_ids=["foo"],
                     distribution_type="f",
                     distribution_args=[0],
-                    population_list=[0, 1, bad_pop]
+                    population_list=[0, 1, bad_pop],
                 )
 
     def test_trait_ids_errors(self):
@@ -498,7 +498,7 @@ class TestFitnessFunction:
             trait_ids=["height"],
             function_type="gaussian",
             function_args=[np.array([0]), np.array([[1]])],
-            population_list=[0, 1, "pop_2"]
+            population_list=[0, 1, "pop_2"],
         )
         assert f.id == "foo"
         assert f.trait_ids == ["height"]
@@ -513,14 +513,14 @@ class TestFitnessFunction:
             function_type="gaussian",
             function_args=[np.array([0]), np.array([[1]])],
             population_list=[0, 1, "pop_2"],
-            time_intervals=[(0, 1), (1, 2.2), (4, float('inf'))]
+            time_intervals=[(0, 1), (1, 2.2), (4, float("inf"))],
         )
         assert f.id == "foo"
         assert f.trait_ids == ["height"]
         assert f.function_type == "gaussian"
         assert f.function_args == [0, 1]
         assert f.population_list == [0, 1, "pop_2"]
-        assert f.time_intervals == [(0, 1), (1, 2.2), (4, float('inf'))]
+        assert f.time_intervals == [(0, 1), (1, 2.2), (4, float("inf"))]
 
     def test_make_fitness_function_errors(self):
         with pytest.raises(TypeError, match="required keyword-only arg"):
@@ -550,7 +550,7 @@ class TestFitnessFunction:
                 trait_ids=["foo"],
                 function_type="gaussian",
                 function_args=[np.ones(1), np.ones(1)],
-                population_list=[0, 1, 0]
+                population_list=[0, 1, 0],
             )
         for bad_pop in [2.2, [], set([]), ["pop"]]:
             with pytest.raises(ValueError, match="entries must be integers"):
@@ -559,7 +559,7 @@ class TestFitnessFunction:
                     trait_ids=["foo"],
                     function_type="gaussian",
                     function_args=[np.ones(1), np.ones(1)],
-                    population_list=[0, 1, bad_pop]
+                    population_list=[0, 1, bad_pop],
                 )
 
     def test_trait_ids_errors(self):
@@ -577,7 +577,7 @@ class TestFitnessFunction:
             "function_type": "threshold",
             "function_args": [1, 2, 3],
             "population_list": [1, 2, "pop_3"],
-            "time_intervals": [(0, 1), (1, 2.2), (4, float('inf'))]
+            "time_intervals": [(0, 1), (1, 2.2), (4, float("inf"))],
         }
         check_arg_copies(stdpopsim.FitnessFunction, args, "trait_ids")
         check_arg_copies(stdpopsim.FitnessFunction, args, "function_args")
@@ -938,8 +938,7 @@ class TestCreateMutationType:
             ([-0.1, -0.7], [-2.1]),
         ):
             mt = stdpopsim.MutationType(
-                dominance_coeff_list=dcl,
-                dominance_coeff_breaks=dcb
+                dominance_coeff_list=dcl, dominance_coeff_breaks=dcb
             )
             assert np.allclose(dcl, mt.dominance_coeff_list)
             assert np.allclose(dcb, mt.dominance_coeff_breaks)
@@ -953,13 +952,14 @@ class TestCreateMutationType:
         x[0] = 2 * val + 1
         assert mt.distribution_args[0] == val
         x = [val, val]
-        mt = stdpopsim.MutationType(dominance_coeff_list=x, dominance_coeff_breaks=[0.0])
+        mt = stdpopsim.MutationType(
+            dominance_coeff_list=x, dominance_coeff_breaks=[0.0]
+        )
         x[0] = 2 * val + 1
         assert mt.dominance_coeff_list[0] == val
         x = [val]
         mt = stdpopsim.MutationType(
-            dominance_coeff_list=[0.0, 0.0],
-            dominance_coeff_breaks=x
+            dominance_coeff_list=[0.0, 0.0], dominance_coeff_breaks=x
         )
         x[0] = 2 * val + 1
         assert mt.dominance_coeff_breaks[0] == val
@@ -1034,17 +1034,17 @@ class TestCreateMutationType:
             stdpopsim.MutationType(
                 trait_ids=["height"],
                 distribution_type="f",
-                distribution_args=[1.],
+                distribution_args=[1.0],
                 dominance_coeff_list=dcl,
-                dominance_coeff_breaks=dcb
+                dominance_coeff_breaks=dcb,
             )
         with pytest.raises(ValueError, match="non-fitness traits."):
             stdpopsim.MutationType(
                 trait_ids=["fitness", "height"],
                 distribution_type="f",
-                distribution_args=[1., 2.],
+                distribution_args=[1.0, 2.0],
                 dominance_coeff_list=dcl,
-                dominance_coeff_breaks=dcb
+                dominance_coeff_breaks=dcb,
             )
 
     def test_copies(self):

@@ -1122,7 +1122,7 @@ def _collect_valid_population_intervals(demographic_model):
     for intervals in valid_times.values():
         for interval in intervals:
             if interval[1] == oldest_time:
-                interval[1] = float('inf')
+                interval[1] = float("inf")
 
     # merge adjacent intervals for convenience for later
     for k in valid_times:
@@ -1151,7 +1151,7 @@ def _standardize_condition(condition, valid_intervals):
         else:
             for interval in condition.time_intervals:
                 is_valid = False
-                if interval[1] != float('inf'):
+                if interval[1] != float("inf"):
                     # If interval is finite, we must identify
                     # a model interval that contains it
                     for demo_interval in valid_intervals[p]:
@@ -1165,7 +1165,7 @@ def _standardize_condition(condition, valid_intervals):
                     # If interval is infinite, we must identify
                     # all overlapping model intervals
                     for demo_interval in valid_intervals[p]:
-                        if (interval[0] < demo_interval[0]):
+                        if interval[0] < demo_interval[0]:
                             standardized.append(demo_interval)
                             is_valid = True
                         elif (
@@ -1189,9 +1189,7 @@ def _standardize_condition(condition, valid_intervals):
 
 
 # TODO: write tests for this in test_slim_engine.py
-def _align_traits_model_demography(
-    traits_model, demographic_model
-):
+def _align_traits_model_demography(traits_model, demographic_model):
     valid_intervals = _collect_valid_population_intervals(demographic_model)
 
     # Loop through environments & fitness functions and rewrite time intervals
@@ -1236,17 +1234,14 @@ def slim_makescript(
                 for population in event.population_list:
                     if isinstance(population, int):
                         if population >= len(pop_names) or population < 0:
-                            raise ValueError(
-                                "Population index out of bounds."
-                            )
+                            raise ValueError("Population index out of bounds.")
                         pop_id_list.append(population)
                     elif isinstance(population, str):
                         try:
                             pop_id_list.append(pop_names.index(population))
                         except ValueError:
                             raise ValueError(
-                                "Population label supplied not in"
-                                "demographic model."
+                                "Population label supplied not in" "demographic model."
                             )
                     else:
                         # this should not happen given the checks in traits.py
@@ -1639,9 +1634,7 @@ def slim_makescript(
                 use_prop = first_mt and ((not mt.is_neutral) or d.is_neutral)
                 p = d.proportions[mt_index] if use_prop else 0.0
                 mut_props_list.append(p)
-                printsc(
-                    f"    initializeMutationType({mid}, {h}, 'f', 0.0);"
-                )
+                printsc(f"    initializeMutationType({mid}, {h}, 'f', 0.0);")
                 if not mt.convert_to_substitution:
                     # T is the default for WF simulations.
                     printsc(f"    m{mid}.convertToSubstitution = F;")
@@ -1691,8 +1684,8 @@ def slim_makescript(
     printsc("    // MutationTypes that affect multiple traits")
     printsc(
         '    defineConstant("multivar_mut_types", c('
-        + ', '.join(map(str, multivar_muts.keys()))
-        + '));'
+        + ", ".join(map(str, multivar_muts.keys()))
+        + "));"
     )
     printsc('    defineConstant("multivar_mut_means", Dictionary());')
     printsc('    defineConstant("multivar_mut_covs", Dictionary());')
@@ -1704,21 +1697,21 @@ def slim_makescript(
         printsc(f"    // MutationType m{mid}")
         printsc(
             "    multivar_mut_means.setValue("
-            + f'{mid}, c('
+            + f"{mid}, c("
             + ", ".join(map(str, mt.distribution_args[0]))
-            + '));'  # this sad winky face is how I feel
+            + "));"  # this sad winky face is how I feel
         )
         printsc(
             "    multivar_mut_covs.setValue("
-            + f'{mid}, '
+            + f"{mid}, "
             + matrix2str(mt.distribution_args[1])
-            + ');'
+            + ");"
         )
         printsc(
             "    multivar_mut_traits.setValue("
-            + f'{mid}, c('
+            + f"{mid}, c("
             + ", ".join([f'"{tid}T"' for tid in mt.trait_ids])
-            + '));'
+            + "));"
         )
     printsc()
 
@@ -1734,9 +1727,7 @@ def slim_makescript(
     # would want to do our burn-in before even that time. I.e., we don't want
     # these things to start applying in the middle of burn-in.
     max_tm_time = [0]
-    for condition in (
-        traits_model.fitness_functions + traits_model.environments
-    ):
+    for condition in traits_model.fitness_functions + traits_model.environments:
         if condition.time_intervals is None:
             continue
         for interval in condition.time_intervals:
@@ -1744,9 +1735,7 @@ def slim_makescript(
                 # We multiply by the generation time to convert this to year
                 # here to be consistent with the demography times that we put
                 # into SLiM.
-                max_tm_time.append(
-                    interval[1] * demographic_model.generation_time
-                )
+                max_tm_time.append(interval[1] * demographic_model.generation_time)
             max_tm_time.append(interval[0] * demographic_model.generation_time)
     max_tm_time = max(max_tm_time)
     printsc("    // Time at which the oldest fitness function that does not")
@@ -1870,36 +1859,32 @@ def slim_makescript(
     for idx, e in enumerate(traits_model.environments):
         intervals = np.array(e.time_intervals)
         printsc(
-            f'    env_intervals.setValue({idx},'
+            f"    env_intervals.setValue({idx},"
             + matrix2str(intervals.astype(float), dim=intervals.shape)
-            + ');'
+            + ");"
         )
-        if e.distribution_type == 'mvn':
-            printsc('    x = Dictionary();')
-            means = ', '.join(map(str, e.distribution_args[0]))
+        if e.distribution_type == "mvn":
+            printsc("    x = Dictionary();")
+            means = ", ".join(map(str, e.distribution_args[0]))
             printsc(f'    x.setValue("means", c({means}));')
             covar = matrix2str(e.distribution_args[1])
             printsc(f'    x.setValue("covar", {covar});')
-            printsc(f'    env_params.setValue({idx}, x);')
+            printsc(f"    env_params.setValue({idx}, x);")
         else:
             # TODO: implement other distribution types
             assert False
-        these_traits = ', '.join([f'"{tid}T"' for tid in e.trait_ids])
-        printsc(
-            f"    env_traits.setValue({idx}, c({these_traits}));"
-        )
+        these_traits = ", ".join([f'"{tid}T"' for tid in e.trait_ids])
+        printsc(f"    env_traits.setValue({idx}, c({these_traits}));")
 
     # Trait transformation callbacks
     printsc("    // Trait transformations")
-    transforms = ', '.join([f'"{t.transform}"' for t in traits_model.traits])
+    transforms = ", ".join([f'"{t.transform}"' for t in traits_model.traits])
     printsc(f'    defineConstant("trait_transforms", c({transforms}));')
     printsc('    defineConstant("trait_transform_params", Dictionary());')
     for t_idx, t in enumerate(traits_model.traits):
         if t.transform != "identity":
-            params = ', '.join(map(str, t.transform_args))
-            printsc(
-                f"    trait_transform_params.setValue({t_idx}, c({params}));"
-            )
+            params = ", ".join(map(str, t.transform_args))
+            printsc(f"    trait_transform_params.setValue({t_idx}, c({params}));")
     printsc()
 
     # Trait fitness effect callbacks
@@ -1920,24 +1905,22 @@ def slim_makescript(
     for idx, ff in enumerate(traits_model.fitness_functions):
         intervals = np.array(ff.time_intervals)
         printsc(
-            f'    fit_func_intervals.setValue({idx},'
+            f"    fit_func_intervals.setValue({idx},"
             + matrix2str(intervals.astype(float), dim=intervals.shape)
-            + ');'
+            + ");"
         )
-        if ff.function_type == 'gaussian':
-            printsc('    x = Dictionary();')
-            means = ', '.join(map(str, ff.function_args[0]))
+        if ff.function_type == "gaussian":
+            printsc("    x = Dictionary();")
+            means = ", ".join(map(str, ff.function_args[0]))
             printsc(f'    x.setValue("means", c({means}));')
             covar = matrix2str(ff.function_args[1])
             printsc(f'    x.setValue("covar", {covar});')
-            printsc(f'    fit_func_params.setValue({idx}, x);')
+            printsc(f"    fit_func_params.setValue({idx}, x);")
         else:
             # TODO: implement other function types
             assert False
-        these_traits = ', '.join([f'"{tid}T"' for tid in ff.trait_ids])
-        printsc(
-            f"    fit_func_traits.setValue({idx}, c({these_traits}));"
-        )
+        these_traits = ", ".join([f'"{tid}T"' for tid in ff.trait_ids])
+        printsc(f"    fit_func_traits.setValue({idx}, c({these_traits}));")
 
     # Fitness callbacks.
     printsc("    // Fitness callbacks, one row for each callback.")
@@ -2492,8 +2475,7 @@ class _SLiMEngine(stdpopsim.Engine):
                         random_seed=mut_seed,
                     )
                     ts = pyslim.add_mutation_metadata(
-                        ts,
-                        mutation_type=mt["slim_mutation_type_id"][0]
+                        ts, mutation_type=mt["slim_mutation_type_id"][0]
                     )
         if not keep_mutation_ids_as_alleles:
             nuc_seed = rng.randrange(1, 2**32)
