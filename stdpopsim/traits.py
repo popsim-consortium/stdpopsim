@@ -15,6 +15,33 @@ def _copy_converter(x):
     return x
 
 
+def _check_nonoverlapping_intervals(intervals):
+    if not isinstance(intervals, list):
+        raise ValueError("Intervals must be a list.")
+    prev_end = -float("inf")
+    if len(intervals) < 1:
+        raise ValueError("Cannot supply an empty list of intervals.")
+    for interval in sorted(intervals):
+        if len(interval) != 2:
+            raise ValueError(
+                "Each interval in time_interval must be of the form "
+                "(start, end), specified backward in time."
+            )
+        if not isinstance(interval[0], (int, float)):
+            raise ValueError("Intervals must be numeric.")
+        if not isinstance(interval[1], (int, float)):
+            raise ValueError("Intervals must be numeric.")
+        if interval[0] < 0:
+            raise ValueError(
+                "Intervals must start at the present or some more ancient time."
+            )
+        if interval[0] > interval[1]:
+            raise ValueError("Intervals must be specified as (lower, upper).")
+        if interval[0] < prev_end:
+            raise ValueError("Intervals must be non-overlapping.")
+        prev_end = interval[1]
+
+
 def _check_trait_ids(trait_ids):
     # this might be too strict but we want to avoid things like trait_ids="foo"
     # which might then be interpreted as three trait IDs: "f", "o", and "o"
@@ -29,25 +56,39 @@ def _check_trait_ids(trait_ids):
 
 
 class TraitsModel(object):
-    def __init__(self, traits):
+    def __init__(self, traits=None):
         """
         A list of genetically determined ``traits``,
         linked together by possibly shared effects of ``environments``
         and by ``fitness_functions`` that depend on their values.
+
+        A TraitsModel always includes a multiplicative trait called "fitness". This is
+        automatically included, so this should *not* be included in ``traits``.
 
         On initialization ``environments`` and ``fitness_functions``
         are empty and can be added with :meth:`.add_environment`
         and :meth:`.add_fitness_function`.
         These must all have unique IDs.
 
+        If multiple environments are added that overlap in time or space, then
+        their effects will combine additively.
+
+        If multiple fitness functions are added that overlap in time or space,
+        then their effects will combine multiplicatively.
+
         :ivar traits: List of :class:`Trait` objects, with unique IDs.
+            or ``None``.
         :vartype traits: list
         """
-        pids = [p.id for p in traits]
+        # we'll put fitness first, BUT DO NOT RELY ON THIS
+        self.traits = [Trait(id="fitness", type="multiplicative")]
+        if traits is not None:
+            self.traits.extend(traits)
+
+        pids = [p.id for p in self.traits]
         if len(set(pids)) != len(pids):
             raise ValueError("Trait IDs must be unique.")
 
-        self.traits = traits
         self.environments = []
         self.fitness_functions = []
         # We *could* take in Environment and FitnessFunction objects
@@ -234,16 +275,25 @@ class Environment:
     :vartype distribution_type: str
     :ivar distribution_args: Arguments to the distribution.
     :vartype distribution_args: list
+    :ivar time_intervals: List of tuples defining when (backward-in-time) this
+        environment applies. Setting an upper limit of float('inf') will cause
+        this environment to apply from the beginning of the simulation
+        (including the burn-in). Units are generations.
+        Defaults to applying for all of time.
+    :vartype time_intervals: list
+    :ivar population_list: List of population ids specifying the populations this
+        environment applies to. Defaults to applying to all populations. These
+        can be specified either as integers (representing population indices)
+        or strings with the names of populations.
+    :vartype population_list: list
     """
 
     id = attr.ib(type=str)
     trait_ids = attr.ib(type=list, converter=_copy_converter)  # list of trait IDs
     distribution_type = attr.ib(type=str)
     distribution_args = attr.ib(type=list, converter=_copy_converter)
-    # TODO: add later
-    # start_time = attr.ib(default=None)
-    # end_time = attr.ib(default=None)
-    # populations = attr.ib(default=None)
+    time_intervals = attr.ib(default=None, converter=_copy_converter)
+    population_list = attr.ib(default=None, converter=_copy_converter)
 
     def __attrs_post_init__(self):
         if not (isinstance(self.id, str) and self.id != ""):
@@ -252,6 +302,19 @@ class Environment:
         _check_distribution(
             self.distribution_type, self.distribution_args, len(self.trait_ids)
         )
+        if self.population_list is not None:
+            for pid in self.population_list:
+                if not isinstance(pid, (int, str)):
+                    raise ValueError(
+                        "population_list entries must be integers "
+                        "representing population indices or must be "
+                        "strings with population names."
+                    )
+            if len(self.population_list) != len(set(self.population_list)):
+                raise ValueError("population_list contains repeated entries")
+
+        if self.time_intervals is not None:
+            _check_nonoverlapping_intervals(self.time_intervals)
 
 
 @attr.s(kw_only=True)
@@ -289,17 +352,27 @@ class FitnessFunction:
     :vartype function_type: str
     :ivar function_args: Tuple containing parameters for the fitness function
     :vartype function_args: str
-    """
+    :ivar time_intervals: List of tuples defining when (backward-in-time) this
+        fitness function applies. Units are generations. Setting an upper limit
+        of float('inf') will cause this fitness function to apply from the
+        beginning of the simulation (including the burn-in).
+        Defaults to applying for all of time.
+    :vartype time_intervals: list
+    :ivar population_list: List of population ids specifying the populations this
+        fitness function applies to. Defaults to applying to all populations. These
+        can be specified either as integers (representing population indices)
+        or strings with the names of populations.
 
-    # :ivar spacetime: Generations and populations
-    #    for which this fitness function applies
-    # :vartype spacetime: list of tuples (?)
+    :vartype population_list: list
+
+    """
 
     id = attr.ib(type=str)
     trait_ids = attr.ib(type=list, converter=_copy_converter)
     function_type = attr.ib(type=str)
     function_args = attr.ib(type=tuple, converter=_copy_converter)
-    # spacetime = attr.ib(type=list)
+    time_intervals = attr.ib(default=None, converter=_copy_converter)
+    population_list = attr.ib(default=None, converter=_copy_converter)
 
     def __attrs_post_init__(self):
         if not (isinstance(self.id, str) and self.id != ""):
@@ -314,6 +387,20 @@ class FitnessFunction:
             num_traits,
             arrays=(self.function_type == "gaussian"),
         )
+
+        if self.population_list is not None:
+            for pid in self.population_list:
+                if not isinstance(pid, (int, str)):
+                    raise ValueError(
+                        "population_list entries must be integers "
+                        "representing population indices or must be "
+                        "strings with population names."
+                    )
+            if len(self.population_list) != len(set(self.population_list)):
+                raise ValueError("population_list contains repeated entries")
+
+        if self.time_intervals is not None:
+            _check_nonoverlapping_intervals(self.time_intervals)
 
         if self.function_type == "gaussian":
             _check_gaussian_args(self.function_args, num_traits)
@@ -437,6 +524,10 @@ class MutationType(object):
                 )
 
         if self.dominance_coeff_list is not None:
+            if len(self.trait_ids) != 1 or self.trait_ids[0] != "fitness":
+                raise ValueError(
+                    "Cannot specify dominance_coeff_list for non-fitness traits."
+                )
             # disallow the inefficient and annoying length-one case
             if len(self.dominance_coeff_list) < 2:
                 raise ValueError("dominance_coeff_list must have at least 2 elements.")
@@ -499,6 +590,7 @@ class MutationType(object):
             "n": [0, 1],  # mean and sd
             "w": [0],  # scale
             "s": [],  # script types should just printout arguments
+            "mvn": [],  # TODO: how to do scaling for multivariate traits
         }
         assert self.distribution_type in scaling_factor_index_lookup
         self.Q_scaled_index = scaling_factor_index_lookup[self.distribution_type]
@@ -559,6 +651,8 @@ class DistributionOfMutationEffects(object):
     :vartype long_description: str
     """
 
+    # TODO: what about id and description and stuff???
+    # TODO: implement __str__??
     mutation_types = attr.ib(default=None)
     proportions = attr.ib(default=None)
 
@@ -595,6 +689,11 @@ class DistributionOfMutationEffects(object):
                 raise ValueError(
                     "mutation_types must be a list of MutationType objects."
                 )
+
+    @property
+    def is_neutral(self):
+        # TODO: implement me
+        return False
 
 
 @attr.s(kw_only=True)

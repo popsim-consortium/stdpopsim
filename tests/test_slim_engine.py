@@ -15,6 +15,7 @@ import logging
 import pytest
 import tskit
 import msprime
+import pyslim
 
 import stdpopsim
 import stdpopsim.cli
@@ -24,9 +25,9 @@ slim_path = os.environ.get("SLIM", "slim")
 
 
 def count_mut_types(ts):
-    selection_coeffs = [
-        stdpopsim.selection_coeff_from_mutation(ts, mut) for mut in ts.mutations()
-    ]
+    assert ts.metadata["SLiM"]["traits"][0]["name"] == "fitnessT"
+    muts = ts.metadata["SLiM_mutation_list"]
+    selection_coeffs = [m["per_trait"][0]["effect_size"] for m in muts]
     num_neutral = sum([s == 0 for s in selection_coeffs])
     return [num_neutral, abs(len(selection_coeffs) - num_neutral)]
 
@@ -379,7 +380,7 @@ class TestAPI:
                 slim_burn_in=0,
                 keep_mutation_ids_as_alleles=False,
             )
-            is_stacked = [len(m.metadata["mutation_list"]) > 1 for m in ts.mutations()]
+            is_stacked = [m.parent > -1 for m in ts.mutations()]
             if any(is_stacked):
                 break
         count_mut_types(ts)
@@ -1323,6 +1324,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             samples=self.samples,
             seed=124,
             verbosity=3,
+            keep_mutation_ids_as_alleles=True,
         )
         for j, (t, mt) in enumerate(self.example_mut_types):
             sites = np.where(
@@ -1332,16 +1334,20 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                 )
             )[0]
             assert len(sites) > 0
+            mut_metadata = pyslim.mutation_metadata(ts)
+            assert ts.metadata["SLiM"]["traits"][0]["name"] == "fitnessT"
             for k in sites:
                 s = ts.site(k)
                 for mut in s.mutations:
-                    for md in mut.metadata["mutation_list"]:
+                    for slim_idx in map(int, mut.derived_state.split(",")):
+                        md = mut_metadata[slim_idx]
+                        sel_coeff = md["per_trait"][0]["effect_size"]
                         if not mt.is_neutral:
-                            assert md["selection_coeff"] != 0
-                    if t == "lp":
-                        assert md["selection_coeff"] > 0
-                    elif t == "ln":
-                        assert md["selection_coeff"] < 0
+                            assert sel_coeff != 0
+                        if t == "lp":
+                            assert sel_coeff > 0
+                        elif t == "ln":
+                            assert sel_coeff < 0
 
     def slim_metadata_key0(self, metadata, key):
         # Everything in SLiM is a vector, so you can't just put a singleton
@@ -1434,9 +1440,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
         # check that the dummy first mutation type of discretized
         # h-s relationship mutation types are absent
         mut_type_counts = collections.Counter(
-            x["mutation_type"]
-            for m in ts.mutations()
-            for x in m.metadata["mutation_list"]
+            x["mutation_type"] for x in ts.metadata["SLiM_mutation_list"]
         )
         metadata_ids = [x["id"] for x in ts.metadata["stdpopsim"]["DFEs"]]
         slim_mt_info = ts.metadata["SLiM"]["user_metadata"]["mutationTypes"][0]
@@ -1511,7 +1515,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                 slim_mt = self.slim_metadata_key0(mut_types, str(mt_id))
                 if mt.dominance_coeff_list is None:
                     assert mt.dominance_coeff == self.slim_metadata_key0(
-                        slim_mt, "dominanceCoeff"
+                        self.slim_metadata_key0(slim_mt, "dominanceCoeff"), "fitnessT"
                     )
                 else:
                     assert 0.5 == self.slim_metadata_key0(slim_mt, "dominanceCoeff")
@@ -1524,10 +1528,14 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                             h, self.slim_metadata_key0(slim_mt, "dominanceCoeff")
                         )
                 assert mt.distribution_type == self.slim_metadata_key0(
-                    slim_mt, "distributionType"
+                    self.slim_metadata_key0(slim_mt, "distributionType"), "fitnessT"
                 )
-                assert len(mt.distribution_args) == len(slim_mt["distributionParams"])
-                for a, b in zip(mt.distribution_args, slim_mt["distributionParams"]):
+                assert len(mt.distribution_args) == len(
+                    slim_mt["distributionParams"][0]["fitnessT"]
+                )
+                for a, b in zip(
+                    mt.distribution_args, slim_mt["distributionParams"][0]["fitnessT"]
+                ):
                     assert a == b
             assert ge_index == len(ge["mutationTypes"])
 
@@ -1874,6 +1882,7 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
             samples=self.samples,
             verbosity=3,  # to get metadata output
             seed=260,
+            keep_mutation_ids_as_alleles=True,
         )
         assert len(ts.metadata["stdpopsim"]["DFEs"]) == len(contig.dme_list) + 1
         # slim mutation type IDs with dominance coeff lists:
@@ -1888,8 +1897,10 @@ class TestGenomicElementTypes(PiecewiseConstantSizeMixin):
                     assert slim_id not in mut_id_haslist
                     mut_id_haslist[slim_id] = haslist
         num_target_muts = 0
+        mut_metadata = pyslim.mutation_metadata(ts)
         for mut in ts.mutations():
-            for md in mut.metadata["mutation_list"]:
+            for slim_idx in map(int, mut.derived_state.split(",")):
+                md = mut_metadata[slim_idx]
                 if mut_id_haslist[md["mutation_type"]]:
                     num_target_muts += 1
         # the number 20 is not important, just want to make sure we have *some*
@@ -2763,7 +2774,8 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             selection_coeff=s,
             dominance_coeff=0.5,
         )
-        while True:
+        idx = 0
+        while idx < 100:
             engine.simulate(
                 demographic_model=self.model,
                 contig=contig,
@@ -2772,7 +2784,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
                 slim_burn_in=1,
                 logfile=logfile,
                 logfile_interval=1,
-                seed=654,
+                seed=654 + idx,  # otherwise we just repeat the same simulation?
             )
             in_sweep, outside_sweep, rejections = self._fitness_per_generation(
                 logfile=logfile,
@@ -2782,10 +2794,13 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             )
             # ensure that rejections are occuring in the generation of the AF
             # condition
+            print(rejections)
             if start_generation_ago in rejections.keys():
                 break
+            idx += 1
+        assert idx < 100
         assert np.all(outside_sweep == 1.0)
-        assert in_sweep[0] >= s * min_freq + 1
+        assert in_sweep[0] >= 1 + s * min_freq * (1 - 1e-5)
 
     @pytest.mark.usefixtures("tmp_path")
     def test_sweep_meets_min_freq_at_end(self, tmp_path):
@@ -2811,7 +2826,8 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             selection_coeff=s,
             dominance_coeff=0.5,
         )
-        while True:
+        idx = 0
+        while idx < 100:
             engine.simulate(
                 demographic_model=self.model,
                 contig=contig,
@@ -2820,7 +2836,7 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
                 slim_burn_in=1,
                 logfile=logfile,
                 logfile_interval=1,
-                seed=765,
+                seed=765 + idx,
             )
             in_sweep, outside_sweep, rejections = self._fitness_per_generation(
                 logfile=logfile,
@@ -2832,8 +2848,9 @@ class TestSelectiveSweep(PiecewiseConstantSizeMixin):
             # condition
             if end_generation_ago in rejections.keys():
                 break
+            idx += 1
         assert np.all(outside_sweep == 1.0)
-        assert in_sweep[-1] >= s * min_freq + 1
+        assert in_sweep[-1] >= 1 + s * min_freq * (1 - 1e-5)
 
     def test_sweep_with_negative_selection_coeff(self):
         with pytest.raises(ValueError, match="coefficient must be"):
@@ -3115,12 +3132,12 @@ class TestSelectionCoeffFromMutation:
                 slim_burn_in=10,
                 seed=753,
             )
-            is_stacked = [len(m.metadata["mutation_list"]) > 1 for m in ts.mutations()]
+            is_stacked = [m.parent > -1 for m in ts.mutations()]
             if any(is_stacked):
                 break
-        selection_coeffs = [
-            stdpopsim.selection_coeff_from_mutation(ts, m) for m in ts.mutations()
-        ]
+        assert ts.metadata["SLiM"]["traits"][0]["name"] == "fitnessT"
+        mut_list = ts.metadata["SLiM_mutation_list"]
+        selection_coeffs = [m["per_trait"][0]["effect_size"] for m in mut_list]
         assert np.all(
             np.logical_or(
                 np.isclose(selection_coeffs, -0.01),
@@ -3323,6 +3340,7 @@ class TestPloidy:
                     model,
                     contig,
                     sample_sets,
+                    traits_model=stdpopsim.TraitsModel(),
                     extended_events=None,
                     scaling_factor=1,
                     burn_in=0,
@@ -3386,3 +3404,94 @@ class TestSpeciesProperties:
         contig2 = stdpopsim.Contig.basic_contig(length=1000, ploidy=2)
         ts = engine.simulate(model, contig2, samples={"pop_0": 3}, seed=7)
         assert ts.metadata["SLiM"]["separate_sexes"] is False
+
+
+class TestTraits:
+
+    def test_traits_defined(self):
+        traits = [
+            stdpopsim.Trait(id="add", type="additive"),
+            stdpopsim.Trait(id="mult", type="multiplicative"),
+        ]
+        tm = stdpopsim.TraitsModel(
+            traits=traits,
+        )
+        model = stdpopsim.PiecewiseConstantSize(10)
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("AnaPla")
+        contig = species.get_contig("chr1", left=1e7, right=1e7 + 1e4)
+        mt1 = stdpopsim.MutationType(
+            trait_ids=["add"], distribution_type="n", distribution_args=[0, 1e-4]
+        )
+        mt2 = stdpopsim.MutationType(
+            trait_ids=["mult"], distribution_type="e", distribution_args=[1]
+        )
+        dme = stdpopsim.DistributionOfMutationEffects(
+            mutation_types=[mt1, mt2], proportions=[0.3, 0.7]
+        )
+        contig.add_dme(intervals=np.array([[1e7, 1e7 + 1e4]]), DME=dme)
+        ts = engine.simulate(
+            model, contig, samples={"pop_0": 3}, traits_model=tm, seed=7
+        )
+        slim_traits = ts.metadata["SLiM"]["traits"]
+        assert [
+            stdpopsim.Trait(id="fitness", type="multiplicative")
+        ] + traits == tm.traits
+        assert len(tm.traits) == len(slim_traits)
+        for t, slim_t in zip(tm.traits, slim_traits):
+            print(slim_t)
+            assert t.id + "T" == slim_t["name"]
+            assert t.type == slim_t["type"]
+
+    def test_traits_deepcopy(self):
+        traits = [
+            stdpopsim.Trait(id="add", type="additive"),
+            stdpopsim.Trait(id="also_add", type="additive"),
+        ]
+        tm = stdpopsim.TraitsModel(
+            traits=traits,
+        )
+        pops_fit = ["CEU", "YRI"]
+        tm.add_fitness_function(
+            id="main",
+            trait_ids=["add"],
+            function_type="gaussian",
+            function_args=[np.zeros(1), np.eye(1)],
+            time_intervals=[(0, 1)],
+            population_list=pops_fit,
+        )
+        pops_env = ["CHB", "YRI", "CEU"]
+        tm.add_environment(
+            id="env1",
+            trait_ids=["add", "also_add"],
+            distribution_type="mvn",
+            distribution_args=[np.zeros(2), np.eye(2)],
+            time_intervals=[(0, float("inf"))],
+            population_list=pops_env,
+        )
+        engine = stdpopsim.get_engine("slim")
+        species = stdpopsim.get_species("HomSap")
+
+        model = species.get_demographic_model("OutOfAfrica_3G09")
+        contig = species.get_contig("chr22")
+        mt1 = stdpopsim.MutationType(
+            trait_ids=["add"], distribution_type="n", distribution_args=[0, 1e-4]
+        )
+        mt2 = stdpopsim.MutationType(
+            trait_ids=["also_add"], distribution_type="e", distribution_args=[1]
+        )
+        dme = stdpopsim.DistributionOfMutationEffects(
+            mutation_types=[mt1, mt2], proportions=[0.3, 0.7]
+        )
+        contig.add_dme(intervals=np.array([[1e7, 1e7 + 1e4]]), DME=dme)
+
+        engine.simulate(
+            model,
+            contig,
+            samples={"CEU": 3},
+            traits_model=tm,
+            seed=7,
+            slim_scaling_factor=250,
+        )
+        assert tm.fitness_functions[0].population_list == pops_fit
+        assert tm.environments[0].population_list == pops_env
