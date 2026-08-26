@@ -63,6 +63,12 @@ import json
 logger = logging.getLogger(__name__)
 
 
+# clamp SLiM version to [SLIM_MIN_VERSION, SLIM_MAX_VERSION)
+# (note that the MAX is assumed to be *not* compatible)
+SLIM_MIN_VERSION = "5.0"
+SLIM_MAX_VERSION = "6.0"
+
+
 def _escape_eidos(s):
     # this is for Windows paths passed as strings in Eidos
     return "\\\\".join(s.split("\\"))
@@ -1561,16 +1567,23 @@ class _SLiMEngine(stdpopsim.Engine):
         s = subprocess.check_output([slim_path, "-v"])
         return s.split()[2].decode("ascii").rstrip(",")
 
-    def _assert_min_version(self, min_required_version, slim_path):
+    def _assert_version_bounds(self, min_version, max_version, slim_path):
         def version_split(version):
             return [int(v) for v in version.split(".")]
 
         current_version = self.get_version(slim_path)
-        if version_split(current_version) < version_split(min_required_version):
-            raise RuntimeError(
-                f"Minimum supported SLiM version is {min_required_version}, "
-                f"but only found version {current_version}"
-            )
+        if min_version is not None:
+            if version_split(current_version) < version_split(min_version):
+                raise RuntimeError(
+                    f"Minimum supported SLiM version is {min_version}, "
+                    f"but only found version {current_version}"
+                )
+        if max_version is not None:
+            if version_split(current_version) >= version_split(max_version):
+                raise RuntimeError(
+                    f"SLiM version must be less than {max_version}, "
+                    f"but only found version {current_version}"
+                )
 
     def simulate(
         self,
@@ -1770,7 +1783,7 @@ class _SLiMEngine(stdpopsim.Engine):
         if slim_path is None:
             slim_path = self.slim_path()
 
-        self._assert_min_version("4.0", slim_path)
+        self._assert_version_bounds(SLIM_MIN_VERSION, SLIM_MAX_VERSION, slim_path)
 
         slim_cmd = [slim_path]
         if seed is not None:

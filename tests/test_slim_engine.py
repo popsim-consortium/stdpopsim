@@ -345,20 +345,31 @@ class TestAPI:
             ]
         )
 
-    def test_assert_min_version(self):
+    def test_assert_version_bounds(self):
         engine = stdpopsim.get_engine("slim")
         with mock.patch(
             "stdpopsim.slim_engine._SLiMEngine.get_version", return_value="3.4"
         ):
             with pytest.raises(RuntimeError):
-                engine._assert_min_version("3.5", engine.slim_path())
+                engine._assert_version_bounds("3.5", None, engine.slim_path())
             with pytest.raises(RuntimeError):
-                engine._assert_min_version("4.0", None)
+                engine._assert_version_bounds("4.0", None, None)
+        with mock.patch(
+            "stdpopsim.slim_engine._SLiMEngine.get_version", return_value="5.0"
+        ):
+            with pytest.raises(RuntimeError):
+                engine._assert_version_bounds(None, "5.0", engine.slim_path())
+            with pytest.raises(RuntimeError):
+                engine._assert_version_bounds(None, "5.0", None)
         with mock.patch(
             "stdpopsim.slim_engine._SLiMEngine.get_version", return_value="4.0"
         ):
-            engine._assert_min_version("3.5", engine.slim_path())
-            engine._assert_min_version("3.6", None)
+            engine._assert_version_bounds("3.5", None, engine.slim_path())
+            engine._assert_version_bounds("3.6", None, None)
+            engine._assert_version_bounds(None, "5.0", engine.slim_path())
+            engine._assert_version_bounds(None, "5.0", None)
+            engine._assert_version_bounds("4.0", "5.0", engine.slim_path())
+            engine._assert_version_bounds("4.0", "5.0", None)
 
     def test_stacked_mutations(self):
         # Verify that `count_mut_types` works with stacked mutations, after
@@ -753,7 +764,7 @@ class TestCLI:
         with pytest.raises(SystemExit, match="only applies to the SLiM engine"):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
-    @mock.patch("stdpopsim.slim_engine._SLiMEngine.get_version", return_value="64.64")
+    @mock.patch("stdpopsim.slim_engine._SLiMEngine.get_version", return_value="4.99")
     @pytest.mark.usefixtures("tmp_path")
     def test_dry_run(self, _mocked_get_version, tmp_path):
         fname = tmp_path / "sim1.trees"
