@@ -764,7 +764,7 @@ class TestCLI:
         with pytest.raises(SystemExit, match="only applies to the SLiM engine"):
             capture_output(stdpopsim.cli.stdpopsim_main, cmd)
 
-    @mock.patch("stdpopsim.slim_engine._SLiMEngine.get_version", return_value="4.99")
+    @mock.patch("stdpopsim.slim_engine._SLiMEngine.get_version", return_value="5.99")
     @pytest.mark.usefixtures("tmp_path")
     def test_dry_run(self, _mocked_get_version, tmp_path):
         fname = tmp_path / "sim1.trees"
