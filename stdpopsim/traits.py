@@ -3,6 +3,7 @@ Methods related to traits and effects of mutations on them,
 including environment and fitness (so, this includes DFE machinery).
 """
 
+import copy
 import textwrap
 import attr
 import collections.abc
@@ -13,6 +14,35 @@ def _copy_converter(x):
     if isinstance(x, list):
         x = x.copy()
     return x
+
+
+def _check_nonoverlapping_intervals(intervals):
+    if not isinstance(intervals, list):
+        raise ValueError("Intervals must be a list.")
+    prev_end = -float("inf")
+    if len(intervals) < 1:
+        raise ValueError("Cannot supply an empty list of intervals.")
+    for interval in sorted(intervals):
+        if len(interval) != 2:
+            raise ValueError(
+                "Each interval in time_interval must be of the form "
+                "(start, end), specified backward in time."
+            )
+        if not isinstance(interval[0], (int, float)):
+            raise ValueError("Intervals must be numeric.")
+        if not isinstance(interval[1], (int, float)):
+            raise ValueError("Intervals must be numeric.")
+        if interval[0] < 0:
+            raise ValueError(
+                "Intervals must start at the present or some more ancient time."
+            )
+        if interval[0] > interval[1]:
+            raise ValueError(
+                "Lower end of interval must be strictly less than upper end."
+            )
+        if interval[0] < prev_end:
+            raise ValueError("Intervals must be non-overlapping.")
+        prev_end = interval[1]
 
 
 def _check_trait_ids(trait_ids):
@@ -28,26 +58,60 @@ def _check_trait_ids(trait_ids):
         raise ValueError("Trait IDs must be a nonempty list of unique strings.")
 
 
+def _find_oldest_event(traits_model, demography_debugger):
+    # Returns a tuple containing (time_of_oldest_event, condition_id) where
+    # time_of_oldest_event is the time (in generations) of the oldest (finite)
+    # event that occurs either in the demography or in one of the fitness
+    # functions or environments.  condition_id will be the str ID of the
+    # fitness or function triggering the oldest event or will be the empty
+    # string if the oldest event is driven by the demography.
+    oldest_event = max(e.start_time for e in demography_debugger.epochs)
+    oldest_time = oldest_event
+    oldest_id = ""
+    conditions = traits_model.environments + traits_model.fitness_functions
+    for condition in conditions:
+        for interval in condition.time_intervals:
+            for t in interval:
+                if np.isfinite(t) and t > oldest_time:
+                    oldest_time = t
+                    oldest_id = condition.id
+    return (oldest_time, oldest_id)
+
+
 class TraitsModel(object):
-    def __init__(self, traits):
+    def __init__(self, traits=None):
         """
         A list of genetically determined ``traits``,
         linked together by possibly shared effects of ``environments``
         and by ``fitness_functions`` that depend on their values.
+
+        A TraitsModel always includes a multiplicative trait called "fitness". This is
+        automatically included, so this should *not* be included in ``traits``.
 
         On initialization ``environments`` and ``fitness_functions``
         are empty and can be added with :meth:`.add_environment`
         and :meth:`.add_fitness_function`.
         These must all have unique IDs.
 
+        If multiple environments are added that overlap in time or space, then
+        their effects will combine additively.
+
+        If multiple fitness functions are added that overlap in time or space,
+        then their effects will combine multiplicatively.
+
         :ivar traits: List of :class:`Trait` objects, with unique IDs.
+            or ``None``.
         :vartype traits: list
         """
-        pids = [p.id for p in traits]
+        # we'll put fitness first, BUT DO NOT RELY ON THIS
+        self.traits = [Trait(id="fitness", type="multiplicative")]
+        if traits is not None:
+            self.traits.extend(traits)
+
+        pids = [p.id for p in self.traits]
         if len(set(pids)) != len(pids):
             raise ValueError("Trait IDs must be unique.")
 
-        self.traits = traits
         self.environments = []
         self.fitness_functions = []
         # We *could* take in Environment and FitnessFunction objects
@@ -153,7 +217,7 @@ class Trait:
     "identity": the observed value is equal to the latent value.
 
     "threshold" (parameters: t): the observed value is equal to 1 if the latent
-        value is less than t, and is equal to 0 otherwise.
+        value is greater than t, and is equal to 0 otherwise.
 
     "liability" (parameters center, slope): the observed value is equal to 1
         with probability 1 / (1 + exp((x - center) * slope)) for the latent value x,
@@ -234,16 +298,25 @@ class Environment:
     :vartype distribution_type: str
     :ivar distribution_args: Arguments to the distribution.
     :vartype distribution_args: list
+    :ivar time_intervals: List of tuples defining when (backward-in-time) this
+        environment applies. Setting an upper limit of float('inf') will cause
+        this environment to apply from the beginning of the simulation
+        (including the burn-in). Units are generations.
+        Defaults to applying for all of time.
+    :vartype time_intervals: list
+    :ivar population_list: List of population ids specifying the populations this
+        environment applies to. Defaults to applying to all populations. These
+        can be specified either as integers (representing population indices)
+        or strings with the names of populations.
+    :vartype population_list: list
     """
 
     id = attr.ib(type=str)
     trait_ids = attr.ib(type=list, converter=_copy_converter)  # list of trait IDs
     distribution_type = attr.ib(type=str)
     distribution_args = attr.ib(type=list, converter=_copy_converter)
-    # TODO: add later
-    # start_time = attr.ib(default=None)
-    # end_time = attr.ib(default=None)
-    # populations = attr.ib(default=None)
+    time_intervals = attr.ib(default=None, converter=_copy_converter)
+    population_list = attr.ib(default=None, converter=_copy_converter)
 
     def __attrs_post_init__(self):
         if not (isinstance(self.id, str) and self.id != ""):
@@ -252,6 +325,19 @@ class Environment:
         _check_distribution(
             self.distribution_type, self.distribution_args, len(self.trait_ids)
         )
+        if self.population_list is not None:
+            for pid in self.population_list:
+                if not isinstance(pid, (int, str)):
+                    raise ValueError(
+                        "population_list entries must be integers "
+                        "representing population indices or must be "
+                        "strings with population names."
+                    )
+            if len(self.population_list) != len(set(self.population_list)):
+                raise ValueError("population_list contains repeated entries")
+
+        if self.time_intervals is not None:
+            _check_nonoverlapping_intervals(self.time_intervals)
 
 
 @attr.s(kw_only=True)
@@ -289,17 +375,27 @@ class FitnessFunction:
     :vartype function_type: str
     :ivar function_args: Tuple containing parameters for the fitness function
     :vartype function_args: str
-    """
+    :ivar time_intervals: List of tuples defining when (backward-in-time) this
+        fitness function applies. Units are generations. Setting an upper limit
+        of float('inf') will cause this fitness function to apply from the
+        beginning of the simulation (including the burn-in).
+        Defaults to applying for all of time.
+    :vartype time_intervals: list
+    :ivar population_list: List of population ids specifying the populations this
+        fitness function applies to. Defaults to applying to all populations. These
+        can be specified either as integers (representing population indices)
+        or strings with the names of populations.
 
-    # :ivar spacetime: Generations and populations
-    #    for which this fitness function applies
-    # :vartype spacetime: list of tuples (?)
+    :vartype population_list: list
+
+    """
 
     id = attr.ib(type=str)
     trait_ids = attr.ib(type=list, converter=_copy_converter)
     function_type = attr.ib(type=str)
     function_args = attr.ib(type=tuple, converter=_copy_converter)
-    # spacetime = attr.ib(type=list)
+    time_intervals = attr.ib(default=None, converter=_copy_converter)
+    population_list = attr.ib(default=None, converter=_copy_converter)
 
     def __attrs_post_init__(self):
         if not (isinstance(self.id, str) and self.id != ""):
@@ -314,6 +410,20 @@ class FitnessFunction:
             num_traits,
             arrays=(self.function_type == "gaussian"),
         )
+
+        if self.population_list is not None:
+            for pid in self.population_list:
+                if not isinstance(pid, (int, str)):
+                    raise ValueError(
+                        "population_list entries must be integers "
+                        "representing population indices or must be "
+                        "strings with population names."
+                    )
+            if len(self.population_list) != len(set(self.population_list)):
+                raise ValueError("population_list contains repeated entries")
+
+        if self.time_intervals is not None:
+            _check_nonoverlapping_intervals(self.time_intervals)
 
         if self.function_type == "gaussian":
             _check_gaussian_args(self.function_args, num_traits)
@@ -437,6 +547,10 @@ class MutationType(object):
                 )
 
         if self.dominance_coeff_list is not None:
+            if len(self.trait_ids) != 1 or self.trait_ids[0] != "fitness":
+                raise ValueError(
+                    "Cannot specify dominance_coeff_list for non-fitness traits."
+                )
             # disallow the inefficient and annoying length-one case
             if len(self.dominance_coeff_list) < 2:
                 raise ValueError("dominance_coeff_list must have at least 2 elements.")
@@ -499,6 +613,7 @@ class MutationType(object):
             "n": [0, 1],  # mean and sd
             "w": [0],  # scale
             "s": [],  # script types should just printout arguments
+            "mvn": [],  # TODO: how to do scaling for multivariate traits
         }
         assert self.distribution_type in scaling_factor_index_lookup
         self.Q_scaled_index = scaling_factor_index_lookup[self.distribution_type]
@@ -559,6 +674,8 @@ class DistributionOfMutationEffects(object):
     :vartype long_description: str
     """
 
+    # TODO: what about id and description and stuff???
+    # TODO: implement __str__??
     mutation_types = attr.ib(default=None)
     proportions = attr.ib(default=None)
 
@@ -595,6 +712,11 @@ class DistributionOfMutationEffects(object):
                 raise ValueError(
                     "mutation_types must be a list of MutationType objects."
                 )
+
+    @property
+    def is_neutral(self):
+        # TODO: implement me
+        return False
 
 
 @attr.s(kw_only=True)
@@ -827,3 +949,364 @@ def _check_distribution(distribution_type, distribution_args, dim):
         _check_gaussian_args(distribution_args, dim)
     else:
         raise ValueError(f"{distribution_type} is not a supported distribution type.")
+
+
+def _resolve_population_ids(traits_model, demographic_model):
+    # Rewrite each condition's population_list, in place, so that
+    # populations are integer indices in the demographic model's
+    # population list.
+    pop_names = [pop.name for pop in demographic_model.model.populations]
+    for event in traits_model.environments + traits_model.fitness_functions:
+        if event.population_list is None:
+            continue
+        pop_id_list = []
+        for population in event.population_list:
+            if isinstance(population, int):
+                if population >= len(pop_names) or population < 0:
+                    raise ValueError("Population index out of bounds.")
+                pop_id_list.append(population)
+            else:
+                try:
+                    pop_id_list.append(pop_names.index(population))
+                except ValueError:
+                    raise ValueError(
+                        "Population label supplied not in demographic model."
+                    )
+        if len(pop_id_list) != len(set(pop_id_list)):
+            raise ValueError("Repeated population indices.")
+        event.population_list = pop_id_list
+
+
+def _collect_valid_population_intervals(demographic_model, debugger=None):
+    # Return a dict mapping population id to a list of [start, end) time
+    # intervals (in generations, backward in time) during which that
+    # population is active. The oldest interval ends at infinity.
+    if debugger is None:
+        debugger = demographic_model.model.debug()
+    valid_times = {p.id: [] for p in demographic_model.model.populations}
+    for epoch in debugger.epochs:
+        for pop in epoch.populations:
+            if not pop.active:
+                continue
+            intervals = valid_times[pop.id]
+            if intervals and intervals[-1][1] == epoch.start_time:
+                intervals[-1][1] = epoch.end_time
+            else:
+                intervals.append([epoch.start_time, epoch.end_time])
+    return valid_times
+
+
+def _standardize_condition(condition, valid_intervals):
+    # Split a condition into one copy per population, with time intervals
+    # made explicit: intervals ending at infinity are clipped to the
+    # times the population is active, and finite intervals are required
+    # to fall entirely within such times. A condition without populations
+    # applies to every population that is active during its times, so it
+    # is expanded into per-population copies whose intervals are clipped
+    # to each population's activity; populations with no overlap are
+    # dropped rather than being an error.
+    if condition.population_list is None:
+        intervals = condition.time_intervals
+        if intervals is None:
+            intervals = [[0, float("inf")]]
+        new_conditions = []
+        for p, activity in valid_intervals.items():
+            clipped = []
+            for a, b in intervals:
+                for c, d in activity:
+                    lo, hi = max(a, c), min(b, d)
+                    if lo < hi:
+                        clipped.append([lo, hi])
+            if clipped:
+                p_copy = copy.deepcopy(condition)
+                p_copy.population_list = [p]
+                p_copy.time_intervals = clipped
+                new_conditions.append(p_copy)
+        return new_conditions
+    new_conditions = []
+    for p in condition.population_list:
+        if p not in valid_intervals:
+            raise ValueError("Population index out of bounds.")
+        standardized = []
+        if condition.time_intervals is None:
+            standardized.extend(valid_intervals[p])
+        else:
+            for interval in sorted(condition.time_intervals):
+                is_valid = False
+                if interval[1] != float("inf"):
+                    # If interval is finite, we must identify
+                    # a model interval that contains it
+                    for demo_interval in valid_intervals[p]:
+                        if (
+                            interval[0] >= demo_interval[0]
+                            and interval[1] <= demo_interval[1]
+                        ):
+                            is_valid = True
+                            standardized.append(interval)
+                else:
+                    # If interval is infinite, we must identify
+                    # all overlapping model intervals
+                    for demo_interval in valid_intervals[p]:
+                        if interval[0] < demo_interval[0]:
+                            standardized.append(demo_interval)
+                            is_valid = True
+                        elif (
+                            interval[0] >= demo_interval[0]
+                            and interval[0] < demo_interval[1]
+                        ):
+                            standardized.append([interval[0], demo_interval[1]])
+                            is_valid = True
+                if not is_valid:
+                    raise ValueError(
+                        "An environment or a fitness function was "
+                        "specified for a population with a time interval "
+                        "during which that population does not exist."
+                    )
+        p_copy = copy.deepcopy(condition)
+        p_copy.population_list = [p]
+        p_copy.time_intervals = standardized
+        new_conditions.append(p_copy)
+
+    return new_conditions
+
+
+def _align_traits_model_demography(traits_model, demographic_model, debugger=None):
+    # Return a copy of ``traits_model`` in which every environment and
+    # fitness function has a single integer population id and explicit
+    # time intervals consistent with the demographic model.
+    traits_model = copy.deepcopy(traits_model)
+    if not traits_model.environments and not traits_model.fitness_functions:
+        return traits_model
+    _resolve_population_ids(traits_model, demographic_model)
+    valid_intervals = _collect_valid_population_intervals(demographic_model, debugger)
+    new_env = []
+    for env in traits_model.environments:
+        new_env.extend(_standardize_condition(env, valid_intervals))
+    traits_model.environments = new_env
+
+    new_ff = []
+    for ff in traits_model.fitness_functions:
+        new_ff.extend(_standardize_condition(ff, valid_intervals))
+    traits_model.fitness_functions = new_ff
+    return traits_model
+
+
+# The next two functions are copied from msprime/core.py (GPL-3), so
+# that our tables render in the same style as msprime's
+# DemographyDebugger.
+
+
+def _text_table_row(data, alignments, widths):
+    num_lines = max(len(item) for item in data)
+    for item in data:
+        assert isinstance(item, list)
+        item.extend([""] * (num_lines - len(item)))
+        assert len(item) == num_lines
+    s = ""
+    for line in range(num_lines):
+        out_line = "│"
+        for value, align, width in zip(data, alignments, widths):
+            out_line += f"{value[line]:{align}{width - 1}}│"
+        out_line += "\n"
+        s += out_line
+    return s
+
+
+def _text_table(caption, column_titles, column_alignments, data):
+    N = len(column_titles)
+    assert len(column_alignments) == N
+    widths = np.array([len(title) for title in column_titles], dtype=int)
+    for row in data + [column_titles]:
+        assert N == len(row)
+        for j in range(N):
+            widths[j] = max(widths[j], max((len(line) for line in row[j]), default=0))
+    widths += 3
+
+    hline = "─" * (sum(widths) - 1)
+    out = f"{caption}\n"
+    out += f"┌{hline}┐\n"
+    out += f"{_text_table_row(column_titles, column_alignments, widths)}"
+    out += f"├{hline}┤\n"
+    for split_row in data:
+        out += f"{_text_table_row(split_row, column_alignments, widths)}"
+    out += f"└{hline}┘\n"
+    return out
+
+
+class TraitsDebugger:
+    """
+    Shows how a :class:`.TraitsModel` lines up with a demographic model,
+    in the style of ``msprime.DemographyDebugger``. One table is printed
+    per time interval within which both the demography and the set of
+    applicable environments and fitness functions are constant, so
+    epochs of the demographic model are split wherever an environment or
+    a fitness function starts or ends.
+
+    The environments and fitness functions shown are the standardized
+    ones, i.e. after populations are resolved and time intervals are
+    made consistent with the demographic model. This is how the
+    simulation engine interprets them.
+
+    :param demographic_model: A :class:`.DemographicModel`.
+    :param traits_model: A :class:`.TraitsModel`, or None for a plain
+        demography table.
+    """
+
+    def __init__(self, demographic_model, traits_model=None):
+        self.demographic_model = demographic_model
+        if traits_model is None:
+            traits_model = TraitsModel()
+        self._demography_debugger = demographic_model.model.debug()
+        self.traits_model = _align_traits_model_demography(
+            traits_model, demographic_model, self._demography_debugger
+        )
+        # After alignment, every condition has a single population and
+        # explicit time intervals.
+        for condition in self._conditions():
+            assert len(condition.population_list) == 1
+            assert condition.time_intervals is not None
+        self._make_epochs()
+
+    def _conditions(self):
+        return self.traits_model.environments + self.traits_model.fitness_functions
+
+    def _make_epochs(self):
+        dd = self._demography_debugger
+        breaks = {epoch.start_time for epoch in dd.epochs}
+        for condition in self._conditions():
+            for start, end in condition.time_intervals:
+                breaks.add(start)
+                if np.isfinite(end):
+                    breaks.add(end)
+        breaks = sorted(breaks)
+        sizes = dd.population_size_trajectory(breaks)
+        self._epochs = []
+        for i, start in enumerate(breaks):
+            end = breaks[i + 1] if i + 1 < len(breaks) else float("inf")
+            parent = next(e for e in dd.epochs if e.start_time <= start < e.end_time)
+            # Sizes at the parent's own boundaries come from the parent,
+            # so that instantaneous size changes display as in msprime.
+            start_sizes = {}
+            end_sizes = {}
+            for pop in parent.populations:
+                if start == parent.start_time:
+                    start_sizes[pop.id] = pop.start_size
+                else:
+                    start_sizes[pop.id] = sizes[i][pop.id]
+                if end == parent.end_time:
+                    end_sizes[pop.id] = pop.end_size
+                else:
+                    end_sizes[pop.id] = sizes[i + 1][pop.id]
+            self._epochs.append(
+                dict(
+                    start=start,
+                    end=end,
+                    parent=parent,
+                    start_sizes=start_sizes,
+                    end_sizes=end_sizes,
+                )
+            )
+
+    def _active_condition_ids(self, conditions, pop_id, start, end):
+        ids = []
+        for condition in conditions:
+            if pop_id not in condition.population_list:
+                continue
+            for a, b in condition.time_intervals:
+                if a <= start and end <= b:
+                    ids.append(condition.id)
+                    break
+        return ids
+
+    def _populations_text(self, epoch):
+        parent = epoch["parent"]
+        column_titles = [
+            [""],
+            ["start"],
+            ["end"],
+            ["growth_rate"],
+            ["environments"],
+            ["fitness_functions"],
+        ]
+        data = []
+        for pop in parent.populations:
+            if not pop.active:
+                continue
+            envs = self._active_condition_ids(
+                self.traits_model.environments, pop.id, epoch["start"], epoch["end"]
+            )
+            ffs = self._active_condition_ids(
+                self.traits_model.fitness_functions,
+                pop.id,
+                epoch["start"],
+                epoch["end"],
+            )
+            data.append(
+                [
+                    [pop.name],
+                    [f"{epoch['start_sizes'][pop.id]: .1f}"],
+                    [f"{epoch['end_sizes'][pop.id]: .1f}"],
+                    [f"{pop.growth_rate: .3g}"],
+                    envs if envs else [""],
+                    ffs if ffs else [""],
+                ]
+            )
+        caption = (
+            f"Populations (total={len(parent.populations)} "
+            f"active={parent.num_active_populations})"
+        )
+        return _text_table(caption, column_titles, ">>><^^", data)
+
+    def _burn_in_note(self):
+        oldest_time, oldest_id = _find_oldest_event(
+            self.traits_model, self._demography_debugger
+        )
+        if oldest_id == "":
+            return oldest_id
+        oldest_event = max(e.start_time for e in self._demography_debugger.epochs)
+        return (
+            f"Burn-in ends {oldest_time:.3g} generations ago, set by "
+            f"'{oldest_id}' (the oldest demographic event is "
+            f"{oldest_event:.3g} generations ago).\n"
+        )
+
+    def print_history(self, output=None):
+        """
+        Prints the decorated demography table to the given file object,
+        or to stdout if none is given.
+        """
+        print(self, file=output, end="")
+
+    def __str__(self):
+        # The box-drawing glue below is copied from
+        # msprime.DemographyDebugger.__str__ (GPL-3).
+        def indent(table, header_char="╟", depth=4):
+            lines = table.splitlines()
+            s = header_char + (" " * depth) + lines[0] + "\n"
+            for line in lines[1:]:
+                s += "║" + (" " * depth) + line + "\n"
+            return s
+
+        def box(title):
+            N = len(title) + 2
+            top = "╠" + ("═" * N) + "╗"
+            bottom = "╠" + ("═" * N) + "╝"
+            return f"{top}\n║ {title} ║\n{bottom}\n"
+
+        out = "TraitsDebugger\n"
+        out += self._burn_in_note()
+        for i, epoch in enumerate(self._epochs):
+            parent = epoch["parent"]
+            if epoch["start"] > 0 and epoch["start"] == parent.start_time:
+                title = f"Events @ generation {epoch['start']:.3g}"
+                out += indent(
+                    self.demographic_model.model._events_text(parent.events, title)
+                )
+            title = (
+                f"Epoch[{i}]: [{epoch['start']:.3g}, {epoch['end']:.3g}) " "generations"
+            )
+            if np.isinf(epoch["end"]):
+                title += " (includes burn-in)"
+            out += box(title)
+            out += indent(self._populations_text(epoch))
+        return out

@@ -9,7 +9,6 @@ import urllib.request
 
 import attr
 
-
 # TODO this should be an enum.Enum
 
 

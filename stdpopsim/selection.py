@@ -1,5 +1,6 @@
 import attr
 import tskit
+import pyslim
 
 
 @attr.s
@@ -357,7 +358,9 @@ def selective_sweep(
     return extended_events
 
 
-def selection_coeff_from_mutation(ts, mutation):
+def selection_coeff_from_mutation(
+    ts, mutation, mutation_metadata=None, check_trait_0_is_fitness=True
+):
     """
     Returns the selection coefficient of the given mutation.
 
@@ -374,6 +377,14 @@ def selection_coeff_from_mutation(ts, mutation):
 
     :param ts: A ``tskit.TreeSequence`` containing the mutation.
     :param mutation: A ``tskit.Mutation`` for which to extract the selection coefficient.
+    :param mutation_metadata: Mutation metadata computed for SLiM tree
+    sequences using ``pyslim.mutation_metadata``. Supplying this prevents an
+    expensive recomputation of this for each mutation if this function is
+    called in a loop.
+    :param check_trait_0_is_fitness: This function assumes that the first trait
+    in the SLiM top-level metadata is fitness. To check that requires decoding
+    the top-level metadata which can be expensive if this function is called in
+    a loop.
     """
 
     if not isinstance(ts, tskit.TreeSequence):
@@ -385,13 +396,25 @@ def selection_coeff_from_mutation(ts, mutation):
     if not isinstance(mutation.metadata, dict):
         return 0.0
 
-    selection_coeff = sum(
-        [m.get("selection_coeff") for m in mutation.metadata["mutation_list"]]
-    )
+    if check_trait_0_is_fitness:
+        if ts.metadata["SLiM"]["traits"][0]["name"] != "fitnessT":
+            raise ValueError(
+                "The first trait in the SLiM top-level metadata must be " "fitnessT."
+            )
+
+    if mutation_metadata is None:
+        mutation_metadata = pyslim.mutation_metadata(ts)
+
+    sel_coeffs = []
+    for slim_idx in mutation.metadata["derived_states"]:
+        sel_coeffs.append(mutation_metadata[slim_idx]["per_trait"][0]["effect_size"])
+    selection_coeff = sum(sel_coeffs)
+
     if mutation.parent != tskit.NULL:
         parent = ts.mutation(mutation.parent)
-        selection_coeff -= sum(
-            [m.get("selection_coeff") for m in parent.metadata["mutation_list"]]
-        )
+        for slim_idx in parent.metadata["derived_states"]:
+            selection_coeff -= mutation_metadata[slim_idx]["per_trait"][0][
+                "effect_size"
+            ]
 
     return selection_coeff

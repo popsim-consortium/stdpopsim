@@ -254,6 +254,16 @@ function (void)restore(void) {
     sim.setValue("restore_function", F);
 }
 
+// Check if the current tick is contained in the set of intervals
+function (logical)check_if_in_interval(float intervals){
+    if (isNULL(intervals)) {
+        return(T);
+    }
+    return(any(
+        sim.cycle > G0 - intervals[, 1]/Q
+        & sim.cycle <= G0 - intervals[, 0]/Q
+    ));
+}
 """
 
 
@@ -302,7 +312,15 @@ _slim_main = """
     // tick G_start. All remaining events are relative to this tick.
     N_max = asInteger(round(max(N[0,0:(num_populations-1)])));
     G_start = 1 + asInteger(round(burn_in * N_max));
-    defineConstant("G0", asInteger(max(_T) / generation_time / Q + G_start));
+    defineConstant(
+        "G0",
+        asInteger(
+            max(c(
+                _oldest_time_including_traits_model / generation_time / Q,
+                max(_T) / generation_time / Q
+            ))
+            + G_start)
+    );
     G = time_to_tick(_T);
     G_end = max(G);
 
@@ -471,7 +489,7 @@ _slim_main = """
         }
     }
 
-    // Setup fitness callbacks.
+    // Set up fitness callbacks.
     if (length(fitness_callbacks) > 0) {
         for (i in 0:(ncol(fitness_callbacks)-1)) {
             g_start = time_to_tick(fitness_callbacks[0,i]);
@@ -519,7 +537,121 @@ _slim_main = """
         }
     }
 
-    // Setup mutation callbacks.
+    // Set up trait mutation callbacks
+    for (i in seqAlong(multivar_mut_types)) {
+        mid = multivar_mut_types[i];
+        mt = sim.mutationTypes[mid];
+        sim.registerMutationCallback(NULL,
+            "{ effects = rmvnorm("
+            + "1,"
+            + "multivar_mut_means.getValue(" + mid + "),"
+            + "multivar_mut_covs.getValue(" + mid + "));"
+            + "for (j in seqAlong(multivar_mut_traits.getValue(" + mid+ "))) {"
+            + "    trait = multivar_mut_traits.getValue(" + mid + ")[j];"
+            + "    mut.setEffectSizeForTrait(trait, effects[j]);}"
+            + "return T;"
+            + " }",
+            mt
+        );
+    }
+
+    // Set up environment callbacks
+    // note that these must be registered _before_ the trait transformations below
+    for (i in seqAlong(env_pops)){
+        population_id = env_pops[i];
+        community.registerLateEvent(NULL,
+            "{ if(check_if_in_interval( env_intervals.getValue(" + i + "))){"
+                  // look the population up by id, since it may not
+                  // exist during the whole interval
+            +     "sp = sim.subpopulations[sim.subpopulations.id == "
+            +         population_id + "];"
+            +     "affected_inds = sp.individuals;"
+            +     "if (size(affected_inds) == 0) return;"
+            +     "if (env_dist[" + i + "] == 'mvn') {"
+            +         "dparams = env_params.getValue(" + i + ");"
+            +         "env_effect_means = dparams.getValue('means');"
+            +         "env_effect_covar = dparams.getValue('covar');"
+            +         "env_effects = rmvnorm("
+            +             "length(affected_inds), "
+            +             "env_effect_means,"
+            +             "env_effect_covar"
+            +         ");"
+            +     "} else if (env_dist[" + i + "] == 'f') {"
+                      // TODO: implement this
+            +         "assert(F);"
+            +     "} else { "
+                      // TODO: implement other distribution types
+            +         "assert(F);"
+            +     "}"
+            +     "traits = env_traits.getValue(" + i + ");"
+            +     "for (j in seqAlong(traits)){"
+            +         "x = affected_inds.offsetForTrait(traits[j]);"
+            +         "affected_inds.setOffsetForTrait(traits[j],"
+            +             "x + env_effects[, j]);"
+            +     "}"
+            + "}"
+            + "}"
+        );
+    }
+
+    // Set up trait transformation callbacks
+    for (i in seqAlong(sim.traits)){
+        community.registerLateEvent(NULL,
+            "{ sim.demandPhenotype(NULL, " + i + ");"
+                + "if (trait_transforms[" + i + "] != 'identity'){ "
+                    + "inds = sim.subpopulations.individuals;"
+                    + "x = inds.phenotypeForTrait(" + i + ");"
+                + "}"
+                + "if (trait_transforms[" + i + "] == 'threshold'){"
+                    + "inds.setPhenotypeForTrait(" + i + ","
+                        + "ifelse(x > trait_transform_params.getValue(" + i + "), 1, 0)"
+                    + ");"
+                + "}"
+                + "if (trait_transforms[" + i + "] == 'liability'){"
+                    + "center = trait_transform_params.getValue(" + i + ")[0];"
+                    + "slope = trait_transform_params.getValue(" + i + ")[1];"
+                    + "p = 1 / (1 + exp(-(x - center) * slope));"
+                    + "inds.setPhenotypeForTrait(" + i + ","
+                    + "rbinom(size(x), 1, p));"
+                + "}"
+            + "}"
+        );
+    }
+
+    // Set up trait fitness callbacks
+    for (i in seqAlong(fit_func_pops)){
+        population_id = fit_func_pops[i];
+        sim.registerFitnessEffectCallback(NULL,
+        "{"
+        + "if (! check_if_in_interval(fit_func_intervals.getValue(" + i + "))){"
+        +     "return 1.0;"
+        + "}"
+        + "if (individual.subpopulation.id != " + population_id + ") {"
+        +     "return 1.0;"
+        + "}"
+        + "traits = fit_func_traits.getValue(" + i + ");"
+        + "trait_vals = individual.phenotypeForTrait(traits);"
+        + "if (fit_func_types[" + i + "] == 'gaussian') {"
+        +     "params = fit_func_params.getValue(" + i + ");"
+        +     "means = params.getValue('means');"
+        +     "covar = params.getValue('covar');"
+        +     "if (length(traits) == 1) {"
+        +         "fitness = dnorm(trait_vals, means, sqrt(covar/Q));"
+        +         "fitness = fitness / dnorm(means, means, sqrt(covar/Q));"
+        +     "} else {"
+        +         "fitness = dmvnorm(trait_vals, means, covar/Q);"
+        +         "fitness = fitness / dmvnorm(means, means, covar/Q);"
+        +     "}"
+        + "} else {"
+              // TODO: implement other fitness functions
+        +     "assert(F);"
+        + "}"
+        + "return fitness;"
+        + "}"
+        );
+    }
+
+    // Set up mutation callbacks.
     // For each stdpopsim mutation type with an h-s relationship
     // we have a sequence of assigned SLiM mutation types;
     // the first is the one that gets produced by mutation,
@@ -527,7 +659,7 @@ _slim_main = """
     for (i in seqAlong(mut_types_with_callbacks)) {
         mt = mut_types_with_callbacks[i];
         sim.registerMutationCallback(NULL,
-            "{s = mut.selectionCoeff; "
+            "{s = mut.effectSizeForTrait('fitnessT');"
             + "k = findInterval(s, dominance_coeff_breaks_" + mt + "); "
             + "mut.setMutationType(dominance_coeff_types_" + mt + "[k]); "
             + "return T;}",
@@ -623,7 +755,7 @@ _slim_debug_output = """
         new = (sim.mutations.originTick == community.tick);
         for (mut in sim.mutations[new]) {
             dbg(paste(c("dbg_selection_coeff:",
-                        mut.selectionCoeff,
+                        mut.effectSizeForTrait("fitnessT"),
                         mut.id,
                         mut.position),
                       sep="\t"));
@@ -648,10 +780,27 @@ _slim_debug_output = """
         // mutationTypes
         muts = Dictionary();
         for (mt in sim.mutationTypes) {
+            params_dict = Dictionary();
+            distr_type_dict = Dictionary();
+            dominance_dict = Dictionary();
+            for (t in sim.traits) {
+                params_dict.setValue(
+                    t.name,
+                    mt.effectSizeDistributionParamsForTrait(t)
+                );
+                distr_type_dict.setValue(
+                    t.name,
+                    mt.effectSizeDistributionTypeForTrait(t)
+                );
+                dominance_dict.setValue(
+                    t.name,
+                    mt.defaultDominanceForTrait(t)
+                );
+            }
             mut_info = Dictionary(
-                "distributionParams", mt.distributionParams,
-                "distributionType", mt.distributionType,
-                "dominanceCoeff", mt.dominanceCoeff
+                "distributionParams", params_dict,
+                "distributionType", distr_type_dict,
+                "dominanceCoeff", dominance_dict
             );
             muts.setValue(asString(mt.id), mut_info);
         }
@@ -704,6 +853,22 @@ _slim_debug_output = """
     }
 }
 
+// Save trait information in tree sequence metadata
+// TODO: This is for development purposes, and the format of this metadata
+// is subject to change or may even be removed!
+1 first() {
+    if (verbosity >= 3) {
+        trait_dict = Dictionary();
+        for (t in sim.traits) {
+            trait_dict.setValue(t.name,
+                Dictionary("type", t.type)
+            );
+        }
+        metadata.setValue(
+            "traits", trait_dict
+        );
+    }
+}
 """
 
 _raw_stdpopsim_top_level_schema = {
@@ -868,7 +1033,7 @@ def _add_dfes_to_metadata(ts, contig):
     tables = ts.dump_tables()
     schema = tables.metadata_schema.asdict()
     metadata = tables.metadata
-    schema["properties"].update(_raw_stdpopsim_top_level_schema)
+    schema["json"]["properties"].update(_raw_stdpopsim_top_level_schema)
     dfes = _get_json(contig.dme_list)
     dfe_to_mtypes = _dfe_to_mtypes(contig)
     for i, d, ints in _enum_dfe_and_intervals(contig):
@@ -916,12 +1081,47 @@ def msprime_rm_to_slim_rm(recombination_map):
     return rates, ends[1:]
 
 
+def _check_traits_model_contig_consistency(contig, traits_model):
+    mt_traits = []
+    for dme in contig.dme_list:
+        for mt in dme.mutation_types:
+            mt_traits.extend(mt.trait_ids)
+    try:
+        traits_model._check_traits_defined(mt_traits)
+    except ValueError:
+        raise ValueError(
+            "MutationTypes contain trait IDs that are not "
+            "defined in the TraitsModel."
+        )
+    tm_ids = [t.id for t in traits_model.traits]
+    tm_set = set(tm_ids) - set(["fitness"])
+
+    # now check just mutation types that overlap the simulated region
+    mt_traits = []
+    _, left, right = contig.coordinates
+    for dme, intervals in zip(contig.dme_list, contig.interval_list):
+        if intervals.shape[0] > 0:
+            for mt, prop in zip(dme.mutation_types, dme.proportions):
+                if prop > 0:
+                    mt_traits.extend(mt.trait_ids)
+    mt_traits = set(mt_traits) - set(["fitness"])
+    if frozenset(tm_set) != frozenset(mt_traits):
+        warnings.warn(
+            stdpopsim.SLiMTraitsWarning(
+                "There is a trait in the TraitsModel "
+                "that will not be affected by any mutations "
+                "simulated region of the contig."
+            )
+        )
+
+
 def slim_makescript(
     script_file,
     trees_file,
     demographic_model,
     contig,
     samples,
+    traits_model,
     extended_events,
     scaling_factor,
     burn_in,
@@ -931,6 +1131,17 @@ def slim_makescript(
 ):
 
     pop_names = [pop.name for pop in demographic_model.model.populations]
+
+    if traits_model is None:
+        traits_model = stdpopsim.TraitsModel()
+
+    _check_traits_model_contig_consistency(contig, traits_model)
+    # Alignment returns a rewritten copy, so the user's traits_model is
+    # left untouched.
+    traits_model = stdpopsim.traits._align_traits_model_demography(
+        traits_model, demographic_model
+    )
+
     # Use copies of these so that the time frobbing below doesn't have
     # side-effects in the caller's model.
     demographic_events = copy.deepcopy(demographic_model.model.events)
@@ -1036,6 +1247,30 @@ def slim_makescript(
                         for k in range(dd.num_populations):
                             migration_matrices[j][k][lm.source] = 0
                             migration_matrices[j][lm.source][k] = 0
+
+    # For old-style models we need to manually check that environments and
+    # fitness functions are defined in a way that is consistent with the
+    # demography (i.e., only apply to populations that actually exist).
+    slim_existence = {p.id: [] for p in demographic_model.model.populations}
+    for i, epoch in reversed(list(enumerate(epochs))):  # these were reversed above
+        for p in demographic_model.model.populations:
+            if N[p.id, i] > 0:
+                intervals = slim_existence[p.id]
+                if intervals:
+                    assert intervals[-1][1] <= epoch.start_time
+                if intervals and intervals[-1][1] == epoch.start_time:
+                    intervals[-1][1] = epoch.end_time
+                else:
+                    intervals.append([epoch.start_time, epoch.end_time])
+    new_envs = []
+    for env in traits_model.environments:
+        new_envs.extend(stdpopsim.traits._standardize_condition(env, slim_existence))
+    traits_model.environments = new_envs
+
+    new_ffs = []
+    for ff in traits_model.fitness_functions:
+        new_ffs.extend(stdpopsim.traits._standardize_condition(ff, slim_existence))
+    traits_model.fitness_functions = new_ffs
 
     drawn_mutations = []
     fitness_callbacks = []
@@ -1252,10 +1487,19 @@ def slim_makescript(
             dim = (dim[0], len(matrix))
         s.append(f"), c({dim[0]}, {dim[1]}))")
 
-        return "".join(s)
+        return ("".join(s)).replace("inf", "INF")
+
+    # Traits
+    for t in traits_model.traits:
+        printsc(
+            f'    initializeTrait("{t.id}T", "{t.type}", '
+            f"directFitnessEffect = {'T' if t.id == 'fitness' else 'F'});"
+        )
+    printsc()
 
     # Genomic element types.
     mutation_callbacks = {}
+    multivar_muts = {}
     dfe_mtypes = _dfe_to_mtypes(contig)
     for j, d, ints in _enum_dfe_and_intervals(contig):
         # Mutation types and proportions.
@@ -1297,22 +1541,31 @@ def slim_makescript(
                 # Furthermore, for mutation types with a discretized h-s relationship,
                 # we only mutate to the first assigned mutation type, and remaining ones
                 # are produced by a mutation callback.
+                # Here we set all effects to zero, as we will initialize them
+                # later as we loop through traits.
                 mut_type_list.append(mid)
                 use_prop = first_mt and ((not mt.is_neutral) or d.is_neutral)
                 p = d.proportions[mt_index] if use_prop else 0.0
                 mut_props_list.append(p)
-                printsc(
-                    f"    initializeMutationType({mid}, {h}, "
-                    f'"{mt.distribution_type}", {distrib_args});'
-                )
+                printsc(f"    initializeMutationType({mid}, {h}, 'f', 0.0);")
                 if not mt.convert_to_substitution:
                     # T is the default for WF simulations.
                     printsc(f"    m{mid}.convertToSubstitution = F;")
-                # TODO: when msprime.SLiMMutationModel supports stacking policy,
+                # TODO: when/if msprime.SLiMv6MutationModel supports stacking policy,
                 # set policy such that there's at most a single mutation per-site
                 # and individual
                 # printsc(f"    mt{mid}.mutationStackGroup = 0;")
                 # printsc(f"    mt{mid}.mutationStackPolicy = 'l';")
+                if len(mt.trait_ids) == 1:  # this only applies to ONE trait
+                    printsc(
+                        f"    m{mid}.setEffectSizeDistributionForTrait("
+                        f'"{mt.trait_ids[0]}T", '
+                        f'"{mt.distribution_type}", {distrib_args});'
+                    )
+                else:
+                    # add multivariate mutations to a list to deal with later
+                    multivar_muts[mid] = mt
+
                 first_mt = False
         mut_types = ", ".join([str(mt) for mt in mut_type_list])
         mut_props = ", ".join(map(str, mut_props_list))
@@ -1332,11 +1585,70 @@ def slim_makescript(
             printsc(
                 f"    initializeGenomicElement({j}, {element_starts}, {element_ends});"
             )
+
+    # Now we deal with the multivariate mutation types. Here we print out the
+    # information that we will need later to generate mutation callbacks.
+    # TODO: this set up is (probably) fine for now, but assumes that everything
+    # is multivariate normal. I think this should probably mimic what we do
+    # with transformations below, where we store the transformation type in a
+    # SLiM list and then store the relevant parameters in a SLiM Dictionary()
+    # That would "futureproof" us to implementing new mutation types
+    printsc()
+    printsc("    // MutationTypes that affect multiple traits")
+    printsc(
+        '    defineConstant("multivar_mut_types", c('
+        + ", ".join(map(str, multivar_muts.keys()))
+        + "));"
+    )
+    printsc('    defineConstant("multivar_mut_means", Dictionary());')
+    printsc('    defineConstant("multivar_mut_covs", Dictionary());')
+    printsc('    defineConstant("multivar_mut_traits", Dictionary());')
+    for mid, mt in multivar_muts.items():
+        printsc()
+        assert mt.distribution_type == "mvn"  # TODO: just for now
+        printsc("    // Mean, variance, and affected traits for")
+        printsc(f"    // MutationType m{mid}")
+        printsc(
+            "    multivar_mut_means.setValue("
+            + f"{mid}, c("
+            + ", ".join(map(str, mt.distribution_args[0]))
+            + "));"  # this sad winky face is how I feel
+        )
+        printsc(
+            "    multivar_mut_covs.setValue("
+            + f"{mid}, "
+            + matrix2str(mt.distribution_args[1])
+            + ");"
+        )
+        printsc(
+            "    multivar_mut_traits.setValue("
+            + f"{mid}, c("
+            + ", ".join([f'"{tid}T"' for tid in mt.trait_ids])
+            + "));"
+        )
+    printsc()
+
     # Mutation rate map.
     mut_breaks = slim_array_string(map(int, slim_rate_map[0]), indent)
     mut_rates = slim_array_string(slim_rate_map[1], indent)
     printsc(f"    initializeMutationRate(Q*{mut_rates}, {mut_breaks});")
     printsc()
+
+    # Oldest traits model time
+    # In principle, if fitness functions or environments start applying
+    # more anciently than the most ancient time in the demographic model, we
+    # would want to do our burn-in before even that time. I.e., we don't want
+    # these things to start applying in the middle of burn-in.
+    max_tm_time, event_id = stdpopsim.traits._find_oldest_event(traits_model, dd)
+    max_tm_time *= demographic_model.generation_time
+    if event_id != "":
+        printsc("    // Time at which the oldest fitness function that does not")
+        printsc("    // persist back to INF starts, in years before present.")
+    else:
+        printsc("    // The oldest time is determined by the demography.")
+    printsc(
+        f'    defineConstant("_oldest_time_including_traits_model", {max_tm_time});'
+    )
 
     # Epoch times.
     printsc("    // Time of epoch boundaries, in years before present.")
@@ -1380,7 +1692,7 @@ def slim_makescript(
     # Migration rates.
     printsc("    // Migration rates for each epoch.")
     printsc("    // Migrations involving a population with size=0 are ignored.")
-    printsc("    // XXX: document what the rows & cols correspond to.")
+    printsc("    // TODO: document what the rows & cols correspond to.")
     printsc('    defineConstant("migration_matrices", array(c(')
     for i in range(len(migration_matrices)):
         epoch_str = f"INF:_T[{i}]" if i == 0 else f"_T[{i}]:_T[{i+1}]"
@@ -1436,6 +1748,94 @@ def slim_makescript(
         + ");"
     )
     printsc()
+
+    # Environment callbacks
+    printsc("    // Environmental effects")
+    env_pops = []
+    env_dist = []
+    for e in traits_model.environments:
+        assert len(e.population_list) == 1
+        env_pops.append(e.population_list[0])
+        env_dist.append(e.distribution_type)
+    env_pops = ", ".join(map(str, env_pops))
+    env_dist = ", ".join([f'"{ed}"' for ed in env_dist])
+    printsc(f'    defineConstant("env_pops", c({env_pops}));')
+    printsc(f'    defineConstant("env_dist", c({env_dist}));')
+    printsc('    defineConstant("env_intervals", Dictionary());')
+    printsc('    defineConstant("env_params", Dictionary());')
+    printsc('    defineConstant("env_traits", Dictionary());')
+    for idx, e in enumerate(traits_model.environments):
+        intervals = np.array(e.time_intervals)
+        printsc(
+            f"    env_intervals.setValue({idx},"
+            + matrix2str(intervals.T.astype(float), dim=intervals.shape)
+            + ");"
+        )
+        if e.distribution_type == "mvn":
+            printsc("    x = Dictionary();")
+            means = ", ".join(map(str, e.distribution_args[0]))
+            printsc(f'    x.setValue("means", c({means}));')
+            covar = matrix2str(e.distribution_args[1])
+            printsc(f'    x.setValue("covar", {covar});')
+            printsc(f"    env_params.setValue({idx}, x);")
+        else:
+            # TODO: implement other distribution types
+            raise NotImplementedError(
+                "Environment distribution not implemented in slim_engine."
+            )
+        these_traits = ", ".join([f'"{tid}T"' for tid in e.trait_ids])
+        printsc(f"    env_traits.setValue({idx}, c({these_traits}));")
+
+    # Trait transformation callbacks
+    printsc("    // Trait transformations")
+    # chr(34) is " and we use it to get away without needing nested f-strings.
+    printsc(
+        '    defineConstant("trait_transforms", c('
+        f'{", ".join([chr(34) + t.transform + chr(34) for t in traits_model.traits])}));'
+    )
+    printsc('    defineConstant("trait_transform_params", Dictionary());')
+    for t_idx, t in enumerate(traits_model.traits):
+        if t.transform != "identity":
+            params = ", ".join(map(str, t.transform_args))
+            printsc(f"    trait_transform_params.setValue({t_idx}, c({params}));")
+    printsc()
+
+    # Trait fitness effect callbacks
+    printsc("    // Trait fitness callbacks")
+    fit_func_pops = []
+    fit_func_types = []
+    for ff in traits_model.fitness_functions:
+        assert len(ff.population_list) == 1
+        fit_func_pops.append(ff.population_list[0])
+        fit_func_types.append(ff.function_type)
+    fit_func_pops = ", ".join(map(str, fit_func_pops))
+    fit_func_types = ", ".join([f'"{ft}"' for ft in fit_func_types])
+    printsc(f'    defineConstant("fit_func_pops", c({fit_func_pops}));')
+    printsc(f'    defineConstant("fit_func_types", c({fit_func_types}));')
+    printsc('    defineConstant("fit_func_intervals", Dictionary());')
+    printsc('    defineConstant("fit_func_params", Dictionary());')
+    printsc('    defineConstant("fit_func_traits", Dictionary());')
+    for idx, ff in enumerate(traits_model.fitness_functions):
+        intervals = np.array(ff.time_intervals)
+        printsc(
+            f"    fit_func_intervals.setValue({idx},"
+            + matrix2str(intervals.T.astype(float), dim=intervals.shape)
+            + ");"
+        )
+        if ff.function_type == "gaussian":
+            printsc("    x = Dictionary();")
+            means = ", ".join(map(str, ff.function_args[0]))
+            printsc(f'    x.setValue("means", c({means}));')
+            covar = matrix2str(ff.function_args[1])
+            printsc(f'    x.setValue("covar", {covar});')
+            printsc(f"    fit_func_params.setValue({idx}, x);")
+        else:
+            # TODO: implement other function types
+            raise NotImplementedError(
+                "FitnessFunction function not implemented in slim_engine."
+            )
+        these_traits = ", ".join([f'"{tid}T"' for tid in ff.trait_ids])
+        printsc(f"    fit_func_traits.setValue({idx}, c({these_traits}));")
 
     # Fitness callbacks.
     printsc("    // Fitness callbacks, one row for each callback.")
@@ -1527,9 +1927,11 @@ def slim_makescript(
         + ");"
     )
 
+    # finish the initialize() block
     printsc(_slim_lower)
     printsc(_slim_functions)
     printsc(_slim_main)
+
     if logfile is not None:
         printsc(
             string.Template(_slim_logfile).substitute(
@@ -1539,6 +1941,7 @@ def slim_makescript(
         )
     printsc(_slim_debug_output)
 
+    # TODO: REMOVE THIS MONKEY PATCH MAYBE???
     return epochs[0]
 
 
@@ -1591,6 +1994,7 @@ class _SLiMEngine(stdpopsim.Engine):
         contig,
         samples,
         *,
+        traits_model=None,
         seed=None,
         extended_events=None,
         slim_path=None,
@@ -1615,6 +2019,8 @@ class _SLiMEngine(stdpopsim.Engine):
         * ``separate_sexes``: if the species has separate sexes, SLiM
             will use a two-sex Wright-Fisher model (instead of the default
             hermaphroditic WF model)
+
+        TODO: document ``traits_model``, a TraitsModel
 
         :param seed: The seed for the random number generator.
         :type seed: int
@@ -1712,15 +2118,16 @@ class _SLiMEngine(stdpopsim.Engine):
             script_file, script_filename, ts_filename = st
 
             recap_epoch = slim_makescript(
-                script_file,
-                ts_filename,
-                demographic_model,
-                contig,
-                sample_sets,
-                extended_events,
-                slim_scaling_factor,
-                slim_burn_in,
-                slim_rate_map,
+                script_file=script_file,
+                trees_file=ts_filename,
+                demographic_model=demographic_model,
+                contig=contig,
+                samples=sample_sets,
+                traits_model=traits_model,
+                extended_events=extended_events,
+                scaling_factor=slim_scaling_factor,
+                burn_in=slim_burn_in,
+                slim_rate_map=slim_rate_map,
                 logfile=logfile,
                 logfile_interval=logfile_interval,
             )
@@ -1761,7 +2168,6 @@ class _SLiMEngine(stdpopsim.Engine):
                 )
             if contig.exclusion_mask is not None:
                 ts = stdpopsim.utils.mask_tree_sequence(ts, contig.exclusion_mask, True)
-
         return ts
 
     def _run_slim(
@@ -1956,14 +2362,12 @@ class _SLiMEngine(stdpopsim.Engine):
                         rates[is_this_dfe] = rate
                         return msprime.RateMap(position=breaks, rate=rates)
 
-                    # Use msprime.SLiMMutationModel rather than msprime.JC69
-                    # for neutral DFEs.  This ensures that there will be a
-                    # 'selection_coef' key in the mutation metadata (so the
-                    # mutation metadata structure will be consistent across the
+                    # Use msprime.SLiMv6MutationModel rather than msprime.JC69
+                    # for neutral DFEs.  This ensures that the mutation
+                    # metadata structure will be consistent across the
                     # tree sequence).
                     # TODO: set stacking policy to "l" when supported
-                    model = msprime.SLiMMutationModel(
-                        type=mt["slim_mutation_type_id"][0],
+                    model = msprime.SLiMv6MutationModel(
                         next_id=_get_next_id(ts),
                     )
 
@@ -1991,7 +2395,9 @@ class _SLiMEngine(stdpopsim.Engine):
                         keep=True,
                         random_seed=mut_seed,
                     )
-
+                    ts = pyslim.add_mutation_metadata(
+                        ts, mutation_type=mt["slim_mutation_type_id"][0]
+                    )
         if not keep_mutation_ids_as_alleles:
             nuc_seed = rng.randrange(1, 2**32)
             ts = pyslim.convert_alleles(
@@ -2013,6 +2419,7 @@ class _SLiMEngine(stdpopsim.Engine):
         demographic_model,
         contig,
         samples,
+        traits_model=None,
         extended_events=None,
         slim_scaling_factor=1.0,
         seed=None,
@@ -2058,26 +2465,27 @@ class _SLiMEngine(stdpopsim.Engine):
 
         with open(os.devnull, "w") as script_file:
             recap_epoch = slim_makescript(
-                script_file,
-                "unused.trees",
-                demographic_model,
-                contig,
-                sample_sets,
-                extended_events,
-                slim_scaling_factor,
-                1,
-                slim_rate_map,
+                script_file=script_file,
+                trees_file="unused.trees",
+                demographic_model=demographic_model,
+                contig=contig,
+                samples=sample_sets,
+                traits_model=traits_model,
+                extended_events=extended_events,
+                scaling_factor=slim_scaling_factor,
+                burn_in=1,
+                slim_rate_map=slim_rate_map,
             )
 
         ts = _add_dfes_to_metadata(ts, contig)
         ts = self._recap_and_rescale(
-            ts,
-            seed,
-            recap_epoch,
-            contig,
-            slim_scaling_factor,
-            keep_mutation_ids_as_alleles,
-            extended_events,
+            ts=ts,
+            seed=seed,
+            recap_epoch=recap_epoch,
+            contig=contig,
+            slim_scaling_factor=slim_scaling_factor,
+            keep_mutation_ids_as_alleles=keep_mutation_ids_as_alleles,
+            extended_events=extended_events,
         )
         return ts
 

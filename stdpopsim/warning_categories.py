@@ -20,6 +20,10 @@ class SLiMOddSampleWarning(UserWarning):
     pass
 
 
+class SLiMTraitsWarning(UserWarning):
+    pass
+
+
 class UnspecifiedSLiMWarning(UserWarning):
     pass
 
