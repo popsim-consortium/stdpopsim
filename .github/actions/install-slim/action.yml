@@ -1,0 +1,112 @@
+# Composite action that puts a `slim` binary on PATH for later steps.
+# SLiM is not on PyPI, so it cannot come from uv.lock. Either a released
+# version is installed from conda-forge, or SLiM is built from its github
+# repository. Only the built binary is cached, keyed on the runner, the
+# branch, and cache-number.
+name: Install SLiM
+description: Install a SLiM release from conda-forge, or build SLiM from github.
+
+inputs:
+  version:
+    description: >-
+      Released SLiM version to install from conda-forge, for example "5.2".
+      Leave empty to build SLiM from github instead.
+    required: false
+    default: ""
+  branch:
+    description: >-
+      Git branch to build when building from github. Leave empty for the
+      default branch of the SLiM repository.
+    required: false
+    default: ""
+  cache-number:
+    description: Increase this to discard the cached binary and rebuild.
+    required: false
+    default: "1"
+
+runs:
+  using: composite
+  steps:
+    - name: Install released SLiM from conda-forge
+      if: inputs.version != ''
+      uses: mamba-org/setup-micromamba@v3.2.1
+      with:
+        environment-name: slim
+        create-args: slim=${{ inputs.version }}
+        init-shell: none
+
+    - name: Add released SLiM to PATH
+      if: inputs.version != ''
+      # conda-forge puts the binary under bin/ on Linux and macOS and
+      # under Library/bin/ on Windows.
+      shell: bash
+      run: |
+        echo "$MAMBA_ROOT_PREFIX/envs/slim/bin" >> "$GITHUB_PATH"
+        echo "$MAMBA_ROOT_PREFIX/envs/slim/Library/bin" >> "$GITHUB_PATH"
+
+    - name: Cache SLiM binary
+      if: inputs.version == ''
+      id: cache-slim
+      uses: actions/cache@v4.2.0
+      with:
+        path: SLiM/Release/slim*
+        key: slim-${{ runner.os }}-${{ runner.arch }}-${{ inputs.branch || 'default' }}-${{ inputs.cache-number }}
+
+    - name: Build SLiM from github (Linux, macOS)
+      if: inputs.version == '' && runner.os != 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        SLIM_BRANCH: ${{ inputs.branch }}
+      run: |
+        git clone --depth 1 ${SLIM_BRANCH:+--branch $SLIM_BRANCH} https://github.com/messerlab/SLiM.git
+        mkdir -p SLiM/Release
+        cd SLiM/Release
+        cmake -DCMAKE_BUILD_TYPE=Release ..
+        make -j 2
+
+    - name: Set up MSYS2 (Windows)
+      if: inputs.version == '' && runner.os == 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
+      uses: msys2/setup-msys2@v2.32.0
+      with:
+        msystem: UCRT64
+        release: false
+        install: >-
+          git
+          base-devel
+          msys2-devel
+          mingw-w64-ucrt-x86_64-toolchain
+          mingw-w64-ucrt-x86_64-cmake
+          mingw-w64-ucrt-x86_64-autotools
+
+    - name: Build SLiM from github (Windows)
+      # SLiM links its runtime statically on Windows, so the resulting
+      # slim.exe runs from the plain bash shell used by later steps.
+      if: inputs.version == '' && runner.os == 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
+      shell: msys2 {0}
+      env:
+        SLIM_BRANCH: ${{ inputs.branch }}
+      run: |
+        git clone --depth 1 ${SLIM_BRANCH:+--branch $SLIM_BRANCH} https://github.com/messerlab/SLiM.git
+        cd SLiM/windows_compat/gnulib
+        # The gnulib configure scripts must be newer than their inputs,
+        # or the build tries to regenerate them with autotools.
+        touch aclocal.m4 Makefile.am configure configure.ac config.h.in Makefile.in
+        cd ../..
+        mkdir -p Release
+        cd Release
+        cmake -G"MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+        make -j 2
+
+    - name: Add built SLiM to PATH
+      if: inputs.version == ''
+      shell: bash
+      run: |
+        if [ "$RUNNER_OS" = "Windows" ]; then
+          echo "${GITHUB_WORKSPACE}\\SLiM\\Release" >> "$GITHUB_PATH"
+        else
+          echo "${GITHUB_WORKSPACE}/SLiM/Release" >> "$GITHUB_PATH"
+        fi
+
+    - name: Verify SLiM
+      shell: bash
+      run: slim -v
