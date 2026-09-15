@@ -18,9 +18,10 @@ jobs:
         os: [ubuntu-24.04, macos-latest, windows-latest]
         python: ["3.11", "3.13"]
     env:
-      CONDA_ENV_NAME: stdpopsim
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python }}
+      # Increase this to rebuild SLiM from the current github head.
+      SLIM_CACHE_NUM: 1
     steps:
       - name: cancel previous runs
         uses: styfle/cancel-workflow-action@0.12.1
@@ -30,62 +31,71 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4.2.2
 
-      - name: Cache conda and dependencies
-        id: cache
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v10.1.0
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+
+      - name: Install test deps
+        run: uv sync --locked --group test --no-default-groups
+
+      # SLiM is not a Python package, so it is built from source below.
+      # Only the binary is cached, keyed on the runner and SLIM_CACHE_NUM.
+      - name: Cache SLiM binary
+        id: cache-slim
         uses: actions/cache@v4.2.0
-        env:
-          # Increase this to reset the cache if the key hasn't changed.
-          CACHE_NUM: 1
         with:
-          path: ${{ env.CONDA }}/envs
-          key: ${{ runner.os }}-${{ runner.arch }}-${{ matrix.python}}-conda-${{ env.CACHE_NUM }}-${{ hashFiles('requirements/CI/*') }}
+          path: SLiM/Release/slim*
+          key: slim-${{ runner.os }}-${{ runner.arch }}-${{ env.SLIM_CACHE_NUM }}
 
-      - name: Install Conda
-        uses: mamba-org/setup-micromamba@v3
-        with:
-          environment-name: anaconda-client-env
-          init-shell: bash
-          create-args: |
-            python=${{ matrix.python }}
-
-      - name: Fix windows .profile
-        if: steps.cache.outputs.cache-hit != 'true' && matrix.os == 'windows-latest'
-        run: |
-          cp ~/.bash_profile ~/.profile
-
-      - name: Install conda deps
-        if: steps.cache.outputs.cache-hit != 'true'
-        shell: bash -l {0} #We need a login shell to get conda
-        run: |
-          micromamba install --yes --file=requirements/CI/conda.txt
-
-      - name: Install pip deps
-        if: steps.cache.outputs.cache-hit != 'true'
-        shell: bash -l {0}
-        run: |
-            pip install -r requirements/CI/requirements.txt
-
-      - name: Install development SLiM
+      - name: Install development SLiM (Linux, macOS)
       # This should be COMMENTED OUT for release versions,
       # since this builds SLiM from github head.
-        if: (matrix.os == 'macos-latest' || matrix.os == 'ubuntu-24.04') && steps.cache.outputs.cache-hit != 'true'
-        # If we want to re-build slim from a new commit to the slim repo
-        # we may need to bump the cache key above.
-        shell: bash -l {0}
+        if: runner.os != 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
         run: |
-          git clone https://github.com/messerlab/SLiM.git
+          git clone --depth 1 https://github.com/messerlab/SLiM.git
           mkdir -p SLiM/Release
           cd SLiM/Release
           cmake -DCMAKE_BUILD_TYPE=Release ..
           make -j 2
 
-      - name: run test suite
-        shell: bash -l {0}
+      - name: Set up MSYS2 (Windows)
+        if: runner.os == 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
+        uses: msys2/setup-msys2@v2.32.0
+        with:
+          msystem: UCRT64
+          release: false
+          install: >-
+            git
+            base-devel
+            msys2-devel
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-cmake
+
+      - name: Install development SLiM (Windows)
+      # SLiM links its runtime statically on Windows, so the resulting
+      # slim.exe runs from the plain bash shell used by the test step.
+        if: runner.os == 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
+        shell: msys2 {0}
         run: |
-          micromamba activate anaconda-client-env
+          git clone --depth 1 https://github.com/messerlab/SLiM.git
+          cd SLiM/windows_compat/gnulib
+          # The gnulib configure scripts must be newer than their inputs,
+          # or the build tries to regenerate them with autotools.
+          touch --date="`date`" aclocal.m4 Makefile.am configure configure.ac config.h.in Makefile.in
+          cd ../..
+          mkdir -p Release
+          cd Release
+          cmake -G"MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+          make -j 2
+
+      - name: run test suite
+        run: |
           export PATH=$PWD/SLiM/Release:$PATH
           slim -v
-          python -m pytest \
+          uv run --locked --group test --no-default-groups \
+            pytest \
             -n 0 \
             -v \
             --cov=stdpopsim \

@@ -11,3 +11,4 @@ stdpopsim.egg-info
 htmlcov
 _test_cache
 test_cache
+.venv

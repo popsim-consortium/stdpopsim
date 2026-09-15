@@ -66,60 +66,53 @@ Installation
 Before installing, be sure to make a fork of the repo and clone it locally
 following the instructions in the `GitHub Workflow`_.
 
-The ``stdpopsim`` library requires Python 3.4 or later.
+The ``stdpopsim`` library requires Python 3.11 or later.
 
-For ``pip`` users, install the packages required for development using::
+We use `uv <https://docs.astral.sh/uv/>`__ to manage the development
+environment. All dependencies are declared in ``pyproject.toml``, and the
+exact versions used for development and testing are recorded in ``uv.lock``.
+First `install uv <https://docs.astral.sh/uv/getting-started/installation/>`__,
+then, from the root of your clone, run::
 
-    $ python3 -m pip install -r requirements/development.txt
+    $ uv sync
 
-You can then install the development version of ``stdpopsim`` like this::
+This creates a virtual environment in ``.venv/``, installs ``stdpopsim`` into
+it in editable mode, and installs all of the development tools (test, docs,
+lint and catalog maintenance dependencies). You do not need to activate the
+virtual environment: prefix any command with ``uv run`` to run it inside the
+environment, for example::
 
-    $ python3 setup.py install
+    $ uv run pytest
+    $ uv run stdpopsim --version
 
-For ``conda`` users, you will need to add the conda-forge channel to your conda
-environment and then should be able to install the development requirements using::
+If you prefer to work in an activated environment, activate it in the usual
+way (``source .venv/bin/activate`` on Linux and macOS,
+``.venv\Scripts\activate`` on Windows) and then run commands directly.
 
-    $ conda config --add channels conda-forge
-    $ conda install --file=requirements/development.txt
+The development tools are split into
+`dependency groups <https://packaging.python.org/en/latest/specifications/dependency-groups/>`__
+named ``test``, ``docs``, ``lint`` and ``maintenance``. ``uv sync`` installs
+all of them by default. To install only what is needed for one task, use for
+example::
 
+    $ uv sync --no-default-groups --group test
 
-We do require ``msprime``, so please see the the `installation notes
+The dependency groups can also be installed with recent versions of ``pip``
+(25.1 or later) if you do not want to use ``uv``::
+
+    $ python3 -m venv stdpopsim_env
+    $ source stdpopsim_env/bin/activate
+    (stdpopsim_env) $ python3 -m pip install -e . --group dev
+
+We do require ``msprime``, so please see the `installation notes
 <https://tskit.dev/msprime/docs/stable/installation.html>`__ if you
 encounter problems with it.
 
-.. Note:: If you have trouble installing any of the requirements, your ``pip`` may be the wrong version.
-    Try ``pip3 install -r requirements/development.txt``
-
----------------------------
-Using a Virtual Environment
----------------------------
-
-We encourage the use of a virtual environment.
-
-For ``pip``, you can use ``venv``.
-
-First, create the virtual environment (You only need to do this once)::
-
-    $ python3 -m venv stdpopsim_env
-
-Next, activate the virtual environment::
-
-    $ source stdpopsim_env/bin/activate
-
-You will then see the virtual environment in your prompt. Like so::
-
-    (stdpopsim_env) $
-
-Once the virtual environment is activated, install the requirements::
-
-    (stdpopsim_env) $ python3 -m pip install -r requirements/development.txt
-
-You can then run any of the code in the virtual environment with the packages installed,
-without conflicting with other packages in your local environment.
-To deactivate the virtual environment::
-
-    (stdpopsim_env) $ deactivate
-
+Many tests and examples also require `SLiM <https://messerlab.org/slim/>`__.
+The test suite looks for a ``slim`` executable on your ``PATH``, or at the
+location given by the ``SLIM`` environment variable. SLiM can be installed
+with ``conda install -c conda-forge slim``, or built from source; see the
+SLiM manual for details.
 
 ***************
 GitHub workflow
@@ -131,7 +124,7 @@ GitHub workflow
        a local copy.
     2. Install the pre-commit hooks with::
 
-        $ pre-commit install
+        $ uv run pre-commit install
 
     2. Make sure that your local repository has been configured with an
        `upstream remote <https://help.github.com/articles/configuring-a-remote-for-a-fork/>`__.
@@ -1756,31 +1749,25 @@ as part of unit tests.
 The unit test suite is in the ``tests/`` directory. Tests are run using the
 `pytest <https://docs.pytest.org/en/stable/>`__ module. Use::
 
-    $ python3 -m pytest
+    $ uv run pytest
 
 from the project root to run the full test suite. Pytest is very powerful and
 has lots of options; please see the `tskit documentation
 <https://tskit.dev/tskit/docs/stable/development.html#tests>`__ for help on
 how to run pytest and some common options.
 
-It's useful to run the ``flake8`` CI tests *locally* before pushing a commit.
-To set this up use either ``pip`` or ``conda`` to install ``flake8``
+It's useful to run the ``flake8`` and ``black`` CI checks *locally* before
+pushing a commit. Both are installed by ``uv sync``, and their settings are
+read from ``.flake8`` and ``pyproject.toml``, so you can run them with::
 
-To run the test simply use::
+    $ uv run flake8 stdpopsim tests
+    $ uv run black --check stdpopsim tests
 
-    $ flake8 --max-line-length 89 stdpopsim tests
+The same checks run automatically before each commit once you have installed
+the `pre-commit <https://pre-commit.com/>`__ hooks (see `GitHub workflow`_).
+To run all of the hooks on every file, use::
 
-If you would like to automatically run this test before a commit is permitted,
-add the following line in the file ``stdpopsim/.git/hooks/pre-commit.sample``::
-
-    exec flake8 --max-line-length 89 setup.py stdpopsim tests
-
-before::
-
-    # If there are whitespace errors, print the offending file names and fail.
-    exec git diff-index --check --cached $against --
-
-Finally, rename ``pre-commit.sample`` to simply ``pre-commit``
+    $ uv run pre-commit run --all-files
 
 *************
 Code Coverage
@@ -1791,7 +1778,7 @@ well the test units cover the source code. As a result it's very helpful
 to check locally how well your tests are covering your code by asking
 `pytest` for coverage reports. This can be done with::
 
-    $ pytest --cov-report html --cov=stdpopsim tests/
+    $ uv run pytest --cov-report html --cov=stdpopsim tests/
 
 this will output a directory of html files for you to browse test coverage
 for every file in ``stdpopsim`` in a reasonably straightfoward graphical
@@ -1808,12 +1795,17 @@ Documentation is written using `reStructuredText <http://docutils.sourceforge.ne
 markup and the `sphinx <http://www.sphinx-doc.org/en/master/>`__ documentation system.
 It is defined in the ``docs/`` directory.
 
-To build the documentation type ``make`` in the ``docs/`` directory. This should build
-HTML output in the ``docs/_build/html/`` directory.
+To build the documentation, run::
+
+    $ uv run make -C docs
+
+This should build HTML output in the ``docs/_build/html/`` directory.
 
 .. note::
 
-    You will need ``stdpopsim`` to be installed for the build to work.
+    The build runs the ``stdpopsim`` command line interface to generate
+    some of the output, so ``stdpopsim`` must be installed in the
+    environment. ``uv sync`` takes care of this.
 
 
 ********************
@@ -1825,10 +1817,10 @@ Here is a list of things to do when making a new release:
 1. Update the changelog and commit
 2. Create a release using the GitHub UI
 3. `git fetch upstream` on your local branch.
-    Then check out `upstream/main` and create a release tarball
-    (with `python setup.py sdist`).
-    Setuptools_scm will detect the version appopriately.
-4. Upload to PyPI: `twine upload dist/{version just tagged}.tar.gz`
+    Then check out `upstream/main` and build the release sdist and wheel
+    with `uv build`.
+    Setuptools_scm will detect the version appopriately from the tag.
+4. Upload to PyPI: `uv publish dist/*`
 5. After the release, if everything looks OK,
    update the symlink for ``stable`` in the
    `stdpopsim-docs <https://github.com/popsim-consortium/stdpopsim-docs>`__
