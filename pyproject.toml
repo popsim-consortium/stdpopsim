@@ -64,6 +64,8 @@ test = [
     "coverage",
     "kastore",
     "scipy",
+    # The test suite imports the catalog maintenance scripts.
+    {include-group = "maintenance"},
 ]
 
 docs = [

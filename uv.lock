@@ -2555,11 +2555,18 @@ maintenance = [
     { name = "scikit-allel" },
 ]
 test = [
+    { name = "biopython" },
+    { name = "black" },
+    { name = "click" },
     { name = "coverage" },
+    { name = "daiquiri" },
     { name = "kastore" },
+    { name = "matplotlib" },
+    { name = "pandas" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-xdist" },
+    { name = "scikit-allel" },
     { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
@@ -2627,11 +2634,18 @@ maintenance = [
     { name = "scikit-allel" },
 ]
 test = [
+    { name = "biopython" },
+    { name = "black" },
+    { name = "click" },
     { name = "coverage" },
+    { name = "daiquiri" },
     { name = "kastore" },
+    { name = "matplotlib" },
+    { name = "pandas" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-xdist" },
+    { name = "scikit-allel" },
     { name = "scipy" },
 ]
 

@@ -72,6 +72,7 @@ jobs:
             msys2-devel
             mingw-w64-ucrt-x86_64-toolchain
             mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-autotools
 
       - name: Install development SLiM (Windows)
       # SLiM links its runtime statically on Windows, so the resulting
@@ -83,7 +84,7 @@ jobs:
           cd SLiM/windows_compat/gnulib
           # The gnulib configure scripts must be newer than their inputs,
           # or the build tries to regenerate them with autotools.
-          touch --date="`date`" aclocal.m4 Makefile.am configure configure.ac config.h.in Makefile.in
+          touch aclocal.m4 Makefile.am configure configure.ac config.h.in Makefile.in
           cd ../..
           mkdir -p Release
           cd Release
