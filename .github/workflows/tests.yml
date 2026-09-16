@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   tests:
@@ -20,7 +21,14 @@ jobs:
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python }}
-      # Increase this to rebuild SLiM from the current github head.
+      # SLiM is not on PyPI, so it does not come from uv.lock. Leave
+      # SLIM_VERSION empty to build SLiM from github head, which is needed
+      # while the code depends on unreleased SLiM features. Set it to a
+      # released version, for example "5.2", to install that release from
+      # conda-forge instead. Do that once the next SLiM release is out.
+      SLIM_VERSION: ""
+      # Increase this to rebuild SLiM from a newer github head. Only the
+      # slim binary is cached, keyed on the runner and this number.
       SLIM_CACHE_NUM: 1
     steps:
       - name: cancel previous runs
@@ -40,19 +48,32 @@ jobs:
       - name: Install test deps
         run: uv sync --locked --group test --no-default-groups
 
-      # SLiM is not a Python package, so it is built from source below.
-      # Only the binary is cached, keyed on the runner and SLIM_CACHE_NUM.
+      - name: Install released SLiM from conda-forge
+        if: env.SLIM_VERSION != ''
+        uses: mamba-org/setup-micromamba@v3.2.1
+        with:
+          environment-name: slim
+          create-args: slim=${{ env.SLIM_VERSION }}
+          init-shell: none
+
+      - name: Add released SLiM to PATH
+        if: env.SLIM_VERSION != ''
+        # conda-forge puts the binary under bin/ on Linux and macOS and
+        # under Library/bin/ on Windows.
+        run: |
+          echo "$MAMBA_ROOT_PREFIX/envs/slim/bin" >> $GITHUB_PATH
+          echo "$MAMBA_ROOT_PREFIX/envs/slim/Library/bin" >> $GITHUB_PATH
+
       - name: Cache SLiM binary
+        if: env.SLIM_VERSION == ''
         id: cache-slim
         uses: actions/cache@v4.2.0
         with:
           path: SLiM/Release/slim*
           key: slim-${{ runner.os }}-${{ runner.arch }}-${{ env.SLIM_CACHE_NUM }}
 
-      - name: Install development SLiM (Linux, macOS)
-      # This should be COMMENTED OUT for release versions,
-      # since this builds SLiM from github head.
-        if: runner.os != 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
+      - name: Build development SLiM (Linux, macOS)
+        if: env.SLIM_VERSION == '' && runner.os != 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
         run: |
           git clone --depth 1 https://github.com/messerlab/SLiM.git
           mkdir -p SLiM/Release
@@ -61,7 +82,7 @@ jobs:
           make -j 2
 
       - name: Set up MSYS2 (Windows)
-        if: runner.os == 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
+        if: env.SLIM_VERSION == '' && runner.os == 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
         uses: msys2/setup-msys2@v2.32.0
         with:
           msystem: UCRT64
@@ -74,10 +95,10 @@ jobs:
             mingw-w64-ucrt-x86_64-cmake
             mingw-w64-ucrt-x86_64-autotools
 
-      - name: Install development SLiM (Windows)
+      - name: Build development SLiM (Windows)
       # SLiM links its runtime statically on Windows, so the resulting
       # slim.exe runs from the plain bash shell used by the test step.
-        if: runner.os == 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
+        if: env.SLIM_VERSION == '' && runner.os == 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
         shell: msys2 {0}
         run: |
           git clone --depth 1 https://github.com/messerlab/SLiM.git

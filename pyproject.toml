@@ -53,6 +53,9 @@ include = ["stdpopsim*"]
 [tool.setuptools_scm]
 # The version is derived from git tags and written to this file at build time.
 version_file = "stdpopsim/_version.py"
+# Untagged commits get a plain .devN version. PyPI and TestPyPI reject the
+# default "+gHASH" local suffix, so this is needed to upload test builds.
+local_scheme = "no-local-version"
 
 # Dependency groups are installed with `uv sync --group <name>` or
 # `pip install --group <name>`. They are not part of the published package.

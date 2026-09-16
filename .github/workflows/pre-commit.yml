@@ -22,6 +22,9 @@ jobs:
         run: uv sync --locked --only-group lint
 
       - name: Cache pre-commit hook environments
+        # setup-uv caches the Python packages that uv installs. pre-commit
+        # builds its own isolated environment for each hook from the repos
+        # in .pre-commit-config.yaml, and stores them here instead.
         uses: actions/cache@v4.2.0
         with:
           path: ~/.cache/pre-commit

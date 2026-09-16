@@ -28,8 +28,10 @@ jobs:
           enable-cache: true
 
       - name: Install docs deps
-        # This also installs the local package so that stdpopsim is in the
-        # path, which is needed for generating docs `command-output`.
+        # `uv run` below would install everything on demand, but a separate
+        # step keeps dependency problems apart from documentation problems in
+        # the logs. This also installs the local package so that stdpopsim is
+        # in the path, which is needed for generating docs `command-output`.
         run: uv sync --locked --group docs --no-default-groups
 
       - name: Build Docs

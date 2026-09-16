@@ -1812,17 +1812,61 @@ This should build HTML output in the ``docs/_build/html/`` directory.
 Making a new release
 ********************
 
+Releases are built and uploaded by the "Publish Python release" GitHub
+Actions workflow in ``.github/workflows/wheels.yml``, following the
+`tskit-dev release process
+<https://github.com/tskit-dev/.github/blob/main/repo_administration.md#standard-python-release-process>`__.
+The workflow uses PyPI `trusted publishing
+<https://docs.pypi.org/trusted-publishers/>`__, so no upload tokens are
+stored in the repository. This needs a one-time setup by a maintainer:
+create a GitHub Actions environment named ``release`` in the repository
+settings, and add a trusted publisher for this repository and that
+environment on both `PyPI <https://pypi.org/manage/account/publishing/>`__
+and `TestPyPI <https://test.pypi.org/manage/account/publishing/>`__.
+
 Here is a list of things to do when making a new release:
 
-1. Update the changelog and commit
-2. Create a release using the GitHub UI
-3. `git fetch upstream` on your local branch.
-    Then check out `upstream/main` and build the release sdist and wheel
-    with `uv build`.
-    Setuptools_scm will detect the version appopriately from the tag.
-4. Upload to PyPI: `uv publish dist/*`
+1. Update the changelog with the version number and date, and merge that PR.
+2. Test the release on TestPyPI. Push the current ``upstream/main`` to a
+   branch named ``test-publish`` on the upstream repository::
+
+       $ git fetch upstream
+       $ git push upstream upstream/main:test-publish
+
+   This triggers the workflow, which builds the sdist and wheel and uploads
+   them to TestPyPI. Check that the action succeeds under the "Actions" tab
+   and that the new version appears at
+   https://test.pypi.org/project/stdpopsim/#history.
+   The version is a development version derived from the last tag,
+   such as ``0.3.1.dev5``, because the release tag does not exist yet.
+   Try it out in a fresh virtual environment. The dependencies come from
+   PyPI, and only ``stdpopsim`` itself comes from TestPyPI::
+
+       $ uv venv /tmp/stdpopsim-test
+       $ uv pip install --python /tmp/stdpopsim-test stdpopsim
+       $ uv pip install --python /tmp/stdpopsim-test --no-deps \
+             --index-url https://test.pypi.org/simple/ stdpopsim==<version>
+       $ /tmp/stdpopsim-test/bin/stdpopsim --version
+
+   When you are done, delete the ``test-publish`` branch.
+3. Create a release using the GitHub UI. Enter the version number in the
+   tag box and create the tag, then paste the changelog entry into the
+   release body. Publishing the release triggers the workflow again, which
+   uploads the tagged version to PyPI. Setuptools_scm derives the version
+   from the tag.
+4. Check that the "Publish Python release" action succeeds and that the
+   release appears at https://pypi.org/project/stdpopsim/.
 5. After the release, if everything looks OK,
    update the symlink for ``stable`` in the
    `stdpopsim-docs <https://github.com/popsim-consortium/stdpopsim-docs>`__
    repository
 6. Check on the conda feedstock PR.
+
+If the workflow cannot be used, a maintainer with upload rights can build
+and upload a release by hand from a clean checkout of the tag::
+
+    $ uv build
+    $ uv publish dist/*
+
+To upload to TestPyPI by hand instead, add
+``--publish-url https://test.pypi.org/legacy/`` to the ``uv publish`` command.
