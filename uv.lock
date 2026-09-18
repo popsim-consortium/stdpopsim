@@ -2578,7 +2578,7 @@ requires-dist = [
     { name = "appdirs" },
     { name = "attrs", specifier = ">=19.1.0" },
     { name = "humanize" },
-    { name = "msprime", specifier = ">=1.0.4" },
+    { name = "msprime", specifier = ">=1.4.4" },
     { name = "numpy" },
     { name = "pyslim", specifier = ">=1.1.1" },
     { name = "tskit" },
