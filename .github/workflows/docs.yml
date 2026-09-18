@@ -16,6 +16,12 @@ jobs:
     # See https://github.com/popsim-consortium/stdpopsim/issues/662
     if: github.repository == 'popsim-consortium/stdpopsim'
     runs-on: ubuntu-24.04
+    env:
+      # Which SLiM to build the docs with; see .github/actions/install-slim
+      # and the matching settings in tests.yml.
+      SLIM_VERSION: ""
+      SLIM_BRANCH: ""
+      SLIM_CACHE_NUM: 1
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,6 +39,13 @@ jobs:
         # the logs. This also installs the local package so that stdpopsim is
         # in the path, which is needed for generating docs `command-output`.
         run: uv sync --locked --group docs --no-default-groups
+
+      - name: Install SLiM
+        uses: ./.github/actions/install-slim
+        with:
+          version: ${{ env.SLIM_VERSION }}
+          branch: ${{ env.SLIM_BRANCH }}
+          cache-number: ${{ env.SLIM_CACHE_NUM }}
 
       - name: Build Docs
         run: uv run --locked --group docs --no-default-groups make -C docs

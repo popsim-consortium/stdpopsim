@@ -1816,6 +1816,14 @@ Releases are built and uploaded by the "Publish Python release" GitHub
 Actions workflow in ``.github/workflows/wheels.yml``, following the
 `tskit-dev release process
 <https://github.com/tskit-dev/.github/blob/main/repo_administration.md#standard-python-release-process>`__.
+The workflow runs in two situations:
+
+- A push to a branch named ``test-publish`` on the upstream repository
+  builds the sdist and wheel and uploads them to
+  `TestPyPI <https://test.pypi.org/project/stdpopsim/>`__.
+- Publishing a release on GitHub builds the tagged version and uploads it
+  to `PyPI <https://pypi.org/project/stdpopsim/>`__.
+
 The workflow uses PyPI `trusted publishing
 <https://docs.pypi.org/trusted-publishers/>`__, so no upload tokens are
 stored in the repository. This needs a one-time setup by a maintainer:
@@ -1824,22 +1832,26 @@ settings, and add a trusted publisher for this repository and that
 environment on both `PyPI <https://pypi.org/manage/account/publishing/>`__
 and `TestPyPI <https://test.pypi.org/manage/account/publishing/>`__.
 
-Here is a list of things to do when making a new release:
+--------------------------------
+Testing the release on TestPyPI
+--------------------------------
+
+Before tagging a release, check that the package builds and installs
+correctly by publishing a test build:
 
 1. Update the changelog with the version number and date, and merge that PR.
-2. Test the release on TestPyPI. Push the current ``upstream/main`` to a
-   branch named ``test-publish`` on the upstream repository::
+2. Push the current ``upstream/main`` to a branch named ``test-publish``
+   on the upstream repository::
 
        $ git fetch upstream
        $ git push upstream upstream/main:test-publish
 
-   This triggers the workflow, which builds the sdist and wheel and uploads
-   them to TestPyPI. Check that the action succeeds under the "Actions" tab
-   and that the new version appears at
+3. Check that the "Publish Python release" action succeeds under the
+   "Actions" tab, and that a new version appears at
    https://test.pypi.org/project/stdpopsim/#history.
    The version is a development version derived from the last tag,
    such as ``0.3.1.dev5``, because the release tag does not exist yet.
-   Try it out in a fresh virtual environment. The dependencies come from
+4. Try it out in a fresh virtual environment. The dependencies come from
    PyPI, and only ``stdpopsim`` itself comes from TestPyPI::
 
        $ uv venv /tmp/stdpopsim-test
@@ -1848,22 +1860,30 @@ Here is a list of things to do when making a new release:
              --index-url https://test.pypi.org/simple/ stdpopsim==<version>
        $ /tmp/stdpopsim-test/bin/stdpopsim --version
 
-   When you are done, delete the ``test-publish`` branch.
-3. Create a release using the GitHub UI. Enter the version number in the
+5. Delete the ``test-publish`` branch.
+
+----------------------
+Publishing the release
+----------------------
+
+1. Create a release using the GitHub UI. Enter the version number in the
    tag box and create the tag, then paste the changelog entry into the
-   release body. Publishing the release triggers the workflow again, which
+   release body. Publishing the release triggers the workflow, which
    uploads the tagged version to PyPI. Setuptools_scm derives the version
    from the tag.
-4. Check that the "Publish Python release" action succeeds and that the
+2. Check that the "Publish Python release" action succeeds and that the
    release appears at https://pypi.org/project/stdpopsim/.
-5. After the release, if everything looks OK,
-   update the symlink for ``stable`` in the
+3. If everything looks OK, update the symlink for ``stable`` in the
    `stdpopsim-docs <https://github.com/popsim-consortium/stdpopsim-docs>`__
-   repository
-6. Check on the conda feedstock PR.
+   repository.
+4. Check on the conda feedstock PR.
+
+-----------------
+Releasing by hand
+-----------------
 
 If the workflow cannot be used, a maintainer with upload rights can build
-and upload a release by hand from a clean checkout of the tag::
+and upload a release from a clean checkout of the tag::
 
     $ uv build
     $ uv publish dist/*

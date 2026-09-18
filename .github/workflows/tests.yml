@@ -21,14 +21,16 @@ jobs:
     env:
       OS: ${{ matrix.os }}
       PYTHON: ${{ matrix.python }}
-      # SLiM is not on PyPI, so it does not come from uv.lock. Leave
-      # SLIM_VERSION empty to build SLiM from github head, which is needed
+      # Which SLiM to test against; see .github/actions/install-slim.
+      # Leave SLIM_VERSION empty to build SLiM from github, which is needed
       # while the code depends on unreleased SLiM features. Set it to a
       # released version, for example "5.2", to install that release from
       # conda-forge instead. Do that once the next SLiM release is out.
       SLIM_VERSION: ""
-      # Increase this to rebuild SLiM from a newer github head. Only the
-      # slim binary is cached, keyed on the runner and this number.
+      # Git branch to build when SLIM_VERSION is empty. Leave empty for
+      # SLiM's default branch.
+      SLIM_BRANCH: ""
+      # Increase this to rebuild SLiM from a newer github head.
       SLIM_CACHE_NUM: 1
     steps:
       - name: cancel previous runs
@@ -48,74 +50,15 @@ jobs:
       - name: Install test deps
         run: uv sync --locked --group test --no-default-groups
 
-      - name: Install released SLiM from conda-forge
-        if: env.SLIM_VERSION != ''
-        uses: mamba-org/setup-micromamba@v3.2.1
+      - name: Install SLiM
+        uses: ./.github/actions/install-slim
         with:
-          environment-name: slim
-          create-args: slim=${{ env.SLIM_VERSION }}
-          init-shell: none
-
-      - name: Add released SLiM to PATH
-        if: env.SLIM_VERSION != ''
-        # conda-forge puts the binary under bin/ on Linux and macOS and
-        # under Library/bin/ on Windows.
-        run: |
-          echo "$MAMBA_ROOT_PREFIX/envs/slim/bin" >> $GITHUB_PATH
-          echo "$MAMBA_ROOT_PREFIX/envs/slim/Library/bin" >> $GITHUB_PATH
-
-      - name: Cache SLiM binary
-        if: env.SLIM_VERSION == ''
-        id: cache-slim
-        uses: actions/cache@v4.2.0
-        with:
-          path: SLiM/Release/slim*
-          key: slim-${{ runner.os }}-${{ runner.arch }}-${{ env.SLIM_CACHE_NUM }}
-
-      - name: Build development SLiM (Linux, macOS)
-        if: env.SLIM_VERSION == '' && runner.os != 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
-        run: |
-          git clone --depth 1 https://github.com/messerlab/SLiM.git
-          mkdir -p SLiM/Release
-          cd SLiM/Release
-          cmake -DCMAKE_BUILD_TYPE=Release ..
-          make -j 2
-
-      - name: Set up MSYS2 (Windows)
-        if: env.SLIM_VERSION == '' && runner.os == 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
-        uses: msys2/setup-msys2@v2.32.0
-        with:
-          msystem: UCRT64
-          release: false
-          install: >-
-            git
-            base-devel
-            msys2-devel
-            mingw-w64-ucrt-x86_64-toolchain
-            mingw-w64-ucrt-x86_64-cmake
-            mingw-w64-ucrt-x86_64-autotools
-
-      - name: Build development SLiM (Windows)
-      # SLiM links its runtime statically on Windows, so the resulting
-      # slim.exe runs from the plain bash shell used by the test step.
-        if: env.SLIM_VERSION == '' && runner.os == 'Windows' && steps.cache-slim.outputs.cache-hit != 'true'
-        shell: msys2 {0}
-        run: |
-          git clone --depth 1 https://github.com/messerlab/SLiM.git
-          cd SLiM/windows_compat/gnulib
-          # The gnulib configure scripts must be newer than their inputs,
-          # or the build tries to regenerate them with autotools.
-          touch aclocal.m4 Makefile.am configure configure.ac config.h.in Makefile.in
-          cd ../..
-          mkdir -p Release
-          cd Release
-          cmake -G"MSYS Makefiles" -DCMAKE_BUILD_TYPE=Release ..
-          make -j 2
+          version: ${{ env.SLIM_VERSION }}
+          branch: ${{ env.SLIM_BRANCH }}
+          cache-number: ${{ env.SLIM_CACHE_NUM }}
 
       - name: run test suite
         run: |
-          export PATH=$PWD/SLiM/Release:$PATH
-          slim -v
           uv run --locked --group test --no-default-groups \
             pytest \
             -n 0 \
