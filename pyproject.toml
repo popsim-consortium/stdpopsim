@@ -27,7 +27,7 @@ classifiers = [
 keywords = ["simulations", "selection", "recombination map", "models"]
 requires-python = ">=3.11"
 dependencies = [
-    "msprime>=1.0.4",
+    "msprime>=1.4.4",
     "tskit",
     "pyslim>=1.1.1",
     "attrs>=19.1.0",
