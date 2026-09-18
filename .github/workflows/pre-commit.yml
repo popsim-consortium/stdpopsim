@@ -11,7 +11,24 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+
+      - name: Install uv and set the python version
+        uses: astral-sh/setup-uv@v10.1.0
         with:
-          python-version: 3.12
-      - uses: pre-commit/action@v3.0.1
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install lint deps
+        run: uv sync --locked --only-group lint
+
+      - name: Cache pre-commit hook environments
+        # setup-uv caches the Python packages that uv installs. pre-commit
+        # builds its own isolated environment for each hook from the repos
+        # in .pre-commit-config.yaml, and stores them here instead.
+        uses: actions/cache@v4.2.0
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run pre-commit
+        run: uv run --locked --only-group lint pre-commit run --all-files --show-diff-on-failure

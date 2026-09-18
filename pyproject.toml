@@ -1,3 +1,113 @@
 [build-system]
-# We need setup.cfg support, which setuptools introduced in 30.3.0.
-requires = ["setuptools>=30.3.0", "wheel", "setuptools_scm"]
+requires = ["setuptools>=77", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stdpopsim"
+dynamic = ["version"]
+description = "A library of population genetic simulation models"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+authors = [
+    {name = "PopSim Consortium", email = "popgen_benchmark@lists.uoregon.edu"},
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS :: MacOS X",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+]
+keywords = ["simulations", "selection", "recombination map", "models"]
+requires-python = ">=3.11"
+dependencies = [
+    "msprime>=1.4.4",
+    "tskit",
+    "pyslim>=1.1.1",
+    "attrs>=19.1.0",
+    "appdirs",
+    "humanize",
+    "numpy",
+]
+
+[project.urls]
+Documentation = "https://popsim-consortium.github.io/stdpopsim-docs/stable/index.html"
+"Source Code" = "https://github.com/popsim-consortium/stdpopsim"
+"Bug Tracker" = "https://github.com/popsim-consortium/stdpopsim/issues"
+
+[project.scripts]
+stdpopsim = "stdpopsim.cli:stdpopsim_main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["stdpopsim*"]
+
+[tool.setuptools_scm]
+# The version is derived from git tags and written to this file at build time.
+version_file = "stdpopsim/_version.py"
+# Untagged commits get a plain .devN version. PyPI and TestPyPI reject the
+# default "+gHASH" local suffix, so this is needed to upload test builds.
+local_scheme = "no-local-version"
+
+# Dependency groups are installed with `uv sync --group <name>` or
+# `pip install --group <name>`. They are not part of the published package.
+[dependency-groups]
+test = [
+    "pytest",
+    "pytest-cov",
+    "pytest-xdist",
+    "coverage",
+    "kastore",
+    "packaging",
+    "scipy",
+    # The test suite imports the catalog maintenance scripts.
+    {include-group = "maintenance"},
+]
+
+docs = [
+    "sphinx",
+    "sphinx-argparse",
+    "sphinx-issues",
+    "sphinx_rtd_theme",
+    "sphinxcontrib-programoutput",
+    "setuptools_scm",
+    "matplotlib",
+    "demesdraw",
+]
+
+lint = [
+    "pre-commit",
+    "black",
+    "blacken-docs",
+    "flake8",
+]
+
+# Tools used by the catalog maintenance scripts in maintenance/ and validation.py.
+maintenance = [
+    "biopython",
+    "black",
+    "click",
+    "daiquiri",
+    "matplotlib",
+    "pandas",
+    "scikit-allel",
+]
+
+dev = [
+    {include-group = "test"},
+    {include-group = "docs"},
+    {include-group = "lint"},
+    {include-group = "maintenance"},
+]
+
+[tool.pytest.ini_options]
+addopts = "-n 4"
+testpaths = ["tests"]
