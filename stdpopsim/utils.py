@@ -60,10 +60,10 @@ def is_valid_species_id(species_id):
 def is_valid_species_name(name):
     """
     Returns True if the specified string is a valid species name. This
-    must be two or more words with first letter capitalised.
+    must be a capitalised genus followed by a lowercase specific epithet,
+    separated by a single space. The epithet may contain hyphens.
     """
-    # FIXME this only supports two words for now. See #329
-    regex = re.compile(r"[A-Z][a-z]+ [a-z]+")
+    regex = re.compile(r"[A-Z][a-z]+ [a-z]+(?:-[a-z]+)*")
     return regex.fullmatch(name) is not None
 
 
