@@ -3,11 +3,71 @@ Tests for the maintenance utilities.
 """
 
 from unittest import mock
+import importlib.util
 import json
+import sys
 import urllib
 import urllib.request
 
+import stdpopsim
 import maintenance as maint
+from maintenance import main
+
+
+class TestCatalogStub:
+    def test_gene_conversion(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        path = tmp_path / "stub_species"
+        path.mkdir()
+        (tmp_path / "tests").mkdir()
+        genome_data = {
+            "assembly_accession": "test_accession",
+            "assembly_name": "test_assembly",
+            "assembly_source": "ensembl",
+            "assembly_build_version": "test_version",
+            "chromosomes": {
+                "1": {"length": 1000, "synonyms": []},
+                "X": {"length": 500, "synonyms": ["chrX"]},
+            },
+        }
+        (path / "genome_data.py").write_text(f"data = {genome_data!r}\n")
+        main.write_catalog_stub(
+            path=path,
+            sps_id="TesSpe",
+            ensembl_id="test_species",
+            species_data={
+                "scientific_name": "Test species",
+                "display_name": "Test species",
+            },
+            genome_data=genome_data,
+        )
+        # Both the catalog entry and the independent QC test stub must parse.
+        for generated in [path / "species.py", tmp_path / "tests/test_TesSpe.py"]:
+            compile(generated.read_text(), str(generated), "exec")
+
+        spec = importlib.util.spec_from_file_location(
+            "stub_species", path / "__init__.py"
+        )
+        package = importlib.util.module_from_spec(spec)
+        with (
+            mock.patch.dict(sys.modules),
+            mock.patch("stdpopsim.register_species") as register,
+            mock.patch(
+                "stdpopsim.Genome.from_data", wraps=stdpopsim.Genome.from_data
+            ) as from_data,
+        ):
+            sys.modules[spec.name] = package
+            spec.loader.exec_module(package)
+            species = package.species
+            expected = {"1": None, "X": None}
+            assert species._gene_conversion_fraction == expected
+            assert species._gene_conversion_length == expected
+            assert from_data.call_args.kwargs["gene_conversion_fraction"] == expected
+            assert from_data.call_args.kwargs["gene_conversion_length"] == expected
+            register.assert_called_once_with(species._species)
+            for chrom in species._genome.chromosomes:
+                assert chrom.gene_conversion_fraction is None
+                assert chrom.gene_conversion_length is None
 
 
 class MockedResponse:

@@ -1,5 +1,6 @@
 black>=22.1.0
 blacken-docs
+click
 coverage
 daiquiri
 flake8

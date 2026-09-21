@@ -59,6 +59,17 @@ _recombination_rate = $chromosome_rate_dict
 _mutation_rate = $chromosome_rate_dict
 
 # [The following are notes for implementers and should be deleted
+#  once the gene conversion parameters have been reviewed]
+# The fraction of recombination events that are gene conversions and the
+# mean gene conversion tract length (in base pairs), for each chromosome.
+# Leave values as None when estimates are unavailable. Where estimates are
+# available, document their source here and add citations to the Genome
+# object with reason stdpopsim.CiteReason.GENE_CONVERSION.
+
+_gene_conversion_fraction = $chromosome_none_dict
+_gene_conversion_length = $chromosome_none_dict
+
+# [The following are notes for implementers and should be deleted
 #  once the recombination rates have been inserted]
 # This is the per-chromosome ploidy.
 # Values in this dictionary are set to -1 by default, so you have
@@ -70,6 +81,8 @@ _genome = stdpopsim.Genome.from_data(
     genome_data.data,
     recombination_rate=_recombination_rate,
     mutation_rate=_mutation_rate,
+    gene_conversion_fraction=_gene_conversion_fraction,
+    gene_conversion_length=_gene_conversion_length,
     ploidy=_ploidy,
     # [ Implementers: please insert citations for the papers you are basing
     # the estimates for recombination and mutation rates. The assembly
@@ -92,6 +105,8 @@ _species = stdpopsim.Species(
     genome=_genome,
     # [Implementers: you must provide the typical ploidy of the organism.]
     ploidy=-1,
+    # [Implementers: set to True for separate sexes, or False otherwise.]
+    separate_sexes=None,
     # [Implementers: you must provide an estimate of the generation_time.
     # Please also add a citation for this.]
     generation_time=0,
@@ -180,16 +195,18 @@ class TestGenomeData(test_species.GenomeTestBase):
         ["name", "gene_conversion_length"],
         $chromosome_rate_dict.items())
     def test_chromosome_gene_conversion_length(self, name, gene_conversion_length):
-        assert gene_conversion_length ==
+        assert gene_conversion_length == (
             self.genome.get_chromosome(name).gene_conversion_length
+        )
 
     @pytest.mark.skip("Gene conversion fraction QC not done yet")
     @pytest.mark.parametrize(
         ["name", "gene_conversion_fraction"],
         $chromosome_rate_dict.items())
     def test_chromosome_gene_conversion_fraction(self, name, gene_conversion_fraction):
-        assert gene_conversion_fraction ==
+        assert gene_conversion_fraction == (
             self.genome.get_chromosome(name).gene_conversion_fraction
+        )
 """
 )
 
@@ -251,6 +268,7 @@ def write_catalog_stub(*, path, sps_id, ensembl_id, species_data, genome_data):
         scientific_name=scientific_name,
         common_name=common_name,
         chromosome_rate_dict=chromosome_rate_template,
+        chromosome_none_dict={name: None for name in chr_names},
     )
     path = path / "species.py"
     logger.info(f"Writing species definition stub to {path}")
