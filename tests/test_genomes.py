@@ -10,6 +10,17 @@ import stdpopsim
 
 class TestContig(object):
 
+    @pytest.mark.parametrize("species_id", [None, "AraTha", "HomSap"])
+    def test_representation(self, species_id):
+        if species_id is None:
+            contig = stdpopsim.Contig.basic_contig(length=100)
+        else:
+            contig = stdpopsim.get_species(species_id).get_contig("1")
+        for representation in (repr(contig), str(contig)):
+            assert representation.startswith("Contig(")
+            assert "dme_list=" in representation
+            assert "_dfe_list=" not in representation
+
     example_dfe = stdpopsim.DFE(
         id="abc",
         description="example DFE",
