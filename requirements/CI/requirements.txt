@@ -11,7 +11,7 @@ sphinx_rtd_theme==3.1.0
 sphinxcontrib-programoutput==0.19
 attrs==26.1.0
 appdirs==1.4.4
-humanize==4.15.0
+humanize==4.16.0
 pyslim==1.1.1
 numpy==2.4.6
 scipy==1.17.1
