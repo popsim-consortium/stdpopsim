@@ -10,6 +10,24 @@ import stdpopsim.utils
 
 
 class TestMasking:
+    @pytest.mark.parametrize("extra_columns", ["", "\tinterval\t0\t+"])
+    @pytest.mark.parametrize("chrom", ["chr22", "chr1"])
+    def test_read_single_interval(self, tmp_path, extra_columns, chrom):
+        bedfile = tmp_path / "single.bed"
+        bedfile.write_text(f"chr22\t1000\t1450{extra_columns}\n")
+        intervals = stdpopsim.utils.read_bed(bedfile, chrom)
+        expected = np.array([[1000, 1450]]) if chrom == "chr22" else np.empty((0, 2))
+        np.testing.assert_array_equal(intervals, expected)
+        assert np.issubdtype(intervals.dtype, np.integer)
+
+    @pytest.mark.parametrize("mask", ["inclusion_mask", "exclusion_mask"])
+    def test_single_interval_mask(self, tmp_path, mask):
+        bedfile = tmp_path / "single.bed"
+        bedfile.write_text("22\t1000\t1450\n")
+        species = stdpopsim.get_species("HomSap")
+        contig = species.get_contig("22", **{mask: str(bedfile)})
+        np.testing.assert_array_equal(getattr(contig, mask), [[1000, 1450]])
+
     @pytest.mark.usefixtures("tmp_path")
     def test_load_intervals(self, tmp_path):
         intervals_in = {
