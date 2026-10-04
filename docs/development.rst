@@ -57,6 +57,42 @@ following sections to learn how to contribute.
 And, importantly, please have a look at our
 `code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/main/CODE_OF_CONDUCT.md>`__.
 
+********************
+Developer quickstart
+********************
+
+You can contribute code, catalog entries, documentation, bug reports, or ideas.
+You do not need to have a finished solution to join the discussion.
+
+1. Look through the `open issues
+   <https://github.com/popsim-consortium/stdpopsim/issues>`__ and existing
+   `pull requests <https://github.com/popsim-consortium/stdpopsim/pulls>`__.
+   If you would like to work on an issue, check the discussion for ongoing work.
+   For a new feature or a substantial change, open an issue to discuss the
+   approach before implementing it. Questions about where to start are welcome.
+2. Fork the repository, install the development dependencies and pre-commit
+   hooks, and create a topic branch. See `Installation`_ and `GitHub workflow`_
+   for the commands.
+3. Make a focused change, following the `Coding standards`_ and
+   `Naming conventions`_. Add tests for new code and update the documentation
+   when behavior changes. Catalog contributions have additional requirements;
+   follow the relevant species, demographic model, genetic map, annotation,
+   or DFE instructions below, including their quality control procedures.
+4. Run the relevant `Unit tests`_ and `Pre-commit checks`_. For documentation
+   changes, build the docs as described in `Documentation`_.
+5. Open a pull request from your topic branch. Explain the problem, the change,
+   and how you checked it, and link to any related issue. If you need feedback
+   before the work is complete, open a draft pull request and explain what is
+   still needed.
+
+Maintainers review pull requests and may ask questions or request changes.
+Respond in the pull request discussion and push updates to the same branch;
+the pull request will update automatically. Review can take several rounds,
+especially for catalog additions that need independent quality control.
+If feedback or a failed automated check is unclear, ask in the pull request.
+For other development questions, use the relevant issue or open a new one.
+
+
 .. _sec_development_installation:
 
 ************
