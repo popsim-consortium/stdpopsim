@@ -154,6 +154,7 @@ def read_bed(mask_fpath, chrom):
         dtype={"names": ("chrom", "left", "right"), "formats": (object, int, int)},
         delimiter="\t",
         usecols=(0, 1, 2),
+        ndmin=1,
     )
     in_chrom = lines["chrom"] == f"{chrom}"
     lines = lines.compress(in_chrom)
