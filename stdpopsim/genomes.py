@@ -358,7 +358,7 @@ class Contig:
     species = attr.ib(default=None, kw_only=True)
     # _dfe_list only gets used in the initialization and subsequently
     # gets deleted. It should not be used anywhere else.
-    _dfe_list = attr.ib(factory=list, alias="dfe_list")
+    _dfe_list = attr.ib(factory=list, alias="dfe_list", repr=False)
 
     def __attrs_post_init__(self):
         if len(self._dfe_list) > 0:
