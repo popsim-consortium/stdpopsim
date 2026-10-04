@@ -1,0 +1,51 @@
+Population size,13580.37,Ancestral (root) pop. size
+Population size,27142.07,AMH pop. size
+Population size,1834.81,OOA pop. size
+Population size,27142.07,YRI pop. size (constant)
+Population size,2761.33,IBS pop. size at OOA split
+Population size,26462.06,IBS pop. size at present
+Population size,1954.53,CHB pop. size at OOA split
+Population size,15363.54,CHB pop. size at present
+Population size,1312.80,MXB pop. size at CHB branch
+Population size,38461.62,MXB pop. size at present
+Population size,20000,Founding size of each admixed pop. (MXL/CLM/PEL/PUR)
+Migration rate (per gen.),2.501606e-05,YRI-IBS symmetric migration rate
+Migration rate (per gen.),3.294832e-06,YRI-CHB symmetric migration rate
+Migration rate (per gen.),6.624007e-05,IBS-CHB symmetric migration rate
+Migration rate (per gen.),1.585950e-04,YRI-OOA symmetric migration rate
+Migration rate (per gen.),0.0503,MXB->MXL continuous migration rate
+Migration rate (per gen.),0.0576,IBS->MXL continuous migration rate
+Migration rate (per gen.),0.0618,IBS->CLM continuous migration rate
+Migration rate (per gen.),0.0084,MXB->CLM continuous migration rate
+Migration rate (per gen.),0.1246,MXB->PEL continuous migration rate
+Migration rate (per gen.),0.0103,IBS->PEL continuous migration rate
+Migration rate (per gen.),0.0105,YRI->PUR continuous migration rate
+Epoch Time (gen.),16670.94,Ancestral pop. expansion (to AMH)
+Epoch Time (gen.),3046.47,AFR-OOA split (AMH -> YRI + OOA)
+Epoch Time (gen.),1764.35,OOA split (OOA -> IBS + CHB)
+Epoch Time (gen.),1122.59,MXB branch time (off CHB)
+Epoch Time (gen.),16.07,MXL founding (admixture) time
+Epoch Time (gen.),13.45,CLM founding (admixture) time
+Epoch Time (gen.),14.21,PEL founding (admixture) time
+Epoch Time (gen.),14.03,PUR founding (admixture) time
+Epoch Time (gen.),2.0,End of continuous post-founding migration
+Epoch Time (gen.),13.1,MXL post-colonial pulse time
+Epoch Time (gen.),9.48,CLM post-colonial pulse time
+Epoch Time (gen.),7.76,PEL post-colonial pulse time (YRI source)
+Epoch Time (gen.),4.86,PEL post-colonial pulse time (CHB source)
+Admixture proportion,0.7545,MXB ancestry proportion at MXL founding
+Admixture proportion,0.2455,IBS ancestry proportion at MXL founding
+Admixture proportion,0.4387,IBS ancestry proportion at CLM founding
+Admixture proportion,0.5613,MXB ancestry proportion at CLM founding
+Admixture proportion,0.909,IBS ancestry proportion at PEL founding
+Admixture proportion,0.091,MXB ancestry proportion at PEL founding
+Admixture proportion,0.8484,IBS ancestry proportion at PUR founding
+Admixture proportion,0.141,MXB ancestry proportion at PUR founding
+Admixture proportion,0.0106,YRI ancestry proportion at PUR founding
+Admixture proportion,0.1175,MXL post-colonial pulse from YRI
+Admixture proportion,0.0067,MXL post-colonial pulse from CHB
+Admixture proportion,0.1194,CLM post-colonial pulse from YRI
+Admixture proportion,0.0542,PEL post-colonial pulse from YRI
+Admixture proportion,0.0105,PEL post-colonial pulse from CHB
+Generation time (yrs.),29,Generation time
+Mutation rate,1.25e-8,Per-base per-generation mutation rate
