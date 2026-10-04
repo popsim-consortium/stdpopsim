@@ -137,7 +137,7 @@ class TestValidSpeciesId:
 
 class TestValidSpeciesName:
     """
-    Tests for the is_valid_demographic_model_id function.
+    Tests for the is_valid_species_name function.
     """
 
     def test_empty_string(self):
@@ -157,6 +157,13 @@ class TestValidSpeciesName:
             "pan pan",
             "Pan p0n",
             "Pan, pan",
+            "Pan pan pan",
+            "Capsella -bursa",
+            "Capsella bursa-",
+            "Capsella bursa--pastoris",
+            "Capsella bursa-Pastoris",
+            "Capsella bursa- pastoris",
+            "Capsella bursa-1",
         ]
         for bad_name in bad_names:
             assert not (utils.is_valid_species_name(bad_name))
@@ -166,11 +173,9 @@ class TestValidSpeciesName:
         for good_name in good_names:
             assert utils.is_valid_species_name(good_name)
 
-    @pytest.mark.skip("Implement more flexible species name")
-    def test_three_or_more(self):
-        bad_names = ["Pan pan pan"]
-        for bad_name in bad_names:
-            assert utils.is_valid_species_name(bad_name)
+    @pytest.mark.parametrize("name", ["Capsella bursa-pastoris", "Atropa bella-donna"])
+    def test_hyphenated_epithet(self, name):
+        assert utils.is_valid_species_name(name)
 
 
 class TestValidSpeciesCommonName:
