@@ -19,6 +19,56 @@ Under the hood, ``stdpopsim`` relies on
 `tree sequence <https://tskit.dev/learn/>`_ format.
 
 
+Goals
+-----
+
+``stdpopsim`` has two equally important goals.
+
+**Building infrastructure for reproducible simulation.**
+``stdpopsim`` provides a community-maintained, quality-controlled library of published
+population genetic models, so that researchers can simulate realistic genomes without
+reimplementing those models themselves.
+Implementing a published model by hand is error-prone:
+`Ragsdale et al. (2020) <https://doi.org/10.1016/j.ajhg.2020.08.017>`__ describe two
+errors in models implemented with msprime that propagated into published studies before
+they were caught.
+To guard against such errors, each species, demographic model, and DFE added to the
+``stdpopsim`` catalog goes through quality control, in which a second contributor
+independently implements it from the original publication and the two implementations
+are compared.
+
+**Building a community.**
+We aim to build a diverse and supportive community of people who develop population
+genetic software, and to train new contributors along the way.
+Contributing to ``stdpopsim`` is a way to learn software development, testing, and code
+review.
+A quality-control review or a small fix is a great first contribution.
+
+These two goals shape our policy regarding contributions, as specified below:
+
+ - Contributors are members of the ``stdpopsim`` community or want to become members.
+   We encourage newcomers to find suitable issues and submit pull requests (see below).
+   When someone we do not know opens a pull request, a maintainer will contact them via
+   GitHub to invite them to join our community.
+   Pull requests from people with no intention of joining the ``stdpopsim`` community
+   will not be accepted.
+   This includes pull requests generated and submitted autonomously by AI agents.
+
+ - Straightforward enhancements and maintenance tasks may be deliberately left open,
+   often labeled as `good first issues
+   <https://github.com/popsim-consortium/stdpopsim/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`__,
+   so that new contributors have somewhere to start.
+   If you would like to take one on, comment on the issue and we will help you through it.
+
+ - Contributors may use AI tools, but they must disclose how they used them and must be
+   able to explain every change in plain language during review if necessary.
+
+ - Errors that affect the correctness of simulations are fixed promptly by the
+   maintainers.
+   If a pull request we cannot accept identifies a real bug but we cannot accept it based
+   on the policy above, we will fix the bug ourselves.
+
+
 First steps
 -----------
 
@@ -38,26 +88,41 @@ Getting involved
 ``stdpopsim`` **is a community effort, and we welcome YOU to join us!**
 
 Are there other features, models or organisms that you'd like to see in ``stdpopsim``?
-This software is maintained by the PopSim Consortium,
-an open, global community of scientists and developers who are working together to improve
-standards for benchmarking and testing in population genetics.
+This software is maintained by an open, global community of scientists and developers
+who are working together to improve standards for benchmarking and testing in population
+genetics.
+The ``stdpopsim`` community includes anyone who wants to join it; you do not need to have
+contributed before or hold an academic position.
+
+There is no minimum level of contribution to join the ``stdpopsim`` community.
+You just need to tell us who you are and why you're interested in ``stdpopsim``.
+Contributors are also expected to engage with other members of the community in review
+of their code.
 You can get into contact with the ``stdpopsim`` community by subscribing to our `email list
-serve <https://lists.uoregon.edu/mailman/listinfo/popgen_benchmark>`_
+serve <https://lists.uoregon.edu/mailman/listinfo/popgen_benchmark>`__
 and by creating and commenting on
-Github `issues <http://github.com/popgensims/stdpopsim/issues>`_.
-There is a lot of chatter through
-Github, and we’ve been building code
-there cooperatively. If you are interested in joining us please read our
-`code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/main/CODE_OF_CONDUCT.md>`_.
-A particular goal of this project is to build a diverse and supportive community,
-and so we especially encourage individuals from underrepresented groups in popgen to join.
-A primary goal of PopSim Consortium is to be inclusive to the largest number of contributors,
-with the most varied and diverse backgrounds possible. As such, we are committed to providing a
-friendly, safe and welcoming environment for all, regardless of gender, sexual orientation, ability,
-ethnicity, socioeconomic status, and religion (or lack thereof).
-Being a member of the Consortium can provide a valuable avenue for career development, through
-building networks, contributing to papers and code, as well as through learning programing standards
-and best practices.
+`GitHub issues <https://github.com/popsim-consortium/stdpopsim/issues>`__.
+There is a lot of chatter through GitHub, and we've been building code there
+cooperatively.
+If you are new and would like to contribute code, the best way to introduce yourself is
+to open or comment on an issue that describes what you plan to work on, before you open
+a pull request.
+If you open a pull request without having been in touch, a maintainer will contact you
+via GitHub.
+Before contributing, please read our
+`contributing guidelines <https://github.com/popsim-consortium/stdpopsim/blob/main/CONTRIBUTING.md>`__
+and `code of conduct <https://github.com/popsim-consortium/stdpopsim/blob/main/CODE_OF_CONDUCT.md>`__.
+
+We especially encourage individuals from groups that are underrepresented in population
+genetics to join.
+A primary goal of our community is to be inclusive of the largest number of contributors,
+with the most varied and diverse backgrounds possible.
+As such, we are committed to providing a friendly, safe and welcoming environment for
+all, regardless of gender, sexual orientation, ability, ethnicity, socioeconomic status,
+and religion (or lack thereof).
+Being a member of the ``stdpopsim`` community can provide a valuable avenue for career
+development, through building networks, contributing to papers and code, as well as
+through learning programming standards and best practices.
 
 For further details read the :ref:`Development <sec_development>` page to find out how you can join us.
 
