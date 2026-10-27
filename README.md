@@ -19,3 +19,10 @@ If you use ``stdpopsim`` in your work, please cite our papers:
 
 See [here](https://popsim-consortium.github.io/stdpopsim-docs/stable/introduction.html#citations)
 for full citation details.
+
+## Contributing
+
+Building a community of contributors is one of the stdpopsim project's goals, alongside the software itself.
+Before opening a pull request, please read our [contributing guidelines](https://github.com/popsim-consortium/stdpopsim/blob/main/CONTRIBUTING.md)
+and the [Goals](https://popsim-consortium.github.io/stdpopsim-docs/latest/introduction.html#goals) section of the documentation.
+We do not accept pull requests generated and submitted autonomously by AI agents.
