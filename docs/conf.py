@@ -236,3 +236,12 @@ todo_include_todos = True
 
 # Github repo
 issues_github_path = "popsim-consortium/stdpopsim"
+
+
+def hide_generated_page_edit_link(app, pagename, templatename, context, doctree):
+    if doctree is None:
+        context["display_github"] = False
+
+
+def setup(app):
+    app.connect("html-page-context", hide_generated_page_edit_link)
