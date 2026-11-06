@@ -12,6 +12,8 @@ stdpopsim has two goals of equal importance: building infrastructure for reprodu
 
 * If you have not contributed before, introduce yourself by opening or commenting on an issue that describes what you plan to work on. We can then point you to related discussion and help you avoid duplicated work.
 
+* If this is your first pull request, introduce yourself in its description: tell us who you are and describe your interest in stdpopsim. The pull request template has a place for this.
+
 * Look at the [good first issues](https://github.com/popsim-consortium/stdpopsim/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22). Some straightforward issues are deliberately left open so that new contributors have a place to start.
 
 * Each species, demographic model, and DFE added to the catalog goes through quality control, in which a second contributor independently implements it from the original publication. The [developer guide](https://popsim-consortium.github.io/stdpopsim-docs/latest/development.html) describes this process.
