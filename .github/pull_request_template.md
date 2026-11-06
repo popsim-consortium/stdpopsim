@@ -8,6 +8,10 @@ If this is your first contribution, welcome! Please read [CONTRIBUTING.md](https
 
 Pull requests from people with no intention of becoming part of the stdpopsim community will not be accepted, including pull requests generated and submitted autonomously by AI agents.
 
+If this is your first pull request to stdpopsim, please introduce yourself below: tell us who you are and describe your interest in stdpopsim. If you have contributed before, you can skip this.
+
+<!-- Introduce yourself here. -->
+
 ### AI use disclosure (required)
 
 Check one box.
