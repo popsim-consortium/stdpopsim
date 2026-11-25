@@ -101,6 +101,8 @@ Then, if you feel ready, make an issue on our
 
 .. speciescatalog:: SusScr
 
+.. speciescatalog:: ZeaMay
+
 Generic models
 ==============
 
