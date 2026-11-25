@@ -2,6 +2,12 @@
 Upcoming
 --------
 
+**New species**:
+
+- Maize (*Zea mays*, ZeaMay) on the Zm-B73-REFERENCE-NAM-5.0 assembly, with the
+    FineMap_B73v5 genetic map and the Domestication_1M26 demographic model.
+    (:user:`rossibarra`, :pr:`XXXX`)
+
 **Bug fixes**:
 
 - Due to a sign error, the GammaAdditive_H18 DFE for AraTha was positive
